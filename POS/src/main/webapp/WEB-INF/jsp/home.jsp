@@ -1,3 +1,5 @@
+
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 
@@ -18,11 +20,12 @@
             height: 100vh;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 220px;
             background-color: #2c3e50;
             color: white;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .sidebar h3 {
@@ -41,17 +44,16 @@
 
         .menu a {
             display: block;
-            padding: 12px 20px;
+            padding: 10px 20px;
             color: white;
             text-decoration: none;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .menu a:hover {
             background-color: #34495e;
         }
 
-        /* Main section */
         .main {
             flex: 1;
             display: flex;
@@ -102,7 +104,6 @@
 
 <div class="layout">
 
-    <!-- Sidebar -->
     <div class="sidebar">
         <h3>Admin Panel</h3>
 
@@ -117,10 +118,8 @@
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="main">
 
-        <!-- Header with Logout -->
         <div class="header">
             <span>Dashboard</span>
 
@@ -132,7 +131,6 @@
             </form>
         </div>
 
-        <!-- Centered Text -->
         <div class="content">
             Welcome to My POS Application
         </div>

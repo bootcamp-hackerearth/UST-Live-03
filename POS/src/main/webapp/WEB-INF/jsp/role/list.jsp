@@ -79,6 +79,8 @@
             border-bottom: 1px solid #eee;
             font-size: 14px;
             color: #333;
+
+            /* ✅ FIX: Prevent vertical wrapping */
             white-space: nowrap;
         }
 
@@ -206,5 +208,6 @@
     </div>
 
 </div>
+
 </body>
 </html>

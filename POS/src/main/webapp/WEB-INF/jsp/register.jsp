@@ -36,6 +36,7 @@
             font-weight: 600;
         }
 
+        /* ✅ Back Icon */
         .back-icon {
             position: absolute;
             top: 16px;
@@ -138,7 +139,6 @@
     <a href="/login" class="back-icon">←</a>
 
     <h2>User Registration</h2>
-
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}
@@ -197,5 +197,6 @@
     </div>
 
 </div>
+
 </body>
 </html>

@@ -30,7 +30,7 @@ public class UserController {
     public String update(Model model, @RequestParam String username) {
         UserDto response = userService.findByUserName(username);
         model.addAttribute("user", response);
-        model.addAttribute("roles",roleService.findAll());
+        model.addAttribute("roles", roleService.findAll());
         return "user/user";
     }
 
@@ -39,7 +39,7 @@ public class UserController {
         UserDto response = userService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute("user",userDto);
+            model.addAttribute("user", userDto);
             return "user/user";
         }
         return "redirect:/user/list";
@@ -48,7 +48,7 @@ public class UserController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String username) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null){
+        if (authentication != null) {
             String loggedInUser = authentication.getName();
             userService.delete(username);
             if (loggedInUser.equals(username)) {

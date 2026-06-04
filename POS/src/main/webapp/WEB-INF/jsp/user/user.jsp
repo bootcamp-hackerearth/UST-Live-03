@@ -37,6 +37,7 @@
             font-weight: 600;
         }
 
+        /* ✅ Back Icon (same everywhere) */
         .back-icon {
             position: absolute;
             top: 16px;
@@ -150,7 +151,6 @@
 
     <form:form action="/user/update" method="post" modelAttribute="user">
 
-        <!-- ID (hidden) -->
         <form:input path="id" type="hidden"/>
 
         <div class="form-group">
@@ -201,5 +201,6 @@
     </div>
 
 </div>
+
 </body>
 </html>

@@ -90,6 +90,7 @@
             box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.2);
         }
 
+        /* ✅ Success Message */
         .alert {
             padding: 10px;
             border-radius: 8px;
@@ -100,6 +101,7 @@
             color: #155724;
         }
 
+        /* ✅ Error / Info Message */
         .error-message {
             padding: 10px;
             border-radius: 8px;
@@ -186,5 +188,6 @@
     </div>
 
 </div>
+
 </body>
 </html>

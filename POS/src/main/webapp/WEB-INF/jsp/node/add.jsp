@@ -40,6 +40,7 @@
             font-weight: 600;
         }
 
+        /* ✅ Back Icon (Same as Role pages) */
         .back-icon {
             position: absolute;
             top: 16px;
@@ -139,7 +140,6 @@
     <a href="/node/list" class="back-icon">←</a>
 
     <h2>Add New Node</h2>
-
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}

@@ -45,7 +45,7 @@ public class NodeController {
     public String update(Model model, @RequestParam String identifier) {
         NodeDto response = nodeService.findByIdentifier(identifier);
         model.addAttribute("node", response);
-        model.addAttribute("roles",roleService.findAll());
+        model.addAttribute("roles", roleService.findAll());
         return "node/node";
     }
 
