@@ -187,7 +187,7 @@
 
     <div class="footer">
         <a href="/" class="btn-secondary">Home</a>
-        <a href="/register" class="btn-success">Register</a>
+        <a href="/register" class="btn-success">Add User</a>
 
         <div style="margin-top:10px; font-size:12px; color:#ddd;">
             User Management System

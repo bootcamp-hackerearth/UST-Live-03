@@ -4,6 +4,7 @@ import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -20,15 +21,15 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("users", userService.findAll());
+    public String home(Model model, Pageable pageable) {
+        model.addAttribute("users", userService.findAll(pageable));
         return "user/list";
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String username, @ModelAttribute UserDto user) {
+    public String update(Model model, @RequestParam String username, @ModelAttribute UserDto user, Pageable pageable) {
         UserDto response = userService.findByUserName(username);
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findAll(pageable));
         model.addAttribute("user", response);
         return "user/user";
     }
@@ -47,7 +48,7 @@ public class UserController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String username) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null){
+        if (authentication != null) {
             String loggedInUser = authentication.getName();
             userService.delete(username);
             if (loggedInUser.equals(username)) {

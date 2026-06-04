@@ -7,6 +7,8 @@ import com.ust.pos.role.service.RoleService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +27,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public RoleDto findByIdentifier(String identifier) {
         Role role = roleRepository.findByIdentifier(identifier);
-        if (role==null){
+        if (role == null) {
             return null;
         }
         return modelMapper.map(role, RoleDto.class);
@@ -62,14 +64,14 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional
     public void delete(String identifier) {
-
-         roleRepository.deleteByIdentifier(identifier);
+        roleRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<RoleDto> findAll() {
+    public List<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        return modelMapper.map(roleRepository.findAll(), listType);
+        Page<Role> rolePage = roleRepository.findAll(pageable);
+        return modelMapper.map(rolePage.getContent(), listType);
     }
 }

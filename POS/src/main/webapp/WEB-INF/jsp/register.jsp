@@ -169,8 +169,8 @@
 
             <input type="submit" value="Register" class="btn-submit"/>
 
-            <button type="button" class="btn-login" onclick="window.location.href='login'">
-                Login
+            <button type="button" class="btn-login" onclick="window.location.href='/user/list'">
+                Go Back
             </button>
 
             <c:if test="${not empty message}">
