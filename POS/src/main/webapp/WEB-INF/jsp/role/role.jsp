@@ -8,140 +8,130 @@
     <title>Edit Role</title>
 
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-        }
-
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background: #ffffff;
         }
 
-        .container {
-            width: 420px;
+        .card {
+            width: 360px;
             background: #ffffff;
-            padding: 25px 30px;
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(76, 29, 149, 0.18);
-            box-sizing: border-box;
+            margin: 40px auto;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .app-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #14b8a6;
+            margin-bottom: 4px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 5px 12px;
+            background: #ffffff;
+            border: 1px solid teal;
+            color: teal;
+            text-decoration: none;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         h2 {
             text-align: center;
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #6d28d9;
-            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 20px;
         }
 
         label {
-            margin-top: 14px;
             display: block;
+            margin-top: 10px;
+            font-size: 12px;
             font-weight: 600;
-            font-size: 13px;
-            color: #4c1d95;
+            color: #475569;
         }
 
-        input, select {
+        input, textarea {
+            display: block;
             width: 100%;
-            margin-top: 5px;
-            padding: 9px;
-            border: 1px solid #c4b5fd;
-            border-radius: 6px;
-            font-size: 13px;
             box-sizing: border-box;
+            padding: 8px 10px;
+            margin-top: 4px;
+            border: 1px solid #d1d5db;
+            border-radius: 18px;
+            font-size: 13px;
         }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 0.15rem rgba(167, 139, 250, 0.35);
+        input[readonly] {
+            background: #f1f5f9;
+        }
+
+        textarea {
+            resize: none;
+            height: 70px;
         }
 
         button {
-            margin-top: 22px;
+            margin-top: 16px;
             width: 100%;
-            padding: 11px;
-            background: #7c3aed; /* primary purple */
-            color: #ffffff;
+            height: 34px;
+            background: teal;
+            color: white;
+            border-radius: 18px;
             border: none;
             font-weight: 600;
-            border-radius: 6px;
+            font-size: 13px;
             cursor: pointer;
-            font-size: 13px;
         }
 
-        button:hover {
-            background: #6d28d9;
-        }
-
-        a {
-            display: block;
+        .error-message {
             text-align: center;
-            margin-top: 16px;
-            color: #6d28d9;
+            color: #ef4444;
+            font-size: 12px;
             font-weight: 600;
-            text-decoration: none;
-            font-size: 13px;
-        }
-
-        a:hover {
-            text-decoration: underline;
-            color: #5b21b6;
-        }
-
-        .alert {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 13px;
-            margin-bottom: 14px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="card">
+
+    <div class="app-title">POS Application</div>
+
+    <a href="${pageContext.request.contextPath}/role/list" class="back-btn">Back</a>
 
     <h2>Edit Role</h2>
 
-    <c:if test="${empty role}">
-        <div class="alert">
-            Role not found
-        </div>
+    <c:if test="${not empty message}">
+        <div class="error-message">${message}</div>
     </c:if>
+    <form:form action="${pageContext.request.contextPath}/role/update"
+               method="post"
+               modelAttribute="role">
 
-    <c:if test="${not empty role}">
+        <form:hidden path="id"/>
 
-        <form:form action="/role/update" method="post" modelAttribute="role">
+        <label>Role Name</label>
+        <form:input path="identifier" readonly="true"/>
 
-            <form:hidden path="id"/>
+        <label>Description</label>
+        <form:textarea path="description"/>
 
-            <label>Role Name</label>
-            <form:input path="identifier" placeholder="Enter role" required="true" readonly="true"/>
+        <button type="submit">Update Role</button>
 
-            <label>Description</label>
-            <form:input path="description" placeholder="Enter role" required="true"/>
-
-            <button type="submit">Update</button>
-
-        </form:form>
-
-    </c:if>
-
-    <a href="/role/list">
-        ← Back to Role List
-    </a>
+    </form:form>
 
 </div>
 

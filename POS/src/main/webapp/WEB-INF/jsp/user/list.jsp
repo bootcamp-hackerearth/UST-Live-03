@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
@@ -6,165 +6,113 @@
 <head>
     <title>User Management</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-          rel="stylesheet">
-
     <style>
-        :root {
-            --bg: #ede9fe;
-            --card: #ffffff;
-
-            --text: #4c1d95;
-            --muted: #6b7280;
-
-            --primary: #7c3aed;
-            --primary-hover: #6d28d9;
-
-            --accent: #c4b5fd;
-
-            --danger: #dc2626;
-            --danger-hover: #b91c1c;
-
-            --border: #ddd6fe;
-
-            --radius: 14px;
-            --shadow: 0 15px 35px rgba(76, 29, 149, 0.18);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
         body {
+            margin: 0;
             min-height: 100vh;
-            padding: 40px 16px;
-            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-            color: var(--text);
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #ffffff;
         }
 
         .container {
-            max-width: 1100px;
-            margin: auto;
-        }
-
-        .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        .card-header {
+            width: 95%;
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             padding: 18px;
+        }
+
+        .app-title {
             text-align: center;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 600;
-            color: #ffffff;
-            background: var(--primary);
+            color: #14b8a6; /* light teal */
+            margin-bottom: 4px;
         }
 
-        .card-body {
-            padding: 18px;
+        h2 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .list-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .home-btn {
+            padding: 7px 16px;
+            background: #ffffff;
+            color: teal;
+            text-decoration: none;
+            border-radius: 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid teal;
+        }
+
+        .msg {
+            margin: 0 auto 12px;
+            max-width: 1000px;
+            padding: 8px;
+            border-radius: 6px;
+            background-color: #fee2e2;
+            color: #991b1b;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 13px;
         }
 
         th, td {
             padding: 12px;
             text-align: center;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
         }
 
         th {
+            background-color: #f1f5f9;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        td {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr {
+            line-height: 1.3;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .action-link {
+            padding: 6px 12px;
+            border-radius: 18px;
             font-size: 12px;
-            text-transform: uppercase;
-            color: var(--muted);
             font-weight: 600;
-            background: #f5f3ff;
-        }
-
-        tr:hover {
-            background: #f5f3ff;
-        }
-
-        .actions a {
-            margin-right: 6px;
-        }
-
-        .btn {
-            padding: 7px 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
+            color: #ffffff;
             text-decoration: none;
-            display: inline-block;
-            transition: 0.2s;
         }
 
-        .btn-danger {
-            background: var(--danger);
-            color: #ffffff;
+        .edit {
+            background-color: teal;
         }
 
-        .btn-danger:hover {
-            background: var(--danger-hover);
-        }
-
-        .btn-success {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
-        .btn-success:hover {
-            background: var(--primary-hover);
-        }
-
-
-        .btn-home {
-            background: var(--accent);
-            color: #4c1d95;
-        }
-
-        .btn-home:hover {
-            background: #b197fc;
-        }
-
-        .btn-secondary {
-            background: var(--accent);
-            color: #4c1d95;
-        }
-
-        .btn-secondary:hover {
-            background: #b197fc;
-        }
-
-        .card-footer {
-            padding: 16px;
-            text-align: center;
-            background: #f5f3ff;
-            border-top: 1px solid var(--border);
-        }
-
-        .footer-actions {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .alert {
-            background: #efe9ff;
-            color: #5b21b6;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            text-align: center;
+        .delete {
+            background-color: #ef4444;
+            margin-left: 6px;
         }
     </style>
 </head>
@@ -172,61 +120,59 @@
 <body>
 
 <div class="container">
-    <div class="card">
-        <div class="card-header">
-            User Management
-        </div>
-        <div class="card-body">
-            <c:if test="${empty users}">
-                <div class="alert">No users found</div>
-            </c:if>
-            <c:if test="${not empty users}">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Roles</th>
-                        <th>Action</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <c:forEach var="user" items="${users}">
-                        <tr>
-                            <td>${user.username}</td>
-                            <td>${user.name}</td>
-                            <td>${user.phoneNo}</td>
-                            <td>${user.roles}</td>
-                            <td class="actions">
-                                <a class="btn btn-secondary"
-                                   href="${pageContext.request.contextPath}/user/get?username=${user.username}">
-                                    Edit
-                                </a>
-                                <a class="btn btn-danger"
-                                   href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
-                                   onclick="return confirm('Are you sure you want to delete this user?');">
-                                    Delete
-                                </a>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    </tbody>
-                </table>
-            </c:if>
 
-        </div>
+    <div class="app-title">POS Application</div>
 
-        <div class="card-footer">
-            <div class="footer-actions">
+    <h2>User Management</h2>
 
-                <a href="${pageContext.request.contextPath}/" class="btn btn-home">
-                    Home
-                </a>
-            </div>
-        </div>
-
+    <div class="list-actions">
+        <a href="${pageContext.request.contextPath}/" class="home-btn">Home</a>
     </div>
+    <c:if test="${not empty message}">
+        <div class="msg">${message}</div>
+    </c:if>
+
+    <c:if test="${empty users}">
+        <div style="text-align:center; padding:20px; font-size:14px;">
+            No users found
+        </div>
+    </c:if>
+
+    <c:if test="${not empty users}">
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Roles</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <c:forEach var="user" items="${users}">
+                    <tr>
+                        <td>${user.username}</td>
+                        <td>${user.name}</td>
+                        <td>${user.phoneNo}</td>
+                        <td>${user.roles}</td>
+                        <td>
+                            <a href="${pageContext.request.contextPath}/user/get?username=${user.username}"
+                               class="action-link edit">Edit</a>
+
+                            <a href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
+                               class="action-link delete"
+                               onclick="return confirm('Are you sure you want to delete this user?');">
+                               Delete
+                            </a>
+                        </td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </c:if>
 </div>
+
 </body>
 </html>

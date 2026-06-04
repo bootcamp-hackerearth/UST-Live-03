@@ -13,4 +13,3 @@ public class NodeDto extends CommonDto {
     private List<String> roles;
 
 }
-

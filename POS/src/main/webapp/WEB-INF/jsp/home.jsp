@@ -4,23 +4,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Role Management</title>
+    <title>POS Application</title>
 
     <style>
-        body {
+        html, body {
             margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: #f5f3ff;
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #1f2937;
+
+            overflow: hidden;
         }
 
+        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
-            background-color: #6d28d9;
+            background-color: teal;
             display: flex;
             align-items: center;
-            padding: 0 16px;
-            color: #ffffff;
             justify-content: space-between;
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
         }
 
         .topbar-left {
@@ -29,31 +37,32 @@
         }
 
         .menu {
-            width: 28px;
+            width: 26px;
             cursor: pointer;
-            margin-right: 16px;
+            margin-right: 14px;
         }
 
         .menu div {
             height: 3px;
             background: #ffffff;
-            margin: 5px 0;
+            margin: 4px 0;
         }
 
+        .top-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+        }
 
         .logout-btn {
-            background: #c4b5fd;
+            background: #ffffff;
+            color: teal;
             border: none;
-            color: #4c1d95;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            background: #b197fc;
         }
 
         .sidebar {
@@ -62,58 +71,95 @@
             left: -240px;
             width: 240px;
             height: calc(100vh - 56px);
-            background: #ede9fe;
+            background-color: #f9fafb;
+            border-right: 1px solid #e5e7eb;
             transition: left 0.3s ease;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none;
         }
 
         .sidebar.active {
             left: 0;
         }
 
+        .sidebar-title {
+            padding: 10px 16px 4px;
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
         .sidebar a {
             display: block;
-            padding: 16px 24px;
-            color: #5b21b6;
+            padding: 9px 16px;
+            font-size: 13px;
+            color: #334155;
             text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
+            border-left: 3px solid transparent;
+            border-radius: 6px;
+            margin: 3px 10px;
         }
 
         .sidebar a:hover {
-            background: #ddd6fe;
-            color: #4c1d95;
+            background-color: #e6fffa;
+            border-left: 3px solid teal;
         }
 
-        .content {
-            position: fixed;
-            top: 40%;
-            left: 40%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-        }
-
-        .welcome {
-            font-size: 23px;
+        .sidebar a.active-link {
+            background-color: #e6fffa;
+            border-left: 3px solid teal;
             font-weight: 600;
-            color: #4c1d95;
         }
 
-        .welcome-sub {
-            margin-top: 4px;
+        /* ===== CONTENT ===== */
+        .content {
+            margin-top: 56px;
+            height: calc(100vh - 56px);
+        }
+
+        .content.shifted {
+            margin-left: 240px;
+        }
+
+        .card {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 650px;
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            border-top: 4px solid teal;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+        }
+
+        .card h2 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .card p {
             font-size: 14px;
-            color: #6d28d9;
+            color: #475569;
+            line-height: 1.4;
         }
     </style>
 
     <script>
         function toggleMenu() {
             document.getElementById("sidebar").classList.toggle("active");
+            document.getElementById("content").classList.toggle("shifted");
         }
     </script>
 </head>
 
 <body>
-
 
 <div class="topbar">
     <div class="topbar-left">
@@ -122,29 +168,39 @@
             <div></div>
             <div></div>
         </div>
-        <strong>Role Management</strong>
+        <div class="top-title">POS Application</div>
     </div>
 
-
-    <form action="${pageContext.request.contextPath}/logout" method="post" style="margin:0;">
-        <button type="submit" class="logout-btn">Logout</button>
+    <form action="${pageContext.request.contextPath}/logout" method="post">
+        <button class="logout-btn">Logout</button>
     </form>
 </div>
 
-
 <div class="sidebar" id="sidebar">
+
+    <div class="sidebar-title">CORE NAVIGATION</div>
+
+    <a href="${pageContext.request.contextPath}/" class="active-link">
+        Home Dashboard
+    </a>
+
+    <div class="sidebar-title">MANAGEMENT MODULES</div>
+
     <c:forEach var="node" items="${nodes}">
         <a href="${pageContext.request.contextPath}${node.path}">
             ${node.identifier}
         </a>
     </c:forEach>
+
 </div>
 
-
-<div class="content">
-    <div class="welcome">Welcome to the Role Management System</div>
-    <div class="welcome-sub">
-        Please select an option from the menu.
+<div class="content" id="content">
+    <div class="card">
+        <h2>Welcome to the System</h2>
+        <p>
+            Efficiently manage your retail operations. Select a module from the
+            navigation menu on the left to manage users, configure roles, or monitor system nodes.
+        </p>
     </div>
 </div>
 

@@ -1,165 +1,151 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
     <title>Login</title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
     <style>
-       :root {
-           --bg: #ede9fe;
-           --card: #ffffff;
-           --text: #4c1d95;
-           --muted: #6b7280;
-           --primary: #7c3aed;
-           --primary-hover: #6d28d9;
-           --border: #ddd6fe;
-           --radius: 14px;
-           --shadow: 0 15px 35px rgba(76, 29, 149, 0.18);
-       }
 
-       * {
-           font-family: 'Inter', Arial, sans-serif;
-           box-sizing: border-box;
-       }
-
-       body {
-           min-height: 100vh;
-           display: flex;
-           justify-content: center;
-           align-items: center;
-           background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-           margin: 0;
-       }
-
-       .login-card {
-           width: 380px;
-           background: var(--card);
-           padding: 32px;
-           border-radius: var(--radius);
-           box-shadow: var(--shadow);
-           border-top: 5px solid var(--primary);
-       }
-
-       h2 {
-           text-align: center;
-           margin-bottom: 22px;
-           color: var(--primary);
-           font-weight: 600;
-       }
-
-       label {
-           font-size: 13px;
-           color: var(--text);
-           margin-bottom: 5px;
-           display: block;
-       }
-
-       .form-control {
-           border-radius: 10px;
-           padding: 10px;
-           border: 1px solid var(--border);
-       }
-
-       .form-control:focus {
-           border-color: var(--primary);
-           box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
-       }
-
-       .btn-login {
-           width: 100%;
-           padding: 10px;
-           background: var(--primary);
-           color: white;
-           border-radius: 10px;
-           border: none;
-           font-weight: 600;
-           margin-top: 10px;
-       }
-
-       .btn-login:hover {
-           background: var(--primary-hover);
-       }
-
-       .register-text {
-           text-align: center;
-           margin-top: 14px;
-           font-size: 13px;
-           color: var(--muted);
-       }
-
-       .register-text a {
-           color: var(--primary);
-           font-weight: 600;
-           text-decoration: none;
-       }
-
-       .register-text a:hover {
-           text-decoration: underline;
-       }
-    </style>
-
-    <script>
-        function validateLoginForm() {
-            let username = document.getElementsByName("username")[0].value.trim();
-            let password = document.getElementsByName("password")[0].value.trim();
-
-            if (username === "" || password === "") {
-                alert("Please fill in all fields.");
-                return false;
-            }
-
-            let emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,}$/;
-            if (!username.match(emailPattern)) {
-                alert("Enter a valid email address.");
-                return false;
-            }
-            return true;
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f6f7f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-    </script>
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .login-card {
+            width: 350px;
+            background-color: #fff;
+            box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+            border-radius: 10px;
+            box-sizing: border-box;
+            padding: 20px 30px;
+        }
+
+        h2 {
+            text-align: center;
+            margin: 10px 0 30px 0;
+            font-size: 25px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #747474;
+        }
+
+    .app-title {
+        text-align: center;
+        font-size: 14px;
+        color: #6b7280; /* soft gray */
+        margin-bottom: -5px;
+        letter-spacing: 0.5px;
+    }
+
+        input {
+            border-radius: 25px;
+            border: 1px solid #c0c0c0;
+            padding: 12px 15px;
+            outline: none;
+        }
+
+        .login-btn {
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            background: teal;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        }
+
+        .error-message {
+            margin-top: 14px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            background-color: #fee2e2;
+            color: #991b1b;
+            font-size: 13px;
+        }
+
+        .logout-message {
+            margin-top: 14px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            background-color: #e6fffa;
+            color: #065f46;
+            font-size: 13px;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="login-card">
+<div class="page-wrapper">
 
-    <h2>Login</h2>
+    <div class="login-card">
+    <div class="app-title">POS Application</div>
 
-    <c:if test="${not empty errorMsg}">
-        <div class="alert alert-danger text-center py-2">
-            ${errorMsg}
+        <h2>Login</h2>
+
+        <form action="${pageContext.request.contextPath}/login" method="post">
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="username" required />
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required />
+            </div>
+
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+
+        <div style="text-align:center; margin-top: 14px; font-size: 13px; color: #555;">
+            Don't have an account?
+            <a href="${pageContext.request.contextPath}/register"
+               style="color: teal; font-weight: 600; text-decoration: none;">
+                Register
+            </a>
         </div>
-    </c:if>
 
-    <form action="${pageContext.request.contextPath}/login"
-          method="post"
-          onsubmit="return validateLoginForm()">
+        <c:if test="${param.error != null}">
+            <div class="error-message">
+                Invalid username or password
+            </div>
+        </c:if>
 
-        <div class="mb-3">
-            <label>Email</label>
-            <input type="email" name="username" class="form-control" required />
-        </div>
+        <c:if test="${param.logout != null}">
+            <div class="logout-message">
+                Logged out successfully
+            </div>
+        </c:if>
 
-        <div class="mb-3">
-            <label>Password</label>
-            <input type="password" name="password" class="form-control" required />
-        </div>
-
-        <button type="submit" class="btn-login">Login</button>
-    </form>
-
-
-    <div class="register-text">
-        Don’t have an account?
-        <a href="${pageContext.request.contextPath}/register">Register</a>
     </div>
 
 </div>

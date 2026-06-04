@@ -6,169 +6,118 @@
 <head>
     <title>Node Management</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-          rel="stylesheet">
-
     <style>
-        :root {
-            --bg: #ede9fe;
-            --card: #ffffff;
-
-            --text: #4c1d95;
-            --muted: #6b7280;
-
-            --primary: #7c3aed;
-            --primary-hover: #6d28d9;
-
-            --accent: #c4b5fd;
-
-            --danger: #dc2626;
-            --danger-hover: #b91c1c;
-
-            --border: #ddd6fe;
-
-            --radius: 14px;
-            --shadow: 0 15px 35px rgba(76, 29, 149, 0.18);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
         body {
+            margin: 0;
             min-height: 100vh;
-            padding: 40px 16px;
-            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-            color: var(--text);
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background: #ffffff;
+            color: #020617;
         }
 
         .container {
-            max-width: 1100px;
-            margin: auto;
-        }
-
-        .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        .card-header {
+            width: 95%;
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             padding: 18px;
+        }
+
+        .app-title {
             text-align: center;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 600;
-            color: #ffffff;
-            background: var(--primary);
+            color: #14b8a6;
+            margin-bottom: 4px;
         }
 
-        .card-body {
-            padding: 18px;
+        h2 {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .list-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .home-btn {
+            padding: 7px 16px;
+            background: #ffffff;
+            color: teal;
+            text-decoration: none;
+            border-radius: 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid teal;
+        }
+
+        .add-btn {
+            padding: 7px 16px;
+            background: teal;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 18px;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 13px;
         }
 
         th, td {
             padding: 12px;
             text-align: center;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         th {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: var(--muted);
-            font-weight: 600;
-            background: #f5f3ff;
+            background: #f1f5f9;
+            font-weight: 700;
         }
 
-        tr:hover {
-            background: #f5f3ff;
+        tr {
+            line-height: 1.3;
         }
 
-        .actions a {
-            margin-right: 6px;
-        }
-
-        .btn {
-            padding: 7px 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-block;
-            transition: 0.2s;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: #ffffff;
-        }
-
-        .btn-danger:hover {
-            background: var(--danger-hover);
-        }
-
-        .btn-success {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
-        .btn-success:hover {
-            background: var(--primary-hover);
-        }
-
-        .btn-home {
-            background: var(--accent);
-            color: #4c1d95;
-        }
-
-        .btn-home:hover {
-            background: #b197fc;
-        }
-
-        .btn-secondary {
-            background: var(--accent);
-            color: #4c1d95;
-        }
-
-        .btn-secondary:hover {
-            background: #b197fc;
-        }
-
-        .card-footer {
-            padding: 16px;
-            text-align: center;
-            background: #f5f3ff;
-            border-top: 1px solid var(--border);
-        }
-
-        .footer-actions {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .alert {
-            background: #efe9ff;
-            color: #5b21b6;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            text-align: center;
+        tbody tr:hover {
+            background: #f8fafc;
         }
 
         .roles {
             font-size: 13px;
-            color: #4c1d95;
+        }
+
+        .action-link {
+            padding: 6px 12px;
+            border-radius: 18px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 12px;
+            color: #ffffff;
+        }
+
+        .edit {
+            background: teal;
+        }
+
+        .delete {
+            background: #ef4444;
+            margin-left: 6px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 18px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -177,75 +126,60 @@
 
 <div class="container">
 
-    <div class="card">
+    <div class="app-title">POS Application</div>
+    <h2>Node Management</h2>
+    <div class="list-actions">
+        <a href="${pageContext.request.contextPath}/" class="home-btn">Home</a>
 
-        <div class="card-header">
-            List of Nodes
-        </div>
-
-        <div class="card-body">
-
-            <c:choose>
-                <c:when test="${empty nodes}">
-                    <div class="alert">
-                        No nodes available
-                    </div>
-                </c:when>
-
-                <c:otherwise>
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Identifier</th>
-                            <th>Path</th>
-                            <th>Roles</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-
-                        <tbody>
-                        <c:forEach var="node" items="${nodes}">
-                            <tr>
-                                <td>${node.identifier}</td>
-                                <td>${node.path}</td>
-
-                                <td class="roles">
-                                    <c:forEach var="role" items="${node.roles}" varStatus="s">
-                                        ${role}<c:if test="${!s.last}">, </c:if>
-                                    </c:forEach>
-                                </td>
-
-                                <td class="actions">
-                                    <a href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
-                                       class="btn btn-secondary">
-                                        Edit
-                                    </a>
-
-                                    <a href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
-                                       class="btn btn-danger">
-                                        Delete
-                                    </a>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                        </tbody>
-                    </table>
-                </c:otherwise>
-            </c:choose>
-
-        </div>
-
-        <div class="card-footer">
-            <div class="footer-actions">
-                <a href="/" class="btn btn-home">Home</a>
-
-                <a href="${pageContext.request.contextPath}/node/add"
-                   class="btn btn-success">+ Add Node</a>
-            </div>
-        </div>
-
+        <a href="${pageContext.request.contextPath}/node/add" class="add-btn">
+            Add Node
+        </a>
     </div>
-</div>
 
+    <c:choose>
+        <c:when test="${empty nodes}">
+            <div class="empty">No nodes available</div>
+        </c:when>
+
+        <c:otherwise>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Identifier</th>
+                        <th>Path</th>
+                        <th>Roles</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <c:forEach var="node" items="${nodes}">
+                        <tr>
+                            <td>${node.identifier}</td>
+                            <td>${node.path}</td>
+                            <td class="roles">
+                                <c:forEach var="role" items="${node.roles}" varStatus="s">
+                                    ${role}<c:if test="${!s.last}">, </c:if>
+                                </c:forEach>
+                            </td>
+                            <td>
+                                <a class="action-link edit"
+                                   href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}">
+                                    Edit
+                                </a>
+
+                                <a class="action-link delete"
+                                   href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
+                                   onclick="return confirm('Are you sure you want to delete this node?');">
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </c:otherwise>
+    </c:choose>
+</div>
 </body>
 </html>
