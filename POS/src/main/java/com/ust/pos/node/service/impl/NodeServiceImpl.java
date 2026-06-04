@@ -10,6 +10,8 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -33,36 +35,31 @@ public class NodeServiceImpl implements NodeService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<NodeDto> findAll() {
-        Type listType = new TypeToken<List<NodeDto>>() {
-        }.getType();
-        return modelMapper.map(nodeRepository.findAll(), listType);
-    }
-
-    @Override
-    public boolean save(NodeDto nodeDto) {
+    public NodeDto save(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
 
         if (nodeRepository.findByIdentifier(identifier) != null) {
-            return false;
+            nodeDto.setSuccess(false);
+            return nodeDto;
         }
 
         Node node = modelMapper.map(nodeDto, Node.class);
         nodeRepository.save(node);
-
-        return true;
+        nodeDto.setSuccess(true);
+        return nodeDto;
     }
 
     public NodeDto update(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
-        Node node = nodeRepository.findByIdentifier(identifier);
-        if (node == null) {
+        Node exisingNode = nodeRepository.findByIdentifier(identifier);
+        if (exisingNode == null) {
             nodeDto.setMessage("Node not found");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
 
-        nodeRepository.save(modelMapper.map(nodeDto, Node.class));
+        modelMapper.map(nodeDto, exisingNode);
+        nodeRepository.save(exisingNode);
         nodeDto.setMessage("Node updated successfully");
         nodeDto.setSuccess(true);
 
@@ -77,6 +74,38 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public NodeDto findByIdentifier(String identifier) {
         return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+    }
+
+    @Override
+    public List<NodeDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        if (pageable == null) {
+            return modelMapper.map(nodeRepository.findAll(), listType);
+        }
+        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        return modelMapper.map(nodePage.getContent(), listType);
+    }
+
+    @Override
+    @Transactional
+    public NodeDto updateStatus(String identifier, boolean status) {
+        NodeDto response = new NodeDto();
+
+        Node node = nodeRepository.findByIdentifier(identifier);
+        if (node == null) {
+            response.setSuccess(false);
+            response.setMessage("Node not found");
+            return response;
+        }
+
+        node.setStatus(status);
+        nodeRepository.save(node);
+
+        response.setSuccess(true);
+        response.setMessage("Status updated successfully");
+
+        return response;
     }
 
     public List<NodeDto> getNodesForRoles() {

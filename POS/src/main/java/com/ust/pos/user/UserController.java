@@ -18,6 +18,7 @@ public class UserController {
     private static final String USER_LIST = "user/list";
     private static final String USER_VIEW = "user/user";
     private static final String REDIRECT_USER_LIST = "redirect:/user/list";
+    private static final String REDIRECT_USER_LOGIN = "redirect:/login";
 
     @Autowired
     private UserService userService;
@@ -26,8 +27,8 @@ public class UserController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String list(Model model) {
-        model.addAttribute("users", userService.findAll());
+    public String home(Model model) {
+        model.addAttribute("users", userService.findAll(null));
         return USER_LIST;
     }
 
@@ -35,7 +36,7 @@ public class UserController {
     public String update(@ModelAttribute UserDto userDto, Model model, @RequestParam String username) {
         UserDto response = userService.findByUserName(username);
         model.addAttribute("userDto", response);
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findAll(null));
         return USER_VIEW;
     }
 
@@ -56,7 +57,7 @@ public class UserController {
             userService.delete(username);
             if (loggedInUser.equals(username)) {
                 SecurityContextHolder.clearContext();
-                return "redirect:/login";
+                return REDIRECT_USER_LOGIN;
             }
         }
         return REDIRECT_USER_LIST;

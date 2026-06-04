@@ -181,6 +181,7 @@
                             <th>Identifier</th>
                             <th>Path</th>
                             <th>Roles</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                         </thead>
@@ -192,6 +193,15 @@
                                 <td>${node.identifier}</td>
                                 <td>${node.path}</td>
                                 <td>${node.roles}</td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch">
+                                        <input
+                                            class="form-check-input node-toggle"
+                                            type="checkbox"
+                                            data-identifier="${node.identifier}"
+                                            ${node.status ? "checked" : ""} >
+                                    </div>
+                                </td>
                                 <td class="d-flex justify-content-center gap-2">
                                     <a href="/node/get?identifier=${node.identifier}"
                                        class="btn btn-success btn-sm">
@@ -229,6 +239,37 @@ window.addEventListener("DOMContentLoaded", function () {
             setTimeout(() => toast.remove(), 400);
         }, 3500);
     }
+});
+</script>
+<script>
+document.addEventListener("change", function (e) {
+    if (!e.target.classList.contains("node-toggle")) return;
+
+    const checkbox = e.target;
+    const identifier = checkbox.dataset.identifier;
+    const status = checkbox.checked;
+
+    fetch("/node/toggle", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            identifier: identifier,
+            status: status
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert(data.message || "Update failed");
+            checkbox.checked = !status;
+        }
+    })
+    .catch(() => {
+        alert("Failed to update node status");
+        checkbox.checked = !status;
+    });
 });
 </script>
 </body>

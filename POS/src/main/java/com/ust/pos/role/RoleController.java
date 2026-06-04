@@ -1,5 +1,7 @@
 package com.ust.pos.role;
 
+import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +12,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/role")
-public class RoleController {
+public class RoleController extends BaseController {
 
     private static final String ROLE_LIST = "role/list";
     private static final String ROLE_ADD = "role/add";
@@ -21,13 +23,14 @@ public class RoleController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String list(Model model) {
-        model.addAttribute("roles", roleService.findAll());
+    public String home(Model model, @ModelAttribute PaginationDto paginationDto) {
+        model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField())));
         return ROLE_LIST;
     }
 
     @GetMapping("/add")
-    public String add(@ModelAttribute RoleDto roleDto) {
+    public String add(Model model, @ModelAttribute RoleDto roleDto) {
         return ROLE_ADD;
     }
 
@@ -36,6 +39,12 @@ public class RoleController {
         RoleDto response = roleService.save(roleDto);
         redirectAttributes.addFlashAttribute("message", response.getMessage());
         return REDIRECT_ROLE_LIST;
+    }
+
+    @PostMapping("/toggle")
+    @ResponseBody
+    public RoleDto toggleStatus(@RequestBody RoleDto dto) {
+        return roleService.updateStatus(dto.getIdentifier(), dto.isStatus());
     }
 
     @GetMapping("/get")
@@ -55,7 +64,7 @@ public class RoleController {
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String identifier) {
+    public String delete(Model model, @RequestParam String identifier) {
         roleService.delete(identifier);
         return REDIRECT_ROLE_LIST;
     }

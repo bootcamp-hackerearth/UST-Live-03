@@ -49,8 +49,12 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-30px) scale(1.05); }
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+            }
+            50% {
+                transform: translateY(-30px) scale(1.05);
+            }
         }
 
         .main-container {
@@ -65,6 +69,7 @@
         .form-card {
             width: 380px;
             padding: 40px;
+
             border-radius: 18px;
 
             background: rgba(255, 255, 255, 0.75);
@@ -81,8 +86,14 @@
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .form-card h4 {
@@ -103,38 +114,6 @@
             box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
         }
 
-        .form-control:user-invalid {
-            border-color: #ef4444;
-            box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
-        }
-
-        .form-control:user-valid {
-            border-color: #22c55e;
-            box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
-        }
-
-        .form-control:not(:placeholder-shown):invalid {
-            border-color: #ef4444;
-            box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
-        }
-
-        .form-control:not(:placeholder-shown):valid {
-            border-color: #22c55e;
-            box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
-        }
-
-        .field-hint {
-            font-size: 11.5px;
-            color: #9ca3af;
-            margin-top: 4px;
-            display: block;
-        }
-
-        .form-control:user-invalid ~ .field-hint,
-        .form-control:not(:placeholder-shown):invalid ~ .field-hint {
-            color: #ef4444;
-        }
-
         .btn-primary-custom {
             width: 100%;
             padding: 12px;
@@ -146,6 +125,7 @@
             font-weight: 600;
 
             box-shadow: 0 10px 25px rgba(37,99,235,0.25);
+
             transition: all 0.2s ease;
         }
 
@@ -171,15 +151,19 @@
             text-decoration: underline;
         }
 
-        .alert { border-radius: 10px; }
+        .alert {
+            border-radius: 10px;
+        }
+
+
     </style>
 </head>
 <body>
-
 <div class="blob blob1"></div>
 <div class="blob blob2"></div>
 
 <div class="main-container">
+
     <div class="form-card">
 
         <h4>Add New Role</h4>
@@ -189,16 +173,15 @@
                    modelAttribute="roleDto">
 
             <div class="mb-3">
-                <label for="identifier">Role Name *</label>
+                <label for="identifier" class="form-label fw-semibold">Role Name</label>
                 <form:input id="identifier"
                             path="identifier"
                             cssClass="form-control"
-                            placeholder="Enter role name"
-                            required="true"/>
+                            placeholder="Enter role name" />
             </div>
 
             <div class="mb-3">
-                <label for="description">Description *</label>
+                <label for="description" class="form-label fw-semibold">Description</label>
                 <form:textarea id="description"
                                path="description"
                                cssClass="form-control"
@@ -217,25 +200,112 @@
         </div>
 
     </div>
-</div>
 
+</div>
 <script>
 document.addEventListener("mousemove", (e) => {
     const x = (window.innerWidth / 2 - e.clientX) / 30;
     const y = (window.innerHeight / 2 - e.clientY) / 30;
-    document.querySelector(".blob1").style.transform = `translate(${x}px, ${y}px)`;
-    document.querySelector(".blob2").style.transform = `translate(${x * -1}px, ${y * -1}px)`;
+
+    document.querySelector(".blob1").style.transform =
+        `translate(${x}px, ${y}px)`;
+
+    document.querySelector(".blob2").style.transform =
+        `translate(${x * -1}px, ${y * -1}px)`;
 });
 </script>
 <script>
 window.addEventListener("DOMContentLoaded", function () {
     const toast = document.getElementById("toast");
+
     if (toast) {
         setTimeout(() => {
             toast.classList.add("hide");
-            setTimeout(() => toast.remove(), 400);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 400);
         }, 3500);
     }
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const form = document.querySelector("form");
+
+    if (!form) return;
+
+    form.addEventListener("submit", function (e) {
+
+        document.querySelectorAll(".validation-error")
+            .forEach(el => el.remove());
+
+        const identifier =
+            document.querySelector('input[name="identifier"]');
+
+        const description =
+            document.querySelector('textarea[name="description"]');
+
+        function showError(element, message) {
+
+            const small = document.createElement("small");
+
+            small.className = "validation-error";
+            small.style.color = "red";
+            small.style.fontSize = "13px";
+            small.style.display = "block";
+            small.style.marginTop = "5px";
+
+            small.innerText = message;
+
+            element.parentNode.appendChild(small);
+
+            element.focus();
+
+            e.preventDefault();
+
+            return false;
+        }
+
+        if (identifier.value.trim().length < 2) {
+            return showError(
+                identifier,
+                "Role name must be at least 2 characters"
+            );
+        }
+
+        if (identifier.value.trim().length > 50) {
+            return showError(
+                identifier,
+                "Role name cannot exceed 50 characters"
+            );
+        }
+
+        const identifierRegex = /^[A-Za-z0-9\s_-]+$/;
+
+        if (!identifierRegex.test(identifier.value.trim())) {
+            return showError(
+                identifier,
+                "Only letters, numbers, spaces, _ and - are allowed"
+            );
+        }
+
+        if (description.value.trim().length < 5) {
+            return showError(
+                description,
+                "Description must be at least 5 characters"
+            );
+        }
+
+        if (description.value.trim().length > 300) {
+            return showError(
+                description,
+                "Description cannot exceed 300 characters"
+            );
+        }
+
+    });
 });
 </script>
 </body>

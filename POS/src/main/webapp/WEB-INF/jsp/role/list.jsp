@@ -8,7 +8,6 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
-
     <style>
         body {
             min-height: 100vh;
@@ -188,6 +187,7 @@
                         <th>ID</th>
                         <th>Role</th>
                         <th>Description</th>
+                        <th>Status</th>
                         <th>Action</th>
                     </tr>
                     </thead>
@@ -197,6 +197,15 @@
                             <td>${role.id}</td>
                             <td>${role.identifier}</td>
                             <td>${role.description}</td>
+                            <td class="text-center">
+                                <div class="form-check form-switch">
+                                    <input
+                                        class="form-check-input role-toggle"
+                                        type="checkbox"
+                                        data-identifier="${role.identifier}"
+                                        ${role.status ? "checked" : ""} >
+                                </div>
+                            </td>
                             <td class="d-flex justify-content-center gap-2">
                                 <a href="/role/get?identifier=${role.identifier}"
                                    class="btn btn-primary btn-sm">
@@ -237,6 +246,36 @@ window.addEventListener("DOMContentLoaded", function () {
     }
 });
 </script>
+<script>
+document.addEventListener("change", function (e) {
+    if (!e.target.classList.contains("role-toggle")) return;
 
+    const checkbox = e.target;
+    const identifier = checkbox.dataset.identifier;
+    const status = checkbox.checked;
+
+    fetch("/role/toggle", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            identifier: identifier,
+            status: status
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert(data.message || "Update failed");
+            checkbox.checked = !status;
+        }
+    })
+    .catch(() => {
+        alert("Failed to update role status");
+        checkbox.checked = !status;
+    });
+});
+</script>
 </body>
 </html>

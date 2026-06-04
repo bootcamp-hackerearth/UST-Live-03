@@ -164,63 +164,55 @@
         a:hover {
             text-decoration: underline;
         }
+
+        small{
+            color: red;
+        }
     </style>
 </head>
 
 <body>
-
 <div class="blob blob1"></div>
 <div class="blob blob2"></div>
 
 <div class="update-card">
     <h3>Update User</h3>
 
-    <form:form action="/user/update" method="post" modelAttribute="userDto"
-    onsubmit="return validateForm()">
+    <form:form action="/user/update" method="post" modelAttribute="userDto">
 
         <form:input type="hidden" path="id"/>
 
         <div class="mb-3">
             <label for="name">Name</label>
-            <form:input id="name" path="name"
-                        cssClass="form-control"
-                        required="true"
-                        pattern="[A-Za-z ]+"
-                        title="Only letters and spaces allowed"/>
-            <small id="nameError" class="text-danger"></small>
+            <form:input id="name" path="name" cssClass="form-control" required="true"/>
         </div>
 
         <div class="mb-3">
             <label for="email">Email</label>
             <form:input id="email" path="username" type="email"
                         cssClass="form-control"
+                        placeholder="example@email.com"
                         required="true"/>
-            <small id="emailError" class="text-danger"></small>
         </div>
 
         <div class="mb-3">
             <label for="phoneNo">Phone Number</label>
-            <form:input id="phoneNo" path="phoneNo" type="text"
+            <form:input id="phoneNo" path="phoneNo" type="number"
                         cssClass="form-control"
                         placeholder="10-digit phone number"
-                        required="true"
-                        pattern="[0-9]{10}"
-                        title="Enter 10 digit phone number"/>
-            <small id="phoneError" class="text-danger"></small>
+                        required="true"/>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-3 roles-group">
             <label for="checkbox-list">Roles</label>
             <div id="checkbox-list" class="checkbox-list">
                 <c:forEach var="role" items="${roles}">
-                    <label class="checkbox-item">
-                        <form:checkbox path="roles" value="${role.identifier}"
-                            cssClass="roleCheckbox"/>
+                    <label for="${role.identifier}" class="checkbox-item">
+                        <form:checkbox id="${role.identifier}" path="roles" value="${role.identifier}"/>
                         <span>${role.identifier}</span>
                     </label>
                 </c:forEach>
             </div>
-            <small id="rolesError" class="text-danger"></small>
         </div>
 
         <button type="submit" class="btn-update">Update User</button>
@@ -232,49 +224,103 @@
     </div>
 
 </div>
-
-</body>
 <script>
-function validateForm() {
+document.addEventListener("DOMContentLoaded", () => {
 
-    let isValid = true;
+    const form = document.querySelector("form");
 
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const phone = document.getElementById("phoneNo").value.trim();
-    const roles = document.querySelectorAll(".roleCheckbox:checked");
+    form.addEventListener("submit", function (e) {
 
-    const nameError = document.getElementById("nameError");
-    const emailError = document.getElementById("emailError");
-    const phoneError = document.getElementById("phoneError");
-    const rolesError = document.getElementById("rolesError");
+        document.querySelectorAll(".validation-error")
+            .forEach(el => el.remove());
 
-    nameError.textContent = "";
-    emailError.textContent = "";
-    phoneError.textContent = "";
-    rolesError.textContent = "";
+        const name = document.querySelector('input[name="name"]');
+        const email = document.querySelector('input[name="username"]');
+        const phone = document.querySelector('input[name="phoneNo"]');
+        const password = document.querySelector('input[name="password"]');
+        const roleCheckboxes =
+            document.querySelectorAll('input[name="roles"]');
 
-    if (name === "") {
-        nameError.textContent = "Name is required";
-        isValid = false;
-    }
+        function showError(element, message) {
 
-    if (email === "") {
-        emailError.textContent = "Email is required";
-        isValid = false;
-    }
+            const small = document.createElement("small");
+            small.className = "validation-error";
+            small.innerText = message;
 
-    if (phone.length !== 10) {
-        phoneError.textContent = "Enter valid 10 digit phone number";
-        isValid = false;
-    }
+            if (
+                element.tagName === "INPUT" ||
+                element.tagName === "SELECT" ||
+                element.tagName === "TEXTAREA"
+            ) {
+                element.parentNode.appendChild(small);
+                element.focus();
+            }
+            else {
+                element.appendChild(small);
+            }
+            e.preventDefault();
 
-    if (roles.length === 0) {
-        rolesError.textContent = "Please select at least one role";
-        isValid = false;
-    }
+            return false;
+        }
 
-    return isValid;
-}
+        const nameRegex = /^[A-Za-z\s]+$/;
+
+        if (name.value.trim().length < 3) {
+            return showError(
+                name,
+                "Name must be at least 3 characters"
+            );
+        }
+
+        if (!nameRegex.test(name.value.trim())) {
+            return showError(
+                name,
+                "Name should contain only letters"
+            );
+        }
+
+        const emailRegex =
+            /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+        if (!emailRegex.test(email.value.trim())) {
+            return showError(
+                email,
+                "Enter valid email address"
+            );
+        }
+
+        const roleSelected =
+            [...roleCheckboxes].some(cb => cb.checked);
+
+        if (!roleSelected) {
+
+            const roleGroup =
+                document.querySelector(".roles-group");
+
+            return showError(
+                roleGroup,
+                "Select at least one role"
+            );
+        }
+
+        const phoneRegex = /^[6-9][0-9]{9}$/;
+
+        if (!phoneRegex.test(phone.value.trim())) {
+            return showError(
+                phone,
+                "Enter valid 10-digit Indian mobile number"
+            );
+        }
+
+        if (password.value.length < 6) {
+            return showError(
+                password,
+                "Password must be at least 6 characters"
+            );
+        }
+
+    });
+});
 </script>
+</body>
 </html>

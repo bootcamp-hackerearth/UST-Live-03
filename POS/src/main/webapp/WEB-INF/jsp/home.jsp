@@ -17,6 +17,8 @@ body {
 
 .sidebar {
     height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
     position: fixed;
     top: 0;
     left: 0;
@@ -87,13 +89,10 @@ body {
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
 }
-
 </style>
-
 </head>
 
 <body>
-
 <div class="sidebar">
     <div class="sidebar-links">
         <c:forEach var="node" items="${nodes}">

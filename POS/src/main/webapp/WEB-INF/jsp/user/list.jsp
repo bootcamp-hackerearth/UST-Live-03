@@ -145,7 +145,6 @@
     <div class="d-flex justify-content-center gap-3 mt-4">
         <a href="/" class="btn btn-secondary">Home</a>
     </div>
-
 </div>
 
 </body>

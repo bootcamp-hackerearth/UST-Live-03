@@ -8,6 +8,8 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -40,11 +42,10 @@ public class RoleServiceImpl implements RoleService {
         }
 
         Role role = modelMapper.map(roleDto, Role.class);
-        Role savedRole = roleRepository.save(role);
+        roleRepository.save(role);
 
-        RoleDto response = modelMapper.map(savedRole, RoleDto.class);
-        response.setSuccess(true);
-        return response;
+        roleDto.setSuccess(true);
+        return roleDto;
     }
 
     @Override
@@ -62,14 +63,45 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @Transactional
+    public RoleDto updateStatus(String identifier, boolean status) {
+        RoleDto response = new RoleDto();
+
+        Role role = roleRepository.findByIdentifier(identifier);
+        if (role == null) {
+            response.setSuccess(false);
+            response.setMessage("Role not found");
+            return response;
+        }
+
+        // Toggle status
+        role.setStatus(status);
+        response.setSuccess(true);
+        response.setMessage("Status updated successfully");
+
+        return response;
+    }
+
+    @Override
     public void delete(String identifier) {
         roleRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<RoleDto> findAll() {
+    public List<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        return modelMapper.map(roleRepository.findAll(), listType);
+        if (pageable == null) {
+            return modelMapper.map(roleRepository.findAll(), listType);
+        }
+        Page<Role> rolePage = roleRepository.findAll(pageable);
+        return modelMapper.map(rolePage.getContent(), listType);
+    }
+
+    @Override
+    public List<RoleDto> findByStatusTrue() {
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        return modelMapper.map(roleRepository.findByStatusTrue(), listType);
     }
 }
