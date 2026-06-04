@@ -166,6 +166,7 @@
                     <td>${role.identifier}</td>
                     <td>${role.description}</td>
                     <td>
+
                         <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
                            class="action-icon"
                            title="Edit Role">

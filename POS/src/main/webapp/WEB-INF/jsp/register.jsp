@@ -42,6 +42,7 @@
         color: #1e293b;
     }
 
+    /* Back icon */
     .back-icon {
         position: absolute;
         top: 16px;
@@ -133,6 +134,7 @@
 
     <h2>User Registration</h2>
 
+    <!-- Error from controller -->
     <c:if test="${not empty message}">
         <div class="error">${message}</div>
     </c:if>

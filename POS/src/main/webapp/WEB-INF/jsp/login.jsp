@@ -29,6 +29,7 @@
         justify-content: center;
         align-items: center;
 
+        /* ✅ Matched background */
         background: linear-gradient(
             135deg,
             #e5e7eb 0%,
@@ -37,6 +38,7 @@
         );
     }
 
+    /* Error Toast */
     .error-toast {
         position: fixed;
         top: 20px;
@@ -59,6 +61,7 @@
         to { transform: translateY(0); opacity: 1; }
     }
 
+    /* Card */
     .container {
         width: 100%;
         max-width: 440px;
@@ -70,6 +73,7 @@
         overflow: hidden;
     }
 
+    /* Side accent bar */
     .container::before {
         content: "";
         position: absolute;
@@ -98,6 +102,7 @@
         margin-top: 8px;
     }
 
+    /* Form */
     .form-group {
         margin-bottom: 20px;
     }
