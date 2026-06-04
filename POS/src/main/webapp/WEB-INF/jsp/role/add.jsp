@@ -1,165 +1,130 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
     <title>Add Role</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
     <style>
         body {
-            background-color: #f3f5f7;
-            font-family: "Segoe UI", sans-serif;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7f6;
         }
 
-        .page-container {
-            max-width: 700px;
-            margin: 50px auto;
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 8px 14px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
         }
 
         .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .card-header {
+            width: 460px;
+            margin: 80px auto;
             background: white;
-            border-bottom: 1px solid #e9ecef;
-            padding: 20px 25px;
+            padding: 30px 35px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
         }
 
-        .card-header h3 {
-            margin: 0;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .card-body {
-            padding: 30px;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .form-control {
-            border-radius: 8px;
-        }
-
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #0d6efd;
-        }
-
-        .success-box {
-            background-color: #d1e7dd;
-            color: #0f5132;
-            border: 1px solid #badbcc;
-            padding: 12px;
-            border-radius: 8px;
+        h2 {
+            text-align: center;
             margin-bottom: 20px;
-            text-align: center;
         }
 
-        .error-box {
-            background-color: #f8d7da;
-            color: #842029;
-            border: 1px solid #f5c2c7;
+        label {
+            display: block;
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            margin-top: 6px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        .error-msg {
+            margin-bottom: 12px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .success-msg {
+            margin-bottom: 12px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .btn-submit {
+            margin-top: 25px;
+            width: 100%;
             padding: 12px;
-            border-radius: 8px;
-            margin-top: 20px;
-            text-align: center;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
         }
 
-        .btn {
-            min-width: 120px;
+        .btn-submit:hover {
+            background: #218838;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container-fluid">
+<a href="/role/list" class="back-btn">← Back</a>
 
-    <div class="page-container">
+<div class="card">
 
-        <div class="card">
+    <h2>Add Role</h2>
 
-            <div class="card-header">
-                <h3>Add New Role</h3>
-            </div>
+    <c:if test="${not empty role}">
+        <div class="success-msg">${role}</div>
+    </c:if>
 
-            <div class="card-body">
+    <c:if test="${not empty message}">
+        <div class="error-msg">${message}</div>
+    </c:if>
 
-                <c:if test="${not empty role}">
-                    <div class="success-box">
-                        ${role}
-                    </div>
-                </c:if>
+    <form:form method="post" action="/role/add" modelAttribute="roleDto">
 
-                <form:form method="post"
-                           action="/role/add"
-                           modelAttribute="roleDto">
+        <label>Role Name</label>
+        <form:input path="identifier" required="true"/>
 
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Role Name
-                        </label>
+        <label>Description</label>
+        <form:input path="description" required="true"/>
 
-                        <form:input path="identifier"
-                                    cssClass="form-control"
-                                    placeholder="Enter role name"
-                                    required="required"/>
-                    </div>
+        <input type="submit" value="Add Role" class="btn-submit"/>
 
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Role Description
-                        </label>
-
-                        <form:input path="description"
-                                    cssClass="form-control"
-                                    placeholder="Enter description"
-                                    required="required"/>
-                    </div>
-
-                    <div class="d-flex justify-content-between mt-4">
-
-                        <a href="/role/list"
-                           class="btn btn-secondary">
-                            Cancel
-                        </a>
-
-                        <button type="submit"
-                                class="btn btn-primary">
-                            Add Role
-                        </button>
-
-                    </div>
-
-                    <c:if test="${not empty message}">
-                        <div class="error-box">
-                            ${message}
-                        </div>
-                    </c:if>
-
-                </form:form>
-
-            </div>
-
-        </div>
-
-    </div>
+    </form:form>
 
 </div>
 

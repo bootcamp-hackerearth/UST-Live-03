@@ -5,178 +5,152 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>POS User Registration</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <title>User Registration</title>
     <style>
         body {
-            background-color: #f3f5f7;
-            font-family: "Segoe UI", sans-serif;
-        }
-        .page-container {
-            max-width: 500px;
-            margin: 25px auto;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-        .card-header {
-            background: white;
-            border-bottom: 1px solid #e9ecef;
-            padding: 14px 18px;
-        }
-        .card-header h3 {
             margin: 0;
-            color: #2c3e50;
-            font-weight: 600;
-            font-size: 18px;
+            font-family: Arial, sans-serif;
+            background: #f4f7f6;
         }
-        .card-body {
-            padding: 18px;
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 8px 14px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
         }
-        .card-footer {
+
+        .back-btn:hover {
+            background: #5a6268;
+        }
+
+        .card {
+            width: 460px;
+            margin: 80px auto;
             background: white;
-            border-top: 1px solid #e9ecef;
+            padding: 30px 35px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+        }
+
+        h2 {
             text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            margin-top: 6px;
             padding: 10px;
-            color: #6c757d;
-            font-size: 12px;
-        }
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 4px;
-            font-size: 13px;
-        }
-        .form-control {
+            border: 1px solid #ccc;
             border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 14px;
-        }
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #0d6efd;
-        }
-        .mb-4 {
-            margin-bottom: 10px !important;
-        }
-        .error-box {
-            background-color: #f8d7da;
-            color: #842029;
-            border: 1px solid #f5c2c7;
-            padding: 8px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            text-align: center;
             font-size: 13px;
+            box-sizing: border-box;
         }
-        .hint {
+
+        select[multiple] {
+            height: 110px;
+        }
+
+        small {
             font-size: 11px;
-            color: #6c757d;
-            margin-top: 4px;
+            color: #999;
+            margin-top: 3px;
+            display: block;
         }
-        .btn {
-            min-width: 90px;
-            padding: 6px 14px;
+
+        .error-msg {
+            margin-bottom: 12px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .btn-submit {
+            margin-top: 25px;
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
             font-size: 14px;
+            font-weight: bold;
+        }
+
+        .btn-submit:hover {
+            background: #218838;
         }
     </style>
 </head>
+
 <body>
-<div class="container-fluid">
-    <div class="page-container">
-        <div class="card">
-            <div class="card-header">
-                <h3>POS User Registration</h3>
-            </div>
-            <div class="card-body">
-                <c:if test="${not empty message}">
-                    <div class="error-box">
-                        ${message}
-                    </div>
-                </c:if>
-                <form:form action="register"
-                           method="post"
-                           modelAttribute="userDto">
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Full Name
-                        </label>
-                        <form:input path="name"
-                                    cssClass="form-control"
-                                    required="true"/>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Email Address
-                        </label>
-                        <form:input path="username"
-                                    type="email"
-                                    cssClass="form-control"
-                                    required="true"
-                                    pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
-                                    title="Enter a valid Gmail address"/>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Assigned Roles
-                        </label>
-                        <form:select path="roles"
-                                     multiple="true"
-                                     required="true"
-                                     cssClass="form-control"
-                                     size="2">
-                            <form:options items="${roles}"
-                                          itemValue="identifier"
-                                          itemLabel="identifier"/>
-                        </form:select>
-                        <div class="hint">
-                            Hold Ctrl (Windows) or Cmd (Mac) for multiple selection.
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Mobile Number
-                        </label>
-                        <form:input path="phoneNo"
-                                    type="tel"
-                                    cssClass="form-control"
-                                    required="true"
-                                    pattern="[0-9]{10}"
-                                    maxlength="10"
-                                    title="Enter a valid 10-digit mobile number"/>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Password
-                        </label>
-                        <form:password path="password"
-                                       cssClass="form-control"
-                                       required="true"
-                                       pattern=".{6,}"
-                                       title="Password must be at least 6 characters"/>
-                    </div>
-                    <div class="d-flex justify-content-between mt-3">
-                        <a href="${pageContext.request.contextPath}/user/list"
-                           class="btn btn-secondary">
-                            Cancel
-                        </a>
-                        <button type="submit"
-                                class="btn btn-primary">
-                            Register
-                        </button>
-                    </div>
-                </form:form>
-            </div>
-            <div class="card-footer">
-                POS Management System
-            </div>
-        </div>
-    </div>
+
+<a href="${pageContext.request.contextPath}/user/list" class="back-btn">← Back</a>
+
+<div class="card">
+
+    <h2>User Registration</h2>
+
+    <c:if test="${not empty message}">
+        <div class="error-msg">${message}</div>
+    </c:if>
+
+    <form:form action="register" method="post" modelAttribute="userDto">
+
+        <label>Name</label>
+        <form:input path="name" required="true"/>
+
+        <label>Email</label>
+        <form:input path="username"
+                    type="email"
+                    required="true"
+                    pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
+                    title="Enter a valid Gmail (example@gmail.com)"/>
+
+        <label>Mobile Number</label>
+        <form:input path="phoneNo"
+                    type="tel"
+                    required="true"
+                    pattern="[0-9]{10}"
+                    maxlength="10"
+                    title="Enter a valid 10-digit mobile number"/>
+
+        <label>Password</label>
+        <form:password path="password"
+                       required="true"
+                       pattern=".{6,}"
+                       title="Password must be at least 6 characters"/>
+
+        <label>Roles</label>
+        <form:select path="roles" multiple="true" required="true">
+            <form:options items="${roles}"
+                          itemValue="identifier"
+                          itemLabel="identifier"/>
+        </form:select>
+        <small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
+
+        <input type="submit" value="Register" class="btn-submit"/>
+
+    </form:form>
+
 </div>
+
 </body>
 </html>

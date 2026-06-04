@@ -6,219 +6,173 @@
 <html>
 <head>
     <title>Update User</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"/>
-
     <style>
         body {
-            background-color: #f3f5f7;
-            font-family: "Segoe UI", sans-serif;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7f6;
         }
 
-        .page-container {
-            max-width: 750px;
-            margin: 50px auto;
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 8px 14px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
         }
 
         .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .card-header {
+            width: 460px;
+            margin: 80px auto;
             background: white;
-            border-bottom: 1px solid #e9ecef;
-            padding: 20px 25px;
+            padding: 30px 35px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
         }
 
-        .card-header h3 {
-            margin: 0;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .card-body {
-            padding: 30px;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .form-control {
-            border-radius: 8px;
-        }
-
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #0d6efd;
-        }
-
-        .error {
-            color: #dc3545;
-            font-size: 13px;
-            margin-top: 5px;
-        }
-
-        .message-box {
-            background-color: #f8d7da;
-            color: #842029;
-            border: 1px solid #f5c2c7;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        h2 {
             text-align: center;
+            margin-bottom: 20px;
         }
 
-        .role-badge {
-            background-color: #e7f1ff;
-            color: #0d6efd;
-            border: 1px solid #b6d4fe;
-            font-weight: 500;
-            padding: 6px 10px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-
-        .hint {
+        label {
+            display: block;
+            margin-top: 15px;
             font-size: 13px;
-            color: #6c757d;
-            margin-top: 5px;
+            font-weight: bold;
         }
 
-        .btn {
-            min-width: 120px;
+        input, select {
+            width: 100%;
+            margin-top: 6px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        select[multiple] {
+            height: 110px;
+        }
+
+        small {
+            font-size: 11px;
+            color: #999;
+            margin-top: 3px;
+            display: block;
+        }
+
+        .current-roles {
+            margin-top: 6px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #e9ecef;
+            color: #495057;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px solid #ddd;
+            margin: 2px;
+        }
+
+        .error-msg {
+            margin-bottom: 12px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .field-error {
+            font-size: 12px;
+            color: #b91c1c;
+            margin-top: 3px;
+            display: block;
+        }
+
+        .btn-submit {
+            margin-top: 25px;
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .btn-submit:hover {
+            background: #0056b3;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container-fluid">
+<a href="/user/list" class="back-btn">← Back</a>
 
-    <div class="page-container">
+<div class="card">
 
-        <div class="card">
+    <h2>Update User</h2>
 
-            <div class="card-header">
-                <h3>Update User</h3>
-            </div>
+    <c:if test="${not empty message}">
+        <div class="error-msg">${message}</div>
+    </c:if>
 
-            <div class="card-body">
+    <form:form action="/user/update" method="post" modelAttribute="user">
 
-                <c:if test="${not empty message}">
-                    <div class="message-box">
-                        ${message}
-                    </div>
-                </c:if>
+        <form:input type="hidden" path="id"/>
 
-                <form:form action="/user/update"
-                           method="post"
-                           modelAttribute="user">
+        <label>Name</label>
+        <form:input path="name" required="true"/>
+        <form:errors path="name" cssClass="field-error"/>
 
-                    <form:hidden path="id"/>
+        <label>Email</label>
+        <form:input path="username" type="email" required="true"/>
+        <form:errors path="username" cssClass="field-error"/>
 
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Name
-                        </label>
+        <label>Phone Number</label>
+        <form:input path="phoneNo"
+                    pattern="[0-9]{10}"
+                    title="Enter a valid 10 digit phone number"
+                    required="true"/>
+        <form:errors path="phoneNo" cssClass="field-error"/>
 
-                        <form:input path="name"
-                                    cssClass="form-control"
-                                    required="true"/>
-
-                        <form:errors path="name"
-                                     cssClass="error"/>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Email
-                        </label>
-
-                        <form:input path="username"
-                                    type="email"
-                                    cssClass="form-control"
-                                    required="true"/>
-
-                        <form:errors path="username"
-                                     cssClass="error"/>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Phone Number
-                        </label>
-
-                        <form:input path="phoneNo"
-                                    cssClass="form-control"
-                                    pattern="[0-9]{10}"
-                                    title="Enter a valid 10 digit phone number"
-                                    required="true"/>
-
-                        <form:errors path="phoneNo"
-                                     cssClass="error"/>
-                    </div>
-
-                    <div class="mb-4">
-
-                        <label class="form-label">
-                            Roles
-                        </label>
-
-                        <div class="mb-2">
-
-                            <c:forEach var="r" items="${user.roles}">
-                                <span class="role-badge">
-                                    ${r}
-                                </span>
-                            </c:forEach>
-
-                        </div>
-
-                        <form:select path="roles"
-                                     multiple="true"
-                                     cssClass="form-control"
-                                     required="true">
-
-                            <form:options items="${roles}"
-                                          itemValue="identifier"
-                                          itemLabel="identifier"/>
-
-                        </form:select>
-
-                        <div class="hint">
-                            Hold Ctrl (Windows) or Cmd (Mac) to select multiple roles.
-                        </div>
-
-                    </div>
-                    <div class="d-flex justify-content-between mt-4">
-
-                        <a href="/user/list"
-                           class="btn btn-secondary">
-                            Cancel
-                        </a>
-
-                        <button type="submit"
-                                class="btn btn-primary">
-                            Update User
-                        </button>
-
-                    </div>
-
-                </form:form>
-
-            </div>
-
+        <label>Roles</label>
+        <div class="current-roles">
+            Current:
+            <c:forEach var="r" items="${user.roles}">
+                <span class="badge">${r}</span>
+            </c:forEach>
         </div>
+        <form:select path="roles" multiple="true" required="true">
+            <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+        </form:select>
+        <small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
 
-    </div>
+        <input type="submit" value="Update User" class="btn-submit"/>
+
+    </form:form>
 
 </div>
 
