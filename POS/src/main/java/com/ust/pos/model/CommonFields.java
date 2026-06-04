@@ -11,8 +11,12 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 public class CommonFields {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String identifier;
+    private boolean success = true;
+    private boolean status;
+
 }

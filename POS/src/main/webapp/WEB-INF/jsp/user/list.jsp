@@ -1,31 +1,34 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="jakarta.tags.core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
 <head>
     <title>User Management</title>
 
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --bg: #f6fff8;
-            --card: #ffffff;
+            --primary: #2563eb;
+            --primary-hover: #1e40af;
 
-            --text: #1f2937;
-            --muted: #6b7280;
+            --bg: #f8fafc;
+            --glass: rgba(255,255,255,0.75);
 
-            --primary: #28a745;
-            --primary-hover: #218838;
+            --text: #0f172a;
+            --muted: #64748b;
 
-            --accent: #ffc107;
+            --border: #e2e8f0;
 
-            --danger: #dc3545;
-            --danger-hover: #c82333;
+            --danger: #dc2626;
 
-            --border: #e5e7eb;
-
-            --radius: 14px;
-            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --radius: 16px;
+            --shadow: 0 20px 40px rgba(2,6,23,0.08);
         }
 
         * {
@@ -36,154 +39,163 @@
         }
 
         body {
-            min-height: 100vh;
-            padding: 40px 16px;
             background: var(--bg);
+            min-height: 100vh;
+            padding: 40px 20px;
             color: var(--text);
-            position: relative;
         }
 
+        /* BACK BUTTON */
         .back-arrow {
-            position: absolute;
+            position: fixed;
             top: 20px;
             left: 20px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 50%;
+
             width: 42px;
             height: 42px;
+
             display: flex;
             align-items: center;
             justify-content: center;
-            text-decoration: none;
+
+            border-radius: 50%;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+
+            border: 1px solid var(--border);
             color: var(--text);
+
+            text-decoration: none;
             font-size: 18px;
+
             box-shadow: var(--shadow);
             transition: 0.2s;
         }
 
         .back-arrow:hover {
-            background: var(--accent);
-            color: black;
+            background: #eef2ff;
+            color: var(--primary);
         }
 
-        .container {
+        .container-box {
             max-width: 1100px;
-            margin: auto;
+            margin: 60px auto 0;
         }
 
+        /* CARD */
         .card {
-            background: var(--card);
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+
             border-radius: var(--radius);
+            border: 1px solid var(--border);
+
             box-shadow: var(--shadow);
             overflow: hidden;
         }
 
+        /* HEADER */
         .card-header {
-            padding: 18px;
-            text-align: center;
+            padding: 20px 24px;
             font-size: 18px;
             font-weight: 600;
-            color: white;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-btn {
+            padding: 8px 14px;
+            border-radius: 10px;
             background: var(--primary);
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.2s;
         }
 
-        .card-body {
-            padding: 18px;
+        .add-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
         }
 
+        /* TABLE */
         table {
             width: 100%;
             border-collapse: collapse;
         }
 
         th, td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
+            padding: 14px 16px;
             font-size: 13px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
         }
 
         th {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
             color: var(--muted);
-            font-weight: 600;
-            background: #f9fafb;
+            background: rgba(248,250,252,0.8);
         }
 
         tr:hover {
-            background: #f9fafb;
+            background: rgba(241,245,249,0.6);
         }
 
-        /* Action buttons spacing */
-        .actions a {
-            margin-right: 6px;
+        /* ACTION BUTTONS */
+        .actions {
+            display: flex;
+            gap: 8px;
         }
 
         .btn {
-            padding: 7px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             text-decoration: none;
-            display: inline-block;
             transition: 0.2s;
         }
 
-        .btn-danger {
-            background: var(--danger);
-            color: #fff;
+        .btn-edit {
+            background: #eef2ff;
+            color: var(--primary);
         }
 
-        .btn-danger:hover {
-            background: var(--danger-hover);
+        .btn-edit:hover {
+            background: #e0e7ff;
         }
 
-        .btn-success {
-            background: var(--primary);
-            color: #fff;
+        .btn-delete {
+            background: #fee2e2;
+            color: var(--danger);
         }
 
-        .btn-success:hover {
-            background: var(--primary-hover);
+        .btn-delete:hover {
+            background: #fecaca;
         }
 
-        .btn-secondary {
-            background: var(--accent);
-            color: black;
-        }
-
-        .btn-secondary:hover {
-            background: #e0a800;
-        }
-
-        .card-footer {
-            padding: 16px;
+        /* EMPTY STATE */
+        .empty-state {
             text-align: center;
-            background: #f9fafb;
-            border-top: 1px solid var(--border);
-        }
-
-        .footer-actions {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .alert {
-            background: #fff3cd;
-            color: #856404;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            text-align: center;
-        }
-
-        .muted {
-            font-size: 12px;
+            padding: 40px;
             color: var(--muted);
-            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        /* ROLE BADGE */
+        .role-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin: 2px;
+            display: inline-block;
         }
     </style>
 </head>
@@ -192,60 +204,66 @@
 
 <a href="${pageContext.request.contextPath}/" class="back-arrow">←</a>
 
-<div class="container">
+<div class="container-box">
 
     <div class="card">
 
         <div class="card-header">
-            User Management
+            <span>User Management</span>
         </div>
 
-        <div class="card-body">
+        <c:if test="${empty users}">
+            <div class="empty-state">
+                No users found
+            </div>
+        </c:if>
 
-            <c:if test="${empty users}">
-                <div class="alert">No users found</div>
-            </c:if>
+        <c:if test="${not empty users}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Roles</th>
+                    <th style="width:180px;">Actions</th>
+                </tr>
+                </thead>
 
-            <c:if test="${not empty users}">
-                <table>
-                    <thead>
+                <tbody>
+                <c:forEach var="user" items="${users}">
                     <tr>
-                        <th>Email</th>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Roles</th>
-                        <th>Action</th>
-                    </tr>
-                    </thead>
+                        <td>${user.username}</td>
+                        <td>${user.name}</td>
+                        <td>${user.phoneNo}</td>
 
-                    <tbody>
-                    <c:forEach var="user" items="${users}">
-                        <tr>
-                            <td>${user.username}</td>
-                            <td>${user.name}</td>
-                            <td>${user.phoneNo}</td>
-                            <td>${user.roles}</td>
+                        <td>
+                            <c:forEach var="role" items="${user.roles}">
+                                <span class="role-badge">${role}</span>
+                            </c:forEach>
+                        </td>
 
-                            <td class="actions">
-                                <a class="btn btn-secondary"
+                        <td>
+                            <div class="actions">
+
+                                <a class="btn btn-edit"
                                    href="${pageContext.request.contextPath}/user/get?username=${user.username}">
                                     Edit
                                 </a>
 
-                                <a class="btn btn-danger"
+                                <a class="btn btn-delete"
                                    href="${pageContext.request.contextPath}/user/delete?username=${user.username}">
                                     Delete
                                 </a>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    </tbody>
 
-                </table>
-            </c:if>
+                            </div>
+                        </td>
+                    </tr>
+                </c:forEach>
+                </tbody>
 
-        </div>
-
+            </table>
+        </c:if>
 
     </div>
 
