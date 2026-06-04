@@ -8,7 +8,7 @@ class PosApplicationTests {
 
     @Test
     void contextLoads() {
-        //default implementation ignored
+        //default instance ignore
     }
 
 }

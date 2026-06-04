@@ -69,6 +69,7 @@
         .sidebar.active {
             left: 0;
             box-shadow: 0 0 20px rgba(75,108,183,0.25);
+
         }
 
         .close-btn {
@@ -94,7 +95,6 @@
             color: white;
         }
 
-        /* CONTENT */
         .content {
             padding: 30px;
             transition: margin-left 0.3s;
@@ -192,7 +192,6 @@
 
 <body>
 
-<!-- SIDEBAR -->
 <div id="sidebar" class="sidebar">
     <div class="close-btn" onclick="toggleSidebar()">✖</div>
     <c:forEach var="node" items="${nodes}">
@@ -200,14 +199,12 @@
     </c:forEach>
 </div>
 
-<!-- HEADER -->
 <div class="header">
     <span class="hamburger" onclick="toggleSidebar()">☰</span>
     <h3>Role Management</h3>
     <a href="/logout">Logout</a>
 </div>
 
-<!-- CONTENT -->
 <div id="content" class="content">
     <div class="card">
 
@@ -219,7 +216,7 @@
             </div>
         </c:if>
 
-        <form:form method="post" action="/role/add" modelAttribute="roleDto">
+        <form:form method="post" action="/role/add" modelAttribute="roleDto" id="roleDto">
 
             <label>Role Name</label>
             <form:input

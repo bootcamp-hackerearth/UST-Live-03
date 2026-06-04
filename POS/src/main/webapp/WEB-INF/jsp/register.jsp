@@ -152,7 +152,6 @@
          color: red;
          padding
          }
-
     </style>
 </head>
 
@@ -199,7 +198,7 @@
                 </div>
 
                 <button type="submit">Register</button>
-                <a href="/user/list">Back</a>
+                <a href="/user/list">back</a>
                  <p id="message">${message}</p>
         </form:form>
     </div>

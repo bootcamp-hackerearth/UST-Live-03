@@ -4,6 +4,7 @@ import com.ust.pos.dto.RoleDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +23,8 @@ public class RoleController {
     private NodeService nodeService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("roles", roleService.findAll());
+    public String home(Model model, Pageable pageable) {
+        model.addAttribute("roles", roleService.findAll(pageable));
         model.addAttribute(NODES, nodeService.getNodesForRoles());
         return "role/list";
     }
@@ -57,7 +58,7 @@ public class RoleController {
         RoleDto response = roleService.update(roleDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            return ROLE_ADD;
+            return "role/role";
         }
         return REDIRECT_ROLE_LIST;
     }

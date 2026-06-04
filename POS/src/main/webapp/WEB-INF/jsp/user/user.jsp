@@ -67,6 +67,7 @@
         .sidebar.active {
             left: 0;
             box-shadow: 0 0 20px rgba(75,108,183,0.25);
+            overflow: overlay;
         }
 
         .close-btn {
@@ -219,7 +220,7 @@
             <form:input path="name" required="true"/>
 
             <label style="margin-top:12px;">Email</label>
-            <form:input path="username" type="email" required="true" readOnly="true"/>
+            <form:input path="username" type="email" required="true"/>
 
             <label style="margin-top:12px;">Phone Number</label>
             <form:input

@@ -64,6 +64,7 @@
             left: 0;
             border-radius: 10px;
             box-shadow: 0px 0px 20px 10px rgba(75, 108, 183, 0.25);
+            overflow: overlay;
         }
 
         .close-btn {

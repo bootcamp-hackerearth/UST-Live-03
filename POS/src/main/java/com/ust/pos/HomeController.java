@@ -21,7 +21,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication!=null) {
+        if (authentication != null) {
             String loggedInUser = authentication.getName();
             String currentUser = userService.findByUserName(loggedInUser).getName();
             model.addAttribute("nodes", nodeService.getNodesForRoles());
