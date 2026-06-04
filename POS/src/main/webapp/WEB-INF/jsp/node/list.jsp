@@ -1,11 +1,13 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
 
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Display Nodes</title>
+
+<!-- Bootstrap Icons (ONLY for the Home icon) -->
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
@@ -16,9 +18,10 @@
         padding: 40px;
     }
 
+    /*  TOP BUTTON ROW  */
     .button-row {
         width: 60%;
-        margin: 20px auto 0;
+        margin: 0 auto 20px;
         display: flex;
         justify-content: space-between;
     }
@@ -91,15 +94,17 @@
         display: inline-block;
     }
 
+    /*UPDATE BUTTON – GREEN */
     .update {
-        background-color: #4e73df;
+        background-color: #1cc88a;
         color: #ffffff;
     }
 
     .update:hover {
-        background-color: #2e59d9;
+        background-color: #17a673;
     }
 
+    /* DELETE BUTTON – RED */
     .delete {
         background-color: #e74a3b;
         color: #ffffff;
@@ -112,6 +117,18 @@
 </head>
 
 <body>
+
+<!--  BUTTONS MOVED ABOVE TABLE -->
+<div class="button-row">
+    <a href="/" class="nav-btn">
+        <i class="bi bi-house-fill"></i>
+        Home
+    </a>
+
+    <a href="/node/add" class="nav-btn">
+        + Add Node
+    </a>
+</div>
 
 <table>
     <tr>
@@ -137,6 +154,7 @@
                    class="action-btn update">
                     Update
                 </a>
+
                 <a href="/node/delete?identifier=${node.identifier}"
                    class="action-btn delete"
                    onclick="return confirm('Are you sure you want to delete this node?');">
@@ -146,14 +164,6 @@
         </tr>
     </c:forEach>
 </table>
-<div class="button-row">
-    <a href="/" class="nav-btn">
-        <i class="bi bi-house-fill"></i>
-        Home
-    </a>
-    <a href="/node/add" class="nav-btn">
-        + Add Node
-    </a>
-</div>
+
 </body>
 </html>

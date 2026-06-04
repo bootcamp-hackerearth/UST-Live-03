@@ -160,10 +160,7 @@
         </div>
         <div class="form-group">
             <label>Password</label>
-            <form:password path="password"
-            required="required"
-            pattern=".{6,}"
-             title="Password must be at least 6 characters"/>
+            <form:password path="password"/>
         </div>
         <input type="submit" value="Register" class="btn-submit"/>
         <div style="text-align:center;">

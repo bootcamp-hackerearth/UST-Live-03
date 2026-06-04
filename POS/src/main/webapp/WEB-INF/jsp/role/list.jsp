@@ -41,7 +41,7 @@
             background-color: #4e73df;
             color: white;
             font-size: 14px;
-            font-weight: 600;   /* headers bold */
+            font-weight: 600;
         }
 
         table td {
@@ -94,29 +94,18 @@
             gap: 8px;
         }
 
-        .btn-home i {
-            color: #ffffff;
-            font-size: 16px;
-        }
-
         .btn-home:hover {
             background-color: #2e59d9;
         }
 
-        .card-footer {
-            background-color: #f8f9fc;
-            border-top: none;
-            padding: 16px;
-        }
-
-        .alert-warning {
-            background-color: #fff3cd;
-            border: none;
-            color: #856404;
-            border-radius: 8px;
+        .form-switch .form-check-input {
+            cursor: pointer;
+            width: 2.6em;
+            height: 1.4em;
         }
     </style>
 </head>
+
 <body>
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -125,12 +114,14 @@
                 <div class="card-header text-center">
                     <h4 class="mb-0">List of Roles</h4>
                 </div>
+
                 <div class="card-body">
                     <c:if test="${empty roles}">
                         <div class="alert alert-warning text-center">
                             No roles found
                         </div>
                     </c:if>
+
                     <c:if test="${not empty roles}">
                         <table class="table table-bordered table-hover text-center align-middle">
                             <thead>
@@ -138,36 +129,55 @@
                                     <th>ID</th>
                                     <th>Role</th>
                                     <th>Description</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
+
                             <tbody>
-                                <c:forEach var="role" items="${roles}">
-                                    <tr>
-                                        <td>${role.id}</td>
-                                        <td>${role.identifier}</td>
-                                        <td>${role.description}</td>
-                                        <td class="d-flex justify-content-center gap-2">
-                                            <a href="/role/get?identifier=${role.identifier}"
-                                               class="btn btn-warning btn-sm">
-                                                Update
-                                            </a>
-                                            <a href="/role/delete?identifier=${role.identifier}"
-                                               class="btn btn-danger btn-sm"
-                                               onclick="return confirm('Are you sure you want to delete this role?');">
-                                                Delete
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
+                            <c:forEach var="role" items="${roles}">
+                                <tr>
+                                    <td>${role.id}</td>
+                                    <td>${role.identifier}</td>
+                                    <td>${role.description}</td>
+
+                                    <!-- Status Toggle (NO JavaScript) -->
+                                    <td>
+                                        <form action="/role/toggleStatus" method="post">
+                                            <input type="hidden" name="identifier" value="${role.identifier}" />
+                                            <input type="hidden" name="status"
+                                                   value="${!role.status}" />
+
+                                            <div class="form-check form-switch d-flex justify-content-center">
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       ${role.status ? "checked" : ""}
+                                                       onchange="this.form.submit()" />
+                                            </div>
+                                        </form>
+                                    </td>
+
+                                    <td class="d-flex justify-content-center gap-2">
+                                        <a href="/role/get?identifier=${role.identifier}"
+                                           class="btn btn-warning btn-sm">
+                                            Update
+                                        </a>
+                                        <a href="/role/delete?identifier=${role.identifier}"
+                                           class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Are you sure you want to delete this role?');">
+                                            Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
                             </tbody>
                         </table>
                     </c:if>
                 </div>
+
                 <div class="card-footer text-center d-flex justify-content-center gap-3">
                     <a href="/" class="btn btn-home">
-                        <i class="bi bi-house-fill"></i>
-                        Home
+                        <i class="bi bi-house-fill"></i> Home
                     </a>
                     <a href="/role/add" class="btn btn-success">
                         + Add New Role

@@ -33,3 +33,9 @@ build/
 
 ### VS Code ###
 .vscode/
+/htmlReport/
+/.scannerwork/
+/src/main/resources/
+/htmlReport/
+/.scannerwork/
+/src/main/resources/

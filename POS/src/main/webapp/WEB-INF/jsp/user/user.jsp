@@ -92,32 +92,38 @@
         }
     </style>
 </head>
+
 <body>
 <c:if test="${not empty message}">
     <div class="top-message">
         ${message}
     </div>
 </c:if>
+
 <div class="update-card">
     <h3>Update User</h3>
-        <form:form action="/user/update" method="post"
+
+    <form:form action="/user/update" method="post"
                modelAttribute="userDto"
                onsubmit="return validateRoles()">
+
         <form:input type="hidden" path="id"/>
+
         <div class="mb-3">
             <label>Name</label>
             <form:input path="name" cssClass="form-control" required="true"/>
         </div>
+
         <div class="mb-3">
             <label>Email</label>
             <form:input path="username"
                         cssClass="form-control"
                         required="true"
-                        type="email"
-                         readonly="true"/>
+                        type="email"/>
         </div>
+
         <div class="mb-3">
-         <label class="form-label">
+            <label class="form-label">
                 Phone Number <span class="text-danger">*</span>
             </label>
             <form:input
@@ -131,27 +137,31 @@
                     pattern="^[6-9][0-9]{9}$"
                     oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                     title="Enter valid 10-digit Indian mobile number"/>
-                 </div>
-                <div class="mb-3">
-                 <label>Roles</label>
-                    <div class="role-box">
-                        <c:forEach var="r" items="${roles}">
-                            <div class="role-item">
-                                <input type="checkbox"
-                                name="roles"
-                                value="${r.identifier}"
-                                <c:if test="${userDto.roles != null and userDto.roles.contains(r.identifier)}">
+        </div>
+
+        <div class="mb-3">
+            <label>Roles</label>
+
+            <div class="role-box">
+                <c:forEach var="r" items="${roles}">
+                    <div class="role-item">
+                        <input type="checkbox"
+                               name="roles"
+                               value="${r.identifier}"
+                               <c:if test="${userDto.roles != null and userDto.roles.contains(r.identifier)}">
                                    checked
-                                </c:if> />
-                                <label>${r.identifier}</label>
-                            </div>
+                               </c:if> />
+                        <label>${r.identifier}</label>
+                    </div>
                 </c:forEach>
             </div>
         </div>
+
         <button type="submit" class="btn-update">
             Update User
         </button>
     </form:form>
+
     <div class="text-center mt-3">
         <a href="/user/list">← Back to User List</a>
     </div>

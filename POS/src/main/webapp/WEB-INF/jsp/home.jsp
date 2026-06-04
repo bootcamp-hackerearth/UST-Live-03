@@ -20,67 +20,71 @@
             background-color: #f4f6fb;
         }
 
-         .sidebar {
-             position: fixed;
-             top: 0;
-             left: 0;
-             width: 250px;
-             height: 100vh;
-             background: linear-gradient(180deg, #4e73df, #224abe);
-             box-shadow: 3px 0 15px rgba(0,0,0,0.1);
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(180deg, #4e73df, #224abe);
+            padding-top: 20px;
+            box-shadow: 3px 0 15px rgba(0,0,0,0.1);
+        }
 
-             display: flex;
-             flex-direction: column;
-         }
+        .sidebar h4 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 20px;
+        }
 
-         .sidebar-content {
-             flex: 1;
-             overflow-y: auto;
-             padding-top: 20px;
-         }
+        /* NODES SCROLL */
+        .sidebar-menu {
+            max-height: calc(100vh - 140px); /* header + logout space */
+            overflow-y: auto;
+        }
 
-         .sidebar h4 {
-             color: #ffffff;
-             text-align: center;
-             margin-bottom: 30px;
-             font-weight: 600;
-             font-size: 20px;
-         }
+        .sidebar-menu a {
+            display: block;
+            padding: 14px 25px;
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
 
-         .sidebar a {
-             display: block;
-             padding: 14px 25px;
-             color: rgba(255,255,255,0.9);
-             text-decoration: none;
-             font-size: 16px;
-             font-weight: 500;
-             letter-spacing: 0.3px;
-             transition: all 0.3s ease;
-         }
-         .sidebar a:hover {
-             background: rgba(255,255,255,0.15);
-             color: #ffffff;
-             padding-left: 32px;
-         }
-         .logout-btn {
-             padding: 15px 20px;
-             background: #224abe;
-             border-top: 1px solid rgba(255,255,255,0.2);
-         }
-         .logout-btn button {
-             width: 100%;
-             border-radius: 8px;
-             font-size: 13px;
-             padding: 8px;
-             background: #ffffff;
-             color: #4e73df;
-             border: none;
-             font-weight: 500;
-         }
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.15);
+            color: #ffffff;
+            padding-left: 32px;
+        }
+
+        .logout-btn {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .logout-btn button {
+            width: 100%;
+            border-radius: 8px;
+            font-size: 13px;
+            padding: 8px;
+            background: #ffffff;
+            color: #4e73df;
+            border: none;
+            font-weight: 500;
+        }
+
         .content {
             margin-left: 250px;
             padding: 30px;
         }
+
         .header-banner {
             background: linear-gradient(135deg, #4e73df, #6f42c1);
             color: #fff;
@@ -89,14 +93,17 @@
             margin-bottom: 25px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
+
         .header-banner h2 {
             margin: 0;
             font-weight: 600;
         }
+
         .header-banner p {
             margin: 5px 0 0;
             opacity: 0.9;
         }
+
         .welcome-card {
             margin-top: 25px;
             background: #ffffff;
@@ -108,9 +115,10 @@
 </head>
 
 <body>
+
 <div class="sidebar">
-    <div class="sidebar-content">
-        <h4>POS System</h4>
+    <h4>POS System</h4>
+    <div class="sidebar-menu">
         <c:if test="${not empty nodes}">
             <c:forEach items="${nodes}" var="nav">
                 <a href="${pageContext.request.contextPath}${nav.path}">
@@ -118,6 +126,7 @@
                 </a>
             </c:forEach>
         </c:if>
+
         <c:if test="${empty nodes}">
             <p style="color:#ccc;text-align:center;">No access</p>
         </c:if>
@@ -128,11 +137,13 @@
         </form>
     </div>
 </div>
+
 <div class="content">
     <div class="header-banner">
         <h2>Welcome to POS System</h2>
-        <p>Manage users, roles and nodes efficiently</p>
+        <p>Manage sales, products, and transactions quickly and efficiently</p>
     </div>
+
     <div class="welcome-card">
         <h4>Getting Started</h4>
         <p>
@@ -140,5 +151,6 @@
         </p>
     </div>
 </div>
+
 </body>
 </html>

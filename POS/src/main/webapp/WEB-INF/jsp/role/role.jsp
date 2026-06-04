@@ -46,13 +46,16 @@
             color: #334155;
         }
 
-        input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            font-size: 14px;
-        }
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+    background-color: #ffffff;
+}
+
 
         input[readonly] {
             background-color: #f8fafc;
@@ -126,6 +129,15 @@
             <label>Description</label>
             <input type="text" name="description" value="${role.description}" required />
         </div>
+
+<div class="form-group">
+    <label>Status</label>
+    <select name="status" class="form-control">
+        <option value="true" ${role.status == true ? "selected" : ""}>Active</option>
+        <option value="false" ${role.status == false ? "selected" : ""}>Inactive</option>
+    </select>
+</div>
+
         <div class="btn-group">
             <a href="${pageContext.request.contextPath}/role/list" class="btn-back">
                 ← Back
