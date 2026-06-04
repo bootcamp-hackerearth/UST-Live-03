@@ -1,0 +1,92 @@
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Price</title>
+
+    <style>
+        body { background:#f6f7f9; font-family:"Segoe UI"; }
+
+        .card {
+            width:420px; margin:60px auto; background:#fff;
+            padding:26px; border-radius:12px; position:relative;
+        }
+
+        .back-btn {
+            position:absolute; top:18px; left:18px;
+            background:#eef0f3; padding:6px 14px;
+            border-radius:6px; text-decoration:none;
+        }
+
+        label { display:block; margin-top:14px; font-weight:600; }
+        input, select {
+            width:100%;
+            padding:9px;
+            margin-top:6px;
+            border-radius:6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        input[readonly] { background:#f1f5f9; }
+
+        button {
+            margin-top:22px; width:100%;
+            background:#2563eb; color:white;
+            border:none; padding:10px;
+            border-radius:20px;
+        }
+
+        .error { color:#dc2626; text-align:center; font-weight:600; }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <a href="${pageContext.request.contextPath}/price/list" class="back-btn">Back</a>
+
+    <h2 style="text-align:center;">Edit Price</h2>
+
+    <c:if test="${not empty message}">
+        <div class="error">${message}</div>
+    </c:if>
+
+    <form:form action="${pageContext.request.contextPath}/price/update"
+               method="post"
+               modelAttribute="price">
+
+        <form:hidden path="id"/>
+
+        <label>Product Name</label>
+        <form:select path="identifier" required="true">
+            <form:option value="">-- Select Product --</form:option>
+
+            <c:forEach items="${products}" var="product">
+                <form:option value="${product.identifier}">
+                    ${product.identifier}
+                </form:option>
+            </c:forEach>
+
+        </form:select>
+
+        <label>MRP</label>
+        <form:input path="mrp" type="number" step="0.01"/>
+
+        <label>Selling Price</label>
+        <form:input path="sellingPrice" type="number" step="0.01"/>
+
+        <label>Effective From</label>
+        <form:input path="effectiveFrom" type="date"/>
+
+        <button type="submit">Update Price</button>
+    </form:form>
+
+</div>
+
+</body>
+</html>

@@ -110,7 +110,6 @@
 
 <body>
 
-<!-- TOP BAR -->
 <div class="topbar">
     <div class="top-title">POS Application</div>
     <form action="${pageContext.request.contextPath}/logout" method="post">
@@ -123,14 +122,12 @@
 
     <h2>Add Role</h2>
 
-    <!-- ERROR MESSAGE -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}
         </div>
     </c:if>
 
-    <!--  ADD ROLE FORM -->
     <form:form action="${pageContext.request.contextPath}/role/add"
                method="post"
                modelAttribute="roleDto">

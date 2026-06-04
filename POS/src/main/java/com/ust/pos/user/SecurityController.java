@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 public class SecurityController {
-
     @Autowired
     private UserService userService;
 
@@ -20,13 +19,13 @@ public class SecurityController {
     private RoleService roleService;
 
     @GetMapping("/login")
-    public String login(Model model) {
+    public String login() {
         return "login";
     }
 
     @GetMapping("/register")
     public String add(Model model, @ModelAttribute UserDto userDto) {
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findIfTrue());
         return "register";
     }
 
@@ -35,7 +34,7 @@ public class SecurityController {
         UserDto response = userService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute("roles", roleService.findAll());
+            model.addAttribute("roles", roleService.findIfTrue());
             return "register";
         }
         return "login";

@@ -147,7 +147,6 @@
 
 <div class="page-title">User Management</div>
 
-
 <c:if test="${not empty message}">
     <div style="
         margin: 0 24px 18px;
@@ -185,22 +184,22 @@
 
             <tbody>
                 <c:forEach var="user" items="${users}">
-                    <tr>
-                        <td>${user.username}</td>
-                        <td>${user.name}</td>
-                        <td>${user.phoneNo}</td>
-                        <td>${user.roles}</td>
-                        <td>
-                            <a href="${pageContext.request.contextPath}/user/get?username=${user.username}"
-                               class="action-link edit">
-                                Edit
-                            </a>
+<tr>
+    <td>${user.username}</td>
+    <td>${user.name}</td>
+    <td>${user.phoneNo}</td>
+    <td>${user.roles}</td>
+    <td>
+        <a href="${pageContext.request.contextPath}/user/get?username=${user.username}"
+           class="action-link edit">
+            Edit
+        </a>
 
-                            <a href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
-                               class="action-link delete"
-                               onclick="return confirm('Are you sure you want to delete this user?');">
-                                Delete
-                            </a>
+        <a href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
+           class="action-link delete"
+           onclick="return confirm('Are you sure you want to delete this user?');">
+            Delete
+        </a>
                         </td>
                     </tr>
                 </c:forEach>

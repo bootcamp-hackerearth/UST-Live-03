@@ -1,6 +1,7 @@
 package com.ust.pos.role.service;
 
 import com.ust.pos.dto.RoleDto;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -13,7 +14,11 @@ public interface RoleService {
 
     boolean delete(String identifier);
 
-    List<RoleDto> findAll();
+    List<RoleDto> findAll(Pageable pageable);
 
     RoleDto findByIdentifier(String identifier);
+
+    List<RoleDto> findIfTrue();
+
+    RoleDto toggleStatus(String identifier);
 }

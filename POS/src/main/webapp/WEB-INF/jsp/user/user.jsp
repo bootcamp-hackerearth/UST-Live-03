@@ -16,7 +16,6 @@
             color: #1f2937;
         }
 
-        /* ===== POS TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -43,7 +42,6 @@
             font-weight: 600;
         }
 
-        /* ===== PAGE ===== */
         .page-wrapper {
             display: flex;
             justify-content: center;
@@ -114,7 +112,6 @@
 
 <body>
 
-<!--  TOP BAR -->
 <div class="topbar">
     <div class="top-title">POS Application</div>
 
@@ -136,7 +133,6 @@
             </div>
         </c:if>
 
-        <!--  CORRECT FORM OPEN -->
         <form:form action="${pageContext.request.contextPath}/user/update"
                    method="post"
                    modelAttribute="user">
@@ -164,7 +160,7 @@
             <button type="submit">Update User</button>
 
         </form:form>
-        <!-- CORRECT FORM CLOSE -->
+
 
     </div>
 </div>

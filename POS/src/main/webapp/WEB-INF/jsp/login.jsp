@@ -15,7 +15,6 @@
             color: #1f2937;
         }
 
-        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -31,7 +30,6 @@
             font-weight: 600;
         }
 
-        /* ===== PAGE CENTER ===== */
         .page-wrapper {
             min-height: calc(100vh - 56px);
             display: flex;
@@ -96,7 +94,6 @@
             font-weight: 600;
         }
 
-        /*  MESSAGE STYLES */
         .error-message {
             margin-top: 14px;
             padding: 10px;
@@ -132,7 +129,6 @@
 
         <h2>Login</h2>
 
-        <!-- LOGIN FORM -->
         <form action="${pageContext.request.contextPath}/login" method="post">
 
             <div class="form-group">
@@ -152,14 +148,12 @@
             <button type="submit" class="register-btn">Register</button>
         </form>
 
-        <!--  ERROR MESSAGE -->
         <c:if test="${param.error != null}">
             <div class="error-message">
                 Invalid username or password
             </div>
         </c:if>
 
-        <!--  LOGOUT MESSAGE -->
         <c:if test="${param.logout != null}">
             <div class="logout-message">
                 Logged out successfully

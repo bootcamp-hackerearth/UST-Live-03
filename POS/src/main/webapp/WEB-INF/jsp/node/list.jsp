@@ -15,7 +15,6 @@
             color: #111827;
         }
 
-        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -60,7 +59,6 @@
             cursor: pointer;
         }
 
-        /* ===== PAGE ===== */
         .page-title {
             text-align: center;
             padding: 22px 0 14px;
@@ -79,7 +77,6 @@
             padding: 26px;
         }
 
-        /* ===== ACTION BAR ===== */
         .list-actions {
             display: flex;
             justify-content: flex-end;
@@ -100,7 +97,6 @@
             background-color: #1d4ed8;
         }
 
-        /* ===== TABLE ===== */
         table {
             width: 100%;
             border-collapse: separate;
@@ -179,7 +175,6 @@
 
 <body>
 
-<!-- TOP BAR -->
 <div class="topbar">
     <div class="topbar-left">
         <div class="top-title">POS Application</div>
@@ -195,7 +190,6 @@
 
 <div class="container">
 
-    <!-- ADD NODE -->
     <div class="list-actions">
         <a class="add-btn" href="${pageContext.request.contextPath}/node/add">
             Add Node
@@ -213,41 +207,41 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Identifier</th>
-                        <th>Path</th>
-                        <th>Roles</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+<th>Identifier</th>
+<th>Path</th>
+<th>Roles</th>
+<th>Action</th>
+</tr>
+</thead>
 
-                <tbody>
-                    <c:forEach var="node" items="${nodes}">
-                        <tr>
-                            <td>${node.identifier}</td>
-                            <td>${node.path}</td>
-                            <td class="roles">
-                                <c:forEach var="role" items="${node.roles}" varStatus="s">
-                                    ${role}<c:if test="${!s.last}">, </c:if>
-                                </c:forEach>
-                            </td>
-                            <td>
-                                <a class="action-link edit"
-                                   href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}">
-                                    Edit
-                                </a>
+<tbody>
+<c:forEach var="node" items="${nodes}">
+<tr>
+    <td>${node.identifier}</td>
+    <td>${node.path}</td>
+    <td class="roles">
+        <c:forEach var="role" items="${node.roles}" varStatus="s">
+            ${role}<c:if test="${!s.last}">, </c:if>
+        </c:forEach>
+    </td>
+    <td>
+        <a class="action-link edit"
+           href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}">
+            Edit
+        </a>
 
-                                <a class="action-link delete"
-                                   href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
-                                   onclick="return confirm('Are you sure you want to delete this node?');">
-                                    Delete
-                                </a>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                </tbody>
-            </table>
-        </c:otherwise>
-    </c:choose>
+        <a class="action-link delete"
+           href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
+           onclick="return confirm('Are you sure you want to delete this node?');">
+            Delete
+        </a>
+    </td>
+</tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </c:otherwise>
+</c:choose>
 
 </div>
 

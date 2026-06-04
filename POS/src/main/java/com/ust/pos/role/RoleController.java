@@ -3,6 +3,7 @@ package com.ust.pos.role;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,17 +13,18 @@ import org.springframework.web.bind.annotation.*;
 public class RoleController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
+
     @Autowired
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("roles", roleService.findAll());
+    public String home(Model model, Pageable pageable) {
+        model.addAttribute("roles", roleService.findAll(pageable));
         return "role/list";
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute RoleDto roleDto) {
+    public String add(@ModelAttribute RoleDto roleDto) {
         return "role/add";
     }
 
@@ -55,8 +57,14 @@ public class RoleController {
     }
 
     @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String identifier) {
+    public String delete(@RequestParam String identifier) {
         roleService.delete(identifier);
         return REDIRECT_ROLE_LIST;
+    }
+
+    @PostMapping("/toggle-status")
+    @ResponseBody
+    public void toggle(@RequestParam String identifier) {
+        roleService.toggleStatus(identifier);
     }
 }
