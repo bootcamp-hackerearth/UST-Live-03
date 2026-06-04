@@ -7,214 +7,146 @@
 <head>
     <title>Update User</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet" />
 
     <style>
         body {
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             background: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: "Segoe UI", Arial, sans-serif;
         }
 
-        .card-container {
-            position: relative;
+        .update-card {
             width: 460px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 35px 40px;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            background: #fff;
+            padding: 30px 35px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
         }
 
-        h2 {
+        h3 {
             text-align: center;
+            color: #4b6cb7;
             margin-bottom: 25px;
-            color: #4b6cb7;
             font-weight: 600;
-        }
-
-        .back-icon {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #4b6cb7;
-            text-decoration: none;
-            font-weight: 600;
-            background: rgba(75, 108, 183, 0.08);
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-            transition: all 0.25s ease;
-        }
-
-        .back-icon:hover {
-            background: #4b6cb7;
-            color: #ffffff;
-            transform: translateX(-4px) scale(1.05);
-            box-shadow: 0 8px 18px rgba(75, 108, 183, 0.35);
-        }
-
-        .home-link {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #4b6cb7;
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            background: rgba(75, 108, 183, 0.08);
-            transition: all 0.25s ease;
-        }
-
-        .home-link:hover {
-            background: #4b6cb7;
-            color: #ffffff;
-            box-shadow: 0 8px 18px rgba(75, 108, 183, 0.35);
-            transform: translateY(-2px);
-        }
-
-        .form-group {
-            margin-bottom: 16px;
         }
 
         label {
-            font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
             color: #333;
-            margin-bottom: 6px;
-            display: block;
         }
 
-        input, select {
-            width: 100%;
-            padding: 11px 14px;
+        .form-control,
+        select {
             border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 14px;
+            padding: 10px 12px;
         }
 
         select[multiple] {
             height: 120px;
         }
 
-        .btn-submit {
-            margin-top: 12px;
+        .btn-update {
             width: 100%;
-            padding: 13px;
-            background: linear-gradient(135deg, #4b6cb7, #182848);
-            color: white;
+            padding: 12px;
+            background: #4b6cb7;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            color: white;
             font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-submit:hover {
-            opacity: 0.95;
-        }
-
-        .roles-preview {
-            font-size: 12px;
-            color: #555;
-            margin-bottom: 6px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background: #e0e0e0;
-            margin-right: 4px;
-            font-size: 11px;
-        }
-
-        .alert {
-            padding: 10px;
             border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 14px;
         }
 
-        .alert-danger {
-            background: #fdecea;
-            color: #c62828;
+        .btn-update:hover {
+            background: #182848;
+        }
+
+        .back-link {
+            text-decoration: none;
+            font-weight: 500;
+            color: #4b6cb7;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
 
-<div class="card-container">
+<c:if test="${not empty message}">
+    <div class="alert alert-info text-center position-absolute top-0 mt-3">
+        ${message}
+    </div>
+</c:if>
 
-    <a href="/user/list" class="back-icon">←</a>
-    <a href="/" class="home-link">Home</a>
+<div class="update-card">
 
-    <h2>Update User</h2>
+    <h3>Update User</h3>
 
-    <c:if test="${not empty message}">
-        <div class="alert alert-danger">
-            ${message}
-        </div>
-    </c:if>
+    <form:form action="/user/update" method="post" modelAttribute="user">
 
-    <form:form action="/user/update" method="post" modelAttribute="userDto">
+        <!-- Hidden ID -->
+        <form:input type="hidden" path="id" />
 
-        <form:hidden path="id"/>
-
-        <div class="form-group">
+        <!-- Name -->
+        <div class="mb-3">
             <label>Name</label>
-            <form:input path="name" required="true"/>
+            <form:input path="name" cssClass="form-control" required="true" />
         </div>
 
-        <div class="form-group">
+        <!-- Email -->
+        <div class="mb-3">
             <label>Email</label>
-            <form:input path="username"
-                        type="email"
-                        required="true"
-                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.com$"
-                        title="Email must be valid and end with .com"/>
+            <form:input type="email" path="username" cssClass="form-control" required="true" />
         </div>
 
-        <div class="form-group">
+        <!-- Phone -->
+        <div class="mb-3">
             <label>Phone Number</label>
-            <form:input path="phoneNo"
-                        pattern="[0-9]{10}"
-                        oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                        title="Enter exactly 10 digit phone number"/>
+            <form:input
+                path="phoneNo"
+                cssClass="form-control"
+                maxlength="10"
+                pattern="[0-9]{10}"
+                title="Enter exactly 10 digit phone number"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
         </div>
 
-        <div class="form-group">
+        <!-- Roles -->
+        <div class="mb-3">
             <label>Roles</label>
 
-            <div class="roles-preview">
+            <div class="mb-2 text-muted">
                 Current:
                 <c:forEach var="r" items="${userDto.roles}">
-                    <span class="badge">${r}</span>
+                    <span class="badge bg-secondary me-1">${r}</span>
                 </c:forEach>
             </div>
 
-            <form:select path="roles" multiple="true">
-                <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+            <form:select path="roles" multiple="true" cssClass="form-control">
+                <form:options items="${roles}"
+                              itemValue="identifier"
+                              itemLabel="identifier" />
             </form:select>
         </div>
 
-        <input type="submit" value="Update User" class="btn-submit"/>
+        <!-- Submit -->
+        <button type="submit" class="btn-update">
+            Update User
+        </button>
 
     </form:form>
 
+    <!-- Back Link -->
+    <div class="text-center mt-3">
+        <a href="/user/list" class="back-link">← Back to User List</a>
+    </div>
 </div>
-
 </body>
 </html>

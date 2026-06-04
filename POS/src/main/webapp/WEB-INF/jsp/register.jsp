@@ -100,6 +100,7 @@
     <a href="/login" class="back-icon">←</a>
     <h2>User Registration</h2>
 
+    <!-- ✅ MESSAGE DISPLAY -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}
