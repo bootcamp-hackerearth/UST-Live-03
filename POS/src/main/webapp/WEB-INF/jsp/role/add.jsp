@@ -117,6 +117,7 @@
     </style>
 </head>
 <body>
+
     <div class="container">
         <div class="brand-header">
             <h1>POS Retail Management</h1>

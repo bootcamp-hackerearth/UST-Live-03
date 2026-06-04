@@ -6,7 +6,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>POS Management | Add Node</title>
+    <title>POS Retail Management | Add Node</title>
     <style>
         body {
             margin: 0; padding: 0;
@@ -113,35 +113,38 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="brand-header">
-            <h1>POS Management</h1>
-        </div>
-        <div class="form-body">
-            <h2>Create New Node</h2>
 
-            <form:form action="${pageContext.request.contextPath}/node/add" method="post" modelAttribute="node">
-                <div class="form-group">
-                    <label>Node Name</label>
-                    <input type="text" name="identifier" placeholder="e.g. User Management" required autofocus />
-                </div>
-
-                <div class="form-group">
-                    <label>Path</label>
-                    <input type="text" name="path" placeholder="e.g. /user/list" required />
-                </div>
-
-                <div class="form-group">
-                    <label>Authorized Roles (Ctrl + Click)</label>
-                    <form:select path="roles" multiple="true" class="role-select">
-                        <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
-                    </form:select>
-                </div>
-
-                <button type="submit" class="btn-submit">Save Node</button>
-                <a href="${pageContext.request.contextPath}/node/list" class="back-link">← Cancel and Return</a>
-            </form:form>
-        </div>
+<div class="container">
+    <div class="brand-header">
+        <h1>POS Retail Management</h1>
     </div>
+
+    <div class="form-body">
+        <h2>Create New Node</h2>
+
+        <form:form action="${pageContext.request.contextPath}/node/add" method="post" modelAttribute="node">
+            <div class="form-group">
+                <label>Node Name</label>
+                <input type="text" name="identifier" placeholder="e.g. User Management" required autofocus />
+            </div>
+
+            <div class="form-group">
+                <label>Path</label>
+                <input type="text" name="path" placeholder="e.g. /user/list" required />
+            </div>
+
+            <div class="form-group">
+                <label>Authorized Roles (Ctrl + Click)</label>
+                <form:select path="roles" multiple="true" class="role-select">
+                    <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+                </form:select>
+            </div>
+
+            <button type="submit" class="btn-submit">Save Node</button>
+            <a href="${pageContext.request.contextPath}/node/list" class="back-link">← Cancel and Return</a>
+        </form:form>
+    </div>
+</div>
+
 </body>
 </html>

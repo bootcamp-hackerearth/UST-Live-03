@@ -2,181 +2,210 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>POS Retail Management | Home</title>
+    <meta charset="UTF-8">
+    <title>POS Retail System | Management Console</title>
     <style>
+        :root {
+            --navy: #0B3C5D;
+            --slate-bg: #F4F7F9;
+            --border-gray: #D1D5DB;
+            --text-primary: #111827;
+            --text-secondary: #4B5563;
+        }
+
         body {
             margin: 0;
             height: 100vh;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: #F4F5F7;
-            color: #1F2937;
+            font-family: "Inter", "Segoe UI", Tahoma, sans-serif;
+            background: var(--slate-bg);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
 
         .header {
-            height: 64px;
-            background: #0B3C5D;
-            color: #FFFFFF;
+            height: 56px;
+            background: var(--navy);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 32px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
+            padding: 0 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             z-index: 10;
         }
 
-        .header-left {
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: 0.8px;
-        }
+        .header-brand { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; }
 
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: #FFFFFF;
-            text-decoration: none;
-            padding: 8px 18px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            transition: all 0.2s ease;
-        }
-
-        .logout-btn:hover {
-            background: #FFFFFF;
-            color: #0B3C5D;
-        }
-
-        .container {
+        .user-pill {
             display: flex;
-            height: calc(100vh - 64px);
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .role-tag {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
         }
 
         .sidebar {
             width: 260px;
-            background: #FFFFFF;
-            padding-top: 24px;
-            border-right: 1px solid #E5E7EB;
-            flex-shrink: 0;
+            background: white;
+            border-right: 1px solid var(--border-gray);
+            display: flex;
+            flex-direction: column;
         }
 
-        .sidebar-title {
-            font-size: 11px;
+        .nav-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 0;
+        }
+
+        .nav-label {
+            font-size: 12px;
             font-weight: 700;
             color: #9CA3AF;
             padding: 0 24px 12px;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
+            letter-spacing: 0.05em;
         }
 
         .sidebar a {
-            display: flex;
-            align-items: center;
+            display: block;
             padding: 12px 24px;
-            margin: 2px 12px;
-            border-radius: 8px;
-            color: #4B5563;
+            color: var(--text-secondary);
             text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         .sidebar a:hover {
-            background: #F3F4F6;
-            color: #0B3C5D;
+            background: #F9FAFB;
+            color: var(--navy);
+            padding-left: 28px; /* Subtle slide effect */
         }
 
         .sidebar a.active {
-            background: #F3F4F6;
-            color: #0B3C5D;
+            background: #EFF6FF;
+            color: var(--navy);
+            font-weight: 700;
+            border-right: 4px solid var(--navy);
         }
 
-        .sidebar hr {
-            border: none;
-            height: 1px;
-            background: #E5E7EB;
-            margin: 16px 24px;
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .logout-btn {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background: #FFF5F5; /* Lil shade of red */
+            color: #C53030;      /* Deep red text for contrast */
+            border: 1px solid #FEB2B2;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #FEE2E2;
+            border-color: #F87171;
+            color: #9B2C2C;
         }
 
         .content {
             flex: 1;
             padding: 40px;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
         }
 
-        .content-card {
-            background: #FFFFFF;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        .page-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-gray);
+            padding-bottom: 20px;
+        }
+
+        .page-header h1 { margin: 0; font-size: 24px; color: var(--navy); }
+        .page-header p { margin: 5px 0 0; color: var(--text-secondary); font-size: 14px; }
+
+        .system-card {
+            background: white;
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 30px;
             max-width: 900px;
-            width: 100%;
-            border-top: 4px solid #0B3C5D;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        h2 {
-            margin: 0 0 12px 0;
-            font-size: 24px;
+        .grid-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .info-box {
+            padding: 15px;
+            background: #F9FAFB;
+            border-radius: 6px;
+            border-left: 4px solid var(--navy);
+        }
+
+        .info-box label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
             font-weight: 700;
-            color: #111827;
         }
 
-        p {
-            color: #6B7280;
+        .info-box span {
             font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 0;
-        }
-
-        .toast {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            min-width: 280px;
-            padding: 16px 20px;
-            background: #16A34A; /* Success Green */
-            color: #FFFFFF;
-            border-radius: 12px;
-            font-size: 14px;
             font-weight: 600;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            z-index: 9999;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
 
 <body>
-    <c:if test="${not empty successToast}">
-        <div class="toast">
-            ${successToast}
-        </div>
-    </c:if>
 
-    <div class="header">
-        <div class="header-left">POS Retail Management</div>
-        <a href="${pageContext.request.contextPath}/logout" class="logout-btn">Logout</a>
+<header class="header">
+    <div class="header-brand">POS MANAGEMENT SYSTEM</div>
+    <div class="user-pill">
+        <span>Logged in as: <strong>${userDetails.name}</strong></span>
+        <c:forEach items="${userDetails.roles}" var="r">
+            <span class="role-tag">${r}</span>
+        </c:forEach>
     </div>
+</header>
 
-    <div class="container">
+<div class="main-container">
+    <nav class="sidebar">
+        <div class="nav-wrapper">
+            <div class="nav-label">Navigation</div>
+            <a href="${pageContext.request.contextPath}/" class="active">Dashboard Home</a>
 
-        <div class="sidebar">
-            <div class="sidebar-title">Navigation</div>
-            <a href="${pageContext.request.contextPath}/" class="active">User Home</a>
-            <hr>
-            <div class="sidebar-title">Management Modules</div>
+            <div style="margin: 24px 0 10px;" class="nav-label">Modules</div>
             <c:forEach items="${nodes}" var="node">
                 <a href="${pageContext.request.contextPath}${node.path}">
                     ${node.identifier}
@@ -184,16 +213,50 @@
             </c:forEach>
         </div>
 
-        <div class="content">
-            <div class="content-card">
-                <h2>Welcome to the System</h2>
-                <p>
-                    Efficiently manage your retail operations. Select a module from the
-                    navigation menu on the left to manage users, configure roles, or
-                    monitor system nodes.
-                </p>
+        <div class="sidebar-footer">
+            <a href="${pageContext.request.contextPath}/logout" class="logout-btn">Sign Out</a>
+        </div>
+    </nav>
+
+    <main class="content">
+        <div class="page-header">
+            <h1>User Home</h1>
+            <p>System Overview and Management Console</p>
+        </div>
+
+        <div class="system-card">
+            <h3 style="margin-top: 0; color: var(--navy);">Welcome, ${userDetails.name}</h3>
+            <p style="line-height: 1.6; color: var(--text-secondary);">
+                You are currently accessing the POS Retail Management System. This interface provides
+                centralized control over inventory, sales data, and warehouse distribution.
+                Please select a module from the sidebar to begin managing your data.
+            </p>
+
+            <div class="grid-info">
+                <div class="info-box">
+                    <label>System Status</label>
+                    <span>Online / Active</span>
+                </div>
+                <div class="info-box">
+                    <label>Available Modules</label>
+                    <span>${nodes.size()} Integrated Nodes</span>
+                </div>
+                <div class="info-box">
+                    <label>Account Level</label>
+                    <span>Authorized Personnel</span>
+                </div>
+                <div class="info-box">
+                    <label>Last Login</label>
+                    <span id="timestamp">...</span>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
+</div>
+
+<script>
+    document.getElementById('timestamp').innerText = new Date().toLocaleString();
+</script>
+
 </body>
 </html>

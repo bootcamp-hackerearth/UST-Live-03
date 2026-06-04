@@ -24,13 +24,13 @@ public class SecurityController {
     private RoleService roleService;
 
     @GetMapping("/login")
-    public String login(Model model, @ModelAttribute UserDto userDto) {
+    public String login() {
         return "login";
     }
 
     @GetMapping("/register")
     public String add(Model model, @ModelAttribute UserDto userDto) {
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findAllActive());
         return "register";
     }
 
@@ -39,16 +39,13 @@ public class SecurityController {
         UserDto response = userService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute("roles", roleService.findAll());
+            model.addAttribute("roles", roleService.findAll(null));
             return "register";
         }
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         boolean isLoggedIn = authentication != null
                 && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken);
-
         if (isLoggedIn) {
             return "redirect:/user/list";
         } else {
