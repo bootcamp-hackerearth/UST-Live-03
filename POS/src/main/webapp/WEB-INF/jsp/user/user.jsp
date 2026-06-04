@@ -1,0 +1,139 @@
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<html>
+<head>
+<title>Edit User</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #F6F7F9;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+form {
+    width: 420px;
+    background: #FFFFFF;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+h4 {
+    text-align: center;
+    color: #111827;
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: 600;
+    color: #111827;
+    display: block;
+    margin-top: 10px;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+    font-size: 14px;
+}
+
+input:focus, select:focus {
+    border-color: #2B2B2B;
+    outline: none;
+}
+
+button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #2B2B2B;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #111111;
+}
+
+.btn-cancel {
+    background: #E5E7EB;
+    color: #111827;
+}
+
+.btn-cancel:hover {
+    background: #D1D5DB;
+}
+
+.error {
+    color: #B91C1C;
+    font-size: 12px;
+    margin-top: 2px;
+}
+</style>
+
+</head>
+
+<body>
+
+<c:if test="${empty user}">
+    <div style="color:#B91C1C;">User not found</div>
+</c:if>
+
+<c:if test="${not empty user}">
+
+<form:form method="post" action="/user/update" modelAttribute="user">
+
+<form:hidden path="id" />
+<form:hidden path="username" />
+
+<h4>Edit User</h4>
+
+<label>Name</label>
+<form:input path="name" required="true"/>
+<form:errors path="name" cssClass="error"/>
+
+
+<label>Phone Number</label>
+<form:input path="phoneNo"
+    type="text"
+    inputmode="numeric"
+    maxlength="10"
+    pattern="^[0-9]{10}$"
+    oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+    required="true"/>
+<form:errors path="phoneNo" cssClass="error"/>
+
+
+<label>Roles</label>
+<form:select path="roles" multiple="true" required="true">
+     <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+</form:select>
+
+<div style="display:flex;justify-content:space-between;margin-top:15px;">
+    <a href="/user/list">
+        <button type="button" class="btn-cancel">Cancel</button>
+    </a>
+
+    <button type="submit" class="btn-primary">Update</button>
+</div>
+
+</form:form>
+
+</c:if>
+</body>
+</html>
