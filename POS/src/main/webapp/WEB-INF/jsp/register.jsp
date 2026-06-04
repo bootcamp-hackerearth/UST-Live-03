@@ -102,7 +102,7 @@
         <div class="form-group">
             <label>Email</label>
 
-                     <form:input
+               <form:input
                 path="username"
                 type="text"
                 required="true"

@@ -143,6 +143,14 @@
             <small>
                 Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple
             </small>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Status</label>
+                            <form:select path="status" class="form-select">
+                                <form:option value="true">Active</form:option>
+                                <form:option value="false">Deactive</form:option>
+                            </form:select>
+                        </div>
         </div>
 
         <button type="submit" class="btn-update">

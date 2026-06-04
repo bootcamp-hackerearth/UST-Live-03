@@ -1,0 +1,78 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Entry</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <style>
+        body { background-color: #f4f7f6; min-height: 100vh; display: flex; align-items: center; }
+        .card-add { border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .card-header { background-color: #0d6efd; color: white; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
+        .form-label { font-weight: 600; color: #495057; }
+        /* Style for the toggle switch */
+        .form-check-input:checked { background-color: #198754; border-color: #198754; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card card-add">
+                <div class="card-header text-center py-3">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle-fill me-2"></i>Create New Entry</h4>
+                </div>
+
+                <div class="card-body p-4">
+                    <c:if test="${not empty message}">
+                        <div class="alert ${success ? 'alert-success' : 'alert-danger'} alert-dismissible fade show" role="alert">
+                            <i class="bi ${success ? 'bi-check-circle' : 'bi-exclamation-triangle'} me-2"></i>
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </c:if>
+
+                    <form:form action="${pageContext.request.contextPath}/brand/add" method="post" modelAttribute="brandDto">
+
+                        <div class="mb-3">
+                            <label class="form-label">Identifier</label>
+                            <form:input path="identifier" cssClass="form-control" placeholder="e.g. UNIQUE-CODE-101" required="true"/>
+                            <div class="form-text">A unique reference string for this record.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <form:textarea path="description" cssClass="form-control" rows="3" placeholder="Enter detailed description..." required="true"/>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label d-block">Initial Status</label>
+                            <div class="form-check form-switch">
+                                <form:checkbox path="status" cssClass="form-check-input" id="statusSwitch" role="switch"/>
+                                <label class="form-check-label" for="statusSwitch">Set as Active</label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold">
+                                <i class="bi bi-cloud-upload me-2"></i>Save
+                            </button>
+                            <a href="${pageContext.request.contextPath}/brand/list" class="btn btn-outline-secondary py-2">
+                                Cancel & Back to List
+                            </a>
+                        </div>
+                    </form:form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

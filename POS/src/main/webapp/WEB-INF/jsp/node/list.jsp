@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Role List</title>
+    <title>Node List</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
@@ -25,6 +25,10 @@
             background-color: #0d6efd;
             color: white;
         }
+        .status-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -32,7 +36,7 @@
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-9">
+        <div class="col-md-10">
 
             <div class="card shadow-lg">
                 <div class="card-header bg-primary text-white text-center">
@@ -50,14 +54,16 @@
                     <c:if test="${not empty nodes}">
                         <table class="table table-bordered table-hover text-center align-middle">
                             <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Identifier</th>
-                                <th>Path</th>
-                                <th>Roles</th>
-                                <th>Action</th>
-                            </tr>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Identifier</th>
+                                    <th>Path</th>
+                                    <th>Roles</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
                             </thead>
+
                             <tbody>
                             <c:forEach var="node" items="${nodes}">
                                 <tr>
@@ -65,14 +71,35 @@
                                     <td>${node.identifier}</td>
                                     <td>${node.path}</td>
                                     <td>${node.roles}</td>
-                                    <td class="d-flex justify-content-center gap-2">
 
-                                        <a href="/node/get?identifier=${node.identifier}"
+                                    <td>
+                                        <form method="get"
+                                              action="${pageContext.request.contextPath}/node/toggle"
+                                              class="d-inline">
+
+                                            <input type="hidden" name="identifier" value="${node.identifier}">
+                                            <input type="hidden" name="status" value="${!node.status}">
+
+                                            <div class="form-check form-switch d-flex justify-content-center align-items-center gap-2">
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       ${node.status ? "checked" : ""}
+                                                       onchange="this.form.submit()">
+
+                                                <span class="status-label ${node.status ? 'text-success' : 'text-danger'}">
+                                                    ${node.status ? 'Active' : 'Inactive'}
+                                                </span>
+                                            </div>
+                                        </form>
+                                    </td>
+
+                                    <td class="d-flex justify-content-center gap-2">
+                                        <a href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
                                            class="btn btn-warning btn-sm">
                                             Edit
                                         </a>
 
-                                        <a href="/node/delete?identifier=${node.identifier}"
+                                        <a href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
                                            class="btn btn-danger btn-sm"
                                            onclick="return confirm('Are you sure you want to delete this node?');">
                                             Delete
@@ -87,11 +114,11 @@
                 </div>
 
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
-                    <a href="/" class="btn btn-secondary">
+                    <a href="${pageContext.request.contextPath}/" class="btn btn-secondary">
                         Home
                     </a>
 
-                    <a href="/node/add" class="btn btn-success">
+                    <a href="${pageContext.request.contextPath}/node/add" class="btn btn-success">
                         + Add New Node
                     </a>
                 </div>

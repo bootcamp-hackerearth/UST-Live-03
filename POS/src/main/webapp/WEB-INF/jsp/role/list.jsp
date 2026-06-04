@@ -25,6 +25,10 @@
             background-color: #0d6efd;
             color: white;
         }
+        .status-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -32,7 +36,7 @@
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-9">
 
             <div class="card shadow-lg">
                 <div class="card-header bg-primary text-white text-center">
@@ -53,16 +57,40 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Role</th>
-                                <th>Action</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                             </thead>
+
                             <tbody>
                             <c:forEach var="role" items="${roles}">
                                 <tr>
                                     <td>${role.id}</td>
                                     <td>${role.identifier}</td>
-                                    <td class="d-flex justify-content-center gap-2">
 
+                                    <td>
+                                        <form method="get"
+                                              action="${pageContext.request.contextPath}/role/toggle">
+
+                                            <input type="hidden" name="identifier"
+                                                   value="${role.identifier}" />
+                                            <input type="hidden" name="status"
+                                                   value="${!role.status}" />
+
+                                            <div class="form-check form-switch d-flex justify-content-center align-items-center gap-2">
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       ${role.status ? "checked" : ""}
+                                                       onchange="this.form.submit()" />
+
+                                                <span class="status-label ${role.status ? 'text-success' : 'text-danger'}">
+                                                    ${role.status ? 'Active' : 'Inactive'}
+                                                </span>
+                                            </div>
+                                        </form>
+                                    </td>
+
+                                    <td class="d-flex justify-content-center gap-2">
                                         <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
                                            class="btn btn-warning btn-sm">
                                             Edit
@@ -73,7 +101,6 @@
                                            onclick="return confirm('Are you sure you want to delete this role?');">
                                             Delete
                                         </a>
-
                                     </td>
                                 </tr>
                             </c:forEach>

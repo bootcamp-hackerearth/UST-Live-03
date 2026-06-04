@@ -18,9 +18,11 @@
             background: #ffffff;
             min-height: 100vh;
         }
+
         .card {
             border-radius: 12px;
         }
+
         .form-control {
             border-radius: 8px;
         }
@@ -85,16 +87,17 @@
                         </form:select>
                     </div>
 
+                    <div class="d-flex justify-content-between mt-4">
 
-                    <div class="d-flex gap-2">
                         <a href="${pageContext.request.contextPath}/node/list"
                            class="btn btn-secondary">
-                            Back
+                            Cancel
                         </a>
 
                         <button type="submit" class="btn btn-primary">
                             Add Node
                         </button>
+
                     </div>
 
                 </form:form>

@@ -10,7 +10,6 @@
     <meta charset="UTF-8">
     <title>Add Role</title>
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
@@ -64,13 +63,8 @@
                                     required="true"/>
                     </div>
 
-                    <div class="d-flex gap-2">
-                        <a href="${pageContext.request.contextPath}/role/list"
-                           class="btn btn-secondary">
-                            Back
-                        </a>
-
-                        <button type="submit" class="btn btn-primary">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
                             Add Role
                         </button>
                     </div>

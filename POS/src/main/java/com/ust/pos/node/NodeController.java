@@ -4,6 +4,7 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 public class NodeController {
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
+
     public static final String ROLES = "roles";
     @Autowired
     private NodeService nodeService;
@@ -21,50 +23,56 @@ public class NodeController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("nodes", nodeService.findAll());
+    public String home(Model node, Pageable pageable) {
+        node.addAttribute("nodes", nodeService.findAll(pageable));
         return "node/list";
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute NodeDto nodeDto) {
-        model.addAttribute("nodeDto",nodeDto);
-        model.addAttribute(ROLES,roleService.findAll());
+    public String add(Model node, @ModelAttribute NodeDto userDto) {
+        node.addAttribute("userDto", userDto);
+        node.addAttribute(ROLES, roleService.findActiveStatus());
         return "node/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute NodeDto nodeDto) {
-        NodeDto response = nodeService.save(nodeDto);
-        model.addAttribute("nodeDto",response);
+    public String addPost(Model node, @ModelAttribute NodeDto userDto) {
+        NodeDto response = nodeService.save(userDto);
+        node.addAttribute("userDto", response);
         if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
+            node.addAttribute("message", response.getMessage());
             return "node/add";
         }
         return REDIRECT_NODE_LIST;
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier) {
+    public String update(Model node, @RequestParam String identifier,Pageable pageable) {
         NodeDto response = nodeService.findByIdentifier(identifier);
-        model.addAttribute("node", response);
-        model.addAttribute(ROLES,roleService.findAll());
+        node.addAttribute("node", response);
+        node.addAttribute(ROLES, roleService.findAll(pageable));
         return "node/node";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute NodeDto nodeDto) {
-        NodeDto response = nodeService.update(nodeDto);
-        model.addAttribute(ROLES,roleService.findAll());
+    public String updatePost(Model node, @ModelAttribute NodeDto userDto,Pageable pageable) {
+        NodeDto response = nodeService.update(userDto);
+        node.addAttribute(ROLES, roleService.findAll(pageable));
         if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
+            node.addAttribute("message", response.getMessage());
         }
         return REDIRECT_NODE_LIST;
     }
 
     @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String identifier) {
+    public String delete(Model node, @RequestParam String identifier) {
         nodeService.delete(identifier);
+        return REDIRECT_NODE_LIST;
+    }
+
+    @GetMapping("/toggle")
+    public String toggle(@RequestParam String identifier, boolean status) {
+        nodeService.changeToggleStatus(identifier, status);
         return REDIRECT_NODE_LIST;
     }
 }

@@ -7,6 +7,8 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -30,14 +32,15 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier),NodeDto.class);
+        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
     }
 
     @Override
-    public List<NodeDto> findAll() {
+    public List<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        return modelMapper.map(nodeRepository.findAll(), listType);
+        Page<Node> nodePage=nodeRepository.findAll(pageable);
+        return modelMapper.map(nodePage.getContent(), listType);
     }
 
     @Override
@@ -83,6 +86,7 @@ public class NodeServiceImpl implements NodeService {
         }
         return nodeDtos;
     }
+
     private void findNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesStr = new HashSet<>();
@@ -99,4 +103,13 @@ public class NodeServiceImpl implements NodeService {
         }
     }
 
+    @Override
+    public NodeDto changeToggleStatus(String identifier, boolean status) {
+        Node node = nodeRepository.findByIdentifier(identifier);
+        if (node != null) {
+            node.setStatus(status);
+            nodeRepository.save(node);
+        }
+        return modelMapper.map(node, NodeDto.class);
+    }
 }
