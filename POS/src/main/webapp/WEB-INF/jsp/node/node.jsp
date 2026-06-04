@@ -14,7 +14,7 @@
     <style>
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
             display: flex;
             justify-content: center;
             align-items: center;

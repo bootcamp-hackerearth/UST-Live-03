@@ -13,7 +13,7 @@
     <style>
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #0f766e, #022c43);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -68,10 +68,12 @@
 </head>
 
 <body>
+
 <div class="update-card">
     <h3>Update User</h3>
 
     <form:form action="/user/update" method="post" modelAttribute="user">
+
         <form:input type="hidden" path="id"/>
 
         <div class="mb-3">
@@ -82,7 +84,7 @@
 
         <div class="mb-3">
             <label>Email</label>
-            <form:input path="username" type="email" cssClass="form-control" readonly="true"/>
+            <form:input path="username" type="email" cssClass="form-control" required="true"/>
             <form:errors path="username" cssClass="error"/>
         </div>
 
@@ -94,7 +96,6 @@
 
         <div class="mb-3">
             <label>Roles</label>
-
             <div class="mb-1 text-muted">
                 Current:
                 <c:forEach var="r" items="${user.roles}">
@@ -102,14 +103,17 @@
                 </c:forEach>
             </div>
 
-            <form:select path="roles" multiple="true" cssClass="form-control" required="true">
+            <form:select path="roles" multiple="true" cssClass="form-control">
                 <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
             </form:select>
 
             <small>Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple</small>
         </div>
+
         <button type="submit" class="btn-update">Update User</button>
+
     </form:form>
+
 
     <c:if test="${not empty message}">
         <p class="error">${message}</p>

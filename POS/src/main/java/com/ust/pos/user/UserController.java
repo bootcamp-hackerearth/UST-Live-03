@@ -4,6 +4,7 @@ import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -21,27 +22,25 @@ public class UserController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("users", userService.findAll());
+    public String home(Model model, Pageable pageable) {
+        model.addAttribute("users", userService.findAll(pageable));
         return "user/list";
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String username, @ModelAttribute UserDto userDto) {
+    public String update(Model model, Pageable pageable, @RequestParam String username, @ModelAttribute UserDto userDto) {
         UserDto response = userService.findByUserName(username);
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findAll(pageable));
         model.addAttribute("user", response);
         return "user/user";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute UserDto userDto) {
+    public String updatePost(Model model, Pageable pageable, @ModelAttribute UserDto userDto) {
         UserDto response = userService.update(userDto);
-
         if (!response.isSuccess()) {
-
             model.addAttribute("user", userDto);
-            model.addAttribute("roles", roleService.findAll());
+            model.addAttribute("roles", roleService.findAll(pageable));
             model.addAttribute("message", response.getMessage());
             return "user/user";
         }
@@ -51,11 +50,11 @@ public class UserController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String username) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication != null) {
             String loggedInUser = authentication.getName();
             if (loggedInUser != null) {
                 userService.delete(username);
+
                 if (loggedInUser.equals(username)) {
                     SecurityContextHolder.clearContext();
                     return "redirect:/login";

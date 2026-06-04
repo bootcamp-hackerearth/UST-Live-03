@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
@@ -14,7 +15,7 @@
 
     <style>
         body {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
             min-height: 100vh;
         }
         .card {
@@ -46,6 +47,7 @@
             </div>
 
             <div class="card-body">
+
                 <form:form method="post"
                            action="/node/add"
                            modelAttribute="node">
@@ -94,6 +96,7 @@
                         ${message}
                     </div>
                 </c:if>
+
             </div>
 
             <div class="card-footer text-center text-muted small">

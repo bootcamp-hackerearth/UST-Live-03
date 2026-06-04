@@ -1,129 +1,187 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login</title>
+    <title>POS | Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body {
+        * {
             margin: 0;
-            height: 100vh;
+            padding: 0;
+            box-sizing: border-box;
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        body {
+            height: 100vh;
+        }
+
+        .container {
             display: flex;
-            justify-content: center;
+            height: 100vh;
+        }
+
+        /* LEFT PANEL */
+        .left-panel {
+            flex: 60%;
+            background: linear-gradient(135deg, #0f766e, #022c43);
+            color: white;
+            display: flex;
             align-items: center;
+            justify-content: center;
+            padding: 40px;
         }
 
-        form {
-            background: #ffffff;
-            padding: 30px 35px;
+        .left-content {
+            max-width: 400px;
+        }
+
+        .left-content h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+
+        .left-content p {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .features {
+            list-style: none;
+        }
+
+        .features li {
+            margin-bottom: 10px;
+        }
+
+        /* RIGHT PANEL */
+        .right-panel {
+            flex: 40%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+        }
+
+        .login-card {
             width: 320px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
-        h2 {
+        .login-card h2 {
             text-align: center;
-            margin-bottom: 25px;
-            color: #333;
+            margin-bottom: 15px;
         }
 
-        form div {
-            margin-bottom: 18px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
-            color: #555;
-        }
-
-        input {
-            width: 100%;
+        .alert {
+            background: #d1fae5;
+            color: #065f46;
             padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
+            margin-bottom: 15px;
             border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
         }
 
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        button {
+        .login-card input {
             width: 100%;
-            padding: 10px;
-            background-color: #667eea;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background: #0f766e;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 15px;
+            border-radius: 25px;
             cursor: pointer;
+            margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #5a67d8;
+        .login-card button:hover {
+            background: #115e59;
         }
 
-
-        .register-link {
-            margin-top: 15px;
+        .login-card p {
             text-align: center;
+            margin-top: 15px;
             font-size: 14px;
         }
 
-        .register-link a {
-            color: #667eea;
+        .login-card a {
+            color: #0f766e;
             text-decoration: none;
             font-weight: bold;
         }
 
-        .register-link a:hover {
-            text-decoration: underline;
-        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
 
-        .error-msg {
-            margin-bottom: 12px;
-            padding: 10px;
-            text-align: center;
-            border-radius: 6px;
-            background: #fee2e2;
-            color: #b91c1c;
-            font-size: 13px;
+            .left-panel {
+                display: none;
+            }
+
+            .right-panel {
+                flex: 100%;
+            }
         }
     </style>
 </head>
-
 <body>
-<form th:action="@{/login}" method="post">
 
-<c:if test="${param.error !=null}">
-    <div class = "error-msg">
-        Invalid username and password
+<div class="container">
+
+    <div class="left-panel">
+        <div class="left-content">
+            <h1>POS System</h1>
+            <p>
+                Manage your business efficiently with our powerful Point of Sale system.
+                Track sales, monitor inventory, and gain insights in real time.
+            </p>
+
+            <ul class="features">
+                <li>✔ Fast and secure billing</li>
+                <li>✔ Real-time inventory tracking</li>
+                <li>✔ Sales reports & analytics</li>
+                <li>✔ User-friendly interface</li>
+            </ul>
+        </div>
     </div>
-</c:if>
 
-    <h2>Login</h2>
-    <div>
-        <label>Username:</label>
-        <input type="text" name="username" required />
+    <div class="right-panel">
+        <div class="login-card">
+
+            <h2>Login</h2>
+
+            <%String logout = request.getParameter("logout");
+                if ("true".equals(logout)) {%>
+                <div class="alert">You have logged out successfully</div>
+            <%}%>
+
+            <form action="login" method="post">
+                <input type="email" name="username" placeholder="Enter your email" required />
+                <input type="password" name="password" placeholder="Enter your password" required />
+                <button type="submit">Login</button>
+            </form>
+
+            <div>
+            New User?
+            <a href="${pageContext.request.contextPath}/register">Register here</a>
+            </div>
+
+        </div>
     </div>
-
-    <div>
-        <label>Password:</label>
-        <input type="password" name="password" required />
-    </div>
-
-    <button type="submit">Login</button>
-
-    <div class="register-link">
-        New user? <a href="${pageContext.request.contextPath}/register">Register here</a>
-    </div>
-</form>
-
+</div>
 </body>
 </html>

@@ -5,12 +5,13 @@
 <html>
 <head>
     <title>User Management</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
     <style>
         body {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #0f766e, #022c43);
             min-height: 100vh;
         }
         .card {
@@ -64,6 +65,7 @@
                                 <td>${user.name}</td>
                                 <td>${user.phoneNo}</td>
 
+                                <!-- Roles -->
                                 <td>
                                     <c:forEach var="role" items="${user.roles}" varStatus="status">
                                         ${role}
@@ -71,6 +73,7 @@
                                     </c:forEach>
                                 </td>
 
+                                <!-- Actions -->
                                 <td>
                                     <div class="d-flex justify-content-center gap-2">
                                         <a class="btn btn-warning btn-sm"
@@ -91,6 +94,7 @@
                     </table>
                 </div>
             </c:if>
+
         </div>
 
         <div class="card-footer text-center">

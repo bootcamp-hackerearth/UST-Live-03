@@ -13,7 +13,7 @@
     <style>
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -70,17 +70,13 @@ ${message}
                     <a href="/role/list" class="btn btn-outline-secondary">
                         Cancel
                     </a>
-
                     <button type="submit" class="btn btn-primary">
                         Update
                     </button>
                 </div>
-
             </form:form>
         </c:if>
-
     </div>
 </div>
-
 </body>
 </html>
