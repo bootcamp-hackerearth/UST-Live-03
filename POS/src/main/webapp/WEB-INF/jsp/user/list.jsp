@@ -6,177 +6,131 @@
 <head>
     <title>User Management</title>
 
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
     <style>
-
         body {
-            background-color: #f4f6f9;
+            background: #ffffff;
             min-height: 100vh;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .page-container {
-            margin-top: 40px;
         }
 
         .card {
-            border: none;
             border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .card-header {
-            background: #0d6efd;
-            color: white;
-            padding: 18px 25px;
-        }
-
-        .card-header h3 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .home-btn {
-            font-weight: 500;
-        }
-
-        .table {
-            margin-bottom: 0;
         }
 
         .table th {
             background-color: #343a40;
             color: white;
-            font-weight: 600;
-            border: none;
         }
 
-        .table td {
-            vertical-align: middle;
+        /* Top navigation */
+        .top-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
 
-        .table-hover tbody tr:hover {
-            background-color: #f8f9fa;
+        .top-link {
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
         }
 
-        .btn-action {
-            min-width: 80px;
-            margin: 2px;
+        .top-link:hover {
+            text-decoration: none;
+            color: #000;
         }
 
-        .card-footer {
-            background: #fff;
-            border-top: 1px solid #dee2e6;
+        /* Action icons */
+        .action-link {
+            text-decoration: none;
+            font-size: 18px;
+            margin: 0 6px;
         }
 
-        .footer-text {
-            color: #6c757d;
-            font-size: 14px;
+        .action-link:hover {
+            text-decoration: none;
+            opacity: 0.8;
         }
-
-        .empty-message {
-            margin: 20px;
-        }
-
     </style>
 </head>
 
 <body>
 
-<div class="container page-container">
-
-    <div class="card shadow">
-
-        <!-- Header -->
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-
-                <h3>User Management</h3>
-
-                <!-- Home Button -->
-                <a href="/" class="btn btn-light home-btn">
-                    🏠 Home
-                </a>
-
-            </div>
-        </div>
-
-        <!-- Body -->
+<div class="container mt-5">
+    <div class="card shadow-lg">
         <div class="card-body">
 
+            <!-- 🔙 Back Arrow + 🏠 Home -->
+            <div class="top-actions">
+                <a href="javascript:history.back()" class="top-link">← </a>
+
+            </div>
+
+            <h3 class="text-center mb-4">User Management</h3>
+
+            <!-- NO USERS MESSAGE -->
             <c:if test="${empty users}">
-                <div class="alert alert-warning text-center empty-message">
-                    No users found.
+                <div class="alert alert-warning text-center">
+                    No users found
                 </div>
             </c:if>
 
             <c:if test="${not empty users}">
-
                 <div class="table-responsive">
-
                     <table class="table table-bordered table-hover align-middle text-center">
-
                         <thead>
                         <tr>
                             <th>Email</th>
                             <th>Name</th>
-                            <th>Phone Number</th>
+                            <th>Phone</th>
                             <th>Roles</th>
-                            <th width="180">Actions</th>
+                            <th>Action</th>
                         </tr>
                         </thead>
 
                         <tbody>
-
                         <c:forEach var="user" items="${users}">
                             <tr>
-
                                 <td>${user.username}</td>
                                 <td>${user.name}</td>
                                 <td>${user.phoneNo}</td>
                                 <td>${user.roles}</td>
-
                                 <td>
-
+                                    <!-- ✏️ Edit -->
                                     <a href="/user/get?username=${user.username}"
-                                       class="btn btn-sm btn-primary btn-action">
-                                        Edit
-                                    </a>
+                                       class="action-link">✏️</a>
 
+                                    <!-- 🗑 Delete -->
                                     <a href="/user/delete?username=${user.username}"
-                                       class="btn btn-sm btn-danger btn-action"
+                                       class="action-link"
                                        onclick="return confirm('Are you sure you want to delete this user?');">
-                                        Delete
+                                        🗑
                                     </a>
-
                                 </td>
-
                             </tr>
                         </c:forEach>
-
                         </tbody>
 
                     </table>
-
                 </div>
-
             </c:if>
 
         </div>
 
-        <!-- Footer -->
         <div class="card-footer text-center">
-            <span class="footer-text">
+            <div class="text-muted small mt-2">
                 User Management System
-            </span>
+            </div>
         </div>
 
-    </div>
 
+    </div>
 </div>
 
 </body>
 </html>
+``

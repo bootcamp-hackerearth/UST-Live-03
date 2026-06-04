@@ -20,7 +20,7 @@ public class SecurityController {
     private RoleService roleService;
 
     @GetMapping("/login")
-    public String login() {
+    public String login(Model model) {
         return "login";
     }
 
@@ -37,6 +37,6 @@ public class SecurityController {
             model.addAttribute("message", response.getMessage());
             return "register";
         }
-        return "login";
+        return "redirect:register";
     }
 }
