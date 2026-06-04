@@ -1,0 +1,75 @@
+package com.ust.pos.role.service.impl;
+
+import com.ust.pos.dto.RoleDto;
+import com.ust.pos.model.Role;
+import com.ust.pos.model.RoleRepository;
+import com.ust.pos.role.service.RoleService;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+@Service
+public class RoleServiceImpl implements RoleService {
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    @Override
+    public RoleDto findByIdentifier(String identifier) {
+        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+    }
+
+    @Override
+    public RoleDto save(RoleDto roleDto) {
+
+        Role existing = roleRepository.findByIdentifier(roleDto.getIdentifier());
+
+        if (existing != null) {
+            roleDto.setSuccess(false);
+            roleDto.setMessage("Role '" + roleDto.getIdentifier() + "' already exists");
+            return roleDto;
+        }
+
+        Role role = modelMapper.map(roleDto, Role.class);
+        roleRepository.save(role);
+
+        roleDto.setSuccess(true);
+        roleDto.setMessage("Role added successfully");
+        return roleDto;
+    }
+
+
+    @Override
+    public RoleDto update(RoleDto roleDto) {
+        String identifier = roleDto.getIdentifier();
+        Role existingRole = roleRepository.findByIdentifier(identifier);
+        if (existingRole == null) {
+            roleDto.setMessage("Role with identifier - " + identifier + " not found");
+            roleDto.setSuccess(false);
+            return roleDto;
+        }
+        modelMapper.map(roleDto, existingRole);
+        roleRepository.save(existingRole);
+        return roleDto;
+    }
+
+    @Override
+    public boolean delete(String identifier) {
+        roleRepository.deleteByIdentifier(identifier);
+        return true;
+    }
+
+    @Override
+    public List<RoleDto> findAll() {
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        return modelMapper.map(roleRepository.findAll(), listType);
+    }
+}
