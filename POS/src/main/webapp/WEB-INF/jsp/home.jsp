@@ -45,12 +45,20 @@
             top: 55px;
             left: 0;
             width: 260px;
+
             height: calc(100vh - 55px);
+
             background: #1c1c1c;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
+
             padding: 15px;
             box-shadow: 4px 0 15px rgba(0,0,0,0.8);
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            box-sizing: border-box;
         }
 
         #menuToggle:checked ~ .side-menu {
@@ -121,15 +129,18 @@
     <input type="checkbox" id="menuToggle">
     <div class="side-menu">
         <h4>Menu</h4>
+
         <c:forEach var="node" items="${nodes}">
             <a href="${node.path}">
                 ${node.identifier}
             </a>
         </c:forEach>
+
     </div>
+
     <div class="content">
         <h1> Welcome ${name}</h1>
-        <p>POS Appplication Dashboard </p>
+        <p>POS Application Dashboard </p>
     </div>
 </body>
 </html>

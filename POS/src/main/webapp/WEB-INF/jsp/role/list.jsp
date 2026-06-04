@@ -1,7 +1,5 @@
-<%@ page contentType="text/html;charset=UTF-8"
-         language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core"
-           prefix="c" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
@@ -9,7 +7,7 @@
     <title>Role List</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet" />
+          rel="stylesheet">
 
     <style>
         body {
@@ -59,6 +57,7 @@
         }
     </style>
 </head>
+
 <body>
 
 <div class="container mt-5">
@@ -122,20 +121,21 @@
                             </tbody>
                         </table>
                     </c:if>
+
                 </div>
 
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
-                    <a href="/"
-                       class="btn btn-secondary">
+                    <a href="/" class="btn btn-secondary">
                         Home
                     </a>
 
-                    <a href="/role/add"
-                       class="btn btn-success">
+                    <a href="/role/add" class="btn btn-success">
                         + Add New Role
                     </a>
                 </div>
+
             </div>
+
         </div>
     </div>
 </div>

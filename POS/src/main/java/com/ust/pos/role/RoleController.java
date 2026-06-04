@@ -3,6 +3,7 @@ package com.ust.pos.role;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +18,14 @@ public class RoleController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String list(Model model) {
+    public String list(Model model, Pageable pageable) {
 
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findAll(pageable));
         return "role/list";
     }
 
     @GetMapping("/add")
-    public String add(@ModelAttribute RoleDto roleDto) {
+    public String add(Model model, @ModelAttribute RoleDto roleDto) {
 
         return "role/add";
     }

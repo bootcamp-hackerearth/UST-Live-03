@@ -73,6 +73,7 @@
 </head>
 
 <body>
+
 <div class="update-card">
     <h3>Update Node</h3>
 
@@ -82,38 +83,46 @@
 
         <div class="mb-3">
             <label>Name</label>
-            <form:input path="identifier" cssClass="form-control" required="true" pattern="^[A-Za-z)-9_-]+$" readonly="true"/>
+            <form:input path="identifier"
+                        cssClass="form-control"
+                        required="true"
+                        pattern="^[A-Za-z)-9_-]+$"
+                        readonly="true"/>
         </div>
 
-         <div class="mb-3">
+        <div class="mb-3">
             <label>Path</label>
-            <form:input path="path" cssClass="form-control" required="true" pattern="^/.*" title="Path must start with /"/>
+            <form:input path="path"
+                        cssClass="form-control"
+                        required="true"
+                        pattern="^/.*"
+                        title="Path must start with /"/>
         </div>
-
 
         <div class="mb-3">
             <label>Roles</label>
 
             <div class="mb-1 text-muted">
                 Current:
-
-<c:forEach var="r" items="${nodeDto.roles}">
-    <span class="badge bg-secondary me-1">${r}</span>
-</c:forEach>
-
+                <c:forEach var="r" items="${nodeDto.roles}">
+                    <span class="badge bg-secondary me-1">${r}</span>
+                </c:forEach>
             </div>
 
-<form:select path="roles" multiple="true" cssClass="form-control">
-    <form:options items="${roles}"
-                  itemValue="identifier"
-                  itemLabel="identifier"/>
-</form:select>
+            <form:select path="roles" multiple="true" cssClass="form-control">
+                <form:options items="${roles}"
+                              itemValue="identifier"
+                              itemLabel="identifier"/>
+            </form:select>
+
             <small>
                 Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple
             </small>
         </div>
 
-        <button type="submit" class="btn-update">Update User</button>
+        <button type="submit" class="btn-update">
+            Update Node
+        </button>
 
     </form:form>
 
@@ -121,7 +130,7 @@
         <a href="/node/list">← Back to Node List</a>
     </div>
 
- <c:if test="${not empty message}">
+    <c:if test="${not empty message}">
         <div style="
             background:#f8d7da;
             color:#721c24;
@@ -132,6 +141,8 @@
             ${message}
         </div>
     </c:if>
+
 </div>
+
 </body>
 </html>

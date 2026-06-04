@@ -1,0 +1,16 @@
+package com.ust.pos.model;
+
+import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Entity
+public class Stock extends CommonFields {
+
+    private String product;
+    private Long quantity;
+    private String warehouse;
+    private String stockStatus;
+}

@@ -9,6 +9,8 @@ import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class NodeServiceImpl implements NodeService {
         if (node == null) {
             return null;
         }
+
         return modelMapper.map(node, NodeDto.class);
     }
 
@@ -50,7 +53,6 @@ public class NodeServiceImpl implements NodeService {
 
         if (authentication != null) {
             org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-
             if (principalObject != null) findNodes(principalObject, nodeDtos);
         }
 
@@ -75,6 +77,7 @@ public class NodeServiceImpl implements NodeService {
             nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
         }
     }
+
 
     @Override
     public NodeDto save(NodeDto nodeDto) {
@@ -120,10 +123,12 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll() {
+    public List<NodeDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        return modelMapper.map(nodeRepository.findAll(), listType);
+        Page<Node> nodesPage = nodeRepository.findAll(pageable);
+
+        return modelMapper.map(nodesPage.getContent(), listType);
     }
 }
