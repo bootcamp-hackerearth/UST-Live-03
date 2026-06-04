@@ -42,29 +42,17 @@ input:focus {
 }
 
 button {
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.btn-primary {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px;
     background: #2B2B2B;
     color: white;
+    border: none;
+    border-radius: 8px;
 }
 
-.btn-primary:hover {
+button:hover {
     background: #111111;
-}
-
-.btn-cancel {
-    background: #E5E7EB;
-    color: #111827;
-}
-
-.btn-cancel:hover {
-    background: #D1D5DB;
 }
 </style>
 </head>
@@ -78,14 +66,11 @@ button {
 <form:form method="post" action="/role/add" modelAttribute="roleDto">
 
 <form:input path="identifier" placeholder="Enter role"/>
-<form:input path="description" placeholder="Enter Description"/>
+<form:input path="description" placeholder="Enter description"/>
 
-<div style="display:flex;justify-content:space-between;margin-top:15px;">
-    <a href="/role/list">
-        <button type="button" class="btn-cancel">Cancel</button>
-    </a>
-
-    <button type="submit" class="btn-primary">Update</button>
+<div class="btn-group">
+            <button type="submit" class="save-btn">Add</button>
+            <a href="/role/list" class="back-btn">Back</a>
 </div>
 
 </form:form>

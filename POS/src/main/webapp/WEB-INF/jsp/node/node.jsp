@@ -117,7 +117,13 @@ button {
 
 <label>Roles</label>
 <form:select path="roles" multiple="true" required="true">
-    <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+
+    <c:forEach var="role" items="${roles}">
+        <option value="${role.identifier}">
+            ${role.identifier}
+        </option>
+    </c:forEach>
+
 </form:select>
 
 <div style="display:flex;justify-content:space-between;margin-top:15px;">

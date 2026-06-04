@@ -13,4 +13,13 @@ public class UserDto extends CommonDto {
     private String phoneNo;
     private List<String> roles;
     private String password;
+
+    private String token;
+
+    public UserDto() {
+    }
+
+    public UserDto(String token) {
+        this.token = token;
+    }
 }

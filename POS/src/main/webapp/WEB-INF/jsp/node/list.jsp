@@ -36,31 +36,20 @@ a {
     font-weight: 600;
     text-decoration: none;
 }
-.top-right-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 15px;
-            gap: 10px;
-        }
 
-.top-right-actions button {
-            padding: 6px 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .add-btn {
+ .add-node-btn {
+            padding: 10px 16px;
             background: #2B2B2B;
             color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .add-btn:hover {
-            background: #111111;
+        .add-node-btn:hover {
+            background: #444;
         }
-
         .back-btn {
             background: #E5E7EB;
             color: #111827;
@@ -69,6 +58,19 @@ a {
         .back-btn:hover {
             background: #D1D5DB;
         }
+        .btn-secondary {
+            padding: 10px 16px;
+            background: #2B2B2B;
+            color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+             background: #444;
+        }
+
 </style>
 </head>
 
@@ -76,13 +78,15 @@ a {
 
 <h2 style="text-align:center;">Node List</h2>
 
-<div class="top-right-actions">
-    <a href="/node/add">
-        <button class="add-btn">Add Node</button>
+
+<div style="text-align:right; margin-bottom:15px;">
+    <a href="/node/add" class="add-node-btn">
+        + Add Node
     </a>
+
     <a href="/">
-        <button class="back-btn">Back</button>
-    </a>
+            <button class="btn-secondary">Back</button>
+        </a>
 </div>
 
 <table>
@@ -106,6 +110,7 @@ a {
 </c:forEach>
 
 </table>
-
 </body>
 </html>
+
+

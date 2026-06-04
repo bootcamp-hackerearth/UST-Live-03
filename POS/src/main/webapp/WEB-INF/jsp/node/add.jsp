@@ -38,30 +38,52 @@ input:focus, select:focus {
 }
 
 button {
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.btn-primary {
+    width: 100%;
+    padding: 10px;
     background: #2B2B2B;
     color: white;
+    border: none;
+    border-radius: 8px;
 }
 
-.btn-primary:hover {
+button:hover {
     background: #111111;
 }
+.btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
 
-.btn-cancel {
-    background: #E5E7EB;
-    color: #111827;
-}
+        .save-btn {
+            flex: 1;
+            padding: 10px;
+            background: #2B2B2B;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
 
-.btn-cancel:hover {
-    background: #D1D5DB;
-}
+        .save-btn:hover {
+            background: #444;
+        }
+
+        .back-btn {
+            flex: 1;
+            padding: 10px;
+            background: #E5E7EB;
+            color: #111827;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #D1D5DB;
+        }
 </style>
 </head>
 
@@ -77,22 +99,19 @@ button {
 
 <form:form method="post" action="/node/add" modelAttribute="nodeDto">
 
-<form:input path="identifier" placeholder="Identifier" required="true" pattern="^[A-Za-z0-9_-]+$" title="Only letters, numbers, _ and - allowed"/>
-<form:input path="path" placeholder="Path" required="true" pattern="^/.*" title="Path must start with /"/>
+<form:input path="identifier" placeholder="Identifier"/>
+<form:input path="path" placeholder="Path"/>
+
 <form:select path="roles" multiple="true">
     <c:forEach var="role" items="${roles}">
         <option value="${role.identifier}">${role.identifier}</option>
     </c:forEach>
 </form:select>
 
-<div style="display:flex;justify-content:space-between;margin-top:15px;">
-    <a href="/node/list">
-        <button type="button" class="btn-cancel">Cancel</button>
-    </a>
-
-    <button type="submit" class="btn-primary">Update</button>
-</div>
-
+<div class="btn-group">
+            <button type="submit" class="save-btn">Save</button>
+            <a href="/node/list" class="back-btn">Back</a>
+        </div>
 </form:form>
 
 </div>

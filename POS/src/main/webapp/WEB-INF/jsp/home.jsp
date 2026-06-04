@@ -27,11 +27,14 @@ body {
     top: 60px;
     left: -260px;
     width: 260px;
-    height: 100%;
+    height: calc(100vh - 60px);
     background: #FFFFFF;
     border-right: 1px solid #E5E7EB;
     transition: 0.3s;
+
+    overflow-y: auto;
 }
+
 
 .sidebar.active {
     left: 0;
@@ -48,7 +51,6 @@ body {
 .sidebar a:hover {
     background: #F3F4F6;
 }
-
 .content {
     padding: 30px;
     transition: margin-left 0.3s;
@@ -66,6 +68,7 @@ body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     max-width: 700px;
 }
+
 
 .logout-link {
     margin-left: auto;
@@ -87,21 +90,15 @@ body {
 }
 </style>
 
-<script>
-function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("active");
-    document.getElementById("content").classList.toggle("shift");
-}
-</script>
-
 </head>
 
 <body>
 
 <div class="header">
-  <span class="hamburger" onclick="toggleSidebar()">☰</span>
+    <span class="hamburger" onclick="toggleSidebar()">☰</span>
     POS Dashboard
-  <a href="/logout" class="logout-link">Logout</a>
+
+    <a href="/logout" class="logout-link">Logout</a>
 </div>
 
 <div class="sidebar" id="sidebar">
@@ -120,6 +117,16 @@ function toggleSidebar() {
     </div>
 
 </div>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const content = document.getElementById("content");
+
+    sidebar.classList.toggle("active");
+    content.classList.toggle("shift");
+}
+</script>
 
 </body>
 </html>

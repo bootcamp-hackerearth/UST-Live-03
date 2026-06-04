@@ -10,7 +10,7 @@
 
     <style>
         body {
-            background: #F6F7F9;   /* clean POS background */
+            background: #F6F7F9;
             min-height: 100vh;
         }
 
@@ -24,7 +24,7 @@
         .card-header {
             border-top-left-radius: 16px;
             border-top-right-radius: 16px;
-            background: #2B2B2B;   /* professional dark header */
+            background: #2B2B2B;
         }
 
         .card-header h4 {
@@ -81,21 +81,9 @@
             border-bottom-left-radius: 16px;
             border-bottom-right-radius: 16px;
         }
-
         .edit-btn {
-             padding: 6px 12px;
-             margin-right: 6px;
-             background: #2B2B2B;
-             color: white;
-             border: none;
-             border-radius: 8px;
-             font-size: 13px;
-             font-weight: 500;
-             cursor: pointer;
-        }
-
-        .edit-btn:hover {
-            background: #111111;
+            background: #2B2B2B;
+            color: white;
         }
     </style>
 </head>
@@ -143,18 +131,17 @@
                                         <td>${role.description}</td>
                                         <td>
                                             <a href="/role/get?identifier=${role.identifier}">
-                                               <button class="edit-btn">Edit</button>
+                                               <button class="btn edit-btn">Edit</button>
                                             </a>
                                             <a href="/role/delete?identifier=${role.identifier}"
                                                class="btn btn-danger btn-sm"
                                                onclick="return confirm('Are you sure you want to delete this role?');">
-                                               Delete
+                                                Delete
                                             </a>
                                         </td>
                                     </tr>
                                 </c:forEach>
                             </tbody>
-
                         </table>
                     </c:if>
 

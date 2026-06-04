@@ -133,10 +133,11 @@ button:hover {
 
 <label>Password</label>
         <form:password path="password"
-              required="true"
-              minlength="8"
-              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}"/>
+                       required="true"
+                       minlength="8"
+                       pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}"/>
         <form:errors path="password" cssClass="error"/>
+
 
     <button type="submit">Register</button>
 
