@@ -4,181 +4,176 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Node Management</title>
+    <title>Node Management | POS</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
         body {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: #eef2f7;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f6f8fb, #eef2f7);
         }
 
-        .header {
-            background: #1e88e5;
-            padding: 15px 25px;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .container {
+        .topbar {
+            height: 70px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
             display: flex;
-            height: calc(100vh - 55px);
-        }
-
-        .left {
-            width: 70%;
-            padding: 20px;
-        }
-
-        .right {
-            width: 30%;
-            background: white;
-            border-left: 1px solid #ddd;
-            padding: 20px;
-        }
-
-        .node-card {
-            background: white;
-            border-radius: 8px;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            transition: 0.2s;
+            justify-content: space-between;
+            padding: 0 30px;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
-        .node-card:hover {
-            background: #e3f2fd;
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        .node-info {
+        .dashboard-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 10px;
             font-size: 13px;
         }
 
-        .node-info strong {
-            display: block;
-            font-size: 14px;
-            color: #333;
+        .logout-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
         }
 
-        .roles {
-            font-size: 12px;
-            color: #555;
+        .content {
+            padding: 40px;
         }
 
-        .actions {
+        .page-card {
+            max-width: 1100px;
+            margin: auto;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.08);
+        }
+
+        .page-header {
             display: flex;
-            gap: 6px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
-        .btn {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .add-btn {
+            background: #4f46e5;
+            color: #fff;
             border: none;
-            cursor: pointer;
-            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
         }
 
-        .edit {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .delete {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .big-btn {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
+        table {
             font-size: 14px;
         }
 
-        .add {
-            background: #28a745;
-            color: white;
+        thead th {
+            background: #f9fafb;
+            color: #374151;
         }
 
-        .home {
-            background: #1e88e5;
-            color: white;
+        .edit-link {
+            color: #4f46e5;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+
+        .delete-link {
+            color: #dc2626;
+            text-decoration: none;
         }
 
         .empty {
             text-align: center;
-            color: #777;
-            margin-top: 50px;
-        }
-
-        h3 {
-            margin-bottom: 15px;
+            padding: 40px;
+            color: #6b7280;
         }
     </style>
 </head>
 
 <body>
 
-<div class="header">
-    POS - Node Management
+<div class="topbar">
+    <div class="topbar-left">
+        <h5>Node Management</h5>
+
+        <button class="dashboard-btn"
+                onclick="window.location.href='/'">
+            Dashboard
+        </button>
+    </div>
+
+    <form action="/logout" method="post">
+        <button class="logout-btn">Logout</button>
+    </form>
 </div>
 
-<div class="container">
+<div class="content">
 
-    <div class="left">
+    <div class="page-card">
+
+        <div class="page-header">
+            <div class="page-title">Node List</div>
+
+            <button class="add-btn"
+                    onclick="window.location.href='/node/add'">
+                + Add Node
+            </button>
+        </div>
 
         <c:if test="${empty nodes}">
             <div class="empty">No nodes found</div>
         </c:if>
 
-        <c:forEach var="node" items="${nodes}">
-            <div class="node-card">
+        <c:if test="${not empty nodes}">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Identifier</th>
+                        <th>Path</th>
+                        <th>Roles</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
 
-                <div class="node-info">
-                    <strong>${node.identifier}</strong>
-                    ${node.path}
-                    <div class="roles">
-                        ${node.roles}
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <a href="/node/get?identifier=${node.identifier}" class="btn edit">
-                        Edit
-                    </a>
-
-                    <a href="/node/delete?identifier=${node.identifier}"
-                       onclick="return confirm('Delete this node?')"
-                       class="btn delete">
-                        Delete
-                    </a>
-                </div>
-
-            </div>
-        </c:forEach>
-
-    </div>
-
-    <div class="right">
-
-        <h3>Quick Actions</h3>
-
-        <button class="big-btn add" onclick="window.location.href='/node/add'">
-            + Add Node
-        </button>
-
-        <button class="big-btn home" onclick="window.location.href='/'">
-            Go to Dashboard
-        </button>
+                <tbody>
+                    <c:forEach var="node" items="${nodes}">
+                        <tr>
+                            <td>${node.identifier}</td>
+                            <td>${node.path}</td>
+                            <td>${node.roles}</td>
+                            <td>
+                                <a href="/node/get?identifier=${node.identifier}" class="edit-link">Edit</a>
+                                <a href="/node/delete?identifier=${node.identifier}"
+                                   onclick="return confirm('Delete this node?')"
+                                   class="delete-link">Delete</a>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </c:if>
 
     </div>
 

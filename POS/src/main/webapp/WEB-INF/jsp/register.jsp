@@ -4,149 +4,184 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Register</title>
+    <title>Register | POS</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: #f2f4f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f6f8fb, #eef2f7);
             height: 100vh;
-        }
-
-        .container {
-            width: 800px;
-            height: 480px;
             display: flex;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            background: white;
+            align-items: center;
+            justify-content: center;
         }
 
-        .left {
-            width: 50%;
+        .register-wrapper {
+            width: 460px;
+            background: #ffffff;
             padding: 30px;
-            overflow-y: auto;
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
         }
 
-        h2 {
-            margin-bottom: 15px;
-            color: #444;
+        .brand {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            margin: 0;
+            color: #1f2937;
+        }
+
+        .brand p {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            color: #374151;
+            margin-bottom: 5px;
+            display: block;
         }
 
         input, select {
             width: 100%;
-            padding: 9px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
             font-size: 13px;
         }
 
         input:focus, select:focus {
-            border-color: #007bff;
+            border-color: #6366f1;
             outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
         }
 
         .btn {
             width: 100%;
-            padding: 10px;
-            background: #007bff;
-            color: white;
+            background: #4f46e5;
+            color: #ffffff;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
+            padding: 11px;
+            font-size: 14px;
             cursor: pointer;
+            margin-top: 8px;
         }
 
         .btn:hover {
-            background: #0056b3;
-        }
-
-        .link {
-            text-align: center;
-            margin-top: 8px;
-            font-size: 12px;
-        }
-
-        .link a {
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        .right {
-            width: 50%;
-            background: #007bff;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .right h1 {
-            font-size: 26px;
-            line-height: 1.4;
+            background: #4338ca;
         }
 
         .error {
-            color: red;
+            color: #dc2626;
             font-size: 11px;
-            margin-bottom: 8px;
+            margin-top: 2px;
+            display: block;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .footer-links a {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container">
+    <div class="register-wrapper">
 
-    <div class="left">
-        <h2>Create Account</h2>
+        <div class="brand">
+            <div class="logo">POS</div>
+            <h1>Create Account</h1>
+            <p>Get started with your POS system</p>
+        </div>
 
         <form:form action="/register" method="post" modelAttribute="userDto">
 
-            <form:input path="name" placeholder="Name" required="true"/>
-            <form:errors path="name" cssClass="error"/>
+            <div class="form-group">
+                <label>Name</label>
+                <form:input path="name" required="true"/>
+                <form:errors path="name" cssClass="error"/>
+            </div>
 
-            <form:input path="username" type="email" placeholder="Email" required="true"/>
-            <form:errors path="username" cssClass="error"/>
+            <div class="form-group">
+                <label>Email</label>
+                <form:input path="username" type="email" required="true"/>
+                <form:errors path="username" cssClass="error"/>
+            </div>
 
-            <form:password path="password" placeholder="Password" required="true" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}"/>
-            <form:errors path="password" cssClass="error"/>
+            <div class="form-group">
+                <label>Password</label>
+                <form:password path="password" required="true"
+                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}"/>
+                <form:errors path="password" cssClass="error"/>
+            </div>
 
-            <form:input path="phoneNo"
-                        placeholder="Phone (10 digits)"
-                        maxlength="10"
-                        pattern="[0-9]{10}"
-                        inputmode="numeric"
-                        oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                        required="true"/>
-            <form:errors path="phoneNo" cssClass="error"/>
+            <div class="form-group">
+                <label>Phone</label>
+                <form:input path="phoneNo"
+                            maxlength="10"
+                            pattern="[0-9]{10}"
+                            inputmode="numeric"
+                            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                            required="true"/>
+                <form:errors path="phoneNo" cssClass="error"/>
+            </div>
 
-            <form:select path="roles" multiple="true" required="true">
-                <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
-            </form:select>
-            <form:errors path="roles" cssClass="error"/>
+            <div class="form-group">
+                <label>Roles</label>
+                <form:select path="roles" multiple="true" required="true">
+                    <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+                </form:select>
+                <form:errors path="roles" cssClass="error"/>
+            </div>
 
             <button type="submit" class="btn">Register</button>
 
         </form:form>
 
-        <div class="link">
-            Already have account? <a href="/login">Login</a>
+        <div class="footer-links">
+            Already have an account? <a href="/user/list">Go Back</a>
         </div>
 
     </div>
-
-    <div class="right">
-        <h1>POS<br>System</h1>
-    </div>
-
-</div>
 
 </body>
 </html>

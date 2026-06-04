@@ -1,176 +1,202 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>User Management</title>
+    <meta charset="UTF-8">
+    <title>User Management | POS</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
         body {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: #eef2f7;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f6f8fb, #eef2f7);
         }
 
-        .header {
-            background: #1e88e5;
-            padding: 15px 25px;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .container {
+        .topbar {
+            height: 70px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
             display: flex;
-            height: calc(100vh - 55px);
-        }
-
-        .left {
-            width: 70%;
-            padding: 20px;
-        }
-
-        .right {
-            width: 30%;
-            background: white;
-            border-left: 1px solid #ddd;
-            padding: 20px;
-        }
-
-        .user-card {
-            background: white;
-            border-radius: 8px;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            transition: 0.2s;
+            justify-content: space-between;
+            padding: 0 30px;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
-        .user-card:hover {
-            background: #e3f2fd;
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        .user-info {
+        .dashboard-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 10px;
             font-size: 13px;
         }
 
-        .user-info strong {
-            display: block;
-            font-size: 14px;
-            color: #333;
+        .dashboard-btn:hover {
+            background: rgba(255,255,255,0.25);
         }
 
-        .actions {
+        .logout-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .page-card {
+            max-width: 1000px;
+            margin: auto;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.08);
+        }
+
+        .page-header {
             display: flex;
-            gap: 6px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
-        .btn {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .primary-btn {
+            background: #4f46e5;
+            color: #ffffff;
             border: none;
-            cursor: pointer;
-            text-decoration: none;
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 600;
         }
 
-        .edit {
-            background: #fff3cd;
-            color: #856404;
+        .primary-btn:hover {
+            background: #4338ca;
         }
 
-        .delete {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .big-btn {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
+        table {
             font-size: 14px;
         }
 
-        .add {
-            background: #28a745;
-            color: white;
+        thead th {
+            background: #f9fafb;
+            color: #374151;
         }
 
-        .home {
-            background: #1e88e5;
-            color: white;
+        tbody td {
+            vertical-align: middle;
+        }
+
+        .action-edit {
+            color: #4f46e5;
+            text-decoration: none;
+            margin-right: 12px;
+        }
+
+        .action-delete {
+            color: #dc2626;
+            text-decoration: none;
         }
 
         .empty {
             text-align: center;
-            color: #777;
-            margin-top: 50px;
-        }
-
-        h3 {
-            margin-bottom: 15px;
+            padding: 40px;
+            color: #6b7280;
         }
     </style>
 </head>
 
 <body>
 
-<div class="header">
-    POS - User Management
-</div>
+<div class="topbar">
+    <div class="topbar-left">
+        <h5>User Management</h5>
 
-<div class="container">
-
-    <div class="left">
-
-        <c:if test="${empty users}">
-            <div class="empty">No users found</div>
-        </c:if>
-
-        <c:forEach var="user" items="${users}">
-            <div class="user-card">
-
-                <div class="user-info">
-                    <strong>${user.name}</strong>
-                    ${user.username} | ${user.phoneNo} | ${user.roles}
-                </div>
-
-                <div class="actions">
-                    <a href="/user/get?username=${user.username}" class="btn edit">
-                        Edit
-                    </a>
-
-                    <a href="/user/delete?username=${user.username}"
-                       onclick="return confirm('Delete this user?')"
-                       class="btn delete">
-                        Delete
-                    </a>
-                </div>
-
-            </div>
-        </c:forEach>
-
+        <button class="dashboard-btn"
+                onclick="window.location.href='/'">
+            Dashboard
+        </button>
     </div>
 
-    <div class="right">
+    <form action="/logout" method="post">
+        <button class="logout-btn">Logout</button>
+    </form>
+</div>
 
-        <h3>Quick Actions</h3>
+<div class="content">
 
-        <button class="big-btn add" onclick="window.location.href='/register'">
-            + Add User
-        </button>
+    <div class="page-card">
 
-        <button class="big-btn home" onclick="window.location.href='/'">
-            Go to Dashboard
-        </button>
+        <div class="page-header">
+            <div class="page-title">User List</div>
+
+            <button class="primary-btn"
+                    onclick="window.location.href='/register'">
+                + Add User
+            </button>
+        </div>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Roles</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <c:if test="${empty users}">
+                    <tr>
+                        <td colspan="6" class="empty">No users found</td>
+                    </tr>
+                </c:if>
+
+                <c:forEach var="user" items="${users}" varStatus="i">
+                    <tr>
+                        <td>${i.count}</td>
+                        <td>${user.name}</td>
+                        <td>${user.username}</td>
+                        <td>${user.phoneNo}</td>
+                        <td>${user.roles}</td>
+                        <td>
+                            <a href="/user/get?username=${user.username}" class="action-edit">Edit</a>
+                            <a href="/user/delete?username=${user.username}"
+                               onclick="return confirm('Delete this user?')"
+                               class="action-delete">Delete</a>
+                        </td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
 
     </div>
 

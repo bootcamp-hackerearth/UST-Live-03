@@ -5,137 +5,161 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Edit Node</title>
+    <title>Edit Node | POS</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
         body {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: #eef2f7;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f6f8fb, #eef2f7);
         }
 
-        .header {
-            background: #1e88e5;
-            padding: 15px 25px;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
+        .topbar {
+            height: 70px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
-        .container {
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .dashboard-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .content {
             display: flex;
             justify-content: center;
-            padding: 30px;
+            padding: 40px;
         }
 
         .card {
-            width: 400px;
-            background: white;
-            padding: 22px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            width: 440px;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.08);
         }
 
         h2 {
             text-align: center;
-            margin-bottom: 18px;
-            color: #333;
-            font-size: 18px;
+            margin-bottom: 16px;
         }
 
         .error {
             text-align: center;
-            color: #dc3545;
+            color: red;
             font-size: 12px;
             margin-bottom: 10px;
         }
 
-        .form-group {
-            margin-bottom: 14px;
-        }
-
         label {
             font-size: 12px;
-            color: #555;
-            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+            display: block;
         }
 
         input, select {
             width: 100%;
             padding: 10px;
-            margin-top: 5px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
             font-size: 13px;
+            margin-bottom: 12px;
         }
 
         select[multiple] {
-            height: 90px;
+            height: 100px;
         }
 
         input:focus, select:focus {
-            border-color: #1e88e5;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(30,136,229,0.2);
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
         }
 
         .readonly {
-            background: #f5f5f5;
-            cursor: not-allowed;
+            background: #f3f4f6;
         }
 
-        .btn {
+        .btn-primary {
             width: 100%;
-            padding: 11px;
-            margin-top: 10px;
-            border-radius: 6px;
+            background: #4f46e5;
             border: none;
-            background: #28a745;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
+            border-radius: 10px;
+            padding: 11px;
         }
 
-        .btn:hover {
-            opacity: 0.9;
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+
+        small {
+            font-size: 11px;
+            color: #6b7280;
         }
 
         .back {
             display: block;
             text-align: center;
-            margin-top: 10px;
+            margin-top: 12px;
             font-size: 12px;
-            color: #1e88e5;
+            color: #4f46e5;
             text-decoration: none;
-        }
-
-        .back:hover {
-            text-decoration: underline;
-        }
-
-        small {
-            font-size: 11px;
-            color: #777;
         }
     </style>
 </head>
 
 <body>
 
-<div class="header">
-    POS - Edit Node
+<div class="topbar">
+    <div class="topbar-left">
+        <h5>Edit Node</h5>
+
+        <button class="dashboard-btn"
+                onclick="window.location.href='/'">
+            Dashboard
+        </button>
+    </div>
+
+    <form action="/logout" method="post">
+        <button class="logout-btn">Logout</button>
+    </form>
 </div>
 
-<div class="container">
+<div class="content">
 
     <div class="card">
 
         <h2>Update Node</h2>
 
         <c:if test="${empty node}">
-            <div class="error">
-                Node not found
-            </div>
+            <div class="error">Node not found</div>
         </c:if>
 
         <c:if test="${not empty node}">
@@ -144,27 +168,19 @@
                        action="/node/update"
                        modelAttribute="node">
 
-                <div class="form-group">
-                    <label>Node Identifier</label>
-                    <form:input path="identifier" cssClass="readonly" readonly="true"/>
-                </div>
+                <label>Node Identifier</label>
+                <form:input path="identifier" cssClass="readonly" readonly="true"/>
 
-                <div class="form-group">
-                    <label>Node Path</label>
-                    <form:input path="path" required="true"/>
-                </div>
+                <label>Node Path</label>
+                <form:input path="path"/>
 
-                <div class="form-group">
-                    <label>Roles</label>
-                    <form:select path="roles" multiple="true">
-                        <form:options items="${roles}"
-                                      itemValue="identifier"
-                                      itemLabel="identifier"/>
-                    </form:select>
-                    <small>Hold Ctrl/Cmd to select multiple roles</small>
-                </div>
+                <label>Roles</label>
+                <form:select path="roles" multiple="true">
+                    <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+                </form:select>
+                <small>Hold Ctrl/Cmd to select multiple roles</small>
 
-                <button type="submit" class="btn">
+                <button type="submit" class="btn btn-primary">
                     Update Node
                 </button>
 

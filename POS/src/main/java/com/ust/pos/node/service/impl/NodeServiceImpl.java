@@ -9,6 +9,8 @@ import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -33,20 +35,19 @@ public class NodeServiceImpl implements NodeService {
     private ModelMapper modelMapper;
 
     public List<NodeDto> getNodesForRoles() {
-        List<NodeDto> nodeDto = new ArrayList<>();
+        List<NodeDto> nodeDtos = new ArrayList<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
             if (principalObject != null) {
                 User currentUser = userRepository.findByUsername(principalObject.getUsername());
-                if (currentUser != null && currentUser.getRoles() != null) findEligibleNodes(currentUser, nodeDto);
-
+                if (currentUser != null && currentUser.getRoles() != null) findEligibleNodes(currentUser, nodeDtos);
             }
         }
-        return nodeDto;
+        return nodeDtos;
     }
 
-    private void findEligibleNodes(User currentUser, List<NodeDto> nodeDto) {
+    private void findEligibleNodes(User currentUser, List<NodeDto> nodeDtos) {
         Set<String> nodesStr = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
         for (String role : currentUser.getRoles()) {
@@ -57,7 +58,7 @@ public class NodeServiceImpl implements NodeService {
             }
         }
         for (String nodeStr : nodesStr) {
-            nodeDto.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
+            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
         }
     }
 
@@ -104,9 +105,10 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll() {
+    public List<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        return modelMapper.map(nodeRepository.findAll(), listType);
+        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        return modelMapper.map(nodePage.getContent(), listType);
     }
 }

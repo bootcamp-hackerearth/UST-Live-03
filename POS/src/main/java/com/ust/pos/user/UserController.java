@@ -4,6 +4,7 @@ import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -21,16 +22,16 @@ public class UserController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("users", userService.findAll());
+    public String home(Model model, Pageable pageable) {
+        model.addAttribute("users", userService.findAll(pageable));
         return "user/list";
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String username) {
+    public String update(Model model, Pageable pageable, @RequestParam String username) {
         UserDto response = userService.findByUserName(username);
         model.addAttribute("userDto", response);
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findAll(pageable));
         return "user/user";
     }
 
