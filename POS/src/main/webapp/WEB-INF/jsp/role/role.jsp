@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-         pageEncoding="UTF-8"%>
+         pageEncoding="UTF-8" %>
 
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
@@ -7,134 +7,115 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>POS | Edit Role</title>
+    <meta charset="UTF-8">
+    <title>Edit Role</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
-<style>
-body {
-    background: #f8fafc;
-    min-height: 100vh;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
 
-.card {
-    border-radius: 16px;
-    border: none;
-}
+    <style>
+        body {
+            background-color: #f7f9fc;
+        }
 
-.page-title {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #0f172a;
-}
+        .page-header {
+            background: linear-gradient(to right, #0f766e, #134e4a);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-.form-control {
-    border-radius: 8px;
-}
+        .form-wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+        }
 
-.btn-update {
-    background: #0f766e;
-    border: none;
-    color: white;
-}
+        label {
+            font-weight: 600;
+            font-size: 14px;
+        }
 
-.btn-update:hover {
-    background: #115e59;
-}
+        .form-control,
+        textarea {
+            border-radius: 8px;
+        }
 
-.btn-cancel {
-    background: #334155;
-    border: none;
-    color: white;
-}
+        .btn-gradient {
+            background: linear-gradient(to right, #0f766e, #134e4a);
+            color: #ffffff;
+            border: none;
+        }
 
-.btn-cancel:hover {
-    background: #1e293b;
-}
-
-.alert-info {
-    background: #e0f2fe;
-    color: #075985;
-    border: none;
-}
-
-.card-footer {
-    background: #f1f5f9;
-}
-</style>
+        .btn-gradient:hover {
+            background: linear-gradient(to right, #134e4a, #0f766e);
+            color: #ffffff;
+        }
+    </style>
 </head>
 
-<body>
+<body class="container py-4">
 
-<div class="container d-flex justify-content-center align-items-center mt-5">
-    <div class="col-md-5">
+<div class="page-header text-center">
+    <h4 class="mb-0">
+        <i class="bi bi-person-badge me-2"></i> Edit Role
+    </h4>
+</div>
 
-        <div class="card shadow-lg">
+<div class="form-wrapper">
+    <div class="card shadow-sm">
+        <div class="card-body">
 
-            <div class="card-body">
+            <c:if test="${not empty message}">
+                <div class="alert alert-info text-center">
+                    ${message}
+                </div>
+            </c:if>
 
-                <h3 class="page-title">Edit Role</h3>
+            <form:form method="post"
+                       action="${pageContext.request.contextPath}/role/update"
+                       modelAttribute="role">
 
-                <c:if test="${not empty message}">
-                    <div class="alert alert-info text-center">
-                        ${message}
-                    </div>
-                </c:if>
+                <form:hidden path="id"/>
 
-                <form:form method="post"
-                           action="${pageContext.request.contextPath}/role/update"
-                           modelAttribute="role">
+                <div class="mb-3">
+                    <label>Role Identifier</label>
+                    <form:input path="identifier"
+                                cssClass="form-control"
+                                readonly="true"/>
+                    <small class="text-muted">
+                        Role identifier cannot be changed
+                    </small>
+                </div>
 
-                    <form:hidden path="id"/>
+                <div class="mb-3">
+                    <label>Description</label>
+                    <form:textarea path="description"
+                                   cssClass="form-control"
+                                   rows="3"
+                                   placeholder="Update role description"/>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Role Name</label>
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="${pageContext.request.contextPath}/role/list"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
 
-                        <form:input path="identifier"
-                                    cssClass="form-control"
-                                    readonly="true"/>
+                    <button type="submit" class="btn btn-gradient">
+                        <i class="bi bi-save me-1"></i> Update Role
+                    </button>
+                </div>
 
-                        <small class="text-muted">
-                            Role name cannot be changed
-                        </small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Description</label>
-
-                        <form:textarea path="description"
-                                       cssClass="form-control"
-                                       rows="3"
-                                       placeholder="Update role description"/>
-                    </div>
-
-                    <div class="d-flex gap-2">
-
-                        <button type="submit"
-                                class="btn btn-update btn-lg w-100">
-                            Update Role
-                        </button>
-
-                        <a href="${pageContext.request.contextPath}/role/list"
-                           class="btn btn-cancel btn-lg w-100 text-center">
-                            Cancel
-                        </a>
-
-                    </div>
-
-                </form:form>
-
-            </div>
-
-            <div class="card-footer text-center text-muted small">
-                POS Management System
-            </div>
+            </form:form>
 
         </div>
-
     </div>
 </div>
 

@@ -5,222 +5,208 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>POS | Add Node</title>
+    <meta charset="UTF-8">
+    <title>Add Node</title>
 
-<style>
-body {
-    margin: 0;
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: #f8fafc;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
-.card {
-    width: 420px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    padding: 30px;
-}
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-h3 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #0f172a;
-}
+    <style>
+        body {
+            background-color: #f7f9fc;
+        }
 
-.error {
-    background: #fee2e2;
-    color: #991b1b;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 13px;
-    text-align: center;
-    margin-bottom: 15px;
-}
+        .page-header {
+            background: linear-gradient(to right, #0f766e, #134e4a);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
 
-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #334155;
-    display: block;
-    margin-bottom: 6px;
-}
+        .form-wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+        }
 
-input {
-    width: 100%;
-    padding: 11px;
-    margin-bottom: 18px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    font-size: 14px;
-}
+        label {
+            font-weight: 600;
+            font-size: 14px;
+        }
 
-.dropdown {
-    position: relative;
-    margin-bottom: 18px;
-}
+        .form-control {
+            border-radius: 8px;
+        }
 
-.dropdown-btn {
-    width: 100%;
-    padding: 11px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    cursor: pointer;
-}
+        .dropdown-box {
+            position: relative;
+        }
 
-.dropdown-content {
-    display: none;
-    position: absolute;
-    width: 100%;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    margin-top: 6px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 20;
-    padding: 6px 0;
-}
+        .dropdown-btn {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            background: #ffffff;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.dropdown.active .dropdown-content {
-    display: block;
-}
+        .dropdown-content {
+            position: absolute;
+            top: 110%;
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            padding: 8px;
+        }
 
-.role-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 14px;
-    font-size: 13px;
-    cursor: pointer;
-}
+        .dropdown-box.active .dropdown-content {
+            display: block;
+        }
 
-.role-item:hover {
-    background: #f1f5f9;
-}
+        .role-item {
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
 
-.role-item input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-}
+        .role-item:hover {
+            background: #f1f5f9;
+        }
 
-.btn-group {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
+        .btn-gradient {
+            background: linear-gradient(to right, #0f766e, #134e4a);
+            color: #ffffff;
+            border: none;
+        }
 
-button, a.btn {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    color: #fff;
-}
+        .btn-gradient:hover {
+            background: linear-gradient(to right, #134e4a, #0f766e);
+            color: #ffffff;
+        }
+    </style>
 
-.btn-save {
-    background: #0f766e;
-}
+    <script>
+        function toggleRoles() {
+            document.getElementById("roleDropdown").classList.toggle("active");
+        }
 
-.btn-save:hover {
-    background: #115e59;
-}
+        function updateRolesText() {
+            const checked = document.querySelectorAll("input[name='roles']:checked");
+            const values = Array.from(checked).map(c => c.value);
+            document.getElementById("selectedRoles").innerText =
+                values.length ? values.join(", ") : "Select Roles";
+        }
 
-.btn-cancel {
-    background: #334155;
-}
-
-.btn-cancel:hover {
-    background: #1e293b;
-}
-</style>
-
-<script>
-function toggleDropdown() {
-    document.getElementById("roleDropdown").classList.toggle("active");
-}
-
-function updateSelectedRoles() {
-    const checked = document.querySelectorAll("input[name='roles']:checked");
-    const labels = Array.from(checked).map(c => c.value);
-    document.getElementById("selectedRoles").innerText =
-        labels.length ? labels.join(", ") : "Select Roles";
-}
-
-document.addEventListener("click", function(e) {
-    const dropdown = document.getElementById("roleDropdown");
-    if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove("active");
-    }
-});
-</script>
+        document.addEventListener("click", function (e) {
+            const dropdown = document.getElementById("roleDropdown");
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove("active");
+            }
+        });
+    </script>
 </head>
 
-<body>
+<body class="container py-4">
 
-<div class="card">
-
-    <h3>Add Node</h3>
-
-    <c:if test="${not empty error}">
-        <div class="error">${error}</div>
-    </c:if>
-
-    <form action="${pageContext.request.contextPath}/node/add" method="post">
-
-        <label>Node Identifier</label>
-        <input type="text" name="identifier" value="${param.identifier}" required>
-
-        <label>Node Path</label>
-        <input type="text" name="path" value="${param.path}" required>
-
-        <label>Assign Roles</label>
-
-        <div class="dropdown" id="roleDropdown">
-            <div class="dropdown-btn" onclick="toggleDropdown()">
-                <span id="selectedRoles">Select Roles</span>
-                <span>▼</span>
-            </div>
-
-            <div class="dropdown-content">
-                <c:forEach items="${roles}" var="role">
-                    <div class="role-item">
-                        <input type="checkbox"
-                               name="roles"
-                               value="${role.identifier}"
-                               onchange="updateSelectedRoles()">
-                        <span>${role.identifier}</span>
-                    </div>
-                </c:forEach>
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button type="submit" class="btn-save">SAVE NODE</button>
-
-            <a href="${pageContext.request.contextPath}/node/list"
-               class="btn btn-cancel">
-                CANCEL
-            </a>
-        </div>
-
-    </form>
+<div class="page-header">
+    <h4 class="mb-0">
+        <i class="bi bi-diagram-3-fill me-2"></i> Add Node
+    </h4>
 </div>
 
+<div class="form-wrapper">
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <c:if test="${not empty error}">
+                <div class="alert alert-danger text-center">
+                    ${error}
+                </div>
+            </c:if>
+
+            <form action="${pageContext.request.contextPath}/node/add"
+                  method="post">
+
+                <div class="mb-3">
+                    <label>Node Identifier</label>
+                    <input type="text"
+                           name="identifier"
+                           class="form-control"
+                           value="${param.identifier}"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Node Path</label>
+                    <input type="text"
+                           name="path"
+                           class="form-control"
+                           value="${param.path}"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Assign Roles</label>
+
+                    <div class="dropdown-box" id="roleDropdown">
+                        <div class="dropdown-btn" onclick="toggleRoles()">
+                            <span id="selectedRoles">Select Roles</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+
+                        <div class="dropdown-content">
+                            <c:forEach items="${roles}" var="role">
+                                <div class="form-check role-item">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="roles"
+                                           value="${role.identifier}"
+                                           onchange="updateRolesText()">
+                                    <label class="form-check-label">
+                                        ${role.identifier}
+                                    </label>
+                                </div>
+                            </c:forEach>
+
+                            <c:if test="${empty roles}">
+                                <div class="text-muted px-2">
+                                    No roles available
+                                </div>
+                            </c:if>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="${pageContext.request.contextPath}/node/list"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-gradient">
+                        <i class="bi bi-save me-1"></i> Save Node
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
 </body>
 </html>

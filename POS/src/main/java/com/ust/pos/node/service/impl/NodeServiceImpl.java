@@ -1,14 +1,16 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.modell.Node;
+import com.ust.pos.modell.NodeRepository;
+import com.ust.pos.modell.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -22,6 +24,7 @@ import java.util.Set;
 
 @Service
 public class NodeServiceImpl implements NodeService {
+
     @Autowired
     private UserRepository userRepository;
 
@@ -34,7 +37,6 @@ public class NodeServiceImpl implements NodeService {
     public List<NodeDto> getNodesForRoles() {
         List<NodeDto> nodeDtos = new ArrayList<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication != null) {
             org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
             if (principalObject != null) findNodes(principalObject, nodeDtos);
@@ -43,7 +45,7 @@ public class NodeServiceImpl implements NodeService {
     }
 
     private void findNodes(User principalObject, List<NodeDto> nodeDtos) {
-        com.ust.pos.model.User currentUser = userRepository.findByUsername(principalObject.getUsername());
+        com.ust.pos.modell.User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesStr = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
         for (String role : currentUser.getRoles()) {
@@ -67,7 +69,6 @@ public class NodeServiceImpl implements NodeService {
     public NodeDto save(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
-
         if (existingNode != null) {
             nodeDto.setMessage("Role with identifier - " + identifier + " already exists");
             nodeDto.setSuccess(false);
@@ -82,7 +83,6 @@ public class NodeServiceImpl implements NodeService {
     public NodeDto update(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
-
         if (existingNode == null) {
             nodeDto.setMessage("Node with identifier - " + identifier + " not found");
             nodeDto.setSuccess(false);
@@ -100,9 +100,11 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll() {
+    public List<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        return modelMapper.map(nodeRepository.findAll(), listType);
+        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        return modelMapper.map(nodePage.getContent(), listType);
     }
+
 }

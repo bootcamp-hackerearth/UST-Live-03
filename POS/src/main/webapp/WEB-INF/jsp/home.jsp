@@ -3,140 +3,175 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>POS | Home</title>
+    <meta charset="UTF-8">
+    <title>POS Dashboard</title>
 
-<style>
-body {
-    margin: 0;
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: #020617;
-}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
-.topbar {
-    height: 55px;
-    background: #0f172a;
-    color: #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 25px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
 
-.topbar h2 {
-    margin: 0;
-    font-size: 18px;
-}
+    <style>
+        body {
+            background: #f7f9fc;
+            font-family: "Segoe UI", system-ui, sans-serif;
+            margin: 0;
+        }
 
-.logout-btn {
-    padding: 8px 14px;
-    background: #dc2626;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    font-size: 13px;
-    cursor: pointer;
-}
+        .navbar-custom {
+            background: linear-gradient(to right, #0f766e, #134e4a);
+            height: 56px;
+        }
 
-.logout-btn:hover {
-    background: #b91c1c;
-}
+        .navbar-brand {
+            font-weight: 600;
+            color: #ffffff !important;
+        }
 
-.layout {
-    display: flex;
-    height: calc(100vh - 55px);
-}
+        .sidebar {
+            width: 260px;
+            background: #020617;
+            height: calc(100vh - 56px);
+            position: fixed;
+            top: 56px;
+            left: 0;
+            padding: 20px 15px;
+            transition: width 0.3s ease;
+            overflow-x: hidden;
+        }
 
-.sidebar {
-    width: 240px;
-    background: #020617;
-    padding: 20px;
-    border-right: 1px solid #1e293b;
-}
+        .sidebar.collapsed {
+            width: 70px;
+        }
 
-.sidebar-title {
-    color: #94a3b8;
-    font-size: 13px;
-    margin-bottom: 15px;
-}
+        .sidebar-title {
+            color: #94a3b8;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
 
-.nav-link {
-    display: block;
-    padding: 12px;
-    margin-bottom: 10px;
-    background: #0f172a;
-    color: #e5e7eb;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: 0.2s;
-}
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            color: #e5e7eb;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
 
-.nav-link:hover {
-    background: #0f766e;
-}
+        .nav-link-custom i {
+            font-size: 16px;
+            min-width: 30px;
+            text-align: center;
+        }
 
-.empty {
-    color: #64748b;
-    font-size: 13px;
-    text-align: center;
-    margin-top: 20px;
-}
+        .nav-link-custom span {
+            transition: opacity 0.2s ease;
+        }
 
-.content {
-    flex: 1;
-    background: #f8fafc;
-    padding: 30px;
-}
+        .sidebar.collapsed .nav-link-custom span,
+        .sidebar.collapsed .sidebar-title {
+            opacity: 0;
+        }
 
-.content h1 {
-    margin-top: 0;
-    color: #0f172a;
-}
+        .nav-link-custom:hover {
+            background: #0f766e;
+            color: white;
+        }
 
-.content p {
-    color: #475569;
-    font-size: 15px;
-}
+        .main-content {
+            margin-left: 260px;
+            margin-top: 56px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+        }
 
-</style>
+        .main-content.collapsed {
+            margin-left: 70px;
+        }
+
+        .welcome-card {
+            background: linear-gradient(to right, #0f766e, #134e4a);
+            color: white;
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .toggle-btn {
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("collapsed");
+            document.getElementById("content").classList.toggle("collapsed");
+        }
+    </script>
 </head>
 
 <body>
 
-<div class="topbar">
-    <h2>POS SYSTEM</h2>
+<nav class="navbar navbar-expand navbar-dark navbar-custom fixed-top px-3">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+    </button>
 
-    <form action="${pageContext.request.contextPath}/logout" method="post">
-        <button type="submit" class="logout-btn">Logout</button>
-    </form>
+    <span class="navbar-brand">
+        <i class="bi bi-cash-coin me-2"></i> POS SYSTEM
+    </span>
+
+    <div class="ms-auto">
+        <form action="${pageContext.request.contextPath}/logout" method="post">
+            <button type="submit" class="btn btn-danger btn-sm">
+                <i class="bi bi-box-arrow-right me-1"></i> Logout
+            </button>
+        </form>
+    </div>
+</nav>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-title">Modules</div>
+
+    <c:if test="${empty nodes}">
+        <div class="text-muted text-center small">
+            No modules available
+        </div>
+    </c:if>
+
+    <c:forEach var="node" items="${nodes}">
+        <a class="nav-link-custom"
+           href="${pageContext.request.contextPath}${node.path}">
+            <i class="bi bi-grid-fill"></i>
+            <span>${node.identifier}</span>
+        </a>
+    </c:forEach>
 </div>
 
-<div class="layout">
+<div class="main-content" id="content">
 
-    <div class="sidebar">
-        <div class="sidebar-title">MODULES</div>
-
-        <c:if test="${empty nodes}">
-            <p class="empty">No modules available</p>
-        </c:if>
-
-        <c:forEach var="node" items="${nodes}">
-            <a class="nav-link"
-               href="${pageContext.request.contextPath}${node.path}">
-                ${node.identifier}
-            </a>
-        </c:forEach>
+    <div class="welcome-card">
+        <h3 class="mb-2">Welcome to POS Dashboard</h3>
+        <p class="mb-0">
+            Use the menu on the left to manage products, inventory, customers,
+            warehouses, and system modules.
+        </p>
     </div>
 
-    <div class="content">
-        <h1>Welcome to POS</h1>
-        <p>Select a module from the left menu to continue.</p>
-
-    </div>
 </div>
+
 </body>
 </html>

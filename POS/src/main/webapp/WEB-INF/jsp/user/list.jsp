@@ -6,171 +6,134 @@
 <head>
     <title>User Management</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
         body {
-            background: #f8fafc;
-            min-height: 100vh;
-            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #f7f9fc;
         }
 
-        .card {
-            border-radius: 16px;
-            border: none;
+        .page-header {
+            background: linear-gradient(to right, #0f766e, #134e4a);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
 
-        .card-header {
-            background: #0f172a;
-            color: #e2e8f0;
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
+        .table thead th {
+            vertical-align: middle;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.03em;
         }
 
-        .table th {
-            background-color: #1e293b;
-            color: #e2e8f0;
+        .action-btns a {
+            margin-right: 6px;
         }
 
-        table {
-            background: white;
+        .role-badge {
+            font-size: 12px;
+            margin: 2px;
         }
 
         a.user-link {
             text-decoration: none;
             font-weight: 500;
-            color: #0f766e;
+            color: #0d6efd;
         }
 
         a.user-link:hover {
             text-decoration: underline;
         }
-
-        .btn-edit {
-            background: #0f766e;
-            color: white;
-            border: none;
-        }
-
-        .btn-edit:hover {
-            background: #0d5f59;
-        }
-
-        .btn-delete {
-            background: #dc2626;
-            color: white;
-            border: none;
-        }
-
-        .btn-delete:hover {
-            background: #b91c1c;
-        }
-
-        .btn-home {
-            background: #334155;
-            color: white;
-            border: none;
-        }
-
-        .btn-home:hover {
-            background: #1e293b;
-        }
-
-        .btn-add {
-            background: #16a34a;
-            color: white;
-            border: none;
-        }
-
-        .btn-add:hover {
-            background: #15803d;
-        }
     </style>
 </head>
 
-<body>
+<body class="container py-4">
 
-<div class="container mt-5">
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">
+        <i class="bi bi-people-fill me-2"></i> User Management
+    </h4>
 
-    <div class="card shadow-lg">
+    <div>
+        <a href="${pageContext.request.contextPath}/"
+           class="btn btn-light fw-semibold me-2">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+        </a>
+    </div>
+</div>
 
-        <div class="card-header text-center">
-            <h3 class="mb-0">User Management</h3>
-        </div>
+<div class="card shadow-sm">
+    <div class="card-body">
 
-        <div class="card-body">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Roles</th>
+                <th class="text-center">Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="user" items="${users}">
+                <tr>
+                    <!-- Email -->
+                    <td>
+                        <a class="user-link"
+                           href="${pageContext.request.contextPath}/user/get?username=${user.username}">
+                            ${user.username}
+                        </a>
+                    </td>
+
+                    <td>${user.name}</td>
+
+                    <td>${user.phoneNo}</td>
+
+                    <td>
+                        <c:forEach var="role" items="${user.roles}">
+                            <span class="badge bg-secondary role-badge">
+                                ${role}
+                            </span>
+                        </c:forEach>
+                    </td>
+
+                    <td class="text-center action-btns">
+                        <a href="${pageContext.request.contextPath}/user/get?username=${user.username}"
+                           class="btn btn-sm btn-outline-primary"
+                           title="Edit">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+
+                        <a href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
+                           class="btn btn-sm btn-outline-danger"
+                           title="Delete"
+                           onclick="return confirm('Are you sure you want to delete this user?');">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            </c:forEach>
 
             <c:if test="${empty users}">
-                <div class="alert alert-warning text-center">
-                    No users found
-                </div>
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-info-circle me-1"></i>
+                        No users found
+                    </td>
+                </tr>
             </c:if>
-
-            <c:if test="${not empty users}">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle text-center">
-                        <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Name</th>
-                            <th>Phone</th>
-                            <th>Roles</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
-
-                        <tbody>
-                        <c:forEach var="user" items="${users}">
-                            <tr>
-                                <td>
-                                    <a class="user-link"
-                                       href="/user/get?username=${user.username}">
-                                        ${user.username}
-                                    </a>
-                                </td>
-
-                                <td>${user.name}</td>
-                                <td>${user.phoneNo}</td>
-                                <td>${user.roles}</td>
-
-                                <td>
-
-                                    <a class="btn btn-sm btn-edit me-2"
-                                       href="/user/get?username=${user.username}">
-                                        Edit
-                                    </a>
-
-                                    <a class="btn btn-sm btn-delete"
-                                       href="/user/delete?username=${user.username}"
-                                       onclick="return confirm('Are you sure you want to delete this user?');">
-                                        Delete
-                                    </a>
-
-                                </td>
-                            </tr>
-                        </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
-            </c:if>
-
-        </div>
-
-        <div class="card-footer text-center bg-light">
-            <div class="d-flex justify-content-center gap-3">
-
-                <a href="/" class="btn btn-home">Home</a>
-
-            </div>
-
-            <div class="text-muted small mt-2">
-                User Management System
-            </div>
-        </div>
+            </tbody>
+        </table>
 
     </div>
-
 </div>
 
 </body>

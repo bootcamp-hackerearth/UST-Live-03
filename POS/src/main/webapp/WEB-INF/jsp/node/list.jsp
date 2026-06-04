@@ -9,175 +9,127 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
     <style>
         body {
-            background: #f8fafc;
-            min-height: 100vh;
-            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #f7f9fc;
         }
 
-        .card {
-            border-radius: 16px;
-            border: none;
+        .page-header {
+            background: linear-gradient(to right, #0f766e, #134e4a);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
 
-        .card-header {
-            background: #0f172a;
-            color: #e2e8f0;
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
+        .table thead th {
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.03em;
+            vertical-align: middle;
+            text-align: center;
         }
 
-        table th {
-            background-color: #1e293b;
-            color: #e2e8f0;
-        }
-
-        table {
-            background: white;
+        .table tbody td {
+            vertical-align: middle;
         }
 
         .badge-role {
-            background-color: #475569;
-            color: #e2e8f0;
-            margin: 2px;
-            padding: 5px 8px;
-            border-radius: 6px;
             font-size: 12px;
+            margin: 2px;
         }
 
-        .btn-edit {
-            background: #0f766e;
-            color: white;
-            border: none;
-        }
-
-        .btn-edit:hover {
-            background: #0d5f59;
-        }
-
-        .btn-delete {
-            background: #dc2626;
-            color: white;
-            border: none;
-        }
-
-        .btn-delete:hover {
-            background: #b91c1c;
-        }
-
-        .btn-add {
-            background: #16a34a;
-            color: white;
-            border: none;
-        }
-
-        .btn-add:hover {
-            background: #15803d;
-        }
-
-        .btn-home {
-            background: #334155;
-            color: white;
-            border: none;
-        }
-
-        .btn-home:hover {
-            background: #1e293b;
+        .action-btns a {
+            margin: 0 3px;
         }
     </style>
 </head>
 
-<body>
+<body class="container py-4">
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">
+        <i class="bi bi-diagram-3-fill me-2"></i> Node Management
+    </h4>
 
-            <div class="card shadow-lg">
+    <div>
+        <a href="${pageContext.request.contextPath}/"
+           class="btn btn-light fw-semibold me-2">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+        </a>
 
-                <div class="card-header text-center">
-                    <h4 class="mb-0">List of Nodes</h4>
-                </div>
+        <a href="${pageContext.request.contextPath}/node/add"
+           class="btn btn-light fw-semibold">
+            <i class="bi bi-plus-circle me-1"></i> Add Node
+        </a>
+    </div>
+</div>
 
-                <div class="card-body">
+<div class="card shadow-sm">
+    <div class="card-body">
 
-                    <c:if test="${empty nodes}">
-                        <div class="alert alert-warning text-center">
-                            No nodes found
-                        </div>
-                    </c:if>
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Identifier</th>
+                <th>Path</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
 
-                    <c:if test="${not empty nodes}">
-                        <table class="table table-bordered table-hover align-middle text-center">
-                            <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Identifier</th>
-                                <th>Path</th>
-                                <th>Roles</th>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
+            <tbody>
+            <c:forEach var="node" items="${nodes}">
+                <tr>
+                    <td class="text-center fw-semibold">${node.id}</td>
+                    <td class="text-center">${node.identifier}</td>
+                    <td class="text-center">${node.path}</td>
 
-                            <tbody>
-                            <c:forEach var="node" items="${nodes}">
-                                <tr>
-                                    <td>${node.id}</td>
+                    <td class="text-center">
+                        <c:if test="${empty node.roles}">
+                            <span class="text-muted">No roles</span>
+                        </c:if>
 
-                                    <td>${node.identifier}</td>
+                        <c:forEach var="role" items="${node.roles}">
+                            <span class="badge bg-secondary badge-role">
+                                ${role}
+                            </span>
+                        </c:forEach>
+                    </td>
 
-                                    <td>${node.path}</td>
+                    <td class="text-center action-btns">
+                        <a href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
+                           class="btn btn-sm btn-outline-primary"
+                           title="Edit">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
 
-                                    <td>
-                                        <c:if test="${empty node.roles}">
-                                            <span class="text-muted">No roles</span>
-                                        </c:if>
+                        <a href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
+                           class="btn btn-sm btn-outline-danger"
+                           title="Delete"
+                           onclick="return confirm('Are you sure you want to delete this node?');">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            </c:forEach>
 
-                                        <c:forEach var="role" items="${node.roles}">
-                                            <span class="badge-role">${role}</span>
-                                        </c:forEach>
-                                    </td>
+            <c:if test="${empty nodes}">
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-info-circle me-1"></i>
+                        No nodes found
+                    </td>
+                </tr>
+            </c:if>
 
-                                    <td class="d-flex justify-content-center gap-2">
+            </tbody>
+        </table>
 
-                                        <a href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
-                                           class="btn btn-sm btn-edit">
-                                            Edit
-                                        </a>
-
-                                        <a href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
-                                           class="btn btn-sm btn-delete"
-                                           onclick="return confirm('Are you sure you want to delete this node?');">
-                                            Delete
-                                        </a>
-
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                            </tbody>
-                        </table>
-                    </c:if>
-
-                </div>
-
-                <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
-
-                    <a href="${pageContext.request.contextPath}/"
-                       class="btn btn-home">
-                        Home
-                    </a>
-
-                    <a href="${pageContext.request.contextPath}/node/add"
-                       class="btn btn-add">
-                        + Add New Node
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
     </div>
 </div>
 

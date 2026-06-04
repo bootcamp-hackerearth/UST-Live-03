@@ -1,13 +1,15 @@
 package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.UserDto;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.modell.User;
+import com.ust.pos.modell.UserRepository;
 import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +31,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto findByUserName(String username) {
         User user = userRepository.findByUsername(username);
-
         if (user == null) {
             return null;
         }
@@ -38,10 +39,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto save(UserDto userDto) {
-        User existingUser = userRepository.findByUsername(userDto.getUsername());
+        User existingUser =
+                userRepository.findByUsername(userDto.getUsername());
 
         if (existingUser != null) {
-            userDto.setMessage("User with username/email - " + userDto.getUsername() + " already exists");
+            userDto.setMessage(
+                    "User with username/email - " + userDto.getUsername() + " already exists");
             userDto.setSuccess(false);
             return userDto;
         }
@@ -62,18 +65,16 @@ public class UserServiceImpl implements UserService {
             userDto.setSuccess(false);
             return userDto;
         }
-
         if (!oldUsername.equalsIgnoreCase(userDto.getUsername())) {
-            User emailCheck = userRepository.findByUsername(userDto.getUsername());
-
+            User emailCheck =
+                    userRepository.findByUsername(userDto.getUsername());
             if (emailCheck != null) {
-                userDto.setMessage("User with username/email - " + userDto.getUsername() + " already exists");
+                userDto.setMessage(
+                        "User with username/email - " + userDto.getUsername() + " already exists");
                 userDto.setSuccess(false);
                 return userDto;
             }
-
         }
-
         existingUser.setName(userDto.getName());
         existingUser.setUsername(userDto.getUsername());
         existingUser.setPhoneNo(userDto.getPhoneNo());
@@ -91,9 +92,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll() {
+    public List<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        return modelMapper.map(userRepository.findAll(), listType);
+        Page<User> userPage = userRepository.findAll(pageable);
+        return modelMapper.map(userPage.getContent(), listType);
     }
+
 }
