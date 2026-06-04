@@ -190,6 +190,7 @@
         <div class="form-group">
             <label>Phone Number</label>
             <form:input path="phoneNo"
+                        required="required"
                         pattern="[0-9]{10}"
                         oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                         title="Enter exactly 10 digit phone number"/>

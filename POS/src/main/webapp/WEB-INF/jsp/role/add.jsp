@@ -163,7 +163,7 @@
 
         <div class="form-group">
             <label>Role Name</label>
-            <form:input path="identifier" placeholder="Enter role name"/>
+            <form:input path="identifier" required="required" placeholder="Enter role name"/>
         </div>
 
         <div class="form-group">

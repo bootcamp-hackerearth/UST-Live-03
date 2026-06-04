@@ -166,12 +166,12 @@
 
         <div class="form-group">
             <label>Node Name</label>
-            <form:input path="identifier" placeholder="Enter node name"/>
+            <form:input path="identifier" required="required" placeholder="Enter node name"/>
         </div>
 
         <div class="form-group">
             <label>Node Path</label>
-            <form:input path="path" placeholder="Enter node path"/>
+            <form:input path="path" required="required" placeholder="Enter node path"/>
         </div>
 
         <div class="form-group">

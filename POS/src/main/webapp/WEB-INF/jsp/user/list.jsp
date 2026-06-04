@@ -160,6 +160,7 @@
             <table>
                 <thead>
                 <tr>
+                    <th>SL</th>
                     <th>Email</th>
                     <th>Name</th>
                     <th>Phone</th>
@@ -169,8 +170,9 @@
                 </thead>
 
                 <tbody>
-                <c:forEach var="user" items="${users}">
+                <c:forEach var="user" items="${users}" varStatus="status">
                     <tr>
+                        <td>${status.count}</td>
                         <td>${user.username}</td>
                         <td>${user.name}</td>
                         <td>${user.phoneNo}</td>

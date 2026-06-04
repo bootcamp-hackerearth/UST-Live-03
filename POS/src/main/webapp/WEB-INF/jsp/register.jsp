@@ -110,7 +110,7 @@
 
         <div class="form-group">
             <label>Name</label>
-            <form:input path="name"/>
+            <form:input path="name" required="required"/>
         </div>
 
         <div class="form-group">
@@ -123,7 +123,7 @@
 
         <div class="form-group">
             <label>Roles</label>
-            <form:select path="roles" multiple="true">
+            <form:select path="roles" multiple="true" required="required">
                 <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
             </form:select>
         </div>
@@ -134,6 +134,7 @@
                         maxlength="10"
                         pattern="[0-9]{10}"
                         title="Enter exactly 10 digit phone number"
+                        required="required"
                         oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
         </div>
 

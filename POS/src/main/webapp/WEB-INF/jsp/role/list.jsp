@@ -190,6 +190,7 @@
         <table>
             <thead>
             <tr>
+                <th>SL</th>
                 <th>Role</th>
                 <th>Description</th>
                 <th>Action</th>
@@ -197,8 +198,9 @@
             </thead>
 
             <tbody>
-            <c:forEach var="role" items="${roles}">
+            <c:forEach var="role" items="${roles}" varStatus="status">
                 <tr>
+                    <td>${status.count}</td>
                     <td>${role.identifier}</td>
                     <td>${role.description}</td>
 

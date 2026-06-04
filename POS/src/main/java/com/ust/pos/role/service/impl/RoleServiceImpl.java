@@ -8,6 +8,8 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -32,11 +34,13 @@ public class RoleServiceImpl implements RoleService {
     public RoleDto save(RoleDto roleDto) {
         String identifier = roleDto.getIdentifier();
         Role existingRole = roleRepository.findByIdentifier(identifier);
+
         if (existingRole != null) {
             roleDto.setMessage("Role with identifier - " + identifier + " already exists");
             roleDto.setSuccess(false);
             return roleDto;
         }
+
         Role role = modelMapper.map(roleDto, Role.class);
         roleRepository.save(role);
         return roleDto;
@@ -46,11 +50,13 @@ public class RoleServiceImpl implements RoleService {
     public RoleDto update(RoleDto roleDto) {
         String identifier = roleDto.getIdentifier();
         Role existingRole = roleRepository.findByIdentifier(identifier);
+
         if (existingRole == null) {
             roleDto.setMessage("Role with identifier - " + identifier + " not found");
             roleDto.setSuccess(false);
             return roleDto;
         }
+
         modelMapper.map(roleDto, existingRole);
         roleRepository.save(existingRole);
         return roleDto;
@@ -66,5 +72,13 @@ public class RoleServiceImpl implements RoleService {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         return modelMapper.map(roleRepository.findAll(), listType);
+    }
+
+    @Override
+    public List<RoleDto> findAll(Pageable pageable) {
+        Type listtype = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> rolePage = roleRepository.findAll(pageable);
+        return modelMapper.map(rolePage.getContent(), listtype);
     }
 }
