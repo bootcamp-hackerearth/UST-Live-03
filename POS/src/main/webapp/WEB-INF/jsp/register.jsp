@@ -3,220 +3,226 @@
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<title>User Registration</title>
+    <title>User Registration</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-      rel="stylesheet">
+    <style>
 
-<style>
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: #d1d5db;
-}
+        body {
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            background-color: #3f3f3f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px 0;
+            overflow-y: auto;
+        }
 
-/* BACK ARROW */
-.back-arrow {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: #f1f5f9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    text-decoration: none;
-    color: #334155;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    transition: 0.25s;
-}
+        .register-card {
+            background: #f3efe9;
+            width: 380px;
+            padding: 28px 30px;
+            border-radius: 4px;
+            text-align: left;
+            margin: 20px 0;
+        }
 
-.back-arrow:hover {
-    background: #e2e8f0;
-    transform: translateY(-2px);
-}
+        .app-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2f2f2f;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
 
-/* CONTAINER */
-.register-card {
-    width: 430px;
-    margin: 100px auto;
-    background: #f1f5f9;
-    padding: 35px 40px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
+        h2 {
+            margin: 0 0 18px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #2f2f2f;
+        }
 
-/* TITLE */
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 22px;
-    color: #0891b2;
-    font-weight: 600;
-}
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 14px;
+            text-decoration: none;
+            color: #3f3f3f;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
 
-/* ERROR MESSAGE */
-.error-message {
-    margin-bottom: 15px;
-    padding: 10px 12px;
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
-    border-radius: 8px;
-    font-size: 13px;
-    text-align: center;
-}
+        .back-btn:hover {
+            opacity: 0.7;
+        }
 
-/* LABEL */
-label {
-    margin-top: 16px;
-    display: block;
-    font-weight: 600;
-    font-size: 13px;
-    color: #334155;
-}
+        .form-group {
+            margin-bottom: 14px;
+        }
 
-/* INPUT */
-input, select {
-    width: 100%;
-    margin-top: 6px;
-    padding: 10px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 13px;
-    outline: none;
-    transition: 0.2s;
-    box-sizing: border-box; /* Ensures nested inputs stay perfectly within bounds */
-}
+        label {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #7a7a7a;
+            display: block;
+            margin-bottom: 4px;
+        }
 
-input:focus, select:focus {
-    border-color: #0891b2;
-    box-shadow: 0 0 0 2px rgba(8,145,178,0.2);
-}
+        input,
+        select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 0;
+            border: none;
+            border-bottom: 2px solid #cfcfcf;
+            background: transparent;
+            font-size: 14px;
+            outline: none;
+            color: #2f2f2f;
+        }
 
-select[multiple] {
-    height: 130px;
-}
+        input:focus,
+        select:focus {
+            border-bottom: 2px solid #3f3f3f;
+        }
 
-/* BUTTON */
-.btn-submit {
-    margin-top: 28px;
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, #0891b2, #0e7490);
-    color: white;
-    border: none;
-    border-radius: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s;
-}
+        select[multiple] {
+            height: 90px;
+        }
 
-.btn-submit:hover {
-    background: linear-gradient(135deg, #0e7490, #075985);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(8,145,178,0.4);
-}
-</style>
+        .register-btn {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px;
+            margin-top: 12px;
+            background: #3f3f3f;
+            color: #ffffff;
+            border: 2px solid #3f3f3f;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-<script>
-function validateForm() {
+        .register-btn:hover {
+            background: transparent;
+            color: #3f3f3f;
+        }
 
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("username").value.trim();
-    const roles = document.getElementById("roles").selectedOptions.length;
-    const phone = document.getElementById("phoneNo").value.trim();
-    const password = document.getElementById("password").value.trim();
+        .error-message {
+            margin-bottom: 14px;
+            padding: 8px;
+            background: #ffe5e0;
+            color: #b91c1c;
+            font-size: 12px;
+        }
 
-    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-
-    if (!name || !email || roles === 0 || !phone || !password) {
-        alert("Please fill all the details before registering");
-        return false;
-    }
-
-    if (!gmailRegex.test(email)) {
-        alert("Email must be in the format abc@gmail.com");
-        return false;
-    }
-
-    return true;
-}
-</script>
+    </style>
 
 </head>
 
 <body>
 
-<a href="${pageContext.request.contextPath}/user/list" class="back-arrow">
-    &#8592;
-</a>
-
 <div class="register-card">
 
-<h2>User Registration</h2>
+    <a href="${pageContext.request.contextPath}/login"
+       class="back-btn">
+         ᐸ BACK
+    </a>
 
-<c:if test="${not empty message}">
-    <div class="error-message">
-        ${message}
-    </div>
-</c:if>
-
-<form:form action="register"
-           method="post"
-           modelAttribute="userDto"
-           onsubmit="return validateForm();">
-
-    <label for="name">
-        Name
-        <form:input path="name" id="name" required="true"/>
-    </label>
-
-    <label for="username">
-        Email
-        <form:input
-                path="username"
-                id="username"
-                required="true"
-                pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
-                title="Email must be in the format name@gmail.com"/>
-    </label>
-
-    <label for="roles">
-        Roles
-        <form:select path="roles" id="roles" multiple="true" required="true">
-            <form:options items="${roles}"
-                          itemValue="identifier"
-                          itemLabel="identifier"/>
-        </form:select>
-    </label>
-
-    <div class="form-group">
-        <label for="phoneNo">
-            Mobile number
-            <form:input path="phoneNo"
-                        id="phoneNo"
-                        type="tel"
-                        pattern="[0-9]{10}"
-                        maxlength="10"
-                        required="true"
-                        title="Enter a valid 10-digit mobile number"/>
-        </label>
+    <div class="app-title">
+        POS APPLICATION
     </div>
 
-    <label for="password">
-        Password
-        <form:password path="password" id="password" required="true"/>
-    </label>
+    <h2>Register</h2>
 
-    <input type="submit" value="Register" class="btn-submit"/>
+    <c:if test="${not empty message}">
+        <div class="error-message">
+            ${message}
+        </div>
+    </c:if>
 
-</form:form>
+    <form:form action="${pageContext.request.contextPath}/register"
+               method="post"
+               modelAttribute="userDto">
+
+        <div class="form-group">
+
+            <label>NAME</label>
+
+            <form:input
+                    path="name"
+                    required="true"/>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>EMAIL</label>
+
+            <form:input
+                    path="username"
+                    type="email"
+                    required="true"
+                    placeholder="example@mail.com"/>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>ROLES</label>
+
+            <form:select
+                    path="roles"
+                    multiple="true"
+                    required="true">
+
+                <form:options
+                        items="${roles}"
+                        itemValue="identifier"
+                        itemLabel="identifier"/>
+
+            </form:select>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>PHONE NUMBER</label>
+
+            <form:input
+                    path="phoneNo"
+                    type="tel"
+                    required="true"
+                    pattern="[0-9]{10}"
+                    maxlength="10"
+                    title="Phone number must be exactly 10 digits"
+                    oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>PASSWORD</label>
+
+            <form:password
+                    path="password"
+                    required="true"
+                    minlength="6"/>
+
+        </div>
+
+        <button type="submit"
+                class="register-btn">
+
+            REGISTER
+
+        </button>
+
+    </form:form>
 
 </div>
 

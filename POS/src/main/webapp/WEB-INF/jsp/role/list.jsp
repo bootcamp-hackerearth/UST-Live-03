@@ -1,185 +1,328 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
 <head>
     <title>Role Management</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
     <style>
+
         body {
             margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: #d1d5db;
+            font-family: "Inter", sans-serif;
+            background-color: #3f3f3f;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .container {
-            width: 90%;
-            max-width: 900px;
-            margin: 80px auto;
-            background: #f1f5f9;
-            padding: 35px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        .page-wrapper {
+            width: 980px;
+            background: #f3efe9;
+            padding: 34px 42px;
+            box-sizing: border-box;
         }
 
-        /* TITLE */
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 22px;
-            color: #0891b2;
-            font-weight: 600;
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
         }
 
-        /* TABLE */
+        .page-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2f2f2f;
+            margin: 0;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-btn,
+        .back-btn {
+            height: 48px;
+            min-width: 120px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 2px solid #3f3f3f;
+            transition: 0.3s;
+        }
+
+        .top-btn {
+            background: #3f3f3f;
+            color: #ffffff;
+        }
+
+        .top-btn:hover {
+            background: transparent;
+            color: #3f3f3f;
+        }
+
+        .back-btn {
+            background: transparent;
+            color: #3f3f3f;
+        }
+
+        .back-btn:hover {
+            background: #3f3f3f;
+            color: #ffffff;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
 
         th {
-            background: #0891b2;
-            color: white;
-            padding: 12px;
-            font-size: 13px;
-            text-align: center;
+            text-align: left;
+            padding: 14px 12px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #8a8a8a;
+            border-bottom: 3px solid #d6d1cb;
         }
 
         td {
-            padding: 14px 10px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 13px;
-            text-align: center;
-        }
-
-        tr:hover {
-            background: rgba(8,145,178,0.05);
-        }
-
-        /* BUTTON BASE */
-        .btn {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            color: white;
-            transition: 0.25s;
-            display: inline-block;
-        }
-
-        /* EDIT */
-        .edit-btn {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
-        }
-
-        .edit-btn:hover {
-            background: linear-gradient(135deg, #0e7490, #075985);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(8,145,178,0.4);
-        }
-
-        /* DELETE */
-        .delete-btn {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-        .delete-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(239,68,68,0.4);
-        }
-
-        /* EMPTY */
-        .empty {
-            text-align: center;
-            padding: 30px;
-            color: #475569;
+            padding: 20px 12px;
+            border-bottom: 2px solid #dedad5;
+            color: #2f2f2f;
             font-size: 14px;
+            vertical-align: middle;
         }
 
-        /* FOOTER */
-        .footer {
+        .switch {
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin-top: 25px;
+            width: 55px;
         }
 
-        .home-btn {
-            background: #64748b;
+        .slider {
+            background-color: #ffffff2b;
+            border-radius: 100px;
+            cursor: pointer;
+            position: relative;
+            display: block;
+            width: 46px;
+            height: 26px;
+            transition: 0.3s;
+            box-shadow:
+                rgba(0, 0, 0, 0.62) 0px 0px 5px inset,
+                rgba(0, 0, 0, 0.21) 0px 0px 0px 24px inset,
+                #22cc3f 0px 0px 0px 0px inset,
+                rgba(224, 224, 224, 0.45) 0px 1px 0px 0px;
         }
 
-        .add-btn {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
+        .slider::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background-color: #e3e3e3;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow:
+                rgba(0, 0, 0, 0.3) 0px 4px 5px;
         }
 
-        .add-btn:hover {
-            background: linear-gradient(135deg, #0e7490, #075985);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(8,145,178,0.4);
+        .switch input[type="checkbox"]:checked + .slider {
+
+            box-shadow:
+                rgba(0, 0, 0, 0.62) 0px 0px 5px inset,
+                #22cc3f 0px 0px 0px 2px inset,
+                #22cc3f 0px 0px 0px 24px inset,
+                rgba(224, 224, 224, 0.45) 0px 1px 0px 0px;
+
         }
+
+        .switch input[type="checkbox"]:checked + .slider::after {
+            left: 22px;
+        }
+
+        .switch input[type="checkbox"] {
+            display: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-link {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            border: 2px solid #3f3f3f;
+            transition: 0.3s;
+        }
+
+        .edit {
+            background: #3f3f3f;
+            color: #ffffff;
+        }
+
+        .edit:hover {
+            background: transparent;
+            color: #3f3f3f;
+        }
+
+        .delete {
+            background: transparent;
+            color: #3f3f3f;
+        }
+
+        .delete:hover {
+            background: #3f3f3f;
+            color: #ffffff;
+        }
+
     </style>
+
 </head>
 
 <body>
 
-<div class="container">
+<div class="page-wrapper">
 
-    <h2>List of Roles</h2>
+    <div class="top-section">
 
-    <c:choose>
-        <c:when test="${empty roles}">
-            <div class="empty">
-                No roles available
-            </div>
-        </c:when>
+        <h2 class="page-title">
+            Role Management
+        </h2>
 
-        <c:otherwise>
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Role</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
+        <div class="top-actions">
 
-                <tbody>
-                <c:forEach var="role" items="${roles}">
-                    <tr>
-                        <td>${role.id}</td>
-                        <td>${role.identifier}</td>
-                        <td>${role.description}</td>
+            <a href="${pageContext.request.contextPath}/"
+               class="back-btn">
 
-                        <td>
-                            <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
-                               class="btn edit-btn">Edit</a>
+                ᐸ BACK
 
-                            <a href="${pageContext.request.contextPath}/role/delete?identifier=${role.identifier}"
-                               class="btn delete-btn"
-                               onclick="return confirm('Are you sure you want to delete this role?');">
-                                Delete
-                            </a>
-                        </td>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-        </c:otherwise>
-    </c:choose>
+            </a>
 
-    <div class="footer">
-        <a href="/" class="btn home-btn">Home</a>
+            <a href="${pageContext.request.contextPath}/role/add"
+               class="top-btn">
 
-        <a href="${pageContext.request.contextPath}/role/add"
-           class="btn add-btn">Add Role</a>
+                ADD ROLE
+
+            </a>
+
+        </div>
+
     </div>
 
+    <table>
+
+        <thead>
+
+        <tr>
+
+            <th>ID</th>
+            <th>ROLE</th>
+            <th>DESCRIPTION</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <c:forEach var="role" items="${roles}">
+
+            <tr>
+
+                <td>${role.id}</td>
+
+                <td>${role.identifier}</td>
+
+                <td>${role.description}</td>
+
+                <td>
+
+                    <label class="switch">
+
+                        <input type="checkbox"
+                               ${role.status ? 'checked' : ''}
+                               onchange="toggleStatus('${role.identifier}')">
+
+                        <span class="slider"></span>
+
+                    </label>
+
+                </td>
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
+                           class="action-link edit"
+                           title="Edit">
+
+                            ✎
+
+                        </a>
+
+                        <a href="${pageContext.request.contextPath}/role/delete?identifier=${role.identifier}"
+                           class="action-link delete"
+                           title="Delete"
+                           onclick="return confirm('Delete this role?')">
+
+                            🗑
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        </c:forEach>
+
+        </tbody>
+
+    </table>
+
 </div>
+
+<script>
+
+    function toggleStatus(identifier) {
+
+        fetch('${pageContext.request.contextPath}/role/toggle-status?identifier=' + identifier, {
+
+            method: 'POST'
+
+        }).then(() => location.reload());
+
+    }
+
+</script>
 
 </body>
 </html>

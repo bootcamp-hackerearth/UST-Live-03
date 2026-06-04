@@ -6,189 +6,276 @@
 <head>
     <title>Node Management</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
     <style>
+
         body {
             margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: #d1d5db;
+            font-family: "Inter", sans-serif;
+            background-color: #3f3f3f;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* MAIN CONTAINER */
-        .container {
-            width: 90%;
-            max-width: 900px;
-            margin: 80px auto;
-            background: #f1f5f9;
-            padding: 35px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        .page-wrapper {
+            width: 1100px;
+            background: #f3efe9;
+            padding: 34px 42px;
+            box-sizing: border-box;
         }
 
-        /* TITLE */
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 22px;
-            color: #0891b2;
-            font-weight: 600;
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
         }
 
-        /* TABLE */
+        .page-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2f2f2f;
+            margin: 0;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-btn,
+        .back-btn {
+            height: 48px;
+            min-width: 120px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 2px solid #3f3f3f;
+            transition: 0.3s;
+        }
+
+        .top-btn {
+            background: #3f3f3f;
+            color: #ffffff;
+        }
+
+        .top-btn:hover {
+            background: transparent;
+            color: #3f3f3f;
+        }
+
+        .back-btn {
+            background: transparent;
+            color: #3f3f3f;
+        }
+
+        .back-btn:hover {
+            background: #3f3f3f;
+            color: #ffffff;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
 
         th {
-            background: #0891b2;
-            color: white;
-            padding: 12px;
-            font-size: 13px;
-            text-align: center;
+            text-align: left;
+            padding: 14px 12px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #8a8a8a;
+            border-bottom: 3px solid #d6d1cb;
         }
 
         td {
-            padding: 14px 10px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 13px;
-            text-align: center;
+            padding: 20px 12px;
+            border-bottom: 2px solid #dedad5;
+            color: #2f2f2f;
+            font-size: 14px;
+            vertical-align: middle;
         }
 
-        tr:hover {
-            background: rgba(8,145,178,0.05);
-        }
-
-        /* ROLES */
         .roles {
-            color: #475569;
-            font-size: 12px;
+            line-height: 1.7;
         }
 
-        /* BUTTON BASE */
-        .btn {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-link {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
             text-decoration: none;
-            font-weight: 600;
-            color: white;
-            transition: 0.25s;
-            display: inline-block;
+            font-size: 18px;
+            font-weight: 700;
+            border: 2px solid #3f3f3f;
+            transition: 0.3s;
         }
 
-        /* EDIT */
-        .edit-btn {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
+        .edit {
+            background: #3f3f3f;
+            color: #ffffff;
         }
 
-        .edit-btn:hover {
-            background: linear-gradient(135deg, #0e7490, #075985);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(8,145,178,0.4);
+        .edit:hover {
+            background: transparent;
+            color: #3f3f3f;
         }
 
-        /* DELETE */
-        .delete-btn {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+        .delete {
+            background: transparent;
+            color: #3f3f3f;
         }
 
-        .delete-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(239,68,68,0.4);
+        .delete:hover {
+            background: #3f3f3f;
+            color: #ffffff;
         }
 
-        /* EMPTY */
         .empty {
             text-align: center;
-            padding: 30px;
-            color: #475569;
-            font-size: 14px;
+            padding: 28px;
+            color: #2f2f2f;
+            font-size: 15px;
         }
 
-        /* FOOTER */
-        .footer {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        .home-btn {
-            background: #64748b;
-        }
-
-        .add-btn {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
-        }
-
-        .add-btn:hover {
-            background: linear-gradient(135deg, #0e7490, #075985);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(8,145,178,0.4);
-        }
     </style>
+
 </head>
 
 <body>
 
-<div class="container">
+<div class="page-wrapper">
 
-    <h2>List of Nodes</h2>
+    <div class="top-section">
+
+        <h2 class="page-title">
+            Node Management
+        </h2>
+
+        <div class="top-actions">
+
+            <a href="${pageContext.request.contextPath}/"
+               class="back-btn">
+
+                ᐸ BACK
+
+            </a>
+
+            <a href="${pageContext.request.contextPath}/node/add"
+               class="top-btn">
+
+                ADD NODE
+
+            </a>
+
+        </div>
+
+    </div>
 
     <c:choose>
+
         <c:when test="${empty nodes}">
+
             <div class="empty">
+
                 No nodes available
+
             </div>
+
         </c:when>
 
         <c:otherwise>
+
             <table>
+
                 <thead>
+
                 <tr>
-                    <th>Identifier</th>
-                    <th>Path</th>
-                    <th>Roles</th>
-                    <th>Actions</th>
+
+                    <th>IDENTIFIER</th>
+                    <th>PATH</th>
+                    <th>ROLES</th>
+                    <th>ACTION</th>
+
                 </tr>
+
                 </thead>
 
                 <tbody>
+
                 <c:forEach var="node" items="${nodes}">
+
                     <tr>
+
                         <td>${node.identifier}</td>
+
                         <td>${node.path}</td>
 
                         <td class="roles">
-                            <c:forEach var="role" items="${node.roles}" varStatus="s">
+
+                            <c:forEach var="role"
+                                       items="${node.roles}"
+                                       varStatus="s">
+
                                 ${role}<c:if test="${!s.last}">, </c:if>
+
                             </c:forEach>
+
                         </td>
 
                         <td>
-                            <a href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
-                               class="btn edit-btn">Edit</a>
 
-                            <a href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
-                               class="btn delete-btn">
-                                Delete
-                            </a>
+                            <div class="action-buttons">
+
+                                <a href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
+                                   class="action-link edit"
+                                   title="Edit">
+
+                                    ✎
+
+                                </a>
+
+                                <a href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
+                                   class="action-link delete"
+                                   title="Delete"
+                                   onclick="return confirm('Delete this node?')">
+
+                                    🗑
+
+                                </a>
+
+                            </div>
+
                         </td>
+
                     </tr>
+
                 </c:forEach>
+
                 </tbody>
+
             </table>
+
         </c:otherwise>
+
     </c:choose>
-
-    <div class="footer">
-        <a href="/" class="btn home-btn">Home</a>
-
-        <a href="${pageContext.request.contextPath}/node/add"
-           class="btn add-btn">Add Node</a>
-    </div>
 
 </div>
 

@@ -8,5 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Role extends CommonFields {
-    String description;
+
+    private String description;
+
 }

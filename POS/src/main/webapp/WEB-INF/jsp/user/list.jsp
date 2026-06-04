@@ -1,36 +1,79 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
 <head>
     <title>User Management</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
     <style>
+
         body {
             margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: #d1d5db;
+            font-family: "Inter", sans-serif;
+            background-color: #3f3f3f;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .container {
-            width: 90%;
-            max-width: 1000px;
-            margin: 80px auto;
-            background: #f1f5f9;
-            padding: 35px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        .page-wrapper {
+            width: 1100px;
+            background: #f3efe9;
+            padding: 34px 42px;
+            box-sizing: border-box;
         }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 22px;
-            color: #0891b2;
-            font-weight: 600;
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2f2f2f;
+            margin: 0;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            height: 48px;
+            min-width: 120px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 2px solid #3f3f3f;
+            background: transparent;
+            color: #3f3f3f;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #3f3f3f;
+            color: #ffffff;
+        }
+
+        .error-message {
+            margin-bottom: 22px;
+            padding: 12px;
+            background: #ffe5e0;
+            color: #b91c1c;
+            font-size: 13px;
         }
 
         table {
@@ -39,148 +82,182 @@
         }
 
         th {
-            background: #0891b2;
-            color: white;
-            padding: 12px;
-            font-size: 13px;
-            text-align: center;
+            text-align: left;
+            padding: 14px 12px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #8a8a8a;
+            border-bottom: 3px solid #d6d1cb;
         }
 
         td {
-            padding: 14px 10px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 13px;
-            text-align: center;
+            padding: 20px 12px;
+            border-bottom: 2px solid #dedad5;
+            color: #2f2f2f;
+            font-size: 14px;
+            vertical-align: middle;
         }
 
-        tr:hover {
-            background: rgba(8,145,178,0.05);
-        }
-
-        .btn {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            color: white;
-            transition: 0.25s;
-        }
-
-        .action-btn {
-            margin-right: 8px;
-        }
-
-        .edit-btn {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
-        }
-
-        .edit-btn:hover {
-            background: linear-gradient(135deg, #0e7490, #075985);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(8,145,178,0.4);
-        }
-
-        .delete-btn {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-        .delete-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(239,68,68,0.4);
-        }
-
-        .empty {
-            text-align: center;
-            padding: 30px;
-            color: #475569;
-        }
-
-        .footer {
+        .action-buttons {
             display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-link {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin-top: 25px;
+            box-sizing: border-box;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            border: 2px solid #3f3f3f;
+            transition: 0.3s;
         }
 
-        .add-btn {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
+        .edit {
+            background: #3f3f3f;
+            color: #ffffff;
         }
 
-        .add-btn:hover {
-            background: linear-gradient(135deg, #0e7490, #075985);
-            transform: translateY(-2px);
+        .edit:hover {
+            background: transparent;
+            color: #3f3f3f;
         }
 
-        /* HOME BUTTON */
-        .home-btn {
-            background: #64748b;
+        .delete {
+            background: transparent;
+            color: #3f3f3f;
         }
 
-        .home-btn:hover {
-            background: #475569;
+        .delete:hover {
+            background: #3f3f3f;
+            color: #ffffff;
         }
+
+        .empty-message {
+            text-align: center;
+            padding: 30px 0;
+            color: #6b7280;
+            font-size: 15px;
+        }
+
     </style>
+
 </head>
 
 <body>
 
-<div class="container">
+<div class="page-wrapper">
 
-    <h2>User Management</h2>
+    <div class="top-section">
 
-    <c:choose>
-        <c:when test="${empty users}">
-            <div class="empty">No users found</div>
-        </c:when>
+        <h2 class="page-title">
+            User Management
+        </h2>
 
-        <c:otherwise>
-            <table>
-                <thead>
-                <tr>
-                    <th>Email</th>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Roles</th>
-                    <th>Action</th>
-                </tr>
-                </thead>
+        <div class="top-actions">
 
-                <tbody>
-                <c:forEach var="user" items="${users}">
-                    <tr>
-                        <td>${user.username}</td>
-                        <td>${user.name}</td>
-                        <td>${user.phoneNo}</td>
-                        <td>${user.roles}</td>
+            <a href="${pageContext.request.contextPath}/"
+               class="back-btn">
 
-                        <td>
-                            <a class="btn edit-btn action-btn"
-                               href="${pageContext.request.contextPath}/user/get?username=${user.username}">
-                                Edit
-                            </a>
+                ᐸ BACK
 
-                            <a class="btn delete-btn"
-                               href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
-                               onclick="return confirm('Are you sure you want to delete this user?');">
-                                Delete
-                            </a>
-                        </td>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-        </c:otherwise>
-    </c:choose>
+            </a>
 
-    <div class="footer">
+        </div>
 
-        <!-- HOME BUTTON -->
-        <a href="${pageContext.request.contextPath}/"
-           class="btn home-btn">
-            Home
-        </a>
     </div>
+
+    <c:if test="${not empty message}">
+
+        <div class="error-message">
+
+            ${message}
+
+        </div>
+
+    </c:if>
+
+    <c:if test="${empty users}">
+
+        <div class="empty-message">
+
+            No users found
+
+        </div>
+
+    </c:if>
+
+    <c:if test="${not empty users}">
+
+        <table>
+
+            <thead>
+
+            <tr>
+
+                <th>EMAIL</th>
+                <th>NAME</th>
+                <th>PHONE</th>
+                <th>ROLES</th>
+                <th>ACTION</th>
+
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            <c:forEach var="user" items="${users}">
+
+                <tr>
+
+                    <td>${user.username}</td>
+
+                    <td>${user.name}</td>
+
+                    <td>${user.phoneNo}</td>
+
+                    <td>${user.roles}</td>
+
+                    <td>
+
+                        <div class="action-buttons">
+
+                            <a href="${pageContext.request.contextPath}/user/get?username=${user.username}"
+                               class="action-link edit"
+                               title="Edit">
+
+                                ✎
+
+                            </a>
+
+                            <a href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
+                               class="action-link delete"
+                               title="Delete"
+                               onclick="return confirm('Delete this user?')">
+
+                                🗑
+
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            </c:forEach>
+
+            </tbody>
+
+        </table>
+
+    </c:if>
 
 </div>
 

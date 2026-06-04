@@ -1,170 +1,184 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Login</title>
+    <title>Login</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            background-color: #3f3f3f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-<style>
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: #d1d5db;
-}
+        .login-card {
+            background: #f3efe9;
+            width: 360px;
+            padding: 35px 30px;
+            border-radius: 4px;
+            text-align: left;
+        }
 
-/* SAME AS NODE */
-.container {
-    width: 420px;
-    margin: 100px auto;
-    background: #f1f5f9;
-    padding: 35px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
+        .app-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2f2f2f;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
 
-/* TITLE */
-h2 {
-    text-align: center;
-    margin-bottom: 25px;
-    font-size: 22px;
-    color: #0891b2;
-    font-weight: 600;
-}
+        h2 {
+            margin: 0 0 25px;
+            font-size: 26px;
+            font-weight: 700;
+            color: #2f2f2f;
+        }
 
-/* LABEL */
-label {
-    margin-top: 16px;
-    display: block;
-    font-weight: 600;
-    font-size: 13px;
-    color: #334155;
-}
+        .form-group {
+            margin-bottom: 18px;
+        }
 
-/* INPUT */
-input {
-    width: 100%;
-    margin-top: 6px;
-    padding: 10px;
-    border: 1px solid #cbd5f5;
-    border-radius: 8px;
-    font-size: 13px;
-    outline: none;
-    transition: 0.2s;
-}
+        label {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #7a7a7a;
+            display: block;
+            margin-bottom: 6px;
+        }
 
-input:focus {
-    border-color: #0891b2;
-    box-shadow: 0 0 0 2px rgba(8,145,178,0.2);
-}
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 0;
+            border: none;
+            border-bottom: 2px solid #cfcfcf;
+            background: #f3efe9; /* SAME CREAM COLOR */
+            font-size: 14px;
+            outline: none;
+            color: #2f2f2f;
+        }
 
-/* BUTTON */
-.btn-login {
-    margin-top: 28px;
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, #0891b2, #0e7490);
-    color: white;
-    border: none;
-    border-radius: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s;
-}
+        input:focus {
+            border-bottom: 2px solid #3f3f3f;
+            background: #f3efe9; /* KEEP CREAM ON FOCUS */
+        }
 
-.btn-login:hover {
-    background: linear-gradient(135deg, #0e7490, #075985);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(8,145,178,0.4);
-}
+        /* REMOVE WHITE AUTOFILL BG */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #f3efe9 inset !important;
+            -webkit-text-fill-color: #2f2f2f !important;
+        }
 
-/* ERROR MESSAGE */
-.error-message {
-    margin-bottom: 15px;
-    padding: 10px;
-    background: #fee2e2;
-    color: #b91c1c;
-    border-radius: 8px;
-    text-align: center;
-    font-size: 13px;
-}
+        .login-btn {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            margin-top: 15px;
+            background: #3f3f3f;
+            color: #ffffff;
+            border: 2px solid #3f3f3f;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-/* REGISTER LINK */
-.register-text {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 13px;
-    color: #334155;
-}
+        .login-btn:hover {
+            background: transparent;
+            color: #3f3f3f;
+        }
 
-.register-text a {
-    display: inline-block;
-    margin-top: 6px;
-    color: #0891b2;
-    font-weight: 600;
-    text-decoration: none;
-}
+        /* DIVIDER */
+        .divider {
+            margin: 18px 0;
+            text-align: center;
+            color: #8a8a8a;
+            font-size: 11px;
+        }
 
-.register-text a:hover {
-    color: #0e7490;
-    text-decoration: underline;
-}
-</style>
+        .register-btn {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid #3f3f3f;
+            color: #3f3f3f;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-<script>
-function validateLoginForm() {
-    let username = document.getElementsByName("username")[0].value.trim();
-    let password = document.getElementsByName("password")[0].value.trim();
+        .register-btn:hover {
+            background: #3f3f3f;
+            color: #ffffff;
+        }
 
-    if (username === "" || password === "") {
-        alert("Please fill in all fields.");
-        return false;
-    }
+        .error-message {
+            margin-top: 12px;
+            padding: 8px;
+            background: #ffe5e0;
+            color: #b91c1c;
+            font-size: 12px;
+        }
 
-    let emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,}$/;
-    if (!username.match(emailPattern)) {
-        alert("Enter a valid email address.");
-        return false;
-    }
-    return true;
-}
-</script>
-
+        .logout-message {
+            margin-top: 12px;
+            padding: 8px;
+            background: #e6fffa;
+            color: #065f46;
+            font-size: 12px;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="login-card">
 
-<h2>Login</h2>
+    <div class="app-title">POS APPLICATION</div>
+    <h2>Sign in</h2>
 
-<c:if test="${not empty errorMsg}">
-    <div class="error-message">
-        ${errorMsg}
-    </div>
-</c:if>
+    <form action="${pageContext.request.contextPath}/login" method="post">
 
-<form action="${pageContext.request.contextPath}/login"
-      method="post"
-      onsubmit="return validateLoginForm()">
+        <div class="form-group">
+            <label>EMAIL</label>
+            <input type="email" name="username" required />
+        </div>
 
-    <label for="usernameField">Email</label>
-    <input type="email" id="usernameField" name="username" required />
+        <div class="form-group">
+            <label>PASSWORD</label>
+            <input type="password" name="password" required />
+        </div>
 
-    <label for="passwordField">Password</label>
-    <input type="password" id="passwordField" name="password" required />
+        <button type="submit" class="login-btn">LOGIN</button>
+    </form>
 
-    <button type="submit" class="btn-login">Login</button>
+    <div class="divider">or</div>
 
-</form>
+    <form action="${pageContext.request.contextPath}/register" method="get">
+        <button type="submit" class="register-btn">REGISTER</button>
+    </form>
 
-<div class="register-text">
-    Don’t have an account?
-    <a href="${pageContext.request.contextPath}/register">Register</a>
-</div>
+    <c:if test="${param.error != null}">
+        <div class="error-message">
+            Invalid username or password
+        </div>
+    </c:if>
+
+    <c:if test="${param.logout != null}">
+        <div class="logout-message">
+            Logged out successfully
+        </div>
+    </c:if>
 
 </div>
 

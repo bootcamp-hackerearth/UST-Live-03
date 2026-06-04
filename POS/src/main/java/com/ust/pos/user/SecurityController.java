@@ -9,8 +9,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class SecurityController {
@@ -21,34 +19,25 @@ public class SecurityController {
     @Autowired
     private RoleService roleService;
 
-
     @GetMapping("/login")
-    public String login(@RequestParam(value = "error", required = false) String error,
-                        Model model) {
-
-        if (error != null) {
-            model.addAttribute("errorMsg", "Invalid email or password");
-        }
-
+    public String login(Model model) {
         return "login";
     }
 
     @GetMapping("/register")
     public String add(Model model, @ModelAttribute UserDto userDto) {
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findIfTrue());
         return "register";
     }
 
-@PostMapping("/register")
-public String addPost(Model model, @ModelAttribute UserDto userDto, RedirectAttributes redirectAttributes
-) {
-    UserDto response = userService.save(userDto);
-    if (!response.isSuccess()) {
-        model.addAttribute("roles", roleService.findAll());
-        model.addAttribute("message", response.getMessage());
-        return "register";
+    @PostMapping("/register")
+    public String addPost(Model model, @ModelAttribute UserDto userDto) {
+        UserDto response = userService.save(userDto);
+        if (!response.isSuccess()) {
+            model.addAttribute("message", response.getMessage());
+            model.addAttribute("roles", roleService.findAll(null));
+            return "register";
+        }
+        return "login";
     }
-    redirectAttributes.addFlashAttribute("message","Register Success, Please login");
-    return "redirect:/login";
-}
 }

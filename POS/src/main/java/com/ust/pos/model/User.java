@@ -16,4 +16,3 @@ public class User extends CommonFields {
     private List<String> roles;
     private String password;
 }
-

@@ -1,277 +1,229 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<title>Update User</title>
+    <title>Update User</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
 
-<style>
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: #d1d5db;
-}
+        body {
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            background-color: #3f3f3f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-/* CONTAINER */
-.container {
-    width: 520px;
-    margin: 80px auto;
-    background: #f1f5f9;
-    padding: 35px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
+        .brand-card {
+            background: #f3efe9;
+            width: 470px;
+            padding: 42px;
+            box-sizing: border-box;
+        }
 
-/* TITLE */
-h2 {
-    text-align: center;
-    margin-bottom: 25px;
-    font-size: 22px;
-    color: #0891b2;
-    font-weight: 600;
-}
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 22px;
+            text-decoration: none;
+            color: #2f2f2f;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
 
-/* LABEL */
-label {
-    margin-top: 16px;
-    display: block;
-    font-weight: 600;
-    font-size: 13px;
-    color: #334155;
-}
+        .back-btn:hover {
+            opacity: 0.7;
+        }
 
-/* INPUT */
-input, select {
-    width: 100%;
-    margin-top: 6px;
-    padding: 10px;
-    border: 1px solid #cbd5f5;
-    border-radius: 8px;
-    font-size: 13px;
-    outline: none;
-    transition: 0.2s;
-    box-sizing: border-box; /* Preserves explicit layout with nested elements */
-}
+        h2 {
+            margin: 0 0 34px;
+            font-size: 26px;
+            font-weight: 700;
+            color: #2f2f2f;
+        }
 
-input:focus, select:focus {
-    border-color: #0891b2;
-    box-shadow: 0 0 0 2px rgba(8,145,178,0.2);
-}
+        .form-group {
+            margin-bottom: 28px;
+        }
 
-select[multiple] {
-    height: 120px;
-}
+        label {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: #8a8a8a;
+            display: block;
+            margin-bottom: 10px;
+        }
 
-/* UPDATE BUTTON */
-.btn-update {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #0891b2, #0e7490);
-    color: white;
-    border: none;
-    border-radius: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s;
-}
+        input,
+        select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 0;
+            border: none;
+            border-bottom: 3px solid #cfcfcf;
+            background: transparent;
+            font-size: 16px;
+            outline: none;
+            color: #2f2f2f;
+            font-family: "Inter", sans-serif;
+        }
 
-.btn-update:hover {
-    background: linear-gradient(135deg, #0e7490, #075985);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(8,145,178,0.4);
-}
+        select {
+            background-color: #f3efe9;
+            color: #2f2f2f;
+        }
 
-/* BUTTON GROUP */
-.btn-group {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 25px;
-}
+        select option {
+            background-color: #f3efe9;
+            color: #2f2f2f;
+        }
 
-/* BACK BUTTON */
-.back-btn {
-    background: #64748b;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: 0.25s;
-}
+        select[multiple] {
+            height: 120px;
+        }
 
-.back-btn:hover {
-    background: #475569;
-}
+        input:focus,
+        select:focus {
+            border-bottom: 3px solid #3f3f3f;
+        }
 
-/* SERVER MESSAGE */
-.server-msg {
-    margin-bottom: 15px;
-    padding: 10px;
-    border-radius: 8px;
-    text-align: center;
-    font-size: 13px;
-}
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
 
-.server-msg.success {
-    background: #dcfce7;
-    color: #166534;
-}
+            -webkit-box-shadow: 0 0 0px 1000px #f3efe9 inset !important;
+            -webkit-text-fill-color: #2f2f2f !important;
+            transition: background-color 5000s ease-in-out 0s;
 
-.server-msg.error {
-    background: #fee2e2;
-    color: #b91c1c;
-}
+        }
 
-/* FIELD ERROR */
-.invalid-feedback {
-    font-size: 12px;
-    color: #b91c1c;
-    margin-top: 4px;
-}
+        .update-btn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 8px;
+            background: #3f3f3f;
+            color: #ffffff;
+            border: 2px solid #3f3f3f;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-.error-border {
-    border: 1px solid #b91c1c !important;
-}
+        .update-btn:hover {
+            background: transparent;
+            color: #3f3f3f;
+        }
 
-/* TOAST */
-.toast-message {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #1f2937;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(20px);
-    transition: 0.3s;
-    font-size: 13px;
-}
+        .error-message {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #ffe5e0;
+            color: #b91c1c;
+            font-size: 13px;
+        }
 
-.toast-message.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-</style>
-
-<script>
-function validateForm() {
-
-    document.getElementById("emailErr").innerText = "";
-    document.getElementById("phoneErr").innerText = "";
-
-    let emailInput = document.getElementsByName("username")[0];
-    let phoneInput = document.getElementsByName("phoneNo")[0];
-
-    emailInput.classList.remove("error-border");
-    phoneInput.classList.remove("error-border");
-
-    let name = document.getElementsByName("name")[0].value.trim();
-    let email = emailInput.value.trim();
-    let phone = phoneInput.value.trim();
-
-    if (!name || !email || !phone) {
-        showToast("All fields are required");
-        return false;
-    }
-
-    let valid = true;
-
-    let emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,}$/;
-    if (!emailPattern.test(email)) {
-        document.getElementById("emailErr").innerText = "Enter a valid email address";
-        emailInput.classList.add("error-border");
-        valid = false;
-    }
-
-    let phonePattern = /^[0-9]{10}$/;
-    if (!phonePattern.test(phone)) {
-        document.getElementById("phoneErr").innerText = "Phone must be exactly 10 digits";
-        phoneInput.classList.add("error-border");
-        valid = false;
-    }
-
-    return valid;
-}
-
-function showToast(msg) {
-    const toast = document.getElementById("toast");
-    toast.innerText = msg;
-    toast.classList.add("show");
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-    }, 2500);
-}
-</script>
+    </style>
 
 </head>
 
 <body>
 
-<div class="container">
+<div class="brand-card">
 
-<h2>Update User</h2>
+    <a href="${pageContext.request.contextPath}/user/list"
+       class="back-btn">
 
-<c:if test="${not empty message}">
-    <div class="server-msg ${messageType == 'success' ? 'success' : 'error'}">
-        ${message}
-    </div>
-</c:if>
+        ᐸ BACK
 
-<form:form action="${pageContext.request.contextPath}/user/update"
-           method="post"
-           modelAttribute="user"
-           onsubmit="return validateForm()">
+    </a>
 
-    <form:hidden path="id"/>
+    <h2>Update User</h2>
 
-    <label for="name">
-        Name
-        <form:input path="name" id="name"/>
-    </label>
+    <c:if test="${not empty message}">
 
-    <label for="username">
-        Email
-        <form:input path="username" id="username"/>
-    </label>
-    <div id="emailErr" class="invalid-feedback"></div>
+        <div class="error-message">
 
-    <label for="phoneNo">
-        Phone Number
-        <form:input path="phoneNo" id="phoneNo" maxlength="10"/>
-    </label>
-    <div id="phoneErr" class="invalid-feedback"></div>
+            ${message}
 
-    <label for="roles">
-        Roles
-        <form:select path="roles" id="roles" multiple="true">
-            <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
-        </form:select>
-    </label>
+        </div>
 
-    <div class="btn-group">
+    </c:if>
 
-        <a href="${pageContext.request.contextPath}/user/list"
-           class="back-btn">
-            Back to Users
-        </a>
+    <form:form
+            action="${pageContext.request.contextPath}/user/update"
+            method="post"
+            modelAttribute="user">
 
-        <button type="submit" class="btn-update">
-            Update User
+        <form:hidden path="id"/>
+
+        <div class="form-group">
+
+            <label>NAME</label>
+
+            <form:input
+                    path="name"
+                    required="true"/>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>EMAIL</label>
+
+            <form:input
+                    path="username"
+                    type="email"
+                    required="true"/>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>PHONE NUMBER</label>
+
+            <form:input
+                    path="phoneNo"
+                    type="tel"
+                    required="true"
+                    pattern="[0-9]{10}"
+                    maxlength="10"/>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>ROLES</label>
+
+            <form:select
+                    path="roles"
+                    multiple="true">
+
+                <form:options
+                        items="${roles}"
+                        itemValue="identifier"
+                        itemLabel="identifier"/>
+
+            </form:select>
+
+        </div>
+
+        <button type="submit"
+                class="update-btn">
+
+            UPDATE USER
+
         </button>
 
-    </div>
-
-</form:form>
+    </form:form>
 
 </div>
-
-<div id="toast" class="toast-message"></div>
 
 </body>
 </html>
