@@ -102,9 +102,7 @@
         }
     </style>
 </head>
-
 <body>
-
 <div class="container">
 
     <h2>Edit Node</h2>

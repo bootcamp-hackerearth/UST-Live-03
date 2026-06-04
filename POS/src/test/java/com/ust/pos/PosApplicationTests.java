@@ -9,5 +9,4 @@ class PosApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }

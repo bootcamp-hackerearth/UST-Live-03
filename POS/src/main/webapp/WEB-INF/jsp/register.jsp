@@ -10,6 +10,7 @@
 
     <style>
         * { box-sizing: border-box; }
+
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -20,6 +21,7 @@
             justify-content: center;
             align-items: center;
         }
+
         .register-card {
             width: 380px;
             background: #ffffff;
@@ -29,6 +31,7 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.10);
             position: relative;
         }
+
         .register-card::before {
             content: "";
             position: absolute;
@@ -39,6 +42,7 @@
             background: linear-gradient(90deg, #4f46e5, #2563eb);
             border-radius: 16px 16px 0 0;
         }
+
         h2 {
             text-align: center;
             margin-bottom: 28px;
@@ -46,7 +50,9 @@
             color: #111827;
             font-weight: 700;
         }
+
         .form-group { margin-bottom: 18px; }
+
         label {
             font-size: 13px;
             font-weight: 600;
@@ -54,6 +60,7 @@
             margin-bottom: 6px;
             display: block;
         }
+
         input, select {
             width: 100%;
             padding: 13px;
@@ -62,13 +69,16 @@
             font-size: 14px;
             background: #f9fafb;
         }
+
         input:focus, select:focus {
             outline: none;
             border-color: #6366f1;
             background: #ffffff;
             box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
         }
+
         select[multiple] { height: 110px; }
+
         .btn-submit {
             width: 100%;
             padding: 13px;
@@ -80,10 +90,12 @@
             font-weight: 600;
             cursor: pointer;
         }
+
         .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(79,70,229,0.25);
         }
+
         .error-box {
             margin-bottom: 15px;
             padding: 10px;
@@ -94,6 +106,7 @@
             color: #be123c;
             border: 1px solid #fecdd3;
         }
+
         .field-error {
             font-size: 11px;
             color: #dc2626;
@@ -104,28 +117,31 @@
 <body>
 
 <div class="register-card">
+
     <h2>User Registration</h2>
+
     <c:if test="${not empty message}">
         <div class="error-box">${message}</div>
     </c:if>
 
-<form:form action="${pageContext.request.contextPath}/register"
+<form:form action="/register"
            method="post"
            modelAttribute="userDto">
+
         <div class="form-group">
             <label>Name *</label>
             <form:input path="name" required="true"/>
             <form:errors path="name" cssClass="field-error"/>
         </div>
+
         <div class="form-group">
             <label>Email *</label>
             <form:input path="username"
                         type="email"
-                        required="true"
-                        pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
-                        title="Email must be a valid @gmail.com address"/>
+                        required="true"/>
             <form:errors path="username" cssClass="field-error"/>
         </div>
+
         <div class="form-group">
             <label>Roles *</label>
             <form:select path="roles" multiple="true" required="true">
@@ -135,25 +151,33 @@
             </form:select>
             <form:errors path="roles" cssClass="field-error"/>
         </div>
+
         <div class="form-group">
             <label>Phone Number *</label>
             <form:input path="phoneNo"
                         required="true"
-                        pattern="^[0-9]{10}$"
                         maxlength="10"
-                        title="Phone number must be exactly 10 digits"/>
+                        pattern="[0-9]{10}"
+                        inputmode="numeric"
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
             <form:errors path="phoneNo" cssClass="field-error"/>
         </div>
+
         <div class="form-group">
             <label>Password *</label>
-            <form:password path="password" required="true"/>
+            <form:password path="password"
+                required="true"
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}"/>
             <form:errors path="password" cssClass="field-error"/>
         </div>
+
         <button type="submit" class="btn-submit">Register</button>
-        <a href="${pageContext.request.contextPath}/login">
-            Back to Login
+
+        <a href="${pageContext.request.contextPath}/user/list">
+            ← Back
         </a>
-    </form:form>
+</form:form>
+
 </div>
 </body>
 </html>

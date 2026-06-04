@@ -4,6 +4,7 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,14 +19,14 @@ public class NodeController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("nodes", nodeService.findAll());
+    public String home(Model model, Pageable pageable) {
+        model.addAttribute("nodes", nodeService.findAll(pageable));
         return "node/list";
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute NodeDto nodeDto) {
-        model.addAttribute("roles", roleService.findAll());
+    public String add(Model model, Pageable pageable, @ModelAttribute NodeDto nodeDto) {
+        model.addAttribute("roles", roleService.findAll(pageable));
         return "node/add";
     }
 
@@ -40,9 +41,9 @@ public class NodeController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier) {
+    public String update(Model model, Pageable pageable, @RequestParam String identifier) {
         NodeDto response = nodeService.findByIdentifier(identifier);
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findAll(pageable));
         model.addAttribute("node", response);
         return "node/node";
     }

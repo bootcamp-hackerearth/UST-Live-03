@@ -21,7 +21,6 @@ target/
 .mvn
 mvn*
 
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

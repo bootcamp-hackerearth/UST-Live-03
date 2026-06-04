@@ -5,7 +5,6 @@
 <html>
 <head>
     <title>Add Node</title>
-
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -111,7 +110,6 @@
         }
     </style>
 </head>
-
 <body>
 <div class="container">
 

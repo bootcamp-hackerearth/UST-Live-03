@@ -21,58 +21,48 @@
             background: linear-gradient(135deg, #f3f4f6, #e5e7eb, #f9fafb);
             color: #111827;
         }
-
         .container {
             margin-top: 60px;
         }
-
         .card {
             background: rgba(255, 255, 255, 0.85);
             border: 1px solid #e5e7eb;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
         }
-
         .card-body {
             padding: 25px;
         }
-
         h3 {
             font-weight: 800;
             font-size: 26px;
             letter-spacing: 0.5px;
             color: #111827;
         }
-
         .table {
             color: #111827;
             margin-bottom: 0;
         }
-
         .table th {
             background: #e5e7eb;
             color: #111827;
             border: 1px solid #d1d5db;
             font-weight: 600;
         }
-
         .table td {
             background: #f9fafb;
             border: 1px solid #e5e7eb;
         }
-
         .form-control, .form-select {
             background: #ffffff;
             border: 1px solid #d1d5db;
             color: #111827;
             border-radius: 6px;
         }
-
         .form-control:focus, .form-select:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
         }
-
         .icon-btn {
             border: none;
             padding: 6px 10px;
@@ -84,19 +74,15 @@
             align-items: center;
             justify-content: center;
         }
-
         .icon-btn:hover {
             transform: scale(1.1);
         }
-
         .edit-btn {
             background: #2563eb;
         }
-
         .delete-btn {
             background: #ef4444;
         }
-
         td .btn {
             padding: 6px 10px;
         }
@@ -108,11 +94,8 @@
 <div class="container">
     <div class="card">
         <div class="card-body">
-
             <h3 class="text-center mb-3">Edit User</h3>
-
             <form action="${pageContext.request.contextPath}/user/update" method="post">
-
                 <table class="table table-bordered text-center align-middle">
 
                     <thead>
@@ -128,28 +111,24 @@
 
                     <tbody>
                     <tr>
-
                         <td>
                             <input type="text" class="form-control"
                                    name="id"
                                    value="${user.id}"
                                    readonly>
                         </td>
-
                         <td>
                             <input type="text" class="form-control"
                                    name="username"
                                    value="${user.username}"
                                    required>
                         </td>
-
                         <td>
                             <input type="text" class="form-control"
                                    name="name"
                                    value="${user.name}"
                                    required>
                         </td>
-
                         <td>
                             <input type="text"
                                    class="form-control"
@@ -160,7 +139,6 @@
                                    pattern="^[0-9]{10}$"
                                    title="Phone number must be exactly 10 digits (numbers only)">
                         </td>
-
                         <td>
                             <select class="form-select" name="roles" multiple>
                                 <c:forEach var="role" items="${roles}">
@@ -173,7 +151,6 @@
                                 </c:forEach>
                             </select>
                         </td>
-
                         <td class="d-flex justify-content-center gap-2">
 
                             <button type="submit"
@@ -181,26 +158,19 @@
                                     title="Update">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
-
                             <a class="icon-btn delete-btn"
                                href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
                                onclick="return confirm('Delete this user?');"
                                title="Delete">
                                 <i class="bi bi-trash"></i>
                             </a>
-
                         </td>
-
                     </tr>
                     </tbody>
-
                 </table>
-
             </form>
-
         </div>
     </div>
 </div>
-
 </body>
 </html>

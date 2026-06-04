@@ -15,6 +15,7 @@
 
     <style>
         body {
+
             background: linear-gradient(135deg, #f3f4f6, #e5e7eb, #f9fafb);
             min-height: 100vh;
             font-family: 'Segoe UI', sans-serif;
@@ -76,6 +77,7 @@
         ${message}
     </div>
 </c:if>
+
 <div class="container d-flex justify-content-center align-items-center mt-5">
     <div class="col-md-5">
         <div class="card shadow-lg">
@@ -103,7 +105,7 @@
                         <form:input path="description"
                                     cssClass="form-control"
                                     placeholder="Description"
-                                     required="true"/>
+                                    required="true"/>
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">

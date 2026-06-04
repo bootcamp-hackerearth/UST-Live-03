@@ -20,31 +20,26 @@
 
             background: linear-gradient(135deg, #f3f4f6, #e5e7eb, #f9fafb);
         }
-
         .card {
             border-radius: 16px;
             border: 1px solid #e5e7eb;
             background: rgba(255, 255, 255, 0.85);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
-
         .table th {
             background: #e5e7eb;
             color: #111827;
             border: none;
             font-weight: 600;
         }
-
         .table td {
             background: #ffffff;
             color: #111827;
         }
-
         .table-hover tbody tr:hover {
             background-color: #f1f5f9;
             transition: 0.2s;
         }
-
         .icon-btn {
             border: none;
             padding: 6px 10px;
@@ -57,39 +52,30 @@
             color: white;
             text-decoration: none;
         }
-
         .icon-btn:hover {
             transform: scale(1.1);
         }
-
         .edit-btn {
             background: #3b82f6;
         }
-
         .delete-btn {
             background: #ef4444;
         }
-
         .btn-add {
             background: #2563eb;
             border: none;
             color: white;
         }
-
         .btn-add:hover {
             background: #1d4ed8;
         }
-
         .roles {
             font-size: 13px;
             color: #334155;
         }
     </style>
-
 </head>
-
 <body>
-
 <div class="container mt-5">
     <div class="card shadow-lg">
         <div class="card-body">
@@ -102,14 +88,13 @@
                         No nodes available
                     </div>
                 </c:when>
-
                 <c:otherwise>
-
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover text-center align-middle">
 
                             <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Identifier</th>
                                 <th>Path</th>
                                 <th>Roles</th>
@@ -119,8 +104,10 @@
                             <tbody>
                             <c:forEach var="node" items="${nodes}">
                                 <tr>
+                                    <td>${node.id}</td>
                                     <td>${node.identifier}</td>
                                     <td>${node.path}</td>
+
                                     <td class="roles">
                                         <c:forEach var="role" items="${node.roles}" varStatus="s">
                                             ${role}<c:if test="${!s.last}">, </c:if>

@@ -7,6 +7,8 @@ import com.ust.pos.user.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +32,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findByUserName(String username) {
-        return modelMapper.map(userRepository.findByUsername(username), UserDto.class);
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return null;
+        }
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
@@ -50,28 +56,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto update(UserDto userDto) {
-
         String username = userDto.getUsername();
         Optional<User> userOptional = userRepository.findById(userDto.getId());
-
         if (userOptional.isEmpty()) {
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + username + " not found");
             userDto.setSuccess(false);
             return userDto;
         }
-
         User existingUser = userOptional.get();
-
         if (!username.equalsIgnoreCase(existingUser.getUsername())
                 && userRepository.findByUsername(username) != null) {
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + username + " already exists");
             userDto.setSuccess(false);
             return userDto;
         }
-
         modelMapper.map(userDto, existingUser);
         userRepository.save(existingUser);
-
         return userDto;
     }
 
@@ -82,9 +82,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll() {
+    public List<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        return modelMapper.map(userRepository.findAll(), listType);
+        Page<User> userPage = userRepository.findAll(pageable);
+        return modelMapper.map(userPage.getContent(), listType);
     }
 }
