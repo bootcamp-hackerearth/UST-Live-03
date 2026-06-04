@@ -7,7 +7,8 @@
     <meta charset="UTF-8">
     <title>Update Node</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
     <style>
         body {
@@ -36,9 +37,7 @@
 </nav>
 
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-
     <div class="card shadow p-4" style="width: 500px;">
-
         <h3 class="text-center mb-4 fw-bold">Update Node</h3>
 
         <c:if test="${not empty message}">
@@ -47,7 +46,7 @@
             </div>
         </c:if>
 
-        <form id="nodeForm" action="/node/update" method="post">
+        <form action="/node/update" method="post">
 
             <div class="mb-3">
                 <label class="form-label">Identifier</label>
@@ -69,7 +68,6 @@
 
             <div class="mb-4">
                 <label class="form-label fw-semibold">Roles (Multiple)</label>
-
                 <div class="border rounded p-2">
 
                     <c:if test="${empty roles}">
@@ -79,7 +77,7 @@
                     <c:forEach items="${roles}" var="r">
 
                         <div class="form-check">
-                            <input class="form-check-input role-check"
+                            <input class="form-check-input"
                                    type="checkbox"
                                    name="roles"
                                    value="${r.identifier}"
@@ -101,10 +99,6 @@
                     </c:forEach>
 
                 </div>
-
-                <small id="roleError" class="text-danger d-none">
-                    Please select at least one role
-                </small>
             </div>
 
             <div class="d-flex gap-2">
@@ -122,39 +116,5 @@
     </div>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const form = document.getElementById("nodeForm");
-    const checks = document.querySelectorAll(".role-check");
-    const error = document.getElementById("roleError");
-
-    function isRoleSelected() {
-        return Array.from(checks).some(c => c.checked);
-    }
-
-    function hideError() {
-        if (isRoleSelected()) {
-            error.classList.add("d-none");
-        }
-    }
-
-    checks.forEach(c => {
-        c.addEventListener("change", hideError);
-    });
-
-    form.addEventListener("submit", function (e) {
-
-        if (!isRoleSelected()) {
-            e.preventDefault();
-            error.classList.remove("d-none");
-        }
-
-    });
-
-});
-</script>
-
 </body>
-
 </html>

@@ -2,25 +2,17 @@ package com.ust.pos.config;
 
 import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Configuration
-@EnableWebSecurity
+//@Configuration
+//@EnableWebSecurity
+
 public class SecurityConfig {
 
     public static final String LOGIN = "/login";
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
@@ -29,10 +21,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
-        http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
+        http.csrf(csrf -> csrf.disable()).authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
-                        .requestMatchers(LOGIN, "/register").permitAll()
+                        .requestMatchers(LOGIN, "/register", "/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -42,7 +33,6 @@ public class SecurityConfig {
                             response.sendRedirect(LOGIN);
                         })
                 )
-
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()

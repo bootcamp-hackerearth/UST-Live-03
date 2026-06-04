@@ -152,8 +152,11 @@
             </c:if>
 
             <form action="${pageContext.request.contextPath}/login" method="post">
+
                 <input type="text" name="username" placeholder="Enter username" required>
+
                 <input type="password" name="password" placeholder="Enter password" required>
+
                 <button type="submit" class="btn-login">
                     Sign In
                 </button>

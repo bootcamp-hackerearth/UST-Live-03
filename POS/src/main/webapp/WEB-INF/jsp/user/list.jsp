@@ -47,9 +47,7 @@
 </nav>
 
 <div class="container mt-5">
-
     <div class="card shadow p-3">
-
         <h3 class="fw-bold mb-3 text-center">User List</h3>
 
         <c:if test="${empty users}">
@@ -77,16 +75,11 @@
                     <c:forEach var="user" items="${users}">
                         <tr>
                             <td>
-                                <a class="user-link"
-                                   href="/user/get?username=${user.username}">
                                     ${user.username}
                                 </a>
                             </td>
-
                             <td>${user.name}</td>
-
                             <td class="text-muted">${user.phoneNo}</td>
-
                             <td>
                                 <c:forEach var="role" items="${user.roles}">
                                     <span class="badge bg-secondary me-1">

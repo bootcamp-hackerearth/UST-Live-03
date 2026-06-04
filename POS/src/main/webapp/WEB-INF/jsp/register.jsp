@@ -65,14 +65,14 @@
                    name="username"
                    class="form-control"
                    required
-                   pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+                   pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                    title="Enter a valid email like example@gmail.com" />
         </div>
 
         <div class="mb-3">
             <label class="form-label">Roles</label>
 
-            <div class="role-box" id="roleBox">
+            <div class="role-box">
 
                 <c:forEach items="${roles}" var="role">
                     <div class="form-check">
@@ -110,7 +110,12 @@
 
         <div class="mb-3">
             <label class="form-label">Password</label>
-            <form:password path="password" cssClass="form-control" required="required" minlength="6"/>
+
+            <form:password path="password"
+                           cssClass="form-control"
+                           minlength="6"
+                           required="required"
+                           title="Password must be at least 6 characters long"/>
         </div>
 
         <button type="submit" class="btn btn-success w-100">
@@ -129,40 +134,26 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
     const checks = document.querySelectorAll(".role-check");
     const error = document.getElementById("roleError");
-
     function validateRoles() {
         let selected = false;
-
-        checks.forEach(c => {
-            if (c.checked) selected = true;
-        });
-
+        checks.forEach(c => { if (c.checked) selected = true; });
         if (selected) {
             error.classList.add("d-none");
         }
     }
 
-    checks.forEach(c => {
-        c.addEventListener("change", validateRoles);
-    });
+    checks.forEach(c => { c.addEventListener("change", validateRoles); });
 
     document.querySelector("form").addEventListener("submit", function (e) {
-
         let selected = false;
-
-        checks.forEach(c => {
-            if (c.checked) selected = true;
-        });
-
+        checks.forEach(c => { if (c.checked) selected = true; });
         if (!selected) {
             e.preventDefault();
             error.classList.remove("d-none");
         }
     });
-
 });
 </script>
 

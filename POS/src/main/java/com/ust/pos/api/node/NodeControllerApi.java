@@ -1,0 +1,62 @@
+package com.ust.pos.api.node;
+
+import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.node.service.NodeService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/node")
+public class NodeControllerApi extends BaseController {
+
+    public static final String REDIRECT_ROLE_LIST = "redirect:/node/list";
+
+    @Autowired
+    private NodeService nodeService;
+
+    @PostMapping("/list")
+    public List<NodeDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortfield());
+        return nodeService.findAll(pageable);
+    }
+
+    @PostMapping("/add")
+    public NodeDto addPost(@RequestBody NodeDto nodeDto) {
+        return nodeService.save(nodeDto);
+    }
+
+    @GetMapping("/get")
+    public NodeDto updatePage(@RequestParam String identifier) {
+        return nodeService.findByIdentifier(identifier);
+    }
+
+    @PostMapping("/update")
+    public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
+        return nodeService.update(nodeDto);
+    }
+
+    @PostMapping("/delete")
+    public NodeDto delete(@RequestBody NodeDto nodeDto) {
+        NodeDto response = new NodeDto();
+        try {
+            nodeService.delete(nodeDto.getIdentifier());
+            response.setSuccess(true);
+            response.setMessage("Node deleted successfully");
+        } catch (Exception e) {
+            response.setSuccess(false);
+            response.setMessage("Delete failed");
+        }
+        return response;
+    }
+
+    @GetMapping("/NodesForRoles")
+    public List<NodeDto> getNodesForRoles() {
+        return nodeService.getNodesForRoles();
+    }
+}

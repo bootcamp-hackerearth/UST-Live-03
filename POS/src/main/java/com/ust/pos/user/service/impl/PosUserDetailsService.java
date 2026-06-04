@@ -20,7 +20,7 @@ public class PosUserDetailsService implements UserDetailsService {
         if (userDto == null) {
             throw new UsernameNotFoundException("User not found: " + username);
         }
-        return org.springframework.security.core.userdetails.User
-                .withUsername(userDto.getUsername()).password(userDto.getPassword()).build();
+        return org.springframework.security.core.userdetails.User.withUsername(userDto.getUsername())
+                .password(userDto.getPassword()).build();
     }
 }

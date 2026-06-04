@@ -44,13 +44,9 @@
 </nav>
 
 <div class="container mt-5">
-
     <div class="card shadow p-3">
-
         <h3 class="fw-bold mb-3 text-center">Node List</h3>
-
         <div class="table-responsive">
-
             <table class="table table-hover table-striped mb-0">
 
                 <thead class="table-dark">
@@ -64,7 +60,6 @@
                 </thead>
 
                 <tbody>
-
                 <c:if test="${empty nodes}">
                     <tr>
                         <td colspan="5" class="text-center py-4 text-muted">
@@ -75,9 +70,7 @@
 
                 <c:forEach items="${nodes}" var="node">
                     <tr>
-
                         <td>${node.id}</td>
-
                         <td>
                             <a href="/node/get?identifier=${node.identifier}"
                                class="fw-semibold text-decoration-none">

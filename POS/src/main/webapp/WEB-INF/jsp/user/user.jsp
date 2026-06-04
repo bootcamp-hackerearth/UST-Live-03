@@ -8,8 +8,7 @@
     <meta charset="UTF-8">
     <title>Update User</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"rel="stylesheet">
 
     <style>
         body {
@@ -48,12 +47,17 @@
             </div>
         </c:if>
 
+        <c:if test="${not empty userDto.message}">
+            <div class="alert alert-danger text-center">
+                ${userDto.message}
+            </div>
+        </c:if>
+
         <c:if test="${not empty userDto}">
 
             <form:form action="/user/update"
                        method="post"
-                       modelAttribute="userDto"
-                       id="userForm">
+                       modelAttribute="userDto">
 
                 <form:hidden path="id"/>
                 <form:hidden path="oldUsername"/>
@@ -62,6 +66,7 @@
                     <label class="form-label fw-semibold">Name</label>
                     <form:input path="name"
                                 cssClass="form-control"
+                                placeholder="Enter name"
                                 required="required"/>
                 </div>
 
@@ -69,32 +74,32 @@
                     <label class="form-label fw-semibold">Email</label>
                     <form:input path="username"
                                 cssClass="form-control"
+                                placeholder="Enter email"
                                 required="required"
-                                type="email"
-                                readonly="true"/>
+                                type="email"/>
                 </div>
 
-                 <div class="mb-3">
-                    <label class="form-label">Phone Number</label>
-                      <form:input path="phoneNo"
-                                  cssClass="form-control"
-                                  maxlength="10"
-                                  pattern="^[0-9]{10}$"
-                                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                                  required="required"/>
-                  </div>
+               <div class="mb-3">
+                   <label class="form-label fw-semibold">Phone</label>
+                   <form:input path="phoneNo"
+                               cssClass="form-control"
+                               placeholder="Enter phone number"
+                               required="required"
+                               type="text"
+                               maxlength="10"
+                               pattern="[0-9]{10}"/>
+                   <small class="text-muted">Must be exactly 10 digits</small>
+               </div>
 
                 <div class="mb-4">
                     <label class="form-label fw-semibold">Roles</label>
 
                     <div class="border rounded p-2">
-
                         <c:forEach items="${roles}" var="role">
                             <div class="form-check">
-
                                 <form:checkbox path="roles"
                                                value="${role.identifier}"
-                                               cssClass="form-check-input role-check"
+                                               cssClass="form-check-input"
                                                id="role_${role.identifier}"/>
 
                                 <label class="form-check-label"
@@ -104,12 +109,7 @@
 
                             </div>
                         </c:forEach>
-
                     </div>
-
-                    <small id="roleError" class="text-danger d-none">
-                        Please select at least one role
-                    </small>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -128,39 +128,6 @@
 
     </div>
 </div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const form = document.getElementById("userForm");
-    const checks = document.querySelectorAll(".role-check");
-    const error = document.getElementById("roleError");
-
-    function isRoleSelected() {
-        return Array.from(checks).some(c => c.checked);
-    }
-
-    function hideError() {
-        if (isRoleSelected()) {
-            error.classList.add("d-none");
-        }
-    }
-
-    checks.forEach(c => {
-        c.addEventListener("change", hideError);
-    });
-
-    form.addEventListener("submit", function (e) {
-
-        if (!isRoleSelected()) {
-            e.preventDefault();
-            error.classList.remove("d-none");
-        }
-
-    });
-
-});
-</script>
 
 </body>
 </html>
