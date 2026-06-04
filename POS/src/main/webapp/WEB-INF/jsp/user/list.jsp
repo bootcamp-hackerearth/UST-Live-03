@@ -1,0 +1,180 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-container {
+            position: relative;
+            width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 35px 40px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #4b6cb7;
+            font-weight: 600;
+        }
+
+        /* Back Icon */
+        .back-icon {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #4b6cb7;
+            text-decoration: none;
+            font-weight: 600;
+            background: rgba(75, 108, 183, 0.08);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            transition: all 0.25s ease;
+        }
+
+        .back-icon:hover {
+            background: #4b6cb7;
+            color: #ffffff;
+            transform: translateX(-4px) scale(1.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            background: #4b6cb7;
+            color: white;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background: #f7f9ff;
+        }
+
+        .action-icon {
+            font-size: 18px;
+            margin: 0 6px;
+            text-decoration: none;
+            color: #4b6cb7;
+            display: inline-flex;
+            align-items: center;
+            transition: 0.2s ease;
+        }
+
+        .action-icon:hover {
+            color: #182848;
+            transform: scale(1.15);
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card-container">
+
+    <!-- Back to Home -->
+    <a href="/" class="back-icon">←</a>
+
+    <h2>User Management</h2>
+
+    <c:if test="${empty users}">
+        <div class="alert">
+            No users found
+        </div>
+    </c:if>
+
+    <c:if test="${not empty users}">
+        <table>
+            <thead>
+            <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Roles</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="user" items="${users}">
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.name}</td>
+                    <td>${user.phoneNo}</td>
+                    <td>${user.roles}</td>
+                    <td>
+                        <a href="/user/get?username=${user.username}"
+                           class="action-icon" title="Edit">✏️</a>
+
+                        <a href="/user/delete?username=${user.username}"
+                           class="action-icon" title="Delete"
+                           onclick="return confirm('Are you sure you want to delete this user?');">
+                            🗑
+                        </a>
+                    </td>
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+    </c:if>
+
+    <div class="footer-text">
+        User Management System
+    </div>
+
+</div>
+</body>
+</html>
