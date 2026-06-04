@@ -82,6 +82,28 @@
         .form-group {
             margin-bottom: 16px;
         }
+        .checkbox-group {
+            margin-top: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-size: 14px;
+            cursor: pointer;
+        }
 
         label {
             font-size: 12px;
@@ -163,6 +185,7 @@
         .back-login a:hover {
             text-decoration: underline;
         }
+
     </style>
 </head>
 
@@ -206,36 +229,38 @@
 
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password"
-                           name="password"
-                           placeholder="Enter password"
-                           pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
-                           title="Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character"
-                           required>
+                    <input type="password" name="password" placeholder="Enter password" required>
                 </div>
 
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="tel"
-                           name="phoneNo"
+                    <input type="tel" name="phoneNo"
+                           class="form-control"
                            placeholder="Enter mobile number"
                            maxlength="10"
-                           pattern="^[6-9][0-9]{9}$"
-                           title="Enter a valid 10-digit mobile number"
+                           pattern="^[0-9]{10}$"
                            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                            required>
                 </div>
 
-                <div class="form-group">
-                    <label>Assigned Roles</label>
-                    <select name="roles" id="roles" multiple required>
-                        <c:forEach items="${roles}" var="role">
-                            <option value="${role.identifier}">
-                                ${role.identifier}
-                            </option>
-                        </c:forEach>
-                    </select>
-                </div>
+               <div class="form-group">
+                   <label>Assigned Roles</label>
+
+                   <div class="checkbox-group">
+                       <c:forEach items="${roles}" var="role">
+                           <div class="checkbox-item">
+                               <input type="checkbox"
+                                      id="role_${role.identifier}"
+                                      name="roles"
+                                      value="${role.identifier}" />
+
+                               <label for="role_${role.identifier}">
+                                   ${role.identifier}
+                               </label>
+                           </div>
+                       </c:forEach>
+                   </div>
+               </div>
 
                 <div class="btn-group">
                     <button type="submit" class="btn btn-submit">

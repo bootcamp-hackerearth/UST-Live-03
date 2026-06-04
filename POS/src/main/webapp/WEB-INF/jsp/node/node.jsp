@@ -112,10 +112,7 @@
         <label>Roles</label>
         <select name="roles" multiple>
             <c:forEach items="${roles}" var="role">
-                <option value="${role.identifier}"
-                    <c:if test="${node.roles.contains(role.identifier)}">
-                        selected="selected"
-                    </c:if>>
+                <option value="${role.identifier}">
                     ${role.identifier}
                 </option>
             </c:forEach>

@@ -1,4 +1,5 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,6 +31,12 @@
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
             border-top: 6px solid #1e293b;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
 
         .btn {
@@ -65,12 +72,6 @@
 
         .btn-edit:hover {
             background-color: #15803d;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
         }
 
         table {
@@ -140,13 +141,19 @@
                 <td>${node.identifier}</td>
                 <td class="path">${node.path}</td>
                 <td>${node.roles}</td>
+
                 <td>
-                    <a href="/node/get?identifier=${node.identifier}"
-                       class="btn btn-edit">
+                    <a
+                        href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
+                        class="btn btn-edit"
+                    >
                         Edit
                     </a>
-                    <a href="/node/delete?identifier=${node.identifier}"
-                       class="btn btn-delete">
+
+                    <a
+                        href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
+                        class="btn btn-delete"
+                    >
                         Delete
                     </a>
                 </td>

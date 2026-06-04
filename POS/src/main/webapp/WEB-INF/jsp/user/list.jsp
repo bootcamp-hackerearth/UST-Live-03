@@ -82,7 +82,8 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px;
             border-bottom: 1px solid #e5e7eb;
             text-align: center;
@@ -117,7 +118,9 @@
     <h2>User List</h2>
 
     <div class="top-actions">
-        <a href="${pageContext.request.contextPath}/" class="btn">Home</a>
+        <a href="${pageContext.request.contextPath}/" class="btn">
+            Home
+        </a>
     </div>
 
     <table>
@@ -140,15 +143,32 @@
 
                 <td>
                     <div class="action-group">
-                        <a href="/user/get?username=${user.username}"
-                           class="btn btn-edit">Edit</a>
+                        <a
+                            href="${pageContext.request.contextPath}/user/get?username=${user.username}"
+                            class="btn btn-edit"
+                        >
+                            Edit
+                        </a>
 
-                        <a href="/user/delete?username=${user.username}"
-                           class="btn btn-delete">Delete</a>
+                        <a
+                            href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
+                            class="btn btn-delete"
+                            onclick="return confirm('Are you sure you want to delete this user?');"
+                        >
+                            Delete
+                        </a>
                     </div>
                 </td>
             </tr>
         </c:forEach>
+
+        <c:if test="${empty users}">
+            <tr>
+                <td colspan="6" style="text-align:center;">
+                    No users found
+                </td>
+            </tr>
+        </c:if>
 
     </table>
 </div>

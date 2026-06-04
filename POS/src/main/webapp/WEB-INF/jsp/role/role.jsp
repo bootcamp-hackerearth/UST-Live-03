@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -64,6 +65,11 @@
             box-shadow: 0 0 0 3px rgba(30, 41, 59, 0.15);
         }
 
+        .btn-group {
+            margin-top: 20px;
+            text-align: center;
+        }
+
         .btn {
             padding: 10px 16px;
             border-radius: 6px;
@@ -79,11 +85,6 @@
         .btn:hover {
             background-color: #0f172a;
             box-shadow: 0 6px 18px rgba(15, 23, 42, 0.35);
-        }
-
-        .btn-group {
-            margin-top: 20px;
-            text-align: center;
         }
 
         .back-btn {
@@ -143,8 +144,10 @@
                 Update Role
             </button>
 
-            <a href="${pageContext.request.contextPath}/role/list"
-               class="btn back-btn">
+            <a
+                href="${pageContext.request.contextPath}/role/list"
+                class="btn back-btn"
+            >
                 Back
             </a>
         </div>

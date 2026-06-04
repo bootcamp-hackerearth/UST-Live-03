@@ -35,7 +35,30 @@
         }
 
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
+        }
+
+        .checkbox-group {
+            margin-top: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-size: 14px;
+            cursor: pointer;
         }
 
         label {
@@ -104,14 +127,14 @@
         }
 
         .message {
-                    margin-bottom: 16px;
-                    padding: 10px;
-                    border-radius: 6px;
-                    background-color: #e0f2fe;
-                    color: #0369a1;
-                    text-align: center;
-                    font-size: 13px;
-                }
+            margin-bottom: 16px;
+            padding: 10px;
+            border-radius: 6px;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            text-align: center;
+            font-size: 13px;
+        }
     </style>
 </head>
 
@@ -121,38 +144,52 @@
     <h2>Create Node</h2>
 
     <c:if test="${not empty message}">
-                    <div class="message">
-                        ${message}
-                    </div>
-                </c:if>
+        <div class="message">
+            ${message}
+        </div>
+    </c:if>
 
     <form method="post">
 
         <div class="form-group">
             <label>Identifier</label>
-            <input type="text"
-                   name="identifier"
-                   placeholder="Enter identifier"
-                   required>
+            <input
+                type="text"
+                name="identifier"
+                placeholder="Enter identifier"
+                required
+            >
         </div>
 
         <div class="form-group">
             <label>Path</label>
-            <input type="text"
-                   name="path"
-                   placeholder="/admin/dashboard"
-                   required>
+            <input
+                type="text"
+                name="path"
+                placeholder="/admin/dashboard"
+                required
+            >
         </div>
 
         <div class="form-group">
-            <label>Roles</label>
-            <select name="roles" multiple required>
+            <label>Assigned Roles</label>
+
+            <div class="checkbox-group">
                 <c:forEach items="${roles}" var="role">
-                    <option value="${role.identifier}">
-                        ${role.identifier}
-                    </option>
+                    <div class="checkbox-item">
+                        <input
+                            type="checkbox"
+                            id="role_${role.identifier}"
+                            name="roles"
+                            value="${role.identifier}"
+                        />
+
+                        <label for="role_${role.identifier}">
+                            ${role.identifier}
+                        </label>
+                    </div>
                 </c:forEach>
-            </select>
+            </div>
         </div>
 
         <div class="btn-group">
@@ -160,8 +197,10 @@
                 Save Node
             </button>
 
-            <a href="${pageContext.request.contextPath}/node/list"
-               class="btn btn-back">
+            <a
+                href="${pageContext.request.contextPath}/node/list"
+                class="btn btn-back"
+            >
                 Back
             </a>
         </div>

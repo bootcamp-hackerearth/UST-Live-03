@@ -1,4 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -135,6 +136,7 @@
 
 <div class="main">
 
+    <!-- LEFT SIDE -->
     <div class="left">
         <h1>POS MADE SIMPLE</h1>
 
@@ -156,9 +158,19 @@
 
             <form action="${pageContext.request.contextPath}/login" method="post">
 
-                <input type="text" name="username" placeholder="Enter username" required>
+                <input
+                    type="text"
+                    name="username"
+                    placeholder="Enter username"
+                    required
+                >
 
-                <input type="password" name="password" placeholder="Enter password" required>
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Enter password"
+                    required
+                >
 
                 <button type="submit" class="btn-login">
                     Sign In
@@ -167,7 +179,7 @@
             </form>
 
             <div class="extra-text">
-                Don&apos;t have an account?
+                Don&rsquo;t have an account?
                 <a href="${pageContext.request.contextPath}/register">
                     Register here
                 </a>

@@ -47,7 +47,8 @@
             color: #334155;
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 12px;
             border-radius: 6px;
@@ -61,14 +62,34 @@
             color: #64748b;
         }
 
-        input:focus, select:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: #1e293b;
             box-shadow: 0 0 0 3px rgba(30, 41, 59, 0.15);
         }
 
-        select[multiple] {
-            height: 120px;
+        .checkbox-group {
+            margin-top: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-item input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-size: 14px;
+            cursor: pointer;
         }
 
         .btn-group {
@@ -104,6 +125,10 @@
             color: #1e293b;
         }
 
+        .btn-cancel:hover {
+            background-color: #cbd5e1;
+        }
+
         .message {
             margin-bottom: 16px;
             padding: 10px;
@@ -113,10 +138,6 @@
             text-align: center;
             font-size: 13px;
         }
-
-        .btn-cancel:hover {
-            background-color: #cbd5e1;
-        }
     </style>
 </head>
 
@@ -124,53 +145,84 @@
 
 <div class="container">
     <h2>Update User</h2>
-     <c:if test="${not empty message}">
+
+    <c:if test="${not empty message}">
         <div class="message">
-           ${message}
+            ${message}
         </div>
-     </c:if>
+    </c:if>
 
     <form action="${pageContext.request.contextPath}/user/update" method="post">
 
         <div class="form-group">
             <label>ID</label>
-            <input type="text" name="id" value="${user.id}" readonly>
+            <input
+                type="text"
+                name="id"
+                value="${user.id}"
+                readonly
+            />
         </div>
 
         <div class="form-group">
             <label>Username</label>
-            <input type="email" name="username" value="${user.username}">
+            <input
+                type="email"
+                name="username"
+                value="${user.username}"
+            />
         </div>
 
         <div class="form-group">
             <label>Name</label>
-            <input type="text" name="name" value="${user.name}">
+            <input
+                type="text"
+                name="name"
+                value="${user.name}"
+            />
         </div>
 
         <div class="form-group">
-                   <label>Phone Number</label>
-                   <input type="tel"
-                          name="phoneNo"
-                          placeholder="Enter mobile number"
-                          pattern="[0-9]{10}"
-                          maxlength="10"
-                          inputmode="numeric"
-                          value="${user.phoneNo}"
-                          required>
+            <label>Phone Number</label>
+            <input
+                type="tel"
+                name="phoneNo"
+                placeholder="Enter mobile number"
+                pattern="[0-9]{10}"
+                maxlength="10"
+                inputmode="numeric"
+                value="${user.phoneNo}"
+                required
+            />
         </div>
 
-        <div class="form-group">
-            <label>Roles</label>
-            <select name="roles" multiple>
-                <c:forEach items="${roles}" var="role">
-                    <option value="${role.identifier}"
-                        <c:if test="${user.roles.contains(role.identifier)}">
-                            selected="selected"
-                        </c:if>>
+        <div class="checkbox-group">
+            <label>Assigned Roles</label>
+
+            <c:forEach items="${roles}" var="role">
+                <div class="checkbox-item">
+
+                    <c:set var="isChecked" value="false" />
+
+                    <c:forEach items="${user.roles}" var="userRole">
+                        <c:if test="${userRole == role.identifier}">
+                            <c:set var="isChecked" value="true" />
+                        </c:if>
+                    </c:forEach>
+
+                    <input
+                        type="checkbox"
+                        id="role_${role.identifier}"
+                        name="roles"
+                        value="${role.identifier}"
+                        <c:if test="${isChecked}">checked</c:if>
+                    />
+
+                    <label for="role_${role.identifier}">
                         ${role.identifier}
-                    </option>
-                </c:forEach>
-            </select>
+                    </label>
+                </div>
+            </c:forEach>
         </div>
 
         <div class="btn-group">
