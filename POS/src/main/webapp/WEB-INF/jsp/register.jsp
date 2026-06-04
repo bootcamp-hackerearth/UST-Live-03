@@ -19,6 +19,7 @@
             justify-content: center;
             align-items: center;
         }
+
         .register-card {
             width: 320px;
             background: #ffffff;
@@ -127,17 +128,17 @@
 
     <form:form action="register" method="post" modelAttribute="userDto">
 
-        <div class="form-group">
+     <div class="form-group">
             <label>Name</label>
             <form:input path="name" required="true"/>
-        </div>
+    </div>
 
-        <div class="form-group">
+     <div class="form-group">
             <label>Email</label>
             <form:input path="username" type="email" required="true"/>
-        </div>
+      </div>
 
-        <div class="form-group">
+       <div class="form-group">
             <label>Roles</label>
             <form:select path="roles" multiple="true" required="true">
                 <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
@@ -146,10 +147,7 @@
 
         <div class="form-group">
             <label>Phone Number</label>
-            <form:input path="phoneNo"
-                        pattern="[0-9]{10}"
-                        title="Enter 10 digit phone number"
-                        required="true"/>
+            <form:input path="phoneNo" pattern="[0-9]{10}" title="Enter 10 digit phone number"  required="true"/>
         </div>
 
         <div class="form-group">

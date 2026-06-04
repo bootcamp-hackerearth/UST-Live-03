@@ -4,24 +4,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Role Management</title>
+    <title>Home</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         body {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #232526, #414345);
-            color: #fff;
+            font-family: 'Inter', sans-serif;
+            background: #020617;
         }
 
+
         .topbar {
-            height: 56px;
-            background: #111827;
+            height: 60px;
+            background: #020617;
             display: flex;
             align-items: center;
             padding: 0 20px;
-            justify-content: space-between;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            border-bottom: 1px solid #1e293b;
         }
 
         .topbar-left {
@@ -37,34 +43,48 @@
 
         .menu div {
             height: 3px;
-            background: #4facfe;
+            background: #38bdf8;
             margin: 5px 0;
-            border-radius: 2px;
+            border-radius: 3px;
         }
+
+        .topbar strong {
+            font-size: 18px;
+            color: #38bdf8;
+        }
+
+        .logout-form {
+            position: absolute;
+            right: 40px;
+            margin: 0;
+        }
+
         .logout-btn {
-            background: linear-gradient(to right, #ff4b2b, #ff416c);
+            padding: 8px 18px;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: #020617;
             border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 20px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.25s;
         }
 
         .logout-btn:hover {
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56,189,248,0.5);
         }
+
         .sidebar {
             position: fixed;
-            top: 56px;
+            top: 60px;
             left: -240px;
             width: 240px;
-            height: calc(100vh - 56px);
-
-            background: #111827;
+            height: calc(100vh - 60px);
+            background: #020617;
             transition: left 0.3s ease;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            border-right: 1px solid #1e293b;
         }
 
         .sidebar.active {
@@ -73,39 +93,70 @@
 
         .sidebar a {
             display: block;
-            padding: 15px 20px;
-            color: #d1d5db;
+            padding: 14px 20px;
+            color: #e5e7eb;
             text-decoration: none;
-            font-size: 14px;
-            transition: 0.3s;
+            margin: 6px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.25s;
         }
 
         .sidebar a:hover {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: #fff;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: #020617;
+            transform: translateX(6px);
         }
+
         .content {
-            margin-top: 56px;
-            padding: 40px;
+            margin-top: 60px;
+            height: calc(100vh - 60px);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 100px;
+        }
+
+        .welcome-box {
+            background: #020617;
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            width: 420px;
             text-align: center;
+            border: 1px solid #1e293b;
         }
 
         .welcome {
             font-size: 22px;
             font-weight: 600;
-            margin-bottom: 10px;
+            color: #38bdf8;
         }
 
         .welcome-sub {
+            margin-top: 10px;
+            color: #94a3b8;
             font-size: 14px;
-            color: #ccc;
         }
     </style>
 
     <script>
         function toggleMenu() {
-            document.getElementById("sidebar").classList.toggle("active");
+            const sidebar = document.getElementById("sidebar");
+            sidebar.classList.toggle("active");
+
+            localStorage.setItem(
+                "sidebarState",
+                sidebar.classList.contains("active") ? "open" : "closed"
+            );
         }
+
+        window.onload = function () {
+            const sidebar = document.getElementById("sidebar");
+            if (localStorage.getItem("sidebarState") === "open") {
+                sidebar.classList.add("active");
+            }
+        };
     </script>
 </head>
 
@@ -121,23 +172,27 @@
         <strong>Role Management</strong>
     </div>
 
-    <form action="${pageContext.request.contextPath}/logout" method="post" style="margin:0;">
+    <form action="${pageContext.request.contextPath}/logout" method="post" class="logout-form">
         <button type="submit" class="logout-btn">Logout</button>
     </form>
 </div>
 
 <div class="sidebar" id="sidebar">
-    <c:forEach var="node" items="${nodes}">
-        <a href="${pageContext.request.contextPath}${node.path}">
-            ${node.identifier}
-        </a>
-    </c:forEach>
+    <c:if test="${not empty nodes}">
+        <c:forEach var="node" items="${nodes}">
+            <a href="${pageContext.request.contextPath}${node.path}">
+                ${node.identifier}
+            </a>
+        </c:forEach>
+    </c:if>
 </div>
 
 <div class="content">
-    <div class="welcome">Welcome to Role Management</div>
-    <div class="welcome-sub">
-        Select an option from the menu to continue.
+    <div class="welcome-box">
+        <div class="welcome">Welcome to the Role Management System</div>
+        <div class="welcome-sub">
+            Please select an option from the menu.
+        </div>
     </div>
 </div>
 

@@ -1,9 +1,11 @@
 package com.ust.pos.user.service;
 
 import com.ust.pos.dto.UserDto;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
 @Transactional
 public interface UserService {
     UserDto findByUserName(String username);
@@ -14,5 +16,5 @@ public interface UserService {
 
     boolean delete(String username);
 
-    List<UserDto> findAll();
+    List<UserDto> findAll(Pageable pageable);
 }

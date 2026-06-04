@@ -86,6 +86,7 @@
             font-size: 0.85rem;
         }
 
+        /* Footer Buttons */
         .card-footer {
             border-top: none;
             background: transparent;
@@ -104,6 +105,50 @@
             padding: 8px 24px;
             font-weight: 600;
         }
+                 .toggle-switch {
+                            position: relative;
+                            width: 50px;
+                            height: 26px;
+                            display: inline-block;
+                        }
+
+                        .toggle-switch input {
+                            opacity: 0;
+                            width: 0;
+                            height: 0;
+                        }
+
+                        .slider {
+                            position: absolute;
+                            cursor: pointer;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background-color: #dc3545;
+                            transition: 0.3s;
+                            border-radius: 30px;
+                        }
+
+                        .slider:before {
+                            position: absolute;
+                            content: "";
+                            height: 20px;
+                            width: 20px;
+                            left: 3px;
+                            bottom: 3px;
+                            background-color: white;
+                            transition: 0.3s;
+                            border-radius: 50%;
+                        }
+
+                        input:checked + .slider {
+                            background-color: #198754;
+                        }
+
+                        input:checked + .slider:before {
+                            transform: translateX(24px);
+                        }
     </style>
 </head>
 
@@ -132,6 +177,7 @@
                             <th>ID</th>
                             <th>Role</th>
                             <th>Description</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                         </thead>
@@ -142,6 +188,18 @@
                                 <td>${role.id}</td>
                                 <td>${role.identifier}</td>
                                 <td>${role.description}</td>
+                                                  <td>
+                                                   <form method="get" action="${pageContext.request.contextPath}/role/toggleStatus">
+                                                   <input type="hidden" name="identifier" value="${role.identifier}"/>
+
+                                                      <label class="toggle-switch">
+                                                       <input type="checkbox"
+                                                        name="status" onchange="this.form.submit()"
+                                                        <c:if test="${role.status}">checked</c:if>>
+                                                         <span class="slider"></span>
+                                                          </label>
+                                                           </form>
+                                                            </td>
                                 <td>
                                     <a href="/role/get?identifier=${role.identifier}"
                                        class="btn edit-btn">

@@ -7,6 +7,7 @@
 <head>
     <title>Update User</title>
 
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet"/>
 
@@ -106,6 +107,7 @@
 
     <h3>Update User</h3>
 
+    <!-- Validation message -->
     <c:if test="${not empty message}">
         <div class="alert alert-danger text-center">
             ${message}
@@ -123,19 +125,12 @@
 
         <div class="mb-3">
             <label>Email</label>
-            <form:input path="username"
-                        type="email"
-                        cssClass="form-control"
-                        required="true"/>
+            <form:input path="username"  type="email" cssClass="form-control" required="true"/>
         </div>
 
         <div class="mb-3">
             <label>Phone Number</label>
-            <form:input path="phoneNo"
-                        cssClass="form-control"
-                        pattern="[0-9]{10}"
-                        title="Enter 10 digit phone number"
-                        required="true"/>
+            <form:input path="phoneNo" cssClass="form-control" pattern="[0-9]{10}" title="Enter 10 digit phone number" required="true"/>
         </div>
 
         <div class="mb-3">

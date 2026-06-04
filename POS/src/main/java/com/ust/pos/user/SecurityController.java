@@ -1,5 +1,7 @@
 package com.ust.pos.user;
 
+import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
@@ -11,7 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
-public class SecurityController {
+public class SecurityController extends BaseController {
 
     @Autowired
     private UserService userService;
@@ -26,7 +28,8 @@ public class SecurityController {
 
     @GetMapping("/register")
     public String add(Model model, @ModelAttribute UserDto userDto) {
-        model.addAttribute("roles", roleService.findAll());
+        PaginationDto paginationDto = new PaginationDto();
+        model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "register";
     }
 

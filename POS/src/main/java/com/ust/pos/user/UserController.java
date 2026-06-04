@@ -1,5 +1,7 @@
 package com.ust.pos.user;
 
+import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
@@ -10,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController extends BaseController {
 
     @Autowired
     private UserService userService;
@@ -20,7 +22,8 @@ public class UserController {
 
     @GetMapping("/list")
     public String home(Model model) {
-        model.addAttribute("users", userService.findAll());
+        PaginationDto paginationDto = new PaginationDto();
+        model.addAttribute("users", userService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "user/list";
     }
 
@@ -28,7 +31,8 @@ public class UserController {
     public String update(Model model, @RequestParam String username) {
         UserDto response = userService.findByUserName(username);
         model.addAttribute("user", response);
-        model.addAttribute("roles",roleService.findAll());
+        PaginationDto paginationDto = new PaginationDto();
+        model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "user/user";
     }
 
@@ -38,8 +42,8 @@ public class UserController {
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute("user", response);
-            model.addAttribute("roles", roleService.findAll());
-
+            PaginationDto paginationDto = new PaginationDto();
+            model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
             return "user/user";
         }
         return "redirect:/user/list";

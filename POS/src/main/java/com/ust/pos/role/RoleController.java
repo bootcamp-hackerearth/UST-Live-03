@@ -1,5 +1,7 @@
 package com.ust.pos.role;
 
+import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/role")
-public class RoleController {
+public class RoleController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
     @Autowired
@@ -17,7 +19,8 @@ public class RoleController {
 
     @GetMapping("/list")
     public String home(Model model) {
-        model.addAttribute("roles", roleService.findAll());
+        PaginationDto paginationDto = new PaginationDto();
+        model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "role/list";
     }
 
@@ -31,7 +34,7 @@ public class RoleController {
         RoleDto response = roleService.save(roleDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute("roleDto", roleDto);
+            model.addAttribute("roleDto", roleDto); // retain form values
             return "role/add";
 
         }
@@ -57,6 +60,12 @@ public class RoleController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         roleService.delete(identifier);
+        return REDIRECT_ROLE_LIST;
+    }
+
+    @GetMapping("/toggleStatus")
+    public String toggleStatus(@RequestParam String identifier) {
+        roleService.toggleStatus(identifier);
         return REDIRECT_ROLE_LIST;
     }
 }
