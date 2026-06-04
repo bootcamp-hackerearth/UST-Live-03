@@ -105,6 +105,69 @@
             background: #dc2626;
         }
 
+        .top-user {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            background: #ffffff;
+
+            padding: 12px 18px;
+
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+
+            box-shadow:
+                0 8px 20px rgba(0,0,0,0.06);
+
+            transition: 0.25s ease;
+        }
+
+        .top-user:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 12px 24px rgba(0,0,0,0.10);
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+
+            border-radius: 50%;
+
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .user-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .user-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #312e81;
+        }
+
     </style>
 </head>
 
@@ -114,6 +177,21 @@
 
     <div class="sidebar">
         <h2>POS System</h2>
+
+        <div class="top-user">
+
+            <div class="user-avatar">
+                ${pageContext.request.userPrincipal.name.substring(0,1).toUpperCase()}
+            </div>
+
+            <div class="user-details">
+                <span class="user-label">Signed in as</span>
+                <span class="user-name">
+                    ${pageContext.request.userPrincipal.name}
+                </span>
+            </div>
+
+        </div>
 
         <div class="menu">
 

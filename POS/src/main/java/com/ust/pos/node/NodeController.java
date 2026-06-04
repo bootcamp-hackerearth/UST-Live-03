@@ -1,9 +1,10 @@
 package com.ust.pos.node;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.role.service.RoleService;
 import com.ust.pos.node.service.NodeService;
+import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,49 +25,49 @@ public class NodeController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String home(Model model) {
+    public String home(Model model, Pageable pageable) {
 
-        model.addAttribute("nodes", nodeService.findAll());
+        model.addAttribute("nodes", nodeService.findAll(pageable));
         return "node/list";
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute NodeDto nodeDto) {
+    public String add(Model model, @ModelAttribute NodeDto nodeDto, Pageable pageable) {
 
-        model.addAttribute(ROLES, roleService.findAll());
+        model.addAttribute(ROLES, roleService.findAll(pageable));
         model.addAttribute(NODE_DTO, nodeDto);
         return "node/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute NodeDto nodeDto) {
+    public String addPost(Model model, @ModelAttribute NodeDto nodeDto, Pageable pageable) {
 
         NodeDto response = nodeService.save(nodeDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(NODE_DTO, nodeDto);
-            model.addAttribute(ROLES, roleService.findAll());
+            model.addAttribute(ROLES, roleService.findAll(pageable));
             return "node/add";
         }
         return REDIRECT_NODE_LIST;
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier) {
+    public String update(Model model, @RequestParam String identifier, Pageable pageable) {
 
         NodeDto response = nodeService.findByIdentifier(identifier);
         model.addAttribute("node", response);
-        model.addAttribute(ROLES, roleService.findAll());
+        model.addAttribute(ROLES, roleService.findAll(pageable));
         return "node/node";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute NodeDto nodeDto) {
+    public String updatePost(Model model, @ModelAttribute NodeDto nodeDto, Pageable pageable) {
 
         NodeDto response = nodeService.update(nodeDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute(ROLES, roleService.findAll());
+            model.addAttribute(ROLES, roleService.findAll(pageable));
             model.addAttribute(NODE_DTO, nodeDto);
             return "node/node";
         }

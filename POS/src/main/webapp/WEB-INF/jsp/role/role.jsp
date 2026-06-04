@@ -132,13 +132,13 @@ button:hover {
                 <form:input path="description"
                             placeholder="Enter role description"
                             required="true" />
-    </div>
+            </div>
 
     <button type="submit">Save Changes</button>
 
      <a href="${pageContext.request.contextPath}/role/list" class="link-btn">
                 View Roles
-     </a>
+            </a>
 
 </form:form>
 

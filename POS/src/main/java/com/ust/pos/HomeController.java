@@ -14,7 +14,6 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model) {
-
         model.addAttribute("nodes", nodeService.getNodesForRoles());
         return "home";
     }

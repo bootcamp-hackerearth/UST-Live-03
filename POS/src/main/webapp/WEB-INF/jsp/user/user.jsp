@@ -9,7 +9,6 @@
 <title>Edit Profile</title>
 
 <style>
-/* ✅ UI unchanged */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -106,7 +105,6 @@ button:hover {
     font-weight: 600;
 }
 
-/* Link */
 .link-btn {
     display: block;
     text-align: center;
@@ -120,8 +118,33 @@ button:hover {
     text-decoration: underline;
 }
 
+.role-error {
+    color: #ef4444;
+    font-size: 13px;
+    margin-top: -10px;
+    margin-bottom: 12px;
+}
+
 </style>
 </head>
+
+<script>
+function validateRoles() {
+
+    const checkedRoles = document.querySelectorAll('input[type="checkbox"]:checked');
+    const roleError = document.getElementById("roleError");
+
+    roleError.innerText = "";
+
+    if (checkedRoles.length === 0) {
+        roleError.innerText = "Select at least one role";
+        return false;
+    }
+
+    return true;
+}
+</script>
+
 
 <body>
 
@@ -133,15 +156,21 @@ button:hover {
 
 <form:form action="${pageContext.request.contextPath}/user/update"
            method="post"
-           modelAttribute="user">
+           modelAttribute="user"
+           onsubmit="return validateRoles()">
 
     <form:hidden path="id"/>
 
     <label>Name</label>
-    <form:input path="name"/>
+    <form:input path="name"
+                required="true"/>
 
     <label>Email</label>
-    <form:input path="username"/>
+    <form:input path="username"
+                type="email"
+                required="true"
+                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                title="Enter a valid email address"/>
 
     <label>Phone</label>
     <form:input path="phoneNo"
@@ -150,7 +179,6 @@ button:hover {
                 title="Enter a valid 10-digit phone number"
                 oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
 
-    <!-- MULTI ROLES -->
     <label> Roles </label>
 
     <div class="role-list">
@@ -161,6 +189,8 @@ button:hover {
             </div>
         </c:forEach>
     </div>
+
+    <div id="roleError" class="role-error"></div>
 
     <button type="submit">Save</button>
 

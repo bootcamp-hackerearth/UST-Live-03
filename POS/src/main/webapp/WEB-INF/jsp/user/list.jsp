@@ -22,14 +22,12 @@ body {
     padding: 40px 20px;
 }
 
-/* Container */
 .container {
     width: 95%;
     max-width: 1200px;
     margin: auto;
 }
 
-/* Title */
 h2 {
     text-align: center;
     margin-bottom: 30px;
@@ -37,7 +35,6 @@ h2 {
     color: #0f172a;
 }
 
-/* Card */
 .table-container {
     background: #ffffff;
     border-radius: 12px;
@@ -46,13 +43,11 @@ h2 {
     box-shadow: 0 8px 20px rgba(0,0,0,0.05);
 }
 
-/* Table */
 table {
     width: 100%;
     border-collapse: collapse;
 }
 
-/* Header */
 thead {
     background: #6366f1;
     color: white;
@@ -64,7 +59,6 @@ th {
     text-transform: uppercase;
 }
 
-/* Rows */
 td {
     padding: 12px;
     text-align: center;
@@ -76,7 +70,6 @@ tbody tr:hover {
     background: #f1f5f9;
 }
 
-/* Badge */
 .badge {
     padding: 4px 10px;
     border-radius: 6px;
@@ -85,7 +78,6 @@ tbody tr:hover {
     font-size: 12px;
 }
 
-/* Role tags */
 .role-tag {
     display: inline-block;
     padding: 4px 8px;
@@ -96,7 +88,6 @@ tbody tr:hover {
     color: #3730a3;
 }
 
-/* Action buttons */
 .action-btn {
     display: inline-block;
     padding: 6px 10px;
@@ -123,13 +114,11 @@ tbody tr:hover {
     background: #dc2626;
 }
 
-/* Empty */
 .empty {
     padding: 20px;
     color: #64748b;
 }
 
-/* Buttons */
 .btn-container {
     text-align: center;
     margin-top: 25px;
@@ -175,6 +164,7 @@ tbody tr:hover {
         <table>
             <thead>
             <tr>
+                <th>SL No</th>
                 <th>Email</th>
                 <th>Name</th>
                 <th>Phone</th>
@@ -191,13 +181,14 @@ tbody tr:hover {
                     <c:forEach var="user" items="${users}">
                         <tr>
 
+                            <td>${user.id}</td>
+
                             <td>${user.username}</td>
 
                             <td>${user.name}</td>
 
                             <td>${user.phoneNo}</td>
 
-                            <!-- Roles -->
                             <td>
                                 <c:choose>
                                     <c:when test="${not empty user.roles}">
@@ -211,15 +202,12 @@ tbody tr:hover {
                                 </c:choose>
                             </td>
 
-                            <!-- Actions -->
                             <td>
-                                <!-- EDIT -->
                                 <a class="action-btn edit-btn"
                                    href="${pageContext.request.contextPath}/user/get?username=${user.username}">
                                     Edit
                                 </a>
 
-                                <!-- DELETE -->
                                 <a class="action-btn delete-btn"
                                    href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
                                    onclick="return confirm('Are you sure you want to delete this user?');">
@@ -251,10 +239,6 @@ tbody tr:hover {
 
         <a href="${pageContext.request.contextPath}/" class="btn add-btn">
             Go to Home
-        </a>
-
-        <a href="${pageContext.request.contextPath}/register" class="btn home-btn">
-            Register User
         </a>
 
     </div>

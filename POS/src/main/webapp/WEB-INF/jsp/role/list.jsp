@@ -170,7 +170,7 @@ tbody tr:hover {
                         <tr>
 
                             <td>
-                                  <span class="badge">${role.id}</span>
+                                    <span class="badge">${role.id}</span>
                             </td>
 
                             <td>${role.identifier}</td>

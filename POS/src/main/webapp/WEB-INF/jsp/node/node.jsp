@@ -156,7 +156,7 @@ button:hover {
 
     <div class="input-group">
         <label>Path</label>
-        <form:input path="path" required = "true"/>
+        <form:input path="path" required="true"/>
     </div>
 
     <div class="input-group">
