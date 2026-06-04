@@ -7,32 +7,56 @@
 <head>
     <title>User Registration</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Same font as dashboard -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --accent: #1d4ed8;
+            --danger: #dc2626;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
         body {
             margin: 0;
-            font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+        }
+
+        .page-wrapper {
+            max-width: 520px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            margin-bottom: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .page-header p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
 
         .register-card {
-            width: 430px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 35px 40px;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #4b6cb7;
-            font-weight: 600;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 28px;
+            box-shadow: var(--shadow-sm);
         }
 
         .form-group {
@@ -40,100 +64,134 @@
         }
 
         label {
-            font-size: 13px;
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 6px;
             display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
         }
 
         input, select {
             width: 100%;
-            padding: 11px 14px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
             font-size: 14px;
+            font-family: inherit;
         }
 
         select[multiple] {
-            height: 130px;
+            height: 120px;
         }
 
         small {
-            color: #666;
             font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .alert {
+            padding: 10px 14px;
+            margin-bottom: 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-align: center;
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: var(--danger);
         }
 
         .btn-submit {
-            margin-top: 10px;
             width: 100%;
-            padding: 13px;
-            background: linear-gradient(135deg, #4b6cb7, #182848);
-            color: white;
+            padding: 12px;
+            background: var(--accent);
+            color: #fff;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.95;
         }
     </style>
 </head>
 
 <body>
 
-<div class="register-card">
-    <h2>User Registration</h2>
+<div class="page-wrapper">
 
-    <form:form action="register" method="post" modelAttribute="userDto">
+    <div class="page-header">
+        <h1>User Registration</h1>
+        <p>Create and assign roles to new POS users</p>
+    </div>
 
-        <c:if test="${success == false}">
-            <div class="alert alert-danger text-center">
-                ${message}
+    <div class="register-card">
+
+        <form:form action="register" method="post" modelAttribute="userDto">
+
+            <!-- ERROR MESSAGE -->
+            <c:if test="${success == false}">
+                <div class="alert">
+                    ${message}
+                </div>
+            </c:if>
+
+            <!-- NAME -->
+            <div class="form-group">
+                <label>Name</label>
+                <form:input path="name" required="required"/>
             </div>
-        </c:if>
 
-        <div class="form-group">
-            <label>Name</label>
-            <form:input path="name" required="required"/>
-        </div>
+            <!-- EMAIL -->
+            <div class="form-group">
+                <label>Email</label>
+                <form:input path="username"
+                            type="email"
+                            required="required"
+                            pattern="^[A-Za-z0-9+_.-]+@[A-Za-z0-9-]+\.com$"
+                            title="Email must end with .com"/>
+            </div>
 
-        <div class="form-group">
-            <label>Email</label>
-            <form:input path="username"
-                        type="email"
-                        required="required"
-                        pattern="^[A-Za-z0-9+_.-]+@[A-Za-z0-9-]+\.com$"
-                        title="Email must end with .com"/>
-        </div>
+            <!-- ROLES -->
+            <div class="form-group">
+                <label>Roles</label>
+                <form:select path="roles" multiple="true" required="required">
+                    <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+                </form:select>
+                <small>Select one or more roles</small>
+            </div>
 
-        <div class="form-group">
-            <label>Roles</label>
-            <form:select path="roles" multiple="true" required="required">
-                <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
-            </form:select>
-            <small>Hold Ctrl (Windows/Linux) or Cmd (Mac)</small>
-        </div>
+            <!-- PHONE -->
+            <div class="form-group">
+                <label>Phone Number</label>
+                <form:input path="phoneNo"
+                            maxlength="10"
+                            minlength="10"
+                            pattern="[0-9]{10}"
+                            required="required"/>
+            </div>
 
-        <div class="form-group">
-            <label>Phone Number</label>
-            <form:input path="phoneNo"
-                        maxlength="10"
-                        minlength="10"
-                        pattern="[0-9]{10}"
-                        title="Phone number must be exactly 10 digits"
-                        required="required"/>
-        </div>
+            <!-- PASSWORD -->
+            <div class="form-group">
+                <label>Password</label>
+                <form:password path="password"
+                               minlength="6"
+                               required="required"/>
+            </div>
 
-        <div class="form-group">
-            <label>Password</label>
-            <form:password path="password"
-                           minlength="6"
-                           required="required"
-                           title="Password must be at least 6 characters"/>
-        </div>
+            <!-- SUBMIT -->
+            <input type="submit" value="Register User" class="btn-submit"/>
 
-        <input type="submit" value="Register" class="btn-submit"/>
-    </form:form>
+        </form:form>
+
+    </div>
+
 </div>
+
 </body>
 </html>

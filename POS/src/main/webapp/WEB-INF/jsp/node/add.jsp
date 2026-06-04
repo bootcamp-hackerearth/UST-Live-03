@@ -46,10 +46,12 @@
                     </div>
                 </c:if>
 
+                <!-- Add Node Form -->
                 <form:form method="post"
                            action="${pageContext.request.contextPath}/node/add"
                            modelAttribute="nodeDto">
 
+                    <!-- NODE NAME -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Node Name</label>
                         <form:input path="identifier"
@@ -57,6 +59,7 @@
                                     placeholder="Enter node name"/>
                     </div>
 
+                    <!-- PATH -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Path</label>
                         <form:input path="path"
@@ -64,6 +67,7 @@
                                     placeholder="/user/list or /node/list"/>
                     </div>
 
+                    <!-- ROLES -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Authorized Roles</label>
 

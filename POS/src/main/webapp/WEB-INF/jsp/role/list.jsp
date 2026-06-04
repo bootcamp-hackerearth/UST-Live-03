@@ -10,20 +10,69 @@
           rel="stylesheet">
 
     <style>
+        /*  SIMPLE DEFAULT BACKGROUND */
         body {
-            background: linear-gradient(135deg, #1f4037, #99f2c8);
-            min-height: 100vh;
+            background-color: #ffffff;
         }
+
         .card {
             border-radius: 16px;
         }
+
         .card-header {
             border-top-left-radius: 16px;
             border-top-right-radius: 16px;
         }
+
         table th {
             background-color: #0d6efd;
             color: white;
+        }
+
+        /*  TOGGLE SWITCH */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 25px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 25px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 19px;
+            width: 19px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #198754;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
         }
     </style>
 </head>
@@ -53,22 +102,42 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Role</th>
+                                <th>Status</th>
                                 <th>Action</th>
                             </tr>
                             </thead>
                             <tbody>
+
                             <c:forEach var="role" items="${roles}">
                                 <tr>
-                                    <td>
-                                        ${role.id}
-                                    </td>
+                                    <td>${role.id}</td>
                                     <td>${role.identifier}</td>
-                                    <td>
 
-                             <a href="/role/get?identifier=${role.identifier}"
-                                        class="btn btn-warning btn-sm">
-                                                    Edit
-                               </a>
+                                    <!-- STATUS TOGGLE -->
+                                    <td>
+                                        <form method="get"
+                                              action="${pageContext.request.contextPath}/role/toggle">
+                                            <input type="hidden" name="identifier"
+                                                   value="${role.identifier}"/>
+
+                                            <label class="switch">
+                                                <input type="checkbox"
+                                                       name="status"
+                                                       value="true"
+                                                       onchange="this.form.submit()"
+                                                       <c:if test="${role.status}">checked</c:if>>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </form>
+                                    </td>
+
+                                    <!-- ACTIONS -->
+                                    <td>
+                                        <a href="/role/get?identifier=${role.identifier}"
+                                           class="btn btn-warning btn-sm">
+                                            Edit
+                                        </a>
+
                                         <a href="/role/delete?identifier=${role.identifier}"
                                            class="btn btn-danger btn-sm"
                                            onclick="return confirm('Are you sure you want to delete this role?');">
@@ -77,6 +146,7 @@
                                     </td>
                                 </tr>
                             </c:forEach>
+
                             </tbody>
                         </table>
                     </c:if>
@@ -84,17 +154,14 @@
                 </div>
 
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
-                    <a href="/" class="btn btn-secondary">
-                        Home
-                    </a>
-
-                    <a href="/role/add" class="btn btn-success">
-                        + Add New Role
-                    </a>
+                    <a href="/" class="btn btn-secondary">Home</a>
+                    <a href="/role/add" class="btn btn-success">+ Add New Role</a>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
+
 </body>
 </html>

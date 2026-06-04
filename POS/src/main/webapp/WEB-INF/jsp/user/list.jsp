@@ -11,9 +11,9 @@
           rel="stylesheet">
 
     <style>
+        /*  SIMPLIFIED DEFAULT LOOK */
         body {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            min-height: 100vh;
+            background-color: #ffffff;
         }
 
         .card {
@@ -72,7 +72,6 @@
                                 <td>${user.name}</td>
                                 <td>${user.phoneNo}</td>
                                 <td>${user.roles}</td>
-
                                 <td class="d-flex justify-content-center gap-2">
 
                                     <a class="btn btn-primary btn-sm"
@@ -87,7 +86,6 @@
                                     </a>
 
                                 </td>
-
                             </tr>
                         </c:forEach>
 
@@ -98,6 +96,7 @@
 
         </div>
 
+        <!-- FOOTER -->
         <div class="card-footer text-center">
             <div class="d-flex justify-content-center gap-3">
                 <a href="/" class="btn btn-secondary">
@@ -105,7 +104,7 @@
                 </a>
 
                 <a href="/register" class="btn btn-success">
-                    Register User
+                    Register
                 </a>
             </div>
 

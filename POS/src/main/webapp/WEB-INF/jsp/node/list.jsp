@@ -4,16 +4,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Role List</title>
+    <title>Node List</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
     <style>
+        /* SIMPLE DEFAULT BACKGROUND */
         body {
-            background: linear-gradient(135deg, #1f4037, #99f2c8);
-            min-height: 100vh;
+            background-color: #ffffff;
         }
 
         .card {
@@ -68,7 +68,6 @@
                             <tbody>
                             <c:forEach var="node" items="${nodes}">
                                 <tr>
-
                                     <!-- ID (EDIT NAVIGATION) -->
                                     <td>
                                         <a href="/node/get?identifier=${node.identifier}"
@@ -83,21 +82,17 @@
 
                                     <!-- ACTION COLUMN -->
                                     <td class="d-flex justify-content-center gap-2">
-
-                                        <!-- EDIT -->
                                         <a href="/node/get?identifier=${node.identifier}"
                                            class="btn btn-warning btn-sm">
                                             Edit
                                         </a>
 
-                                        <!-- DELETE -->
                                         <a href="/node/delete?identifier=${node.identifier}"
                                            class="btn btn-danger btn-sm"
                                            onclick="return confirm('Are you sure you want to delete this node?');">
                                             Delete
                                         </a>
                                     </td>
-
                                 </tr>
                             </c:forEach>
                             </tbody>
@@ -108,17 +103,17 @@
 
                 <!-- FOOTER -->
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
-                    <a href="/" class="btn btn-secondary">
-                        Home
-                    </a>
+                    <a href="/" class="btn btn-secondary">Home</a>
 
                     <a href="/node/add" class="btn btn-success">
                         + Add New Node
                     </a>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
+
 </body>
 </html>

@@ -8,4 +8,6 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     Role findByIdentifier(String identifier);
 
     void deleteByIdentifier(String identifier);
+
+    boolean existsByIdentifier(String identifier);
 }

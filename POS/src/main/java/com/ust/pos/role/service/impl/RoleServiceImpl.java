@@ -1,5 +1,6 @@
 package com.ust.pos.role.service.impl;
 
+import com.ust.pos.dao.RoleDao;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
@@ -8,6 +9,8 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -15,7 +18,8 @@ import java.util.List;
 
 @Service
 public class RoleServiceImpl implements RoleService {
-
+    @Autowired
+    private RoleDao roleDao;
     @Autowired
     private RoleRepository roleRepository;
 
@@ -25,6 +29,16 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public RoleDto findByIdentifier(String identifier) {
         return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+    }
+
+    @Override
+    public RoleDto changeRoleStatus(String identifier, boolean status) {
+        Role role = roleRepository.findByIdentifier(identifier);
+        if (role != null) {
+            role.setStatus(status);
+            roleRepository.save(role);
+        }
+        return modelMapper.map(role, RoleDto.class);
     }
 
     @Override
@@ -62,9 +76,10 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleDto> findAll() {
+    public List<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        return modelMapper.map(roleRepository.findAll(), listType);
+        Page<Role> rolePage = roleRepository.findAll(pageable);
+        return modelMapper.map(rolePage.getContent(), listType);
     }
 }
