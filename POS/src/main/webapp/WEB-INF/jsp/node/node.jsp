@@ -31,7 +31,6 @@
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         }
 
-        /* Heading */
         h4 {
             text-align: center;
             margin-bottom: 25px;
@@ -39,7 +38,6 @@
             font-weight: 600;
         }
 
-        /* Labels */
         .form-label {
             display: block;
             margin-bottom: 6px;
@@ -47,7 +45,7 @@
             color: #333;
         }
 
-        /* Inputs & Select */
+
         .form-control {
             width: 100%;
             padding: 10px 12px;
@@ -63,13 +61,11 @@
             box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.2);
         }
 
-        /* Multiple select hint */
         small {
             font-size: 12px;
             color: #777;
         }
 
-        /* Buttons */
         .btn-primary {
             padding: 10px 22px;
             border-radius: 10px;
@@ -85,7 +81,6 @@
             transform: scale(1.05);
         }
 
-        /* Cancel button */
         .btn-outline-secondary {
             border-radius: 10px;
             font-weight: 500;
@@ -120,10 +115,8 @@ ${message}
                        method="post"
                        modelAttribute="node">
 
-                <!-- ID (hidden) -->
                 <form:hidden path="id"/>
 
-                <!-- Node Name -->
                 <div class="mb-3">
                     <label class="form-label">Node Name</label>
                     <form:input path="identifier"
@@ -131,7 +124,6 @@ ${message}
                                 required="true"/>
                 </div>
 
-                <!-- Path -->
                 <div class="mb-3">
                     <label class="form-label">Path</label>
                     <form:input path="path"
@@ -139,7 +131,6 @@ ${message}
                                 required="true"/>
                 </div>
 
-                <!-- Roles -->
                 <div class="mb-4">
                     <label class="form-label">Roles</label>
 

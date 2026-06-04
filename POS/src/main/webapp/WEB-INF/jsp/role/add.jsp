@@ -149,8 +149,6 @@
             ${role}
         </div>
     </c:if>
-
-     <!-- Error Message -->
         <c:if test="${not empty message}">
             <div class="error-message">
                 ${message}

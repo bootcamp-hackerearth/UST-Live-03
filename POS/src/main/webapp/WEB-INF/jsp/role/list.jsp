@@ -80,7 +80,7 @@
             font-size: 14px;
             color: #333;
 
-            /*  FIX: Prevent vertical wrapping */
+            /* FIX: Prevent vertical wrapping */
             white-space: nowrap;
         }
 

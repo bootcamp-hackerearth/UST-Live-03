@@ -22,13 +22,13 @@ public class RoleController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute RoleDto roleDto) {
+    public String add(Model model, @ModelAttribute RoleDto userDto) {
         return "role/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute RoleDto roleDto) {
-        RoleDto response = roleService.save(roleDto);
+    public String addPost(Model model, @ModelAttribute RoleDto userDto) {
+        RoleDto response = roleService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "role/add";

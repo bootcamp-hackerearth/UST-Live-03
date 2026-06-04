@@ -21,7 +21,7 @@
 
         .card-container {
             position: relative;
-            width: 1000px;
+            width: 900px;
             background: rgba(255, 255, 255, 0.95);
             padding: 35px 40px;
             border-radius: 16px;
@@ -35,6 +35,7 @@
             font-weight: 600;
         }
 
+        /* Back Icon */
         .back-icon {
             position: absolute;
             top: 16px;
@@ -58,13 +59,12 @@
             background: #4b6cb7;
             color: #ffffff;
             transform: translateX(-4px) scale(1.05);
-            box-shadow: 0 8px 18px rgba(75, 108, 183, 0.35);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         th {
@@ -80,7 +80,7 @@
             border-bottom: 1px solid #eee;
             font-size: 14px;
             color: #333;
-            word-break: break-word;
+            white-space: nowrap;
         }
 
         tr:hover {
@@ -92,12 +92,14 @@
             margin: 0 6px;
             text-decoration: none;
             color: #4b6cb7;
+            display: inline-flex;
+            align-items: center;
             transition: 0.2s ease;
         }
 
         .action-icon:hover {
             color: #182848;
-            transform: scale(1.2);
+            transform: scale(1.15);
         }
 
         .alert {
@@ -106,37 +108,16 @@
             margin-bottom: 15px;
             text-align: center;
             font-size: 14px;
-        }
-
-        .alert-warning {
             background: #fff3cd;
             color: #856404;
         }
 
-        .table-wrapper {
-            overflow-x: auto;
+        .footer-text {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 12px;
+            color: #777;
         }
-        .home-link {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #4b6cb7;
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            background: rgba(75, 108, 183, 0.08);
-            transition: all 0.25s ease;
-        }
-
-        .home-link:hover {
-            background: #4b6cb7;
-            color: #ffffff;
-            box-shadow: 0 8px 18px rgba(75, 108, 183, 0.35);
-            transform: translateY(-2px);
-        }
-
     </style>
 </head>
 
@@ -145,55 +126,53 @@
 <div class="card-container">
 
     <a href="/" class="back-icon">←</a>
-    <a href="/" class="home-link">Home</a>
 
     <h2>User Management</h2>
 
     <c:if test="${empty users}">
-        <div class="alert alert-warning">
+        <div class="alert">
             No users found
         </div>
     </c:if>
 
     <c:if test="${not empty users}">
-        <div class="table-wrapper">
-            <table>
-                <thead>
+        <table>
+            <thead>
+            <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Roles</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="user" items="${users}">
                 <tr>
-                    <th>Email</th>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Roles</th>
-                    <th>Action</th>
+                    <td>${user.username}</td>
+                    <td>${user.name}</td>
+                    <td>${user.phoneNo}</td>
+                    <td>${user.roles}</td>
+                    <td>
+                        <a href="/user/get?username=${user.username}"
+                           class="action-icon" title="Edit">✏️</a>
+
+                        <a href="/user/delete?username=${user.username}"
+                           class="action-icon" title="Delete"
+                           onclick="return confirm('Are you sure you want to delete this user?');">
+                            🗑
+                        </a>
+                    </td>
                 </tr>
-                </thead>
-
-                <tbody>
-                <c:forEach var="user" items="${users}">
-                    <tr>
-                        <td>${user.username}</td>
-                        <td>${user.name}</td>
-                        <td>${user.phoneNo}</td>
-                        <td>${user.roles}</td>
-
-                        <td>
-                            <a href="/user/get?username=${user.username}"
-                               class="action-icon"
-                               title="Edit">✏️</a>
-
-                            <a href="/user/delete?username=${user.username}"
-                               class="action-icon"
-                               title="Delete"
-                               onclick="return confirm('Are you sure you want to delete this user?');">
-                                🗑
-                            </a>
-                        </td>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-        </div>
+            </c:forEach>
+            </tbody>
+        </table>
     </c:if>
+
+    <div class="footer-text">
+        User Management System
+    </div>
 
 </div>
 

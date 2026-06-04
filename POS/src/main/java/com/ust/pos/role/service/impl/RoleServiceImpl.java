@@ -8,8 +8,9 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -66,5 +67,13 @@ public class RoleServiceImpl implements RoleService {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         return modelMapper.map(roleRepository.findAll(), listType);
+    }
+
+    @Override
+    public List<RoleDto> findAll(Pageable pageable) {
+        Type listtype = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> rolePage = roleRepository.findAll(pageable);
+        return modelMapper.map(rolePage.getContent(), listtype);
     }
 }

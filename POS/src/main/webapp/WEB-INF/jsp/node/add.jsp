@@ -40,7 +40,6 @@
             font-weight: 600;
         }
 
-        /*  Back Icon */
         .back-icon {
             position: absolute;
             top: 16px;
@@ -137,12 +136,10 @@
 
 <div class="card-container">
 
-    <!--  Back to Node List -->
     <a href="/node/list" class="back-icon">←</a>
 
     <h2>Add New Node</h2>
 
-    <!-- Error Message -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}

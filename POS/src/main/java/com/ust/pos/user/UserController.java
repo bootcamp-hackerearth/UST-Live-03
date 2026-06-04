@@ -29,8 +29,8 @@ public class UserController {
     @GetMapping("/get")
     public String update(Model model, @RequestParam String username) {
         UserDto userDto = userService.findByUserName(username);
-        model.addAttribute("userDto", userDto );
-        model.addAttribute("roles",roleService.findAll());
+        model.addAttribute("userDto", userDto);
+        model.addAttribute("roles", roleService.findAll());
         return "user/user";
     }
 
@@ -48,13 +48,13 @@ public class UserController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String username) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null){
-        String loggedInUser = authentication.getName();
-        userService.delete(username);
-        if (loggedInUser.equals(username)) {
-            SecurityContextHolder.clearContext();
-            return "redirect:/login";
-        }
+        if (authentication != null) {
+            String loggedInUser = authentication.getName();
+            userService.delete(username);
+            if (loggedInUser.equals(username)) {
+                SecurityContextHolder.clearContext();
+                return "redirect:/login";
+            }
         }
         return "redirect:/user/list";
     }

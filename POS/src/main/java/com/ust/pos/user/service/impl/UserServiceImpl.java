@@ -8,9 +8,10 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
@@ -82,5 +83,13 @@ public class UserServiceImpl implements UserService {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         return modelMapper.map(userRepository.findAll(), listType);
+    }
+
+    @Override
+    public List<UserDto> findAll(Pageable pageable) {
+        Type listtype = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> userPage = userRepository.findAll(pageable);
+        return modelMapper.map(userPage.getContent(), listtype);
     }
 }

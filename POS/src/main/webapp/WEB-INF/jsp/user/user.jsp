@@ -139,12 +139,10 @@
 
 <div class="card-container">
 
-    <!--  Back to User List -->
     <a href="/user/list" class="back-icon">←</a>
 
     <h2>Update User</h2>
 
-    <!--  Message -->
     <c:if test="${not empty message}">
         <div class="alert">
             ${message}
@@ -153,7 +151,6 @@
 
     <form:form action="/user/update" method="post" modelAttribute="userDto">
 
-        <!-- ID (hidden) -->
         <form:input path="id" type="hidden"/>
 
         <div class="form-group">
