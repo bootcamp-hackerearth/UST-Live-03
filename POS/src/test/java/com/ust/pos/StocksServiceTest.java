@@ -117,7 +117,6 @@ class StocksServiceTest {
         Assertions.assertEquals(1, response.size());
     }
 
-
     @Test
     void findByStatusTest() {
         Stocks stocks = new Stocks();
@@ -158,5 +157,4 @@ class StocksServiceTest {
         StocksDto response = stocksService.toggleStatus("Admin");
         Assertions.assertFalse(response.isStatus());
     }
-
 }

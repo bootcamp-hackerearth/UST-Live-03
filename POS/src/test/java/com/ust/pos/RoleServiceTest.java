@@ -153,5 +153,4 @@ RoleServiceTest {
         RoleDto response = roleService.toggleStatus("Admin");
         Assertions.assertFalse(response.isStatus());
     }
-
 }

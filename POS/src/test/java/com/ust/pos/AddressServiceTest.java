@@ -53,7 +53,6 @@ class AddressServiceTest {
         Assertions.assertFalse(response.isSuccess());
     }
 
-
     @Test
     void findByIdentifierTest() {
         Address address = new Address();
@@ -65,7 +64,6 @@ class AddressServiceTest {
         AddressDto response = addressService.findByIdentifier("Admin");
         Assertions.assertEquals("Admin", response.getIdentifier());
     }
-
 
     @Test
     void updateTest() {
@@ -87,7 +85,6 @@ class AddressServiceTest {
         AddressDto response = addressService.update(addressDto);
         Assertions.assertFalse(response.isSuccess());
     }
-
 
     @Test
     void deleteTest() {

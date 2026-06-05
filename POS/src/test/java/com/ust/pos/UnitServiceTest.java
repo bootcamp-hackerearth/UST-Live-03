@@ -151,5 +151,4 @@ class UnitServiceTest {
         UnitDto response = unitService.toggleStatus("Admin");
         Assertions.assertFalse(response.isStatus());
     }
-
 }

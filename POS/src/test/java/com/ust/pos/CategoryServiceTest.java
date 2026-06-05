@@ -34,7 +34,6 @@ class CategoryServiceTest {
 
     @Test
     void saveTest() {
-
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("Admin");
         Mockito.when(categoryRepository.findByIdentifier("Admin")).thenReturn(null);
@@ -42,31 +41,26 @@ class CategoryServiceTest {
         CategoryDto response = categoryService.save(dto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
-
     }
 
     @Test
     void saveTestFailure() {
-
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("Admin");
         Mockito.when(categoryRepository.findByIdentifier("Admin"))
                 .thenReturn(new Category());
         CategoryDto response = categoryService.save(dto);
         Assertions.assertFalse(response.isSuccess());
-
     }
 
     @Test
     void findByIdentifierTest() {
-
         Category category = new Category();
         category.setIdentifier("Admin");
         Mockito.when(categoryRepository.findByIdentifier("Admin"))
                 .thenReturn(category);
         CategoryDto response = categoryService.findByIdentifier("Admin");
         Assertions.assertEquals("Admin", response.getIdentifier());
-
     }
 
     @Test
@@ -83,27 +77,22 @@ class CategoryServiceTest {
 
     @Test
     void updateTestFailure() {
-
         Mockito.when(categoryRepository.findByIdentifier("Admin")).thenReturn(null);
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("Admin");
         CategoryDto response = categoryService.update(dto);
         Assertions.assertFalse(response.isSuccess());
-
     }
 
     @Test
     void deleteTest() {
-
         Mockito.doNothing().when(categoryRepository).deleteByIdentifier("Admin");
         boolean response = categoryService.delete("Admin");
         Assertions.assertTrue(response);
-
     }
 
     @Test
     void findAllTest() {
-
         Category category = new Category();
         category.setIdentifier("Admin");
         List<Category> categories = List.of(category);
@@ -112,57 +101,47 @@ class CategoryServiceTest {
         Mockito.when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
         List<CategoryDto> response = categoryService.findAll(pageable);
         Assertions.assertEquals(1, response.size());
-
     }
 
     @Test
     void findByStatusTest() {
-
         Category category = new Category();
         category.setIdentifier("Admin");
         Mockito.when(categoryRepository.findByStatusIsTrue()).thenReturn(List.of(category));
         List<CategoryDto> response = categoryService.findIfTrue();
         Assertions.assertEquals(1, response.size());
-
     }
 
     @Test
     void toggleTestActive() {
-
         Category category = new Category();
         category.setStatus(false);
         Mockito.when(categoryRepository.findByIdentifier("Admin")).thenReturn(category);
         CategoryDto response = categoryService.toggleStatus("Admin");
         Assertions.assertTrue(response.isStatus());
-
     }
 
     @Test
     void toggleTestInactive() {
-
         Category category = new Category();
         category.setStatus(true);
         Mockito.when(categoryRepository.findByIdentifier("Admin")).thenReturn(category);
         CategoryDto response = categoryService.toggleStatus("Admin");
         Assertions.assertFalse(response.isStatus());
-
     }
 
     @Test
     void findBySuperCategoryNotNullTest() {
-
         Category category = new Category();
         category.setIdentifier("Admin");
         Mockito.when(categoryRepository.findByStatusTrueAndSuperCategoryIsNot(""))
                 .thenReturn(List.of(category));
         List<CategoryDto> response = categoryService.findBySuperCategoryNotNull();
         Assertions.assertEquals(1, response.size());
-
     }
 
     @Test
     void findAllActiveTest() {
-
         Category valid = new Category();
         valid.setIdentifier("Valid");
         valid.setSuperCategory("Parent");
@@ -180,15 +159,12 @@ class CategoryServiceTest {
         List<CategoryDto> response = categoryService.findAllActive();
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Valid", response.get(0).getIdentifier());
-
     }
 
     @Test
     void findAllActiveEmptyTest() {
-
         Mockito.when(categoryRepository.findAll()).thenReturn(List.of());
         List<CategoryDto> response = categoryService.findAllActive();
         Assertions.assertTrue(response.isEmpty());
-
     }
 }

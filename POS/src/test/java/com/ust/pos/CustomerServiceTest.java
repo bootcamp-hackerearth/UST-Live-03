@@ -129,7 +129,6 @@ class CustomerServiceTest {
         Assertions.assertFalse(response.isSuccess());
     }
 
-
     @Test
     void deleteTest() {
         Mockito.doNothing().when(customerRepository).deleteByIdentifier("Admin");
@@ -153,7 +152,6 @@ class CustomerServiceTest {
         List<CustomerDto> response = customerService.findAll(pageable);
         Assertions.assertEquals(1, response.size());
     }
-
 
     @Test
     void findByStatusTest() {

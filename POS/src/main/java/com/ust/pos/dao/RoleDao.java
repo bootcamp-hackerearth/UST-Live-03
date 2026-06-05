@@ -11,5 +11,4 @@ public interface RoleDao {
     Role update(RoleDto roleDto);
 
     void deleteByIdentifier(String identifier);
-
 }
