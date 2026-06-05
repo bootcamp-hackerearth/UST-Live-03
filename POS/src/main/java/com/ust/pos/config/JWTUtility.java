@@ -25,7 +25,7 @@ public class JWTUtility implements Serializable {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
-    // Gets the expiration date from the token
+
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
@@ -35,7 +35,7 @@ public class JWTUtility implements Serializable {
         return claimsResolver.apply(claims);
     }
 
-    // Reading data from the token requires the secret key
+
     private Claims getAllClaimsFromToken(String token) {
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
         return Jwts.parserBuilder()
@@ -45,21 +45,16 @@ public class JWTUtility implements Serializable {
                 .getBody();
     }
 
-    // Looks at the expiration date to see if the token is past its limit
     private Boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
-    // Creates a new token for a specific user
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
-    // Standard setup for building a new JWT:
-    // - Sets user claims, issue date, and expiration time.
-    // - Signs the final token using our secret key.
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
         return Jwts.builder()
@@ -71,7 +66,6 @@ public class JWTUtility implements Serializable {
                 .compact();
     }
 
-    // Verifies the token by checking the username and expiry date
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
