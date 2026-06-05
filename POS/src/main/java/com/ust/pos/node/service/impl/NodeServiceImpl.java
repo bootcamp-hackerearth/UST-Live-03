@@ -1,17 +1,19 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +30,6 @@ public class NodeServiceImpl implements NodeService {
 
     @Autowired
     private ModelMapper modelMapper;
-
 
     @Override
     public List<NodeDto> getNodesForRoles() {
@@ -58,13 +59,13 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll() {
-        List<Node> nodeList = nodeRepository.findAll();
-        List<NodeDto> nodeDtoList = new ArrayList<>();
-        for (Node node : nodeList) {
-            nodeDtoList.add(modelMapper.map(node, NodeDto.class));
+    public List<NodeDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<NodeDto>>() {}.getType();
+        if(pageable == null){
+            return modelMapper.map(nodeRepository.findAll(),listType);
         }
-        return nodeDtoList;
+        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        return modelMapper.map(nodePage.getContent(), listType);
     }
 
     @Override
@@ -82,11 +83,21 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public void update(NodeDto nodeDto) {
-        nodeRepository.save(modelMapper.map(nodeDto, Node.class));
+    public NodeDto update(NodeDto nodeDto) {
+        String identifier = nodeDto.getIdentifier();
+        Node existingNode = nodeRepository.findByIdentifier(identifier);
+        if (existingNode == null) {
+            nodeDto.setMessage("Node with identifier - " + identifier + " not found");
+            nodeDto.setSuccess(false);
+            return nodeDto;
+        }
+        modelMapper.map(nodeDto, existingNode);
+        nodeRepository.save(existingNode);
+        return nodeDto;
     }
 
     @Override
+    @Transactional
     public void delete(String identifier) {
         nodeRepository.deleteByIdentifier(identifier);
     }

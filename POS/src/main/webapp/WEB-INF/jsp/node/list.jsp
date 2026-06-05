@@ -153,11 +153,9 @@
             .container {
                 width: 95%;
             }
-
             table {
                 font-size: 12px;
             }
-
             .page-header {
                 flex-direction: column;
                 gap: 15px;

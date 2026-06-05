@@ -36,10 +36,10 @@
             margin-bottom: 25px;
         }
 
-        h2 {
+        .page-header h2 {
+            margin: 0;
             color: #4B2E2B;
             font-weight: 600;
-            margin: 0;
         }
 
         table {
@@ -136,22 +136,54 @@
             color: #FFF8F0;
         }
 
-        .empty-message {
-            text-align: center;
-            color: #8d3c36;
-            font-weight: 600;
-            padding: 20px;
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            background-color: #cfc4bb;
+            border-radius: 20px;
+            transition: 0.4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.4s;
+        }
+
+        input:checked + .slider {
+            background-color: #6b4a46;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
         }
 
         @media (max-width: 900px) {
             .container {
                 width: 95%;
             }
-
             table {
                 font-size: 12px;
             }
-
             .page-header {
                 flex-direction: column;
                 gap: 15px;
@@ -173,7 +205,7 @@
         </div>
     </div>
     <c:if test="${empty roles}">
-        <div class="empty-message">
+        <div style="text-align:center; color:#8d3c36; font-weight:600;">
             No roles found
         </div>
     </c:if>
@@ -184,6 +216,7 @@
                 <th>ID</th>
                 <th>Role</th>
                 <th>Description</th>
+                <th>Status</th>
                 <th>Edit</th>
                 <th>Delete</th>
             </tr>
@@ -194,6 +227,30 @@
                     <td>${role.id}</td>
                     <td>${role.identifier}</td>
                     <td>${role.description}</td>
+                    <td>
+                        <form action="${pageContext.request.contextPath}/role/toggleStatus"
+                              method="post">
+                            <input type="hidden"
+                                   name="identifier"
+                                   value="${role.identifier}" />
+                            <label class="switch">
+                                <input type="checkbox"
+                                       onchange="this.form.submit()"
+                                       <c:if test="${role.status}">checked</c:if>>
+                                <span class="slider"></span>
+                            </label>
+                        </form>
+                        <small>
+                            <c:choose>
+                                <c:when test="${role.status}">
+                                    Active
+                                </c:when>
+                                <c:otherwise>
+                                    Inactive
+                                </c:otherwise>
+                            </c:choose>
+                        </small>
+                    </td>
                     <td>
                         <a class="btn btn-edit"
                            href="/role/get?identifier=${role.identifier}"

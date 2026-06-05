@@ -1,15 +1,18 @@
 package com.ust.pos.role;
 
+import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/role")
-public class RoleController {
+public class RoleController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
 
@@ -17,8 +20,10 @@ public class RoleController {
     private RoleService roleService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("roles", roleService.findAll());
+    public String list(Model model, @ModelAttribute PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),paginationDto.getSortField());
+        model.addAttribute("roles", roleService.findAll(pageable));
         return "role/list";
     }
 
@@ -55,6 +60,12 @@ public class RoleController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         roleService.delete(identifier);
+        return REDIRECT_ROLE_LIST;
+    }
+
+    @PostMapping("/toggleStatus")
+    public String toggleStatus(@RequestParam String identifier, boolean status) {
+        roleService.toggleStatus(identifier, status);
         return REDIRECT_ROLE_LIST;
     }
 }
