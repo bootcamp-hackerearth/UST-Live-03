@@ -1,110 +1,189 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>All Nodes</title>
+<meta charset="UTF-8">
+<title>All Nodes</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-    <style>
-        body {
-            background-color: #f1f3f6;
-            min-height: 100vh;
-            font-family: "Segoe UI", sans-serif;
-        }
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1b26, #2a2b3d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .card {
-            border-radius: 12px;
-            border: none;
-        }
+.container {
+    width: 950px;
+    padding: 30px;
+    border-radius: 15px;
 
-        .card-header {
-            background-color: #1e272e;
-            color: #ffffff;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-        }
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
 
-        table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
 
-        .action-btns a {
-            margin-right: 5px;
-        }
-    </style>
+h2 {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+th {
+    background: rgba(0,255,255,0.2);
+    color: #00ffff;
+    padding: 12px;
+}
+
+td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+tr:hover {
+    background: rgba(0,255,255,0.1);
+}
+
+.node-name {
+    font-weight: bold;
+    color: #00ffff;
+}
+
+.btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    text-decoration: none;
+    margin: 0 4px;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.btn-danger {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+.btn-primary {
+    background: #00ffff;
+    color: #000;
+}
+
+.btn-secondary {
+    background: #666;
+    color: #fff;
+}
+
+.btn:hover {
+    box-shadow: 0 0 10px #00ffff;
+}
+
+.alert {
+    text-align: center;
+    padding: 10px;
+    color: #aaa;
+}
+
+.footer {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.footer .actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.footer small {
+    color: #aaa;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container mt-5">
+<div class="container">
 
-    <div class="card shadow-sm">
+    <h2>List of Nodes</h2>
 
-        <div class="card-header text-center py-3">
-            <h5 class="mb-0">List of Nodes</h5>
+    <c:if test="${empty node}">
+        <div class="alert">
+            No nodes found
+        </div>
+    </c:if>
+
+    <c:if test="${not empty node}">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Node Name</th>
+                <th>Path</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="node" items="${node}">
+                <tr>
+                    <td>${node.id}</td>
+                    <td class="node-name">${node.identifier}</td>
+                    <td>${node.path}</td>
+                    <td>${node.roles}</td>
+                    <td>
+
+                        <a href="/node/get?identifier=${node.identifier}"
+                           class="btn btn-warning">
+                            Update
+                        </a>
+
+                        <a href="/node/delete?identifier=${node.identifier}"
+                           class="btn btn-danger"
+                           onclick="return confirm('Are you sure you want to delete this node?');">
+                            Delete
+                        </a>
+
+                    </td>
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+    </c:if>
+
+    <div class="footer">
+        <div class="actions">
+            <a href="/" class="btn btn-secondary">Home</a>
+            <a href="/node/add" class="btn btn-primary">Add Node</a>
         </div>
 
-        <div class="card-body">
-
-            <c:if test="${empty node}">
-                <div class="alert alert-warning text-center">
-                    No nodes found
-                </div>
-            </c:if>
-
-            <c:if test="${not empty node}">
-                <table class="table table-bordered table-hover text-center align-middle">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Node Name</th>
-                        <th>Path</th>
-                        <th>Roles</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    <c:forEach var="node" items="${node}">
-                        <tr>
-                            <td>${node.id}</td>
-                            <td class="fw-semibold">${node.identifier}</td>
-                            <td>${node.path}</td>
-                            <td>${node.roles}</td>
-                            <td class="action-btns">
-
-                                <a href="/node/get?identifier=${node.identifier}"
-                                   class="btn btn-sm btn-warning">Update</a>
-                                <a href="/node/delete?identifier=${node.identifier}"
-                                   class="btn btn-sm btn-danger"
-                                   onclick="return confirm('Are you sure you want to delete this node?');">
-                                    Delete
-                                </a>
-
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    </tbody>
-                </table>
-            </c:if>
-
-            <div class="d-flex justify-content-center gap-3 mt-4">
-                <a href="/" class="btn btn-secondary">
-                    Home
-                </a>
-
-                <a href="/node/add" class="btn btn-primary">
-                    Add New Node
-                </a>
-            </div>
-        </div>
-        <div class="card-footer text-muted small text-center">POS Management System</div>
-
+        <small>POS Management System</small>
     </div>
 
 </div>

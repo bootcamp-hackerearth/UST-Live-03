@@ -5,112 +5,208 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Edit Node</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+<title>Edit Node</title>
 
-    <style>
-        body {
-            background-color: #f1f3f6;
-            min-height: 100vh;
-            font-family: "Segoe UI", sans-serif;
-        }
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-        .card {
-            border-radius: 12px;
-            border: none;
-        }
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1b26, #2a2b3d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .card-header {
-            background-color: #1e272e;
-            color: #ffffff;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-        }
+.card {
+    width: 420px;
+    padding: 30px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
 
-        .form-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
+.card-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
 
-        select[multiple] {
-            height: 130px;
-        }
-    </style>
+.card-header h5 {
+    color: #fff;
+    font-size: 18px;
+}
+
+.form-label {
+    font-size: 13px;
+    color: #ccc;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.form-control:focus {
+    border: 1px solid #00ffff;
+    box-shadow: 0 0 8px #00ffff;
+}
+
+.form-control[readonly] {
+    background: rgba(255,255,255,0.05);
+    color: #aaa;
+}
+
+select[multiple] {
+    height: 130px;
+}
+
+.form-text {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary {
+    background: #00ffff;
+    color: #000;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 15px #00ffff;
+}
+
+.btn-secondary {
+    background: #666;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: #555;
+}
+
+.btn-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.alert {
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    color: #ff8080;
+    font-size: 13px;
+}
+
+.card-footer {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #aaa;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
+<div class="card">
 
-            <div class="card shadow-sm">
-
-                <div class="card-header text-center py-3">
-                    <h5 class="mb-0">Edit Node</h5>
-                </div>
-
-                <div class="card-body p-4">
-                    <c:if test="${empty node}">
-                        <div class="alert alert-danger text-center">
-                            Node not found
-                        </div>
-                    </c:if>
-
-                    <c:if test="${not empty node}">
-                        <form:form method="post"
-                                   action="/node/update"
-                                   modelAttribute="node">
-
-                            <div class="mb-3">
-                                <label class="form-label">Node Identifier</label>
-                                <form:input path="identifier"
-                                            cssClass="form-control"
-                                            readonly="true"/>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Node Path</label>
-                                <form:input path="path"
-                                            cssClass="form-control"
-                                            required="true"/>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Roles</label>
-                                <form:select path="roles"
-                                             multiple="true"
-                                             cssClass="form-control">
-                                    <form:options items="${roles}"
-                                                  itemValue="identifier"
-                                                  itemLabel="identifier"/>
-                                </form:select>
-                                <div class="form-text">
-                                    Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple roles
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between mt-4">
-                                <a href="${pageContext.request.contextPath}/node/list"
-                                   class="btn btn-secondary">
-                                    Cancel
-                                </a>
-
-                                <button type="submit" class="btn btn-primary">
-                                    Update Node
-                                </button>
-                            </div>
-
-                        </form:form>
-                    </c:if>
-                </div>
-                <div class="card-footer text-muted small text-center">
-                    POS Management System
-                </div>
-
-            </div>
-        </div>
+    <div class="card-header">
+        <h5>Edit Node</h5>
     </div>
+
+    <c:if test="${empty node}">
+        <div class="alert">
+            Node not found
+        </div>
+    </c:if>
+
+    <c:if test="${not empty node}">
+
+        <form:form method="post"
+                   action="/node/update"
+                   modelAttribute="node">
+
+            <label class="form-label">Node Identifier</label>
+            <form:input
+                path="identifier"
+                cssClass="form-control"
+                readonly="true"
+            />
+
+            <label class="form-label">Node Path</label>
+            <form:input
+                path="path"
+                cssClass="form-control"
+                required="true"
+                minlength="3"
+                maxlength="100"
+                pattern="^/.*"
+                title="Path must start with /"
+            />
+
+            <label class="form-label">Roles</label>
+            <form:select
+                path="roles"
+                multiple="true"
+                cssClass="form-control"
+                required="true"
+            >
+                <form:options
+                    items="${roles}"
+                    itemValue="identifier"
+                    itemLabel="identifier"
+                />
+            </form:select>
+
+            <div class="form-text">
+                Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple roles
+            </div>
+
+            <div class="btn-group">
+                <a href="${pageContext.request.contextPath}/node/list"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    Update Node
+                </button>
+            </div>
+
+        </form:form>
+
+    </c:if>
+
+    <div class="card-footer">
+        POS Management System
+    </div>
+
 </div>
 
 </body>

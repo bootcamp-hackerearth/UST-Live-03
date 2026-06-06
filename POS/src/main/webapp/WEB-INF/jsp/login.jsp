@@ -4,97 +4,167 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Login</title>
+<meta charset="UTF-8">
+<title>Login</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-    <style>
-        body {
-            height: 100vh;
-            margin: 0;
-            background-color: #f1f3f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: "Segoe UI", sans-serif;
-        }
+body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1b26, #2a2b3d);
+}
 
-        .login-card {
-            width: 380px;
-            border-radius: 12px;
-            border: none;
-        }
+.login-card {
+    width: 360px;
+    padding: 30px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
 
-        .login-header {
-            background-color: #1e272e;
-            color: #fff;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            text-align: center;
-            padding: 16px;
-        }
+.login-header {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff;
+    font-weight: 600;
+}
 
-        .form-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-    </style>
+.form-label {
+    font-size: 13px;
+    color: #ccc;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.form-control::placeholder {
+    color: #aaa;
+}
+
+.form-control:focus {
+    border: 1px solid #00ffff;
+    box-shadow: 0 0 8px #00ffff;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: #00ffff;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 15px #00ffff,
+                0 0 30px #00ffff;
+}
+
+.alert {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.alert-danger {
+    color: #ff8080;
+}
+
+.alert-info {
+    color: #00ffcc;
+}
+
+.card-footer {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.card-footer a {
+    color: #00ffff;
+    text-decoration: none;
+}
+
+.card-footer a:hover {
+    text-decoration: underline;
+}
+</style>
 </head>
 
 <body>
 
-<div class="card login-card shadow-sm">
+<div class="login-card">
+
     <div class="login-header">
-        <h5 class="mb-0">POS System Login</h5>
+        POS System Login
     </div>
 
-    <div class="card-body p-4">
+    <c:if test="${param.error != null}">
+        <div class="alert alert-danger">
+            Invalid username or password
+        </div>
+    </c:if>
 
-        <c:if test="${param.error == 'true'}">
-            <div class="alert alert-danger text-center small">
-                Invalid username or password
-            </div>
-        </c:if>
-        <c:if test="${not empty message}">
-            <div class="alert alert-info text-center small">
-                ${message}
-            </div>
-        </c:if>
+    <c:if test="${not empty message}">
+        <div class="alert alert-info">
+            ${message}
+        </div>
+    </c:if>
 
-        <form action="${pageContext.request.contextPath}/login" method="post">
+    <form action="${pageContext.request.contextPath}/login" method="post">
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="text"
-                       name="username"
-                       class="form-control"
-                       placeholder="Enter your email"
-                       required>
-            </div>
+        <label class="form-label">Email</label>
+        <input
+            type="email"
+            name="username"
+            class="form-control"
+            placeholder="Enter your email"
+            required
+        >
 
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password"
-                       name="password"
-                       class="form-control"
-                       placeholder="Enter your password"
-                       required>
-            </div>
+        <label class="form-label">Password</label>
+        <input
+            type="password"
+            name="password"
+            class="form-control"
+            placeholder="Enter your password"
+            required
+        >
 
-            <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-primary">
-                    Sign In
-                </button>
-            </div>
-        </form>
+        <button type="submit" class="btn-primary">
+            Sign In
+        </button>
 
-    </div>
+    </form>
 
-    <div class="card-footer bg-light text-center small">
+    <div class="card-footer">
         Don’t have an account?
-        <a href="${pageContext.request.contextPath}/register"
-           class="text-decoration-none">
+        <a href="${pageContext.request.contextPath}/register">
             Register here
         </a>
     </div>

@@ -4,159 +4,174 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Role List</title>
+<meta charset="UTF-8">
+<title>Role List</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background-color: #f1f3f6;
-            font-family: "Segoe UI", sans-serif;
-            padding: 30px;
-        }
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1b26, #2a2b3d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .card {
-            border: none;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-        }
+.container {
+    width: 900px;
+    padding: 30px;
+    border-radius: 15px;
 
-        .card-header {
-            background-color: #1e272e;
-            color: #ffffff;
-            text-align: center;
-            padding: 25px;
-        }
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
 
-        .card-header h5 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: 600;
-        }
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
 
-        .card-body {
-            background-color: #ffffff;
-            padding: 30px;
-        }
+h2 {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 20px;
+}
 
-        .table {
-            margin-bottom: 0;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
 
-        .table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            font-size: 1rem;
-            vertical-align: middle;
-        }
+th {
+    background: rgba(0,255,255,0.2);
+    color: #00ffff;
+    padding: 12px;
+}
 
-        .table td {
-            font-size: 0.95rem;
-            vertical-align: middle;
-        }
+td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
 
-        .btn {
-            border-radius: 8px;
-            min-width: 90px;
-        }
+tr:hover {
+    background: rgba(0,255,255,0.1);
+}
 
-        .btn-warning {
-            color: #ffffff;
-        }
+.role-name {
+    font-weight: bold;
+    color: #00ffff;
+}
 
-        .alert {
-            border-radius: 8px;
-        }
+.btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    text-decoration: none;
+    margin: 0 4px;
+}
 
-        .card-footer {
-            background-color: #f8f9fa;
-            text-align: center;
-            padding: 15px;
-            border-top: 1px solid #dee2e6;
-        }
+.btn-warning {
+    background: #ffc107;
+    color: #000;
+}
 
-        .text-muted {
-            margin-top: 8px;
-        }
-    </style>
+.btn-danger {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+.btn-primary {
+    background: #00ffff;
+    color: #000;
+}
+
+.btn-secondary {
+    background: #666;
+    color: #fff;
+}
+
+.btn:hover {
+    box-shadow: 0 0 10px #00ffff;
+}
+
+.alert {
+    text-align: center;
+    padding: 10px;
+    color: #aaa;
+}
+
+.footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
 
-            <div class="card">
+    <h2>List of Roles</h2>
 
-                <div class="card-header">
-                    <h5>Role Management</h5>
-                </div>
-
-                <div class="card-body">
-                    <c:if test="${empty roles}">
-                        <div class="alert alert-warning text-center">
-                            No roles found
-                        </div>
-                    </c:if>
-                    <c:if test="${not empty roles}">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover text-center align-middle">
-
-                                <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Role</th>
-                                    <th>Description</th>
-                                    <th>Actions</th>
-                                </tr>
-                                </thead>
-
-                                <tbody>
-                                <c:forEach var="role" items="${roles}">
-                                    <tr>
-                                        <td>${role.id}</td>
-                                        <td class="fw-semibold">${role.identifier}</td>
-                                        <td>${role.description}</td>
-                                        <td>
-                                            <div class="d-flex justify-content-center gap-2">
-                                                <a href="/role/get?identifier=${role.identifier}"
-                                                   class="btn btn-warning btn-sm">
-                                                    Update
-                                                </a>
-                                                <a href="/role/delete?identifier=${role.identifier}"
-                                                   class="btn btn-danger btn-sm"
-                                                   onclick="return confirm('Are you sure you want to delete this role?');">
-                                                    Delete
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                                </tbody>
-                            </table>
-
-                        </div>
-                    </c:if>
-
-                </div>
-
-                <div class="card-footer">
-                    <div class="d-flex justify-content-center gap-3 mb-2">
-                        <a href="/" class="btn btn-secondary"> Home </a>
-                        <a href="/role/add" class="btn btn-primary"> Add New Role</a>
-                    </div>
-                    <div class="text-muted small">
-                        POS Management System
-                    </div>
-                </div>
-            </div>
+    <c:if test="${empty roles}">
+        <div class="alert">
+            No roles found
         </div>
+    </c:if>
+
+    <c:if test="${not empty roles}">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Role</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="role" items="${roles}">
+                <tr>
+                    <td>${role.id}</td>
+
+                    <td class="role-name">
+                        ${role.identifier}
+                    </td>
+
+                    <td>${role.description}</td>
+
+                    <td>
+                        <a href="/role/get?identifier=${role.identifier}"
+                           class="btn btn-warning">
+                            Update
+                        </a>
+
+                        <a href="/role/delete?identifier=${role.identifier}"
+                           class="btn btn-danger"
+                           onclick="return confirm('Are you sure you want to delete this role?');">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+    </c:if>
+
+    <div class="footer">
+        <a href="/" class="btn btn-secondary">Home</a>
+        <a href="/role/add" class="btn btn-primary">+ Add Role</a>
     </div>
+
 </div>
 
 </body>

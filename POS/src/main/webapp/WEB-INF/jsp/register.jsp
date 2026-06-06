@@ -5,188 +5,187 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>User Registration</title>
+<meta charset="UTF-8">
+<title>User Registration</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background-color: #f1f3f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: "Segoe UI", sans-serif;
-            padding: 20px;
-        }
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1b26, #2a2b3d);
+}
 
-        .card {
-            width: 650px;
-            border: none;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-        }
+.card {
+    width: 420px;
+    padding: 30px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
 
-        .card-header {
-            background-color: #1e272e;
-            color: #ffffff;
-            text-align: center;
-            padding: 25px;
-        }
+h5 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff;
+}
 
-        .card-header h5 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: 600;
-        }
+.form-label {
+    font-size: 13px;
+    color: #ccc;
+}
 
-        .card-body {
-            background-color: #ffffff;
-            padding: 35px;
-        }
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
 
-        .form-label {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #212529;
-            margin-bottom: 8px;
-        }
+.form-control:focus {
+    border: 1px solid #00ffff;
+    box-shadow: 0 0 8px #00ffff;
+}
 
-        .form-control {
-            height: 52px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            font-size: 1rem;
-        }
+select[multiple] {
+    height: 110px;
+}
 
-        .form-control:focus {
-            border-color: #0d6efd;
-            box-shadow: none;
-        }
+.form-text {
+    font-size: 11px;
+    color: #aaa;
+}
 
-        select[multiple] {
-            height: 120px !important;
-        }
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: #00ffff;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-        .btn-primary {
-            background-color: #0d6efd;
-            border: none;
-            height: 54px;
-            font-size: 1.1rem;
-            border-radius: 8px;
-            font-weight: 500;
-        }
+.btn-primary:hover {
+    box-shadow: 0 0 15px #00ffff,
+                0 0 30px #00ffff;
+}
 
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-        }
+.alert {
+    text-align: center;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    color: #ff8080;
+    font-size: 13px;
+}
 
-        .alert {
-            border-radius: 8px;
-        }
-
-        .form-text {
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-
-        .card-footer {
-            background-color: #f8f9fa;
-            text-align: center;
-            padding: 15px;
-            color: #6c757d;
-            border-top: 1px solid #dee2e6;
-        }
-    </style>
+.footer {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #aaa;
+}
+</style>
 </head>
 
 <body>
 
 <div class="card">
 
-    <div class="card-header">
-        <h5>Create User Account</h5>
-    </div>
+    <h5>Create User Account</h5>
 
-    <div class="card-body">
+    <form:form action="register" method="post" modelAttribute="userDto">
 
-        <form:form action="register" method="post" modelAttribute="userDto">
+        <label class="form-label">Name</label>
+        <form:input
+            path="name"
+            cssClass="form-control"
+            required="true"
+            minlength="3"
+            maxlength="50"
+            pattern="[A-Za-z ]+"
+            title="Enter valid name (only letters)"
+        />
 
-            <div class="mb-3">
-                <label class="form-label">Name</label>
-                <form:input path="name"
-                            cssClass="form-control"
-                            required="true"
-                            pattern="[A-Za-z ]{3,50}"
-                            title="Name must contain only letters and spaces and be at least 3 characters long"/>
+        <label class="form-label">Email</label>
+        <form:input
+            path="username"
+            type="email"
+            cssClass="form-control"
+            required="true"
+        />
+
+        <label class="form-label">Roles</label>
+        <form:select
+            path="roles"
+            multiple="true"
+            cssClass="form-control"
+            required="true"
+        >
+            <form:options
+                items="${roles}"
+                itemValue="identifier"
+                itemLabel="identifier"
+            />
+        </form:select>
+
+        <div class="form-text">
+            Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple roles
+        </div>
+
+        <label class="form-label">Phone Number</label>
+        <form:input
+            path="phoneNo"
+            type="tel"
+            cssClass="form-control"
+            pattern="[0-9]{10}"
+            maxlength="10"
+            minlength="10"
+            required="true"
+            title="Enter a valid 10-digit number"
+        />
+
+        <label class="form-label">Password</label>
+        <form:password
+            path="password"
+            cssClass="form-control"
+            required="true"
+            minlength="6"
+            maxlength="20"
+            pattern="^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*?&]{6,20}$"
+            title="Minimum 6 characters, include letters and numbers"
+        />
+
+        <button type="submit" class="btn-primary">
+            Register User
+        </button>
+
+        <c:if test="${not empty message}">
+            <div class="alert">
+                ${message}
             </div>
+        </c:if>
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <form:input path="username"
-                            type="email"
-                            cssClass="form-control"
-                            required="true"/>
-            </div>
+    </form:form>
 
-            <div class="mb-3">
-                <label class="form-label">Roles</label>
-                <form:select path="roles" multiple="true" cssClass="form-control" required="true">
-                    <form:options items="${roles}"
-                                  itemValue="identifier"
-                                  itemLabel="identifier"/>
-                </form:select>
-                <div class="form-text">
-                    Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple roles
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Phone Number</label>
-                <form:input path="phoneNo"
-                            type="tel"
-                            cssClass="form-control"
-                            pattern="[0-9]{10}"
-                            minlength="10"
-                            maxlength="10"
-                            title="Enter a valid 10-digit mobile number"
-                            required="true"/>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <form:password path="password"
-                               cssClass="form-control"
-                               required="true"
-                               minlength="8"
-                               maxlength="20"
-                               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,20}$"
-                               title="Password must contain 8-20 characters, one uppercase letter, one lowercase letter, one number and one special character"/>
-                <div class="form-text">
-                    Password must contain uppercase, lowercase, number and special character.
-                </div>
-            </div>
-
-            <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-primary">
-                    Register User
-                </button>
-            </div>
-
-            <c:if test="${not empty message}">
-                <div class="alert alert-danger text-center mt-3">
-                    ${message}
-                </div>
-            </c:if>
-
-        </form:form>
-
-    </div>
-
-    <div class="card-footer">
+    <div class="footer">
         POS Management System
     </div>
 

@@ -1,6 +1,8 @@
 package com.ust.pos.node;
 
+import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/node")
-public class NodeController {
+public class NodeController extends BaseController {
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
 
     @Autowired
@@ -27,7 +29,9 @@ public class NodeController {
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute NodeDto nodeDto) {
-        model.addAttribute("roles", roleService.findAll());
+        PaginationDto paginationDto = new PaginationDto();
+        model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "node/add";
     }
 
@@ -42,8 +46,10 @@ public class NodeController {
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
+        PaginationDto paginationDto = new PaginationDto();
         NodeDto response = nodeService.findByIdentifier(identifier);
-        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField())));
         model.addAttribute("node", response);
         return "node/node";
     }

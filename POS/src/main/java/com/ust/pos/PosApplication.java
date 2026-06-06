@@ -8,9 +8,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import javax.sql.DataSource;
 
 @SpringBootApplication
-@ComponentScan({"com.ust.pos.web.controller", "com.ust.pos"})
+@ComponentScan(
+        {"com.ust.pos.web.controller", "com.ust.pos"}
+)
 public class PosApplication {
 
     @Autowired
@@ -28,5 +36,30 @@ public class PosApplication {
                 .setSkipNullEnabled(true)
                 .setCollectionsMergeEnabled(false);
         return mapper;
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate() {
+        return new JdbcTemplate(getDataSource());
+    }
+
+    @Bean
+    public DataSource getDataSource() {
+
+        DriverManagerDataSource ds = new DriverManagerDataSource();
+
+        ds.setUrl(environment.getRequiredProperty("spring.datasource.url"));
+        ds.setUsername(environment.getRequiredProperty("spring.datasource.username"));
+        ds.setPassword(environment.getRequiredProperty("spring.datasource.password"));
+        ds.setDriverClassName(
+                environment.getRequiredProperty("spring.datasource.driver-class-name")
+        );
+
+        return ds;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

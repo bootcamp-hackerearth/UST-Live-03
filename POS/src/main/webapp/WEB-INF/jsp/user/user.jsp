@@ -5,110 +5,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Update User</title>
+<meta charset="UTF-8">
+<title>Update User</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background-color: #f1f3f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: "Segoe UI", sans-serif;
-            padding: 20px;
-        }
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1b26, #2a2b3d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .card {
-            width: 650px;
-            border: none;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-        }
+.card {
+    width: 460px;
+    padding: 30px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
 
-        .card-header {
-            background-color: #1e272e;
-            color: #ffffff;
-            text-align: center;
-            padding: 25px;
-        }
+.card-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
 
-        .card-header h5 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: 600;
-        }
+.card-header h5 {
+    color: #fff;
+}
 
-        .card-body {
-            background-color: #ffffff;
-            padding: 35px;
-        }
+.form-label {
+    font-size: 13px;
+    color: #ccc;
+}
 
-        .form-label {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #212529;
-            margin-bottom: 8px;
-        }
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
 
-        .form-control {
-            height: 52px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            font-size: 1rem;
-        }
+.form-control:focus {
+    border: 1px solid #00ffff;
+    box-shadow: 0 0 8px #00ffff;
+}
 
-        .form-control:focus {
-            border-color: #0d6efd;
-            box-shadow: none;
-        }
+select[multiple] {
+    height: 120px;
+}
 
-        select[multiple] {
-            height: 120px !important;
-        }
+.current-roles {
+    font-size: 12px;
+    margin-bottom: 8px;
+    color: #aaa;
+}
 
-        .btn-primary {
-            background-color: #0d6efd;
-            border: none;
-            height: 54px;
-            font-size: 1.1rem;
-            border-radius: 8px;
-            font-weight: 500;
-        }
+.badge {
+    background: rgba(0,255,255,0.2);
+    color: #00ffff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-right: 4px;
+}
 
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-        }
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: #00ffff;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-        .alert {
-            border-radius: 8px;
-        }
+.btn-primary:hover {
+    box-shadow: 0 0 15px #00ffff,
+                0 0 30px #00ffff;
+}
 
-        .form-text {
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
+.alert {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    color: #00ffcc;
+    font-size: 13px;
+}
 
-        .badge {
-            font-size: 0.75rem;
-        }
+.card-footer {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 12px;
+}
 
-        .card-footer {
-            background-color: #f8f9fa;
-            text-align: center;
-            padding: 15px;
-            border-top: 1px solid #dee2e6;
-            color: #6c757d;
-        }
+.card-footer a {
+    color: #00ffff;
+    text-decoration: none;
+}
 
-        .card-footer a {
-            text-decoration: none;
-        }
-    </style>
+.card-footer a:hover {
+    text-decoration: underline;
+}
+</style>
 </head>
 
 <body>
@@ -119,104 +133,81 @@
         <h5>Update User</h5>
     </div>
 
-    <div class="card-body">
+    <c:if test="${not empty message}">
+        <div class="alert">
+            ${message}
+        </div>
+    </c:if>
 
-        <c:if test="${not empty message}">
-            <div class="alert alert-info text-center">
-                ${message}
-            </div>
-        </c:if>
+    <form:form action="/user/update" method="post" modelAttribute="userDto">
 
-        <form:form action="/user/update" method="post" modelAttribute="userDto">
+        <form:hidden path="id"/>
 
-            <form:hidden path="id"/>
+        <label class="form-label">Name</label>
+        <form:input
+            path="name"
+            cssClass="form-control"
+            required="true"
+            minlength="3"
+            maxlength="50"
+            pattern="[A-Za-z ]+"
+            title="Enter valid name (letters only)"
+        />
 
-            <div class="mb-3">
-                <label class="form-label">Name</label>
-                <form:input
-                    path="name"
-                    cssClass="form-control"
-                    required="true"
-                    pattern="[A-Za-z ]{3,50}"
-                    minlength="3"
-                    maxlength="50"
-                    title="Name must contain only letters and spaces"
-                    placeholder="Enter full name"
-                />
-            </div>
+        <label class="form-label">Email</label>
+        <form:input
+            path="username"
+            cssClass="form-control"
+            type="email"
+            readonly="true"
+        />
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <form:input
-                    path="username"
-                    cssClass="form-control"
-                    type="email"
-                    readonly="true"
-                />
-                <div class="form-text">
-                    Email cannot be modified
-                </div>
-            </div>
+        <label class="form-label">Phone Number</label>
+        <form:input
+            path="phoneNo"
+            cssClass="form-control"
+            type="tel"
+            required="true"
+            pattern="[0-9]{10}"
+            minlength="10"
+            maxlength="10"
+            title="Enter valid 10-digit number"
+        />
 
-            <div class="mb-3">
-                <label class="form-label">Phone Number</label>
-                <form:input
-                    path="phoneNo"
-                    cssClass="form-control"
-                    required="true"
-                    pattern="[0-9]{10}"
-                    minlength="10"
-                    maxlength="10"
-                    title="Enter a valid 10-digit mobile number"
-                    placeholder="Enter 10 digit number"
-                />
-                <div class="form-text">
-                    Enter valid 10-digit number
-                </div>
-            </div>
+        <label class="form-label">Roles</label>
 
-            <div class="mb-3">
-                <label class="form-label">Roles</label>
+        <div class="current-roles">
+            Current:
+            <c:forEach var="r" items="${userDto.roles}">
+                <span class="badge">${r}</span>
+            </c:forEach>
+        </div>
 
-                <div class="mb-2 text-muted small">
-                    Current:
-                    <c:forEach var="r" items="${userDto.roles}">
-                        <span class="badge bg-secondary me-1">${r}</span>
-                    </c:forEach>
-                </div>
+        <form:select
+            path="roles"
+            multiple="true"
+            cssClass="form-control"
+            required="true"
+        >
+            <form:options
+                items="${roles}"
+                itemValue="identifier"
+                itemLabel="identifier"
+            />
+        </form:select>
 
-                <form:select
-                    path="roles"
-                    multiple="true"
-                    cssClass="form-control"
-                    required="true"
-                >
-                    <form:options
-                        items="${roles}"
-                        itemValue="identifier"
-                        itemLabel="identifier"
-                    />
-                </form:select>
+        <div class="current-roles">
+            Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple roles
+        </div>
 
-                <div class="form-text">
-                    Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple roles
-                </div>
-            </div>
+        <button type="submit" class="btn-primary">
+            Update User
+        </button>
 
-            <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-primary">
-                    Update User
-                </button>
-            </div>
-
-        </form:form>
-
-    </div>
+    </form:form>
 
     <div class="card-footer">
-        <a href="/user/list">
-            ← Back to User List
-        </a>
+        <a href="/user/list">← Back to User List</a>
     </div>
 
 </div>
