@@ -140,18 +140,11 @@
 
                 <form:hidden path="id"/>
 
-                <div class="mb-3">
-                    <label class="form-label">Product</label>
-                    <form:select path="identifier"
-                                 class="form-select"
-                                 required="true">
-                        <form:option value="">-- Select Product --</form:option>
-                        <c:forEach items="${products}" var="p">
-                            <form:option value="${p.identifier}">
-                                ${p.identifier}
-                            </form:option>
-                        </c:forEach>
-                    </form:select>
+               <div class="mb-3">
+               <label class="form-label">Product</label>
+               <form:input path="identifier"
+                           class="form-control"
+                           readonly="true"/>
                 </div>
 
                 <div class="mb-3">
