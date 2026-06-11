@@ -136,13 +136,25 @@
         </div>
         <div class="form-group">
             <label>Unit</label>
-            <input type="text" name="unit"
-                   value="${product.unit}" required />
+            <select name="unit" multiple size="5" required>
+                <option value="">-- Select Unit --</option>
+                <c:forEach items="${units}" var="unit">
+                    <option value="${unit.identifier}">
+                       ${unit.identifier}
+                    </option>
+                </c:forEach>
+            </select>
         </div>
         <div class="form-group">
             <label>Brand</label>
-            <input type="text" name="brand"
-                   value="${product.brand}" />
+            <select name="brand" multiple size="5" required>
+                <option value="">-- Select Brand --</option>
+                <c:forEach items="${brands}" var="brand">
+                    <option value="${brand.identifier}">
+                        ${brand.identifier}
+                    </option>
+                </c:forEach>
+            </select>
         </div>
         <div class="form-group">
             <label>Category</label>
