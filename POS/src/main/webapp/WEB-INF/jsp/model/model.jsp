@@ -122,7 +122,8 @@
             <input type="text"
                  name="identifier"
                  value="${model.identifier}"
-                 required/>
+                 required
+                 readonly/>
         </div>
         <div class="form-group">
             <label>Model Name</label>

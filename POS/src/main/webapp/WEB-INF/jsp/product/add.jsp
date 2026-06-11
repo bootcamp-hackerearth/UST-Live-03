@@ -139,15 +139,29 @@
         </div>
         <div class="form-group">
             <label>Unit</label>
-            <input type="text" name="unit" placeholder="e.g. kg, piece, box" required />
+            <select name="unit" multiple size="5" required>
+                <option value="">-- Select Unit --</option>
+                <c:forEach items="${units}" var="unit">
+                    <option value="${unit.identifier}">
+                       ${unit.identifier}
+                    </option>
+                </c:forEach>
+            </select>
         </div>
         <div class="form-group">
             <label>Brand</label>
-            <input type="text" name="brand" placeholder="Enter brand name" />
+            <select name="brand" multiple size="5" required>
+                <option value="">-- Select Brand --</option>
+                <c:forEach items="${brands}" var="brand">
+                    <option value="${brand.identifier}">
+                       ${brand.identifier}
+                    </option>
+                </c:forEach>
+            </select>
         </div>
         <div class="form-group">
             <label>Category</label>
-            <select name="category" multiple size="5">
+            <select name="category" multiple size="5" required>
                 <option value="">-- Select Category --</option>
                 <c:forEach items="${categories}" var="cat">
                     <option value="${cat.name}">

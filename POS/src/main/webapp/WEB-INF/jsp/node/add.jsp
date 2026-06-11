@@ -95,7 +95,7 @@
                        class="form-control"
                        name="identifier"
                        placeholder="Enter the node name"
-                       required>
+                       required="required">
             </div>
             <div class="form-group">
                 <label><b>Path Name</b></label>
