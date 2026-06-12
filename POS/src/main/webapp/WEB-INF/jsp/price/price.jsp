@@ -15,6 +15,7 @@
             background-color: #f4f7f6;
         }
 
+        /* BACK BUTTON */
         .back-btn {
             position: fixed;
             top: 20px;
@@ -31,6 +32,7 @@
             background: #5a6268;
         }
 
+        /* CARD */
         .card {
             width: 420px;
             margin: 100px auto;
@@ -77,6 +79,7 @@
             color: #666;
         }
 
+        /* ERROR MESSAGE */
         .error-msg {
             margin-bottom: 12px;
             padding: 10px;
@@ -87,6 +90,7 @@
             font-size: 13px;
         }
 
+        /* BUTTONS */
         .btn-container {
             display: flex;
             justify-content: space-between;
@@ -133,26 +137,31 @@
 
     <h2>Edit Price</h2>
 
+    <!-- ERROR MESSAGE -->
     <c:if test="${not empty message}">
         <div class="error-msg">
             ${message}
         </div>
     </c:if>
 
+    <!-- PRICE NOT FOUND -->
     <c:if test="${empty priceDto}">
         <div class="error-msg">
             Price not found
         </div>
     </c:if>
 
+    <!-- FORM -->
     <c:if test="${not empty priceDto}">
 
         <form:form action="/price/update"
                    method="post"
                    modelAttribute="priceDto">
 
+            <!-- IDENTIFIER -->
             <form:hidden path="identifier"/>
 
+            <!-- PRODUCT -->
             <label>Product</label>
 
             <form:input path="product"
@@ -160,6 +169,7 @@
 
             <form:hidden path="product"/>
 
+            <!-- PRICE AMOUNT -->
             <label>Price Amount</label>
 
             <form:input path="priceAmount"
@@ -168,12 +178,14 @@
                         placeholder="Enter Price"
                         required="true"/>
 
+            <!-- PRICE TYPE -->
             <label>Price Type</label>
 
             <form:input path="priceType"
                         placeholder="Enter Price Type"
                         required="true"/>
 
+            <!-- BUTTONS -->
             <div class="btn-container">
 
                 <a href="/price/list"

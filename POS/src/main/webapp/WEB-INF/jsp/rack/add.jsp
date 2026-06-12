@@ -85,6 +85,7 @@
         <label>Identifier</label>
         <form:input path="identifier" required="true"/>
 
+        <!-- SHELF MULTI SELECT -->
         <label>Shelves</label>
         <form:select path="shelf" multiple="true">
             <c:forEach var="shelf" items="${shelf}">
@@ -96,6 +97,7 @@
 
         <small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
 
+        <!-- STATUS DROPDOWN -->
         <label>Status</label>
         <form:select path="status">
             <form:option value="true">Active</form:option>

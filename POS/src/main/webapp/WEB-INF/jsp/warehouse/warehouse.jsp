@@ -73,21 +73,27 @@
 
     <form:form action="/warehouse/update" method="post" modelAttribute="warehouseDto">
 
+        <!-- Identifier -->
         <label>Identifier</label>
         <form:input path="identifier" readonly="true"/>
 
+        <!-- Name -->
         <label>Name</label>
         <form:input path="name" required="true"/>
 
+        <!-- Country -->
         <label>Country</label>
         <form:input path="country" required="true"/>
 
+        <!-- Region -->
         <label>Region</label>
         <form:input path="region" required="true"/>
 
+        <!-- Address -->
         <label>Address</label>
         <form:input path="address" required="true"/>
 
+        <!-- PHONE -->
         <label>Phone Number</label>
                 <form:input path="phoneNo"
                       pattern="[0-9]{10}"

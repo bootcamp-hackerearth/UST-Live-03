@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class RoleController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
-
     @Autowired
     private RoleService roleService;
 
@@ -24,17 +23,18 @@ public class RoleController {
     }
 
     @GetMapping("/add")
-    public String add(Model model,@ModelAttribute RoleDto roleDto) {
+    public String add(Model model, @ModelAttribute RoleDto roleDto) {
         return "role/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model,Pageable pageable, @ModelAttribute RoleDto roleDto) {
+    public String addPost(Model model, @ModelAttribute RoleDto roleDto) {
         RoleDto response = roleService.save(roleDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute("roles", roleService.findAll(pageable));
+            model.addAttribute("roles", roleService.findAll(null));
             return "role/add";
+
         }
         return REDIRECT_ROLE_LIST;
     }
@@ -60,5 +60,4 @@ public class RoleController {
         roleService.delete(identifier);
         return REDIRECT_ROLE_LIST;
     }
-
 }

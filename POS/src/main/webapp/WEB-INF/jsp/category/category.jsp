@@ -78,17 +78,21 @@
 
     <h2>Edit Category</h2>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error-msg">${message}</div>
     </c:if>
 
     <form:form action="/category/update" method="post" modelAttribute="categoryDto">
 
+        <!-- ID -->
         <form:hidden path="id"/>
 
+        <!-- IDENTIFIER -->
         <label>Category Identifier</label>
         <form:input path="identifier" readonly="true"/>
 
+        <!-- SUPER CATEGORY -->
         <label>Super Category</label>
         <form:select path="superCategory">
             <form:option value="">-- None --</form:option>
@@ -103,6 +107,7 @@
 
         </form:select>
 
+        <!-- STATUS -->
         <label>Status</label>
         <form:select path="status">  <%-- keep as status --%>
             <form:option value="true">Active</form:option>

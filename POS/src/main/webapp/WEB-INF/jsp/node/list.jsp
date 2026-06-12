@@ -54,6 +54,7 @@
         }
         tr:hover { background-color: #fafafa; }
 
+        /* Buttons */
         .btn {
             padding: 8px 15px;
             text-decoration: none;
@@ -69,6 +70,7 @@
         .btn-edit { background-color: #007bff; color: white; margin-right: 5px; padding: 6px 12px; }
         .btn-delete { background-color: #dc3545; color: white; padding: 6px 12px; }
 
+        /* Role Badges */
         .badge {
             padding: 3px 8px;
             border-radius: 4px;

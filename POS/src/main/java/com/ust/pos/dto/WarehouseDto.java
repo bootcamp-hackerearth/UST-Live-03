@@ -12,5 +12,5 @@ public class WarehouseDto extends CommonDto {
     private String region;
     private String address;
     private long phoneNo;
-    
+
 }

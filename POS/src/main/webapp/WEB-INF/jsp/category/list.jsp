@@ -62,9 +62,10 @@
             padding: 12px 15px;
             border-bottom: 1px solid #eee;
             text-align: left;
-            vertical-align: middle;
+            vertical-align: middle;  /* ✅ all cells vertically centered */
         }
 
+        /* ✅ Fixed column widths */
         th:nth-child(1), td:nth-child(1) { width: 60px;  }   /* ID */
         th:nth-child(2), td:nth-child(2) { width: 220px; }   /* Identifier */
         th:nth-child(3), td:nth-child(3) { width: 200px; }   /* Super Category */
@@ -81,6 +82,7 @@
 
         .text-muted { color: #999; }
 
+        /* TOGGLE */
         .switch {
             position: relative;
             display: inline-block;
@@ -114,6 +116,7 @@
         input:checked + .slider { background-color: #28a745; }
         input:checked + .slider:before { transform: translateX(24px); }
 
+        /* ✅ Toggle left-aligned to match other columns */
         .toggle-container {
             display: flex;
             justify-content: flex-start;
@@ -121,6 +124,7 @@
             cursor: pointer;
         }
 
+        /* ✅ Action buttons aligned in a row */
         .action-buttons {
             display: flex;
             gap: 8px;
@@ -133,6 +137,7 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="header">
         <h2>Category List</h2>
         <div style="display: flex; gap: 8px;">
@@ -141,10 +146,12 @@
         </div>
     </div>
 
+    <!-- EMPTY -->
     <c:if test="${empty categories}">
         <div class="empty-msg">No categories available</div>
     </c:if>
 
+    <!-- TABLE -->
     <c:if test="${not empty categories}">
         <table>
             <thead>
@@ -165,6 +172,7 @@
 
                     <td>${category.identifier}</td>
 
+                    <!-- SUPER CATEGORY -->
                     <td>
                         <c:choose>
                             <c:when test="${empty category.superCategory}">
@@ -176,6 +184,7 @@
                         </c:choose>
                     </td>
 
+                    <!-- STATUS TOGGLE -->
                     <td>
                         <div class="toggle-container"
                              onclick="window.location.href='${pageContext.request.contextPath}/category/toggle?identifier=${category.identifier}'">
@@ -186,6 +195,7 @@
                         </div>
                     </td>
 
+                    <!-- ACTIONS -->
                     <td>
                         <div class="action-buttons">
                             <a href="/category/get?identifier=${category.identifier}" class="btn btn-edit">

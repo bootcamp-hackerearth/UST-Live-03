@@ -1,6 +1,7 @@
 package com.ust.pos.warehouse.service.impl;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -37,8 +38,8 @@ public class WarehouseServiceImpl implements WarehouseService {
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
-        Warehouse warehouse = modelMapper.map(warehouseDto, Warehouse.class);
-        wareHouseRepository.save(warehouse);
+        Warehouse product = modelMapper.map(warehouseDto, Warehouse.class);
+        wareHouseRepository.save(product);
         return warehouseDto;
     }
 
@@ -63,11 +64,17 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
+    public WsDto<WarehouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
         Page<Warehouse> warehousePage = wareHouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+        WsDto<WarehouseDto> warehouseDto = new WsDto<>();
+        warehouseDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
+        warehouseDto.setTotalRecords(warehousePage.getTotalElements());
+        warehouseDto.setTotalPage(warehousePage.getTotalPages());
+        warehouseDto.setSizePerPage(pageable.getPageSize());
+        warehouseDto.setPage(pageable.getPageNumber());
+        return warehouseDto;
     }
 
 }

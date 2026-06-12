@@ -135,6 +135,7 @@
 
     <h2>Update User</h2>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error-msg">${message}</div>
     </c:if>
@@ -143,14 +144,17 @@
 
         <form:input type="hidden" path="id"/>
 
+        <!-- NAME -->
         <label>Name</label>
         <form:input path="name" required="true"/>
         <form:errors path="name" cssClass="field-error"/>
 
+        <!-- EMAIL -->
         <label>Email</label>
         <form:input path="username" type="email" required="true"/>
         <form:errors path="username" cssClass="field-error"/>
 
+        <!-- PHONE -->
         <label>Phone Number</label>
         <form:input path="phoneNo"
                     pattern="[0-9]{10}"
@@ -158,6 +162,7 @@
                     required="true"/>
         <form:errors path="phoneNo" cssClass="field-error"/>
 
+        <!-- ROLES -->
         <label>Roles</label>
         <div class="current-roles">
             Current:
@@ -170,6 +175,7 @@
         </form:select>
         <small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
 
+        <!-- SUBMIT -->
         <input type="submit" value="Update User" class="btn-submit"/>
 
     </form:form>

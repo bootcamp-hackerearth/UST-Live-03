@@ -1,5 +1,6 @@
 package com.ust.pos.user;
 
+
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
@@ -27,8 +28,8 @@ public class UserController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String username, @ModelAttribute UserDto userDto, Pageable pageable) {
-        UserDto response = userService.findByUserName(username);
+    public String update(Model model, @RequestParam String identifier, @ModelAttribute UserDto userDto, Pageable pageable) {
+        UserDto response = userService.findByIdentifier(identifier);
         model.addAttribute("user", response);
         model.addAttribute("roles", roleService.findAll(pageable));
         return "user/user";

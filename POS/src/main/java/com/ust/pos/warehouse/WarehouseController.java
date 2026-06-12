@@ -29,11 +29,11 @@ public class WarehouseController {
     }
 
     @PostMapping("/add")
-    public String addPost(Model model,Pageable pageable, @ModelAttribute WarehouseDto warehouseDto) {
+    public String addPost(Model model, @ModelAttribute WarehouseDto warehouseDto) {
         WarehouseDto response = warehouseService.save(warehouseDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute("warehouses", warehouseService.findAll(pageable));
+            model.addAttribute("warehouses", warehouseService.findAll(null));
             return "warehouse/add";
         }
         return REDIRECT_WAREHOUSE_LIST;

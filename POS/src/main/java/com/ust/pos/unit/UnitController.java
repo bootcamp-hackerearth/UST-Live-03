@@ -50,7 +50,7 @@ public class UnitController {
     public String update(Model model, @ModelAttribute UnitDto unitDto) {
         UnitDto response = unitService.update(unitDto);
         if (!response.isSuccess()) {
-            model.addAttribute("unit", unitDto);
+            model.addAttribute("unit",unitDto);
             model.addAttribute("message", response.getMessage());
             return "unit/unit";
         }

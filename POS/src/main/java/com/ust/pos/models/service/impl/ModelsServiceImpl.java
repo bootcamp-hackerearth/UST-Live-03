@@ -1,6 +1,7 @@
 package com.ust.pos.models.service.impl;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
@@ -63,28 +64,34 @@ public class ModelsServiceImpl implements ModelsService {
     }
 
     @Override
-    public List<ModelsDto> findAll(Pageable pageable) {
+    public WsDto<ModelsDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
-        return modelMapper.map(modelsPage.getContent(), listType);
+        Page<Models> modelPage = modelsRepository.findAll(pageable);
+        WsDto<ModelsDto> modelDto = new WsDto<>();
+        modelDto.setDtoList(modelMapper.map(modelPage.getContent(), listType));
+        modelDto.setTotalRecords(modelPage.getTotalElements());
+        modelDto.setTotalPage(modelPage.getTotalPages());
+        modelDto.setSizePerPage(pageable.getPageSize());
+        modelDto.setPage(pageable.getPageNumber());
+        return modelDto;
     }
 
     @Override
-    public void toggleStatus(String identifier) {
+    public ModelsDto toggleStatus(String identifier) {
         Models models = modelsRepository.findByIdentifier(identifier);
-        if (models == null) {
-            throw new IllegalArgumentException("Models not found");
-        }
         models.setStatus(!models.isStatus());
         modelsRepository.save(models);
+        return modelMapper.map(models, ModelsDto.class);
     }
 
-    @Override
     public List<ModelsDto> findActiveModels() {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        return modelMapper.map(modelsRepository.findByStatusTrue(), listType);
+        return modelMapper.map(
+                modelsRepository.findByStatusTrue(),
+                listType
+        );
     }
 
 }

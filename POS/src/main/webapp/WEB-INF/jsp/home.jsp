@@ -48,7 +48,7 @@
             min-height: 60px;
             display: flex;
             align-items: center;
-            flex-shrink: 0;
+            flex-shrink: 0;        /* never shrink the header */
         }
 
         .sidebar-header .icon {
@@ -67,12 +67,14 @@
             opacity: 1;
         }
 
+        /* scrollable area for menu items */
         .sidebar-scroll {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
         }
 
+        /* hide scrollbar when collapsed, show when expanded */
         .sidebar-scroll::-webkit-scrollbar {
             width: 4px;
         }
@@ -121,6 +123,7 @@
             border-left: 3px solid #007bff;
         }
 
+        /* NO icon span — just indent for collapsed state */
         .sidebar a .nav-indent {
             min-width: 60px;
             flex-shrink: 0;
@@ -221,6 +224,7 @@
 </head>
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
 
     <div class="sidebar-header">
@@ -228,6 +232,7 @@
         <span class="label">Control Panel</span>
     </div>
 
+    <!-- scrollable menu area -->
     <div class="sidebar-scroll">
 
         <div class="menu-label">Main</div>
@@ -248,8 +253,10 @@
 
 </div>
 
+<!-- MAIN CONTENT -->
 <div class="content">
 
+    <!-- NAVBAR -->
     <div class="navbar">
         <div class="navbar-title">Dashboard Overview</div>
 
@@ -267,6 +274,7 @@
         </div>
     </div>
 
+    <!-- BODY -->
     <div class="main-body">
         <div class="welcome-title">Welcome Back, ${user.name}!</div>
         <div class="welcome-sub">Use the navigation menu on the left to manage modules.</div>

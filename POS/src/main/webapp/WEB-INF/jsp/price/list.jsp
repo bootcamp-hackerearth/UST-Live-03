@@ -5,13 +5,16 @@
 <html>
 <head>
     <title>Price List</title>
+
     <style>
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f7f6;
             padding: 40px;
             color: #333;
         }
+
         .container {
             max-width: 1100px;
             margin: 0 auto;
@@ -20,6 +23,7 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -104,6 +108,7 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="header">
 
         <h2>Price List</h2>
@@ -122,6 +127,7 @@
 
     </div>
 
+    <!-- EMPTY -->
     <c:if test="${empty price}">
 
         <div class="empty-msg">
@@ -130,43 +136,69 @@
 
     </c:if>
 
+    <!-- TABLE -->
     <c:if test="${not empty price}">
+
         <table>
+
             <thead>
+
             <tr>
+
                 <th>ID</th>
                 <th>Identifier</th>
                 <th>Product</th>
                 <th>Price</th>
                 <th>Price Type</th>
                 <th>Actions</th>
+
             </tr>
+
             </thead>
+
             <tbody>
 
             <c:forEach var="itemPrice" items="${price}">
+
                 <tr>
+
                     <td>${itemPrice.id}</td>
+
                     <td>${itemPrice.identifier}</td>
+
                     <td>${itemPrice.product}</td>
+
                     <td>${itemPrice.priceAmount}</td>
+
                     <td>${itemPrice.priceType}</td>
+
+                    <!-- ACTIONS -->
                     <td>
+
                         <a href="/price/get?identifier=${itemPrice.identifier}"
                            class="btn btn-edit">
                             Edit
                         </a>
+
                         <a href="/price/delete?identifier=${itemPrice.identifier}"
                            class="btn btn-delete"
                            onclick="return confirm('Are you sure you want to delete this price?');">
                             Delete
                         </a>
+
                     </td>
+
                 </tr>
+
             </c:forEach>
+
             </tbody>
+
         </table>
+
     </c:if>
+
 </div>
+
 </body>
 </html>

@@ -128,6 +128,7 @@
 
     <h2>Edit Product</h2>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error-msg">
             ${message}
@@ -138,16 +139,19 @@
                method="post"
                modelAttribute="productDto">
 
+        <!-- IDENTIFIER -->
         <label>Identifier</label>
 
         <form:input path="identifier"
                     readonly="true"/>
 
+        <!-- NAME -->
         <label>Product Name</label>
 
         <form:input path="name"
                     required="true"/>
 
+        <!-- CATEGORY -->
         <label>Categories</label>
 
         <form:select path="categories"
@@ -167,6 +171,7 @@
             Hold Ctrl (Windows) or Cmd (Mac) to select multiple
         </small>
 
+        <!-- BRAND -->
         <label>Brand</label>
 
         <form:select path="brand">
@@ -185,6 +190,7 @@
 
         </form:select>
 
+        <!-- MODEL -->
         <label>Model</label>
 
         <form:select path="model">
@@ -203,6 +209,7 @@
 
         </form:select>
 
+        <!-- UNIT -->
         <label>Unit</label>
 
         <form:select path="unit">
@@ -221,6 +228,7 @@
 
         </form:select>
 
+        <!-- STATUS -->
         <label>Status</label>
 
         <form:select path="status">
@@ -235,6 +243,7 @@
 
         </form:select>
 
+        <!-- BUTTON -->
         <input type="submit"
                value="Update Product"
                class="btn-submit"/>

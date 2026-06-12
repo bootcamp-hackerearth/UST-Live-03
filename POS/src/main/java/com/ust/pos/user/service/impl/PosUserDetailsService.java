@@ -15,10 +15,10 @@ public class PosUserDetailsService implements UserDetailsService {
     private UserService userService;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserDto userDto = userService.findByUserName(username);
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        UserDto userDto = userService.findByIdentifier(identifier);
         if (userDto == null) {
-            throw new UsernameNotFoundException("User not found: " + username);
+            throw new UsernameNotFoundException("User not found: " + identifier);
         }
         return org.springframework.security.core.userdetails.User
                 .withUsername(userDto.getUsername())

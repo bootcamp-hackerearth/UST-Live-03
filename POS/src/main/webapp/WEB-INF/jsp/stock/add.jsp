@@ -98,58 +98,88 @@
         .btn-submit:hover {
             background-color: #0056b3;
         }
+
     </style>
 </head>
+
 <body>
+
 <a href="/stock/list" class="back-btn">
     ← Back
 </a>
+
 <div class="card">
+
     <h2>Add New Product to Stock</h2>
+
+    <!-- ERROR MESSAGE -->
     <c:if test="${not empty message}">
         <div class="error-msg">
             ${message}
         </div>
     </c:if>
+
     <form:form method="post"
                action="/stock/add"
                modelAttribute="stocks">
+
+        <!-- PRODUCT -->
         <label>Product</label>
+
         <form:select path="product"
                      required="true">
+
             <form:option value="">
                 -- Select Product --
             </form:option>
+
             <form:options items="${products}"
                           itemValue="name"
                           itemLabel="name"/>
+
         </form:select>
+
+        <!-- WAREHOUSE -->
         <label>Warehouse</label>
+
         <form:select path="warehouse"
                      required="true">
+
             <form:option value="">
                 -- Select Warehouse --
             </form:option>
+
             <form:options items="${warehouses}"
                           itemValue="name"
                           itemLabel="name"/>
+
         </form:select>
+
+        <!-- QUANTITY -->
         <label>Quantity</label>
+
         <form:input path="quantity"
                     type="number"
                     placeholder="Enter quantity"
                      title="Enter minimum stock"
                     required="true"/>
+
+        <!-- MINIMUM STOCK -->
         <label>Minimum Stock</label>
+
         <form:input path="minimumStock"
                     type="number"
                     placeholder="Enter minimum stock"
                     title="Enter minimum stock"
                     required="true"/>
+
+        <!-- SUBMIT -->
         <input type="submit"
                value="Add Product"
                class="btn-submit"/>
+
     </form:form>
+
 </div>
 
 </body>

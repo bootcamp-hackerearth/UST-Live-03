@@ -5,6 +5,8 @@ import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,14 +30,17 @@ public class TokenGenerationController {
     private UserService userService;
 
     @PostMapping("/api/authenticate")
-    public UserDto authenticate(@RequestBody UserDto userDto) {
+    public ResponseEntity<Object> authenticate(@RequestBody UserDto userDto) {
         try {
-            authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
+            authenticationProvider.authenticate(
+                    new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword())
+            );
             UserDetails userDetails = userDetailsService.loadUserByUsername(userDto.getUsername());
             final String token = jwtUtility.generateToken(userDetails);
-            return new UserDto(token);
+            return ResponseEntity.ok(new UserDto(token));
         } catch (Exception e) {
-            return new UserDto("Error");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid email or password");
         }
     }
 

@@ -108,15 +108,18 @@
 
     <h2>User Registration</h2>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error-msg">${message}</div>
     </c:if>
 
     <form:form action="register" method="post" modelAttribute="userDto">
 
+        <!-- NAME -->
         <label>Name</label>
         <form:input path="name" required="true"/>
 
+        <!-- EMAIL -->
         <label>Email</label>
         <form:input path="username"
                     type="email"
@@ -124,6 +127,7 @@
                     pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
                     title="Enter a valid Gmail (example@gmail.com)"/>
 
+        <!-- PHONE -->
         <label>Mobile Number</label>
         <form:input path="phoneNo"
                     type="tel"
@@ -132,12 +136,14 @@
                     maxlength="10"
                     title="Enter a valid 10-digit mobile number"/>
 
+        <!-- PASSWORD -->
         <label>Password</label>
         <form:password path="password"
                        required="true"
                        pattern=".{6,}"
                        title="Password must be at least 6 characters"/>
 
+        <!-- ROLES -->
         <label>Roles</label>
         <form:select path="roles" multiple="true" required="true">
             <form:options items="${roles}"
@@ -146,6 +152,7 @@
         </form:select>
         <small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
 
+        <!-- SUBMIT -->
         <input type="submit" value="Register" class="btn-submit"/>
 
     </form:form>

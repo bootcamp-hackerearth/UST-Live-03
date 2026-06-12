@@ -1,6 +1,7 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -34,7 +35,7 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public PriceDto save(PriceDto priceDto) {
-        priceDto.setIdentifier(priceDto.getProduct() + "_" + priceDto.getPriceType());
+        priceDto.setIdentifier(priceDto.getProductIdentifier() + "_" + priceDto.getPriceType());
         String identifier = priceDto.getIdentifier();
         Price existingPrice = priceRepository.findByIdentifier(identifier);
         if (existingPrice != null) {
@@ -52,13 +53,15 @@ public class PriceServiceImpl implements PriceService {
         String oldIdentifier = priceDto.getIdentifier();
         Price existingPrice = priceRepository.findByIdentifier(oldIdentifier);
         if (existingPrice == null) {
-            priceDto.setMessage("Price not found for Product '" + priceDto.getProduct() + "' with Price Type '" + priceDto.getPriceType() + "'");
+            priceDto.setMessage("Price not found for Product '"
+                    + priceDto.getProductIdentifier() + "' with Price Type '"
+                    + priceDto.getPriceType() + "'");
             priceDto.setSuccess(false);
             return priceDto;
         }
-        String product = existingPrice.getProduct().split(",")[0]; // clean once
+        String product = existingPrice.getProductIdentifier().split(",")[0]; // clean once
         String newIdentifier = product + "_" + priceDto.getPriceType();
-        existingPrice.setProduct(product);
+        existingPrice.setProductIdentifier(product);
         Price duplicate = priceRepository.findByIdentifier(newIdentifier);
         if (duplicate != null && !duplicate.getId().equals(existingPrice.getId())) {
             priceDto.setMessage("Another price already exists for this Product + Price Type");
@@ -80,11 +83,17 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public WsDto<PriceDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
         Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+        WsDto<PriceDto> priceDto = new WsDto<>();
+        priceDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+        priceDto.setTotalRecords(pricePage.getTotalElements());
+        priceDto.setTotalPage(pricePage.getTotalPages());
+        priceDto.setSizePerPage(pageable.getPageSize());
+        priceDto.setPage(pageable.getPageNumber());
+        return priceDto;
     }
 
 }

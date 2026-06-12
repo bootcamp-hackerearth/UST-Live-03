@@ -71,6 +71,7 @@
             gap: 8px;
         }
 
+        /* SHELVES BADGES */
         .shelf-badges {
             display: flex;
             flex-wrap: wrap;
@@ -86,6 +87,7 @@
             font-size: 12px;
         }
 
+        /* TOGGLE */
         .switch {
             position: relative;
             display: inline-block;
@@ -131,6 +133,7 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="header">
         <h2>Rack List</h2>
         <div>
@@ -139,10 +142,12 @@
         </div>
     </div>
 
+    <!-- EMPTY -->
     <c:if test="${empty racks}">
         <div style="text-align:center;">No racks available</div>
     </c:if>
 
+    <!-- TABLE -->
     <c:if test="${not empty racks}">
         <table>
             <thead>
@@ -162,6 +167,7 @@
                     <td>${rack.id}</td>
                     <td><strong>${rack.identifier}</strong></td>
 
+                    <!-- SHELVES -->
                     <td>
                         <c:choose>
                             <c:when test="${empty rack.shelf}">
@@ -177,6 +183,7 @@
                         </c:choose>
                     </td>
 
+                    <!-- STATUS -->
                     <td>
                         <div class="toggle-container"
                              onclick="window.location.href='${pageContext.request.contextPath}/rack/toggle?identifier=${rack.identifier}'">
@@ -187,6 +194,7 @@
                         </div>
                     </td>
 
+                    <!-- ACTIONS -->
                     <td>
                         <div class="actions">
                             <a href="${pageContext.request.contextPath}/rack/get?identifier=${rack.identifier}"

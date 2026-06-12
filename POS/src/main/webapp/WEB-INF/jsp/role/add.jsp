@@ -106,22 +106,27 @@
 
     <h2>Add Role</h2>
 
+    <!-- SUCCESS -->
     <c:if test="${not empty role}">
         <div class="success-msg">${role}</div>
     </c:if>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error-msg">${message}</div>
     </c:if>
 
     <form:form method="post" action="/role/add" modelAttribute="roleDto">
 
+        <!-- ROLE NAME -->
         <label>Role Name</label>
         <form:input path="identifier" required="true"/>
 
+        <!-- DESCRIPTION -->
         <label>Description</label>
         <form:input path="description" required="true"/>
 
+        <!-- SUBMIT -->
         <input type="submit" value="Add Role" class="btn-submit"/>
 
     </form:form>

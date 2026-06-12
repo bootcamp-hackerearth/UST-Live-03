@@ -2,6 +2,7 @@ package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import jakarta.transaction.Transactional;
@@ -63,27 +64,35 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
+    public WsDto<BrandDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
         Page<Brand> brandPage = brandRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+
+        WsDto<BrandDto> brandWsDto = new WsDto<>();
+        brandWsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));
+        brandWsDto.setTotalRecords(brandPage.getTotalElements());
+        brandWsDto.setTotalPage(brandPage.getTotalPages());
+        brandWsDto.setSizePerPage(pageable.getPageSize());
+        brandWsDto.setPage(pageable.getPageNumber());
+        return brandWsDto;
     }
 
     @Override
-    public void toggleStatus(String identifier) {
+    public BrandDto toggleStatus(String identifier) {
         Brand brand = brandRepository.findByIdentifier(identifier);
-        if (brand == null) {
-            throw new IllegalArgumentException("Brand not found");
-        }
         brand.setStatus(!brand.isStatus());
         brandRepository.save(brand);
+        return modelMapper.map(brand, BrandDto.class);
     }
 
     public List<BrandDto> findActiveBrands() {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
-        return modelMapper.map(brandRepository.findByStatusTrue(), listType);
+        return modelMapper.map(
+                brandRepository.findByStatusTrue(),
+                listType
+        );
     }
 
 }

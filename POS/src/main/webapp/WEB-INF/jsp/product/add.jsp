@@ -104,18 +104,22 @@
 
     <h2>Add Product</h2>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error-msg">${message}</div>
     </c:if>
 
     <form:form action="/product/add" method="post" modelAttribute="productDto">
 
+        <!-- IDENTIFIER -->
         <label>Identifier</label>
         <form:input path="identifier" required="true"/>
 
+        <!-- NAME -->
         <label>Name</label>
         <form:input path="name" required="true"/>
 
+        <!-- CATEGORIES -->
         <label>Categories</label>
         <form:select path="categories" multiple="true">
             <c:forEach var="cat" items="${categories}">
@@ -127,6 +131,7 @@
         </form:select>
         <small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
 
+        <!-- BRAND -->
         <label>Brand</label>
         <form:select path="brand">
             <form:option value="">-- Select Brand --</form:option>
@@ -135,6 +140,7 @@
             </c:forEach>
         </form:select>
 
+        <!-- MODEL -->
         <label>Model</label>
         <form:select path="model">
             <form:option value="">-- Select Model --</form:option>
@@ -143,6 +149,7 @@
             </c:forEach>
         </form:select>
 
+        <!-- UNIT -->
         <label>Unit</label>
         <form:select path="unit">
             <form:option value="">-- Select Unit --</form:option>
@@ -150,12 +157,14 @@
                 <form:option value="${u.identifier}">${u.identifier}</form:option>
             </c:forEach>
         </form:select>
+        <!-- ACTIVE -->
         <label>Status</label>
         <form:select path="status">
             <form:option value="true">Active</form:option>
             <form:option value="false">Inactive</form:option>
         </form:select>
 
+        <!-- SUBMIT -->
         <input type="submit" value="Save Product" class="btn-submit"/>
 
     </form:form>

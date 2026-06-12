@@ -2,6 +2,7 @@ package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -38,6 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
             return categoryDto;
         }
         Category category = modelMapper.map(categoryDto, Category.class);
+        category.setStatus(true);
         categoryRepository.save(category);
         return categoryDto;
     }
@@ -59,35 +61,53 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void delete(String identifier) {
+        if(categoryRepository.existsBySuperCategory(identifier)){
+            throw new IllegalArgumentException(
+                    "Cannot delete category. It is used as a super category."
+            );
+        }
         categoryRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public WsDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+        WsDto<CategoryDto> categoryDto = new WsDto<>();
+        categoryDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        categoryDto.setTotalRecords(categoryPage.getTotalElements());
+        categoryDto.setTotalPage(categoryPage.getTotalPages());
+        categoryDto.setSizePerPage(pageable.getPageSize());
+        categoryDto.setPage(pageable.getPageNumber());
+        return categoryDto;
     }
 
     @Override
     public List<CategoryDto> findChildCategories() {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        return modelMapper.map(categoryRepository.findBySuperCategoryIsNot(""), listType);
+        return modelMapper.map(
+                categoryRepository.findBySuperCategoryIsNot(""),
+                listType
+        );
     }
 
     @Override
-    public void toggleStatus(String identifier) {
+    public CategoryDto toggleStatus(String identifier) {
         Category category = categoryRepository.findByIdentifier(identifier);
         category.setStatus(!category.isStatus());
         categoryRepository.save(category);
+        return modelMapper.map(category, CategoryDto.class);
     }
 
     public List<CategoryDto> findActiveCategories() {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        return modelMapper.map(categoryRepository.findByStatusTrue(), listType);
+        return modelMapper.map(
+                categoryRepository.findByStatusTrue(),
+                listType
+        );
     }
 
 }

@@ -30,9 +30,11 @@ public class RackController {
     }
 
     @GetMapping("/add")
-    public String add(Model model) {
+    public String add(Model model, @ModelAttribute RackDto rackDto) {
+
         model.addAttribute(RACKS, new RackDto());
         model.addAttribute(SHELF, shelfService.findActiveShelves());
+
         return "rack/add";
     }
 
@@ -43,7 +45,9 @@ public class RackController {
             model.addAttribute(RACKS, rackDto);
             model.addAttribute("message", response.getMessage());
             model.addAttribute(SHELF, shelfService.findActiveShelves());
+
             return "rack/add";
+
         }
         return REDIRECT_RACK_LIST;
     }

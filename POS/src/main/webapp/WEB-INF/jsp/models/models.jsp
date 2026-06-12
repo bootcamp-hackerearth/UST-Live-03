@@ -15,6 +15,7 @@
             padding: 0;
         }
 
+        /* BACK BUTTON */
         .back-btn {
             position: fixed;
             top: 20px;
@@ -31,6 +32,7 @@
             background: #5a6268;
         }
 
+        /* CARD */
         .card {
             width: 420px;
             margin: 100px auto;
@@ -66,6 +68,7 @@
             min-height: 80px;
         }
 
+        /* STATUS TOGGLE */
         .switch {
             position: relative;
             display: inline-block;
@@ -112,6 +115,7 @@
             transform: translateX(24px);
         }
 
+        /* BUTTON */
         .btn {
             margin-top: 25px;
             width: 100%;
@@ -128,6 +132,7 @@
             background-color: #0056b3;
         }
 
+        /* ERROR */
         .error {
             background: #fee2e2;
             color: #b91c1c;
@@ -147,6 +152,7 @@
 
     <h2>Edit Model</h2>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error">${message}</div>
     </c:if>
@@ -155,15 +161,18 @@
                method="post"
                modelAttribute="models">
 
+        <!-- IDENTIFIER (Model Name) -->
         <label>Model Name</label>
         <form:input path="identifier" readonly="true"/>
 
+           <!-- STATUS DROPDOWN -->
                 <label>Status</label>
                 <form:select path="status">
                     <form:option value="true">Active</form:option>
                     <form:option value="false">Inactive</form:option>
                 </form:select>
 
+        <!-- SUBMIT -->
         <input type="submit" value="Update Model" class="btn"/>
 
     </form:form>

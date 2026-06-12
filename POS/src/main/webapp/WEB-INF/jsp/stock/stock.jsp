@@ -131,48 +131,57 @@
 
     <h2>Edit Stock</h2>
 
+    <!-- ERROR MESSAGE -->
     <c:if test="${not empty message}">
         <div class="error-msg">
             ${message}
         </div>
     </c:if>
 
+<!-- STOCK NOT FOUND -->
 <c:if test="${empty stock}">
     <div class="error-msg">
         Stock not found
     </div>
 </c:if>
 
+<!-- FORM -->
 <c:if test="${not empty stock}">
 
     <form:form action="/stock/update"
                method="post"
                modelAttribute="stock">
 
+        <!-- IDENTIFIER -->
         <form:hidden path="identifier"/>
 
+        <!-- PRODUCT -->
         <label>Product Name</label>
 
         <form:input path="product"
                     readonly="true"/>
 
+        <!-- WAREHOUSE -->
         <label>Warehouse Name</label>
 
         <form:input path="warehouse"
                     readonly="true"/>
 
+        <!-- QUANTITY -->
         <label>Quantity</label>
 
         <form:input path="quantity"
                     type="number"
                     required="true"/>
 
+        <!-- MINIMUM STOCK -->
         <label>Minimum Stock</label>
 
         <form:input path="minimumStock"
                     type="number"
                     required="true"/>
 
+        <!-- BUTTONS -->
         <div class="btn-container">
 
             <a href="/stock/list"

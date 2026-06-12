@@ -104,12 +104,14 @@
 <div class="container">
     <h2>Add New Node</h2>
 
+    <!-- ERROR MESSAGE -->
     <c:if test="${not empty error}">
         <div class="error">${error}</div>
     </c:if>
 
     <form action="${pageContext.request.contextPath}/node/add" method="post">
 
+        <!-- Node Name -->
         <div class="form-group">
             <label>Node Name</label>
             <input type="text"
@@ -120,6 +122,7 @@
                    required />
         </div>
 
+        <!-- Path -->
         <div class="form-group">
             <label>Path</label>
             <input type="text"
@@ -129,6 +132,7 @@
                    required />
         </div>
 
+        <!-- Roles -->
         <div class="form-group">
             <label>Roles</label>
             <select name="roles" multiple>

@@ -33,11 +33,13 @@ public class BrandController {
     @PostMapping("/add")
     public String addPost(Model model, @ModelAttribute BrandDto brandDto) {
         BrandDto response = brandService.save(brandDto);
+
         if (!response.isSuccess()) {
             model.addAttribute(BRAND, brandDto);
             model.addAttribute("message", response.getMessage());
             return "brand/add";
         }
+
         return REDIRECT_LIST;
     }
 
@@ -50,11 +52,13 @@ public class BrandController {
     @PostMapping("/update")
     public String update(Model model, @ModelAttribute BrandDto brandDto) {
         BrandDto response = brandService.update(brandDto);
+
         if (!response.isSuccess()) {
             model.addAttribute(BRAND, brandDto);
             model.addAttribute("message", response.getMessage());
             return "brand/brand";
         }
+
         return REDIRECT_LIST;
     }
 
@@ -63,11 +67,11 @@ public class BrandController {
         brandService.delete(identifier);
         return REDIRECT_LIST;
     }
-    
+
     @GetMapping("/toggle")
     public String toggle(@RequestParam String identifier) {
         brandService.toggleStatus(identifier);
         return REDIRECT_LIST;
     }
-    
+
 }

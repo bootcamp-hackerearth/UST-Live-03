@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -37,12 +38,10 @@ class UserServiceTest {
 
     @Test
     void saveTest() {
-
         UserDto userDto = new UserDto();
         userDto.setUsername("admin");
         userDto.setPassword("123");
-
-        Mockito.when(userRepository.findByUsername("admin")).thenReturn(null);
+        Mockito.when(userRepository.findByIdentifier("admin")).thenReturn(null);
 
         User user = new User();
 
@@ -52,49 +51,40 @@ class UserServiceTest {
         userService.save(userDto);
         Mockito.verify(userRepository).save(user);
         assertEquals("admin", userDto.getUsername());
-
     }
 
     @Test
     void saveTestFailure() {
-
         UserDto userDto = new UserDto();
         userDto.setUsername("admin");
-
         User existingUser = new User();
 
-        Mockito.when(userRepository.findByUsername("admin")).thenReturn(existingUser);
+        Mockito.when(userRepository.findByIdentifier("admin")).thenReturn(existingUser);
 
         UserDto response = userService.save(userDto);
         assertFalse(response.isSuccess());
         assertTrue(response.getMessage().contains("already exists"));
-
     }
 
     @Test
     void findByUserNameTest() {
-
         User user = new User();
         user.setUsername("admin");
-
         UserDto userDto = new UserDto();
         userDto.setUsername("admin");
 
-        Mockito.when(userRepository.findByUsername("admin")).thenReturn(user);
+        Mockito.when(userRepository.findByIdentifier("admin")).thenReturn(user);
         Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
 
-        UserDto response = userService.findByUserName("admin");
+        UserDto response = userService.findByIdentifier("admin");
         assertEquals("admin", response.getUsername());
-
     }
 
     @Test
     void updateTest() {
-
         UserDto userDto = new UserDto();
         userDto.setId(1L);
         userDto.setUsername("admin");
-
         User existingUser = new User();
         existingUser.setUsername("admin");
 
@@ -103,12 +93,10 @@ class UserServiceTest {
 
         userService.update(userDto);
         Mockito.verify(userRepository).save(existingUser);
-
     }
 
     @Test
     void updateTestFailure_UserNotFound() {
-
         UserDto userDto = new UserDto();
         userDto.setId(1L);
         userDto.setUsername("admin");
@@ -118,62 +106,48 @@ class UserServiceTest {
         UserDto response = userService.update(userDto);
         assertFalse(response.isSuccess());
         assertTrue(response.getMessage().contains("not found"));
-
     }
 
     @Test
     void updateTestFailure_UsernameExists() {
-
         UserDto userDto = new UserDto();
         userDto.setId(1L);
         userDto.setUsername("newUser");
-
         User existingUser = new User();
         existingUser.setUsername("oldUser");
 
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        Mockito.when(userRepository.findByUsername("newUser")).thenReturn(new User());
+        Mockito.when(userRepository.findByIdentifier("newUser")).thenReturn(new User());
 
         UserDto response = userService.update(userDto);
         assertFalse(response.isSuccess());
         assertTrue(response.getMessage().contains("already exists"));
-
     }
-
 
     @Test
     void deleteTest() {
-
-        Mockito.doNothing().when(userRepository).deleteByUsername("admin");
-
+        Mockito.doNothing().when(userRepository).deleteByIdentifier("admin");
         userService.delete("admin");
-        Mockito.verify(userRepository).deleteByUsername("admin");
-
+        Mockito.verify(userRepository).deleteByIdentifier("admin");
     }
-
 
     @Test
     void findAllWithPaginationTest() {
-
         Pageable pageable = PageRequest.of(0, 5);
         User user = new User();
         user.setUsername("admin");
-
         UserDto userDto = new UserDto();
         userDto.setUsername("admin");
-
         List<User> users = List.of(user);
         List<UserDto> userDtos = List.of(userDto);
-
         Page<User> userPage = new PageImpl<>(users, pageable, users.size());
 
         Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
         Mockito.when(modelMapper.map(Mockito.eq(userPage.getContent()), Mockito.any(java.lang.reflect.Type.class))).thenReturn(userDtos);
 
-        List<UserDto> response = userService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("admin", response.get(0).getUsername());
-
+        WsDto<UserDto> response = userService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("admin", response.getDtoList().get(0).getUsername());
     }
 
 }

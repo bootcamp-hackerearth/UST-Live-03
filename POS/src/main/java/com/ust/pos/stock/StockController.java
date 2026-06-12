@@ -33,7 +33,7 @@ public class StockController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, Pageable pageable) {
+    public String add(Model model, Pageable pageable, @ModelAttribute StockDto stockDto) {
         model.addAttribute(STOCKS, new StockDto());
         model.addAttribute(PRODUCTS, productService.findAll(pageable));
         model.addAttribute(WAREHOUSES, warehouseService.findAll(pageable));

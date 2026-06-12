@@ -3,6 +3,7 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequestMapping("/api/node")
 public class NodeApiController extends BaseController {
 
+    public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
     public static final String ROLES = "roles";
 
     @Autowired
@@ -23,7 +25,7 @@ public class NodeApiController extends BaseController {
     private RoleService roleService;
 
     @PostMapping("/list")
-    public List<NodeDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return nodeService.findAll(pageable);
     }

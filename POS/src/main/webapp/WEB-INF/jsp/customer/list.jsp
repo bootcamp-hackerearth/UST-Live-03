@@ -61,6 +61,7 @@
             background-color: #f5f7f9;
         }
 
+        /* COLUMN WIDTHS */
         th:nth-child(1), td:nth-child(1) { width: 50px; }
         th:nth-child(2), td:nth-child(2) { width: 150px; text-align: left; }
         th:nth-child(3), td:nth-child(3) { width: 200px; text-align: left; }
@@ -70,6 +71,7 @@
         th:nth-child(7), td:nth-child(7) { width: 110px; text-align: right; }
         th:nth-child(8), td:nth-child(8) { width: 130px; }
 
+        /* BUTTONS */
         .btn {
             padding: 6px 10px;
             text-decoration: none;
@@ -98,11 +100,13 @@
             color: #888;
         }
 
+        /* CURRENCY */
         .currency {
             font-family: monospace;
             text-align: right;
         }
 
+        /* BADGE */
         .badge {
             padding: 3px 10px;
             border-radius: 12px;
@@ -117,6 +121,7 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="header">
         <h2>Customer List</h2>
         <div>
@@ -125,10 +130,12 @@
         </div>
     </div>
 
+    <!-- EMPTY -->
     <c:if test="${empty customers}">
         <div class="empty">No customers available</div>
     </c:if>
 
+    <!-- TABLE -->
     <c:if test="${not empty customers}">
         <table>
             <thead>

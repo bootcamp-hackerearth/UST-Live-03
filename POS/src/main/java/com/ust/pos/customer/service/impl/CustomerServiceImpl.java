@@ -4,6 +4,7 @@ import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
@@ -47,12 +48,16 @@ public class CustomerServiceImpl implements CustomerService {
         }
         AddressDto billingAddress = customerDto.getBillingAddress();
         AddressDto shippingAddress = customerDto.getShippingAddress();
+
         billingAddress.setPhoneNumber(customerDto.getPhoneNumber());
         shippingAddress.setPhoneNumber(customerDto.getPhoneNumber());
+
         addressService.save(billingAddress);
         addressService.save(shippingAddress);
+
         Customer customer = modelMapper.map(customerDto, Customer.class);
         customerRepository.save(customer);
+
         return customerDto;
     }
 
@@ -67,13 +72,19 @@ public class CustomerServiceImpl implements CustomerService {
         }
         AddressDto billingAddress = customerDto.getBillingAddress();
         AddressDto shippingAddress = customerDto.getShippingAddress();
+
         billingAddress.setPhoneNumber(customerDto.getPhoneNumber());
         shippingAddress.setPhoneNumber(customerDto.getPhoneNumber());
+
         addressService.update(billingAddress);
         addressService.update(shippingAddress);
+
         modelMapper.map(customerDto, existingCustomer);
-        customerDto.setBillingAddress(addressService.findByPhoneNoAndAddressType(existingCustomer.getPhoneNumber(), "BILLING"));
-        customerDto.setShippingAddress(addressService.findByPhoneNoAndAddressType(existingCustomer.getPhoneNumber(), "SHIPPING"));
+        customerDto.setBillingAddress(addressService.
+                findByPhoneNoAndAddressType(existingCustomer.getPhoneNumber(), "BILLING"));
+        customerDto.setShippingAddress(addressService.
+                findByPhoneNoAndAddressType(existingCustomer.getPhoneNumber(), "SHIPPING"));
+
         customerRepository.save(existingCustomer);
         return customerDto;
     }
@@ -89,11 +100,18 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        WsDto<CustomerDto> customerDto = new WsDto<>();
+        customerDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        customerDto.setTotalRecords(customerPage.getTotalElements());
+        customerDto.setTotalPage(customerPage.getTotalPages());
+        customerDto.setSizePerPage(pageable.getPageSize());
+        customerDto.setPage(pageable.getPageNumber());
+        return customerDto;
+
     }
 
 }

@@ -14,7 +14,6 @@ public class CategoryController {
 
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
     public static final String CATEGORIES = "categories";
-    
     @Autowired
     private CategoryService categoryService;
 
@@ -34,6 +33,7 @@ public class CategoryController {
     @PostMapping("/add")
     public String addPost(Model model, @ModelAttribute CategoryDto categoryDto, Pageable pageable) {
         CategoryDto response = categoryService.save(categoryDto);
+
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
@@ -44,20 +44,26 @@ public class CategoryController {
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier, Pageable pageable) {
+
         CategoryDto response = categoryService.findByIdentifier(identifier);
+
         model.addAttribute("categoryDto", response);
         model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+
         return "category/category";
     }
 
     @PostMapping("/update")
     public String updatePost(Model model, @ModelAttribute CategoryDto categoryDto, Pageable pageable) {
+
         CategoryDto response = categoryService.update(categoryDto);
+
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
             return "category/category";
         }
+
         return REDIRECT_CATEGORY_LIST;
     }
 
@@ -72,5 +78,4 @@ public class CategoryController {
         categoryService.toggleStatus(identifier);
         return REDIRECT_CATEGORY_LIST;
     }
-
 }

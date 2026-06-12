@@ -87,14 +87,17 @@
 
     <h2>Edit Node Details</h2>
 
+    <!-- Error -->
     <c:if test="${not empty error}">
         <div class="error">${error}</div>
     </c:if>
 
     <form action="${pageContext.request.contextPath}/node/update" method="post">
 
+        <!-- Hidden ID -->
         <input type="hidden" name="id" value="${node.id}" />
 
+        <!-- Identifier -->
         <div class="form-group">
             <label>Node Name</label>
             <input type="text" name="identifier"
@@ -103,12 +106,14 @@
 
         </div>
 
+        <!-- Path -->
         <div class="form-group">
             <label>Path</label>
             <input type="text" name="path"
                    value="${node != null && node.path != null ? node.path : ''}" required />
         </div>
 
+        <!-- Roles -->
         <div class="form-group">
             <label>Assigned Roles</label>
 
@@ -128,6 +133,7 @@
             <div class="hint">Hold Ctrl (Win) or Cmd (Mac) to select multiple</div>
         </div>
 
+        <!-- Actions -->
         <div class="actions">
             <button type="submit" class="btn btn-update">Update Node</button>
             <a href="${pageContext.request.contextPath}/node/list" class="btn btn-cancel">Cancel</a>

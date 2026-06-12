@@ -37,7 +37,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
+            table-layout: fixed; /* 🔥 important fix */
         }
 
         th {
@@ -56,11 +56,13 @@
             background-color: #fafafa;
         }
 
+        /* Address column */
         .address-col {
             max-width: 200px;
             white-space: normal;
         }
 
+        /* Actions column */
         .actions-col {
             width: 160px;
             white-space: nowrap;
@@ -128,12 +130,14 @@
                     <td>${w.country}</td>
                     <td>${w.region}</td>
 
+                    <!-- 🔥 Address fix -->
                     <td class="address-col" title="${w.address}">
                         ${w.address}
                     </td>
 
                     <td>${w.phoneNo}</td>
 
+                    <!-- 🔥 Actions fixed -->
                     <td class="actions-col">
                         <a href="/warehouse/get?identifier=${w.identifier}" class="btn btn-edit">Edit</a>
                         <a href="/warehouse/delete?identifier=${w.identifier}"

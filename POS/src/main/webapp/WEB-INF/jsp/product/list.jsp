@@ -96,6 +96,7 @@
             align-items: center;
         }
 
+        /* TOGGLE */
         .switch {
             position: relative;
             display: inline-block;
@@ -142,6 +143,7 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="header">
         <h2>Product List</h2>
         <div class="header-buttons">
@@ -150,10 +152,12 @@
         </div>
     </div>
 
+    <!-- EMPTY -->
     <c:if test="${empty products}">
         <div class="empty-msg">No products found</div>
     </c:if>
 
+    <!-- TABLE -->
     <c:if test="${not empty products}">
         <table>
             <thead>
@@ -180,6 +184,7 @@
 
                     <td>${product.name}</td>
 
+                    <!-- CATEGORIES -->
                     <td>
                         <c:choose>
                             <c:when test="${empty product.categories}">
@@ -193,6 +198,7 @@
                         </c:choose>
                     </td>
 
+                    <!-- BRAND -->
                     <td>
                         <c:choose>
                             <c:when test="${empty product.brand}">
@@ -202,6 +208,7 @@
                         </c:choose>
                     </td>
 
+                    <!-- MODEL -->
                     <td>
                         <c:choose>
                             <c:when test="${empty product.model}">
@@ -211,6 +218,7 @@
                         </c:choose>
                     </td>
 
+                    <!-- UNIT -->
                     <td>
                         <c:choose>
                             <c:when test="${empty product.unit}">
@@ -219,6 +227,7 @@
                             <c:otherwise>${product.unit}</c:otherwise>
                         </c:choose>
                     </td>
+                    <!-- STATUS TOGGLE -->
                     <td>
                         <div class="toggle-container"
                              onclick="window.location.href='${pageContext.request.contextPath}/product/toggle?identifier=${product.identifier}'">
@@ -229,6 +238,7 @@
                         </div>
                     </td>
 
+                    <!-- ACTIONS -->
                     <td>
                         <div class="action-buttons">
                             <a href="/product/get?identifier=${product.identifier}"

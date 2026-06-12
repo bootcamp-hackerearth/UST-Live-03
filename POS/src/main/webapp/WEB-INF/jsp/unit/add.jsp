@@ -86,21 +86,25 @@
 
     <h2>Add Unit</h2>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error-msg">${message}</div>
     </c:if>
 
     <form:form action="/unit/add" method="post" modelAttribute="unit">
 
+        <!-- UNIT NAME -->
         <label>Unit Name</label>
         <form:input path="identifier" required="true"/>
 
+        <!-- ACTIVE -->
         <label>Status</label>
         <form:select path="status">
             <form:option value="true">Active</form:option>
             <form:option value="false">Inactive</form:option>
         </form:select>
 
+        <!-- SUBMIT -->
         <input type="submit" value="Save Unit" class="btn-submit"/>
 
     </form:form>

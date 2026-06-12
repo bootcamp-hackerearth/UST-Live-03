@@ -86,21 +86,25 @@
 
     <h2>Add Model</h2>
 
+    <!-- ERROR -->
     <c:if test="${not empty message}">
         <div class="error-msg">${message}</div>
     </c:if>
 
     <form:form action="/models/add" method="post" modelAttribute="models">
 
+        <!-- MODEL NAME -->
         <label>Model Name</label>
         <form:input path="identifier" required="true"/>
 
+           <!-- STATUS DROPDOWN -->
                 <label>Status</label>
                 <form:select path="status">
                     <form:option value="true">Active</form:option>
                     <form:option value="false">Inactive</form:option>
                 </form:select>
 
+        <!-- SUBMIT -->
         <input type="submit" value="Save Model" class="btn-submit"/>
 
     </form:form>

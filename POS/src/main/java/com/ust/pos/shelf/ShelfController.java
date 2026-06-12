@@ -33,11 +33,13 @@ public class ShelfController {
     @PostMapping("/add")
     public String addPost(Model model, @ModelAttribute ShelfDto shelfDto) {
         ShelfDto response = shelfService.save(shelfDto);
+
         if (!response.isSuccess()) {
-            model.addAttribute(SHELF, shelfDto);
+            model.addAttribute(SHELF,shelfDto);
             model.addAttribute("message", response.getMessage());
             return "shelf/add";
         }
+
         return REDIRECT_LIST;
     }
 
@@ -50,11 +52,13 @@ public class ShelfController {
     @PostMapping("/update")
     public String update(Model model, @ModelAttribute ShelfDto shelfDto) {
         ShelfDto response = shelfService.update(shelfDto);
+
         if (!response.isSuccess()) {
             model.addAttribute(SHELF, shelfDto);
             model.addAttribute("message", response.getMessage());
             return "shelf/shelf";
         }
+
         return REDIRECT_LIST;
     }
 

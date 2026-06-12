@@ -13,8 +13,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @OpenAPIDefinition(
-        servers = {@Server(url = "/", description = "Default Server URL")})
-
+        servers = {
+                @Server(url = "/", description = "Default Server URL")
+        }
+)
 @ComponentScan({"com.ust.pos.api", "com.ust.pos.web.controller", "com.ust.pos"})
 public class UserDto extends CommonDto {
 
