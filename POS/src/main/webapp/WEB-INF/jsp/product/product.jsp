@@ -27,8 +27,10 @@ body {
     width: 450px;
     padding: 30px;
     border-radius: 15px;
+
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
+
     border: 1px solid rgba(255,255,255,0.2);
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
@@ -49,9 +51,11 @@ input, select {
     padding: 10px;
     margin-top: 6px;
     margin-bottom: 15px;
+
     border-radius: 8px;
     border: none;
     outline: none;
+
     background: rgba(255,255,255,0.1);
     color: #fff;
 }
@@ -133,7 +137,6 @@ input[readonly] {
     </c:if>
 
     <c:if test="${not empty product}">
-
         <form:form method="post"
                    action="${pageContext.request.contextPath}/product/update"
                    modelAttribute="product">
@@ -167,11 +170,6 @@ input[readonly] {
                               itemLabel="identifier"/>
             </form:select>
 
-
-              <label>Product Name</label>
-             <form:input path="productName" placeholder="Enter Product Name" required="true"/>
-
-
             <label>Model</label>
             <form:select path="model">
                 <form:option value="">-- Select Model --</form:option>
@@ -179,6 +177,11 @@ input[readonly] {
                               itemValue="identifier"
                               itemLabel="identifier"/>
             </form:select>
+
+            <label>Supplier ID</label>
+            <form:input path="supplierId"
+                        placeholder="Enter Supplier ID"
+                        required="true"/>
 
             <div class="btn-group">
                 <a href="${pageContext.request.contextPath}/product/list"
@@ -192,7 +195,6 @@ input[readonly] {
             </div>
 
         </form:form>
-
     </c:if>
 
     <div class="footer">

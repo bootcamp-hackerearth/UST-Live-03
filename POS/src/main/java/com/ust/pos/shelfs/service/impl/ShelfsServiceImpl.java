@@ -1,6 +1,7 @@
 package com.ust.pos.shelfs.service.impl;
 
 import com.ust.pos.dto.ShelfsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.shelfs.service.ShelfsService;
@@ -58,11 +59,17 @@ public class ShelfsServiceImpl implements ShelfsService {
     }
 
     @Override
-    public List<ShelfsDto> findAll(Pageable pageable) {
+    public WsDto<ShelfsDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfsDto>>() {
         }.getType();
         Page<Shelfs> shelfsPage = shelfRepository.findAll(pageable);
-        return modelMapper.map(shelfsPage.getContent(), listType);
+        WsDto<ShelfsDto> shelfsDtoWsDto = new WsDto<>();
+        shelfsDtoWsDto.setDtoList(modelMapper.map(shelfsPage.getContent(), listType));
+        shelfsDtoWsDto.setTotalRecords(shelfsPage.getTotalElements());
+        shelfsDtoWsDto.setTotalPages(shelfsPage.getTotalPages());
+        shelfsDtoWsDto.setSizePerPage(pageable.getPageSize());
+        shelfsDtoWsDto.setPage(pageable.getPageNumber());
+        return shelfsDtoWsDto;
     }
 
     @Override

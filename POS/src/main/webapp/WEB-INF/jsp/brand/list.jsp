@@ -147,6 +147,7 @@ input:checked + .slider:before {
     box-shadow:0 0 10px #ff4d4d;
 }
 
+/* Bottom */
 .bottom-bar {
     margin-top:25px;
     display:flex;
@@ -184,6 +185,7 @@ input:checked + .slider:before {
 <thead>
 <tr>
 <th>SL</th>
+<th>Icon</th>
 <th>Brand Name</th>
 <th>Description</th>
 <th>Status</th>
@@ -196,6 +198,10 @@ input:checked + .slider:before {
 <tr>
 
 <td>${loop.index + 1}</td>
+
+<td>
+<img src="/uploads/${brand.icon}">
+</td>
 
 <td class="brand-name">${brand.identifier}</td>
 <td>${brand.description}</td>
@@ -231,6 +237,7 @@ input:checked + .slider:before {
 </table>
 
 <div class="bottom-bar">
+
 <a href="/" class="home-btn">
     Home
 </a>

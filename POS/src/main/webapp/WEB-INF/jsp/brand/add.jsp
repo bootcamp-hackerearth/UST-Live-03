@@ -28,8 +28,10 @@ body {
     width:420px;
     padding:35px;
     border-radius:15px;
+
     background:rgba(255,255,255,0.05);
     backdrop-filter:blur(12px);
+
     border:1px solid rgba(255,255,255,0.2);
     box-shadow:0 8px 32px rgba(0,0,0,0.4);
 }
@@ -142,25 +144,13 @@ input:focus, textarea:focus {
            enctype="multipart/form-data">
 
     <label>Brand Name</label>
-    <form:input
-        path="identifier"
-        placeholder="Enter brand name"
-        required="true"
-        minlength="2"
-        maxlength="50"
-        pattern="[A-Za-z0-9 ]+"
-        title="Enter valid brand name"
-    />
+    <form:input path="identifier" placeholder="Enter brand name"/>
 
+    <label>Brand Icon</label>
+    <input type="file" name="iconFile"/>
 
     <label>Description</label>
-    <form:textarea
-        path="description"
-        rows="3"
-        placeholder="Description"
-        minlength="3"
-        maxlength="200"
-    />
+    <form:textarea path="description" rows="3" placeholder="Description"/>
 
     <div class="btn-row">
         <button type="reset" class="btn-reset">Reset</button>

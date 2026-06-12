@@ -28,8 +28,10 @@ body {
     width:420px;
     padding:35px;
     border-radius:15px;
+
     background:rgba(255,255,255,0.05);
     backdrop-filter:blur(12px);
+
     border:1px solid rgba(255,255,255,0.2);
     box-shadow:0 8px 32px rgba(0,0,0,0.4);
 }
@@ -70,9 +72,11 @@ input, select {
     padding:10px;
     margin-top:6px;
     margin-bottom:15px;
+
     border-radius:8px;
     border:none;
     outline:none;
+
     background:rgba(255,255,255,0.1);
     color:#fff;
 }
@@ -94,6 +98,7 @@ input:focus, select:focus {
     border:none;
     cursor:pointer;
     font-weight:bold;
+
     background:#00ffff;
     color:#000;
 }
@@ -130,23 +135,15 @@ input:focus, select:focus {
     <form:form method="post" action="/unit/add" modelAttribute="unitDto">
 
         <label>Unit Name</label>
-        <form:input
-            path="identifier"
-            placeholder="Enter Unit Name"
-            required="true"
-            minlength="2"
-            maxlength="50"
-            pattern="[A-Za-z ]+"
-            title="Enter valid unit name (letters only)"
-        />
+        <form:input path="identifier" placeholder="Enter Unit Name" />
 
         <label>Status</label>
-        <form:select path="status" required="true">
+        <form:select path="status">
             <form:option value="true" label="Active"/>
             <form:option value="false" label="Inactive"/>
         </form:select>
 
-        <input type="submit" value="Add Unit" class="btn-submit"/>
+        <input type="submit" value="Add Unit" class="btn-submit" />
 
     </form:form>
 

@@ -1,4 +1,5 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8" %>
 
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
@@ -29,8 +30,10 @@ body {
     width: 380px;
     padding: 35px;
     border-radius: 18px;
+
     background: rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(14px);
+
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
 }
@@ -53,35 +56,18 @@ input, select {
     width: 100%;
     padding: 11px;
     margin-bottom: 18px;
+
     border-radius: 10px;
     border: none;
     outline: none;
+
     background: rgba(255, 255, 255, 0.08);
     color: #fff;
-}
-
-select {
-    appearance: none;
-    cursor: pointer;
 }
 
 select option {
     background: #1a1b26;
     color: #fff;
-}
-
-.dropdown-wrapper {
-    position: relative;
-}
-
-.dropdown-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #00ffff;
-    pointer-events: none;
-    font-size: 14px;
 }
 
 input:focus, select:focus {
@@ -99,6 +85,7 @@ button {
     padding: 13px;
     border: none;
     border-radius: 10px;
+
     background: #00ffff;
     color: #000;
     font-weight: bold;
@@ -146,27 +133,23 @@ button:hover {
         <form:input path="identifier" readonly="true"/>
 
         <label>Select Shelf</label>
-        <div class="dropdown-wrapper">
-            <form:select path="shelfs" required="true">
-                <form:option value="">-- Select Shelf --</form:option>
+        <form:select path="shelfs">
 
-                <c:forEach var="s" items="${shelfs}">
-                    <form:option value="${s.identifier}">
-                        ${s.identifier}
-                    </form:option>
-                </c:forEach>
-            </form:select>
-            <span class="dropdown-icon">▼</span>
-        </div>
+            <form:option value="">-- Select Shelf --</form:option>
+
+            <c:forEach var="s" items="${shelfs}">
+                <form:option value="${s.identifier}">
+                    ${s.identifier}
+                </form:option>
+            </c:forEach>
+
+        </form:select>
 
         <label>Status</label>
-        <div class="dropdown-wrapper">
-            <form:select path="status" required="true">
-                <form:option value="true" label="Active"/>
-                <form:option value="false" label="Inactive"/>
-            </form:select>
-            <span class="dropdown-icon">▼</span>
-        </div>
+        <form:select path="status">
+            <form:option value="true" label="Active"/>
+            <form:option value="false" label="Inactive"/>
+        </form:select>
 
         <button type="submit">Update</button>
 

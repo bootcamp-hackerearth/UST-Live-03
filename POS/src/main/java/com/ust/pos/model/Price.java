@@ -12,5 +12,5 @@ import java.math.BigDecimal;
 public class Price extends CommonFields {
     private BigDecimal costPrice;
     private BigDecimal sellingPrice;
-    private BigDecimal mrpPrice;
+    private BigDecimal mrp;
 }

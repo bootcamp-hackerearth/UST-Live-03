@@ -1,4 +1,5 @@
 package com.ust.pos.brand;
+
 import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
@@ -26,7 +27,7 @@ public class BrandController extends BaseController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute BrandDto brandDto) {
+    public String add(Model model, @ModelAttribute BrandDto userDto) {
         PaginationDto paginationDto = new PaginationDto();
         model.addAttribute("brand", brandService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField())));
@@ -34,8 +35,8 @@ public class BrandController extends BaseController {
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute BrandDto brandDto) {
-        BrandDto response = brandService.save(brandDto);
+    public String addPost(Model model, @ModelAttribute BrandDto userDto) {
+        BrandDto response = brandService.save(userDto);
         PaginationDto paginationDto = new PaginationDto();
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());

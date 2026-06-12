@@ -26,9 +26,13 @@ body {
     width: 350px;
     padding: 30px;
     border-radius: 15px;
+
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
     border: 1px solid rgba(255, 255, 255, 0.2);
+
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
@@ -43,15 +47,16 @@ label {
     font-size: 14px;
 }
 
-input,
-select {
+input {
     width: 100%;
     padding: 10px;
     margin-top: 6px;
     margin-bottom: 15px;
+
     border-radius: 8px;
     border: none;
     outline: none;
+
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
 }
@@ -60,26 +65,23 @@ input::placeholder {
     color: #aaa;
 }
 
-input:focus,
-select:focus {
+input:focus {
     border: 1px solid #00ffff;
     box-shadow: 0 0 8px #00ffff;
-}
-
-select option {
-    background: #1a1b26;
-    color: #fff;
 }
 
 button {
     width: 100%;
     padding: 12px;
+
     border: none;
     border-radius: 8px;
+
     background: #00ffff;
     color: #000;
     font-weight: bold;
     cursor: pointer;
+
     transition: 0.3s;
 }
 
@@ -102,68 +104,26 @@ button:hover {
 <body>
 
 <div class="container">
+<h2>Add Price</h2>
 
-    <h2>Add Price</h2>
+<form:form action="/price/add" method="post" modelAttribute="price">
 
-    <form:form action="/price/add"
-               method="post"
-               modelAttribute="priceDto">
+    <label>Product Identifier</label>
+    <form:input path="identifier" placeholder="Enter product identifier"/>
 
-        <label>Product Identifier</label>
-        <form:select
-            path="identifier"
-            required="true"
-        >
-            <form:option value="">Select Product</form:option>
+    <label>Cost Price</label>
+    <form:input path="costPrice" type="number" step="0.01" placeholder="Enter cost price"/>
 
-            <c:forEach var="p" items="${product}">
-                <form:option value="${p.identifier}">
-                    ${p.identifier}
-                </form:option>
-            </c:forEach>
-        </form:select>
+    <label>Selling Price</label>
+    <form:input path="sellingPrice" type="number" step="0.01" placeholder="Enter selling price"/>
 
-        <label>Cost Price</label>
-        <form:input
-            path="costPrice"
-            type="number"
-            step="0.01"
-            placeholder="Enter cost price"
-            required="true"
-            min="0"
-        />
+    <button type="submit">Save</button>
 
-        <label>Selling Price</label>
-        <form:input
-            path="sellingPrice"
-            type="number"
-            step="0.01"
-            placeholder="Enter selling price"
-            required="true"
-            min="0"
-        />
+    <c:if test="${not empty message}">
+        <div class="message">${message}</div>
+    </c:if>
 
-        <label>Mrp Price</label>
-        <form:input
-            path="mrpPrice"
-            type="number"
-            step="0.01"
-            placeholder="Enter mrp price"
-            required="true"
-            min="0"
-        />
-
-        <button type="submit">
-            Save
-        </button>
-
-        <c:if test="${not empty message}">
-            <div class="message">
-                ${message}
-            </div>
-        </c:if>
-
-    </form:form>
+</form:form>
 
 </div>
 

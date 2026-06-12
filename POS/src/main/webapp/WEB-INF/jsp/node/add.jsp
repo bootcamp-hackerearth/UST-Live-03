@@ -8,47 +8,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Add Node</title>
+    <meta charset="UTF-8">
+    <title>Add Node</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"/>
 
-<style>
-body {
-    min-height: 100vh;
-    background-color: #f1f3f6;
-    font-family: "Segoe UI", sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+    <style>
+        body {
+            min-height: 100vh;
+            background-color: #f1f3f6;
+            font-family: "Segoe UI", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.card {
-    border-radius: 12px;
-    border: none;
-}
+        .card {
+            border-radius: 12px;
+            border: none;
+        }
 
-.card-header {
-    background-color: #1e272e;
-    color: #ffffff;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-}
+        .card-header {
+            background-color: #1e272e;
+            color: #ffffff;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
 
-.form-label {
-    font-size: 0.9rem;
-    font-weight: 600;
-}
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
 
-select[multiple] {
-    height: 120px;
-}
+        select[multiple] {
+            height: 120px;
+        }
 
-.btn-primary {
-    background-color: #0d6efd;
-}
-</style>
+        .btn-primary {
+            background-color: #0d6efd;
+        }
+    </style>
 </head>
 
 <body>
@@ -65,54 +65,38 @@ select[multiple] {
 
                 <div class="card-body p-4">
 
-                    <form:form action="/node/add"
-                               method="post"
-                               modelAttribute="nodeDto">
+                    <form:form
+                            action="/node/add"
+                            method="post"
+                            modelAttribute="nodeDto">
 
                         <div class="mb-3">
                             <label class="form-label">Node Name</label>
                             <form:input
-                                path="identifier"
-                                cssClass="form-control"
-                                required="true"
-                                minlength="3"
-                                maxlength="50"
-                                pattern="[A-Za-z0-9 ]+"
-                                title="Enter valid node name"
-                                placeholder="Enter node name"
-                            />
+                                    path="identifier"
+                                    cssClass="form-control"
+                                    required="true"/>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Node Path</label>
                             <form:input
-                                path="path"
-                                cssClass="form-control"
-                                required="true"
-                                minlength="3"
-                                maxlength="100"
-                                pattern="^/.*"
-                                title="Path must start with /"
-                                placeholder="/api/sample/path"
-                            />
+                                    path="path"
+                                    cssClass="form-control"
+                                    required="true"/>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Additional Roles</label>
-
                             <form:select
-                                path="roles"
-                                multiple="true"
-                                cssClass="form-control"
-                                required="true"
-                            >
+                                    path="roles"
+                                    multiple="true"
+                                    cssClass="form-control">
                                 <form:options
-                                    items="${roles}"
-                                    itemValue="identifier"
-                                    itemLabel="identifier"
-                                />
+                                        items="${roles}"
+                                        itemValue="identifier"
+                                        itemLabel="identifier"/>
                             </form:select>
-
                             <div class="form-text">
                                 Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple roles
                             </div>

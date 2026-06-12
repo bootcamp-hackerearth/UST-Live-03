@@ -1,4 +1,5 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8"%>
 
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
@@ -9,7 +10,8 @@
 <meta charset="UTF-8">
 <title>Add Stock</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet">
 
 <style>
 * {
@@ -32,8 +34,10 @@ body {
     width: 420px;
     padding: 30px;
     border-radius: 15px;
+
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
+
     border: 1px solid rgba(255,255,255,0.2);
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
@@ -44,12 +48,15 @@ body {
     left: 15px;
     width: 34px;
     height: 34px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border-radius: 50%;
     text-decoration: none;
     font-size: 18px;
+
     background: rgba(255,255,255,0.1);
     color: #00ffff;
 }
@@ -74,9 +81,11 @@ label {
     padding: 10px;
     margin-top: 6px;
     margin-bottom: 15px;
+
     border-radius: 8px;
     border: none;
     outline: none;
+
     background: rgba(255,255,255,0.1);
     color: #fff;
 }
@@ -96,6 +105,7 @@ select option {
     padding: 12px;
     border-radius: 8px;
     border: none;
+
     background: #00ffff;
     color: #000;
     font-weight: bold;
@@ -121,6 +131,7 @@ select option {
 <div class="card-container">
 
     <a href="${pageContext.request.contextPath}/stock/list" class="back-icon">←</a>
+
     <h2>Add Stock</h2>
 
     <c:if test="${not empty message}">
@@ -134,27 +145,22 @@ select option {
                modelAttribute="stockDto">
 
         <label>Stock</label>
-        <form:input
-            path="identifier"
-            cssClass="form-control"
-            placeholder="Enter stock name"
-            required="true"
-            minlength="2"
-            maxlength="50"
-        />
+        <form:input path="identifier"
+                    cssClass="form-control"
+                    placeholder="Enter stock name"/>
 
         <label>Product</label>
-        <form:select path="productName" cssClass="form-control" required="true">
+        <form:select path="productName" cssClass="form-control">
             <form:option value="" label="-- Select Product --"/>
             <c:forEach items="${product}" var="product">
-                <form:option value="${product.productName}">
-                    ${product.productName}
+                <form:option value="${product.identifier}">
+                    ${product.identifier}
                 </form:option>
             </c:forEach>
         </form:select>
 
         <label>Warehouse</label>
-        <form:select path="warehouseName" cssClass="form-control" required="true">
+        <form:select path="warehouseName" cssClass="form-control">
             <form:option value="" label="-- Select Warehouse --"/>
             <c:forEach items="${warehouse}" var="warehouse">
                 <form:option value="${warehouse.identifier}">
@@ -164,18 +170,14 @@ select option {
         </form:select>
 
         <label>Quantity</label>
-        <form:input
-            path="quantity"
-            type="number"
-            cssClass="form-control"
-            placeholder="Enter quantity"
-            required="true"
-            min="1"
-            max="100000"
-        />
+        <form:input path="quantity"
+                    type="number"
+                    cssClass="form-control"
+                    placeholder="Enter quantity"
+                    required="true"/>
 
         <label>Status</label>
-        <form:select path="stockStatus" cssClass="form-control" required="true">
+        <form:select path="stockStatus" cssClass="form-control">
             <form:option value="" label="-- Select Status --"/>
             <form:option value="IN_STOCK">In Stock</form:option>
             <form:option value="OUT_OF_STOCK">Out of Stock</form:option>
@@ -184,6 +186,7 @@ select option {
         <button type="submit" class="btn-submit">
             Add Stock
         </button>
+
     </form:form>
 
 </div>

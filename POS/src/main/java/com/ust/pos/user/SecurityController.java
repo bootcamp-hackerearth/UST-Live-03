@@ -39,6 +39,7 @@ public class SecurityController extends BaseController {
     public String addPost(Model model, @ModelAttribute UserDto userDto, RedirectAttributes redirectAttributes) {
         UserDto response = userService.save(userDto);
         PaginationDto paginationDto = new PaginationDto();
+
         if (!response.isSuccess()) {
             model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                     paginationDto.getSortDirection(), paginationDto.getSortField())));
@@ -48,6 +49,5 @@ public class SecurityController extends BaseController {
         redirectAttributes.addFlashAttribute("message", "Register Success, Please login");
         return "redirect:/login";
     }
-
 
 }

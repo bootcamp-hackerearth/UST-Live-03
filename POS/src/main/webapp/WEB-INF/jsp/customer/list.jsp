@@ -6,8 +6,7 @@
 <head>
 <title>Customer Management</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
-      rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 * {
@@ -29,8 +28,10 @@ body {
     width: 900px;
     padding: 30px;
     border-radius: 15px;
+
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
+
     border: 1px solid rgba(255,255,255,0.2);
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
@@ -128,69 +129,65 @@ tr:hover {
 
 <div class="card-container">
 
-    <h2>Customer Management</h2>
+<h2>Customer Management</h2>
 
-    <c:if test="${empty customer}">
-        <div class="no-data">
-            No customers found
-        </div>
-    </c:if>
-
-    <c:if test="${not empty customer}">
-        <table>
-
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Party Type</th>
-                <th>Balance</th>
-                <th>Credit Limit</th>
-                <th>Actions</th>
-            </tr>
-
-            <c:forEach var="cat" items="${customer}">
-            <tr>
-
-                <td>${cat.id}</td>
-                <td>${cat.name}</td>
-                <td>${cat.identifier}</td>
-                <td>${cat.phoneNo}</td>
-                <td>${cat.partyType}</td>
-                <td>${cat.balance}</td>
-                <td>${cat.creditLimit}</td>
-
-                <td>
-                    <div class="action-group">
-
-                        <a href="/customer/get?identifier=${cat.identifier}"
-                           class="btn update">
-                           Update
-                        </a>
-
-                        <a href="/customer/delete?identifier=${cat.identifier}"
-                           class="btn delete"
-                           onclick="return confirm('Are you sure you want to delete this customer?');">
-                           Delete
-                        </a>
-
-                    </div>
-                </td>
-
-            </tr>
-            </c:forEach>
-
-        </table>
-    </c:if>
-
-    <div class="footer">
-        <a href="/" class="home">Home</a>
-
-        <a href="/customer/add" class="add">
-            + Add New Customer
-        </a>
+<c:if test="${empty customer}">
+    <div class="no-data">
+        No customers found
     </div>
+</c:if>
+
+<c:if test="${not empty customer}">
+<table>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Party Type</th>
+<th>Balance</th>
+<th>Credit Limit</th>
+<th>Actions</th>
+</tr>
+
+<c:forEach var="cat" items="${customer}">
+<tr>
+
+<td>${cat.id}</td>
+<td>${cat.name}</td>
+<td>${cat.identifier}</td>
+<td>${cat.phoneNo}</td>
+<td>${cat.partyType}</td>
+<td>${cat.balance}</td>
+<td>${cat.creditLimit}</td>
+
+<td>
+<div class="action-group">
+
+<a href="/customer/get?identifier=${cat.identifier}" class="btn update">
+Update
+</a>
+
+<a href="/customer/delete?identifier=${cat.identifier}"
+   class="btn delete"
+   onclick="return confirm('Are you sure you want to delete this customer?');">
+Delete
+</a>
+
+</div>
+</td>
+
+</tr>
+</c:forEach>
+
+</table>
+</c:if>
+
+<div class="footer">
+<a href="/" class="home">Home</a>
+<a href="/customer/add" class="add">+ Add New Customer</a>
+</div>
 
 </div>
 

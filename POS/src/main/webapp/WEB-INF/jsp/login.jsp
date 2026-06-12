@@ -27,8 +27,10 @@ body {
     width: 360px;
     padding: 30px;
     border-radius: 15px;
+
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
+
     border: 1px solid rgba(255,255,255,0.2);
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
@@ -50,9 +52,11 @@ body {
     padding: 10px;
     margin-top: 6px;
     margin-bottom: 15px;
+
     border-radius: 8px;
     border: none;
     outline: none;
+
     background: rgba(255,255,255,0.1);
     color: #fff;
 }
@@ -71,6 +75,7 @@ body {
     padding: 12px;
     border-radius: 8px;
     border: none;
+
     background: #00ffff;
     color: #000;
     font-weight: bold;
@@ -124,7 +129,7 @@ body {
         POS System Login
     </div>
 
-    <c:if test="${param.error != null}">
+    <c:if test="${param.error == 'true'}">
         <div class="alert alert-danger">
             Invalid username or password
         </div>
@@ -139,22 +144,18 @@ body {
     <form action="${pageContext.request.contextPath}/login" method="post">
 
         <label class="form-label">Email</label>
-        <input
-            type="email"
-            name="username"
-            class="form-control"
-            placeholder="Enter your email"
-            required
-        >
+        <input type="text"
+               name="username"
+               class="form-control"
+               placeholder="Enter your email"
+               required>
 
         <label class="form-label">Password</label>
-        <input
-            type="password"
-            name="password"
-            class="form-control"
-            placeholder="Enter your password"
-            required
-        >
+        <input type="password"
+               name="password"
+               class="form-control"
+               placeholder="Enter your password"
+               required>
 
         <button type="submit" class="btn-primary">
             Sign In

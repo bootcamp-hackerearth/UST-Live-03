@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -116,6 +117,7 @@ class PriceServiceTest {
     @Test
     void deleteTest() {
         priceService.delete("PRICE4");
+
         Mockito.verify(priceRepository).deleteByIdentifier("PRICE4");
     }
 
@@ -144,10 +146,15 @@ class PriceServiceTest {
         Mockito.when(priceRepository.findAll(pageable)).thenReturn(pricePage);
         Mockito.when(modelMapper.map(Mockito.eq(prices), Mockito.any(Type.class))).thenReturn(priceDtos);
 
-        List<PriceDto> result = priceService.findAll(pageable);
+        WsDto<PriceDto> result = priceService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
-        Assertions.assertEquals("P1", result.get(0).getIdentifier());
-        Assertions.assertEquals("P2", result.get(1).getIdentifier());
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals("P1", result.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals("P2", result.getDtoList().get(1).getIdentifier());
+
+        Assertions.assertEquals(2, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
     }
 }

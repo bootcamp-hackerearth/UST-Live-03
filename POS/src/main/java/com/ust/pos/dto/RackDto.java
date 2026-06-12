@@ -9,5 +9,4 @@ import java.util.List;
 @Getter
 public class RackDto extends CommonDto {
     private List<String> shelfs;
-
 }

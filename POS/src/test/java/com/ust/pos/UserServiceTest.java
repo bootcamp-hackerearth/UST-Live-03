@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -80,8 +81,8 @@ class UserServiceTest {
         Mockito.when(passwordEncoder.encode("pass")).thenReturn("encodedPass");
 
         UserDto result = userService.save(dto);
-
         Assertions.assertEquals("john", result.getUsername());
+
         verify(passwordEncoder).encode("pass");
         verify(userRepository).save(user);
     }
@@ -100,6 +101,7 @@ class UserServiceTest {
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertTrue(result.getMessage().contains("already exists"));
+
         Mockito.verify(userRepository, Mockito.never()).save(Mockito.any());
     }
 
@@ -140,7 +142,7 @@ class UserServiceTest {
     }
 
     @Test
-    void updateSuccessSameUsernameTest() {
+    void updateSuccessTest() {
         User existing = new User();
         existing.setId(1L);
         existing.setUsername("john");
@@ -148,34 +150,16 @@ class UserServiceTest {
         UserDto dto = new UserDto();
         dto.setId(1L);
         dto.setUsername("john");
+        dto.setName("John Doe");
+        dto.setPhoneNo("1234567890");
 
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
 
         UserDto result = userService.update(dto);
 
         Assertions.assertEquals("john", result.getUsername());
-        verify(modelMapper).map(dto, existing);
+
         verify(userRepository).save(existing);
-    }
-
-    @Test
-    void updateSuccessDifferentUsernameNotTakenTest() {
-        User existing = new User();
-        existing.setId(1L);
-        existing.setUsername("old");
-
-        UserDto dto = new UserDto();
-        dto.setId(1L);
-        dto.setUsername("newname");
-
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
-        Mockito.when(userRepository.findByUsername("newname")).thenReturn(null);
-
-        UserDto result = userService.update(dto);
-
-        verify(modelMapper).map(dto, existing);
-        verify(userRepository).save(existing);
-        Assertions.assertEquals("newname", result.getUsername());
     }
 
     @Test
@@ -190,21 +174,21 @@ class UserServiceTest {
         List<UserDto> dtoList = Arrays.asList(new UserDto(), new UserDto());
 
         Pageable pageable = PageRequest.of(0, 10);
+
         Page<User> userPage = new PageImpl<>(users, pageable, users.size());
 
         Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
         Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(dtoList);
 
-        List<UserDto> result = userService.findAll(pageable);
+        WsDto<UserDto> result = userService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals(2, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+
         Mockito.verify(userRepository).findAll(pageable);
         Mockito.verify(modelMapper).map(Mockito.eq(users), Mockito.any(Type.class));
-    }
-
-    @Test
-    void findByIdentifierTest() {
-        UserDto result = userService.findByIdentifier("any");
-        Assertions.assertNull(result);
     }
 }

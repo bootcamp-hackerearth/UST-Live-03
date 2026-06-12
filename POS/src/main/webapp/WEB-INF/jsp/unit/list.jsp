@@ -194,6 +194,7 @@ input:checked + .slider:before {
 </table>
 
 <div class="footer">
+
 <a href="/" class="home">
 Home
 </a>

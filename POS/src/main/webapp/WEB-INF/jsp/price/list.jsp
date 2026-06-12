@@ -129,7 +129,6 @@ tbody tr:hover {
             <th>Identifier</th>
             <th>Cost Price</th>
             <th>Selling Price</th>
-            <th>Mrp Price</th>
             <th>Action</th>
         </tr>
         </thead>
@@ -143,7 +142,6 @@ tbody tr:hover {
                         <td>${price.identifier}</td>
                         <td>${price.costPrice}</td>
                         <td>${price.sellingPrice}</td>
-                         <td>${price.mrpPrice}</td>
                         <td>
                             <a href="${pageContext.request.contextPath}/price/get?identifier=${price.identifier}">
                                 <button type="button" class="btn-update">Update</button>

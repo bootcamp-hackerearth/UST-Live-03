@@ -23,7 +23,7 @@ public class NodeController extends BaseController {
 
     @GetMapping("/list")
     public String home(Model model) {
-        model.addAttribute("node", nodeService.findAll());
+        model.addAttribute("node", nodeService.getNodesForRoles());
         return "node/list";
     }
 

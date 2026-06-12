@@ -26,8 +26,7 @@ public class WarehouseController extends BaseController {
     }
 
     @GetMapping("/add")
-    public String add(Model model) {
-        model.addAttribute("warehouseDto", new WarehouseDto());
+    public String add(Model model, @ModelAttribute WarehouseDto warehouseDto) {
         return "warehouse/add";
     }
 

@@ -1,237 +1,229 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 <title>Model Product List</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
-body{
-    min-height:100vh;
-    background:linear-gradient(135deg,#1a1b26,#2a2b3d);
-    padding:40px 20px;
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1b26, #2a2b3d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.container{
-    max-width:1200px;
-    margin:auto;
-    padding:30px;
-    border-radius:15px;
-    background:rgba(255,255,255,0.05);
-    backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,0.15);
-    box-shadow:0 8px 32px rgba(0,0,0,0.4);
+.container {
+    width: 950px;
+    padding: 30px;
+    border-radius: 15px;
+
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 
-h2{
-    color:#fff;
-    font-size:28px;
-    font-weight:600;
-    margin-bottom:25px;
+h2 {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 20px;
 }
 
-.table-wrapper{
-    overflow-x:auto;
+table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-table{
-    width:100%;
-    border-collapse:collapse;
+th {
+    background: rgba(0,255,255,0.2);
+    color: #00ffff;
+    padding: 12px;
 }
 
-thead{
-    background:#2f4f59;
+td {
+    padding: 12px;
+    text-align: center;
+    color: #ddd;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-th{
-    color:#00ffff;
-    padding:14px;
-    text-align:center;
-    font-weight:600;
+tr:hover {
+    background: rgba(255,255,255,0.05);
 }
 
-td{
-    color:#ddd;
-    padding:14px;
-    text-align:center;
-    border-bottom:1px solid rgba(255,255,255,0.08);
+.toggle-switch {
+    position: relative;
+    width: 52px;
+    height: 26px;
+    display: inline-block;
 }
 
-tr:hover{
-    background:rgba(255,255,255,0.04);
+.toggle-switch input {
+    display: none;
 }
 
-.status-active{
-    color:#00ff99;
-    font-weight:600;
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background-color: #e74c3c;
+    border-radius: 30px;
+    transition: .3s;
+    cursor: pointer;
 }
 
-.status-inactive{
-    color:#ff6666;
-    font-weight:600;
+.toggle-slider:before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: .3s;
 }
 
-.action-btn{
-    padding:8px 14px;
-    border-radius:8px;
-    text-decoration:none;
-    font-size:13px;
-    font-weight:600;
-    display:inline-block;
-    margin:0 3px;
-    transition:.3s;
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #2ecc71;
 }
 
-.update-btn{
-    background:#ffc107;
-    color:#000;
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(26px);
 }
 
-.update-btn:hover{
-    box-shadow:0 0 10px #ffc107;
+.btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    margin: 2px;
 }
 
-.delete-btn{
-    background:#ff4d4d;
-    color:#fff;
+.update {
+    background: #ffc107;
+    color: #000;
 }
 
-.delete-btn:hover{
-    box-shadow:0 0 10px #ff4d4d;
+.delete {
+    background: #ff4d4d;
+    color: #fff;
 }
 
-.no-data{
-    text-align:center;
-    color:#ccc;
-    padding:25px;
+.footer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 25px;
 }
 
-.footer{
-    margin-top:25px;
-    display:flex;
-    justify-content:center;
-    gap:15px;
+.home {
+    background: #666;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
 }
 
-.home-btn{
-    background:#6c757d;
-    color:#fff;
-    padding:12px 18px;
-    border-radius:10px;
-    text-decoration:none;
-    font-weight:600;
-    transition:.3s;
+.add {
+    background: #00ffff;
+    color: #000;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
 }
 
-.home-btn:hover{
-    box-shadow:0 0 10px #6c757d;
-}
-
-.add-btn{
-    background:#00ffff;
-    color:#000;
-    padding:12px 18px;
-    border-radius:10px;
-    text-decoration:none;
-    font-weight:600;
-    transition:.3s;
-}
-
-.add-btn:hover{
-    box-shadow:0 0 15px #00ffff,0 0 30px #00ffff;
+.add:hover {
+    box-shadow: 0 0 15px #00ffff;
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-    <h2>Model Product List</h2>
-    <div class="table-wrapper">
+<h2>Model Product List</h2>
 
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Model Name</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <c:choose>
-
-                    <c:when test="${not empty modelProducts}">
-                        <c:forEach var="m" items="${modelProducts}">
-                            <tr>
-
-                                <td>${m.identifier}</td>
-                                <td>${m.description}</td>
-
-                                <td>
-                                    <span class="${m.status ? 'status-active' : 'status-inactive'}">
-                                        ${m.status ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
-                                <td>
-
-                                    <a href="${pageContext.request.contextPath}/modelproduct/get?identifier=${m.identifier}"
-                                       class="action-btn update-btn">
-                                        Update
-                                    </a>
-
-                                    <a href="${pageContext.request.contextPath}/modelproduct/delete?identifier=${m.identifier}"
-                                       class="action-btn delete-btn"
-                                       onclick="return confirm('Are you sure you want to delete this model product?')">
-                                        Delete
-                                    </a>
-                                </td>
-                            </tr>
-
-                        </c:forEach>
-
-                    </c:when>
-
-                    <c:otherwise>
-
-                        <tr>
-                            <td colspan="4" class="no-data">
-                                No Model Products Found
-                            </td>
-                        </tr>
-
-                    </c:otherwise>
-
-                </c:choose>
-            </tbody>
-        </table>
-
+<c:if test="${empty modelProducts}">
+    <div style="color:#ff8080; text-align:center;">
+        No Model Products Found
     </div>
+</c:if>
 
-    <div class="footer">
+<c:if test="${not empty modelProducts}">
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
 
-        <a href="${pageContext.request.contextPath}/" class="home-btn">
-            Home
-        </a>
+<tbody>
+<c:forEach var="m" items="${modelProducts}">
+<tr>
 
-        <a href="${pageContext.request.contextPath}/modelproduct/add" class="add-btn">
-            +Add Model
-        </a>
+<td>${m.identifier}</td>
 
-    </div>
+<td>
+<form action="${pageContext.request.contextPath}/modelproduct/toggleStatus"
+      method="post" style="margin:0;">
+
+<input type="hidden" name="identifier" value="${m.identifier}"/>
+
+<label class="toggle-switch">
+<input type="checkbox"
+       <c:if test="${m.status == true}">checked</c:if>
+       onchange="this.form.submit()"/>
+<span class="toggle-slider"></span>
+</label>
+
+</form>
+</td>
+
+<td>
+<a href="${pageContext.request.contextPath}/modelproduct/get?identifier=${m.identifier}"
+   class="btn update">Update</a>
+
+<a href="${pageContext.request.contextPath}/modelproduct/delete?identifier=${m.identifier}"
+   class="btn delete"
+   onclick="return confirm('Are you sure you want to delete this model?');">
+   Delete
+</a>
+</td>
+
+</tr>
+</c:forEach>
+</tbody>
+</table>
+</c:if>
+
+<div class="footer">
+
+<a href="${pageContext.request.contextPath}/" class="home">
+Home
+</a>
+
+<a href="${pageContext.request.contextPath}/modelproduct/add" class="add">
++ Add  Model
+</a>
+
+</div>
+
 </div>
 
 </body>

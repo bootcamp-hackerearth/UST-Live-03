@@ -7,7 +7,6 @@ import java.util.List;
 
 @Repository
 public interface NodeRepository extends JpaRepository<Node, Long> {
-
     Node findByIdentifier(String identifier);
 
     List<Node> findByRoles(List<String> roles);

@@ -77,5 +77,3 @@ public class CustomerController extends BaseController {
         return REDIRECT_ROLE_LIST;
     }
 }
-
-

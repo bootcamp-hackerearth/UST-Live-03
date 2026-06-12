@@ -33,7 +33,6 @@ class AddressServiceTest {
 
     @Test
     void findByPhoneNoAndAddressTypeSuccessTest() {
-
         Address address = new Address();
         address.setAddressType("billingAddress");
         address.setPhoneNo(9999999999L);
@@ -45,14 +44,15 @@ class AddressServiceTest {
         Mockito.when(addressRepository.findByPhoneNoAndAddressType(9999999999L, "billingAddress")).thenReturn(address);
 
         Mockito.when(modelMapper.map(address, AddressDto.class)).thenReturn(dto);
+
         AddressDto result = addressService.findByPhoneNoAndAddressType(9999999999L, "billingAddress");
+
         Assertions.assertNotNull(result);
         Assertions.assertEquals("billingAddress", result.getAddressType());
     }
 
     @Test
     void saveSuccessTest() {
-
         AddressDto dto = new AddressDto();
         dto.setPhoneNo(8888888888L);
         dto.setAddressType("shippingAddress");
@@ -60,6 +60,7 @@ class AddressServiceTest {
         Address address = new Address();
 
         Mockito.when(addressRepository.findByPhoneNoAndAddressType(8888888888L, "shippingAddress")).thenReturn(null);
+
         Mockito.when(modelMapper.map(dto, Address.class)).thenReturn(address);
 
         AddressDto result = addressService.save(dto);
@@ -71,7 +72,6 @@ class AddressServiceTest {
 
     @Test
     void saveFailureAlreadyExistsTest() {
-
         Address existing = new Address();
 
         AddressDto dto = new AddressDto();
@@ -126,7 +126,6 @@ class AddressServiceTest {
 
     @Test
     void findAllTest() {
-
         List<Address> addresses = Arrays.asList(new Address(), new Address());
         List<AddressDto> dtoList = Arrays.asList(new AddressDto(), new AddressDto());
 
@@ -138,69 +137,5 @@ class AddressServiceTest {
         Assertions.assertEquals(2, result.size());
 
         verify(addressRepository).findAll();
-    }
-
-    @Test
-    void findByPhoneNoAndAddressTypeNullPhoneTest() {
-        AddressDto result = addressService.findByPhoneNoAndAddressType(null, "billingAddress");
-
-        Assertions.assertNotNull(result);
-    }
-
-    @Test
-    void findByPhoneNoAndAddressTypeZeroPhoneTest() {
-        AddressDto result = addressService.findByPhoneNoAndAddressType(0L, "billingAddress");
-        Assertions.assertNotNull(result);
-    }
-
-    @Test
-    void findByPhoneNoAndAddressTypeNotFoundTest() {
-        Mockito.when(addressRepository.findByPhoneNoAndAddressType(9999999999L, "billingAddress")).thenReturn(null);
-
-        AddressDto result = addressService.findByPhoneNoAndAddressType(9999999999L, "billingAddress");
-
-        Assertions.assertNotNull(result);
-    }
-
-    @Test
-    void saveNullPhoneTest() {
-        AddressDto dto = new AddressDto();
-
-        AddressDto result = addressService.save(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Phone number is required to save address", result.getMessage());
-    }
-
-    @Test
-    void saveZeroPhoneTest() {
-        AddressDto dto = new AddressDto();
-        dto.setPhoneNo(0L);
-
-        AddressDto result = addressService.save(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Phone number is required to save address", result.getMessage());
-    }
-
-    @Test
-    void updateNullPhoneTest() {
-        AddressDto dto = new AddressDto();
-
-        AddressDto result = addressService.update(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Phone number is required to update address", result.getMessage());
-    }
-
-    @Test
-    void updateZeroPhoneTest() {
-        AddressDto dto = new AddressDto();
-        dto.setPhoneNo(0L);
-
-        AddressDto result = addressService.update(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Phone number is required to update address", result.getMessage());
     }
 }

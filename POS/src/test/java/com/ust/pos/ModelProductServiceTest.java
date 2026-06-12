@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.ModelProduct;
 import com.ust.pos.model.ModelProductRepository;
 import com.ust.pos.modelproduct.service.impl.ModelProductServiceImpl;
@@ -71,7 +72,6 @@ class ModelProductServiceTest {
 
     @Test
     void updateSuccessTest() {
-
         ModelProduct existing = new ModelProduct();
         existing.setIdentifier("MP2");
 
@@ -135,9 +135,9 @@ class ModelProductServiceTest {
         Mockito.when(modelProductRepository.findAll(pageable)).thenReturn(modelProductPage);
         Mockito.when(modelMapper.map(Mockito.eq(entities), Mockito.any(Type.class))).thenReturn(dtoList);
 
-        List<ModelProductDto> result = modelProductService.findAll(pageable);
+        WsDto<ModelProductDto> result = modelProductService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         Mockito.verify(modelProductRepository).findAll(pageable);
         Mockito.verify(modelMapper).map(Mockito.eq(entities), Mockito.any(Type.class));

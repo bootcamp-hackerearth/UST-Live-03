@@ -40,20 +40,16 @@ public class AddressServiceImpl implements AddressService {
             addressDto.setMessage("Phone number is required to save address");
             return addressDto;
         }
-
         Address existingAddress = addressRepository.findByPhoneNoAndAddressType(
                 addressDto.getPhoneNo(), addressDto.getAddressType());
-
         if (existingAddress != null) {
             addressDto.setSuccess(false);
             addressDto.setMessage("Address already exists");
             return addressDto;
         }
-
         Address address = modelMapper.map(addressDto, Address.class);
         address.setId(null);
         addressRepository.save(address);
-
         addressDto.setSuccess(true);
         addressDto.setMessage("Address saved successfully");
         return addressDto;
@@ -65,21 +61,17 @@ public class AddressServiceImpl implements AddressService {
             addressDto.setMessage("Phone number is required to update address");
             return addressDto;
         }
-
         Address existingAddress = addressRepository.findByPhoneNoAndAddressType(
                 addressDto.getPhoneNo(), addressDto.getAddressType());
-
         if (existingAddress == null) {
             addressDto.setSuccess(false);
             addressDto.setMessage("Address not found");
             return addressDto;
         }
-
         Long existingId = existingAddress.getId();
         modelMapper.map(addressDto, existingAddress);
         existingAddress.setId(existingId);
         addressRepository.save(existingAddress);
-
         addressDto.setSuccess(true);
         addressDto.setMessage("Address updated successfully");
         return addressDto;

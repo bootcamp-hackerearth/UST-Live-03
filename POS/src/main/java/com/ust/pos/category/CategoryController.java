@@ -28,7 +28,7 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute CategoryDto categoryDto) {
+    public String add(Model model, @ModelAttribute CategoryDto userDto) {
         PaginationDto paginationDto = new PaginationDto();
         model.addAttribute(CATEGORIES, categoryService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField())));
@@ -36,8 +36,8 @@ public class CategoryController extends BaseController {
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute CategoryDto categoryDto) {
-        CategoryDto response = categoryService.save(categoryDto);
+    public String addPost(Model model, @ModelAttribute CategoryDto userDto) {
+        CategoryDto response = categoryService.save(userDto);
         PaginationDto paginationDto = new PaginationDto();
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());

@@ -1,6 +1,9 @@
 package com.ust.pos.config;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,36 +19,55 @@ import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+
     @Autowired
-    private com.ust.pos.config.JWTUtility jwtUtility;
+    private JWTUtility jwtUtility;
+
     @Autowired
     private UserDetailsService userService;
 
     @Override
-    protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest httpServletRequest,
-                                    jakarta.servlet.http.HttpServletResponse httpServletResponse, jakarta.servlet.FilterChain filterChain)
-            throws jakarta.servlet.ServletException, IOException {
-        String authorization = httpServletRequest.getHeader("Authorization");
-        String token = null;
-        String userName = null;
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        String path = request.getServletPath();
+        return path.equals("/api/authenticate")
+                || path.equals("/api/validateToken")
+                || path.equals("/api/user/register")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/");
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String authorization = request.getHeader("Authorization");
+
         try {
-            if (null != authorization && authorization.startsWith("Bearer ")) {
-                token = authorization.substring(7);
-                userName = jwtUtility.getUsernameFromToken(token);
+            if (authorization == null || !authorization.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
             }
-            if (null != userName && SecurityContextHolder.getContext().getAuthentication() == null) {
+            String token = authorization.substring(7);
+            String userName = jwtUtility.getUsernameFromToken(token);
+            if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userService.loadUserByUsername(userName);
                 if (BooleanUtils.isTrue(jwtUtility.validateToken(token, userDetails))) {
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-                    usernamePasswordAuthenticationToken
-                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
-                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-            filterChain.doFilter(httpServletRequest, httpServletResponse);
+            filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e) {
-            httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "The token is not valid.");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
         }
     }
 }

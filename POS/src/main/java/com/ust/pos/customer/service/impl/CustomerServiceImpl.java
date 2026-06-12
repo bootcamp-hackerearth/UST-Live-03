@@ -114,5 +114,3 @@ public class CustomerServiceImpl implements CustomerService {
                 + "-" + address.getAddressType().toUpperCase();
     }
 }
-
-

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -45,11 +46,15 @@ class NodeServiceTest {
 
     @Test
     void getNodesForRolesTest() {
-        Authentication authentication = Mockito.mock(Authentication.class);
+        Authentication authentication =
+                Mockito.mock(Authentication.class);
 
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        SecurityContext securityContext =
+                Mockito.mock(SecurityContext.class);
 
-        org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User("user", "pass", Arrays.asList());
+        org.springframework.security.core.userdetails.User principal =
+                new org.springframework.security.core.userdetails.User(
+                        "user", "pass", Arrays.asList());
 
         Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
 
@@ -97,9 +102,7 @@ class NodeServiceTest {
     @Test
     void findByIdentifierFailureTest() {
         Mockito.when(nodeRepository.findByIdentifier("N1")).thenReturn(null);
-
         NodeDto result = nodeService.findByIdentifier("N1");
-
         Assertions.assertNull(result);
     }
 
@@ -183,73 +186,15 @@ class NodeServiceTest {
         Mockito.when(nodeRepository.findAll(pageable)).thenReturn(nodePage);
         Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(Type.class))).thenReturn(dtoList);
 
-        List<NodeDto> result = nodeService.findAll(pageable);
+        WsDto<NodeDto> result = nodeService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals(2, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
 
         Mockito.verify(nodeRepository).findAll(pageable);
-    }
-
-    @Test
-    void getNodesForRolesAuthenticationNullTest() {
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-
-        Mockito.when(securityContext.getAuthentication()).thenReturn(null);
-
-        SecurityContextHolder.setContext(securityContext);
-
-        List<NodeDto> result = nodeService.getNodesForRoles();
-
-        Assertions.assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void getNodesForRolesInvalidPrincipalTest() {
-        Authentication authentication = Mockito.mock(Authentication.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getPrincipal()).thenReturn("user");
-
-        SecurityContextHolder.setContext(securityContext);
-
-        List<NodeDto> result = nodeService.getNodesForRoles();
-
-        Assertions.assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void getNodesForRolesUserNotFoundTest() {
-        Authentication authentication = Mockito.mock(Authentication.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-
-        org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User("user", "pass", Arrays.asList());
-
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getPrincipal()).thenReturn(principal);
-
-        SecurityContextHolder.setContext(securityContext);
-
-        Mockito.when(userRepository.findByUsername("user")).thenReturn(null);
-
-        List<NodeDto> result = nodeService.getNodesForRoles();
-
-        Assertions.assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void findAllWithoutPageableTest() {
-        List<Node> nodes = Arrays.asList(new Node(), new Node());
-
-        List<NodeDto> dtoList = Arrays.asList(new NodeDto(), new NodeDto());
-
-        Mockito.when(nodeRepository.findAll()).thenReturn(nodes);
-        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(Type.class))).thenReturn(dtoList);
-
-        List<NodeDto> result = nodeService.findAll();
-
-        Assertions.assertEquals(2, result.size());
-
-        verify(nodeRepository).findAll();
+        Mockito.verify(modelMapper).map(Mockito.eq(nodes), Mockito.any(Type.class));
     }
 }

@@ -30,8 +30,10 @@ body {
     width:900px;
     padding:30px;
     border-radius:15px;
+
     background:rgba(255,255,255,0.05);
     backdrop-filter:blur(12px);
+
     border:1px solid rgba(255,255,255,0.2);
     box-shadow:0 8px 32px rgba(0,0,0,0.4);
 }
@@ -40,10 +42,6 @@ h3, h5 {
     text-align:center;
     color:#00ffff;
     margin-bottom:15px;
-}
-
-.form-group {
-    margin-bottom:12px;
 }
 
 label {
@@ -55,8 +53,11 @@ label {
     width:100%;
     padding:10px;
     margin-top:5px;
+    margin-bottom:12px;
+
     border-radius:8px;
     border:none;
+
     background:rgba(255,255,255,0.1);
     color:#fff;
 }
@@ -66,22 +67,15 @@ label {
     box-shadow:0 0 8px #00ffff;
 }
 
-select option {
-    background:#1a1b26;
-    color:#fff;
-}
-
 hr {
     border-top:1px solid rgba(0,255,255,0.3);
-    margin:15px 0;
 }
 
 .btn-success {
-    width:100%;
     background:#00ffff;
     color:#000;
     border:none;
-    padding:12px;
+    padding:10px 25px;
     border-radius:8px;
     font-weight:bold;
     cursor:pointer;
@@ -94,13 +88,11 @@ hr {
 .alert-success {
     color:#00ff99;
     text-align:center;
-    margin-bottom:10px;
 }
 
 .alert-danger {
     color:#ff4d4d;
     text-align:center;
-    margin-bottom:10px;
 }
 
 .footer {
@@ -117,8 +109,15 @@ hr {
     font-weight:bold;
 }
 
-.home { background:#666; color:#fff; }
-.view { background:#00ffff; color:#000; }
+.home {
+    background:#666;
+    color:#fff;
+}
+
+.view {
+    background:#00ffff;
+    color:#000;
+}
 </style>
 </head>
 
@@ -140,145 +139,69 @@ hr {
            method="post"
            modelAttribute="customerDto">
 
-<div class="form-group">
 <label>Name</label>
-<form:input path="name"
-            class="form-control"
-            required="true"
-            minlength="3"
-            maxlength="50"
-            pattern="[A-Za-z ]+"/>
-</div>
+<form:input path="name" class="form-control"/>
 
-<div class="form-group">
 <label>Phone Number</label>
-<form:input path="phoneNo"
-            class="form-control"
-            required="true"
-            pattern="[0-9]{10}"/>
-</div>
+<form:input path="phoneNo" class="form-control"/>
 
-<div class="form-group">
 <label>Email</label>
-<form:input path="identifier"
-            class="form-control"
-            type="email"
-            required="true"/>
-</div>
+<form:input path="identifier" class="form-control"/>
 
-<div class="form-group">
 <label>Party Type</label>
-<form:select path="partyType"
-             class="form-select"
-             multiple="true"
-             required="true">
+<form:select path="partyType" class="form-select" multiple="true">
     <form:option value="customer">Customer</form:option>
     <form:option value="dealer">Dealer</form:option>
     <form:option value="wholesaler">Wholesaler</form:option>
 </form:select>
-</div>
 
-<div class="form-group">
 <label>Balance</label>
-<form:input path="balance"
-            class="form-control"
-            type="number"
-            min="0"
-            step="0.01"
-            required="true"/>
-</div>
+<form:input path="balance" class="form-control"/>
 
-<div class="form-group">
 <label>Credit Limit</label>
-<form:input path="creditLimit"
-            class="form-control"
-            type="number"
-            min="0"
-            step="0.01"
-            required="true"/>
-</div>
+<form:input path="creditLimit" class="form-control"/>
 
 <hr>
 
 <h5>Shipping Address</h5>
 
-<div class="form-group">
 <label>Address Line</label>
-<form:input path="shippingAddress.addressLine"
-            class="form-control"
-            required="true"/>
-</div>
+<form:input path="shippingAddress.addressLine" class="form-control"/>
 
-<div class="form-group">
 <label>City</label>
-<form:input path="shippingAddress.city"
-            class="form-control"
-            required="true"/>
-</div>
+<form:input path="shippingAddress.city" class="form-control"/>
 
-<div class="form-group">
 <label>State</label>
-<form:input path="shippingAddress.state"
-            class="form-control"
-            required="true"/>
-</div>
+<form:input path="shippingAddress.state" class="form-control"/>
 
-<div class="form-group">
 <label>Zip Code</label>
-<form:input path="shippingAddress.zipcode"
-            class="form-control"
-            pattern="[0-9]{5,6}"
-            required="true"/>
-</div>
+<form:input path="shippingAddress.zipcode" class="form-control"/>
 
-<div class="form-group">
 <label>Country</label>
-<form:input path="shippingAddress.country"
-            class="form-control"
-            required="true"/>
-</div>
+<form:input path="shippingAddress.country" class="form-control"/>
 
 <hr>
 
 <h5>Billing Address</h5>
 
-<div class="form-group">
 <label>Address Line</label>
-<form:input path="billingAddress.addressLine"
-            class="form-control"
-            required="true"/>
-</div>
+<form:input path="billingAddress.addressLine" class="form-control"/>
 
-<div class="form-group">
 <label>City</label>
-<form:input path="billingAddress.city"
-            class="form-control"
-            required="true"/>
-</div>
+<form:input path="billingAddress.city" class="form-control"/>
 
-<div class="form-group">
 <label>State</label>
-<form:input path="billingAddress.state"
-            class="form-control"
-            required="true"/>
-</div>
+<form:input path="billingAddress.state" class="form-control"/>
 
-<div class="form-group">
 <label>Zip Code</label>
-<form:input path="billingAddress.zipcode"
-            class="form-control"
-            pattern="[0-9]{5,6}"
-            required="true"/>
-</div>
+<form:input path="billingAddress.zipcode" class="form-control"/>
 
-<div class="form-group">
 <label>Country</label>
-<form:input path="billingAddress.country"
-            class="form-control"
-            required="true"/>
-</div>
+<form:input path="billingAddress.country" class="form-control"/>
 
+<div style="text-align:center; margin-top:15px;">
 <button class="btn-success">Register Customer</button>
+</div>
 
 </form:form>
 

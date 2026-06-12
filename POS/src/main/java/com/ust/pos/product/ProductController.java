@@ -16,22 +16,16 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/product")
-public class
-ProductController extends BaseController {
+public class ProductController extends BaseController {
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
-
     @Autowired
     CategoryService categoryService;
-
     @Autowired
     BrandService brandService;
-
     @Autowired
     UnitService unitService;
-
     @Autowired
     ModelProductService modelProductService;
-
     @Autowired
     private ProductService productService;
 
@@ -65,13 +59,10 @@ ProductController extends BaseController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier,Pageable pageable) {
+    public String update(Model model, @RequestParam String identifier) {
         ProductDto productDto = productService.findByIdentifier(identifier);
         model.addAttribute("category", categoryService.findBySuperCategoryNotNull());
         model.addAttribute("product", productDto);
-        model.addAttribute("brand", brandService.findAll(pageable));
-        model.addAttribute("unit", unitService.findAll(pageable));
-        model.addAttribute("model", modelProductService.findAll(pageable));
         return "product/product";
     }
 

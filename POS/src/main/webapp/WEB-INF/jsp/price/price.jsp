@@ -1,4 +1,7 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8" %>
+
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 
@@ -109,31 +112,10 @@ button {
         <form:input path="identifier" readonly="true"/>
 
         <label>Cost Price</label>
-        <form:input
-            path="costPrice"
-            type="number"
-            step="0.01"
-            required="true"
-            min="0"
-        />
+        <form:input path="costPrice" type="number" step="0.01"/>
 
         <label>Selling Price</label>
-        <form:input
-            path="sellingPrice"
-            type="number"
-            step="0.01"
-            required="true"
-            min="0"
-        />
-
-         <label>MRP</label>
-                <form:input
-                    path="mrpPrice"
-                    type="number"
-                    step="0.01"
-                    required="true"
-                    min="0"
-                />
+        <form:input path="sellingPrice" type="number" step="0.01"/>
 
         <button type="submit">Update</button>
 

@@ -5,174 +5,135 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Add Category</title>
+    <title>Add Category</title>
 
-<style>
-* {
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
-}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
-body {
-    min-height:100vh;
-    background:linear-gradient(135deg,#1a1b26,#2a2b3d);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.container {
-    width:420px;
-    padding:30px;
-    border-radius:15px;
-    background:rgba(255,255,255,0.05);
-    backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,0.2);
-    box-shadow:0 8px 32px rgba(0,0,0,0.4);
-    position:relative;
-}
+        .card-container {
+            position: relative;
+            width: 430px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 35px 40px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
 
-.back-btn {
-    position:absolute;
-    top:15px;
-    left:15px;
-    color:#00ffff;
-    text-decoration:none;
-    font-size:18px;
-}
+        .back-icon {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #4b6cb7;
+            text-decoration: none;
+            font-weight: 600;
+            background: rgba(75, 108, 183, 0.08);
+            border-radius: 50%;
+        }
 
-h2 {
-    text-align:center;
-    color:#fff;
-    margin-bottom:20px;
-}
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #4b6cb7;
+            font-weight: 600;
+        }
 
-.form-group {
-    margin-bottom:15px;
-}
+        .form-group {
+            margin-bottom: 16px;
+        }
 
-label {
-    color:#ccc;
-    font-size:13px;
-}
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+            display: block;
+        }
 
-input, select {
-    width:100%;
-    padding:10px;
-    margin-top:6px;
-    border-radius:8px;
-    border:none;
-    outline:none;
-    background:rgba(255,255,255,0.1);
-    color:#fff;
-}
+        input, select {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
 
-select {
-    appearance:none;
-    cursor:pointer;
-}
+        .btn-submit {
+            margin-top: 12px;
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #4b6cb7, #182848);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
 
-.dropdown-wrapper {
-    position:relative;
-}
-
-.dropdown-icon {
-    position:absolute;
-    right:12px;
-    top:50%;
-    transform:translateY(-50%);
-    color:#00ffff;
-    pointer-events:none;
-}
-
-select option {
-    background:#1a1b26;
-    color:#fff;
-}
-
-input:focus, select:focus {
-    border:1px solid #00ffff;
-    box-shadow:0 0 8px #00ffff;
-}
-
-button {
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    border:none;
-    border-radius:8px;
-    background:#00ffff;
-    color:#000;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-button:hover {
-    box-shadow:0 0 15px #00ffff;
-}
-
-.error-message {
-    text-align:center;
-    color:#ff8080;
-    margin-bottom:10px;
-    font-size:13px;
-}
-</style>
+        .error-message {
+            margin-bottom: 16px;
+            padding: 10px;
+            background: rgba(220, 53, 69, 0.12);
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="card-container">
 
-<a href="/category/list" class="back-btn">←</a>
+    <a href="/category/list" class="back-icon">←</a>
 
-<h2>Add Category</h2>
+    <h2>Add Category</h2>
 
-<c:if test="${not empty message}">
-    <div class="error-message">
-        ${message}
-    </div>
-</c:if>
+    <c:if test="${not empty message}">
+        <div class="error-message">
+            ${message}
+        </div>
+    </c:if>
 
-<form:form method="post" action="/category/add" modelAttribute="categoryDto">
+    <form:form method="post" action="/category/add" modelAttribute="categoryDto">
 
-    <div class="form-group">
-        <label>Category</label>
-        <form:input
-            path="identifier"
-            placeholder="Enter category"
-            required="true"
-            minlength="2"
-            maxlength="50"
-            pattern="[A-Za-z0-9 ]+"
-        />
-    </div>
-
-    <div class="form-group">
-        <label>Super Category</label>
-
-        <div class="dropdown-wrapper">
-            <form:select path="superCategory">
-                <form:option value="">-- Select Super Category --</form:option>
-
-                <c:forEach var="c" items="${categories}">
-                    <form:option value="${c.identifier}">
-                        ${c.identifier}
-                    </form:option>
-                </c:forEach>
-
-            </form:select>
-
-            <span class="dropdown-icon">▼</span>
+        <div class="form-group">
+            <label>Category</label>
+            <form:input path="identifier" placeholder="Enter category" />
         </div>
 
-    </div>
+        <div class="form-group">
+            <label>Super Category</label>
+            <form:select path="superCategory">
+                <form:option value="">-- Select Super Category --</form:option>
+                <form:options items="${categories}"
+                              itemValue="identifier"
+                              itemLabel="identifier" />
+            </form:select>
+        </div>
 
-    <button type="submit">Add Category</button>
+        <input type="submit" value="Add Category" class="btn-submit" />
 
-</form:form>
+    </form:form>
 
 </div>
 

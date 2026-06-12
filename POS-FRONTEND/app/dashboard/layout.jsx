@@ -1,0 +1,8 @@
+import PropTypes from "prop-types";
+export default function DashboardLayout({ children }) {
+  return <div>{children}</div>;
+}
+
+DashboardLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+};

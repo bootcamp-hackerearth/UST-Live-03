@@ -46,7 +46,10 @@ public class ShelfsController extends BaseController {
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
+        PaginationDto paginationDto = new PaginationDto();
         ShelfsDto shelfDto = shelfsService.findByIdentifier(identifier);
+        model.addAttribute(SHELF, shelfsService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField())));
         model.addAttribute("shelfDto", shelfDto);
         return "shelf/shelf";
     }

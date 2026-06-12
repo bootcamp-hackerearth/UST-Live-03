@@ -1,12 +1,15 @@
 package com.ust.pos.api.category;
+
 import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -17,7 +20,7 @@ public class CategoryApiController extends BaseController {
     private CategoryService categoryService;
 
     @PostMapping("/list")
-    public List<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return categoryService.findAll(pageable);
@@ -48,4 +51,13 @@ public class CategoryApiController extends BaseController {
         return true;
     }
 
+    @PostMapping("/superCategory/list")
+    public List<CategoryDto> getSuperCategoryList() {
+        return categoryService.findBySuperCategoryNotNull();
+    }
+
+    @PostMapping("/all/list")
+    public List<CategoryDto> getAllCategories() {
+        return categoryService.findAllList();
+    }
 }

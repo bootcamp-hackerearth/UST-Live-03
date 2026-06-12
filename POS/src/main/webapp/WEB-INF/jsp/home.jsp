@@ -29,8 +29,10 @@ body {
 .sidebar {
     width: 250px;
     min-height: 100vh;
+
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
+
     border-right: 1px solid rgba(255,255,255,0.1);
     padding: 20px;
 }
@@ -57,11 +59,12 @@ body {
     display: block;
     padding: 10px;
     margin: 6px 0;
+
     border-radius: 6px;
     text-decoration: none;
     color: #ccc;
+
     border: 1px solid transparent;
-    transition: 0.2s;
 }
 
 .sidebar a:hover {
@@ -78,13 +81,16 @@ body {
 .content-card {
     border-radius: 15px;
     padding: 30px;
+
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
+
     border: 1px solid rgba(255,255,255,0.2);
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 
 h5 {
+    color: #fff;
     margin-bottom: 10px;
 }
 

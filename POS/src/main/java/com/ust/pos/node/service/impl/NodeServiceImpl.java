@@ -1,6 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -42,7 +43,8 @@ public class NodeServiceImpl implements NodeService {
         if (!(principalObj instanceof org.springframework.security.core.userdetails.User)) {
             return Collections.emptyList();
         }
-        org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) principalObj;
+        org.springframework.security.core.userdetails.User principal =
+                (org.springframework.security.core.userdetails.User) principalObj;
         User currentUser = userRepository.findByUsername(principal.getUsername());
         if (currentUser == null) {
             return Collections.emptyList();
@@ -97,18 +99,17 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
-    }
-
-    @Override
-    public List<NodeDto> findAll() {
-        Type listType = new TypeToken<List<NodeDto>>() {
-        }.getType();
-        return modelMapper.map(nodeRepository.findAll(), listType);
+        WsDto<NodeDto> nodeWsDto = new WsDto<>();
+        nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        nodeWsDto.setTotalRecords(nodePage.getTotalElements());
+        nodeWsDto.setTotalPages(nodePage.getTotalPages());
+        nodeWsDto.setSizePerPage(pageable.getPageSize());
+        nodeWsDto.setPage(pageable.getPageNumber());
+        return nodeWsDto;
     }
 
     @Override

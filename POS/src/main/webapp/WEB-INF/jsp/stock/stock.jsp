@@ -30,8 +30,10 @@ body {
     width: 420px;
     padding: 30px;
     border-radius: 15px;
+
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
+
     border: 1px solid rgba(255,255,255,0.2);
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
@@ -42,12 +44,15 @@ body {
     left: 15px;
     width: 34px;
     height: 34px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border-radius: 50%;
     text-decoration: none;
     font-size: 18px;
+
     background: rgba(255,255,255,0.1);
     color: #00ffff;
 }
@@ -72,9 +77,11 @@ input, select {
     padding: 10px;
     margin-top: 6px;
     margin-bottom: 15px;
+
     border-radius: 8px;
     border: none;
     outline: none;
+
     background: rgba(255,255,255,0.1);
     color: #fff;
 }
@@ -94,6 +101,7 @@ input:focus, select:focus {
     padding: 12px;
     border-radius: 8px;
     border: none;
+
     background: #00ffff;
     color: #000;
     font-weight: bold;
@@ -119,14 +127,18 @@ input:focus, select:focus {
 <div class="card-container">
 
     <a href="${pageContext.request.contextPath}/stock/list" class="back-icon">←</a>
+
     <h2>Edit Stock</h2>
 
     <c:if test="${not empty message}">
         <div class="error-message">${message}</div>
     </c:if>
 
-    <form method="post" action="${pageContext.request.contextPath}/stock/update">
+    <form method="post"
+          action="${pageContext.request.contextPath}/stock/update">
+
         <input type="hidden" name="identifier" value="${stock.identifier}" />
+
         <label>Stock</label>
         <input type="text" value="${stock.identifier}" readonly />
 
@@ -134,9 +146,9 @@ input:focus, select:focus {
         <select name="productName" required>
             <option value="">-- Select Product --</option>
             <c:forEach items="${product}" var="product">
-                <option value="${product.productName}"
-                    ${product.productName == stock.productName ? 'selected' : ''}>
-                    ${product.productName}
+                <option value="${product.identifier}"
+                    ${product.identifier == stock.productName ? 'selected' : ''}>
+                    ${product.identifier}
                 </option>
             </c:forEach>
         </select>
@@ -153,14 +165,10 @@ input:focus, select:focus {
         </select>
 
         <label>Quantity</label>
-        <input
-            type="number"
-            name="quantity"
-            value="${stock.quantity}"
-            required
-            min="1"
-            max="100000"
-        />
+        <input type="number"
+               name="quantity"
+               value="${stock.quantity}"
+               required />
 
         <label>Status</label>
         <select name="stockStatus" required>
