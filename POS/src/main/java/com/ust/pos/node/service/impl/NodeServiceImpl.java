@@ -1,10 +1,8 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -47,7 +45,7 @@ public class NodeServiceImpl implements NodeService {
     private void findNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesStr = new HashSet<>();
-        List<Node> nodes = nodeRepository.findAll();
+        List<Node> nodes = nodeRepository.findByStatusTrue();
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
                 if (node.getRoles() != null && node.getRoles().contains(role)) {
@@ -100,10 +98,32 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+
+        WsDto<NodeDto> nodeWsDto = new WsDto<>();
+        nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        nodeWsDto.setTotalRecords(nodePage.getTotalElements());
+        nodeWsDto.setTotalPages(nodePage.getTotalPages());
+        nodeWsDto.setSizePerPage(pageable.getPageSize());
+        nodeWsDto.setPage(pageable.getPageNumber());
+
+        return nodeWsDto;
+    }
+
+    @Override
+    public void toggleStatus(String identifier) {
+        Node node = nodeRepository.findByIdentifier(identifier);
+        if (node != null) {
+            node.setStatus(!node.isStatus());
+            nodeRepository.save(node);
+        }
+    }
+
+    @Override
+    public NodeDto findByPath(String path) {
+        return modelMapper.map(nodeRepository.findByPathAndStatus(path,true),NodeDto.class);
     }
 }

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -164,8 +165,8 @@ class StockServiceTest {
         Mockito.when(stockRepository.findAll(pageable)).thenReturn(page);
         Mockito.when(modelMapper.map(Mockito.eq(stocks), Mockito.any(Type.class))).thenReturn(stockDtos);
 
-        List<StockDto> result = stockService.findAll(pageable);
+        WsDto<StockDto> result = stockService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
     }
 }

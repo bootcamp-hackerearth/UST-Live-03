@@ -1,8 +1,11 @@
 package com.ust.pos.api;
 
 import com.ust.pos.config.JWTUtility;
+import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.RoleValidateDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.UserRepository;
+import com.ust.pos.node.service.NodeService;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -13,6 +16,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collections;
+import java.util.List;
 
 @RestController
 public class TokenGenerationController {
@@ -27,6 +33,8 @@ public class TokenGenerationController {
     private UserRepository userRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private NodeService nodeService;
 
     @PostMapping("/api/authenticate")
     public UserDto authenticate(@RequestBody UserDto userDto) {
@@ -49,5 +57,21 @@ public class TokenGenerationController {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @PostMapping("/api/roleValidation")
+    public  boolean roleValidation(@RequestBody RoleValidateDto roleValidateDto){
+        try{
+            List<String> userRoles = roleValidateDto.getRoles();
+            String url = roleValidateDto.getUrl();
+            NodeDto nodeDto = nodeService.findByPath("/"+url);
+            List<String> nodeRoles = nodeDto.getRoles();
+            if(!Collections.disjoint(nodeRoles, userRoles)){
+                return true;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 }

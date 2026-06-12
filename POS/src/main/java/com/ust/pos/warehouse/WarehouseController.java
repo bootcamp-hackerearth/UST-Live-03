@@ -56,8 +56,8 @@ public class WarehouseController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute WarehouseDto warehouseDto) {
-        WarehouseDto response = warehouseService.update(warehouseDto);
+    public String updatePost(Model model, @ModelAttribute WarehouseDto userDto) {
+        WarehouseDto response = warehouseService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(NODES, nodeService.getNodesForRoles());

@@ -61,8 +61,8 @@ public class UnitController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute UnitDto unitDto) {
-        UnitDto response = unitService.update(unitDto);
+    public String updatePost(Model model, @ModelAttribute UnitDto userDto) {
+        UnitDto response = unitService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "unit/unit";

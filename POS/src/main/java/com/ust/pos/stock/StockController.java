@@ -3,6 +3,7 @@ package com.ust.pos.stock;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Controller
 @RequestMapping("/stock")
@@ -47,9 +47,9 @@ public class StockController {
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute StockDto stockDto, Pageable pageable) {
         model.addAttribute(NODES, nodeService.getNodesForRoles());
-        List<ProductDto> productDtos = productService.findAll(pageable);
+        WsDto<ProductDto> productDtos = productService.findAll(pageable);
         model.addAttribute(PRODUCTS, productDtos);
-        List<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
+        WsDto<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
         model.addAttribute(WAREHOUSES, warehouseDtos);
         return STOCK_ADD;
     }
@@ -60,9 +60,9 @@ public class StockController {
         if (!response.isSuccess()) {
             model.addAttribute(NODES, nodeService.getNodesForRoles());
             model.addAttribute("message", response.getMessage());
-            List<ProductDto> productDtos = productService.findAll(pageable);
+            WsDto<ProductDto> productDtos = productService.findAll(pageable);
             model.addAttribute(PRODUCTS, productDtos);
-            List<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
+            WsDto<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
             model.addAttribute(WAREHOUSES, warehouseDtos);
             return STOCK_ADD;
         }
@@ -74,9 +74,9 @@ public class StockController {
         StockDto response = stockService.findByIdentifier(identifier);
         model.addAttribute("stock", response);
         model.addAttribute(NODES, nodeService.getNodesForRoles());
-        List<ProductDto> productDtos = productService.findAll(pageable);
+        WsDto<ProductDto> productDtos = productService.findAll(pageable);
         model.addAttribute(PRODUCTS, productDtos);
-        List<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
+        WsDto<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
         model.addAttribute(WAREHOUSES, warehouseDtos);
         return "stock/stock";
     }
@@ -87,9 +87,9 @@ public class StockController {
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(NODES, nodeService.getNodesForRoles());
-            List<ProductDto> productDtos = productService.findAll(pageable);
+            WsDto<ProductDto> productDtos = productService.findAll(pageable);
             model.addAttribute(PRODUCTS, productDtos);
-            List<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
+            WsDto<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
             model.addAttribute(WAREHOUSES, warehouseDtos);
             return "stock/stock";
         }

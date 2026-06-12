@@ -61,8 +61,8 @@ public class CategoryController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute CategoryDto categoryDto, Pageable pageable) {
-        CategoryDto response = categoryService.update(categoryDto);
+    public String updatePost(Model model, @ModelAttribute CategoryDto userDto, Pageable pageable) {
+        CategoryDto response = categoryService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(NODES, nodeService.getNodesForRoles());

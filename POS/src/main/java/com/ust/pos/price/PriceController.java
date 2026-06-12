@@ -2,6 +2,7 @@ package com.ust.pos.price;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Controller
 @RequestMapping("/price")
@@ -41,7 +41,7 @@ public class PriceController {
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute PriceDto priceDto, Pageable pageable) {
         model.addAttribute(NODES, nodeService.getNodesForRoles());
-        List<ProductDto> productDtos = productService.findAll(pageable);
+        WsDto<ProductDto> productDtos = productService.findAll(pageable);
         model.addAttribute(PRODUCTS, productDtos);
         return STOCK_ADD;
     }
@@ -51,7 +51,7 @@ public class PriceController {
         PriceDto response = priceService.save(priceDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            List<ProductDto> productDtos = productService.findAll(pageable);
+            WsDto<ProductDto> productDtos = productService.findAll(pageable);
             model.addAttribute(PRODUCTS, productDtos);
             return STOCK_ADD;
         }
@@ -63,18 +63,18 @@ public class PriceController {
         PriceDto response = priceService.findByIdentifier(identifier);
         model.addAttribute("price", response);
         model.addAttribute(NODES, nodeService.getNodesForRoles());
-        List<ProductDto> productDtos = productService.findAll(pageable);
+        WsDto<ProductDto> productDtos = productService.findAll(pageable);
         model.addAttribute(PRODUCTS, productDtos);
         return "price/price";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute PriceDto priceDto, Pageable pageable) {
-        PriceDto response = priceService.update(priceDto);
+    public String updatePost(Model model, @ModelAttribute PriceDto userDto, Pageable pageable) {
+        PriceDto response = priceService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute(NODES, nodeService.getNodesForRoles());
             model.addAttribute("message", response.getMessage());
-            List<ProductDto> productDtos = productService.findAll(pageable);
+            WsDto<ProductDto> productDtos = productService.findAll(pageable);
             model.addAttribute(PRODUCTS, productDtos);
             return "price/price";
         }

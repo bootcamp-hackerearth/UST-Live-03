@@ -16,7 +16,7 @@ public class BrandController {
 
     public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
     public static final String NODES = "nodes";
-    public static final String STOCK_ADD = "brand/add";
+    public static final String BRAND_ADD = "brand/add";
 
     @Autowired
     private BrandService brandService;
@@ -37,7 +37,7 @@ public class BrandController {
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute BrandDto brandDto) {
         model.addAttribute(NODES, nodeService.getNodesForRoles());
-        return STOCK_ADD;
+        return BRAND_ADD;
     }
 
     @PostMapping("/add")
@@ -45,7 +45,7 @@ public class BrandController {
         BrandDto response = brandService.save(brandDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            return STOCK_ADD;
+            return BRAND_ADD;
         }
         return REDIRECT_BRAND_LIST;
     }

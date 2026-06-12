@@ -249,6 +249,13 @@
                          placeholder="Enter product name"
                          required="true"/>
 
+                <label>Product Price</label>
+                        <form:input
+                        path="price"
+                        placeholder="Enter product price"
+                        type="number"
+                        required="true"/>
+
                 <label>Product Unit</label>
                         <form:select path="unit">
                         <form:option value="" label="-- Select units --"/>

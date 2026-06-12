@@ -198,6 +198,7 @@
                     <th>Product ID</th>
                     <th>Product Name</th>
                     <th>Measure unit</th>
+                    <th>Price</th>
                     <th>Category</th>
                     <th>Brand</th>
                     <th>Model</th>
@@ -210,6 +211,7 @@
                         <td>${product.identifier}</td>
                         <td>${product.name}</td>
                         <td>${product.unit}</td>
+                        <td>${product.price}</td>
                         <td>${product.category}</td>
                         <td>${product.brand}</td>
                         <td>${product.model}</td>

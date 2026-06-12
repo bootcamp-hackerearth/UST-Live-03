@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.shelfs.service.impl.ShelfsServiceImpl;
@@ -161,9 +162,9 @@ class ShelfsServiceTest {
         Mockito.when(shelfsRepository.findAll(pageable)).thenReturn(page);
         Mockito.when(modelMapper.map(Mockito.eq(shelfsList), Mockito.any(Type.class))).thenReturn(shelfsDtos);
 
-        List<ShelfsDto> result = shelfsService.findAll(pageable);
+        WsDto<ShelfsDto> result = shelfsService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
     }
 
     @Test

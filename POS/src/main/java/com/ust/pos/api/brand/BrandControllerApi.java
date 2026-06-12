@@ -24,8 +24,8 @@ public class BrandControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
-    public BrandDto addPost(@RequestBody BrandDto brandDto) {
-        return brandService.save(brandDto);
+    public BrandDto addPost(@RequestBody BrandDto userDto) {
+        return brandService.save(userDto);
     }
 
     @GetMapping("/get")
@@ -34,8 +34,8 @@ public class BrandControllerApi extends BaseController {
     }
 
     @PostMapping("/update")
-    public BrandDto updatePost(@RequestBody BrandDto brandDto) {
-        return brandService.update(brandDto);
+    public BrandDto updatePost(@RequestBody BrandDto userDto) {
+        return brandService.update(userDto);
     }
 
     @GetMapping("/delete")

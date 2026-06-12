@@ -256,8 +256,7 @@
                         type="tel"
                         pattern="[0-9]{10}"
                         title="Enter a valid 10-digit phone number"
-                        required="true"
-                        readOnly="true"/>
+                        required="true"/>
 
                 <label>Balance</label>
                         <form:input

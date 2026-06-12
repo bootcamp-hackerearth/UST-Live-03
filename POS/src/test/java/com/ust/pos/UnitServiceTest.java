@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -165,11 +166,11 @@ class UnitServiceTest {
         Mockito.when(unitRepository.findAll(pageable)).thenReturn(page);
         Mockito.when(modelMapper.map(Mockito.eq(units), Mockito.any(Type.class))).thenReturn(unitDtos);
 
-        List<UnitDto> result = unitService.findAll(pageable);
+        WsDto<UnitDto> result = unitService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
-        Assertions.assertEquals("Kg", result.get(0).getIdentifier());
-        Assertions.assertEquals("L", result.get(1).getIdentifier());
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals("Kg", result.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals("L", result.getDtoList().get(1).getIdentifier());
     }
 
     @Test

@@ -256,9 +256,8 @@
                     <form:input
                     path="identifier"
                     placeholder="Enter phone number"
-                    type="tel"
+                    type="number"
                     pattern="[0-9]{10}"
-                    title="Enter a valid 10-digit phone number"
                     required="true"/>
 
             <label>Balance</label>

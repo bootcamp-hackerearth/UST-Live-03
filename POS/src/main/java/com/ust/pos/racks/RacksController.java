@@ -68,8 +68,8 @@ public class RacksController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute RacksDto racksDto) {
-        RacksDto response = racksService.update(racksDto);
+    public String updatePost(Model model, @ModelAttribute RacksDto userDto) {
+        RacksDto response = racksService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(NODES, nodeService.getNodesForRoles());

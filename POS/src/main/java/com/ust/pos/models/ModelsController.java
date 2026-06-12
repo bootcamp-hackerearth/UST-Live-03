@@ -1,5 +1,6 @@
 package com.ust.pos.models;
 
+import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.node.service.NodeService;
@@ -22,6 +23,9 @@ public class ModelsController {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -55,8 +59,8 @@ public class ModelsController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute ModelsDto modelsDto) {
-        ModelsDto response = modelsService.update(modelsDto);
+    public String updatePost(Model model, @ModelAttribute ModelsDto userDto) {
+        ModelsDto response = modelsService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "models/models";
