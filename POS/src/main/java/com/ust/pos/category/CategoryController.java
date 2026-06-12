@@ -58,9 +58,13 @@ public class CategoryController {
     }
 
     @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String identifier) {
-        categoryService.delete(identifier);
-        return REDIRECT_CATEGORY_LIST;
+    public boolean delete(@RequestParam String identifier) {
+        try {
+            categoryService.delete(identifier);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @PostMapping("/toggle")

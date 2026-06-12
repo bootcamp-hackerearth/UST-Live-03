@@ -167,11 +167,13 @@
                     <td>${user.phoneNo}</td>
                     <td>${user.roles}</td>
                     <td>
+
                         <a href="${pageContext.request.contextPath}/user/get?username=${user.username}"
                            class="action-icon"
                            title="Edit User">
                             <i class="fa-solid fa-pen"></i>
                         </a>
+
                         <a href="${pageContext.request.contextPath}/user/delete?username=${user.username}"
                            class="action-icon delete-icon"
                            title="Delete User"
@@ -187,6 +189,7 @@
 
     <div class="footer-links">
         <a href="/">Home</a>
+        <a href="${pageContext.request.contextPath}/register">Register New User</a>
     </div>
 
 </div>

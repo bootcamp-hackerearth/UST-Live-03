@@ -3,6 +3,7 @@ package com.ust.pos.api.rack;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.rack.service.RackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ public class RackControllerApi extends BaseController {
     private RackService rackService;
 
     @PostMapping("/list")
-    public List<RackDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RackDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return rackService.findAll(pageable);
     }
@@ -46,5 +47,17 @@ public class RackControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public String toggle(@RequestParam String identifier,
+                         @RequestParam boolean status) {
+        rackService.updateStatus(identifier, status);
+        return "success";
+    }
+
+    @PostMapping("/list-active")
+    public List<RackDto> listActive() {
+        return rackService.findAllActive();
     }
 }

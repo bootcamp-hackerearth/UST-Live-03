@@ -174,7 +174,6 @@
                            title="Update Price">
                             <i class="fa-solid fa-pen"></i>
                         </a>
-
                         <a href="/price/delete?identifier=${itemPrice.identifier}"
                            class="action-icon delete-icon"
                            title="Delete Price"

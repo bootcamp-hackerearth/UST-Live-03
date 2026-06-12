@@ -22,10 +22,8 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto findByPhoneNoAndAddressType(Long phoneNo, String addressType) {
-        Address address = addressRepository.findByPhoneNoAndAddressType(phoneNo, addressType);
-        if (address == null) {
-            return null;
-        }
+        Address address = addressRepository.
+                findByPhoneNoAndAddressType(phoneNo, addressType);
         return modelMapper.map(address, AddressDto.class);
     }
 
@@ -47,7 +45,8 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public AddressDto update(AddressDto addressDto) {
         Address existingAddress = addressRepository.
-                findByPhoneNoAndAddressType(addressDto.getPhoneNo(), addressDto.getAddressType());
+                findByPhoneNoAndAddressType(addressDto.getPhoneNo(),
+                        addressDto.getAddressType());
         if (existingAddress == null) {
             addressDto.setMessage("Address with identifier - " + addressDto.getAddressType() + " not found");
             addressDto.setSuccess(false);

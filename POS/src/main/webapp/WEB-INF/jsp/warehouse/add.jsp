@@ -105,7 +105,6 @@
 
 <div class="container">
 
-
     <a class="back-link" href="${pageContext.request.contextPath}/warehouse/list">
         ← Back
     </a>
@@ -143,7 +142,6 @@
                             oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
 
         <button type="submit">Save Warehouse</button>
-
 
     </form:form>
 

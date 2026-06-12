@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class Customer extends CommonFields {
     private String name;
-    private Long phoneNo;
+    private long phoneNo;
     private String partyType;
     private Double balance;
     private Double creditLimit;

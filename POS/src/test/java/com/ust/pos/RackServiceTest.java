@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.impl.RackServiceImpl;
@@ -21,7 +22,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class RackServiceTest {
-
     @InjectMocks
     private RackServiceImpl rackService;
 
@@ -121,9 +121,9 @@ class RackServiceTest {
                 Mockito.eq(rackList),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(rackDtoList);
-        List<RackDto> response = rackService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("R1", response.get(0).getIdentifier());
+       WsDto<RackDto> response = rackService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("R1", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

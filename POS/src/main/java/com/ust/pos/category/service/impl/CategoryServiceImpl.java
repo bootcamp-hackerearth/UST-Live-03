@@ -2,6 +2,7 @@ package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -54,16 +55,28 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void delete(String identifier) {
+        if(categoryRepository.existsBySuperCategory(identifier)){
+            throw new IllegalArgumentException(
+                    "Cannot delete category. It is used as a super category."
+            );
+        }
         categoryRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public WsDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+        WsDto<CategoryDto> categoryDtoWsDto = new WsDto<>();
+        categoryDtoWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        categoryDtoWsDto.setTotalRecords(categoryPage.getTotalElements());
+        categoryDtoWsDto.setTotalPages(categoryPage.getTotalPages());
+        categoryDtoWsDto.setSizePerPage(pageable.getPageSize());
+        categoryDtoWsDto.setPage(pageable.getPageNumber());
+        return categoryDtoWsDto;
     }
 
     @Override

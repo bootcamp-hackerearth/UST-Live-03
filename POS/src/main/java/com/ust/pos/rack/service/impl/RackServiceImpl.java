@@ -1,6 +1,7 @@
 package com.ust.pos.rack.service.impl;
 
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -17,7 +18,6 @@ import java.util.List;
 
 @Service
 @Transactional
-
 public class RackServiceImpl implements RackService {
     @Autowired
     private RackRepository rackRepository;
@@ -60,11 +60,17 @@ public class RackServiceImpl implements RackService {
     }
 
     @Override
-    public List<RackDto> findAll(Pageable pageable) {
+    public WsDto<RackDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
-        Page<Rack> rackPage = rackRepository.findAll(pageable);
-        return modelMapper.map(rackPage.getContent(), listType);
+        Page<Rack> rackpage = rackRepository.findAll(pageable);
+        WsDto<RackDto> rackDtoWsDto = new WsDto<>();
+        rackDtoWsDto.setDtoList(modelMapper.map(rackpage.getContent(), listType));
+        rackDtoWsDto.setTotalRecords(rackpage.getTotalElements());
+        rackDtoWsDto.setTotalPages(rackpage.getTotalPages());
+        rackDtoWsDto.setSizePerPage(pageable.getPageSize());
+        rackDtoWsDto.setPage(pageable.getPageNumber());
+        return rackDtoWsDto;
     }
 
     @Override

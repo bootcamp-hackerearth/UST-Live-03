@@ -157,7 +157,6 @@
         <p>Create a brand with icon, description and status.</p>
     </div>
 
-    <!-- Error Message -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}

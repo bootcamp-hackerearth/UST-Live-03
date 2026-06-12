@@ -79,6 +79,7 @@
 <body>
 
 <div class="container">
+<!-- Back Button -->
     <a href="${pageContext.request.contextPath}/stock/list">← Back</a>
 
     <h2>Add Stock</h2>

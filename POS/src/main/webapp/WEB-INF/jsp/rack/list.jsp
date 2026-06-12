@@ -65,6 +65,7 @@
             color: #64748b;
         }
 
+        /* Shelves */
         .shelf-container {
             display: flex;
             flex-wrap: wrap;
@@ -134,6 +135,7 @@
         .text-active { color: var(--success); }
         .text-inactive { color: #94a3b8; }
 
+        /* Actions */
         .action-icon {
             margin: 0 6px;
             color: var(--primary);
@@ -177,14 +179,13 @@
     <c:if test="${not empty racks}">
         <table>
             <thead>
-           <tr>
-               <th>Sl.</th>
-               <th>Rack</th>
-               <th>Description</th>
-               <th>Shelves</th>
-               <th>Status</th>
-               <th>Action</th>
-           </tr>
+            <tr>
+                <th>Sl.</th>
+                <th>Rack</th>
+                <th>Shelves</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
             </thead>
 
             <tbody>
@@ -193,9 +194,7 @@
                     <td>${loop.index + 1}</td>
 
                     <td><strong>${rack.identifier}</strong></td>
-                    <td>${rack.description}</td>
 
-                    <!-- Shelves -->
                     <td>
                         <div class="shelf-container">
                             <c:if test="${empty rack.shelfs}">

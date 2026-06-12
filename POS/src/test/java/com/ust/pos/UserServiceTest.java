@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -25,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
-
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -60,7 +60,7 @@ class UserServiceTest {
         Mockito.verify(passwordEncoder).encode("123");
         Mockito.verify(userRepository).save(user);
     }
-    
+
     @Test
     void saveTestFailure() {
         UserDto userDto = new UserDto();
@@ -77,7 +77,7 @@ class UserServiceTest {
         Mockito.verify(userRepository, Mockito.never())
                 .save(Mockito.any(User.class));
     }
-    
+
     @Test
     void findByUserNameTest() {
         User user = new User();
@@ -243,9 +243,9 @@ class UserServiceTest {
                 Mockito.eq(userList),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(userDtoList);
-        List<UserDto> response = userService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("user1", response.get(0).getUsername());
+        WsDto<UserDto> response = userService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("user1", response.getDtoList().get(0).getUsername());
     }
 
     @Test
@@ -258,8 +258,8 @@ class UserServiceTest {
                 Mockito.eq(List.of()),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(List.of());
-        List<UserDto> response = userService.findAll(pageable);
+        WsDto<UserDto> response = userService.findAll(pageable);
         assertNotNull(response);
-        assertTrue(response.isEmpty());
+        assertTrue(response.getDtoList().isEmpty());
     }
 }

@@ -17,7 +17,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
   class AddressServiceTest {
-
     @InjectMocks
     private AddressServiceImpl addressService;
 
@@ -68,7 +67,7 @@ import java.util.List;
                         .findByPhoneNoAndAddressType(999999L, "billingAddress"))
                 .thenReturn(existing);
         Mockito.doNothing().when(modelMapper)
-                .map(dto, existing);
+                .map(Mockito.eq(dto), Mockito.eq(existing));
         Mockito.when(addressRepository.save(Mockito.any(Address.class)))
                 .thenReturn(existing);
         dto.setSuccess(true);

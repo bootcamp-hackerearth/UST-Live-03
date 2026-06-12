@@ -4,6 +4,7 @@ import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
+    public static final WsDto<CustomerDto> CUSTOMER_DTO_WS_DTO = new WsDto<>();
     @Autowired
     private CustomerRepository customerRepository;
 
@@ -31,7 +33,6 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDto findByIdentifier(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
-
         if (customer == null) {
             return null;
         }
@@ -73,14 +74,9 @@ public class CustomerServiceImpl implements CustomerService {
         AddressDto shippingAddress = customerDto.getShippingAddress();
         billingAddress.setPhoneNo(customerDto.getPhoneNo());
         shippingAddress.setPhoneNo(customerDto.getPhoneNo());
-        billingAddress.setAddressType("billing");
-        shippingAddress.setAddressType("shipping");
-        addressService.update(billingAddress);
-        addressService.update(shippingAddress);
-        existingCustomer.setPhoneNo(customerDto.getPhoneNo());
-        existingCustomer.setPartyType(customerDto.getPartyType());
-        existingCustomer.setBalance(customerDto.getBalance());
-        existingCustomer.setCreditLimit(customerDto.getCreditLimit());
+        addressService.save(billingAddress);
+        addressService.save(shippingAddress);
+        modelMapper.map(customerDto, existingCustomer);
         customerDto.setBillingAddress(addressService.
                 findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), "billingAddress"));
         customerDto.setShippingAddress(addressService.
@@ -96,12 +92,16 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        Page<Customer> categoryPage = customerRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
-    }
+        Page<Customer> customerPage = customerRepository.findAll(pageable);
+        CUSTOMER_DTO_WS_DTO.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        CUSTOMER_DTO_WS_DTO.setTotalRecords(customerPage.getTotalElements());
+        CUSTOMER_DTO_WS_DTO.setTotalPages(customerPage.getTotalPages());
+        CUSTOMER_DTO_WS_DTO.setSizePerPage(pageable.getPageSize());
+        CUSTOMER_DTO_WS_DTO.setPage(pageable.getPageNumber());
+        return CUSTOMER_DTO_WS_DTO;    }
 
     @Override
     public String buildAddressIdentifier(AddressDto address) {

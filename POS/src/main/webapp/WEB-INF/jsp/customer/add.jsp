@@ -131,7 +131,7 @@
 
                     <div class="col-md-6">
                         <label>Party Types</label>
-                        <form:select path="partyType" class="form-select" multiple="true" required="true">
+                        <form:select path="partyType" class="form-select" multiple="true">
                             <form:option value="customer">Customer</form:option>
                             <form:option value="dealer">Dealer</form:option>
                             <form:option value="wholesaler">Wholesaler</form:option>
@@ -152,32 +152,31 @@
 
                     <hr class="mt-4">
 
-                    <!-- SHIPPING ADDRESS -->
                     <div class="section-title">Shipping Address</div>
 
                     <div class="col-md-12">
                         <label>Address Line</label>
-                        <form:input path="shippingAddress.addressLine" class="form-control" required="true"/>
+                        <form:input path="shippingAddress.addressLine" class="form-control"/>
                     </div>
 
                     <div class="col-md-6">
                         <label>City</label>
-                        <form:input path="shippingAddress.city" class="form-control" required="true"/>
+                        <form:input path="shippingAddress.city" class="form-control"/>
                     </div>
 
                     <div class="col-md-6">
                         <label>State</label>
-                        <form:input path="shippingAddress.state" class="form-control" required="true"/>
+                        <form:input path="shippingAddress.state" class="form-control"/>
                     </div>
 
                     <div class="col-md-6">
                         <label>Zip Code</label>
-                        <form:input path="shippingAddress.zipcode" type="number" class="form-control" required="true"/>
+                        <form:input path="shippingAddress.zipcode" type="number" class="form-control"/>
                     </div>
 
                     <div class="col-md-6">
                         <label>Country</label>
-                        <form:input path="shippingAddress.country" class="form-control" required="true"/>
+                        <form:input path="shippingAddress.country" class="form-control"/>
                     </div>
 
                     <hr class="mt-4">
@@ -186,27 +185,27 @@
 
                     <div class="col-md-12">
                         <label>Address Line</label>
-                        <form:input path="billingAddress.addressLine" class="form-control" required="true"/>
+                        <form:input path="billingAddress.addressLine" class="form-control"/>
                     </div>
 
                     <div class="col-md-6">
                         <label>City</label>
-                        <form:input path="billingAddress.city" class="form-control" required="true"/>
+                        <form:input path="billingAddress.city" class="form-control"/>
                     </div>
 
                     <div class="col-md-6">
                         <label>State</label>
-                        <form:input path="billingAddress.state" class="form-control" required="true"/>
+                        <form:input path="billingAddress.state" class="form-control"/>
                     </div>
 
                     <div class="col-md-6">
                         <label>Zip Code</label>
-                        <form:input path="billingAddress.zipcode" type="number" class="form-control" required="true"/>
+                        <form:input path="billingAddress.zipcode" type="number" class="form-control"/>
                     </div>
 
                     <div class="col-md-6">
                         <label>Country</label>
-                        <form:input path="billingAddress.country" class="form-control" required="true"/>
+                        <form:input path="billingAddress.country" class="form-control"/>
                     </div>
 
                     <div class="col-12 text-center mt-4">

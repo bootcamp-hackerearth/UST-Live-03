@@ -132,14 +132,14 @@
                     </div>
 
 
-                            <div class="mb-3">
-                            <label>sum Price *</label>
+<div class="mb-3">
+                            <label>Sum Price *</label>
                             <form:input path="sumPrice"
                                         cssClass="form-control"
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        placeholder="Enter Tot Price"
+                                        placeholder="Enter Sum Price"
                                         required="true"/>
                             <form:errors path="sumPrice" cssClass="error-text"/>
                         </div>

@@ -1,6 +1,7 @@
 package com.ust.pos.stock.service.impl;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -17,8 +18,8 @@ import java.util.List;
 
 @Service
 @Transactional
-
 public class StockServiceImpl implements StockService {
+    public static final WsDto<StockDto> STOCK_DTO_WS_DTO = new WsDto<>();
     @Autowired
     private StockRepository stockRepository;
 
@@ -61,11 +62,16 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public List<StockDto> findAll(Pageable pageable) {
+    public WsDto<StockDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
         Page<Stock> stockPage = stockRepository.findAll(pageable);
-        return modelMapper.map(stockPage.getContent(), listType);
+        STOCK_DTO_WS_DTO.setDtoList(modelMapper.map(stockPage.getContent(), listType));
+        STOCK_DTO_WS_DTO.setTotalRecords(stockPage.getTotalElements());
+        STOCK_DTO_WS_DTO.setTotalPages(stockPage.getTotalPages());
+        STOCK_DTO_WS_DTO.setSizePerPage(pageable.getPageSize());
+        STOCK_DTO_WS_DTO.setPage(pageable.getPageNumber());
+        return STOCK_DTO_WS_DTO;
     }
 
     @Override

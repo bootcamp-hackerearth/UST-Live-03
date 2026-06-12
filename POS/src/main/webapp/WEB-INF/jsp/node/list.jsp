@@ -187,6 +187,7 @@
                         <td>${n.path}</td>
 
                         <td>
+
                             <a class="action-icon"
                                href="${pageContext.request.contextPath}/node/get?identifier=${n.identifier}"
                                title="Edit Node">

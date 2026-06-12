@@ -57,6 +57,7 @@ public class UserController {
                 SecurityContextHolder.clearContext();
                 return "redirect:/login";
             }
+
         }
         return "redirect:/user/list";
     }

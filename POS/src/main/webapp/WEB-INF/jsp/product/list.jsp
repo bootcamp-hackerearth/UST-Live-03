@@ -181,7 +181,6 @@
             <tr>
                 <th>Sl</th>
                 <th>Product</th>
-                <th>category</th>
                 <th>Brand</th>
                 <th>Model</th>
                 <th>Unit</th>
@@ -195,7 +194,6 @@
                 <tr>
                     <td>${loop.index + 1}</td>
                     <td><strong>${p.identifier}</strong></td>
-                    <td>${p.category}</td>
                     <td>${p.brand}</td>
                     <td>${p.models}</td>
                     <td>${p.unit}</td>

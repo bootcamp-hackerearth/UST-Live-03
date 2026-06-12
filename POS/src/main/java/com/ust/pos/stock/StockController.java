@@ -20,10 +20,8 @@ public class StockController {
     private static final String PRODUCT = "product";
     @Autowired
     private StockService stockService;
-
     @Autowired
     private ProductService productService;
-
     @Autowired
     private WarehouseService warehouseService;
 

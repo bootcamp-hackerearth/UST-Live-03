@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -26,7 +27,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
  class NodeServiceTest {
-
     @InjectMocks
     private NodeServiceImpl nodeService;
 
@@ -98,7 +98,7 @@ import java.util.List;
         Mockito.when(nodeRepository.findByIdentifier("N1"))
                 .thenReturn(existingNode);
         Mockito.doNothing().when(modelMapper)
-                .map(nodeDto, existingNode);
+                .map(Mockito.eq(nodeDto), Mockito.eq(existingNode));
         Mockito.when(nodeRepository.save(Mockito.any(Node.class)))
                 .thenReturn(existingNode);
         nodeDto.setSuccess(true);
@@ -122,6 +122,7 @@ import java.util.List;
                 "Node with identifier - N1 not found",
                 response.getMessage()
         );
+
         Mockito.verify(nodeRepository, Mockito.never())
                 .save(Mockito.any(Node.class));
     }
@@ -151,9 +152,9 @@ import java.util.List;
                 Mockito.eq(nodeList),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(nodeDtoList);
-        List<NodeDto> response = nodeService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("N1", response.get(0).getIdentifier());
+        WsDto<NodeDto> response = nodeService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("N1", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -251,6 +252,7 @@ import java.util.List;
                         "password",
                         List.of()
                 );
+
         Authentication authentication = Mockito.mock(Authentication.class);
         Mockito.when(authentication.getPrincipal())
                 .thenReturn(principal);

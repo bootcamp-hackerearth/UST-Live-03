@@ -135,13 +135,16 @@
                method="post"
                modelAttribute="shelf">
 
+        <!-- Hidden ID -->
         <form:hidden path="id"/>
 
+        <!-- Shelf Name (Read Only) -->
         <div class="input-group">
             <label>Shelf Name</label>
             <form:input path="identifier" readonly="true"/>
         </div>
 
+        <!-- Status -->
         <div class="input-group">
             <label>Status</label>
             <form:select path="status">
@@ -149,13 +152,6 @@
                 <form:option value="false">Inactive</form:option>
             </form:select>
         </div>
-
-        <div class="input-group">
-                    <label>Description</label>
-                    <form:textarea path="description"
-                                   placeholder="Update shelf description"
-                                    required="true"/>
-                </div>
 
         <button type="submit">Save Changes</button>
 

@@ -84,6 +84,7 @@
 <div class="header">
     <span>POS System Dashboard</span>
 
+    <!-- Logout button on right -->
     <a href="${pageContext.request.contextPath}/logout" class="logout-btn">
         Logout
     </a>

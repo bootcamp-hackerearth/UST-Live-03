@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -21,7 +22,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
-
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
@@ -117,9 +117,9 @@ class CategoryServiceTest {
                 Mockito.eq(categoryList),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(categoryDtoList);
-        List<CategoryDto> response = categoryService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("C1", response.get(0).getIdentifier());
+        WsDto<CategoryDto> response = categoryService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("C1", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -137,7 +137,7 @@ class CategoryServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(categoryDtos);
         List<CategoryDto> response =
-                categoryService.findBySuperCategoryNotNull(); // service method name remains same
+                categoryService.findBySuperCategoryNotNull();
         Assertions.assertEquals(1, response.size());
     }
 

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
@@ -21,7 +22,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class WarehouseServiceTest {
-
     @InjectMocks
     private WarehouseServiceImpl warehouseService;
 
@@ -117,9 +117,9 @@ class WarehouseServiceTest {
                 Mockito.eq(warehouses),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(warehouseDtos);
-        List<WarehouseDto> response = warehouseService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("W1", response.get(0).getIdentifier());
+        WsDto<WarehouseDto> response = warehouseService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("W1", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

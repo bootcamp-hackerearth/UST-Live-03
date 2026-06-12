@@ -3,6 +3,7 @@ package com.ust.pos.api.product;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ public class ProductControllerApi extends BaseController {
     private ProductService productService;
 
     @PostMapping("/list")
-    public List<ProductDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return productService.findAll(pageable);
     }
@@ -46,5 +47,18 @@ public class ProductControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public String toggle(@RequestParam String identifier,
+                         @RequestParam boolean status) {
+
+        productService.updateStatus(identifier, status);
+        return "success";
+    }
+
+    @PostMapping("/list-active")
+    public List<ProductDto> listActive() {
+        return productService.findAllActive();
     }
 }

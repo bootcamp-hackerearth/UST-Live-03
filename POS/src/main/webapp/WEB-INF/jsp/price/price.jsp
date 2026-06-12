@@ -127,24 +127,25 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">CostPrice</label>
+                    <label class="form-label">SumPrice</label>
                     <form:input path="sumPrice"
                                 cssClass="form-control"
                                 type="number"
                                 step="0.01"
-                                placeholder="Enter sumPrice"
+                                placeholder="Enter costPrice"
                                 required="true"/>
                 </div>
 
                 <div class="mb-3">
                         <label class="form-label fw-semibold">Price Type</label>
-                                     <form:select path="priceType" cssClass="form-select" disabled="true">
-                                         <form:option value="Mrp">Mrp</form:option>
-                                         <form:option value="costPrice">costPrice</form:option>
-                                         <form:option value="sellingPrice">sellingPrice</form:option>
-                                     </form:select>
-
-                                     <form:hidden path="priceType"/>
+                                      <form:select path="priceType"
+                                                   cssClass="form-select"
+                                                   required="true">
+                                          <form:option value="" label="-- Select Price Type --"/>
+                                          <form:option value="MRP" label="MRP"/>
+                                          <form:option value="Cost Price" label="Cost Price"/>
+                                          <form:option value="Selling Price" label="Selling Price"/>
+                                      </form:select>
                                   </div>
 
                 <div class="d-flex justify-content-between">

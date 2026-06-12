@@ -118,7 +118,7 @@
                     required="true"/>
 
         <label>Super Category</label>
-        <form:select path="superCategory" required="true">
+        <form:select path="superCategory">
             <form:option value="" label="-- None (Top Level Category) --"/>
             <form:options items="${categoryList}"
                           itemValue="identifier"

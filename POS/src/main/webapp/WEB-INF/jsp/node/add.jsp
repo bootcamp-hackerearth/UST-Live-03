@@ -187,7 +187,6 @@
         <label>Assign Roles</label>
         <form:select path="roles"
                      multiple="true"
-                     required="true"
                      cssClass="form-control">
             <form:options items="${roles}"
                           itemValue="identifier"

@@ -143,12 +143,12 @@
 
         <div class="input-group">
             <label>Path</label>
-            <form:input path="path" placeholder="/example/path" required="true"/>
+            <form:input path="path" placeholder="/example/path"/>
         </div>
 
         <div class="input-group">
             <label>Assign Roles</label>
-            <form:select path="roles" multiple="true" required="true">
+            <form:select path="roles" multiple="true">
                 <form:options items="${roles}"
                               itemValue="identifier"
                               itemLabel="identifier"/>

@@ -16,6 +16,7 @@ public class RackController {
     private static final String SHELF = "shelfs";
     @Autowired
     private RackService rackService;
+
     @Autowired
     private ShelfService shelfService;
 

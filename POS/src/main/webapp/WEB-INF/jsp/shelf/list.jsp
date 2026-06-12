@@ -175,8 +175,7 @@
             <tr>
                 <th>Sl.</th>
                 <th>Shelf Name</th>
-                <th>description</th>
-               <th>status</th>
+                <th>Status</th>
                 <th>Action</th>
             </tr>
             </thead>
@@ -185,7 +184,6 @@
                 <tr id="row-${shelf.identifier}">
                     <td>${loop.index + 1}</td>
                     <td><strong>${shelf.identifier}</strong></td>
-                    <td>${shelf.description}</td>
                     <td>
                         <label class="switch">
                             <input type="checkbox"
@@ -228,6 +226,7 @@
         toggle.addEventListener('change', function() {
             const identifier = this.getAttribute('data-id');
             const isChecked = this.checked;
+
             const label = this.closest('td').querySelector('.status-label');
 
             fetch(`${pageContext.request.contextPath}/shelf/toggle?identifier=` + encodeURIComponent(identifier) + `&status=` + isChecked, {
@@ -235,6 +234,7 @@
             })
             .then(response => {
                 if (response.ok) {
+
                     if (label) {
                         label.innerText = isChecked ? 'ACTIVE' : 'INACTIVE';
                         label.className = `status-label ${isChecked ? 'text-active' : 'text-inactive'}`;

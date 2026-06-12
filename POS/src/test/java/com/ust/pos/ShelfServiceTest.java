@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -21,7 +22,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class ShelfServiceTest {
-
     @InjectMocks
     private ShelfServiceImpl shelfService;
 
@@ -117,9 +117,9 @@ class ShelfServiceTest {
                 Mockito.eq(shelfList),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(shelfDtoList);
-        List<ShelfDto> response = shelfService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("SH1", response.get(0).getIdentifier());
+        WsDto<ShelfDto> response = shelfService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("SH1", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

@@ -181,6 +181,7 @@
                             <i class="fa-solid fa-pen"></i>
                         </a>
 
+
                         <a href="/customer/delete?identifier=${cat.identifier}"
                            class="action-icon delete-icon"
                            title="Delete Customer"

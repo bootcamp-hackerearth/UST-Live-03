@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.impl.ModelsServiceImpl;
@@ -21,7 +22,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class ModelsServiceTest {
-
     @InjectMocks
     private ModelsServiceImpl modelsService;
 
@@ -119,9 +119,9 @@ class ModelsServiceTest {
                 Mockito.eq(modelsList),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(modelsDtoList);
-        List<ModelsDto> response = modelsService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("M1", response.get(0).getIdentifier());
+        WsDto<ModelsDto> response = modelsService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("M1", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

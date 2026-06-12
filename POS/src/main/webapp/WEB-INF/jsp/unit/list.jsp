@@ -64,6 +64,7 @@
             color: #64748b;
         }
 
+        /* Toggle switch */
         .switch {
             position: relative;
             display: inline-block;

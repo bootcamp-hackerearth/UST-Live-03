@@ -4,7 +4,6 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelsService;
-import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +22,16 @@ public class ProductController {
     private static final String UNIT = "unit";
     @Autowired
     private ProductService productService;
+
     @Autowired
     private CategoryService categoryService;
+
     @Autowired
     private ModelsService modelsService;
-    @Autowired
-    private PriceService priceService;
+
     @Autowired
     private BrandService brandService;
+
     @Autowired
     private UnitService unitService;
 
@@ -43,6 +44,7 @@ public class ProductController {
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ProductDto productDto) {
         model.addAttribute(CATEGORY_LIST, categoryService.findAllActive());
+        model.addAttribute(CATEGORY_LIST, categoryService.findBySuperCategoryNotNull());
         model.addAttribute(MODELS, modelsService.findAllActive());
         model.addAttribute(BRAND, brandService.findAllActive());
         model.addAttribute(UNIT, unitService.findAllActive());

@@ -1,6 +1,7 @@
 package com.ust.pos.product.service.impl;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -59,11 +60,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
+    public WsDto<ProductDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
         Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listType);
+        WsDto<ProductDto> productDtoWsDto = new WsDto<>();
+        productDtoWsDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
+        productDtoWsDto.setTotalRecords(productPage.getTotalElements());
+        productDtoWsDto.setTotalPages(productPage.getTotalPages());
+        productDtoWsDto.setSizePerPage(pageable.getPageSize());
+        productDtoWsDto.setPage(pageable.getPageNumber());
+        return productDtoWsDto;
     }
 
     @Override

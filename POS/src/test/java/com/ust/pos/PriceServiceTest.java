@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -18,7 +19,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class PriceServiceTest {
-
     @InjectMocks
     private PriceServiceImpl priceService;
 
@@ -33,7 +33,7 @@ class PriceServiceTest {
         PriceDto priceDto = new PriceDto();
         priceDto.setProduct("P1");
         priceDto.setPriceType("T1");
-        Mockito.when(priceRepository.findFirstByIdentifier(null))
+        Mockito.when(priceRepository.findByIdentifier(null))
                 .thenReturn(null);
         Price price = new Price();
         Mockito.when(modelMapper.map(priceDto, Price.class))
@@ -47,7 +47,7 @@ class PriceServiceTest {
         PriceDto priceDto = new PriceDto();
         priceDto.setProduct("P1");
         priceDto.setPriceType("T1");
-        Mockito.when(priceRepository.findFirstByIdentifier(Mockito.any()))
+        Mockito.when(priceRepository.findByIdentifier(Mockito.any()))
                 .thenReturn(new Price());
         PriceDto response = priceService.save(priceDto);
         Assertions.assertFalse(response.isSuccess());
@@ -59,7 +59,7 @@ class PriceServiceTest {
         price.setIdentifier("Admin");
         PriceDto priceDto = new PriceDto();
         priceDto.setIdentifier("Admin");
-        Mockito.when(priceRepository.findFirstByIdentifier("Admin")).thenReturn(price);
+        Mockito.when(priceRepository.findByIdentifier("Admin")).thenReturn(price);
         Mockito.when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
         PriceDto response = priceService.findByIdentifier("Admin");
         Assertions.assertEquals("Admin", response.getIdentifier());
@@ -67,7 +67,7 @@ class PriceServiceTest {
 
     @Test
     void findByIdentifierNullTest() {
-        Mockito.when(priceRepository.findFirstByIdentifier("Admin"))
+        Mockito.when(priceRepository.findByIdentifier("Admin"))
                 .thenReturn(null);
         PriceDto response = priceService.findByIdentifier("Admin");
         Assertions.assertNull(response);
@@ -79,7 +79,7 @@ class PriceServiceTest {
         priceDto.setIdentifier("Admin");
         Price existingPrice = new Price();
         existingPrice.setIdentifier("Admin");
-        Mockito.when(priceRepository.findFirstByIdentifier("Admin"))
+        Mockito.when(priceRepository.findByIdentifier("Admin"))
                 .thenReturn(existingPrice);
         Mockito.when(priceRepository.save(existingPrice))
                 .thenReturn(existingPrice);
@@ -91,7 +91,7 @@ class PriceServiceTest {
     void updateTestFailure() {
         PriceDto priceDto = new PriceDto();
         priceDto.setIdentifier("Admin");
-        Mockito.when(priceRepository.findFirstByIdentifier("Admin"))
+        Mockito.when(priceRepository.findByIdentifier("Admin"))
                 .thenReturn(null);
         PriceDto response = priceService.update(priceDto);
         Assertions.assertFalse(response.isSuccess());
@@ -120,9 +120,9 @@ class PriceServiceTest {
                 Mockito.eq(prices),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(priceDtos);
-        List<PriceDto> response = priceService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
+        WsDto<PriceDto> response = priceService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -135,7 +135,7 @@ class PriceServiceTest {
                 Mockito.eq(List.of()),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(List.of());
-        List<PriceDto> response = priceService.findAll(pageable);
-        Assertions.assertTrue(response.isEmpty());
+        WsDto<PriceDto> response = priceService.findAll(pageable);
+        Assertions.assertTrue(response.getDtoList().isEmpty());
     }
 }

@@ -89,6 +89,7 @@
         background-color: #f8fafc;
     }
 
+    /* Icon-only actions */
     .action-icon {
         color: var(--primary);
         font-size: 16px;
@@ -166,13 +167,11 @@
                     <td>${role.identifier}</td>
                     <td>${role.description}</td>
                     <td>
-
                         <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
                            class="action-icon"
                            title="Edit Role">
                             <i class="fa-solid fa-pen"></i>
                         </a>
-
                         <a href="${pageContext.request.contextPath}/role/delete?identifier=${role.identifier}"
                            class="action-icon delete-icon"
                            title="Delete Role"

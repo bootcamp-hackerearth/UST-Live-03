@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -22,7 +23,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class RoleServiceTest {
-    
     @InjectMocks
     private RoleServiceImpl roleService;
     @Mock
@@ -31,10 +31,8 @@ class RoleServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-
     @Test
     void saveTest() {
-        //request data
         RoleDto roleDto = new RoleDto();
         roleDto.setIdentifier("Admin");
         Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(null);
@@ -45,12 +43,10 @@ class RoleServiceTest {
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertNull(response.getMessage());
         Assertions.assertEquals(true, response.isSuccess());
-
     }
 
     @Test
     void saveTestFailure() {
-        //request data
         RoleDto roleDto = new RoleDto();
         roleDto.setIdentifier("Admin");
         Role role = new Role();
@@ -59,7 +55,6 @@ class RoleServiceTest {
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertNotNull(response.getMessage(), "Message cannot be null");
         Assertions.assertEquals(false, response.isSuccess());
-
     }
 
     @Test
@@ -122,8 +117,8 @@ class RoleServiceTest {
                 Mockito.eq(roleList),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(roleDtoList);
-        List<RoleDto> response = roleService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("R1", response.get(0).getIdentifier());
+        WsDto<RoleDto> response = roleService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("R1", response.getDtoList().get(0).getIdentifier());
     }
 }

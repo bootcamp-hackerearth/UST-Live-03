@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -21,7 +22,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
  class StockServiceTest {
-
     @InjectMocks
     private StockServiceImpl stockService;
 
@@ -124,8 +124,8 @@ import java.util.List;
                 Mockito.eq(stockList),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(stockDtoList);
-        List<StockDto> response = stockService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("ST1", response.get(0).getIdentifier());
+        WsDto<StockDto> response = stockService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("ST1", response.getDtoList().get(0).getIdentifier());
     }
 }

@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -21,7 +22,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class BrandServiceTest {
-
     @InjectMocks
     private BrandServiceImpl brandService;
 
@@ -116,8 +116,8 @@ class BrandServiceTest {
                 Mockito.eq(brands),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(brandDtos);
-        List<BrandDto> response = brandService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<BrandDto> response = brandService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test

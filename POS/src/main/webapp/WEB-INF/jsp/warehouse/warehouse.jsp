@@ -137,17 +137,17 @@ button:hover {
         </div>
 
         <div class="mb-3">
-                                    <label>Phone Number</label>
-                                            <form:input path="phoneNo"
-                                                        pattern="[0-9]{10}"
-                                                        maxlength="10"
-                                                        inputmode="numeric"
-                                                        title="Enter a valid 10-digit phone number"
-                                                        oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                                                        required="true"
-                                                        cssClass="input-control"/>
-                                            <form:errors path="phoneNo" cssClass="input-control" type="tel"/>
-                                </div>
+                   <label>Phone Number</label>
+                     <form:input path="phoneNo"
+                      pattern="[0-9]{10}"
+                      maxlength="10"
+                      inputmode="numeric"
+                      title="Enter a valid 10-digit phone number"
+                      oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                      required="true"
+                      cssClass="input-control"/>
+                  <form:errors path="phoneNo" cssClass="input-control" type="tel"/>
+          </div>
 
         <button type="submit">Save Changes</button>
 
