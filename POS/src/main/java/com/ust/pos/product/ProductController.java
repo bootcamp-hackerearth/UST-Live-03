@@ -34,7 +34,7 @@ public class ProductController {
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ProductDto productDto) {
-        model.addAttribute("categories", categoryService.findAllWithoutNull());
+        model.addAttribute("categories", categoryService.findAllWithoutNull(productDto.getIdentifier()));
         model.addAttribute("stock", stockService.findAll());
         model.addAttribute("warehouse", warehouseService.findAll());
         return "product/add";
@@ -53,7 +53,7 @@ public class ProductController {
     public String update(Model model, @RequestParam String identifier) {
         ProductDto productDto = productService.findByIdentifier(identifier);
         model.addAttribute("warehouse", warehouseService.findAll());
-        model.addAttribute("categories", categoryService.findAllWithoutNull());
+        model.addAttribute("categories", categoryService.findAllWithoutNull(identifier));
         model.addAttribute("product", productDto);
         return "product/product";
     }

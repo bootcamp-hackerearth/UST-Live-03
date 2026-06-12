@@ -36,21 +36,11 @@ public class NodeServiceImpl implements NodeService {
 
     public List<NodeDto> getNodesForRoles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<NodeDto> nodeDtos = new ArrayList<>();
-
-        if (authentication != null) {
-            org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            if (principalObject != null) findEligibleNodes(principalObject, nodeDtos);
-        }
-
-        return nodeDtos;
-    }
-
-    private void findEligibleNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
+        org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
+        List<NodeDto> nodeDtos = new ArrayList<>();
         Set<String> nodesStr = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
-
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
                 if (node.getRoles() != null && node.getRoles().contains(role)) {
@@ -58,10 +48,10 @@ public class NodeServiceImpl implements NodeService {
                 }
             }
         }
-
         for (String nodeStr : nodesStr) {
             nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
         }
+        return nodeDtos;
     }
 
     @Override
@@ -111,10 +101,14 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<NodeDto>>() {
-        }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listOfType);
+    public Page<NodeDto> findAll(Pageable pageable, String search) {
+        Page<Node> nodePage;
+        if (search != null && !search.trim().isEmpty()) {
+            nodePage = nodeRepository.findByIdentifierContainingIgnoreCase
+                    (search, pageable);
+        } else {
+            nodePage = nodeRepository.findAll(pageable);
+        }
+        return nodePage.map(node -> modelMapper.map(node, NodeDto.class));
     }
 }

@@ -24,10 +24,10 @@ public class UserController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String username) {
+    public String update(Model model, @RequestParam String username, @ModelAttribute UserDto userDto) {
         UserDto response = userService.findByUserName(username);
         model.addAttribute("roles", roleService.findAll());
-        model.addAttribute("user", response);
+        model.addAttribute("users", response);
         return "user/user";
     }
 

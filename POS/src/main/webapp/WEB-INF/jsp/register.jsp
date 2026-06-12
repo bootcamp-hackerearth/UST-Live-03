@@ -14,7 +14,7 @@
             margin: 0;
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -107,7 +107,7 @@
         </div>
     </c:if>
 
-    <form:form action="register" method="post" modelAttribute="userDto" onsubmit="return this.checkValidity();">
+    <form:form action="register" method="post" modelAttribute="userDto">
 
         <div class="form-group">
             <label>Name</label>
@@ -117,12 +117,11 @@
 
         <div class="form-group">
             <label>Email</label>
-                <form:input
-                    path="username"
-                    type="email"
-                    required="required"
-                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.com$"
-                    title="Enter a valid email ending with .com"/>
+            <form:input path="username"
+                        type="email"
+                        required="required"
+                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$"
+                        title="Email must end with .com"/>
         </div>
 
 

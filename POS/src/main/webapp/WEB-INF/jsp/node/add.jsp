@@ -1,9 +1,8 @@
-<%@ page language="java"
-    contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
-<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
@@ -11,182 +10,95 @@
     <meta charset="UTF-8">
     <title>Add Node</title>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
     <style>
         body {
-            margin: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             min-height: 100vh;
-            font-family: Arial, sans-serif;
-            background: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
-
-        .container {
-            position: relative;
-            width: 420px;
-            background: #ffffff;
-            padding: 30px 35px;
+        .card {
             border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
         }
-
-        /* Back button */
-        .back-btn {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            color: #4b6cb7;
-            background: rgba(75, 108, 183, 0.1);
-            border-radius: 50%;
-            transition: all 0.25s ease;
-        }
-
-        .back-btn:hover {
-            background: #4b6cb7;
-            color: #fff;
-            transform: translateX(-2px);
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #4b6cb7;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px 12px;
-            margin-bottom: 15px;
+        .form-control, .form-select {
             border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-
-        select[multiple] {
-            height: 120px;
-        }
-        .success-message {
-                    margin-bottom: 15px;
-                    padding: 10px;
-                    background: rgba(40, 167, 69, 0.12);
-                    border: 1px solid #28a745;
-                    color: #28a745;
-                    border-radius: 8px;
-                    font-size: 13px;
-                    text-align: center;
-                    font-weight: 500;
-                }
-
-
-        button {
-            width: 100%;
-            padding: 11px;
-            background: linear-gradient(135deg, #4b6cb7, #182848);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        .cancel-link {
-            display: block;
-            margin-top: 10px;
-            text-align: center;
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .cancel-link:hover {
-            text-decoration: underline;
-        }
-
-        .footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #888;
         }
     </style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="container d-flex justify-content-center align-items-center mt-5">
+    <div class="col-md-6">
 
-    <!-- ✅ Back Button -->
-    <a href="/node/list" class="back-btn" aria-label="Go back">&#8592;</a>
+        <div class="card shadow-lg">
+            <div class="card-header text-center bg-primary text-white">
+                <h4 class="mb-0">Add New Node</h4>
+            </div>
 
-    <h2>Add Node</h2>
+            <div class="card-body">
 
-    <!-- ✅ ERROR MESSAGE (shows when node already exists) -->
+                <!-- Success message -->
+                 <!-- ✅ ERROR MESSAGE (shows when node already exists) -->
+                    <c:if test="${not empty message}">
+                        <div class="alert alert-danger text-center">
+                            ${message}
+                        </div>
+                    </c:if>
 
-<c:if test="${not empty message}">
-    <div class="success-message">
-        ${message}
+                <form:form method="post"
+                           action="/node/add"
+                           modelAttribute="nodeDto">
+
+                    <!-- Identifier -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Node Identifier</label>
+                        <form:input path="identifier"
+                                    cssClass="form-control"
+                                    placeholder="Enter node identifier" />
+                    </div>
+
+                    <!-- Path -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Node Path</label>
+                        <form:input path="path"
+                                    cssClass="form-control"
+                                    placeholder="/admin/dashboard" />
+                    </div>
+
+                    <!-- Roles (Multi-select) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Assign Roles</label>
+                        <form:select path="roles"
+                                     cssClass="form-select"
+                                     multiple="true">
+                            <c:forEach var="role" items="${roles}">
+                                <option value="${role.identifier}">
+                                    ${role.identifier}
+                                </option>
+                            </c:forEach>
+                        </form:select>
+                        <small class="text-muted">
+                            Hold Ctrl (Windows) / Cmd (Mac) to select multiple roles
+                        </small>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Add Node
+                        </button>
+                    </div>
+
+                </form:form>
+
+            </div>
+
+            <div class="card-footer text-center text-muted small">
+                POS Management System
+            </div>
+        </div>
+
     </div>
-</c:if>
-
-
-    <!-- ✅ Spring Form -->
-    <form:form
-            action="/node/add"
-            method="post"
-            modelAttribute="nodeDto">
-
-        <label>Node Name</label>
-        <form:input path="identifier" required="true"/>
-
-        <label>Node Path</label>
-        <form:input path="path" required="true"/>
-
-        <label>Additional Roles</label>
-        <form:select path="roles" multiple="true">
-            <form:options
-                    items="${roles}"
-                    itemValue="identifier"
-                    itemLabel="identifier"/>
-        </form:select>
-
-        <small style="color:#777;">
-            Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple
-        </small>
-
-        <button type="submit" style="margin-top:15px;">
-            Add Node
-        </button>
-
-        <a href="/node/list" class="cancel-link">Cancel</a>
-
-    </form:form>
-
-    <div class="footer">
-        POS Management System
-    </div>
-
 </div>
 
 </body>

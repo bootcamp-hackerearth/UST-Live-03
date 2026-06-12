@@ -3,28 +3,31 @@ package com.ust.pos.api.user;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
-import com.ust.pos.role.service.RoleService;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
 public class UserApiController extends BaseController {
-    @Autowired
-    private RoleService roleService;
 
     @Autowired
     private UserService userService;
 
     @PostMapping("/list")
-    public List<UserDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortField());
-        return userService.findAll(pageable);
+    public WsDto<UserDto> home(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(),
+                paginationDto.getSizePerPage(), paginationDto.getSortField());
+        Page<UserDto> pageResult = userService.findAll(pageable);
+        WsDto<UserDto> response = new WsDto<>();
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+        return response;
     }
 
     @GetMapping("/get")

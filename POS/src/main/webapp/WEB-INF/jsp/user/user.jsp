@@ -89,7 +89,7 @@
 
     <h3>Update User</h3>
 
-    <form:form action="/user/update" method="post" modelAttribute="user">
+    <form:form action="/user/update" method="post" modelAttribute="users">
 
         <!-- Hidden ID -->
         <form:input type="hidden" path="id" />
@@ -103,9 +103,14 @@
         <!-- Email -->
         <div class="mb-3">
             <label>Email</label>
-            <form:input type="email" path="username" cssClass="form-control" required="true" />
+            <form:input type="email" path="username" cssClass="form-control" required="true"/>
         </div>
 
+
+        <%--<div class="mb-3">
+            <label>Phone Number</label>
+            <form:input path="phoneNo" cssClass="form-control" required="true"/>
+        </div>--%>
         <!-- Phone -->
         <div class="mb-3">
             <label>Phone Number</label>
@@ -130,9 +135,7 @@
             </div>
 
             <form:select path="roles" multiple="true" cssClass="form-control">
-                <form:options items="${roles}"
-                              itemValue="identifier"
-                              itemLabel="identifier" />
+                <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
             </form:select>
         </div>
 

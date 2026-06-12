@@ -12,7 +12,7 @@
 
     <style>
         body {
-            background: #ffffff;
+            background:#ffffff;
             min-height: 100vh;
         }
         .card {
@@ -75,7 +75,7 @@
                             </div>
 
                             <div class="d-flex justify-content-between">
-                                <a href="/node/list"
+                                <a href="${pageContext.request.contextPath}/node/list"
                                    class="btn btn-secondary">
                                     Cancel
                                 </a>

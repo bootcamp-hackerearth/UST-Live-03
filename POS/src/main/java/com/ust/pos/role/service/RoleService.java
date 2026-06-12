@@ -1,14 +1,15 @@
 package com.ust.pos.role.service;
 
 import com.ust.pos.dto.RoleDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface RoleService {
-    RoleDto save(RoleDto userDto);
+    RoleDto save(RoleDto nodeDto);
 
-    RoleDto update(RoleDto userDto);
+    RoleDto update(RoleDto nodeDto);
 
     void delete(String username);
 
@@ -16,5 +17,5 @@ public interface RoleService {
 
     RoleDto findByIdentifier(String identifier);
 
-    List<RoleDto> findAll(Pageable pageable);
+    Page<RoleDto> findAll(Pageable pageable, String search);
 }

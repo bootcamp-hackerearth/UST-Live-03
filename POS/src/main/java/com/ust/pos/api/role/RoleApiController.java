@@ -3,8 +3,10 @@ package com.ust.pos.api.role;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +19,22 @@ public class RoleApiController extends BaseController {
     @Autowired
     private RoleService roleService;
 
+    @GetMapping("/list")
+    public List<RoleDto> home() {
+        return roleService.findAll();
+    }
+
     @PostMapping("/list")
-    public List<RoleDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortField());
-        return roleService.findAll(pageable);
+        Page<RoleDto> role = roleService.findAll(pageable, paginationDto.getSearch());
+        WsDto<RoleDto> result = new WsDto<>();
+        result.setTotalPages(role.getTotalPages());
+        result.setContent(role.getContent());
+        result.setSizePerPage(role.getSize());
+        result.setPage(role.getNumber());
+        return result;
     }
 
     @PostMapping("/add")

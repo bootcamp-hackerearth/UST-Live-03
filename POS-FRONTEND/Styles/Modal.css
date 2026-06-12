@@ -1,0 +1,181 @@
+/* ================= DIALOG MODAL ================= */
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  margin: 0;
+  padding: 24px;
+
+  width: 450px;
+  max-width: 92%;
+  max-height: 85vh;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  overflow-y: auto;
+
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.12),
+    0 8px 16px rgba(15, 23, 42, 0.08);
+
+  z-index: 9999;
+}
+
+/* ================= DIALOG BACKDROP ================= */
+
+.modal::backdrop {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+/* ================= HEADING ================= */
+
+.modal h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ================= TEXT ================= */
+
+.modal p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ================= FORM CONTROLS ================= */
+
+.modal input,
+.modal textarea,
+.modal select {
+  width: 100%;
+  padding: 10px 12px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.modal input:focus,
+.modal textarea:focus,
+.modal select:focus {
+  outline: none;
+  border-color: #0b6e69;
+}
+
+/* ================= VALIDATION ================= */
+
+.fieldError {
+  margin-top: 4px;
+  color: #dc2626;
+  font-size: 12px;
+}
+
+/* ================= MESSAGE ================= */
+
+.formMessage {
+  padding: 12px;
+  border-radius: 8px;
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+
+  color: #0f172a;
+  font-size: 14px;
+}
+
+/* ================= ACTIONS ================= */
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* ================= BUTTONS ================= */
+
+.modalActions button {
+  min-width: 110px;
+  padding: 11px 18px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Primary Button (Add / Update) */
+
+.modalActions button:first-child {
+  background: #0b6e69;
+  color: #ffffff;
+}
+
+.modalActions button:first-child:hover {
+  background: #085c58;
+  transform: translateY(-1px);
+}
+
+/* Secondary Button (Cancel) */
+
+.modalActions button:last-child {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #dbe3ec;
+}
+
+.modalActions button:last-child:hover {
+  background: #e2e8f0;
+}
+
+/* ================= SCROLLBAR ================= */
+
+.modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .modalActions button {
+    width: 100%;
+  }
+}

@@ -67,7 +67,7 @@
             <!-- 🔙 Back Arrow + 🏠 Home -->
             <div class="top-actions">
                 <a href="javascript:history.back()" class="top-link">← </a>
-                <a href="/" class="btn btn-secondary btn-sm">Home</a>
+
             </div>
 
             <h3 class="text-center mb-4">User Management</h3>
@@ -126,8 +126,10 @@
                 User Management System
             </div>
 
+
     </div>
 </div>
 
 </body>
 </html>
+``

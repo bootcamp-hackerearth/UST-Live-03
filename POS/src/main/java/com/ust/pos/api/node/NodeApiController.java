@@ -3,9 +3,11 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,10 +23,21 @@ public class NodeApiController extends BaseController {
     private NodeService nodeService;
 
     @PostMapping("/list")
-    public List<NodeDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortField());
-        return nodeService.findAll(pageable);
+        Page<NodeDto> node = nodeService.findAll(pageable, paginationDto.getSearch());
+        WsDto<NodeDto> result = new WsDto<>();
+        result.setContent(node.getContent());
+        result.setSizePerPage(node.getSize());
+        result.setPage(node.getNumber());
+        result.setTotalPages(node.getTotalPages());
+        return result;
+    }
+
+    @GetMapping("/list")
+    public List<NodeDto> list() {
+        return nodeService.getNodesForRoles();
     }
 
     @PostMapping("/add")

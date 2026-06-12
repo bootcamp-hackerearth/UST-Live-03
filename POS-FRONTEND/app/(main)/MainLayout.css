@@ -1,0 +1,223 @@
+/* ================= GLOBAL RESET ================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+body {
+  overflow-x: hidden;
+  background: #f8fafc;
+  font-family: "Inter", sans-serif;
+}
+
+/* ================= WRAPPER ================= */
+
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: #f8fafc;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+  width: 260px;
+
+  background: linear-gradient(
+    180deg,
+    #0f172a,
+    #134e4a
+  );
+
+  color: #ffffff;
+
+  padding: 24px 18px;
+
+  display: flex;
+  flex-direction: column;
+
+  height: 100vh;
+  overflow: hidden;
+
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.12);
+}
+
+.sidebarContent {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* ================= LOGO ================= */
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 30px;
+
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.logoCircle {
+  width: 45px;
+  height: 45px;
+
+  border-radius: 12px;
+
+  background: #0b6e69;
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  font-size: 20px;
+
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+}
+
+
+
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+}
+
+.brandSub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ================= MENU ================= */
+
+.menuContainer {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.menuLabel {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+.menuList {
+  list-style: none;
+}
+
+.menuItem {
+  width: 100%;
+
+  padding: 13px 14px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: transparent;
+  color: #f8fafc;
+
+  cursor: pointer;
+
+  margin-bottom: 10px;
+
+  transition: all 0.2s ease;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  text-align: left;
+}
+
+.menuItem:hover {
+  background: rgba(20, 184, 166, 0.15);
+}
+
+.menuItem.active {
+  background: #0b6e69;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ================= LOGOUT ================= */
+
+.logoutBtn {
+  width: 100%;
+
+  padding: 13px;
+
+  border-radius: 12px;
+  border: none;
+
+  background: #334155;
+  color: #ffffff;
+
+  cursor: pointer;
+  font-weight: 600;
+
+  margin-top: 16px;
+
+  transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background: #475569;
+}
+
+/* ================= MAIN ================= */
+
+.main {
+  flex: 1;
+
+  padding: 30px;
+
+  background: #f8fafc;
+
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ================= SCROLLBAR ================= */
+
+.sidebarContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebarContent::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .wrapper {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+
+  .main {
+    padding: 20px;
+  }
+}

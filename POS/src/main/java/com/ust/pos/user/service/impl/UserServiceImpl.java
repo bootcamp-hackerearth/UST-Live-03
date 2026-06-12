@@ -20,8 +20,8 @@ import java.util.Optional;
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
-    public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
 
+    public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
     @Autowired
     private UserRepository userRepository;
 
@@ -33,7 +33,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findByUserName(String username) {
-        return modelMapper.map(userRepository.findByUsername(username), UserDto.class);
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return null;
+        }
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
@@ -62,7 +66,8 @@ public class UserServiceImpl implements UserService {
             return userDto;
         } else {
             User existingUser = userOptional.get();
-            if (!username.equalsIgnoreCase(existingUser.getUsername()) && (userRepository.findByUsername(username) != null)) {
+            if (!username.equalsIgnoreCase(existingUser.getUsername()) && userRepository.findByUsername(username) != null) {
+
                 userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
                 userDto.setSuccess(false);
                 return userDto;
@@ -86,10 +91,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<UserDto>>() {
-        }.getType();
+    public Page<UserDto> findAll(Pageable pageable) {
         Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listOfType);
+        return userPage.map(product ->
+                modelMapper.map(product, UserDto.class));
     }
 }

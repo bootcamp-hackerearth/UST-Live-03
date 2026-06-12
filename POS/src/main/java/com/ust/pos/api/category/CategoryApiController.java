@@ -4,7 +4,9 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,16 +18,37 @@ public class CategoryApiController extends BaseController {
     @Autowired
     CategoryService categoryService;
 
-    @PostMapping("/list")
-    public List<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortField());
-        return categoryService.findAll(pageable);
+    @GetMapping("/list")
+    public List<CategoryDto> home() {
+        return categoryService.findAll();
     }
 
-    @GetMapping("/add")
-    public List<CategoryDto> add(@RequestBody CategoryDto categoryDto) {
-        return categoryService.findAll();
+    @PostMapping("/list")
+    public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(),
+                paginationDto.getSizePerPage(), paginationDto.getSortField());
+        Page<CategoryDto> pageResult = categoryService.findAll(pageable, paginationDto.getSearch());
+        WsDto<CategoryDto> response = new WsDto<>();
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+        return response;
+    }
+
+    @GetMapping("listWithNull")
+    public List<CategoryDto> listWithNull() {
+        return categoryService.findAllWithNull();
+    }
+
+    @GetMapping("/listWithoutNull")
+    public List<CategoryDto> listWithoutNull(@RequestParam String identifier) {
+        return categoryService.findAllWithoutNull(identifier);
+    }
+
+    @PostMapping("/add")
+    public CategoryDto add(@RequestBody CategoryDto categoryDto) {
+        return categoryService.save(categoryDto);
     }
 
     @GetMapping("/get")
