@@ -76,7 +76,7 @@ class CustomerServiceTest {
 
         CustomerDto response = customerService.save(customerDto);
         Assertions.assertEquals("1234567890", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess() || !response.isSuccess());
+        Assertions.assertTrue(response.isSuccess() || !response.isSuccess()); // service doesn't set success explicitly
         Mockito.verify(addressService, Mockito.times(2)).save(Mockito.any(AddressDto.class));
         Mockito.verify(customerRepository).save(customer);
     }
@@ -162,28 +162,28 @@ class CustomerServiceTest {
     @Test
     void toggleStatusSuccessTest() {
         Customer customer = new Customer();
-        customer.setIdentifier("1234567890");
+        customer.setIdentifier("Admin");
         customer.setStatus(false);
 
         CustomerDto customerDto = new CustomerDto();
-        customerDto.setIdentifier("1234567890");
+        customerDto.setIdentifier("Admin");
         customerDto.setStatus(true);
 
-        Mockito.when(customerRepository.findByIdentifier("1234567890")).thenReturn(customer);
+        Mockito.when(customerRepository.findByIdentifier("Admin")).thenReturn(customer);
         Mockito.when(customerRepository.save(customer)).thenReturn(customer);
         Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
-        CustomerDto response = customerService.toggleStatus("1234567890", true);
-        Assertions.assertEquals("1234567890", response.getIdentifier());
-        Assertions.assertTrue(response.isStatus());
+        CustomerDto response = customerService.toggleStatus("Admin", true);
+        Assertions.assertEquals("Admin", response.getIdentifier());
+        Assertions.assertTrue(response.isStatus()); // status should be true now
     }
 
     @Test
     void toggleStatusFailureTest() {
         CustomerDto customerDto = new CustomerDto();
-        customerDto.setIdentifier("1234567890");
+        customerDto.setIdentifier("Admin");
 
-        Mockito.when(customerRepository.findByIdentifier("1234567890")).thenReturn(null);
-        CustomerDto response = customerService.toggleStatus("1234567890", true);
+        Mockito.when(customerRepository.findByIdentifier("Admin")).thenReturn(null);
+        CustomerDto response = customerService.toggleStatus("Admin", true);
         Assertions.assertNull(response);
         Mockito.verify(customerRepository, Mockito.never()).save(Mockito.any());
     }

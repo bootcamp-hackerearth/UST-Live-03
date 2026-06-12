@@ -116,12 +116,12 @@
                     + Add Model
                 </a>
             </div>
-            <c:if test="${empty models}">
+            <c:if test="${empty modelss}">
                 <div class="alert alert-info text-center">
                     No models found.
                 </div>
             </c:if>
-            <c:if test="${not empty models}">
+            <c:if test="${not empty modelss}">
                 <table class="table table-bordered table-hover">
                     <thead>
                     <tr>
@@ -132,7 +132,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach items="${models}" var="model">
+                    <c:forEach items="${modelss}" var="model">
                         <tr>
                             <td>${model.identifier}</td>
                             <td>${model.modelName}</td>

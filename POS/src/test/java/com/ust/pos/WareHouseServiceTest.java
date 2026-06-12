@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WareHouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.WareHouse;
 import com.ust.pos.model.WareHouseRepository;
 import com.ust.pos.warehouse.service.impl.WareHouseServiceImpl;
@@ -103,23 +104,28 @@ class WareHouseServiceTest {
     void findAllTest() {
         WareHouse warehouse = new WareHouse();
         warehouse.setIdentifier("Supply chain centre");
+
         WareHouseDto warehouseDto = new WareHouseDto();
         warehouseDto.setIdentifier("Supply chain centre");
-        List<WareHouse> warehouses = List.of(warehouse);
-        List<WareHouseDto> warehouseDtos = List.of(warehouseDto);
 
+        List<WareHouse> warehouses = List.of(warehouse);
         Pageable pageable = PageRequest.of(0, 10);
         Page<WareHouse> wareHousePage = new PageImpl<>(warehouses, pageable, warehouses.size());
 
         Mockito.when(warehouseRepository.findAll(pageable)).thenReturn(wareHousePage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(warehouses),
+        Mockito.when(modelMapper.map(Mockito.eq(warehouses),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(warehouseDtos);
-        List<WareHouseDto> response = warehouseService.findAll(pageable);
+        )).thenReturn(List.of(warehouseDto));
+        WsDto<WareHouseDto> response = warehouseService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Supply chain centre", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Supply chain centre", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -160,7 +166,7 @@ class WareHouseServiceTest {
         Mockito.when(modelMapper.map(wareHouse, WareHouseDto.class)).thenReturn(wareHouseDto);
         WareHouseDto response = warehouseService.toggleStatus("Supply chain centre", true);
         Assertions.assertEquals("Supply chain centre", response.getIdentifier());
-        Assertions.assertTrue(response.isStatus());
+        Assertions.assertTrue(response.isStatus()); // status should be true now
     }
 
     @Test

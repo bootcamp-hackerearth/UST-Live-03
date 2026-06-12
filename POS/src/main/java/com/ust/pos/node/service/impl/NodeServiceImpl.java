@@ -1,6 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
@@ -69,12 +70,19 @@ public class NodeServiceImpl implements NodeService {
         nodeRepository.deleteByIdentifier(identifier);
     }
 
-    @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+
+        WsDto<NodeDto> nodeWsDto = new WsDto<>();
+        nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        nodeWsDto.setTotalRecords(nodePage.getTotalElements());
+        nodeWsDto.setTotalPages(nodePage.getTotalPages());
+        nodeWsDto.setSizePerPage(pageable.getPageSize());
+        nodeWsDto.setPage(pageable.getPageNumber());
+
+        return nodeWsDto;
     }
 
     public List<NodeDto> getNodesForRoles() throws NullPointerException {
@@ -82,7 +90,7 @@ public class NodeServiceImpl implements NodeService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
-            return nodeDtos;
+            return nodeDtos; // or throw an exception if you want
         }
         if ("anonymousUser".equals(authentication.getPrincipal())) {
             return nodeDtos;

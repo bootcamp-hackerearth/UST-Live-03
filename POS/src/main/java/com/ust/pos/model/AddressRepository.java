@@ -10,4 +10,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     @Transactional
     void deleteByPhoneNo(String phoneNo);
+
+    Address findByPhoneNo(String phoneNo);
 }

@@ -47,6 +47,7 @@ public class UserController extends BaseController {
                 model.addAttribute("message", response.getMessage());
                 return "user/user";
             }
+            //  logout if current user updated themselves
             if (loggedInUser.equals(userDto.getOldUsername())) {
                 SecurityContextHolder.clearContext();
                 return "redirect:/login";

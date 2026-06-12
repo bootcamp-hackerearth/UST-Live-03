@@ -1,6 +1,7 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -31,7 +32,7 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public PriceDto save(PriceDto priceDto) {
-        //identifier using a combination of product and price type
+        // Create an identifier using a combination of price and price type
         priceDto.setIdentifier(priceDto.getProduct() + "_" + priceDto.getPriceType());
         String identifier = priceDto.getIdentifier();
         Price existingPrice = priceRepository.findByIdentifier(identifier);
@@ -65,11 +66,18 @@ public class PriceServiceImpl implements PriceService {
         priceRepository.deleteByIdentifier(identifier);
     }
 
-    @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public WsDto<PriceDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
         Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+
+        WsDto<PriceDto> priceWsDto = new WsDto<>();
+        priceWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+        priceWsDto.setTotalRecords(pricePage.getTotalElements());
+        priceWsDto.setTotalPages(pricePage.getTotalPages());
+        priceWsDto.setSizePerPage(pageable.getPageSize());
+        priceWsDto.setPage(pageable.getPageNumber());
+
+        return priceWsDto;
     }
 }

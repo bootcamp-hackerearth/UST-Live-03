@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -130,21 +131,27 @@ class UserServiceTest {
     void findAllTest() {
         User user = new User();
         user.setUsername("admin@test.com");
+
         UserDto userDto = new UserDto();
         userDto.setUsername("admin@test.com");
+
         List<User> users = List.of(user);
-        List<UserDto> userDtos = List.of(userDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<User> userPage = new PageImpl<>(users, pageable, users.size());
 
         Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(users),
+        Mockito.when(modelMapper.map(Mockito.eq(users),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(userDtos);
-        List<UserDto> response = userService.findAll(pageable);
+        )).thenReturn(List.of(userDto));
+        WsDto<UserDto> response = userService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("admin@test.com", response.get(0).getUsername());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("admin@test.com", response.getDtoList().get(0).getUsername());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

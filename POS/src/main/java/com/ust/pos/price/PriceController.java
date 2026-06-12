@@ -16,7 +16,6 @@ public class PriceController {
     public static final String REDIRECT_PRICE_LIST = "redirect:/price/list";
     @Autowired
     private PriceService priceService;
-
     @Autowired
     private ProductService productService;
 

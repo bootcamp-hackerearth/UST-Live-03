@@ -19,9 +19,9 @@ import java.util.List;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
+
     public static final String BILLING = "billing";
     public static final String SHIPPING = "shipping";
-
     @Autowired
     private CustomerRepository customerRepository;
 

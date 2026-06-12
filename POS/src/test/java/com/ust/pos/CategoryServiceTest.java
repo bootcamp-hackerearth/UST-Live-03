@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
@@ -110,19 +111,23 @@ class CategoryServiceTest {
         categoryDto.setIdentifier("C0020");
 
         List<Category> categories = List.of(category);
-        List<CategoryDto> categoryDtos = List.of(categoryDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Category> categoryPage = new PageImpl<>(categories, pageable, categories.size());
-
         Mockito.when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(categories),
+        Mockito.when(modelMapper.map(Mockito.eq(categories),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(categoryDtos);
-        List<CategoryDto> response = categoryService.findAll(pageable);
+        )).thenReturn(List.of(categoryDto));
+
+        WsDto<CategoryDto> response = categoryService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("C0020", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("C0020", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

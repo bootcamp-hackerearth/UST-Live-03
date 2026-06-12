@@ -45,7 +45,7 @@ public class CategoryController {
     public String update(Model model, @RequestParam String identifier, Pageable pageable) {
         CategoryDto response = categoryService.findByIdentifier(identifier);
         model.addAttribute("category", response);
-        List<CategoryDto> cd = categoryService.findAll(pageable);
+        List<CategoryDto> cd = categoryService.findAll(pageable).getDtoList();
         model.addAttribute("categories",cd.stream().filter(s-> !s.getIdentifier().equals(identifier)).toList());
         return "category/category";
     }

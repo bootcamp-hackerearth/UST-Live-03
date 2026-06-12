@@ -118,6 +118,8 @@
 
 <div class="sidebar">
     <h4>POS System</h4>
+
+    <!-- SCROLLABLE -->
     <div class="sidebar-menu">
         <c:if test="${not empty nodes}">
             <c:forEach items="${nodes}" var="nav">
@@ -131,6 +133,8 @@
             <p style="color:#ccc;text-align:center;">No access</p>
         </c:if>
     </div>
+
+    <!-- LOGOUT FIXED -->
     <div class="logout-btn">
         <form action="${pageContext.request.contextPath}/logout" method="post">
             <button type="submit">Logout</button>

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -103,23 +104,28 @@ class StockServiceTest {
     void findAllTest() {
         Stock stock = new Stock();
         stock.setIdentifier("STOCK_001");
+
         StockDto stockDto = new StockDto();
         stockDto.setIdentifier("STOCK_001");
-        
+
         List<Stock> stocks = List.of(stock);
-        List<StockDto> stockDtos = List.of(stockDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Stock> stockPage = new PageImpl<>(stocks, pageable, stocks.size());
 
         Mockito.when(stockRepository.findAll(pageable)).thenReturn(stockPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(stocks),
+        Mockito.when(modelMapper.map(Mockito.eq(stocks),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(stockDtos);
-        List<StockDto> response = stockService.findAll(pageable);
+        )).thenReturn(List.of(stockDto));
+        WsDto<StockDto> response = stockService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("STOCK_001", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("STOCK_001", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

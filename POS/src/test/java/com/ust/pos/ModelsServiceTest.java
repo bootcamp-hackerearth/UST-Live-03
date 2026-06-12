@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.impl.ModelsServiceImpl;
@@ -108,18 +109,23 @@ class ModelsServiceTest {
         modelsDto.setIdentifier("MDL_107");
 
         List<Models> modelsList = List.of(models);
-        List<ModelsDto> modelsDtos = List.of(modelsDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Models> modelsPage = new PageImpl<>(modelsList, pageable, modelsList.size());
         Mockito.when(modelsRepository.findAll(pageable)).thenReturn(modelsPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(modelsList),
+        Mockito.when(modelMapper.map(Mockito.eq(modelsList),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(modelsDtos);
-        List<ModelsDto> response = modelsService.findAll(pageable);
+        )).thenReturn(List.of(modelsDto));
+
+        WsDto<ModelsDto> response = modelsService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("MDL_107", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("MDL_107", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -137,7 +143,7 @@ class ModelsServiceTest {
         Mockito.when(modelMapper.map(models, ModelsDto.class)).thenReturn(modelsDto);
         ModelsDto response = modelsService.toggleStatus("MDL_107", true);
         Assertions.assertEquals("MDL_107", response.getIdentifier());
-        Assertions.assertTrue(response.isStatus());
+        Assertions.assertTrue(response.isStatus()); // status should be true now
     }
 
     @Test

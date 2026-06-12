@@ -131,12 +131,12 @@
                    <select name="racks" class="form-control">
                        <option value="">-- Select Rack --</option>
                        <c:forEach var="r" items="${racks}">
-                          <option value="${r.identifier}"
-                              <c:if test="${stockDto.racks eq r.identifier}">
-                                  selected
-                              </c:if>>
-                              ${r.name}
-                          </option>
+                           <option value="${r.name}"
+                               <c:if test="${stockDto.racks == r.identifier}">
+                                   selected
+                               </c:if>>
+                               ${r.name}
+                           </option>
                        </c:forEach>
                    </select>
                </div>

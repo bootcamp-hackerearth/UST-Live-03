@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -103,21 +104,28 @@ class UnitServiceTest {
     void findAllTest() {
         Unit unit = new Unit();
         unit.setIdentifier("U101");
+
         UnitDto unitDto = new UnitDto();
         unitDto.setIdentifier("U101");
 
         List<Unit> units = List.of(unit);
-        List<UnitDto> unitDtos = List.of(unitDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Unit> unitPage = new PageImpl<>(units, pageable, units.size());
+
         Mockito.when(unitRepository.findAll(pageable)).thenReturn(unitPage);
         Mockito.when(modelMapper.map(Mockito.eq(units),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(unitDtos);
-        List<UnitDto> response = unitService.findAll(pageable);
+        )).thenReturn(List.of(unitDto));
+        WsDto<UnitDto> response = unitService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("U101", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("U101", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

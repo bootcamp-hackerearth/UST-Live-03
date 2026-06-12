@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/models")
 public class ModelsController extends BaseController {
-    public static final String REDIRECT_MODELS_LIST = "redirect:/models/list";
 
+    public static final String REDIRECT_MODELS_LIST = "redirect:/models/list";
     @Autowired
     private ModelsService modelsService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
-        model.addAttribute("models", modelsService.findAll(pageable));
+        model.addAttribute("modelss", modelsService.findAll(pageable));
         return "models/list";
     }
 

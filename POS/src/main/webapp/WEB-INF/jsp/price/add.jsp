@@ -113,8 +113,8 @@
                     -- Select Product --
                 </form:option>
                 <c:forEach items="${product}" var="p">
-                    <form:option value="${p.productName}">
-                        ${p.productName}
+                    <form:option value="${p.identifier}">
+                        ${p.identifier}
                     </form:option>
                 </c:forEach>
             </form:select>
@@ -127,7 +127,6 @@
                 </form:option>
                 <form:option value="MRP">MRP</form:option>
                 <form:option value="SELLING">Selling Price</form:option>
-                <form:option value="DISCOUNT">Discount</form:option>
             </form:select>
         </div>
         <div class="form-group">

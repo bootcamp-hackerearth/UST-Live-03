@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -107,22 +108,27 @@ class PriceServiceTest {
     void findAllTest() {
         Price price = new Price();
         price.setIdentifier("Price1");
+
         PriceDto priceDto = new PriceDto();
         priceDto.setIdentifier("Price1");
 
         List<Price> prices = List.of(price);
-        List<PriceDto> priceDtos = List.of(priceDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Price> pricePage = new PageImpl<>(prices, pageable, prices.size());
 
         Mockito.when(priceRepository.findAll(pageable)).thenReturn(pricePage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(prices),
+        Mockito.when(modelMapper.map(Mockito.eq(prices),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(priceDtos);
-        List<PriceDto> response = priceService.findAll(pageable);
+        )).thenReturn(List.of(priceDto));
+        WsDto<PriceDto> response = priceService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Price1", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Price1", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.impl.NodeServiceImpl;
 import org.junit.jupiter.api.Assertions;
@@ -36,24 +37,24 @@ class NodeServiceTest {
     @Test
     void findByIdentifierTest() {
         Node node = new Node();
-        node.setIdentifier("Node");
+        node.setIdentifier("User");
         NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("Node");
+        nodeDto.setIdentifier("User");
 
-        Mockito.when(nodeRepository.findByIdentifier("Node")).thenReturn(node);
+        Mockito.when(nodeRepository.findByIdentifier("User")).thenReturn(node);
         Mockito.when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
-        NodeDto response = nodeService.findByIdentifier("Node");
-        Assertions.assertEquals("Node", response.getIdentifier());
+        NodeDto response = nodeService.findByIdentifier("User");
+        Assertions.assertEquals("User", response.getIdentifier());
     }
 
     @Test
     void saveTest() {
         NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("Node");
+        nodeDto.setIdentifier("User");
         Node node = new Node();
-        node.setIdentifier("Node");
+        node.setIdentifier("User");
 
-        Mockito.when(nodeRepository.findByIdentifier("Node")).thenReturn(null);
+        Mockito.when(nodeRepository.findByIdentifier("User")).thenReturn(null);
         Mockito.when(modelMapper.map(nodeDto, Node.class)).thenReturn(node);
         Mockito.when(nodeRepository.save(node)).thenReturn(node);
         NodeDto response = nodeService.save(nodeDto);
@@ -63,11 +64,11 @@ class NodeServiceTest {
     @Test
     void saveTestFailure() {
         NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("Node");
+        nodeDto.setIdentifier("User");
         Node existingNode = new Node();
-        existingNode.setIdentifier("Node");
+        existingNode.setIdentifier("User");
 
-        Mockito.when(nodeRepository.findByIdentifier("Node")).thenReturn(existingNode);
+        Mockito.when(nodeRepository.findByIdentifier("User")).thenReturn(existingNode);
         NodeDto response = nodeService.save(nodeDto);
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
@@ -76,11 +77,11 @@ class NodeServiceTest {
     @Test
     void updateTest() {
         NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("Node");
+        nodeDto.setIdentifier("User");
         Node existingNode = new Node();
-        existingNode.setIdentifier("Node");
+        existingNode.setIdentifier("User");
 
-        Mockito.when(nodeRepository.findByIdentifier("Node")).thenReturn(existingNode);
+        Mockito.when(nodeRepository.findByIdentifier("User")).thenReturn(existingNode);
         Mockito.when(nodeRepository.save(existingNode)).thenReturn(existingNode);
         NodeDto response = nodeService.update(nodeDto);
         Assertions.assertTrue(response.isSuccess());
@@ -89,8 +90,8 @@ class NodeServiceTest {
     @Test
     void updateTestFailure() {
         NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("Node");
-        Mockito.when(nodeRepository.findByIdentifier("Node")).thenReturn(null);
+        nodeDto.setIdentifier("User");
+        Mockito.when(nodeRepository.findByIdentifier("User")).thenReturn(null);
         NodeDto response = nodeService.update(nodeDto);
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
@@ -98,33 +99,37 @@ class NodeServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(nodeRepository).deleteByIdentifier("Node");
-        nodeService.delete("Node");
-        Mockito.verify(nodeRepository).deleteByIdentifier("Node");
+        Mockito.doNothing().when(nodeRepository).deleteByIdentifier("User");
+        nodeService.delete("User");
+        Mockito.verify(nodeRepository).deleteByIdentifier("User");
     }
 
     @Test
     void findAllTest() {
         Node node = new Node();
-        node.setIdentifier("Node");
+        node.setIdentifier("User");
 
         NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("Node");
+        nodeDto.setIdentifier("User");
 
         List<Node> nodes = List.of(node);
-        List<NodeDto> nodeDtos = List.of(nodeDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Node> nodePage = new PageImpl<>(nodes, pageable, nodes.size());
 
         Mockito.when(nodeRepository.findAll(pageable)).thenReturn(nodePage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(nodes),
+        Mockito.when(modelMapper.map(Mockito.eq(nodes),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(nodeDtos);
-        List<NodeDto> response = nodeService.findAll(pageable);
+        )).thenReturn(List.of(nodeDto));
+        WsDto<NodeDto> response = nodeService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Node", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("User", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

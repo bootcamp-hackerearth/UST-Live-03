@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -102,23 +103,28 @@ class RoleServiceTest {
     void findAllTest() {
         Role role = new Role();
         role.setIdentifier("Admin");
+
         RoleDto roleDto = new RoleDto();
         roleDto.setIdentifier("Admin");
 
         List<Role> roles = List.of(role);
-        List<RoleDto> roleDtos = List.of(roleDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Role> rolePage = new PageImpl<>(roles, pageable, roles.size());
 
         Mockito.when(roleRepository.findAll(pageable)).thenReturn(rolePage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(roles),
+        Mockito.when(modelMapper.map(Mockito.eq(roles),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(roleDtos);
-        List<RoleDto> response = roleService.findAll(pageable);
+        )).thenReturn(List.of(roleDto));
+        WsDto<RoleDto> response = roleService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -135,7 +141,7 @@ class RoleServiceTest {
         Mockito.when(modelMapper.map(role,RoleDto.class)).thenReturn(roleDto);
         RoleDto response = roleService.toggleStatus("Admin", true);
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isStatus());
+        Assertions.assertTrue(response.isStatus()); // status should be true now
     }
 
     @Test
@@ -151,10 +157,10 @@ class RoleServiceTest {
     @Test
     void findActiveRoleTest() {
         Role role = new Role();
-        role.setIdentifier("Admin");
+        role.setIdentifier("RACK_01");
         role.setStatus(true);
         RoleDto roleDto = new RoleDto();
-        roleDto.setIdentifier("Admin");
+        roleDto.setIdentifier("RACK_01");
         roleDto.setStatus(true);
 
         List<Role> activeRole = List.of(role);
@@ -167,7 +173,7 @@ class RoleServiceTest {
         List<RoleDto> response = roleService.findActiveRole();
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
+        Assertions.assertEquals("RACK_01", response.get(0).getIdentifier());
         Assertions.assertTrue(response.get(0).isStatus());
     }
 }

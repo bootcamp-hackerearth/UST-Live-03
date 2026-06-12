@@ -5,6 +5,7 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.product.service.ProductService;
+import com.ust.pos.unit.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -17,18 +18,17 @@ public class ProductController {
 
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
     public static final String BRANDS = "brands";
-
     @Autowired
     private ProductService productService;
 
     @Autowired
     CategoryService categoryService;
-
     @Autowired
     BrandService brandService;
-
     @Autowired
     ModelsService modelsService;
+    @Autowired
+    UnitService unitService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

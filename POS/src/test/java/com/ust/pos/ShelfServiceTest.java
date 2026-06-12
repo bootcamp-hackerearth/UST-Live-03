@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -102,23 +103,28 @@ class ShelfServiceTest {
     void findAllTest() {
         Shelf shelf = new Shelf();
         shelf.setIdentifier("Shelf_001");
+
         ShelfDto shelfDto = new ShelfDto();
         shelfDto.setIdentifier("Shelf_001");
 
         List<Shelf> shelves = List.of(shelf);
-        List<ShelfDto> shelfDtos = List.of(shelfDto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Shelf> shelfPage = new PageImpl<>(shelves, pageable, shelves.size());
 
         Mockito.when(shelfRepository.findAll(pageable)).thenReturn(shelfPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(shelves),
+        Mockito.when(modelMapper.map(Mockito.eq(shelves),
                 Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(shelfDtos);
-        List<ShelfDto> response = shelfService.findAll(pageable);
+        )).thenReturn(List.of(shelfDto));
+        WsDto<ShelfDto> response = shelfService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Shelf_001", response.get(0).getIdentifier());
+        Assertions.assertNotNull(response.getDtoList());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Shelf_001", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -132,17 +138,17 @@ class ShelfServiceTest {
         Mockito.when(shelfRepository.findByIdentifier("Shelf_001")).thenReturn(shelf);
         Mockito.when(shelfRepository.save(shelf)).thenReturn(shelf);
         Mockito.when(modelMapper.map(shelf,ShelfDto.class)).thenReturn(shelfDto);
-        ShelfDto response = shelfService.toggleStatus("Shelf_001", true);
+       ShelfDto response = shelfService.toggleStatus("Shelf_001", true);
         Assertions.assertEquals("Shelf_001", response.getIdentifier());
-        Assertions.assertTrue(response.isStatus());
+        Assertions.assertTrue(response.isStatus()); // status should be true now
     }
 
     @Test
     void changeRoleStatusFailureTest() {
-        ShelfDto shelfDto = new ShelfDto();
+       ShelfDto shelfDto = new ShelfDto();
         shelfDto.setIdentifier("Shelf_001");
         Mockito.when(shelfRepository.findByIdentifier("Shelf_001")).thenReturn(null);
-        ShelfDto response = shelfService.toggleStatus("Shelf_001", true);
+       ShelfDto response = shelfService.toggleStatus("Shelf_001", true);
         Assertions.assertNull(response);
         Mockito.verify(shelfRepository, Mockito.never()).save(Mockito.any());
     }
