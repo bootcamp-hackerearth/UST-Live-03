@@ -1,18 +1,17 @@
 package com.ust.pos.unit.service.impl;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -80,13 +79,23 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public List<UnitDto> findAll(Pageable pageable) {
+    public WsDto<UnitDto> findAll(Pageable pageable) {
 
-        Type listType = new TypeToken<List<UnitDto>>() {
-        }.getType();
         Page<Unit> unitPage = unitRepository.findAll(pageable);
+        WsDto<UnitDto> unitDto = new WsDto<>();
 
-        return modelMapper.map(unitPage.getContent(), listType);
+        List<UnitDto> unitDtos = unitPage.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, UnitDto.class))
+                .toList();
+
+        unitDto.setContent(unitDtos);
+        unitDto.setPage(unitPage.getNumber());
+        unitDto.setSizePerPage(unitPage.getSize());
+        unitDto.setTotalPages(unitPage.getTotalPages());
+        unitDto.setTotalRecords(unitPage.getTotalElements());
+
+        return unitDto;
     }
 
     @Override

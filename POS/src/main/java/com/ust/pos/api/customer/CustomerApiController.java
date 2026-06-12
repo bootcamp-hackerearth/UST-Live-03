@@ -27,7 +27,7 @@ public class CustomerApiController extends BaseController {
     private AddressService addressService;
 
     @PostMapping("/list")
-    public List<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
+    public List<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),

@@ -23,7 +23,7 @@ public class WareHouseApiController extends BaseController {
     private ProductService productService;
 
     @PostMapping("/list")
-    public List<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
+    public List<WarehouseDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),

@@ -1,18 +1,17 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -82,13 +81,24 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public WsDto<PriceDto> findAll(Pageable pageable) {
 
         Page<Price> pricePage = priceRepository.findAll(pageable);
-        Type listType = new TypeToken<List<PriceDto>>() {
-        }.getType();
 
-        return modelMapper.map(pricePage.getContent(), listType);
+        WsDto<PriceDto> priceDto = new WsDto<>();
+
+        List<PriceDto> priceDtos = pricePage.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, PriceDto.class))
+                .toList();
+
+        priceDto.setContent(priceDtos);
+        priceDto.setPage(pricePage.getNumber());
+        priceDto.setSizePerPage(pricePage.getSize());
+        priceDto.setTotalPages(pricePage.getTotalPages());
+        priceDto.setTotalRecords(pricePage.getTotalElements());
+
+        return priceDto;
     }
 }
 

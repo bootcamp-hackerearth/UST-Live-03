@@ -13,84 +13,94 @@
 
     <style>
         body {
-            background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
-            min-height: 100vh;
+ background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
+min-height: 100vh;
         }
         .card {
-            border-radius: 12px;
+border-radius: 12px;
         }
         .form-control {
-            border-radius: 8px;
+border-radius: 8px;
         }
         .card-header{
-            background: #ffffff;
+background: #ffffff;
         }
     </style>
 </head>
 <body>
-        <div class="container d-flex justify-content-center align-items-center mt-5">
-            <div class="col-md-5">
-                <div class="card shadow-lg">
-                    <div class="card-header text-center text-black">
-                        <h4 class="mb-0">Update Brand</h4>
-                    </div>
-                    <div class="card-body">
-                        <c:if test="${not empty brands}">
-                            <div class="alert alert-success text-center">
-                                ${brands}
-                            </div>
-                        </c:if>
 
-                       <form:form method="post"
-                                action="/brand/update"
-                                modelAttribute="brandDto">
+<div class="container d-flex justify-content-center align-items-center mt-5">
+    <div class="col-md-5">
 
-                           <div class="mb-3">
-                               <label class="form-label fw-semibold">Brand Name</label>
-                               <form:input path="identifier"
-                                    cssClass="form-control"
-                                    type="text"
-                                    readonly="true"/>
-                           </div>
+        <div class="card shadow-lg">
+<div class="card-header text-center text-black">
+    <h4 class="mb-0">Update Brand</h4>
+</div>
 
-                           <div class="mb-3">
-                                <label class="form-label fw-semibold">Brand Description</label>
-                                <form:input path="description"
-                                    cssClass="form-control"
-                                    type="text"
-                                    required="true"/>
-                           </div>
+<div class="card-body">
 
-                                <label class="form-label fw-semibold">Status</label>
-                                <form:checkbox path="status"/>
-
-                           <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    Update Brand
-                                </button>
-                           </div>
-                       </form:form>
-                    </div>
-                <div class="card-footer text-center text-muted small">
-                    POS Management System
-                </div>
-
-                <div class="text-center mt-3">
-                    <a href="/brand/list">← Back to Brand List</a>
-                </div>
-            </div>
-            <c:if test="${not empty message}">
-                <div style="
-                    background:#f8d7da;
-                    color:#721c24;
-                    padding:10px;
-                    margin-bottom:15px;
-                    border-radius:4px;
-                    text-align:center;">
-                    ${message}
-                </div>
-            </c:if>
-            </div>
+    <c:if test="${not empty brands}">
+        <div class="alert alert-success text-center">
+${brands}
         </div>
+    </c:if>
+
+    <form:form method="post"
+   action="/brand/update"
+   modelAttribute="brandDto">
+
+
+       <div class="mb-3">
+<label class="form-label fw-semibold">Brand Name</label>
+           <form:input path="identifier"
+     cssClass="form-control"
+     type="text"
+      readonly="true"/>
+ </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Brand Description</label>
+   <form:input path="description"
+          cssClass="form-control"
+type="text"
+required="true"/>
+     </div>
+
+    <label class="form-label fw-semibold">Status</label>
+    <form:checkbox path="status"
+      />
+
+        <div class="d-grid">
+<button type="submit" class="btn btn-primary btn-lg">
+    Update Brand
+</button>
+        </div>
+
+    </form:form>
+
+</div>
+
+<div class="card-footer text-center text-muted small">
+    POS Management System
+</div>
+
+<div class="text-center mt-3">
+    <a href="/brand/list">← Back to Brand List</a>
+</div>
+        </div>
+         <c:if test="${not empty message}">
+<div style="
+    background:#f8d7da;
+    color:#721c24;
+    padding:10px;
+    margin-bottom:15px;
+    border-radius:4px;
+    text-align:center;">
+    ${message}
+</div>
+        </c:if>
+
+    </div>
+</div>
 </body>
 </html>

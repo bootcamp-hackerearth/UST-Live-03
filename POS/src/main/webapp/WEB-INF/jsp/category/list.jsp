@@ -14,47 +14,43 @@
             background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
             min-height: 100vh;
         }
-
         .card {
             border-radius: 16px;
         }
-
         .card-header {
             border-top-left-radius: 16px;
             border-top-right-radius: 16px;
         }
-
         table th {
             background-color: #0d6efd;
             color: white;
         }
-
-        h4 {
+        h4{
             background-color: #ffffff;
         }
 
         .btn-pos-update {
-            background-color: #fdfafc;
-            border-color: #4b6cb7;
-            color: #000;
-        }
+                        background-color: #fdfafc;
+                        border-color: #4b6cb7;
+                        color: #000;
+                }
 
-        .btn-pos-update:hover {
-            background-color: #3f5fa7;
-            border-color: #3f5fa7;
-            color: #fff;
-        }
+                .btn-pos-update:hover {
+                    background-color: #3f5fa7;
+                    border-color: #3f5fa7;
+                    color: #fff;
+                }
 
-        .btn-pos-delete {
-            background-color: #f5f7fa;
-            border: 1px solid #dc3545;
-            color: #dc3545;
-        }
+                .btn-pos-delete {
+                    background-color: #f5f7fa;
+                    border: 1px solid #dc3545;
+                    color: #dc3545;
+                }
 
-        .btn-pos-delete:hover {
-            background-color: #dc3545;
-            color: #fff;
-        }
+                .btn-pos-delete:hover {
+                    background-color: #dc3545;
+                    color: #fff;
+                }
     </style>
 </head>
 
@@ -80,43 +76,43 @@
                     <c:if test="${not empty category}">
                         <table class="table table-bordered table-hover text-center align-middle">
                             <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Category Name</th>
-                                    <th>Super Category</th>
-                                    <th>Delete</th>
-                                    <th>Update</th>
-                                </tr>
+                            <tr>
+                                <th>ID</th>
+                                <th>Category Name</th>
+                                <th>Super Category</th>
+                                <th>Delete</th>
+                                <th>Update</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                <c:forEach var="cat" items="${category}">
-                                    <tr>
-                                        <td>
-                                            <a href=""
-                                               class="text-decoration-none fw-semibold">
-                                                ${cat.id}
-                                            </a>
-                                        </td>
+                            <c:forEach var="cat" items="${category}">
+                                <tr>
+                                    <td>
+                                        <a href=""
+                                           class="text-decoration-none fw-semibold">
+                                            ${cat.id}
+                                        </a>
+                                    </td>
+                                    <td>${cat.identifier}</td>
+                                    <td>${cat.superCategory}</td>
 
-                                        <td>${cat.identifier}</td>
-                                        <td>${cat.superCategory}</td>
 
-                                        <td>
-                                            <a href="/category/delete?identifier=${cat.identifier}"
-                                               class="btn btn-pos-delete btn-sm"
-                                               onclick="return confirm('Are you sure you want to delete this price?');">
-                                                Delete
-                                            </a>
-                                        </td>
-
-                                        <td>
-                                            <a class="btn btn-pos-update btn-sm"
-                                               href="/category/get?identifier=${cat.identifier}">
-                                                Update
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
+                                    <td>
+                                        <a href="/category/delete?identifier=${cat.identifier}"
+                                           class="btn btn-pos-delete btn-sm"
+                                           onclick="return confirm('Are you sure you want to delete this price?');">
+                                            Delete
+                                        </a>
+                                    </td>
+                                    <td>
+                                          <a class="btn btn-pos-update btn-sm"
+                                     href="/category/get?identifier=${cat.identifier}"
+                                                                    >
+                                                                             Update
+                                                                   </a>
+                                                                    </td>
+                                </tr>
+                            </c:forEach>
                             </tbody>
                         </table>
                     </c:if>

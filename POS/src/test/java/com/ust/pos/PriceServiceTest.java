@@ -157,17 +157,19 @@ class PriceServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Price> prices = List.of(new Price());
+        Price price = new Price();
+        PriceDto dto = new PriceDto();
+
+        List<Price> prices = List.of(price);
         Page<Price> page = new PageImpl<>(prices);
-        List<PriceDto> dtos = List.of(new PriceDto());
 
         when(priceRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(prices),
-                any(Type.class)
-        )).thenReturn(dtos);
 
-        List<PriceDto> result = priceService.findAll(pageable);
+        when(modelMapper.map(price, PriceDto.class))
+                .thenReturn(dto);
+
+        List<PriceDto> result = priceService.findAll(pageable).getContent();
+
         assertNotNull(result);
         assertEquals(1, result.size());
 

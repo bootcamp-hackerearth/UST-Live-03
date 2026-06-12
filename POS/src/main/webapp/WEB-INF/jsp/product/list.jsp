@@ -15,13 +15,13 @@
             min-height: 100vh;
         }
 
-        .card-body {
-            overflow-x: auto;
-        }
+.card-body {
+    overflow-x: auto;
+}
 
-        .table {
-            white-space: nowrap;
-        }
+.table {
+    white-space: nowrap;
+}
 
         .card-header {
             border-top-left-radius: 16px;
@@ -32,33 +32,32 @@
             background-color: #0d6efd;
             color: white;
         }
-
-        h4 {
+        h4{
             background-color: #ffffff;
         }
 
         .btn-pos-update {
-            background-color: #fdfafc;
-            border-color: #4b6cb7;
-            color: #000;
-        }
+                        background-color: #fdfafc;
+                        border-color: #4b6cb7;
+                        color: #000;
+                }
 
-        .btn-pos-update:hover {
-            background-color: #3f5fa7;
-            border-color: #3f5fa7;
-            color: #fff;
-        }
+                .btn-pos-update:hover {
+                    background-color: #3f5fa7;
+                    border-color: #3f5fa7;
+                    color: #fff;
+                }
 
-        .btn-pos-delete {
-            background-color: #f5f7fa;
-            border: 1px solid #dc3545;
-            color: #dc3545;
-        }
+                .btn-pos-delete {
+                    background-color: #f5f7fa;
+                    border: 1px solid #dc3545;
+                    color: #dc3545;
+                }
 
-        .btn-pos-delete:hover {
-            background-color: #dc3545;
-            color: #fff;
-        }
+                .btn-pos-delete:hover {
+                    background-color: #dc3545;
+                    color: #fff;
+                }
     </style>
 </head>
 
@@ -77,62 +76,64 @@
 
                     <c:if test="${empty products}">
                         <div class="alert alert-warning text-center">
-                            No Product found
+                            No Stock found
                         </div>
                     </c:if>
 
                     <c:if test="${not empty products}">
                         <table class="table table-bordered table-hover text-center align-middle">
                             <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Product Identifier</th>
-                                    <th>Product Name</th>
-                                    <th>Description</th>
-                                    <th>Unit</th>
-                                    <th>Brand</th>
-                                    <th>Model</th>
-                                    <th>Price</th>
-                                    <th>Category</th>
-                                    <th>Delete</th>
-                                    <th>Update</th>
-                                </tr>
+                            <tr>
+                                <th>ID</th>
+                                <th>Product Identifier</th>
+                                <th>Product Name</th>
+                                <th>Description</th>
+                                <th>Unit</th>
+                                <th>Brand</th>
+                                <th>Model</th>
+                                <th>Price</th>
+                                <th>Category</th>
+                                <th>Delete</th>
+                                <th>Update</th>
+                            </tr>
                             </thead>
-
                             <tbody>
-                                <c:forEach var="product" items="${products}">
-                                    <tr>
-                                        <td>
+                            <c:forEach var="product" items="${products}">
+                                <tr>
+                                    <td>
+                                        <a href=""
+                                           class="text-decoration-none fw-semibold">
+                                            ${product.id}
+                                        </a>
+                                    </td>
+                                    <td>${product.identifier}</td>
+                                    <td>${product.name}</td>
 
-                                                ${product.id}
-                                            </a>
-                                        </td>
+                                    <td>${product.description}</td>
+                                     <td>${product.unit}</td>
+                                     <td>${product.brand}</td>
+                                     <td>${product.model}</td>
+                                     <td>${product.price}</td>
+                                    <td>${product.category}</td>
 
-                                        <td>${product.identifier}</td>
-                                        <td>${product.name}</td>
-                                        <td>${product.description}</td>
-                                        <td>${product.unit}</td>
-                                        <td>${product.brand}</td>
-                                        <td>${product.model}</td>
-                                        <td>${product.price}</td>
-                                        <td>${product.category}</td>
 
-                                        <td>
-                                            <a href="/product/delete?identifier=${product.identifier}"
-                                               class="btn btn-pos-delete btn-sm"
-                                               onclick="return confirm('Are you sure you want to delete this product?');">
-                                                Delete
-                                            </a>
-                                        </td>
 
-                                        <td>
-                                            <a class="btn btn-pos-update btn-sm"
-                                               href="/product/get?identifier=${product.identifier}">
-                                                Update
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
+                                    <td>
+                                        <a href="/product/delete?identifier=${product.identifier}"
+                                           class="btn btn-pos-delete btn-sm"
+                                           onclick="return confirm('Are you sure you want to delete this product?');">
+                                            Delete
+                                        </a>
+                                    </td>
+                                    <td>
+                                          <a class="btn btn-pos-update btn-sm"
+                                     href="/product/get?identifier=${product.identifier}"
+                                                                    >
+                                                                             Update
+                                                                   </a>
+                                                                    </td>
+                                </tr>
+                            </c:forEach>
                             </tbody>
                         </table>
                     </c:if>

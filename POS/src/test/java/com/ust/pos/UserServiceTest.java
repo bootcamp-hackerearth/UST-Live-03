@@ -193,24 +193,24 @@ class UserServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<User> users = List.of(new User());
-        Page<User> page = new PageImpl<>(users);
+        User user = new User();
+        UserDto dto = new UserDto();
 
-        List<UserDto> dtos = List.of(new UserDto());
+        List<User> users = List.of(user);
+        Page<User> page = new PageImpl<>(users);
 
         when(userRepository.findAll(pageable)).thenReturn(page);
 
-        when(modelMapper.map(
-                eq(users),
-                any(Type.class)
-        )).thenReturn(dtos);
+        when(modelMapper.map(user, UserDto.class))
+                .thenReturn(dto);
 
-        List<UserDto> result = userService.findAll(pageable);
+        List<UserDto> result = userService.findAll(pageable).getContent();
 
         assertNotNull(result);
         assertEquals(1, result.size());
 
         verify(userRepository).findAll(pageable);
+        verify(modelMapper).map(user, UserDto.class);
     }
 
     @Test

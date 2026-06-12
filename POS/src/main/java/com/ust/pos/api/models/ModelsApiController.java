@@ -5,13 +5,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/models")
@@ -24,7 +23,7 @@ public class ModelsApiController extends BaseController {
     private CategoryService categoryService;
 
     @PostMapping("/list")
-    public List<ModelsDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ModelsDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -32,6 +31,7 @@ public class ModelsApiController extends BaseController {
 
         return modelsService.findAll(pageable);
     }
+
 
     @PostMapping("/add")
     public ModelsDto addPost(@RequestBody ModelsDto modelsDto) {

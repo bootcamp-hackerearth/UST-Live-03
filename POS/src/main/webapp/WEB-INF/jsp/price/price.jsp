@@ -18,10 +18,12 @@
             justify-content: center;
             align-items: center;
         }
+
         .card {
             width: 400px;
             border-radius: 15px;
         }
+
         h4 {
             background: #ffffff
             font-weight: 600;
@@ -49,27 +51,32 @@
 
                 <form:hidden path="id"/>
 
-                <div class="mb-4">
-                    <label class="form-label">Price Identifier</label>
+                 <div class="mb-4">
+                 <label class="form-label">Price Identifier</label>
                     <form:input path="identifier"
-                                cssClass="form-control"
-                                readonly="true"/>
-                </div>
+                                                cssClass="form-control"
+                                                readonly="true"/>
+                                </div>
 
                 <div class="mb-4">
                     <label class="form-label">Price</label>
                     <form:input path="priceAmount"
-                                type="number"
-                                cssClass="form-control"/>
+                    type="number"
+                                cssClass="form-control"
+                                />
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Price Type</label>
-                    <form:input path="priceType"
-                                cssClass="form-control"
-                                placeholder="Enter Price Type"
-                                required="true"/>
-                </div>
+                                    <label class="form-label">Price Type</label>
+                                    <form:input path="priceType"
+                                                cssClass="form-control"
+
+                                                placeholder="Enter Price Type"
+                                                required="true"/>
+                                </div>
+
+
+
 
                 <div class="d-flex justify-content-between">
                     <a href="/price/list" class="btn btn-outline-secondary">
@@ -82,24 +89,24 @@
 
             </form:form>
         </c:if>
-
         <div class="text-center mt-3">
-            <a href="/price/list">← Back to Price List</a>
-        </div>
+                <a href="/price/list">← Back to Price List</a>
+            </div>
 
     </div>
 
-    <c:if test="${not empty message}">
-        <div style="
-            background:#f8d7da;
-            color:#721c24;
-            padding:10px;
-            margin-bottom:15px;
-            border-radius:4px;
-            text-align:center;">
-            ${message}
-        </div>
-    </c:if>
+     <c:if test="${not empty message}">
+            <div style="
+                background:#f8d7da;
+                color:#721c24;
+                padding:10px;
+                margin-bottom:15px;
+                border-radius:4px;
+                text-align:center;">
+                ${message}
+            </div>
+        </c:if>
 </div>
+
 </body>
 </html>

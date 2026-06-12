@@ -19,7 +19,7 @@ public class ShelfController {
     private ShelfService shelfService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
 
         model.addAttribute(SHELVES, shelfService.findAll(pageable));
         return "shelf/list";

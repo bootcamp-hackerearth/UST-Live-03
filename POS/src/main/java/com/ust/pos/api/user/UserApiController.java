@@ -3,15 +3,17 @@ package com.ust.pos.api.user;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/user")
@@ -23,8 +25,26 @@ public class UserApiController extends BaseController {
     @Autowired
     private RoleService roleService;
 
+    @PostMapping("/register")
+    public UserDto registerUser(@RequestBody UserDto userDto) {
+
+        return processUser(userDto);
+    }
+
+    @PostMapping("/add")
+    public UserDto addUser(@RequestBody UserDto userDto) {
+
+        return processUser(userDto);
+    }
+
+    private UserDto processUser(UserDto userDto) {
+
+        return userService.save(userDto);
+    }
+
+
     @PostMapping("/list")
-    public List<UserDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<UserDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -33,26 +53,20 @@ public class UserApiController extends BaseController {
         return userService.findAll(pageable);
     }
 
-    @PostMapping("/add")
-    public UserDto addPost(@RequestBody UserDto userDto){
-
-        return userService.save(userDto);
-    }
-
-    @GetMapping("/get")
-    public UserDto update(@RequestParam String username) {
+    @PostMapping("/get")
+    public UserDto update(@RequestBody String username) {
 
         return userService.findByUserName(username);
     }
 
     @PostMapping("/update")
-    public UserDto updatePost(@ModelAttribute UserDto userDto) {
+    public UserDto updatePost(@RequestBody UserDto userDto) {
 
         return userService.update(userDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String username) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody String username) {
 
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

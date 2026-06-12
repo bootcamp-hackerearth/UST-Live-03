@@ -2,17 +2,16 @@ package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -80,13 +79,24 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
+    public WsDto<BrandDto> findAll(Pageable pageable) {
 
-        Type listType = new TypeToken<List<BrandDto>>() {
-        }.getType();
         Page<Brand> brandPage = brandRepository.findAll(pageable);
 
-        return modelMapper.map(brandPage.getContent(), listType);
+        WsDto<BrandDto> paginationResponseDto = new WsDto<>();
+
+        List<BrandDto> brandDtos = brandPage.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, BrandDto.class))
+                .toList();
+
+        paginationResponseDto.setContent(brandDtos);
+        paginationResponseDto.setPage(brandPage.getNumber());
+        paginationResponseDto.setSizePerPage(brandPage.getSize());
+        paginationResponseDto.setTotalPages(brandPage.getTotalPages());
+        paginationResponseDto.setTotalRecords(brandPage.getTotalElements());
+
+        return paginationResponseDto;
     }
 
     @Override

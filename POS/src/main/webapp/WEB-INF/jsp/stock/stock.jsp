@@ -58,35 +58,32 @@
                                 readonly="true"/>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Stock Product</label>
-                    <form:input path="product"
-                                cssClass="form-control"
-                                type="text"
-                                placeholder="Enter Quantity"
-                                readonly="true"
-                                required="true"/>
-                </div>
+
+                   <div class="mb-4">
+                                                       <label class="form-label">Stock Product</label>
+                                                       <form:input path="product"
+                                                                   cssClass="form-control"
+                                                                   type="text"
+                                                                   placeholder="Enter Quantity"
+                                                                   required="true"/>
+                                                   </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Quantity</label>
-                    <form:input path="quantity"
-                                cssClass="form-control"
-                                type="number"
-                                placeholder="Enter Quantity"
-                                required="true"/>
-                </div>
+                                    <label class="form-label">Quantity</label>
+                                    <form:input path="quantity"
+                                                cssClass="form-control"
+                                                type="number"
+                                                placeholder="Enter Quantity"
+                                                required="true"/>
+                                </div>
 
-                <div class="mb-3">
-                    <label>Warehouse Locations</label>
-                    <form:select path="warehouse"
-                                 multiple="true"
-                                 cssClass="form-control">
-                        <form:options items="${warehouses}"
-                                      itemValue="identifier"
-                                      itemLabel="identifier"/>
-                    </form:select>
-                </div>
+                                   <div class="mb-3">
+                            <label>Warehouse Locations</label>
+                       <form:select path="warehouse" multiple="true">
+              <form:options items="${warehouses}" itemValue="identifier" itemLabel="identifier"/>
+             </form:select>
+                                   </div>
+
 
                 <div class="d-flex justify-content-between">
                     <a href="/stock/list" class="btn btn-outline-secondary">
@@ -99,25 +96,23 @@
 
             </form:form>
         </c:if>
-
         <div class="text-center mt-3">
-            <a href="/stock/list">← Back to stock List</a>
-        </div>
+                <a href="/stock/list">← Back to stock List</a>
+            </div>
 
     </div>
 
-    <c:if test="${not empty message}">
-        <div style="
-            background:#f8d7da;
-            color:#721c24;
-            padding:10px;
-            margin-bottom:15px;
-            border-radius:4px;
-            text-align:center;">
-            ${message}
-        </div>
-    </c:if>
-
+     <c:if test="${not empty message}">
+            <div style="
+                background:#f8d7da;
+                color:#721c24;
+                padding:10px;
+                margin-bottom:15px;
+                border-radius:4px;
+                text-align:center;">
+                ${message}
+            </div>
+        </c:if>
 </div>
 
 </body>

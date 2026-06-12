@@ -6,7 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CommonDto extends PaginationDto {
-
     private Long id;
     private String identifier;
     private String description;

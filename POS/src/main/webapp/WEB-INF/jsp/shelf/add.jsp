@@ -13,7 +13,7 @@
 
     <style>
         body {
-            background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
+             background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
             min-height: 100vh;
         }
         .card {
@@ -22,74 +22,77 @@
         .form-control {
             border-radius: 8px;
         }
-        .card-header {
+        .card-header{
             background: #ffffff;
         }
     </style>
 </head>
-
 <body>
-    <div class="container d-flex justify-content-center align-items-center mt-5">
-        <div class="col-md-5">
 
-            <div class="card shadow-lg">
-                <div class="card-header text-center text-black">
-                    <h4 class="mb-0">Add New Shelf</h4>
-                </div>
+<div class="container d-flex justify-content-center align-items-center mt-5">
+    <div class="col-md-5">
 
-                <div class="card-body">
+        <div class="card shadow-lg">
+            <div class="card-header text-center text-black">
+                <h4 class="mb-0">Add New Shelf</h4>
+            </div>
 
-                    <c:if test="${empty shelfDto}">
-                        <div class="alert alert-success text-center">
-                            No Shelf Found
+            <div class="card-body">
+
+                <c:if test="${empty shelfDto}">
+                    <div class="alert alert-success text-center">
+                       No Shelf Found
+                    </div>
+                </c:if>
+
+                <form:form method="post"
+                           action="/shelf/add"
+                           modelAttribute="shelfDto">
+
+
+                   <div class="mb-3">
+                                    <label class="form-label fw-semibold">Shelf Name</label>
+                                   <form:input path="identifier"
+                                         cssClass="form-control"
+                                         type="text"
+                                           placeholder="Enter Shelf Name"
+                                            required="true"/>
+                                     </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Add Shelf
+                        </button>
+                    </div>
+
+                </form:form>
+
+            </div>
+
+            <div class="card-footer text-center text-muted small">
+                POS Management System
+            </div>
+
+            <div class="text-center mt-3">
+                            <a href="/shelf/list">← Back to Shelf List</a>
+                        </div>
+        </div>
+         <c:if test="${not empty message}">
+                        <div style="
+                            background:#f8d7da;
+                            color:#721c24;
+                            padding:10px;
+                            margin-bottom:15px;
+                            border-radius:4px;
+                            text-align:center;">
+                            ${message}
                         </div>
                     </c:if>
 
-                    <form:form method="post"
-                               action="/shelf/add"
-                               modelAttribute="shelfDto">
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Shelf Name</label>
-                            <form:input path="identifier"
-                                        cssClass="form-control"
-                                        type="text"
-                                        placeholder="Enter Shelf Name"
-                                        required="true"/>
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                Add Shelf
-                            </button>
-                        </div>
-
-                    </form:form>
-
-                </div>
-
-                <div class="card-footer text-center text-muted small">
-                    POS Management System
-                </div>
-
-                <div class="text-center mt-3">
-                    <a href="/shelf/list">← Back to Shelf List</a>
-                </div>
-            </div>
-
-            <c:if test="${not empty message}">
-                <div style="
-                    background:#f8d7da;
-                    color:#721c24;
-                    padding:10px;
-                    margin-bottom:15px;
-                    border-radius:4px;
-                    text-align:center;">
-                    ${message}
-                </div>
-            </c:if>
-        </div>
     </div>
+
+
+</div>
 
 </body>
 </html>

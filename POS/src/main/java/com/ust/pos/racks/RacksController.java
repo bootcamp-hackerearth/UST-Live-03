@@ -24,7 +24,7 @@ public class RacksController {
     private ShelfService shelfService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
 
         model.addAttribute(RACKS, racksService.findAll(pageable));
         return "racks/list";

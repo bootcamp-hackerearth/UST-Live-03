@@ -6,188 +6,198 @@
 <html>
 <head>
     <title>User Registration</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
-          rel="stylesheet">
 
-    <style>
-        body {
-            margin: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+   body {
+       margin: 0;
+       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+       min-height: 100vh;
+       background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
+       display: flex;
+       justify-content: center;
+       align-items: center;
+   }
+    .register-card {
+        width: 340px;
+        background: #ffffff;
+        padding: 20px 22px;
+        border-radius: 6px;
+        border: 1px solid #dcdcdc;
+    }
 
-        .page-wrapper {
-            display: flex;
-            width: 760px;
-        }
+    h2 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #222;
+        text-align: center;
+    }
 
-        .pos-banner {
-            width: 320px;
-            background: linear-gradient(to bottom, #2f3b52, #1f2937);
-            color: #fff;
-            border-radius: 8px 0 0 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-        }
+    .form-group {
+        margin-bottom: 10px;
+    }
 
-        .pos-banner h1 {
-            font-size: 22px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
+    label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #444;
+        display: block;
+        margin-bottom: 3px;
+    }
 
-        .banner-signin {
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 13px;
-            padding: 8px 18px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 4px;
-        }
+    input,
+    select {
+        width: 100%;
+        padding: 7px 8px;
+        font-size: 13px;
+        border-radius: 4px;
+        border: 1px solid #cfcfcf;
+        background: #fff;
+        color: #222;
+    }
 
-        .banner-signin:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
+    input:focus,
+    select:focus {
+        outline: none;
+        border-color: #4b6cb7;
+    }
 
-        .register-card {
-            width: 340px;
-            background: #ffffff;
-            padding: 20px 22px;
-            border: 1px solid #dcdcdc;
-            border-radius: 0 8px 8px 0;
-        }
+    select[multiple] {
+        height: 80px;
+    }
 
-        h2 {
-            margin: 0 0 16px 0;
-            font-size: 18px;
-            font-weight: 600;
-            color: #222;
-            text-align: center;
-        }
+    .btn-submit {
+        margin-top: 12px;
+        width: 100%;
+        padding: 9px;
+        background: #4b6cb7;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+    }
 
-        .form-group {
-            margin-bottom: 10px;
-        }
+    .btn-submit:hover {
+        background: #3f5fa7;
+    }
 
-        label {
-            font-size: 12px;
-            font-weight: 500;
-            color: #444;
-            display: block;
-            margin-bottom: 3px;
-        }
+    .page-wrapper {
+        display: flex;
+        width: 760px;
+        background: transparent;
+    }
 
-        input,
-        select {
-            width: 100%;
-            padding: 7px 8px;
-            font-size: 13px;
-            border-radius: 4px;
-            border: 1px solid #cfcfcf;
-            background: #fff;
-            color: #222;
-        }
+    .pos-banner {
+        width: 320px;
+        background: linear-gradient(to bottom, #2f3b52, #1f2937);
+        color: #fff;
+        border-radius: 8px 0 0 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+    }
 
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #4b6cb7;
-        }
+    .pos-banner h1 {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
 
-        select[multiple] {
-            height: 80px;
-        }
+    .banner-signin {
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 13px;
+        padding: 8px 18px;
+        border: 1px solid rgba(255,255,255,0.5);
+        border-radius: 4px;
+    }
 
-        .btn-submit {
-            margin-top: 12px;
-            width: 100%;
-            padding: 9px;
-            background: #4b6cb7;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-        }
+    .banner-signin:hover {
+        background: rgba(255,255,255,0.15);
+    }
 
-        .btn-submit:hover {
-            background: #3f5fa7;
-        }
-    </style>
+    .register-card {
+        border-radius: 0 8px 8px 0;
+    }
+</style>
 </head>
+
 <body>
+
 <div class="page-wrapper">
 
     <div class="pos-banner">
         <h1>POS Application</h1>
-        <a href="/user/list" class="banner-signin">Go Back</a>
+        <a href="/login" class="banner-signin">Sign In</a>
     </div>
 
-    <div class="register-card">
-        <h2>User Registration</h2>
-        <form:form action="register"
-                   method="post"
-                   modelAttribute="userDto">
+<div class="register-card">
+    <h2>User Registration</h2>
 
-            <div class="form-group">
-                <label>Name</label>
-                <form:input path="name" required="true"/>
-            </div>
+    <form:form action="register" method="post" modelAttribute="userDto">
 
-            <div class="form-group">
-                <label>Email</label>
-                <form:input path="username" type="email" required="true"/>
-            </div>
 
-            <div class="form-group">
-                <label>Roles</label>
-                <form:select path="roles" multiple="true">
-                    <form:options items="${roles}"
-                                  itemValue="identifier"
-                                  itemLabel="identifier"/>
-                </form:select>
-            </div>
+        <div class="form-group">
+            <label>Name</label>
+            <form:input path="name" required="true"/>
+        </div>
 
-            <div class="form-group">
-                <label>Phone Number</label>
-                <form:input path="phoneNo"
-                            type="text"
-                            maxlength="10"
-                            pattern="[0-9]{10}"
-                            required="true"/>
-            </div>
+        <div class="form-group">
+            <label>Email</label>
 
-            <div class="form-group">
-                <label>Password</label>
-                <form:password path="password"
-                               required="true"
-                               minlength="8"
-                               title="Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character"
-                               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}"/>
-            </div>
+            <form:input path="username" type="email" required="true"/>
+        </div>
 
-            <input type="submit" value="Register" class="btn-submit"/>
-        </form:form>
-        <c:if test="${not empty message}">
+        <div class="form-group">
+            <label>Roles</label>
+            <form:select path="roles" multiple="true">
+                <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+            </form:select>
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <form:input
+            path="phoneNo"
+            required="true"
+            type="number"
+            maxlength="10"
+            pattern="[0-9]"
+            />
+        </div>
+
+
+<div class="form-group">
+    <label>Password</label>
+    <form:password
+        path="password"
+        required="true"
+        minlength="8"
+        title="Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character"
+        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}" />
+</div>
+
+        <input type="submit" value="Register" class="btn-submit"/>
+
+    </form:form>
+
+     <c:if test="${not empty message}">
             <div style="
                 background:#f8d7da;
                 color:#721c24;
                 padding:10px;
-                margin-top:10px;
+                margin-bottom:15px;
                 border-radius:4px;
                 text-align:center;">
                 ${message}
             </div>
         </c:if>
-    </div>
+</div>
 </div>
 </body>
 </html>

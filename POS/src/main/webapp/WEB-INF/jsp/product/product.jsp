@@ -54,86 +54,87 @@
                 <div class="mb-4">
                     <label class="form-label">Product Identifier</label>
                     <form:input path="identifier"
-                                cssClass="form-control"
-                                readonly="true"/>
+ cssClass="form-control"
+ readonly="true"/>
                 </div>
+
+              <div class="mb-4">
+<label class="form-label">Product Name</label>
+<form:input path="name"
+
+            cssClass="form-control"
+            readonly="true"/>
+                              </div>
+
+
+                        <div class="mb-3">
+                           <div class="form-group">
+ <label>Select Brand</label>
+ <form:select path="brand"
+           required="true"
+           cssClass="form-control">
+           <form:option value="" label="-- Select Brand--"/>
+           <form:options items="${brand}"
+                         itemValue="identifier"
+                         itemLabel="identifier"/>
+ </form:select>
+                           </div>
+                        </div>
+
+                        <div class="mb-3">
+                           <div class="form-group">
+ <label>Select Model</label>
+ <form:select path="model"
+           required="true"
+           cssClass="form-control">
+           <form:option value="" label="-- Select Model--"/>
+           <form:options items="${model}"
+                         itemValue="identifier"
+                         itemLabel="identifier"/>
+ </form:select>
+                           </div>
+                        </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Product Name</label>
-                    <form:input path="name"
-                                cssClass="form-control"
-                                readonly="true"/>
-                </div>
+  <label class="form-label">Price</label>
+  <form:input path="price"
+              cssClass="form-control"
+              type="number"
+              placeholder="Enter Price"
+              required="true"/>
+ </div>
+
 
                 <div class="mb-3">
-                    <div class="form-group">
-                        <label>Select Brand</label>
-                        <form:select path="brand"
-                                     required="true"
-                                     cssClass="form-control">
-                            <form:option value="" label="-- Select Brand--"/>
-                            <form:options items="${brand}"
-                                          itemValue="identifier"
-                                          itemLabel="identifier"/>
-                        </form:select>
-                    </div>
-                </div>
+    <label class="form-label fw-semibold">Description</label>
+     <form:input path="description"
+      cssClass="form-control"
+      type="text"
+   placeholder="Enter description"
+ required="true"/>
+                      </div>
 
-                <div class="mb-3">
-                    <div class="form-group">
-                        <label>Select Model</label>
-                        <form:select path="model"
-                                     required="true"
-                                     cssClass="form-control">
-                            <form:option value="" label="-- Select Model--"/>
-                            <form:options items="${model}"
-                                          itemValue="identifier"
-                                          itemLabel="identifier"/>
-                        </form:select>
-                    </div>
-                </div>
+ <div class="mb-3">
+     <label>Category</label>
+      <form:select path="category" required="true">
+ <form:option value="" label="Select Category"/>
+ <form:options items="${categories}" itemValue="identifier" itemLabel="identifier"/>
+                            </form:select>
+ </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Price</label>
-                    <form:input path="price"
-                                cssClass="form-control"
-                                type="number"
-                                placeholder="Enter Price"
-                                required="true"/>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Description</label>
-                    <form:input path="description"
-                                cssClass="form-control"
-                                type="text"
-                                placeholder="Enter description"
-                                required="true"/>
-                </div>
-
-                <div class="mb-3">
-                    <label>Category</label>
-                    <form:select path="category" required="true" cssClass="form-control">
-                        <form:option value="" label="Select Category"/>
-                        <form:options items="${categories}"
-                                      itemValue="identifier"
-                                      itemLabel="identifier"/>
-                    </form:select>
-                </div>
-
-                <div class="mb-3">
-                    <div class="form-group">
-                        <label>Select Model</label>
-                        <form:select path="unit"
-                                     required="true"
-                                     cssClass="form-control">
-                            <form:option value="" label="-- Select Model--"/>
-                            <form:options items="${unit}"
-                                          itemValue="identifier"
-                                          itemLabel="identifier"/>
-                        </form:select>
-                    </div>
-                </div>
+<div class="mb-3">
+                           <div class="form-group">
+ <label>Select Model</label>
+ <form:select path="unit"
+ required="true"
+ cssClass="form-control">
+ <form:option value="" label="-- Select Model--"/>
+ <form:options items="${unit}"
+               itemValue="identifier"
+               itemLabel="identifier"/>
+ </form:select>
+                           </div>
+                        </div>
 
                 <div class="d-flex justify-content-between">
                     <a href="/product/list" class="btn btn-outline-secondary">
@@ -146,25 +147,23 @@
 
             </form:form>
         </c:if>
-
         <div class="text-center mt-3">
-            <a href="/stock/list">← Back to stock List</a>
-        </div>
+                <a href="/stock/list">← Back to stock List</a>
+            </div>
 
     </div>
 
-    <c:if test="${not empty message}">
-        <div style="
-            background:#f8d7da;
-            color:#721c24;
-            padding:10px;
-            margin-bottom:15px;
-            border-radius:4px;
-            text-align:center;">
-            ${message}
-        </div>
-    </c:if>
-
+     <c:if test="${not empty message}">
+            <div style="
+                background:#f8d7da;
+                color:#721c24;
+                padding:10px;
+                margin-bottom:15px;
+                border-radius:4px;
+                text-align:center;">
+                ${message}
+            </div>
+        </c:if>
 </div>
 
 </body>

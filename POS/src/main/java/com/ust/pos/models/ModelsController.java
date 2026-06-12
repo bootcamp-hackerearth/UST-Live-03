@@ -23,7 +23,7 @@ public class ModelsController {
     private CategoryService categoryService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
 
         model.addAttribute("models", modelsService.findAll(pageable));
         return "models/list";
@@ -32,7 +32,7 @@ public class ModelsController {
     @GetMapping("/add")
     public String add(Model model) {
 
-        model.addAttribute("categories", categoryService.findAllCategoriesWithSuper());
+        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper(null));
         model.addAttribute("modelsDto", new ModelsDto());
 
         return "models/add";
@@ -55,7 +55,7 @@ public class ModelsController {
     public String update(Model model, @RequestParam String identifier) {
 
         ModelsDto response = modelsService.findByIdentifier(identifier);
-        model.addAttribute("categories", categoryService.findAllCategoriesWithSuper());
+        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper(null));
         model.addAttribute("modelsDto", response);
 
         return "models/models";

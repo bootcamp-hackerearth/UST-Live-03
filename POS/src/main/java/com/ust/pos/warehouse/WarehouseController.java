@@ -22,7 +22,7 @@ public class WarehouseController {
     private ProductService productService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
 
         model.addAttribute("warehouses", warehouseService.findAll(pageable));
         return "warehouse/list";

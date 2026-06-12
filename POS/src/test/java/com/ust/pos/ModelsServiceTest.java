@@ -126,22 +126,26 @@ class ModelsServiceTest {
     void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Models> modelss = List.of(new Models());
+
+        Models models = new Models();
+        ModelsDto dto = new ModelsDto();
+
+        List<Models> modelss = List.of(models);
         Page<Models> page = new PageImpl<>(modelss);
-        List<ModelsDto> dtos = List.of(new ModelsDto());
 
         when(modelsRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(modelss),
-                any(Type.class)
-        )).thenReturn(dtos);
 
-        List<ModelsDto> result = modelsService.findAll(pageable);
+        when(modelMapper.map(models, ModelsDto.class))
+                .thenReturn(dto);
+
+        List<ModelsDto> result = modelsService.findAll(pageable).getContent();
+
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(modelsRepository).findAll(pageable);
-    }
 
+        verify(modelsRepository).findAll(pageable);
+        verify(modelMapper).map(models, ModelsDto.class);
+    }
     @Test
     void toggleStatusTest_TrueToFalse() {
 

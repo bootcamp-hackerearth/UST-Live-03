@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -137,24 +138,29 @@ class CategoryServiceTest {
     void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Category> categories = List.of(new Category());
+
+        Category category = new Category();
+        CategoryDto dto = new CategoryDto();
+
+        List<Category> categories = List.of(category);
         Page<Category> page = new PageImpl<>(categories);
-        List<CategoryDto> dtos = List.of(new CategoryDto());
 
         when(categoryRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(categories),
-                any(Type.class)
-        )).thenReturn(dtos);
 
-        List<CategoryDto> result = categoryService.findAll(pageable);
+        when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(dto);
+
+        WsDto<CategoryDto> result = categoryService.findAll(pageable);
+
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+
         verify(categoryRepository).findAll(pageable);
+        verify(modelMapper).map(category, CategoryDto.class);
     }
 
     @Test
-    void testFindAllCategoriesWithSuper() {
+    void testFindAllCategoriesWithNoSuper() {
 
         Category category1 = new Category();
         category1.setSuperCategory(List.of("parent"));
@@ -163,15 +169,21 @@ class CategoryServiceTest {
         category2.setSuperCategory(List.of());
 
         List<Category> categories = List.of(category1, category2);
-        when(categoryRepository.findAll()).thenReturn(categories);
+        Page<Category> page = new PageImpl<>(categories);
 
-        CategoryDto dto = new CategoryDto();
-        when(modelMapper.map(any(), any(java.lang.reflect.Type.class)))
-                .thenReturn(List.of(dto));
+        Pageable pageable = PageRequest.of(0, 10);
 
-        List<CategoryDto> result = categoryService.findAllCategoriesWithSuper();
+        when(categoryRepository.findAll(pageable)).thenReturn(page);
+
+        when(modelMapper.map(any(Category.class), eq(CategoryDto.class)))
+                .thenReturn(new CategoryDto());
+
+        WsDto<CategoryDto> result =
+                categoryService.findAllCategoriesWithNoSuper(pageable);
+
         assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(categoryRepository).findAll();
+        assertEquals(1, result.getContent().size());
+
+        verify(categoryRepository).findAll(pageable);
     }
 }

@@ -60,12 +60,13 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Description</label>
-                    <form:input path="description"
-                                cssClass="form-control"
-                                placeholder="Enter description"
-                                required="true"/>
-                </div>
+                                    <label class="form-label">Description</label>
+                                    <form:input path="description"
+                                                cssClass="form-control"
+                                                placeholder="Enter description"
+                                                required="true"/>
+                                </div>
+
 
                 <div class="d-flex justify-content-between">
                     <a href="/role/list" class="btn btn-outline-secondary">
@@ -78,25 +79,23 @@
 
             </form:form>
         </c:if>
-
         <div class="text-center mt-3">
-            <a href="/role/list">← Back to Role List</a>
-        </div>
+                <a href="/role/list">← Back to Role List</a>
+            </div>
 
     </div>
 
-    <c:if test="${not empty message}">
-        <div style="
-            background:#f8d7da;
-            color:#721c24;
-            padding:10px;
-            margin-bottom:15px;
-            border-radius:4px;
-            text-align:center;">
-            ${message}
-        </div>
-    </c:if>
-
+     <c:if test="${not empty message}">
+            <div style="
+                background:#f8d7da;
+                color:#721c24;
+                padding:10px;
+                margin-bottom:15px;
+                border-radius:4px;
+                text-align:center;">
+                ${message}
+            </div>
+        </c:if>
 </div>
 
 </body>

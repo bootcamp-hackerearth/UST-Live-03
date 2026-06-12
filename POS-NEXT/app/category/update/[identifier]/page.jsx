@@ -1,0 +1,27 @@
+import AddEditForm from "@/components/AddEditForm";
+
+export default function CategoryUpdate() {
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+
+  const fields = [
+    {
+      name: "identifier", type: "text", placeholder: "Identifier", required: true,
+      readOnly: true
+    },
+    {
+      name: "superCategory", type: "select", placeholder: "Super Category", dataKey: "superCategory", multiple: true,
+      hardCoded: false, hardCodedArray: [], required: true, readOnly: false
+    },
+  ];
+
+  const dropdownApis = {
+    superCategory: `${baseUrl}/category/list`
+  };
+
+  return (
+
+    <AddEditForm title="Category" dropdownApis={dropdownApis} apiRoute="category" fields={fields} method="update" />
+
+  )
+}

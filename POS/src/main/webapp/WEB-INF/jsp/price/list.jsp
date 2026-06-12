@@ -5,6 +5,7 @@
 <html>
 <head>
     <title>prices List</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
@@ -24,32 +25,37 @@
             background-color: #0d6efd;
             color: white;
         }
-        h4 {
+        h4{
             background-color: #ffffff;
         }
+
         .btn-pos-update {
-            background-color: #fdfafc;
-            border-color: #4b6cb7;
-            color: #000;
-        }
-        .btn-pos-update:hover {
-            background-color: #3f5fa7;
-            border-color: #3f5fa7;
-            color: #fff;
-        }
-        .btn-pos-delete {
-            background-color: #f5f7fa;
-            border: 1px solid #dc3545;
-            color: #dc3545;
-        }
-        .btn-pos-delete:hover {
-            background-color: #dc3545;
-            color: #fff;
-        }
+                        background-color: #fdfafc;
+                        border-color: #4b6cb7;
+                        color: #000;
+                }
+
+                .btn-pos-update:hover {
+                    background-color: #3f5fa7;
+                    border-color: #3f5fa7;
+                    color: #fff;
+                }
+
+                .btn-pos-delete {
+                    background-color: #f5f7fa;
+                    border: 1px solid #dc3545;
+                    color: #dc3545;
+                }
+
+                .btn-pos-delete:hover {
+                    background-color: #dc3545;
+                    color: #fff;
+                }
     </style>
 </head>
 
 <body>
+
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -70,53 +76,65 @@
                     <c:if test="${not empty price}">
                         <table class="table table-bordered table-hover text-center align-middle">
                             <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Price Identifier</th>
-                                    <td>Product</td>
-                                    <th>Price</th>
-                                    <th>Price Type</th>
-                                    <th>Delete</th>
-                                    <th>Update</th>
-                                </tr>
+                            <tr>
+                                <th>ID</th>
+                                <th>Price Identifier</th>
+                                <td>Product</td>
+                                <th>Price</th>
+                                <th>Price Type</th>
+                                <th>Delete</th>
+                                <th>Update</th>
+                            </tr>
                             </thead>
-
                             <tbody>
-                                <c:forEach var="pri" items="${price}">
-                                    <tr>
-                                        <td>${pri.id}</td>
-                                        <td>${pri.identifier}</td>
-                                        <td>${pri.product}</td>
-                                        <td>${pri.priceAmount}</td>
-                                        <td>${pri.priceType}</td>
-                                        <td>
-                                            <a href="/price/delete?identifier=${pri.identifier}"
-                                               class="btn btn-pos-delete btn-sm"
-                                               onclick="return confirm('Are you sure you want to delete this price?');">
-                                                Delete
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <a class="btn btn-pos-update btn-sm"
-                                               href="/price/get?identifier=${pri.identifier}">
-                                                Update
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
+                            <c:forEach var="pri" items="${price}">
+                                <tr>
+                                    <td>
+                                        <a href=""
+                                           class="text-decoration-none fw-semibold">
+                                            ${pri.id}
+                                        </a>
+                                    </td>
+                                    <td>${pri.identifier}</td>
+                                    <td>${pri.product}</td>
+                                    <td>${pri.priceAmount}</td>
+                                    <td>${pri.priceType}</td>
+
+
+                                    <td>
+                                        <a href="/price/delete?identifier=${pri.identifier}"
+                                           class="btn btn-pos-delete btn-sm"
+                                           onclick="return confirm('Are you sure you want to delete this price?');">
+                                            Delete
+                                        </a>
+                                    </td>
+                                    <td>
+                                          <a class="btn btn-pos-update btn-sm"
+                                     href="/price/get?identifier=${pri.identifier}"
+                                                                    >
+                                                                             Update
+                                                                   </a>
+                                                                    </td>
+                                </tr>
+                            </c:forEach>
                             </tbody>
                         </table>
                     </c:if>
+
                 </div>
+
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
                     <a href="/" class="btn btn-secondary">
                         Home
                     </a>
+
                     <a href="/price/add" class="btn btn-success">
                         + Add New Price
                     </a>
                 </div>
+
             </div>
+
         </div>
     </div>
 </div>

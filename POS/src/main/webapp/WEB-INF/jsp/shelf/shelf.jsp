@@ -28,59 +28,77 @@
     </style>
 </head>
 <body>
-    <div class="container d-flex justify-content-center align-items-center mt-5">
-        <div class="col-md-5">
-            <div class="card shadow-lg">
-                <div class="card-header text-center text-black">
-                    <h4 class="mb-0">Update Shelf</h4>
-                </div>
 
-                <div class="card-body">
-                    <c:if test="${empty shelfDto}">
-                        <div class="alert alert-success text-center">
-                            Shelf Not Found
+<div class="container d-flex justify-content-center align-items-center mt-5">
+    <div class="col-md-5">
+
+        <div class="card shadow-lg">
+            <div class="card-header text-center text-black">
+                <h4 class="mb-0">Update Shelf</h4>
+            </div>
+
+            <div class="card-body">
+
+                <c:if test="${empty shelfDto}">
+                    <div class="alert alert-success text-center">
+                        Shelf Not Found
+                    </div>
+                </c:if>
+
+                <form:form method="post"
+                           action="/shelf/update"
+                           modelAttribute="shelfDto">
+
+             <div class="mb-3">
+
+
+
+
+                   <div class="mb-3">
+                                    <label class="form-label fw-semibold">Shelf Name</label>
+                                   <form:input path="identifier"
+                                         cssClass="form-control"
+                                         type="text"
+                                          readonly="true"/>
+                                     </div>
+
+
+
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Update Shelf
+                        </button>
+                    </div>
+
+                </form:form>
+
+            </div>
+
+            <div class="card-footer text-center text-muted small">
+                POS Management System
+            </div>
+
+            <div class="text-center mt-3">
+                            <a href="/shelf/list">← Back to Shelf List</a>
+                        </div>
+        </div>
+         <c:if test="${not empty message}">
+                        <div style="
+                            background:#f8d7da;
+                            color:#721c24;
+                            padding:10px;
+                            margin-bottom:15px;
+                            border-radius:4px;
+                            text-align:center;">
+                            ${message}
                         </div>
                     </c:if>
 
-                    <form:form method="post"
-                               action="/shelf/update"
-                               modelAttribute="shelfDto">
-
-                    <div class="mb-3">
-                       <div class="mb-3">
-                              <label class="form-label fw-semibold">Shelf Name</label>
-                                  <form:input path="identifier"
-                                          cssClass="form-control"
-                                          type="text"
-                                          readonly="true"/>
-                       </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                Update Shelf
-                            </button>
-                        </div>
-                    </form:form>
-                </div>
-                <div class="card-footer text-center text-muted small">
-                    POS Management System
-                </div>
-                <div class="text-center mt-3">
-                     <a href="/shelf/list">← Back to Shelf List</a>
-                </div>
-            </div>
-            <c:if test="${not empty message}">
-                            <div style="
-                                background:#f8d7da;
-                                color:#721c24;
-                                padding:10px;
-                                margin-bottom:15px;
-                                border-radius:4px;
-                                text-13align:center;">
-                                ${message}
-                            </div>
-            </c:if>
-        </div>
     </div>
+
+
+</div>
+
 </body>
 </html>

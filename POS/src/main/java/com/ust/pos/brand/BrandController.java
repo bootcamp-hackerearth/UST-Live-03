@@ -18,8 +18,9 @@ public class BrandController {
     @Autowired
     private BrandService brandService;
 
+
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
 
         model.addAttribute(BRANDS, brandService.findAll(pageable));
         return "brand/list";
@@ -28,7 +29,9 @@ public class BrandController {
     @GetMapping("/add")
     public String add(Model model) {
 
+        model.addAttribute(BRANDS, brandService.findAll(null));
         model.addAttribute("brandDto", new BrandDto());
+
         return "brand/add";
     }
 
@@ -48,6 +51,7 @@ public class BrandController {
     public String update(Model model, @RequestParam String identifier) {
 
         BrandDto response = brandService.findByIdentifier(identifier);
+        model.addAttribute(BRANDS, brandService.findAll(null));
         model.addAttribute("brandDto", response);
 
         return "brand/brand";
@@ -57,6 +61,7 @@ public class BrandController {
     public String updatePost(Model model, @ModelAttribute BrandDto brandDto) {
 
         BrandDto response = brandService.update(brandDto);
+        model.addAttribute(BRANDS, brandService.findAll(null));
 
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());

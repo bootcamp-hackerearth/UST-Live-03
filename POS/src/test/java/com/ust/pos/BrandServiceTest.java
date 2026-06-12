@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -120,32 +119,38 @@ class BrandServiceTest {
     void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Brand> brands = List.of(new Brand());
+
+        Brand brand1 = new Brand();
+        BrandDto dto = new BrandDto();
+
+        List<Brand> brands = List.of(brand1);
         Page<Brand> page = new PageImpl<>(brands);
-        List<BrandDto> dtos = List.of(new BrandDto());
 
         when(brandRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(brands),
-                any(Type.class)
-        )).thenReturn(dtos);
 
-        List<BrandDto> result = brandService.findAll(pageable);
+        when(modelMapper.map(brand1, BrandDto.class))
+                .thenReturn(dto);
+
+        List<BrandDto> result = brandService.findAll(pageable).getContent();
+
         assertNotNull(result);
         assertEquals(1, result.size());
+
         verify(brandRepository).findAll(pageable);
+        verify(modelMapper).map(brand1, BrandDto.class);
     }
+
 
     @Test
     void toggleStatus_trueToFalse() {
 
-        Brand brand = new Brand();
-        brand.setIdentifier("BR001");
-        brand.setStatus(true);
+        Brand brand2 = new Brand();
+        brand2.setIdentifier("BR001");
+        brand2.setStatus(true);
 
-        when(brandRepository.findByIdentifier("BR001")).thenReturn(brand);
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(brand2);
         brandService.toggleStatus("BR001");
-        assertFalse(brand.isStatus());
+        assertFalse(brand2.isStatus());
         verify(brandRepository).save(argThat(saved ->
                 !saved.isStatus()
         ));
@@ -154,13 +159,13 @@ class BrandServiceTest {
     @Test
     void toggleStatus_falseToTrue() {
 
-        Brand brand = new Brand();
-        brand.setIdentifier("BR001");
-        brand.setStatus(false);
+        Brand brand3 = new Brand();
+        brand3.setIdentifier("BR001");
+        brand3.setStatus(false);
 
-        when(brandRepository.findByIdentifier("BR001")).thenReturn(brand);
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(brand3);
         brandService.toggleStatus("BR001");
-        assertTrue(brand.isStatus());
+        assertTrue(brand3.isStatus());
         verify(brandRepository).save(argThat(CommonFields::isStatus
         ));
     }

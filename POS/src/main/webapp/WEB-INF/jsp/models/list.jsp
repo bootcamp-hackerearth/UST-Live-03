@@ -14,92 +14,85 @@
             background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
             min-height: 100vh;
         }
-
         .card {
             border-radius: 16px;
         }
-
         .card-header {
             border-top-left-radius: 16px;
             border-top-right-radius: 16px;
         }
-
         table th {
             background-color: #0d6efd;
             color: white;
         }
-
-        h4 {
+        h4{
             background-color: #ffffff;
         }
 
         .btn-pos-update {
-            background-color: #fdfafc;
-            border-color: #4b6cb7;
-            color: #000;
-        }
+                        background-color: #fdfafc;
+                        border-color: #4b6cb7;
+                        color: #000;
+                }
 
-        .btn-pos-update:hover {
-            background-color: #3f5fa7;
-            border-color: #3f5fa7;
-            color: #fff;
-        }
+                .btn-pos-update:hover {
+                    background-color: #3f5fa7;
+                    border-color: #3f5fa7;
+                    color: #fff;
+                }
 
-        .btn-pos-delete {
-            background-color: #f5f7fa;
-            border: 1px solid #dc3545;
-            color: #dc3545;
-        }
+                .btn-pos-delete {
+                    background-color: #f5f7fa;
+                    border: 1px solid #dc3545;
+                    color: #dc3545;
+                }
 
-        .btn-pos-delete:hover {
-            background-color: #dc3545;
-            color: #fff;
-        }
+                .btn-pos-delete:hover {
+                    background-color: #dc3545;
+                    color: #fff;
+                }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
+                  .switch {
+                                            position: relative;
+                                            display: inline-block;
+                                            width: 60px;
+                                            height: 34px;
+                                        }
 
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+                                        .switch input {
+                                            opacity: 0;
+                                            width: 0;
+                                            height: 0;
+                                        }
 
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: 0.4s;
-            border-radius: 34px;
-        }
+                                        .slider {
+                                            position: absolute;
+                                            cursor: pointer;
+                                            top: 0; left: 0; right: 0; bottom: 0;
+                                            background-color: #ccc;
+                                            transition: 0.4s;
+                                            border-radius: 34px;
+                                        }
 
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: 0.4s;
-            border-radius: 50%;
-        }
+                                        .slider:before {
+                                            position: absolute;
+                                            content: "";
+                                            height: 26px;
+                                            width: 26px;
+                                            left: 4px;
+                                            bottom: 4px;
+                                            background-color: white;
+                                            transition: 0.4s;
+                                            border-radius: 50%;
+                                        }
 
-        input:checked + .slider {
-            background-color: #4CAF50;
-        }
+                                        input:checked + .slider {
+                                            background-color: #4CAF50;
+                                        }
 
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
+                                        input:checked + .slider:before {
+                                            transform: translateX(26px);
+                                        }
     </style>
 </head>
 
@@ -125,51 +118,58 @@
                     <c:if test="${not empty models}">
                         <table class="table table-bordered table-hover text-center align-middle">
                             <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Model</th>
-                                    <th>Model Description</th>
-                                    <th>Status</th>
-                                    <th>Delete</th>
-                                    <th>Update</th>
-                                </tr>
+                            <tr>
+                                <th>ID</th>
+                                <th>Model</th>
+                                <th>Model Description</th>
+                                <th>Status</th>
+                                <th>Delete</th>
+                                <th>Update</th>
+                            </tr>
                             </thead>
-
                             <tbody>
-                                <c:forEach var="model" items="${models}">
-                                    <tr>
-                                        <td>${model.id}</td>
-                                        <td>${model.identifier}</td>
-                                        <td>${model.description}</td>
+                            <c:forEach var="model" items="${models}">
+                                <tr>
+                                    <td>
+                                        <a href=""
+                                           class="text-decoration-none fw-semibold">
+                                            ${model.id}
+                                        </a>
+                                    </td>
+                                    <td>${model.identifier}</td>
+                                     <td>${model.description}</td>
+                                          <td>
 
-                                        <td>
-                                            <label class="switch">
-                                                <input type="checkbox"
-                                                       onclick="toggle('${model.identifier}', this)"
-                                                       ${model.status ? 'checked' : ''}>
-                                                <span class="slider"></span>
-                                            </label>
-                                        </td>
+                                <label class="switch">
+                                                                                                                     <input type="checkbox"
+                                                                                                                            onclick="toggle('${model.identifier}', this)"
+                                                                                                                            ${model.status ? 'checked' : ''}>
+                                                                                                                     <span class="slider"></span>
+                                                                                                                 </label>
 
-                                        <td>
-                                           <a href="/models/delete?identifier=${model.identifier}"
-                                               class="btn btn-pos-delete btn-sm"
-                                               onclick="return confirm('Are you sure you want to delete this unit?');">
-                                                Delete
-                                            </a>
-                                        </td>
+                                                                                                                 </td>
 
-                                        <td>
-                                            <a class="btn btn-pos-update btn-sm"
-                                               href="/models/get?identifier=${model.identifier}">
-                                                Update
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
+
+                                    <td>
+                                        <a href="/models/delete?identifier=${model.identifier}"
+                                           class="btn btn-pos-delete btn-sm"
+                                           onclick="return confirm('Are you sure you want to delete this unit?');">
+                                            Delete
+                                        </a>
+                                    </td>
+                                    <td>
+                                          <a class="btn btn-pos-update btn-sm"
+                                     href="/models/get?identifier=${model.identifier}"
+                                                                    >
+                                                                             Update
+                                                                   </a>
+                                                                    </td>
+                                </tr>
+                            </c:forEach>
                             </tbody>
                         </table>
                     </c:if>
+
                 </div>
 
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
@@ -181,19 +181,21 @@
                         + Add New Model
                     </a>
                 </div>
+
             </div>
+
         </div>
     </div>
 </div>
 
 <script>
-    function toggle(identifier, checkbox) {
-        fetch('<%= request.getContextPath() %>/models/toggle?identifier=' + identifier)
-            .catch(err => {
-                console.error(err);
-                checkbox.checked = !checkbox.checked;
-            });
-        }
+function toggle(identifier, checkbox) {
+    fetch('<%= request.getContextPath() %>/models/toggle?identifier=' + identifier)
+        .catch(err => {
+            console.error(err);
+            checkbox.checked = !checkbox.checked;
+        });
+}
 </script>
 
 </body>

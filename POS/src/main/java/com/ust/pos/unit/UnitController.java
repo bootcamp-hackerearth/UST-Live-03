@@ -22,7 +22,7 @@ public class UnitController {
     private CategoryService categoryService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
 
         model.addAttribute("units", unitService.findAll(pageable));
         return "unit/list";
@@ -52,7 +52,7 @@ public class UnitController {
     public String update(Model model, @RequestParam String identifier) {
 
         UnitDto response = unitService.findByIdentifier(identifier);
-        model.addAttribute("categories", categoryService.findAllCategoriesWithSuper());
+        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper(null));
         model.addAttribute("unitDto", response);
 
         return "unit/unit";

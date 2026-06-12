@@ -6,6 +6,7 @@
 <head>
     <title>User Management</title>
 
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
@@ -33,32 +34,31 @@
             text-decoration: underline;
         }
 
-        h4 {
+        h4{
             background-color: #ffffff;
-        }
+          }
+            .btn-pos-update {
+                              background-color: #4b6cb7;
+                              border-color: #4b6cb7;
+                              color: #fff;
+                          }
 
-        .btn-pos-update {
-            background-color: #4b6cb7;
-            border-color: #4b6cb7;
-            color: #fff;
-        }
+                          .btn-pos-update:hover {
+                              background-color: #3f5fa7;
+                              border-color: #3f5fa7;
+                              color: #fff;
+                          }
 
-        .btn-pos-update:hover {
-            background-color: #3f5fa7;
-            border-color: #3f5fa7;
-            color: #fff;
-        }
+                          .btn-pos-delete {
+                              background-color: #f5f7fa;
+                              border: 1px solid #dc3545;
+                              color: #dc3545;
+                          }
 
-        .btn-pos-delete {
-            background-color: #f5f7fa;
-            border: 1px solid #dc3545;
-            color: #dc3545;
-        }
-
-        .btn-pos-delete:hover {
-            background-color: #dc3545;
-            color: #fff;
-        }
+                          .btn-pos-delete:hover {
+                              background-color: #dc3545;
+                              color: #fff;
+                          }
     </style>
 </head>
 
@@ -70,6 +70,7 @@
 
             <h3 class="text-center mb-4 text-black">User Management</h3>
 
+
             <c:if test="${empty users}">
                 <div class="alert alert-warning text-center">
                     No users found
@@ -80,50 +81,48 @@
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle text-center">
                         <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Roles</th>
-                                <th>Delete</th>
-                                <th>Update</th>
-                            </tr>
+                        <tr>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Roles</th>
+                            <th>Delete</th>
+                            <th>Update</th>
+                        </tr>
                         </thead>
-
                         <tbody>
-                            <c:forEach var="user" items="${users}">
-                                <tr>
-                                    <td>
-                                        <a class="user-link"
-                                           href="/user/get?username=${user.username}">
-                                            ${user.username}
-                                        </a>
-                                    </td>
-
-                                    <td>${user.name}</td>
-                                    <td>${user.phoneNo}</td>
-                                    <td>${user.roles}</td>
-
-                                    <td>
-                                        <a class="btn btn-pos-delete btn-sm"
-                                           href="/user/delete?username=${user.username}"
-                                           onclick="return confirm('Are you sure you want to delete this user?');">
-                                            Delete
-                                        </a>
-                                    </td>
+                        <c:forEach var="user" items="${users}">
+                            <tr>
+                                <td>
+                                    <a class="user-link"
+                                       href="/user/get?username=${user.username}">
+                                        ${user.username}
+                                    </a>
+                                </td>
+                                <td>${user.name}</td>
+                                <td>${user.phoneNo}</td>
+                                <td>${user.roles}</td>
+                                <td>
+                                    <a class="btn btn-pos-delete btn-sm"
+                                       href="/user/delete?username=${user.username}"
+                                       onclick="return confirm('Are you sure you want to delete this user?');">
+                                        Delete
+                                    </a>
 
                                     <td>
-                                        <a class="btn btn-pos-update btn-sm"
-                                           href="/user/get?username=${user.username}">
-                                            Update
-                                        </a>
-                                    </td>
-                                </tr>
-                            </c:forEach>
+                                       <a class="btn btn-pos-update btn-sm"
+                                        href="/user/get?username=${user.username}"
+                                >
+                                         Update
+                               </a>
+                                </td>
+                            </tr>
+                        </c:forEach>
                         </tbody>
                     </table>
                 </div>
             </c:if>
+
         </div>
 
         <div class="card-footer text-center">
@@ -133,7 +132,7 @@
                 </a>
 
                 <a href="/register" class="btn btn-success">
-                    Add User
+                    Register
                 </a>
             </div>
 
@@ -144,5 +143,6 @@
 
     </div>
 </div>
+
 </body>
 </html>

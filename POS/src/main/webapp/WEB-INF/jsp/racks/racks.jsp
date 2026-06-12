@@ -13,24 +13,20 @@
 
     <style>
         body {
-            background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
+             background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
             min-height: 100vh;
         }
-
         .card {
             border-radius: 12px;
         }
-
         .form-control {
             border-radius: 8px;
         }
-
-        .card-header {
+        .card-header{
             background: #ffffff;
         }
     </style>
 </head>
-
 <body>
 
 <div class="container d-flex justify-content-center align-items-center mt-5">
@@ -45,7 +41,7 @@
 
                 <c:if test="${empty racksDto}">
                     <div class="alert alert-success text-center">
-                        No Racks Found
+                       No Racks Found
                     </div>
                 </c:if>
 
@@ -53,25 +49,23 @@
                            action="/racks/update"
                            modelAttribute="racksDto">
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Racks Name</label>
-                        <form:input path="identifier"
-                                    cssClass="form-control"
-                                    type="text"
-                                    readonly="true"
-                                    required="true"/>
-                    </div>
+
+                   <div class="mb-3">
+                                    <label class="form-label fw-semibold">Racks Name</label>
+                                   <form:input path="identifier"
+                                         cssClass="form-control"
+                                         type="text"
+                                            readonly="true"
+                                            required="true"/>
+                                     </div>
 
                     <div class="mb-3">
-                        <label>Shelves</label>
-                        <form:select path="shelves"
-                                     multiple="true"
-                                     cssClass="form-control">
-                            <form:options items="${shelves}"
-                                          itemValue="identifier"
-                                          itemLabel="identifier"/>
-                        </form:select>
-                    </div>
+                               <label>Shelves</label>
+                               <form:select path="shelves" multiple="true">
+                                   <form:options items="${shelves}" itemValue="identifier" itemLabel="identifier"/>
+                               </form:select>
+                           </div>
+
 
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">
@@ -88,23 +82,24 @@
             </div>
 
             <div class="text-center mt-3">
-                <a href="/racks/list">← Back to Racks List</a>
-            </div>
+                            <a href="/racks/list">← Back to Racks List</a>
+                        </div>
         </div>
-
-        <c:if test="${not empty message}">
-            <div style="
-                background:#f8d7da;
-                color:#721c24;
-                padding:10px;
-                margin-bottom:15px;
-                border-radius:4px;
-                text-align:center;">
-                ${message}
-            </div>
-        </c:if>
+         <c:if test="${not empty message}">
+                        <div style="
+                            background:#f8d7da;
+                            color:#721c24;
+                            padding:10px;
+                            margin-bottom:15px;
+                            border-radius:4px;
+                            text-align:center;">
+                            ${message}
+                        </div>
+                    </c:if>
 
     </div>
+
+
 </div>
 
 </body>

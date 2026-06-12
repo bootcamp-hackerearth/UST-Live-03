@@ -22,7 +22,7 @@ public class PriceController {
     private ProductService productService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
 
         model.addAttribute("price", priceService.findAll(pageable));
         return "price/list";

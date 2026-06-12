@@ -27,7 +27,7 @@ public class StockApiController extends BaseController {
     private WarehouseService warehouseService;
 
     @PostMapping("/list")
-    public List<StockDto> list(@RequestBody PaginationDto paginationDto) {
+    public List<StockDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),

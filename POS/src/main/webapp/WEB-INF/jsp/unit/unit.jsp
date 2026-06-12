@@ -13,24 +13,20 @@
 
     <style>
         body {
-            background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
+             background: linear-gradient(to bottom, #ffffff, #e5e5e5, #bbbbbb);
             min-height: 100vh;
         }
-
         .card {
             border-radius: 12px;
         }
-
         .form-control {
             border-radius: 8px;
         }
-
-        .card-header {
+        .card-header{
             background: #ffffff;
         }
     </style>
 </head>
-
 <body>
 
 <div class="container d-flex justify-content-center align-items-center mt-5">
@@ -53,14 +49,18 @@
                            action="/unit/update"
                            modelAttribute="unitDto">
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Unit</label>
-                        <form:input path="identifier"
-                                    cssClass="form-control"
-                                    type="text"
-                                    readonly="true"
-                                    required="true"/>
-                    </div>
+
+                   <div class="mb-3">
+                                    <label class="form-label fw-semibold">Unit</label>
+                                   <form:input path="identifier"
+                                         cssClass="form-control"
+                                         type="text"
+                                           readonly="true"
+                                            required="true"/>
+                                     </div>
+
+
+
 
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">
@@ -77,23 +77,24 @@
             </div>
 
             <div class="text-center mt-3">
-                <a href="/unit/list">← Back to Unit List</a>
-            </div>
+                            <a href="/unit/list">← Back to Unit List</a>
+                        </div>
         </div>
-
-        <c:if test="${not empty message}">
-            <div style="
-                background:#f8d7da;
-                color:#721c24;
-                padding:10px;
-                margin-bottom:15px;
-                border-radius:4px;
-                text-align:center;">
-                ${message}
-            </div>
-        </c:if>
+         <c:if test="${not empty message}">
+                        <div style="
+                            background:#f8d7da;
+                            color:#721c24;
+                            padding:10px;
+                            margin-bottom:15px;
+                            border-radius:4px;
+                            text-align:center;">
+                            ${message}
+                        </div>
+                    </c:if>
 
     </div>
+
+
 </div>
 
 </body>

@@ -128,17 +128,19 @@ class NodeServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Node> nodes = List.of(new Node());
+        Node node5 = new Node();
+        NodeDto dto = new NodeDto();
+
+        List<Node> nodes = List.of(node5);
         Page<Node> page = new PageImpl<>(nodes);
-        List<NodeDto> dtos = List.of(new NodeDto());
 
         when(nodeRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(nodes),
-                any(Type.class)
-        )).thenReturn(dtos);
 
-        List<NodeDto> result = nodeService.findAll(pageable);
+        when(modelMapper.map(node5, NodeDto.class))
+                .thenReturn(dto);
+
+        List<NodeDto> result = nodeService.findAll(pageable).getContent();
+
         assertNotNull(result);
         assertEquals(1, result.size());
 
@@ -161,17 +163,17 @@ class NodeServiceTest {
         appUser.setRoles(List.of("ADMIN"));
 
         when(userRepository.findByUsername("testUser")).thenReturn(appUser);
-        Node node = new Node();
-        node.setIdentifier("NODE1");
-        node.setRoles(List.of("ADMIN"));
+        Node node1 = new Node();
+        node1.setIdentifier("NODE1");
+        node1.setRoles(List.of("ADMIN"));
 
-        when(nodeRepository.findAll()).thenReturn(List.of(node));
-        when(nodeRepository.findByIdentifier("NODE1")).thenReturn(node);
+        when(nodeRepository.findAll()).thenReturn(List.of(node1));
+        when(nodeRepository.findByIdentifier("NODE1")).thenReturn(node1);
 
         NodeDto dto = new NodeDto();
         dto.setIdentifier("NODE1");
 
-        when(modelMapper.map(node, NodeDto.class)).thenReturn(dto);
+        when(modelMapper.map(node1, NodeDto.class)).thenReturn(dto);
         List<NodeDto> result = nodeService.getNodesForRoles();
         assertEquals(1, result.size());
     }
@@ -193,11 +195,11 @@ class NodeServiceTest {
 
         when(userRepository.findByUsername("testUser")).thenReturn(appUser);
 
-        Node node = new Node();
-        node.setIdentifier("NODE1");
-        node.setRoles(List.of("ADMIN"));
+        Node node4 = new Node();
+        node4.setIdentifier("NODE1");
+        node4.setRoles(List.of("ADMIN"));
 
-        when(nodeRepository.findAll()).thenReturn(List.of(node));
+        when(nodeRepository.findAll()).thenReturn(List.of(node4));
         List<NodeDto> result = nodeService.getNodesForRoles();
         assertTrue(result.isEmpty());
     }
@@ -219,11 +221,11 @@ class NodeServiceTest {
 
         when(userRepository.findByUsername("testUser")).thenReturn(appUser);
 
-        Node node = new Node();
-        node.setIdentifier("NODE1");
-        node.setRoles(null);
+        Node node2 = new Node();
+        node2.setIdentifier("NODE1");
+        node2.setRoles(null);
 
-        when(nodeRepository.findAll()).thenReturn(List.of(node));
+        when(nodeRepository.findAll()).thenReturn(List.of(node2));
 
         List<NodeDto> result = nodeService.getNodesForRoles();
 

@@ -51,21 +51,24 @@
 
                 <form:hidden path="id"/>
 
-                <div class="mb-4">
-                    <label class="form-label">Category Name</label>
+                 <div class="mb-4">
+                 <label class="form-label">Category Name</label>
                     <form:input path="identifier"
-                                cssClass="form-control"
-                                readonly="true"/>
-                </div>
+                                                cssClass="form-control"
+                                                readonly="true"/>
+                                </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">Super Category</label>
-                    <form:select path="superCategory" cssClass="form-control">
-                        <form:options items="${categorys}"
-                                      itemValue="identifier"
-                                      itemLabel="identifier"/>
-                    </form:select>
-                </div>
+                                         <label class="form-label fw-semibold">Super Category</label>
+                                          <form:select path="superCategory" cssClass="form-control">
+                                          <form:options items="${categorys}"
+                                          itemValue="identifier" itemLabel="identifier"/>
+                                          </form:select>
+                                     </div>
+
+
+
+
 
                 <div class="d-flex justify-content-between">
                     <a href="/price/list" class="btn btn-outline-secondary">
@@ -78,25 +81,23 @@
 
             </form:form>
         </c:if>
-
         <div class="text-center mt-3">
-            <a href="/price/list">← Back to Price List</a>
-        </div>
+                <a href="/price/list">← Back to Price List</a>
+            </div>
 
     </div>
 
-    <c:if test="${not empty message}">
-        <div style="
-            background:#f8d7da;
-            color:#721c24;
-            padding:10px;
-            margin-bottom:15px;
-            border-radius:4px;
-            text-align:center;">
-            ${message}
-        </div>
-    </c:if>
-
+     <c:if test="${not empty message}">
+            <div style="
+                background:#f8d7da;
+                color:#721c24;
+                padding:10px;
+                margin-bottom:15px;
+                border-radius:4px;
+                text-align:center;">
+                ${message}
+            </div>
+        </c:if>
 </div>
 
 </body>

@@ -1,13 +1,13 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -123,12 +122,23 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
 
-        Type listType = new TypeToken<List<NodeDto>>() {
-        }.getType();
         Page<Node> nodesPage = nodeRepository.findAll(pageable);
 
-        return modelMapper.map(nodesPage.getContent(), listType);
+        WsDto<NodeDto> nodesDto = new WsDto<>();
+
+        List<NodeDto> nodesDtos = nodesPage.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, NodeDto.class))
+                .toList();
+
+        nodesDto.setContent(nodesDtos);
+        nodesDto.setPage(nodesPage.getNumber());
+        nodesDto.setSizePerPage(nodesPage.getSize());
+        nodesDto.setTotalPages(nodesPage.getTotalPages());
+        nodesDto.setTotalRecords(nodesPage.getTotalElements());
+
+        return nodesDto;
     }
 }

@@ -3,6 +3,7 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ public class NodeApiController extends BaseController {
     private NodeService nodeService;
 
     @PostMapping("/list")
-    public List<NodeDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -28,18 +29,18 @@ public class NodeApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    public NodeDto addPost(@RequestBody NodeDto nodeDto) {
+    public NodeDto addPost(@RequestBody NodeDto userDto) {
 
-        return nodeService.save(nodeDto);
+        return nodeService.save(userDto);
     }
 
-    @GetMapping("/get")
-    public NodeDto update(@RequestParam String identifier) {
+    @PostMapping("/get")
+    public NodeDto update(@RequestBody String identifier) {
 
         return nodeService.findByIdentifier(identifier);
     }
 
-    @GetMapping("/getnodesforroles")
+    @PostMapping("/getnodesforroles")
     public List<NodeDto> getNodesForRoles() {
 
         return nodeService.getNodesForRoles();
@@ -51,8 +52,8 @@ public class NodeApiController extends BaseController {
         return nodeService.update(nodeDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody String identifier) {
 
         try {
             nodeService.delete(identifier);

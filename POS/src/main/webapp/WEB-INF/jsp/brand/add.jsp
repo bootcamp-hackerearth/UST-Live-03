@@ -41,51 +41,54 @@ background: #ffffff;
 
     <c:if test="${not empty brands}">
         <div class="alert alert-success text-center">
-            ${brands}
+${brands}
         </div>
     </c:if>
 
     <form:form method="post"
-            action="/brand/add"
-            modelAttribute="brandDto">
+   action="/brand/add"
+   modelAttribute="brandDto">
 
 
-            <div class="mb-3">
-            <label class="form-label fw-semibold">Brand Name</label>
-                 <form:input path="identifier"
-                     cssClass="form-control"
-                     type="text"
-                     placeholder="Enter Brand"
-                     required="true"/>
-            </div>
+       <div class="mb-3">
+<label class="form-label fw-semibold">Brand Name</label>
+           <form:input path="identifier"
+     cssClass="form-control"
+     type="text"
+       placeholder="Enter Brand"
+        required="true"/>
+ </div>
 
-            <div class="mb-3">
-            <label class="form-label fw-semibold">Brand Description</label>
+<div class="mb-3">
+    <label class="form-label fw-semibold">Brand Description</label>
 
-                <form:input
-                    path="description"
-                    cssClass="form-control"
-                    type="text"
-                    placeholder="Enter Description"
-                    required="true"
-                    rows="3"/>
-            </div>
+    <form:input
+        path="description"
+        cssClass="form-control"
+        type="text"
+        placeholder="Enter Description"
+        required="true"
+        rows="3"
+    />
+</div>
 
-            <label class="form-label fw-semibold">Status</label>
-            <form:checkbox path="status"/>
 
-            div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    Add Brand
-                </button>
-            </div>
+<label class="form-label fw-semibold">Status</label>
+<form:checkbox path="status"/>
+
+        <div class="d-grid">
+<button type="submit" class="btn btn-primary btn-lg">
+    Add Brand
+</button>
+        </div>
 
     </form:form>
-</div>
-         <div class="card-footer text-center text-muted small">
-                         POS Management System
-         </div>
 
+</div>
+
+<div class="card-footer text-center text-muted small">
+    POS Management System
+</div>
 
 <div class="text-center mt-3">
     <a href="/brand/list">← Back to Brand List</a>

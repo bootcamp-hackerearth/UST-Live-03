@@ -26,7 +26,7 @@ public class CustomerController {
     private AddressService addressService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
 
         model.addAttribute("customer", customerService.findAll(pageable));
         return "customer/list";
