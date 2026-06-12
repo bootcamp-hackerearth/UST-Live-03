@@ -1,6 +1,7 @@
-package com.ust.pos.node.service;
+package com.ust.pos.node;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/node")
 public class NodeController {
     @Autowired
-    private NodeService nodeService;
+    private RoleService roleService;
 
     @Autowired
-    private RoleService roleService;
+    private NodeService nodeService;
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -34,7 +35,7 @@ public class NodeController {
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
         }
-        return "redirect:/node/list";
+        return "node/add";
     }
 
     @GetMapping("/get")
@@ -50,6 +51,7 @@ public class NodeController {
         NodeDto response = nodeService.update(nodeDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
+            model.addAttribute("node", nodeDto);   // ✅ IMPORTANT
         }
         return "redirect:/node/list";
     }
@@ -57,6 +59,6 @@ public class NodeController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         nodeService.delete(identifier);
-        return "node/node";
+        return "redirect:/node/list";
     }
 }

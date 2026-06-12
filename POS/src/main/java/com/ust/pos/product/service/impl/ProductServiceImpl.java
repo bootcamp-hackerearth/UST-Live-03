@@ -1,7 +1,8 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.ProductDto;
-import com.ust.pos.model.CategoryRepository;
+import com.ust.pos.model.Node;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -25,9 +26,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
 
     @Override
     public ProductDto save(ProductDto productDto) {
@@ -70,15 +68,29 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<ProductDto>>() {
-        }.getType();
-        Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listOfType);
+    public ProductDto findByIdentifier(String identifier) {
+        return modelMapper.map(productRepository.findByIdentifier(identifier), ProductDto.class);
+    }
+
+
+
+    @Override
+    public Page<ProductDto> findAll(String search, Pageable pageable) {
+        Page<Product> rolePage;
+        if (search != null && !search.trim().isEmpty()) {
+            rolePage = productRepository.findByIdentifierContainingIgnoreCase(search, pageable);
+        } else {
+            rolePage = productRepository.findAll(pageable);
+        }
+        return rolePage.map(product -> modelMapper.map(product, ProductDto.class));
     }
 
     @Override
-    public ProductDto findByIdentifier(String identifier) {
-        return modelMapper.map(productRepository.findByIdentifier(identifier), ProductDto.class);
+    public void toggleStatus(String identifier) {
+        Product products = productRepository.findByIdentifier(identifier);
+        if (products != null) {
+            products.setStatus(!products.getStatus());
+            productRepository.save(products);
+        }
     }
 }

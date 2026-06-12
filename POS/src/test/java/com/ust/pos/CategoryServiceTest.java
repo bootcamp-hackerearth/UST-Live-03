@@ -53,7 +53,7 @@ class CategoryServiceTest {
         CategoryDto response = categoryService.save(categoryDto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-
+        Assertions.assertNull(response.getSuperCategory());
         Assertions.assertTrue(response.isSuccess());
 
         Mockito.verify(categoryRepository).save(category);
@@ -101,7 +101,7 @@ class CategoryServiceTest {
         CategoryDto response = categoryService.update(categoryDto);
 
         Assertions.assertTrue(response.isSuccess());
-
+        Assertions.assertNull(response.getSuperCategory());
 
         Mockito.verify(categoryRepository).save(mappedCategory);
     }
@@ -205,32 +205,30 @@ class CategoryServiceTest {
     }
 
     @Test
-    void findAll_WithPagination_ShouldReturnCategoryDtos() {
-        // Arrange
-        Pageable pageable = PageRequest.of(0, 10);
+    void findAll_ShouldReturnCategoryDtos() {
 
+        // Arrange
         List<Category> categories = List.of(new Category());
-        Page<Category> categoryPage = new PageImpl<>(categories);
 
         List<CategoryDto> categoryDtos = List.of(new CategoryDto());
 
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
 
-        Mockito.when(categoryRepository.findAll(pageable))
-                .thenReturn(categoryPage);
+        Mockito.when(categoryRepository.findAll())
+                .thenReturn(categories);
 
         Mockito.when(modelMapper.map(categories, listType))
                 .thenReturn(categoryDtos);
 
         // Act
-        List<CategoryDto> response = categoryService.findAll(pageable);
+        List<CategoryDto> response = categoryService.findAll();
 
         // Assert
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
 
-        Mockito.verify(categoryRepository).findAll(pageable);
+        Mockito.verify(categoryRepository).findAll();
         Mockito.verify(modelMapper).map(categories, listType);
     }
 }

@@ -56,6 +56,37 @@
         .form-group {
             margin-bottom: 16px;
         }
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            box-sizing: border-box; /* Prevents padding from breaking width */
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column; /* Stack options vertically */
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center; /* Vertically centers dot with text */
+            gap: 10px; /* Space between dot and word */
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
 
         label {
             font-size: 13px;
@@ -131,7 +162,7 @@
                     <form:radiobutton path="status" value="true" checked="checked"/> Active
                 </label>
                 <label class="radio-option">
-                    <form:radiobutton path="status" value="false" /> Dormant
+                    <form:radiobutton path="status" value="false" /> Inactive
                 </label>
             </div>
         </div>

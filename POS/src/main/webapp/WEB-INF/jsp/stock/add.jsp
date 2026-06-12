@@ -134,41 +134,31 @@
 
     <form:form method="post" modelAttribute="stockDto">
 
-        <label class="form-label">product Name</label>
-                <form:select path="identifier" cssClass="form-control">
-                            <form:option value="" label="-- Select Product --" />
-                            <c:forEach items="${products}" var="product">
-                                    <form:option value="${product.identifier}">
-                                        ${product.identifier}
-                                    </form:option>
-                            </c:forEach>
-                        </form:select>
-        <%--<div class="form-group">
-                    <label>Product ID</label>
-                    <form:input path="productId" type="number" required="true"/>
-                </div>--%>
-         <label class="form-label">Warehouse Name</label>
-                <form:select path="warehouseName" cssClass="form-control">
-                            <form:option value="" label="-- Select Product --" />
-                            <c:forEach items="${warehouses}" var="warehouse">
-                                    <form:option value="${warehouse.identifier}">
-                                        ${warehouse.identifier}
-                                    </form:option>
-                            </c:forEach>
-                        </form:select>
+        <div class="form-group">
+                    <label>Product Name</label>
+                    <form:select path="identifier" cssClass="form-control">
+                        <form:option value="" label="-- Select Product --" />
+                        <c:forEach items="${product}" var="product">
+                            <form:option value="${product.identifier}">
+                                ${product.identifier}
+                            </form:option>
+                        </c:forEach>
+                    </form:select>
+                </div>
+       <div class="form-group">
+                           <label>Warehouse Name</label>
+                           <form:select path="warehouseName" cssClass="form-control">
+                               <form:option value="" label="-- Select Warehouse --" />
+                               <c:forEach items="${warehouse}" var="warehouse">
+                                   <form:option value="${warehouse.identifier}">
+                                       ${warehouse.identifier}
+                                   </form:option>
+                               </c:forEach>
+                           </form:select>
+                       </div>
         <div class="form-group">
                    <label>Quantity</label>
                    <form:input path="quantity" type="number" min="0" required="true"/>
-        </div>
-
-        <div class="form-group">
-            <label>Status</label>
-            <form:select path="stockStatus" required="true">
-                <form:option value="">-- Select Status --</form:option>
-                <form:option value="AVAILABLE">AVAILABLE</form:option>
-                <form:option value="OUT_OF_STOCK">OUT OF STOCK</form:option>
-                <form:option value="DISCONTINUED">DISCONTINUED</form:option>
-            </form:select>
         </div>
 
         <button type="submit" class="btn-submit">

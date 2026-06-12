@@ -32,14 +32,6 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<WarehouseDto>>() {
-        }.getType();
-        Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
-    }
-
-    @Override
     public WarehouseDto save(WarehouseDto warehouseDto) {
         String identifier = warehouseDto.getIdentifier();
         Warehouse existingwarehouse = warehouseRepository.findByIdentifier(identifier);
@@ -55,10 +47,9 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public WarehouseDto update(WarehouseDto warehouseDto) {
-        String identifier = warehouseDto.getIdentifier();
-        Warehouse existingWarehouse = warehouseRepository.findByIdentifier(identifier);
+        Warehouse existingWarehouse = warehouseRepository.findByIdentifier(warehouseDto.getIdentifier());
         if (existingWarehouse == null) {
-            warehouseDto.setMessage("Warehouse with identifier - " + identifier + " not found");
+            warehouseDto.setMessage("Warehouse with identifier - " + warehouseDto.getIdentifier() + " not found");
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
@@ -75,5 +66,13 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public void delete(String identifier) {
         warehouseRepository.deleteByIdentifier(identifier);
+    }
+
+    @Override
+    public List<WarehouseDto> findAll(Pageable pageable) {
+        Type listOfType = new TypeToken<List<WarehouseDto>>() {
+        }.getType();
+        Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
+        return modelMapper.map(warehousePage.getContent(), listOfType);
     }
 }

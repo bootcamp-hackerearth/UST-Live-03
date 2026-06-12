@@ -114,6 +114,7 @@
             <form:input path="name"/>
         </div>
 
+
         <div class="form-group">
             <label>Email</label>
             <form:input path="username"
@@ -122,6 +123,7 @@
                         pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$"
                         title="Email must end with .com"/>
         </div>
+
 
         <div class="form-group">
             <label>Roles</label>
@@ -141,7 +143,8 @@
 
         <div class="form-group">
             <label>Password</label>
-            <form:password path="password"/>
+            <form:password path="password"
+            required="required"/>
         </div>
 
         <input type="submit" value="Register" class="btn-submit"/>

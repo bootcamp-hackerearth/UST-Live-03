@@ -14,10 +14,22 @@
         body {
             background: #ffffff;
             min-height: 100vh;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .card {
             border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #4b6cb7;
+            font-weight: 600;
         }
 
         .card-header {
@@ -28,6 +40,81 @@
         table th {
             background-color: #0d6efd;
             color: white;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f7f9ff;
+        }
+
+        .action-icon {
+            font-size: 18px;
+            margin: 0 6px;
+            text-decoration: none;
+            color: #4b6cb7;
+            transition: 0.2s ease;
+        }
+
+        .action-icon:hover {
+            color: #182848;
+            transform: scale(1.2);
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .footer-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-block;
+            transition: 0.25s ease;
+        }
+
+        .btn-home {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-home:hover {
+            background: #555;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #4b6cb7, #182848);
+            color: white;
+        }
+
+        .btn-add:hover {
+            transform: scale(1.05);
         }
 
         /* ✅ REMOVE UNDERLINE FROM ICON LINKS */
@@ -114,8 +201,55 @@
                 </div>
             </div>
 
+    <h2>List of Roles</h2>
+
+    <c:if test="${empty roles}">
+        <div class="alert alert-warning">
+            No roles found
         </div>
+    </c:if>
+
+    <c:if test="${not empty roles}">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Role</th>
+                <th>Description</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="role" items="${roles}">
+                <tr>
+                    <td>${role.id}</td>
+                    <td>${role.identifier}</td>
+                    <td>${role.description}</td>
+
+                    <td>
+                        <a href="/role/get?identifier=${role.identifier}"
+                           class="action-icon"
+                           title="Edit">✏️</a>
+
+                        <a href="/role/delete?identifier=${role.identifier}"
+                           class="action-icon"
+                           title="Delete"
+                           onclick="return confirm('Are you sure you want to delete this role?');">
+                            🗑
+                        </a>
+                    </td>
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+    </c:if>
+
+    <div class="footer-actions">
+        <a href="/" class="btn btn-home">Home</a>
+        <a href="/role/add" class="btn btn-add">+ Add New Role</a>
     </div>
+
 </div>
 
 </body>

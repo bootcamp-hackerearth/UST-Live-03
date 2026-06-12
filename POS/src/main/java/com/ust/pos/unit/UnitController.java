@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/unit")
 public class UnitController {
-
     private static final String UNITS = "units";
-    private static final String REDIRECT_LIST = "redirect:/unit/list";
+    private static final String REDIRECT = "redirect:/unit/list";
+
     @Autowired
     private UnitService unitService;
 
@@ -36,7 +36,7 @@ public class UnitController {
             unit.addAttribute(UNITS, unitService.findAll());
             return "unit/add";
         }
-        return REDIRECT_LIST;
+        return REDIRECT;
     }
 
     @GetMapping("/get")
@@ -55,12 +55,18 @@ public class UnitController {
             unit.addAttribute(UNITS, unitService.findAll());
             return "unit/update";
         }
-        return REDIRECT_LIST;
+        return REDIRECT;
     }
 
     @GetMapping("/delete")
     public String delete(Model unit, @RequestParam String identifier) {
         unitService.delete(identifier);
-        return REDIRECT_LIST;
+        return REDIRECT;
+    }
+
+    @PostMapping("status")
+    public String updateStatus(Model model, @RequestParam String identifier, boolean status) {
+        unitService.updateStatusOnly(identifier, status);
+        return "redirect:/shelf/list";
     }
 }

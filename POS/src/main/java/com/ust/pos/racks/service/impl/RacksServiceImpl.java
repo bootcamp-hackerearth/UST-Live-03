@@ -40,22 +40,15 @@ public class RacksServiceImpl implements RacksService {
 
     @Override
     public RacksDto update(RacksDto racksDto) {
-
         Racks existingRacks =
                 racksRepository.findByIdentifier(racksDto.getIdentifier());
-
         if (existingRacks == null) {
             racksDto.setSuccess(false);
             racksDto.setMessage("Racks not found");
             return racksDto;
         }
-
-        // ✅ update existing row
-        existingRacks.setDescription(racksDto.getDescription());
-        existingRacks.setStatus(racksDto.isStatus());
         modelMapper.map(racksDto, existingRacks);
-        racksRepository.save(existingRacks); // ✅ UPDATE
-
+        racksRepository.save(existingRacks);
         return racksDto;
     }
 
@@ -72,14 +65,6 @@ public class RacksServiceImpl implements RacksService {
     }
 
     @Override
-    public List<RacksDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<RacksDto>>() {
-        }.getType();
-        Page<Racks> racksPage = racksRepository.findAll(pageable);
-        return modelMapper.map(racksPage.getContent(), listOfType);
-    }
-
-    @Override
     public RacksDto findByIdentifier(String identifier) {
         return modelMapper.map(racksRepository.findByIdentifier(identifier), RacksDto.class);
     }
@@ -88,10 +73,16 @@ public class RacksServiceImpl implements RacksService {
     public void toggleStatus(String identifier) {
         Racks racks = racksRepository.findByIdentifier(identifier);
         if (racks != null) {
-            // ✅ toggle status
-            racks.setStatus(!racks.isStatus());
+            racks.setStatus(!racks.getStatus());
             racksRepository.save(racks);
         }
+    }
 
+    @Override
+    public List<RacksDto> findAll(Pageable pageable) {
+        Type listOfType = new TypeToken<List<RacksDto>>() {
+        }.getType();
+        Page<Racks> racksPage = racksRepository.findAll(pageable);
+        return modelMapper.map(racksPage.getContent(), listOfType);
     }
 }

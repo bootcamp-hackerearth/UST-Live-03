@@ -108,17 +108,14 @@
 
     <h2>Add Unit</h2>
 
-    <!-- Error Message -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}
         </div>
     </c:if>
 
-    <!-- Form -->
     <form:form method="post" action="/unit/add" modelAttribute="unitDto">
 
-        <!-- Id -->
         <div class="form-group">
             <label>Unit Name</label>
             <form:input path="identifier" placeholder="Enter Unit Name" />

@@ -3,9 +3,12 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,16 +18,43 @@ import java.util.List;
 @RequestMapping("/api/node")
 public class NodeApiController extends BaseController {
     @Autowired
-    private NodeService nodeService;
-
-    @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private NodeService nodeService;
+
+    @GetMapping("/roles")
+    public List<NodeDto> getNodesForRoles() {
+        return nodeService.getNodesForRoles();
+    }
+
     @PostMapping("/list")
-    public List<NodeDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortField());
-        return nodeService.findAll(pageable);
+    public WsDto<NodeDto> home(
+            @RequestBody PaginationDto paginationDto) {
+
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortField());
+
+        Page<NodeDto> pageResult =
+                nodeService.findAll(
+                        pageable,
+                        paginationDto.getSearch());
+
+        WsDto<NodeDto> response = new WsDto<>();
+
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+
+        return response;
+    }
+
+    @GetMapping("/list")
+    public List<NodeDto> list() {
+        return nodeService.findAll();
     }
 
     @PostMapping("/add")
@@ -35,13 +65,11 @@ public class NodeApiController extends BaseController {
     @GetMapping("/get")
     public NodeDto update(@RequestParam String identifier) {
         return nodeService.findByIdentifier(identifier);
-
     }
 
     @PostMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
         return nodeService.update(nodeDto);
-
     }
 
     @GetMapping("/delete")

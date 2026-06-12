@@ -7,7 +7,6 @@ import com.ust.pos.racks.service.RacksService;
 import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,14 +30,13 @@ public class RacksApiController extends BaseController {
         return racksService.findAll(pageable);
     }
 
-
     @PostMapping("/add")
     public RacksDto addPost(@RequestBody RacksDto racksDto) {
         return racksService.save(racksDto);
     }
 
     @GetMapping("/get")
-    public RacksDto update(Model model, @RequestParam String identifier) {
+    public RacksDto update(@RequestParam String identifier) {
         return racksService.findByIdentifier(identifier);
     }
 
@@ -48,7 +46,7 @@ public class RacksApiController extends BaseController {
     }
 
     @GetMapping("/delete")
-    public boolean delete(Model model, @RequestParam String identifier) {
+    public boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);
         } catch (Exception e) {
@@ -66,5 +64,4 @@ public class RacksApiController extends BaseController {
         }
         return true;
     }
-
 }

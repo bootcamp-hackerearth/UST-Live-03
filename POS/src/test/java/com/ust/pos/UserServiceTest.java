@@ -200,27 +200,27 @@ class UserServiceTest {
     }
 
     @Test
-    void findAll_WithPagination_ShouldReturnUserDtos() {
-        Pageable pageable = PageRequest.of(0, 10);
+    void findAll_ShouldReturnUserDtos() {
 
         List<User> users = List.of(new User());
-        Page<User> page = new PageImpl<>(users);
 
         List<UserDto> userDtos = List.of(new UserDto());
 
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
 
-        Mockito.when(userRepository.findAll(pageable))
-                .thenReturn(page);
+        Mockito.when(userRepository.findAll())
+                .thenReturn(users);
+
         Mockito.when(modelMapper.map(users, listType))
                 .thenReturn(userDtos);
 
-        List<UserDto> response = userService.findAll(pageable);
+        List<UserDto> response = userService.findAll();
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
-        Mockito.verify(userRepository).findAll(pageable);
+
+        Mockito.verify(userRepository).findAll();
         Mockito.verify(modelMapper).map(users, listType);
     }
 }

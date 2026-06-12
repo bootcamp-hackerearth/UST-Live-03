@@ -165,7 +165,7 @@ class RacksServiceTest {
 
         racksService.toggleStatus("R1");
 
-        Assertions.assertTrue(racks.isStatus());
+        Assertions.assertTrue(racks.getStatus());
         Mockito.verify(racksRepository).save(racks);
     }
 
@@ -218,4 +218,5 @@ class RacksServiceTest {
         Mockito.verify(racksRepository).findAll(pageable);
         Mockito.verify(modelMapper).map(racks, listType);
     }
+
 }

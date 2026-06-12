@@ -73,13 +73,13 @@
             <h3 class="text-center mb-4">User Management</h3>
 
             <!-- NO USERS MESSAGE -->
-            <c:if test="${empty users}">
+            <c:if test="${empty user}">
                 <div class="alert alert-warning text-center">
                     No users found
                 </div>
             </c:if>
 
-            <c:if test="${not empty users}">
+            <c:if test="${not empty user}">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle text-center">
                         <thead>
@@ -93,7 +93,7 @@
                         </thead>
 
                         <tbody>
-                        <c:forEach var="user" items="${users}">
+                        <c:forEach var="user" items="${user}">
                             <tr>
                                 <td>${user.username}</td>
                                 <td>${user.name}</td>
@@ -125,7 +125,6 @@
             <div class="text-muted small mt-2">
                 User Management System
             </div>
-        </div>
 
 
     </div>

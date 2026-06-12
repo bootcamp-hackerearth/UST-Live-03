@@ -165,8 +165,8 @@
         <table>
             <thead>
             <tr>
-                <th>warehouseName</th>
-                <th>Identifier</th>
+                <th>Warehouse Name</th>
+                <th>Stock</th>
                 <th>Quantity</th>
                 <th>Status</th>
                 <th>Action</th>

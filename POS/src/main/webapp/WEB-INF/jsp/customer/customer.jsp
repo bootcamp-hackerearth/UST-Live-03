@@ -140,14 +140,27 @@
             <form:input path="identifier" readonly="true"/>
         </div>
 
-        <div class="form-group">
-            <label>Phone Number</label>
-            <form:input path="phoneno"/>
-        </div>
+
+<div class="form-group">
+    <label>Phone Number</label>
+
+    <form:input
+        path="phoneno"
+        type="text"
+        maxlength="10"
+        pattern="[0-9]{10}"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+        class="form-control" />
+
+    <form:errors path="phoneno" cssClass="text-danger"/>
+</div>
+
 
         <div class="form-group">
             <label>Email Address</label>
-            <form:input path="email"/>
+            <form:input
+            type = "email"
+            path="email"/>
         </div>
 
         <div class="form-group">
@@ -168,24 +181,24 @@
         <!-- ✅ Billing Address -->
         <details>
             <summary>Billing Address</summary>
-            <input type="hidden" name="billing.id" value="${billing.id}" />
+            <input type="hidden" name="billing.id" value="${customerDto.billing.id}" />
             <div class="address-grid">
-                <input type="text" name="billing.addressLine" value="${billing.addressLine}" placeholder="Address Line"/>
-                <input type="text" name="billing.city"        value="${billing.city}"        placeholder="City"/>
-                <input type="text" name="billing.state"       value="${billing.state}"       placeholder="State"/>
-                <input type="number" name="billing.pincode"   value="${billing.pincode}"     placeholder="Pincode"/>
-                <input type="text" name="billing.country"     value="${billing.country}"     placeholder="Country"/>
+                <input type="text" name="billing.addressLine" value="${customerDto.billing.addressLine}" placeholder="Address Line"/>
+                <input type="text" name="billing.city"        value="${customerDto.billing.city}"        placeholder="City"/>
+                <input type="text" name="billing.state"       value="${customerDto.billing.state}"       placeholder="State"/>
+                <input type="text" name="billing.pincode" value="${customerDto.billing.pincode}" placeholder="Pincode" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g,'')"/>
+                <input type="text" name="billing.country"     value="${customerDto.billing.country}"     placeholder="Country"/>
             </div>
         </details>
         <details>
             <summary>Shipping Address</summary>
-            <input type="hidden" name="shipping.id" value="${shipping.id}" />
+            <input type="hidden" name="shipping.id" value="${customerDto.shipping.id}" />
             <div class="address-grid">
-                <input type="text" name="shipping.addressLine" value="${shipping.addressLine}" placeholder="Address Line"/>
-                <input type="text" name="shipping.city"        value="${shipping.city}"        placeholder="City"/>
-                <input type="text" name="shipping.state"       value="${shipping.state}"       placeholder="State"/>
-                <input type="number" name="shipping.pincode"   value="${shipping.pincode}"     placeholder="Pincode"/>
-                <input type="text" name="shipping.country"     value="${shipping.country}"     placeholder="Country"/>
+                <input type="text" name="shipping.addressLine" value="${customerDto.shipping.addressLine}" placeholder="Address Line"/>
+                <input type="text" name="shipping.city"        value="${customerDto.shipping.city}"        placeholder="City"/>
+                <input type="text" name="shipping.state"       value="${customerDto.shipping.state}"       placeholder="State"/>
+                <input type="number" name="shipping.pincode"   value="${customerDto.shipping.pincode}"     placeholder="Pincode"/>
+                <input type="text" name="shipping.country"     value="${customerDto.shipping.country}"     placeholder="Country"/>
             </div>
         </details>
 

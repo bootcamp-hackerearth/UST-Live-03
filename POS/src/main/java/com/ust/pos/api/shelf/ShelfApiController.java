@@ -19,11 +19,10 @@ public class ShelfApiController extends BaseController {
 
     @PostMapping("/list")
     public List<ShelfDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortField());
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortField());
         return shelfService.findAll(pageable);
     }
-
 
     @PostMapping("/add")
     public ShelfDto doadd(@RequestBody ShelfDto shelfDto) {
@@ -41,20 +40,20 @@ public class ShelfApiController extends BaseController {
         return shelfService.update(shelfDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("status")
+    public boolean updateStatus(@RequestParam String identifier, boolean status) {
         try {
-            shelfService.delete(identifier);
+            shelfService.updateStatusOnly(identifier, status);
         } catch (Exception e) {
             return false;
         }
         return true;
     }
 
-    @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestParam String identifier) {
+    @GetMapping("/delete")
+    public boolean delete(@RequestParam String identifier) {
         try {
-            shelfService.toggleStatus(identifier);
+            shelfService.delete(identifier);
         } catch (Exception e) {
             return false;
         }

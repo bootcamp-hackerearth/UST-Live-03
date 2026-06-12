@@ -84,16 +84,16 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CustomerDto>>() {
-        }.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
-    }
-
-    @Override
     public void deleteByIdentifier(String identifier) {
         addressService.delete(identifier);
         customerRepository.deleteByIdentifier(identifier);
+    }
+
+    @Override
+    public List<CustomerDto> findAll(Pageable pageable) {
+        Type listOfType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> customePage = customerRepository.findAll(pageable);
+        return modelMapper.map(customePage.getContent(), listOfType);
     }
 }

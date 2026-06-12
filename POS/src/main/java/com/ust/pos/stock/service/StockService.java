@@ -8,16 +8,16 @@ import java.util.List;
 public interface StockService {
     StockDto save(StockDto stockDto);
 
-    void delete(String identifier);
-
     StockDto update(StockDto stockDto);
 
     List<StockDto> findAll();
 
-    List<StockDto> findAll(Pageable pageable);
+    void delete(String identifier);
 
     StockDto findByIdentifier(String identifier);
 
-    void toggleStatus(String identifier);
+    void updateStatusOnly(String identifier, boolean status);
+
+    List<StockDto> findAll(Pageable pageable);
 
 }

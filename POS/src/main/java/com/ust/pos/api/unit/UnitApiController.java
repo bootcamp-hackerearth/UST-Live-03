@@ -19,11 +19,10 @@ public class UnitApiController extends BaseController {
 
     @PostMapping("/list")
     public List<UnitDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortField());
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortField());
         return unitService.findAll(pageable);
     }
-
 
     @PostMapping("/add")
     public UnitDto addModel(@RequestBody UnitDto unitDto) {
@@ -33,13 +32,11 @@ public class UnitApiController extends BaseController {
     @GetMapping("/get")
     public UnitDto update(@RequestParam String identifier) {
         return unitService.findByIdentifier(identifier);
-
     }
 
     @PostMapping("/update")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
-
     }
 
     @GetMapping("/delete")
@@ -52,13 +49,15 @@ public class UnitApiController extends BaseController {
         return true;
     }
 
-    @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestParam String identifier) {
+    @PostMapping("/status")
+    public boolean updateStatus(
+            @RequestParam String identifier, Boolean status) {
         try {
-            unitService.toggleStatus(identifier);
+            unitService.updateStatusOnly(identifier, status);
         } catch (Exception e) {
             return false;
         }
         return true;
     }
+
 }

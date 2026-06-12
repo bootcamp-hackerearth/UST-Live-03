@@ -36,25 +36,46 @@ class StockServiceTest {
     // ---------------- SAVE ----------------
 
     @Test
-    void saveTest_Success() {
+    void saveTest_Success_WhenQuantityGreaterThanZero() {
         StockDto dto = new StockDto();
         dto.setIdentifier("P1");
+        dto.setQuantity(10);
 
         Stock entity = new Stock();
         entity.setIdentifier("P1");
 
-        Mockito.when(stockRepository.findByIdentifier("P1"))
-                .thenReturn(null);
-
         Mockito.when(modelMapper.map(dto, Stock.class))
                 .thenReturn(entity);
-
+        Mockito.when(stockRepository.findByIdentifier("P1"))
+                .thenReturn(null);
         Mockito.when(stockRepository.save(entity))
                 .thenReturn(entity);
 
         StockDto response = stockService.save(dto);
 
-        Assertions.assertEquals("P1", response.getIdentifier());
+        Assertions.assertEquals("Available", response.getStockStatus());
+        Mockito.verify(stockRepository).save(entity);
+    }
+
+    @Test
+    void saveTest_Success_WhenQuantityZero() {
+        StockDto dto = new StockDto();
+        dto.setIdentifier("P1");
+        dto.setQuantity(0);
+
+        Stock entity = new Stock();
+        entity.setIdentifier("P1");
+
+        Mockito.when(modelMapper.map(dto, Stock.class))
+                .thenReturn(entity);
+        Mockito.when(stockRepository.findByIdentifier("P1"))
+                .thenReturn(null);
+        Mockito.when(stockRepository.save(entity))
+                .thenReturn(entity);
+
+        StockDto response = stockService.save(dto);
+
+        Assertions.assertEquals("Not Available", response.getStockStatus());
         Mockito.verify(stockRepository).save(entity);
     }
 
@@ -62,7 +83,13 @@ class StockServiceTest {
     void saveTest_Failure_WhenAlreadyExists() {
         StockDto dto = new StockDto();
         dto.setIdentifier("P1");
+        dto.setQuantity(5);
 
+        Stock entity = new Stock();
+        entity.setIdentifier("P1");
+
+        Mockito.when(modelMapper.map(dto, Stock.class))
+                .thenReturn(entity);
         Mockito.when(stockRepository.findByIdentifier("P1"))
                 .thenReturn(new Stock());
 
@@ -70,84 +97,56 @@ class StockServiceTest {
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
-
         Mockito.verify(stockRepository, Mockito.never())
                 .save(Mockito.any());
     }
 
     // ---------------- UPDATE ----------------
 
-
-    // ✅ 1. When stock exists
     @Test
-    void updateTest_Success() {
-
+    void updateTest_Success_WhenStockExists() {
         StockDto dto = new StockDto();
         dto.setIdentifier("P1");
+        dto.setQuantity(15);
 
         Stock existing = new Stock();
         existing.setIdentifier("P1");
 
-        Stock mappedStock = new Stock();
-        mappedStock.setIdentifier("P1");
-
-        // Mock repository
         Mockito.when(stockRepository.findByIdentifier("P1"))
                 .thenReturn(existing);
 
-        // Mock mapper
-        Mockito.when(modelMapper.map(dto, Stock.class))
-                .thenReturn(mappedStock);
+        Mockito.doNothing()
+                .when(modelMapper).map(dto, existing);
 
-        // Mock save
-        Mockito.when(stockRepository.save(mappedStock))
-                .thenReturn(mappedStock);
+        Mockito.when(stockRepository.save(existing))
+                .thenReturn(existing);
 
         StockDto response = stockService.update(dto);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("P1", response.getIdentifier());
-
-        // Since your method doesn't set success=true explicitly
-        // we should NOT assert true here unless your DTO default is true
-
-        Mockito.verify(stockRepository).save(mappedStock);
+        Assertions.assertEquals("Available", response.getStockStatus());
+        Mockito.verify(stockRepository).save(existing);
     }
 
-    // ✅ 2. When stock NOT found
     @Test
-    void updateTest_Failure_NotFound() {
-
+    void updateTest_Failure_WhenNotFound() {
         StockDto dto = new StockDto();
         dto.setIdentifier("P1");
 
-        Stock mappedStock = new Stock();
-
-        // Mock repository returns null
         Mockito.when(stockRepository.findByIdentifier("P1"))
                 .thenReturn(null);
 
-        // Mapper still gets called (important!)
-        Mockito.when(modelMapper.map(dto, Stock.class))
-                .thenReturn(mappedStock);
-
-        Mockito.when(stockRepository.save(mappedStock))
-                .thenReturn(mappedStock);
-
         StockDto response = stockService.update(dto);
 
-        Assertions.assertNotNull(response);
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertTrue(response.getMessage().contains("not found"));
-
-        // ⚠️ Important: your code STILL calls save()
-        Mockito.verify(stockRepository).save(mappedStock);
+        Assertions.assertNotNull(response.getMessage());
+        Mockito.verify(stockRepository, Mockito.never())
+                .save(Mockito.any());
     }
 
     // ---------------- FIND BY IDENTIFIER ----------------
 
     @Test
-    void findByIdentifierTest_Success() {
+    void findByIdentifierTest() {
         Stock stock = new Stock();
         stock.setIdentifier("P1");
 
@@ -156,7 +155,6 @@ class StockServiceTest {
 
         Mockito.when(stockRepository.findByIdentifier("P1"))
                 .thenReturn(stock);
-
         Mockito.when(modelMapper.map(stock, StockDto.class))
                 .thenReturn(dto);
 
@@ -172,12 +170,12 @@ class StockServiceTest {
         List<Stock> entities = List.of(new Stock());
         List<StockDto> dtos = List.of(new StockDto());
 
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+
         Mockito.when(stockRepository.findAll())
                 .thenReturn(entities);
-
-        Mockito.when(modelMapper.map(
-                        Mockito.eq(entities),
-                        Mockito.any(Type.class)))
+        Mockito.when(modelMapper.map(entities, listType))
                 .thenReturn(dtos);
 
         List<StockDto> response = stockService.findAll();
@@ -185,22 +183,21 @@ class StockServiceTest {
         Assertions.assertEquals(1, response.size());
     }
 
-    // ---------------- TOGGLE STATUS ----------------
+    // ---------------- UPDATE STATUS ONLY ----------------
 
     @Test
-    void toggleStatusTest() {
+    void updateStatusOnlyTest() {
         Stock stock = new Stock();
         stock.setStatus(false);
 
         Mockito.when(stockRepository.findByIdentifier("P1"))
                 .thenReturn(stock);
-
         Mockito.when(stockRepository.save(stock))
                 .thenReturn(stock);
 
-        stockService.toggleStatus("P1");
+        stockService.updateStatusOnly("P1", true);
 
-        Assertions.assertTrue(stock.isStatus());
+        Assertions.assertTrue(stock.getStatus());
         Mockito.verify(stockRepository).save(stock);
     }
 
@@ -214,7 +211,7 @@ class StockServiceTest {
 
         stockService.delete("P1");
 
-        Mockito.verify(stockRepository, Mockito.times(1))
+        Mockito.verify(stockRepository)
                 .deleteByIdentifier("P1");
     }
 
@@ -243,3 +240,4 @@ class StockServiceTest {
         Mockito.verify(modelMapper).map(stocks, listType);
     }
 }
+

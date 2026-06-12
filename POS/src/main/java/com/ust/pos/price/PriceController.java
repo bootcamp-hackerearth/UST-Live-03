@@ -11,16 +11,15 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/price")
 public class PriceController {
-    private static final String REDIRECT_LIST = "redirect:/price/list";
+    private static final String LIST_PRICE = "redirect:/price/list";
     @Autowired
-    PriceService priceService;
+    private ProductService productService;
     @Autowired
-    ProductService productService;
+    private PriceService priceService;
 
     @GetMapping("/list")
     public String home(Model model) {
         model.addAttribute("prices", priceService.findAll());
-
         return "price/list";
     }
 
@@ -35,8 +34,9 @@ public class PriceController {
         PriceDto priceDto1 = priceService.save(priceDto);
         if (!priceDto1.isSuccess()) {
             model.addAttribute("message", priceDto1.getMessage());
+            return "price/add";
         }
-        return REDIRECT_LIST;
+        return LIST_PRICE;
     }
 
     @GetMapping("/get")
@@ -53,12 +53,12 @@ public class PriceController {
             model.addAttribute("message", priceDto1.getMessage());
             return "price/update";
         }
-        return REDIRECT_LIST;
+        return LIST_PRICE;
     }
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         priceService.delete(identifier);
-        return REDIRECT_LIST;
+        return LIST_PRICE;
     }
 }

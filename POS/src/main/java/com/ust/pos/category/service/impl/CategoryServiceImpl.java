@@ -2,8 +2,12 @@ package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.Role;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -19,9 +23,9 @@ import java.util.List;
 @Transactional
 public class CategoryServiceImpl implements CategoryService {
     @Autowired
-    CategoryRepository categoryRepository;
+    private CategoryRepository categoryRepository;
     @Autowired
-    ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @Override
     public CategoryDto save(CategoryDto categoryDto) {
@@ -31,6 +35,9 @@ public class CategoryServiceImpl implements CategoryService {
             categoryDto.setMessage("Category with identifier - " + identifier + " already exists");
             categoryDto.setSuccess(false);
             return categoryDto;
+        }
+        if (categoryDto.getSuperCategory().isEmpty()) {
+            categoryDto.setSuperCategory(null);
         }
         Category category = modelMapper.map(categoryDto, Category.class);
         categoryRepository.save(category);
@@ -45,6 +52,9 @@ public class CategoryServiceImpl implements CategoryService {
             categoryDto.setMessage("Category with identifier - " + identifier + " is not found");
             categoryDto.setSuccess(false);
             return categoryDto;
+        }
+        if (categoryDto.getSuperCategory().isEmpty()) {
+            categoryDto.setSuperCategory(null);
         }
         Category category = modelMapper.map(categoryDto, Category.class);
         categoryRepository.save(category);
@@ -64,11 +74,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CategoryDto>>() {
+    public List<CategoryDto> findAllWithoutNull() {
+        Type listOfType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        Page<Category> brandPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+        List<CategoryDto> categoryDtos = modelMapper.map(categoryRepository.findAll(), listOfType);
+        return categoryDtos.stream().filter(c -> c.getSuperCategory() != null)
+                .toList();
     }
 
     @Override
@@ -77,11 +88,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findAllWithoutNull() {
-        Type listOfType = new TypeToken<List<CategoryDto>>() {
-        }.getType();
-        List<CategoryDto> categoryDtos = modelMapper.map(categoryRepository.findAll(), listOfType);
-        return categoryDtos.stream().filter(c -> c.getSuperCategory() != null)
-                .toList();
+    public Page<CategoryDto> findAll(Pageable pageable, String search) {
+        Page<Category> rolePage;
+        if (search != null && !search.trim().isEmpty()) {
+            rolePage = categoryRepository.findByIdentifierContainingIgnoreCase(search, pageable);
+        } else {
+            rolePage = categoryRepository.findAll(pageable);
+        }
+        return rolePage.map(category -> modelMapper.map(category, CategoryDto.class));
     }
 }

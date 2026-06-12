@@ -131,7 +131,7 @@
         <!-- Shelf Multi Select -->
         <div class="form-group">
             <label>Shelves</label>
-            <form:select path="shelves" multiple="true">
+            <form:select path="shelfs" multiple="true">
                 <form:options items="${shelf}"
                               itemValue="identifier"
                               itemLabel="identifier"/>

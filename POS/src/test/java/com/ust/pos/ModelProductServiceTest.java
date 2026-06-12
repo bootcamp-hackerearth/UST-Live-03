@@ -20,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class ModelProductServiceTest {
@@ -76,95 +75,45 @@ class ModelProductServiceTest {
 
     // ---------------- UPDATE ----------------
 
-
-    @Test
-    void updateTest_Failure_IdNotFound() {
-
-        ModelProductDto dto = new ModelProductDto();
-        dto.setId(1L);
-        dto.setIdentifier("M1");
-
-        Mockito.when(modelProductRepository.findById(1L))
-                .thenReturn(Optional.empty());
-
-        ModelProductDto response = modelProductService.update(dto);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertFalse(response.isSuccess());
-
-        Mockito.verify(modelProductRepository, Mockito.never())
-                .save(Mockito.any());
-    }
-
-    // ✅ 2. FAILURE: Identifier already exists
-    @Test
-    void updateTest_Failure_DuplicateIdentifier() {
-
-        ModelProductDto dto = new ModelProductDto();
-        dto.setId(1L);
-        dto.setIdentifier("NEW_ID");
-
-        ModelProduct existing = new ModelProduct();
-        existing.setId(1L);
-        existing.setIdentifier("OLD_ID");
-
-        ModelProduct duplicate = new ModelProduct();
-        duplicate.setIdentifier("NEW_ID");
-
-        Mockito.when(modelProductRepository.findById(1L))
-                .thenReturn(Optional.of(existing));
-
-        Mockito.when(modelProductRepository.findByIdentifier("NEW_ID"))
-                .thenReturn(duplicate);
-
-        ModelProductDto response = modelProductService.update(dto);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Model Already Exists", response.getMessage());
-
-        Mockito.verify(modelProductRepository, Mockito.never())
-                .save(Mockito.any());
-    }
-
-    // ✅ 3. SUCCESS CASE
     @Test
     void updateTest_Success() {
-
-        // ✅ Arrange
         ModelProductDto dto = new ModelProductDto();
-        dto.setId(1L);                      // ✅ REQUIRED
         dto.setIdentifier("Admin");
 
         ModelProduct existing = new ModelProduct();
-        existing.setId(1L);
-        existing.setIdentifier("Admin");
+        ModelProduct mapped = new ModelProduct();
 
-        // ✅ Mock findById (correct method)
-        Mockito.when(modelProductRepository.findById(1L))
-                .thenReturn(Optional.of(existing));
-
-        // ✅ Correct mapper mocking (void method)
-        Mockito.doNothing()
-                .when(modelMapper)
-                .map(Mockito.any(ModelProductDto.class), Mockito.any(ModelProduct.class));
-
-        // ✅ Mock save
-        Mockito.when(modelProductRepository.save(Mockito.any(ModelProduct.class)))
+        Mockito.when(modelProductRepository.findByIdentifier("Admin"))
                 .thenReturn(existing);
+        Mockito.when(modelMapper.map(dto, ModelProduct.class))
+                .thenReturn(mapped);
+        Mockito.when(modelProductRepository.save(mapped))
+                .thenReturn(mapped);
 
-        // ✅ Act
         ModelProductDto response = modelProductService.update(dto);
 
-        // ✅ Assert
-        Assertions.assertNotNull(response);
         Assertions.assertTrue(response.isSuccess());
-
-        // ✅ Verify correct object is saved
-        Mockito.verify(modelProductRepository).save(existing);
+        Mockito.verify(modelProductRepository).save(mapped);
     }
 
-// ---------------- FIND BY IDENTIFIER ----------------
+    @Test
+    void updateTest_Failure_WhenNotFound() {
+        ModelProductDto dto = new ModelProductDto();
+        dto.setIdentifier("Admin");
+
+        Mockito.when(modelProductRepository.findByIdentifier("Admin"))
+                .thenReturn(null);
+
+        ModelProductDto response = modelProductService.update(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
+
+        Mockito.verify(modelProductRepository, Mockito.never())
+                .save(Mockito.any());
+    }
+
+    // ---------------- FIND BY IDENTIFIER ----------------
 
     @Test
     void findByIdentifierTest() {
@@ -216,9 +165,9 @@ class ModelProductServiceTest {
         Mockito.when(modelProductRepository.save(modelProduct))
                 .thenReturn(modelProduct);
 
-        modelProductService.toggleStatus("Admin");
+        modelProductService.updateStatusOnly("Admin", true);
 
-        Assertions.assertTrue(modelProduct.isStatus());
+        Assertions.assertTrue(modelProduct.getStatus());
         Mockito.verify(modelProductRepository).save(modelProduct);
     }
 

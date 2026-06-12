@@ -188,9 +188,9 @@ class ShelfServiceTest {
         Mockito.when(shelfRepository.save(shelf))
                 .thenReturn(shelf);
 
-        shelfService.toggleStatus("S1");
+        shelfService.updateStatusOnly("S1", true);
 
-        Assertions.assertTrue(shelf.isStatus());
+        Assertions.assertTrue(shelf.getStatus());
         Mockito.verify(shelfRepository).save(shelf);
     }
 
@@ -218,7 +218,7 @@ class ShelfServiceTest {
         List<ShelfDto> result = shelfService.findAllByStatus();
 
         Assertions.assertEquals(1, result.size());
-        Assertions.assertTrue(result.get(0).isStatus());
+        Assertions.assertTrue(result.get(0).getStatus());
     }
 
     // DELETE

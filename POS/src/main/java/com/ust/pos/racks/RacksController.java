@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.*;
 public class RacksController {
 
     public static final String REDIRECT_RACKS_LIST = "redirect:/racks/list";
-    private static final String RACKS = "racks";
+    public static final String RACKS = "racks";
+
     @Autowired
     private RacksService racksService;
+
     @Autowired
     private ShelfService shelfService;
 
@@ -46,7 +48,6 @@ public class RacksController {
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
         RacksDto racksDto = racksService.findByIdentifier(identifier);
-        model.addAttribute(RACKS, racksService.findAll());
         model.addAttribute("shelf", shelfService.findAllByStatus());
         model.addAttribute("racksDto", racksDto);
         return "racks/racks";
@@ -57,7 +58,6 @@ public class RacksController {
         RacksDto response = racksService.update(racksDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute("racksDto", racksDto);
             return "racks/racks";
         }
         return REDIRECT_RACKS_LIST;
@@ -74,4 +74,5 @@ public class RacksController {
         racksService.toggleStatus(identifier);
         return REDIRECT_RACKS_LIST;
     }
+
 }

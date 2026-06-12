@@ -8,16 +8,16 @@ import java.util.List;
 public interface BrandService {
     BrandDto save(BrandDto brandDto);
 
-    void delete(String identifier);
-
     BrandDto update(BrandDto brandDto);
+
+    void delete(String identifier);
 
     List<BrandDto> findAll(Pageable pageable);
 
     List<BrandDto> findAll();
 
+
     BrandDto findByIdentifier(String identifier);
 
-    void toggleStatus(String identifier);
-
+    void updateStatusOnly(String identifier, boolean status);
 }

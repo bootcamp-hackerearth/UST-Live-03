@@ -7,4 +7,3 @@ import lombok.Setter;
 @Setter
 public class ShelfDto extends CommonDto {
 }
-

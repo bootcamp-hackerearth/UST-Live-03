@@ -20,7 +20,6 @@ target/
 *.ipr
 .mvn
 mvn*
-.htmlReport
 
 ### NetBeans ###
 /nbproject/private/

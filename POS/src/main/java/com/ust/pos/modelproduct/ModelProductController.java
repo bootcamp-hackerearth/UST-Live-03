@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/model")
 public class ModelProductController {
-
-    private static final String REDIRECT_LIST = "redirect:/model/list";
+    private static final String REDIRECT_PRODUCT_LIST = "redirect:/model/list";
     private static final String MODELS = "models";
+
     @Autowired
     private ModelProductService modelProductService;
 
@@ -36,7 +36,7 @@ public class ModelProductController {
             model.addAttribute("modelProducts", modelProductService.findAll());
             return "model/add";
         }
-        return REDIRECT_LIST;
+        return REDIRECT_PRODUCT_LIST;
     }
 
     @GetMapping("/get")
@@ -53,14 +53,20 @@ public class ModelProductController {
         if (!modelProductDto1.isSuccess()) {
             model.addAttribute("message", modelProductDto1.getMessage());
             model.addAttribute(MODELS, modelProductService.findAll());
-            return "model/model";
+            return "model/update";
         }
-        return REDIRECT_LIST;
+        return REDIRECT_PRODUCT_LIST;
     }
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         modelProductService.delete(identifier);
-        return REDIRECT_LIST;
+        return REDIRECT_PRODUCT_LIST;
+    }
+
+    @PostMapping("status")
+    public String updateStatus(Model model, @RequestParam String identifier, boolean status) {
+        modelProductService.updateStatusOnly(identifier, status);
+        return "redirect:/shelf/list";
     }
 }

@@ -2,14 +2,14 @@ package com.ust.pos.api.user;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.UserDto;
-import com.ust.pos.role.service.RoleService;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -18,30 +18,38 @@ public class UserApiController extends BaseController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private RoleService roleService;
-
     @PostMapping("/list")
-    public List<UserDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortField());
-        return userService.findAll(pageable);
-    }
+    public WsDto<UserDto> home(
+            @RequestBody PaginationDto paginationDto) {
 
-    @PostMapping("/add")
-    public UserDto addModel(@RequestBody UserDto userDto) {
-        return userService.save(userDto);
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortField());
+
+        Page<UserDto> pageResult =
+                userService.findAll(
+                        pageable,
+                        paginationDto.getSearch());
+
+        WsDto<UserDto> response = new WsDto<>();
+
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+
+        return response;
     }
 
     @GetMapping("/get")
-    public UserDto update(@RequestParam String username, @RequestBody UserDto userDto) {
+    public UserDto update(@RequestParam String username) {
         return userService.findByUserName(username);
     }
 
     @PostMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
-
     }
 
     @GetMapping("/delete")

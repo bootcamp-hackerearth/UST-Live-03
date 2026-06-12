@@ -8,8 +8,6 @@ import java.util.List;
 public interface WarehouseService {
     List<WarehouseDto> findAll();
 
-    List<WarehouseDto> findAll(Pageable pageable);
-
     WarehouseDto save(WarehouseDto warehouseDto);
 
     WarehouseDto update(WarehouseDto warehouseDto);
@@ -17,4 +15,6 @@ public interface WarehouseService {
     WarehouseDto findByIdentifier(String identifier);
 
     void delete(String identifier);
+
+    List<WarehouseDto> findAll(Pageable pageable);
 }

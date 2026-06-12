@@ -1,6 +1,5 @@
 package com.ust.pos.brand;
 
-
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,36 +10,40 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/brand")
 public class BrandController {
-    private static final String REDIRECT_LIST = "redirect:/brand/list";
+
+    public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
+
     @Autowired
-    BrandService brandService;
+    private BrandService brandService;
 
     @GetMapping("/list")
-    public String list(Model model) {
+    public String home(Model model) {
         model.addAttribute("brands", brandService.findAll());
         return "brand/list";
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute BrandDto brandDto) {
-        model.addAttribute("brands", brandService.findAll());
+    public String add(Model model, @ModelAttribute BrandDto userDto) {
+        model.addAttribute("brand", brandService.findAll());
         return "brand/add";
     }
 
     @PostMapping("/add")
-    public String addData(Model model, @ModelAttribute BrandDto brandDto) {
-        BrandDto response = brandService.save(brandDto);
+    public String addPost(Model model, @ModelAttribute BrandDto userDto) {
+        BrandDto response = brandService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
+            model.addAttribute("brand", brandService.findAll());
             return "brand/add";
         }
-        return REDIRECT_LIST;
+        return REDIRECT_BRAND_LIST;
     }
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
-        BrandDto response = brandService.findByIdentifier(identifier);
-        model.addAttribute("brandDto", response);
+        BrandDto brandDto = brandService.findByIdentifier(identifier);
+        model.addAttribute("categories", brandService.findAll());
+        model.addAttribute("brandDto", brandDto);
         return "brand/brand";
     }
 
@@ -49,14 +52,25 @@ public class BrandController {
         BrandDto response = brandService.update(brandDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            return "/brand/brand";
+            model.addAttribute("brandDto", brandDto);
+            return "brand/brand";
         }
-        return REDIRECT_LIST;
+        return REDIRECT_BRAND_LIST;
     }
+
+    @PostMapping("/status")
+    public String updateStatus(
+            @RequestParam String identifier,
+            @RequestParam Boolean status) {
+
+        brandService.updateStatusOnly(identifier, status);
+        return REDIRECT_BRAND_LIST;
+    }
+
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         brandService.delete(identifier);
-        return REDIRECT_LIST;
+        return REDIRECT_BRAND_LIST;
     }
 }

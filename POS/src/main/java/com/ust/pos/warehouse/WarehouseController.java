@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/warehouse")
 public class WarehouseController {
+    private static final String REDIRECT = "redirect:/warehouse/list";
 
-    private static final String REDIRECT_LIST = "redirect:/warehouse/list";
     @Autowired
     private WarehouseService warehouseService;
 
@@ -33,7 +33,7 @@ public class WarehouseController {
             model.addAttribute("message", warehouseDto1.getMessage());
             return "warehouse/add";
         }
-        return REDIRECT_LIST;
+        return REDIRECT;
     }
 
     @GetMapping("/get")
@@ -50,12 +50,12 @@ public class WarehouseController {
             model.addAttribute("message", warehouseDto1.getMessage());
             return "warehouse/warehouse";
         }
-        return REDIRECT_LIST;
+        return REDIRECT;
     }
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         warehouseService.delete(identifier);
-        return REDIRECT_LIST;
+        return REDIRECT;
     }
 }

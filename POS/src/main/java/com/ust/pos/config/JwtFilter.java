@@ -1,12 +1,12 @@
 package com.ust.pos.config;
 
-import com.ust.pos.user.service.impl.PosUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,7 +18,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private com.ust.pos.config.JWTUtility jwtUtility;
     @Autowired
-    private PosUserDetailsService userService;
+    private UserDetailsService userService;
 
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest httpServletRequest,

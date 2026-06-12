@@ -25,6 +25,7 @@
         }
 
         .card-container {
+            position: relative;
             width: 500px;
             background: #fff;
             padding: 35px 40px;
@@ -36,6 +37,7 @@
             text-align: center;
             margin-bottom: 25px;
             color: #4b6cb7;
+            font-weight: 600;
         }
 
         .form-group {
@@ -46,6 +48,7 @@
             display: block;
             margin-bottom: 6px;
             font-weight: 500;
+            color: #333;
         }
 
         .form-control {
@@ -75,6 +78,37 @@
             font-weight: 600;
             background: linear-gradient(135deg, #4b6cb7, #182848);
             color: white;
+            transition: 0.25s ease;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.05);
+        }
+
+        /* ✅ Back button styling */
+        .back-icon {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #4b6cb7;
+            text-decoration: none;
+            font-weight: 600;
+            background: rgba(75, 108, 183, 0.08);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            transition: all 0.25s ease;
+        }
+
+        .back-icon:hover {
+            background: #4b6cb7;
+            color: #ffffff;
+            transform: translateX(-4px) scale(1.05);
         }
     </style>
 </head>
@@ -82,6 +116,9 @@
 <body>
 
 <div class="card-container">
+
+    <!-- ✅ Back Button -->
+    <a href="/price/list" class="back-icon">←</a>
 
     <h2>Add Price</h2>
 
@@ -115,7 +152,8 @@
             <form:input path="costPrice"
                         type="number"
                         cssClass="form-control"
-                        placeholder="Enter cost price"/>
+                        placeholder="Enter cost price"
+                        required="true"/>
         </div>
 
         <!-- ✅ Selling Price -->
@@ -124,7 +162,8 @@
             <form:input path="sellingPrice"
                         type="number"
                         cssClass="form-control"
-                        placeholder="Enter selling price"/>
+                        placeholder="Enter selling price"
+                        required="true"/>
         </div>
 
         <button type="submit" class="btn-submit">

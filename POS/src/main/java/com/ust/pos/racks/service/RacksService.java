@@ -14,9 +14,9 @@ public interface RacksService {
 
     List<RacksDto> findAll();
 
-    List<RacksDto> findAll(Pageable pageable);
-
     RacksDto findByIdentifier(String identifier);
 
     void toggleStatus(String identifier);
+
+    List<RacksDto> findAll(Pageable pageable);
 }

@@ -186,9 +186,9 @@ class UnitServiceTest {
         Mockito.when(unitRepository.save(unit))
                 .thenReturn(unit);
 
-        unitService.toggleStatus("U1");
+        unitService.updateStatusOnly("U1", true);
 
-        Assertions.assertTrue(unit.isStatus());
+        Assertions.assertTrue(unit.getStatus());
         Mockito.verify(unitRepository).save(unit);
     }
 

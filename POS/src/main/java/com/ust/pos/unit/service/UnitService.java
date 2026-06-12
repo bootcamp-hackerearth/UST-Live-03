@@ -14,9 +14,9 @@ public interface UnitService {
 
     List<UnitDto> findAll();
 
-    List<UnitDto> findAll(Pageable pageable);
-
     void delete(String identifier);
 
-    void toggleStatus(String identifier);
+    void updateStatusOnly(String identifier, boolean status);
+
+    List<UnitDto> findAll(Pageable pageable);
 }

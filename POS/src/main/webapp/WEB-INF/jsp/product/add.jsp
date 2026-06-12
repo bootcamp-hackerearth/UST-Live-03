@@ -8,7 +8,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Add Role</title>
+    <title>Add Product</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -161,54 +161,24 @@
                action="/product/add"
                modelAttribute="productDto">
 
-         <div class="form-group">
-                     <label>identifier</label>
-                     <form:input path="identifier"
-                                    cssClass="form-control"
-                                    placeholder="Enter identifier" />
-                 </div>
-
-        <label class="form-label">category</label>
-                <form:select path="category" cssClass="form-control">
-                            <form:option value="" label="-- Select Product --" />
-                            <c:forEach items="${categories}" var="category">
-                                    <form:option value="${category.identifier}">
-                                        ${category.identifier}
-                                    </form:option>
-                            </c:forEach>
-                        </form:select>
-        <%--<form:select path="identifier" cssClass="form-control">
-            <form:option value="" label="-- Select Product --" />
-
-            <c:forEach items="${Stocks}" var="stock">
-                <c:if test="${stock.quantity gt 0}">
-                    <form:option value="${stock.identifier}">
-                        ${stock.identifier}
-                    </form:option>
-                </c:if>
-            </c:forEach>
-        </form:select>--%>
-
-
-        <label class="form-label">Warehouse Name</label>
-        <form:select path="warehouseName" cssClass="form-control">
-                    <form:option value="" label="-- Select Product --" />
-                    <c:forEach items="${warehouses}" var="warehouse">
-                            <form:option value="${warehouse.identifier}">
-                                ${warehouse.identifier}
-                            </form:option>
-                    </c:forEach>
-                </form:select>
-
-
-        <%--<div class="form-group">
-            <label>Warehouse ID</label>
-            <form:input path="warehouseId"
-                           cssClass="form-control"
-                           placeholder="Enter warehouse ID" />
-        </div>--%>
-
         <div class="form-group">
+            <label>Product Name</label>
+            <form:input path="identifier"
+                        cssClass="form-control"
+                        placeholder="Enter Product name" />
+        <div class="form-group">
+                                           <label>Super Category </label>
+                                           <form:select path="category" cssClass="form-control">
+                                               <form:option value="" label="-- Select categories --" />
+                                               <c:forEach items="${categories}" var="categories">
+                                                   <form:option value="${categories.identifier}">
+                                                       ${categories.identifier}
+                                                   </form:option>
+                                               </c:forEach>
+                                           </form:select>
+                                       </div>
+        <div class="form-group">
+
             <label>Supplier ID</label>
             <form:input path="supplierId"
                            cssClass="form-control"

@@ -13,6 +13,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -212,4 +216,35 @@ class AddressServiceTest {
         Mockito.verify(addressRepository)
                 .deleteByIdentifier("ADDR1");
     }
+
+    @Test
+    void findAll_WithPagination_ShouldReturnMappedDtos() {
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<Address> addresses = List.of(new Address());
+        Page<Address> page = new PageImpl<>(addresses);
+
+        List<AddressDto> addressDtos = List.of(new AddressDto());
+
+        Type listType = new TypeToken<List<AddressDto>>() {
+        }.getType();
+
+        Mockito.when(addressRepository.findAll(pageable))
+                .thenReturn(page);
+
+        Mockito.when(modelMapper.map(addresses, listType))
+                .thenReturn(addressDtos);
+
+        // Act
+        List<AddressDto> response = addressService.findAll(pageable);
+
+        // Assert
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.size());
+
+        Mockito.verify(addressRepository).findAll(pageable);
+        Mockito.verify(modelMapper).map(addresses, listType);
+    }
+
 }

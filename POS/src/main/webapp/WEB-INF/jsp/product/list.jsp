@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Node List</title>
+    <title>Product List</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -170,9 +170,8 @@
             <tr>
                 <th>ID</th>
                 <th>Product Name</th>
-                <th>Warehouse Name</th>
+                <th>Category</th>
                 <th>Supplier ID</th>
-                <th>category</th>
                 <th>Action</th>
             </tr>
             </thead>
@@ -182,9 +181,8 @@
                 <tr>
                     <td>${product.id}</td>
                     <td>${product.identifier}</td>
-                    <td>${product.warehouseName}</td>
-                    <td>${product.supplierId}</td>
                     <td>${product.category}</td>
+                    <td>${product.supplierId}</td>
 
                     <td>
                         <a href="/product/get?identifier=${product.identifier}"

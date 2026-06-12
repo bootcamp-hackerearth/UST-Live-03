@@ -10,20 +10,21 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/shelf")
 public class ShelfController {
+    private static final String REDIRECT_SHELF_LIST = "redirect:/shelf/list";
+    private static final String SHELFS = "shelfs";
 
-    private static final String SHELVES = "shelfs";
     @Autowired
     private ShelfService shelfService;
 
     @GetMapping("/list")
     public String home(Model model) {
-        model.addAttribute(SHELVES, shelfService.findAll());
+        model.addAttribute(SHELFS, shelfService.findAll());
         return "shelf/list";
     }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ShelfDto shelfDto) {
-        model.addAttribute(SHELVES, shelfService.findAll());
+        model.addAttribute(SHELFS, shelfService.findAll());
         return "shelf/add";
     }
 
@@ -32,16 +33,16 @@ public class ShelfController {
         ShelfDto shelfDto1 = shelfService.save(shelfDto);
         if (!shelfDto1.isSuccess()) {
             model.addAttribute("message", shelfDto1.getMessage());
-            model.addAttribute(SHELVES, shelfService.findAll());
+            model.addAttribute(SHELFS, shelfService.findAll());
             return "shelf/add";
         }
-        return "redirect:/shelf/list";
+        return REDIRECT_SHELF_LIST;
     }
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
         ShelfDto shelfDto = shelfService.findByIdentifier(identifier);
-        model.addAttribute(SHELVES, shelfDto);
+        model.addAttribute(SHELFS, shelfDto);
         return "shelf/shelf";
     }
 
@@ -50,9 +51,21 @@ public class ShelfController {
         ShelfDto shelfDto1 = shelfService.update(shelfDto);
         if (!shelfDto1.isSuccess()) {
             model.addAttribute("messsage", shelfDto1.getMessage());
-            model.addAttribute(SHELVES, shelfService.findAll());
+            model.addAttribute(SHELFS, shelfService.findAll());
             return "shelf/shelf";
         }
-        return "redirect:/shelf/list";
+        return REDIRECT_SHELF_LIST;
+    }
+
+    @PostMapping("status")
+    public String updateStatus(Model model, @RequestParam String identifier, boolean status) {
+        shelfService.updateStatusOnly(identifier, status);
+        return REDIRECT_SHELF_LIST;
+    }
+
+    @GetMapping("/delete")
+    public String delete(Model model, @RequestParam String identifier) {
+        shelfService.delete(identifier);
+        return REDIRECT_SHELF_LIST;
     }
 }

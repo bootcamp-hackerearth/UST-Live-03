@@ -1,10 +1,9 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.UserDto;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -98,17 +97,19 @@ public class NodeServiceImpl implements NodeService {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         return modelMapper.map(nodeRepository.findAll(), listType);
-
+    
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<NodeDto>>() {
-        }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+    public Page<NodeDto> findAll(Pageable pageable, String search) {
+        Page<Node> rolePage;
+        if (search != null && !search.trim().isEmpty()) {
+            rolePage = nodeRepository.findByIdentifierContainingIgnoreCase(search, pageable);
+        } else {
+            rolePage = nodeRepository.findAll(pageable);
+        }
+        return rolePage.map(node -> modelMapper.map(node, NodeDto.class));
     }
-
     @Override
     public NodeDto findByIdentifier(String identifier) {
         return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);

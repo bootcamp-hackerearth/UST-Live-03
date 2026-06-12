@@ -143,7 +143,15 @@
             background: linear-gradient(135deg, #4b6cb7, #182848);
             color: white;
         }
+        .status-active {
+            color: green;
+            font-weight: 600;
+        }
 
+        .status-inactive {
+            color: red;
+            font-weight: 600;
+        }
         .btn-add:hover {
             transform: scale(1.05);
         }
@@ -203,8 +211,8 @@
                 <tr>
                     <td>${model.id}</td>
                     <td>${model.identifier}</td>
-                    <td><span class="status-badge ${model.status ? 'status-active' : 'status-dormant'}">
-                                ${model.status ? 'Active' : 'Dormant'}
+                    <td><span class="status-badge ${model.status ? 'status-active' : 'status-inactive'}">
+                                ${model.status ? 'Active' : 'Inactive'}
                             </span>
                     </td>
 

@@ -200,7 +200,7 @@
 
     <div class="footer-actions">
         <a href="/" class="btn btn-home">Home</a>
-        <a href="/category/add" class="btn btn-add">+ Add New Category</a>
+        <a href="/category/add" class="btn btn-add">+ Add New Product</a>
     </div>
 
 </div>

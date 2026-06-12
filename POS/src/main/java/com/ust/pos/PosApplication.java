@@ -17,8 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import javax.sql.DataSource;
 
 @SpringBootApplication
-@ComponentScan({"com.ust.pos.web.controller", "com.ust.pos"})
 @OpenAPIDefinition
+@ComponentScan({"com.ust.pos.api", "com.ust.pos.web.controller", "com.ust.pos"})
 public class PosApplication {
     @Autowired
     Environment environment;
@@ -49,14 +49,14 @@ public class PosApplication {
         ds.setUsername(environment.getProperty("spring.datasource.username"));
         ds.setPassword(environment.getProperty("spring.datasource.password"));
         String driverClass = environment.getProperty("spring.datasource.driver-class-name");
-        if (driverClass != null) {
+        if(driverClass!=null) {
             ds.setDriverClassName(driverClass);
         }
         return ds;
     }
-
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
 }

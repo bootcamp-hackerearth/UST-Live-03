@@ -51,27 +51,16 @@
             box-sizing: border-box; /* Prevents padding from breaking width */
         }
 
-        .radio-group {
-            display: flex;
-            flex-direction: column; /* Stack options vertically */
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center; /* Vertically centers dot with text */
-            gap: 10px; /* Space between dot and word */
-            cursor: pointer;
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
             font-size: 14px;
-            color: #333;
+            box-sizing: border-box;
+            background-color: white; /* Ensures dropdown is visible */
         }
-
-        .radio-option input[type="radio"] {
-            width: auto;
-            margin: 0;
-        }
-
 
         label {
             font-size: 13px;
@@ -146,20 +135,16 @@
 
             <div class="form-group">
                 <label>Model Name</label>
-                <form:input path="identifier" readonly="true"/>
+                <form:input path="identifier"/>
             </div>
 
             <div class="form-group">
-                        <label>Status</label>
-                        <div class="radio-group">
-                            <label class="radio-option">
-                                <form:radiobutton path="status" value="true"/> Active
-                            </label>
-                            <label class="radio-option">
-                                <form:radiobutton path="status" value="false"/> Dormant
-                            </label>
-                        </div>
-                    </div>
+                <label>Status</label>
+                <form:select path="status">
+                    <form:option value="true" label="Active"/>
+                    <form:option value="false" label="Inactive"/>
+                </form:select>
+            </div>
 
 
 

@@ -138,29 +138,25 @@
     </c:if>
 
     <form:form method="post" action="/stock/update" modelAttribute="stock">
-         <label class="form-label">Warehouse Name</label>
-                        <form:select path="warehouseName" cssClass="form-control">
-                                    <form:option value="" label="-- Select Product --" />
-                                    <c:forEach items="${warehouses}" var="warehouse">
-                                            <form:option value="${warehouse.identifier}">
-                                                ${warehouse.identifier}
-                                            </form:option>
-                                    </c:forEach>
-                                </form:select>
+        <div class="form-group">
 
         <div class="form-group">
             <label>Identifier</label>
             <form:input path="identifier" readonly="true"/>
         </div>
 
-        <div class="form-group">
-            <label>Status</label>
-            <form:select path="stockStatus">
-                <form:option value="AVAILABLE">AVAILABLE</form:option>
-                <form:option value="OUT_OF_STOCK">OUT OF STOCK</form:option>
-                <form:option value="DISCONTINUED">DISCONTINUED</form:option>
-            </form:select>
-        </div>
+        <div class="mb-4">
+        <label class="form-label">Warehouse ID</label>
+        <form:select path="warehouseName"
+                     cssClass="form-control"
+                     required="true">
+
+            <form:option value="" label="-- Select Warehouse --"/>
+
+            <form:options items="${warehouse}"
+                          itemValue="identifier"
+                          itemLabel="identifier"/>
+        </form:select>
 
         <div class="form-group">
             <label>Quantity</label>

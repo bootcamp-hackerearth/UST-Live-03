@@ -128,7 +128,7 @@
         <!-- Shelf Multi Select -->
         <div class="form-group">
             <label>Shelf Name (Multi‑Select)</label>
-            <form:select path="shelves" multiple="true">
+            <form:select path="shelfs" multiple="true">
                 <c:forEach var="s" items="${shelf}">
                     <form:option value="${s.identifier}">
                         ${s.identifier}

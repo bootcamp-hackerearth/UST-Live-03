@@ -138,17 +138,7 @@
                 <form:input path="identifier"/>
             </div>
 
-            <div class="form-group">
-                <label>Status</label>
-                <form:select path="status">
-                    <form:option value="true" label="Active"/>
-                    <form:option value="false" label="Inactive"/>
-                </form:select>
-            </div>
-
-
-
-            <input type="submit" value="Update Model" class="btn-submit"/>
+            <input type="submit" value="Update Shelf" class="btn-submit"/>
             <a href="/shelf/list" class="btn-cancel">Cancel</a>
 
         </form:form>

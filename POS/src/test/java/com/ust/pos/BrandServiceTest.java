@@ -96,7 +96,7 @@ class BrandServiceTest {
 
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("Updated Description", existingBrand.getDescription());
-        Assertions.assertTrue(existingBrand.isStatus());
+        Assertions.assertTrue(existingBrand.getStatus());
         Mockito.verify(brandRepository).save(existingBrand);
     }
 
@@ -155,6 +155,25 @@ class BrandServiceTest {
         Assertions.assertEquals(1, response.size());
     }
 
+    // UPDATE STATUS ONLY
+
+    @Test
+    void updateStatusOnlyTest() {
+        Brand brand = new Brand();
+        brand.setIdentifier("Admin");
+        brand.setStatus(false);
+
+        Mockito.when(brandRepository.findByIdentifier("Admin"))
+                .thenReturn(brand);
+        Mockito.when(brandRepository.save(brand))
+                .thenReturn(brand);
+
+        brandService.updateStatusOnly("Admin", true);
+
+        Assertions.assertTrue(brand.getStatus());
+        Mockito.verify(brandRepository).save(brand);
+    }
+
     // DELETE
 
     @Test
@@ -168,22 +187,6 @@ class BrandServiceTest {
         Mockito.verify(brandRepository).deleteByIdentifier("Admin");
     }
 
-    @Test
-    void updateStatusOnlyTest() {
-        Brand brand = new Brand();
-        brand.setIdentifier("Admin");
-        brand.setStatus(false);
-
-        Mockito.when(brandRepository.findByIdentifier("Admin"))
-                .thenReturn(brand);
-        Mockito.when(brandRepository.save(brand))
-                .thenReturn(brand);
-
-        brandService.toggleStatus("Admin");
-
-        Assertions.assertTrue(brand.isStatus());
-        Mockito.verify(brandRepository).save(brand);
-    }
 
     @Test
     void findAll_WithPagination_ShouldReturnBrandDtos() {
@@ -214,4 +217,6 @@ class BrandServiceTest {
         Mockito.verify(brandRepository).findAll(pageable);
         Mockito.verify(modelMapper).map(brands, listType);
     }
+
+
 }

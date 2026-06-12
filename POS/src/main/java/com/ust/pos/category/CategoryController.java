@@ -12,14 +12,15 @@ import java.util.List;
 @Controller
 @RequestMapping("/category")
 public class CategoryController {
+    private static final String REDIRECT_CATEGORIES_LIST = "redirect:/category/list";
     private static final String CATEGORIES = "categories";
-    private static final String REDIRECT_LIST = "redirect:/category/list";
     @Autowired
     CategoryService categoryService;
 
     @GetMapping("/list")
     public String home(Model model) {
         model.addAttribute(CATEGORIES, categoryService.findAll());
+
         return "category/list";
     }
 
@@ -35,7 +36,7 @@ public class CategoryController {
         if (!categoryDto1.isSuccess()) {
             model.addAttribute("message", categoryDto1.getMessage());
         }
-        return REDIRECT_LIST;
+        return REDIRECT_CATEGORIES_LIST;
     }
 
     @GetMapping("/get")
@@ -54,12 +55,12 @@ public class CategoryController {
             model.addAttribute("message", categoryDto1.getMessage());
             return "category/category";
         }
-        return REDIRECT_LIST;
+        return REDIRECT_CATEGORIES_LIST;
     }
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         categoryService.delete(identifier);
-        return REDIRECT_LIST;
+        return REDIRECT_CATEGORIES_LIST;
     }
 }

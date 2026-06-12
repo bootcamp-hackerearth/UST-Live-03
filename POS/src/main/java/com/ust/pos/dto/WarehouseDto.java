@@ -3,8 +3,8 @@ package com.ust.pos.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 public class WarehouseDto extends CommonDto {
     private String country;
     private int pincode;

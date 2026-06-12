@@ -74,33 +74,30 @@ public class ShelfServiceImpl implements ShelfService {
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ShelfDto>>() {
-        }.getType();
-        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
-        return modelMapper.map(shelfPage.getContent(), listType);
-    }
-
-    @Override
     public void delete(String identifier) {
         shelfRepository.deleteByIdentifier(identifier);
     }
 
+    @Override
+    public void updateStatusOnly(String identifier, boolean status) {
+        Shelf shelf = shelfRepository.findByIdentifier(identifier);
+        shelf.setStatus(status);
+        shelfRepository.save(shelf);
+    }
+
+    @Override
     public List<ShelfDto> findAllByStatus() {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
         List<ShelfDto> shelfDtos = modelMapper.map(shelfRepository.findAll(), listType);
-        return shelfDtos.stream().filter(s -> s.isStatus()).toList();
+        return shelfDtos.stream().filter(s -> s.getStatus()).toList();
     }
 
     @Override
-    public void toggleStatus(String identifier) {
-        Shelf racks = shelfRepository.findByIdentifier(identifier);
-        if (racks != null) {
-            // ✅ toggle status
-            racks.setStatus(!racks.isStatus());
-            shelfRepository.save(racks);
-        }
-
+    public List<ShelfDto> findAll(Pageable pageable) {
+        Type listOfType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
+        Page<Shelf> rolePage = shelfRepository.findAll(pageable);
+        return modelMapper.map(rolePage.getContent(), listOfType);
     }
 }

@@ -2,11 +2,10 @@ package com.ust.pos.api.category;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
-import com.ust.pos.dto.CategoryDto;
-import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,14 +17,35 @@ public class CategoryApiController extends BaseController {
     CategoryService categoryService;
 
     @PostMapping("/list")
-    public List<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortField());
-        return categoryService.findAll(pageable);
+    public WsDto<CategoryDto> home(
+            @RequestBody PaginationDto paginationDto) {
+
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortField());
+
+        Page<CategoryDto> pageResult =
+                categoryService.findAll(
+                        pageable,
+                        paginationDto.getSearch());
+
+        WsDto<CategoryDto> response = new WsDto<>();
+
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+
+        return response;
+    }
+    @GetMapping("/list")
+    public List<CategoryDto> home() {
+        return categoryService.findAll();
     }
 
     @PostMapping("/add")
-    public CategoryDto addPost(@RequestBody CategoryDto categoryDto) {
+    public CategoryDto add(@RequestBody CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
     }
 
@@ -37,11 +57,10 @@ public class CategoryApiController extends BaseController {
     @PostMapping("/update")
     public CategoryDto get(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
-
     }
 
     @GetMapping("/delete")
-    public boolean delete(Model model, @RequestParam String identifier) {
+    public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
         } catch (Exception e) {

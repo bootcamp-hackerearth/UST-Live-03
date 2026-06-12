@@ -76,26 +76,22 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public List<UnitDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<UnitDto>>() {
-        }.getType();
-        Page<Unit> unitPage = unitRepository.findAll(pageable);
-        return modelMapper.map(unitPage.getContent(), listType);
-    }
-
-    @Override
     public void delete(String identifier) {
         unitRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public void toggleStatus(String identifier) {
-        Unit racks = unitRepository.findByIdentifier(identifier);
-        if (racks != null) {
-            // ✅ toggle status
-            racks.setStatus(!racks.isStatus());
-            unitRepository.save(racks);
-        }
+    public void updateStatusOnly(String identifier, boolean status) {
+        Unit unit = unitRepository.findByIdentifier(identifier);
+        unit.setStatus(status);
+        unitRepository.save(unit);
+    }
 
+    @Override
+    public List<UnitDto> findAll(Pageable pageable) {
+        Type listOfType = new TypeToken<List<UnitDto>>() {
+        }.getType();
+        Page<Unit> unitPage = unitRepository.findAll(pageable);
+        return modelMapper.map(unitPage.getContent(), listOfType);
     }
 }

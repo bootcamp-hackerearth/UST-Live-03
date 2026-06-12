@@ -1,11 +1,11 @@
 package com.ust.pos.api.price;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.*;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,34 +15,47 @@ import java.util.List;
 @RequestMapping("/api/price")
 public class PriceApiController extends BaseController {
     @Autowired
-    PriceService priceService;
+    private ProductService productService;
     @Autowired
-    ProductService productService;
+    private PriceService priceService;
 
     @PostMapping("/list")
-    public List<PriceDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortField());
-        return priceService.findAll(pageable);
-    }
+    public WsDto<PriceDto> home(
+            @RequestBody PaginationDto paginationDto) {
 
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortField());
+
+        Page<PriceDto> pageResult =
+                priceService.findAll(
+                        pageable,
+                        paginationDto.getSearch());
+
+        WsDto<PriceDto> response = new WsDto<>();
+
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+
+        return response;
+    }
 
     @PostMapping("/add")
     public PriceDto addPost(@RequestBody PriceDto priceDto) {
         return priceService.save(priceDto);
-
     }
 
     @GetMapping("/get")
     public PriceDto update(@RequestParam String identifier) {
         return priceService.findByIdentifier(identifier);
-
     }
 
     @PostMapping("/update")
     public PriceDto doupdate(@RequestBody PriceDto priceDto) {
         return priceService.update(priceDto);
-
     }
 
     @GetMapping("/delete")
@@ -55,4 +68,3 @@ public class PriceApiController extends BaseController {
         return true;
     }
 }
-

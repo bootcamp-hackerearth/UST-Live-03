@@ -8,7 +8,7 @@
     <title>Update User</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"/>
+          rel="stylesheet" />
 
     <style>
         body {
@@ -65,28 +65,43 @@
             background: #182848;
         }
 
-        small {
-            font-size: 11px;
-            color: #666;
+        .back-link {
+            text-decoration: none;
+            font-weight: 500;
+            color: #4b6cb7;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
-${message}
+
+<c:if test="${not empty message}">
+    <div class="alert alert-info text-center position-absolute top-0 mt-3">
+        ${message}
+    </div>
+</c:if>
+
 <div class="update-card">
+
     <h3>Update User</h3>
 
     <form:form action="/user/update" method="post" modelAttribute="users">
 
-        <form:input type="hidden" path="id"/>
+        <!-- Hidden ID -->
+        <form:input type="hidden" path="id" />
 
+        <!-- Name -->
         <div class="mb-3">
             <label>Name</label>
-            <form:input path="name" cssClass="form-control" required="true"/>
+            <form:input path="name" cssClass="form-control" required="true" />
         </div>
 
-         <div class="mb-3">
+        <!-- Email -->
+        <div class="mb-3">
             <label>Email</label>
             <form:input type="email" path="username" cssClass="form-control" required="true"/>
         </div>
@@ -108,12 +123,13 @@ ${message}
                 oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
         </div>
 
+        <!-- Roles -->
         <div class="mb-3">
             <label>Roles</label>
 
-            <div class="mb-1 text-muted">
+            <div class="mb-2 text-muted">
                 Current:
-                <c:forEach var="r" items="${user.roles}">
+                <c:forEach var="r" items="${userDto.roles}">
                     <span class="badge bg-secondary me-1">${r}</span>
                 </c:forEach>
             </div>
@@ -121,22 +137,19 @@ ${message}
             <form:select path="roles" multiple="true" cssClass="form-control">
                 <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
             </form:select>
-
-
-            <small>
-                Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple
-            </small>
         </div>
 
-        <button type="submit" class="btn-update">Update User</button>
+        <!-- Submit -->
+        <button type="submit" class="btn-update">
+            Update User
+        </button>
 
     </form:form>
 
+    <!-- Back Link -->
     <div class="text-center mt-3">
-        <a href="/user/list">← Back to User List</a>
+        <a href="/user/list" class="back-link">← Back to User List</a>
     </div>
-
 </div>
-
 </body>
 </html>

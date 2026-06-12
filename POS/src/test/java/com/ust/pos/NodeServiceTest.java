@@ -231,27 +231,26 @@ class NodeServiceTest {
     }
 
     @Test
-    void findAll_WithPagination_ShouldReturnNodeDtos() {
-        Pageable pageable = PageRequest.of(0, 10);
+    void findAll_ShouldReturnNodeDtos() {
 
         List<Node> nodes = List.of(new Node());
-        Page<Node> page = new PageImpl<>(nodes);
-
         List<NodeDto> nodeDtos = List.of(new NodeDto());
 
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
 
-        Mockito.when(nodeRepository.findAll(pageable))
-                .thenReturn(page);
+        Mockito.when(nodeRepository.findAll())
+                .thenReturn(nodes);
+
         Mockito.when(modelMapper.map(nodes, listType))
                 .thenReturn(nodeDtos);
 
-        List<NodeDto> response = nodeService.findAll(pageable);
+        List<NodeDto> response = nodeService.findAll();
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
-        Mockito.verify(nodeRepository).findAll(pageable);
+
+        Mockito.verify(nodeRepository).findAll();
         Mockito.verify(modelMapper).map(nodes, listType);
     }
 }

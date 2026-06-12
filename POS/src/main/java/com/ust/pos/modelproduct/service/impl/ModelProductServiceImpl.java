@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -43,23 +42,15 @@ public class ModelProductServiceImpl implements ModelProductService {
     @Override
     public ModelProductDto update(ModelProductDto modelProductDto) {
         String identifier = modelProductDto.getIdentifier();
-        Optional<ModelProduct> optionalModelProduct = modelProductRepository.findById(modelProductDto.getId());
-        if (optionalModelProduct.isEmpty()) {
+        ModelProduct existingmodel = modelProductRepository.findByIdentifier(identifier);
+        if (existingmodel == null) {
+            modelProductDto.setMessage("Model - " + identifier + " not found");
             modelProductDto.setSuccess(false);
             return modelProductDto;
-        } else {
-            ModelProduct existingmodel = optionalModelProduct.get();
-            if (!identifier.equals(existingmodel.getIdentifier()) && modelProductRepository.findByIdentifier(identifier) != null) {
-                modelProductDto.setSuccess(false);
-                modelProductDto.setMessage("Model Already Exists");
-                return modelProductDto;
-            } else {
-                modelMapper.map(modelProductDto, existingmodel);
-                modelProductRepository.save(existingmodel);
-            }
-            return modelProductDto;
-
         }
+        ModelProduct modelProduct = modelMapper.map(modelProductDto, ModelProduct.class);
+        modelProductRepository.save(modelProduct);
+        return modelProductDto;
     }
 
     @Override
@@ -75,26 +66,22 @@ public class ModelProductServiceImpl implements ModelProductService {
     }
 
     @Override
-    public List<ModelProductDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ModelProductDto>>() {
-        }.getType();
-        Page<ModelProduct> modelProductPage = modelProductRepository.findAll(pageable);
-        return modelMapper.map(modelProductPage.getContent(), listType);
-    }
-
-    @Override
     public void delete(String identifier) {
         modelProductRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public void toggleStatus(String identifier) {
-        ModelProduct racks = modelProductRepository.findByIdentifier(identifier);
-        if (racks != null) {
-            // ✅ toggle status
-            racks.setStatus(!racks.isStatus());
-            modelProductRepository.save(racks);
-        }
+    public void updateStatusOnly(String identifier, boolean status) {
+        ModelProduct modelProduct = modelProductRepository.findByIdentifier(identifier);
+        modelProduct.setStatus(status);
+        modelProductRepository.save(modelProduct);
+    }
 
+    @Override
+    public List<ModelProductDto> findAll(Pageable pageable) {
+        Type listOfType = new TypeToken<List<ModelProductDto>>() {
+        }.getType();
+        Page<ModelProduct> modelProductPage = modelProductRepository.findAll(pageable);
+        return modelMapper.map(modelProductPage.getContent(), listOfType);
     }
 }

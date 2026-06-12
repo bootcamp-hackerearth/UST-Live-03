@@ -1,4 +1,4 @@
-package com.ust.pos.api.model;
+package com.ust.pos.api.modelproduct;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelProductDto;
@@ -19,22 +19,19 @@ public class ModelProductApiController extends BaseController {
 
     @PostMapping("/list")
     public List<ModelProductDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortField());
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortField());
         return modelProductService.findAll(pageable);
     }
-
 
     @PostMapping("/add")
     public ModelProductDto addModel(@RequestBody ModelProductDto modelProductDto) {
         return modelProductService.save(modelProductDto);
-
     }
 
     @GetMapping("/get")
     public ModelProductDto update(@RequestParam String identifier) {
         return modelProductService.findByIdentifier(identifier);
-
     }
 
     @PostMapping("/update")
@@ -52,13 +49,15 @@ public class ModelProductApiController extends BaseController {
         return true;
     }
 
-    @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestParam String identifier) {
+    @PostMapping("/status")
+    public boolean updateStatus(
+            @RequestParam String identifier, Boolean status) {
         try {
-            modelProductService.toggleStatus(identifier);
+            modelProductService.updateStatusOnly(identifier, status);
         } catch (Exception e) {
             return false;
         }
         return true;
     }
+
 }
