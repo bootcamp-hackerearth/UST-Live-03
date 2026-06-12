@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/brand")
 public class BrandController {
-
     public static final String BRANDS = "brands";
     public static final String BRAND_LIST = "brand/list";
     public static final String MESSAGE = "message";
-
     @Autowired
     BrandService brandService;
 

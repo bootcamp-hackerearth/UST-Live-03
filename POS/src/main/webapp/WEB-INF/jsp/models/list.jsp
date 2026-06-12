@@ -180,14 +180,16 @@
                 <td>${model.identifier}</td>
 
                 <td>
-                    <div class="toggle-container"
-                         onclick="window.location.href='${pageContext.request.contextPath}/models/toggle?identifier=${model.identifier}'">
-                         <label class="switch">
-                         <input type="checkbox" ${model.status ? "checked" : ""} disabled>
-                         <span class="slider"></span>
-                         </label>
-                     </div>
-                </td>
+                                   <div class="toggle-container"
+                                                         onclick="window.location.href='${pageContext.request.contextPath}/models/toggle?identifier=${model.identifier}'">
+
+                                                        <label class="switch">
+                                                            <input type="checkbox" ${model.status ? "checked" : ""} disabled>
+                                                            <span class="slider"></span>
+                                                        </label>
+
+                                                    </div>
+                                                </td>
 
                 <td>
                     <a href="/models/get?identifier=${model.identifier}">

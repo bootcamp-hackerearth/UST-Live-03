@@ -4,6 +4,7 @@ import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Test;
@@ -47,12 +48,13 @@ class CustomerServiceTest {
         List<CustomerDto> dtoList = List.of(new CustomerDto());
 
         when(customerRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(customers), any(Type.class))).thenReturn(dtoList);
+        when(modelMapper.map(any(), any(Type.class))).thenReturn(dtoList);
 
-        List<CustomerDto> result = customerService.findAll(pageable);
+        WsDto<CustomerDto> result = customerService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getContent().size());
 
         verify(customerRepository).findAll(pageable);
     }

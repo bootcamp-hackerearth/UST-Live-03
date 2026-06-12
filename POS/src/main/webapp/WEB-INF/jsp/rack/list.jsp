@@ -91,60 +91,6 @@
             margin-left: auto;
             margin-right: auto;
         }
-
-        .toggle-container {
-                            cursor: pointer;
-                            display: inline-block;
-                        }
-
-                        .switch {
-                            position: relative;
-                            display: inline-block;
-                            width: 46px;
-                            height: 24px;
-                        }
-
-                        .switch input {
-                            opacity: 0;
-                            width: 0;
-                            height: 0;
-                        }
-
-                        .slider {
-                            position: absolute;
-                            cursor: pointer;
-                            background-color: #d1d5db;
-                            border-radius: 24px;
-                            top: 0;
-                            left: 0;
-                            right: 0;
-                            bottom: 0;
-                            transition: 0.4s;
-                        }
-
-                        .slider:before {
-                            position: absolute;
-                            content: "";
-                            height: 18px;
-                            width: 18px;
-                            left: 3px;
-                            bottom: 3px;
-                            background-color: white;
-                            border-radius: 50%;
-                            transition: 0.4s;
-                        }
-
-        input:not(:checked) + .slider {
-             background-color: #dc2626;
-        }
-
-         input:checked + .slider {
-             background-color: #22c55e;
-        }
-
-        input:checked + .slider:before {
-             transform: translateX(22px);
-        }
     </style>
 </head>
 
@@ -180,26 +126,19 @@
                 <td>${rack.id}</td>
                 <td>${rack.identifier}</td>
                 <td>${rack.shelves}</td>
-                <td>
-                   <div class="toggle-container"
-                   onclick="window.location.href='/rack/toggle?identifier=${rack.identifier}'">
-                   <label class="switch">
-                   <input type="checkbox" ${rack.status ? "checked" : ""} disabled>
-                   <span class="slider"></span>
-                   </label>
-                   </div>
-                </td>
+                <td>${rack.status}</td>
                 <td>
                     <a href="/rack/get?identifier=${rack.identifier}">
-                       <button class="btn edit-btn">Edit</button>
+                        <button class="btn edit-btn">Edit</button>
                     </a>
                     <a href="/rack/delete?identifier=${rack.identifier}"
                        onclick="return confirm('Delete this rack?')">
-                       <button class="btn delete-btn">Delete</button>
+                        <button class="btn delete-btn">Delete</button>
                     </a>
                 </td>
             </tr>
         </c:forEach>
+
     </table>
 </div>
 

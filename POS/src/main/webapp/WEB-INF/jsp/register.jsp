@@ -1,46 +1,51 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <html>
 <head>
-<title>Register</title>
+<title>Edit User</title>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
+    font-family: "Segoe UI", Arial, sans-serif;
     background: #F6F7F9;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
 }
 
-.card {
-    width: 380px;
-    padding: 25px;
+form {
+    width: 420px;
     background: #FFFFFF;
+    padding: 25px;
     border-radius: 12px;
     border: 1px solid #E5E7EB;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
-h2 {
+h4 {
     text-align: center;
     color: #111827;
+    margin-bottom: 20px;
 }
 
 label {
     font-weight: 600;
     color: #111827;
+    display: block;
+    margin-top: 10px;
 }
 
 input, select {
     width: 100%;
     padding: 10px;
+    margin-top: 5px;
     border-radius: 8px;
     border: 1px solid #E5E7EB;
-    margin-bottom: 10px;
+    font-size: 14px;
 }
 
 input:focus, select:focus {
@@ -49,81 +54,63 @@ input:focus, select:focus {
 }
 
 button {
-    width: 100%;
-    padding: 10px;
-    background: #2B2B2B;
-    color: white;
-    border: none;
+    padding: 10px 16px;
     border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-button:hover {
+.btn-primary {
+    background: #2B2B2B;
+    color: white;
+}
+
+.btn-primary:hover {
     background: #111111;
 }
 
-.msg {
-    background: #DCFCE7;
-    color: #166534;
-    padding: 10px;
-    border-radius: 8px;
-    text-align: center;
+.btn-cancel {
+    background: #E5E7EB;
+    color: #111827;
+}
+
+.btn-cancel:hover {
+    background: #D1D5DB;
 }
 
 .error {
     color: #B91C1C;
     font-size: 12px;
+    margin-top: 2px;
 }
-
-.back-btn {
-    width: 100%;
-    margin-top: 10px;
-    padding: 10px;
-    background: transparent;
-    color: #2B2B2B;
-    border: 1px solid #2B2B2B;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.back-btn:hover {
-    background: #2B2B2B;
-    color: #FFFFFF;
-}
-
 </style>
+
 </head>
 
 <body>
 
-<div class="card">
-
-<h2>User Registration</h2>
-
-<c:if test="${not empty message}">
-<div class="msg">${message}</div>
+<c:if test="${empty user}">
+    <div style="color:#B91C1C;">User not found</div>
 </c:if>
 
-<form:form method="post" action="register" modelAttribute="userDto">
+<c:if test="${not empty user}">
+
+<form:form method="post" action="/user/update" modelAttribute="user">
+
+<form:hidden path="id" />
+<form:hidden path="username" />
+
+<h4>Edit User</h4>
 
 <label>Name</label>
 <form:input path="name" required="true"/>
 <form:errors path="name" cssClass="error"/>
 
-<label>Email</label>
-<form:input path="username"
-            type="email"
-            required="true" />
-<form:errors path="username" cssClass="error" />
 
-<label>Roles</label>
-<form:select path="roles" multiple="true">
-    <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
-</form:select>
-
-<label>Phone</label>
+<label>Phone Number</label>
 <form:input path="phoneNo"
+    type="text"
     inputmode="numeric"
     maxlength="10"
     pattern="^[0-9]{10}$"
@@ -131,22 +118,26 @@ button:hover {
     required="true"/>
 <form:errors path="phoneNo" cssClass="error"/>
 
-<label>Password</label>
-        <form:password path="password"
-                       required="true"
-                       minlength="8"
-                       pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}"/>
-        <form:errors path="password" cssClass="error"/>
 
+<label>Roles</label>
+<form:select path="roles" multiple="true">
+    <c:forEach var="role" items="${roles}">
+        <option value="${role.identifier}">
+            ${role.identifier}
+        </option>
+    </c:forEach>
+</form:select>
 
-    <button type="submit">Register</button>
+<div style="display:flex;justify-content:space-between;margin-top:15px;">
+    <a href="/user/list">
+        <button type="button" class="btn-cancel">Cancel</button>
+    </a>
 
-<a href= "/user/list">
-    <button type="button" class="back-btn">Back</button>
-</a>
+    <button type="submit" class="btn-primary">Update</button>
+</div>
 
 </form:form>
 
-</div>
+</c:if>
 </body>
 </html>

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -99,15 +100,17 @@ class NodeServiceTest {
 
         User user = new User();
         user.setUsername("admin");
-        user.setRoles(null);
+        user.setRoles(List.of());
 
         when(userRepository.findByUsername("admin")).thenReturn(user);
+
+        when(nodeRepository.findAll()).thenReturn(List.of());
 
         List<NodeDto> result = nodeService.getNodesForRoles();
 
         assertTrue(result.isEmpty());
     }
-
+    
     @Test
     void getNodesForRoles_NodeRolesNull() {
 
@@ -174,27 +177,35 @@ class NodeServiceTest {
         Page<Node> page = new PageImpl<>(nodes);
 
         when(nodeRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(nodes), any(Type.class)))
+        when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(List.of(new NodeDto()));
 
-        List<NodeDto> result = nodeService.findAll(pageable);
+        WsDto<NodeDto> result = nodeService.findAll(pageable);
 
-        assertEquals(1, result.size());
+        assertNotNull(result);
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getContent().size());
     }
 
     @Test
-    void findAll_NullPageable() {
+    void findAllTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
 
         List<Node> nodes = List.of(new Node());
         Page<Node> page = new PageImpl<>(nodes);
 
-        when(nodeRepository.findAll((Pageable) any())).thenReturn(page);
-        when(modelMapper.map(eq(nodes), any(Type.class)))
+        when(nodeRepository.findAll(pageable)).thenReturn(page);
+        when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(List.of(new NodeDto()));
 
-        List<NodeDto> result = nodeService.findAll(null);
+        WsDto<NodeDto> result = nodeService.findAll(pageable);
 
-        assertEquals(1, result.size());
+        assertNotNull(result);
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getContent().size());
+
+        verify(nodeRepository).findAll(pageable);
     }
 
     @Test

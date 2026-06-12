@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/category")
 public class CategoryController {
-
     public static final String CATEGORIES = "categories";
     public static final String CATEGORY_LIST = "category/list";
     public static final String MESSAGE = "message";
-
     @Autowired
     CategoryService categoryService;
 

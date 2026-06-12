@@ -14,6 +14,8 @@ public class User extends CommonFields {
     private String username;
     private String name;
     private String phoneNo;
+
     private List<String> roles;
+
     private String password;
 }

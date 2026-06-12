@@ -15,7 +15,6 @@ public class NodeController {
 
     public static final String MESSAGE = "message";
     public static final String MESSAGE1 = "message";
-
     @Autowired
     private NodeService nodeService;
 

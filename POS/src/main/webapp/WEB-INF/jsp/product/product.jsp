@@ -8,98 +8,63 @@
 
     <style>
         body {
-                 font-family: Arial, sans-serif;
-                 background: #F6F7F9;
-                 padding: 30px;
-             }
+            font-family: Arial, sans-serif;
+            background: #F6F7F9;
+            padding: 30px;
+        }
 
-             .container {
-                 max-width: 450px;
-                 margin: auto;
-                 background: white;
-                 padding: 25px;
-                 border-radius: 10px;
-                 box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-             }
+        .container {
+            max-width: 450px;
+            margin: auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+        }
 
-             h2 {
-                 text-align: center;
-                 margin-bottom: 20px;
-             }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-             label {
-                 font-weight: 600;
-                 display: block;
-                 margin-top: 12px;
-             }
+        label {
+            font-weight: 600;
+            margin-top: 12px;
+            display: block;
+        }
 
-             input, select {
-                 width: 100%;
-                 padding: 10px;
-                 margin-top: 6px;
-                 border-radius: 6px;
-                 border: 1px solid #ccc;
-             }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
 
-             .btn {
-                 width: 100%;
-                 padding: 12px;
-                 margin-top: 20px;
-                 background: #2B2B2B;
-                 color: white;
-                 font-size: 15px;
-                 border: none;
-                 border-radius: 6px;
-                 cursor: pointer;
-             }
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: #2B2B2B;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
 
-             .btn:hover {
-                 background: #444;
-             }
+        button:hover {
+            background: #444;
+        }
 
-             .message {
-                 background: #FDECEA;
-                 color: #B71C1C;
-                 padding: 10px;
-                 border-radius: 6px;
-                 margin-bottom: 15px;
-                 text-align: center;
-             }
-             .btn-group {
-                         display: flex;
-                         gap: 10px;
-                         margin-top: 25px;
-                     }
-
-                     .save-btn {
-                         flex: 1;
-                         padding: 10px;
-                         background: #2B2B2B;
-                         color: white;
-                         border: none;
-                         border-radius: 6px;
-                         font-weight: 600;
-                         cursor: pointer;
-                     }
-
-                     .save-btn:hover {
-                         background: #444;
-                     }
-
-                     .back-btn {
-                         flex: 1;
-                         padding: 10px;
-                         background: #E5E7EB;
-                         color: #111827;
-                         border-radius: 6px;
-                         font-weight: 600;
-                         text-align: center;
-                         text-decoration: none;
-                     }
-
-                     .back-btn:hover {
-                         background: #D1D5DB;
-                     }
+        .message {
+            background: #E6F4EA;
+            color: #2E7D32;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 
@@ -113,7 +78,7 @@
         <div class="message">${message}</div>
     </c:if>
 
-    <form:form action="/product/update"
+    <form:form action="${pageContext.request.contextPath}/product/update"
                method="post"
                modelAttribute="product">
 
@@ -150,10 +115,7 @@
             <form:options items="${categories}" itemValue="identifier" itemLabel="identifier"/>
         </form:select>
 
-       <div class="btn-group">
-            <button type="submit" class="save-btn">Update</button>
-            <a href="/product/list" class="back-btn">Back</a>
-       </div>
+        <button type="submit">Update Product</button>
 
     </form:form>
 

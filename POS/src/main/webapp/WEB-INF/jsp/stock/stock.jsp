@@ -112,7 +112,7 @@
         </form:select>
 
         <button type="submit">Update</button>
-        <a href="/stock/list" class="back">Back</a>
+        <a href="${pageContext.request.contextPath}/stock/list" class="back">Back</a>
 
     </form:form>
 

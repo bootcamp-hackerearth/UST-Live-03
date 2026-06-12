@@ -15,7 +15,6 @@ public class UnitController {
     public static final String UNITS = "units";
     public static final String UNIT_LIST = "unit/list";
     public static final String MESSAGE = "message";
-
     @Autowired
     UnitService unitService;
 

@@ -131,6 +131,7 @@
                     transition: 0.4s;
                 }
 
+
                 input:not(:checked) + .slider {
                 background-color: #dc2626;
                 }
@@ -178,15 +179,16 @@
                 <td>${unit.identifier}</td>
 
                 <td>
-                      <div class="toggle-container"
-                           onclick="window.location.href='${pageContext.request.contextPath}/unit/toggle?identifier=${unit.identifier}'">
+                                   <div class="toggle-container"
+                                                         onclick="window.location.href='${pageContext.request.contextPath}/unit/toggle?identifier=${unit.identifier}'">
 
-                            <label class="switch">
-                                   <input type="checkbox" ${unit.status ? "checked" : ""} disabled>
-                                   <span class="slider"></span>
-                            </label>
-                      </div>
-                </td>
+                                                        <label class="switch">
+                                                            <input type="checkbox" ${unit.status ? "checked" : ""} disabled>
+                                                            <span class="slider"></span>
+                                                        </label>
+
+                                                    </div>
+                                                </td>
                 <td>
                     <a href="/unit/get?identifier=${unit.identifier}">
                         <button class="btn edit-btn">Edit</button>

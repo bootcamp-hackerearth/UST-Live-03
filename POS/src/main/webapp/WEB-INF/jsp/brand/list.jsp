@@ -181,13 +181,15 @@
                 <td>${brand.description}</td>
 
                 <td>
-                      <div class="toggle-container"
-                         onclick="window.location.href='${pageContext.request.contextPath}/brand/toggle?identifier=${brand.identifier}'">
-                         <label class="switch">
-                         <input type="checkbox" ${brand.status ? "checked" : ""} disabled>
-                         <span class="slider"></span>
-                         </label>
-                      </div>
+                                   <div class="toggle-container"
+                                                         onclick="window.location.href='${pageContext.request.contextPath}/brand/toggle?identifier=${brand.identifier}'">
+
+                                                        <label class="switch">
+                                                            <input type="checkbox" ${brand.status ? "checked" : ""} disabled>
+                                                            <span class="slider"></span>
+                                                        </label>
+
+                                   </div>
                  </td>
 
                 <td>

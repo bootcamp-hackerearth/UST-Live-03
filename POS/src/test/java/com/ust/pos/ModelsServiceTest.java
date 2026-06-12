@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.impl.ModelServiceImpl;
@@ -147,20 +148,20 @@ class ModelsServiceTest {
         modelsDto.setIdentifier("Admin");
 
         List<Models> modelsList = List.of(models);
-
         Page<Models> page = new PageImpl<>(modelsList);
         List<ModelsDto> modelsDtos = List.of(modelsDto);
 
         when(modelsRepository.findAll(pageable)).thenReturn(page);
         when(modelMapper.map(
-                Mockito.eq(modelsList),
+                Mockito.any(),
                 any(java.lang.reflect.Type.class)
         )).thenReturn(modelsDtos);
 
-        List<ModelsDto> response = modelsService.findAll(pageable);
+        WsDto<ModelsDto> response = modelsService.findAll(pageable);
 
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertNotNull(response.getContent());
+        Assertions.assertEquals(1, response.getContent().size());
 
         verify(modelsRepository).findAll(pageable);
     }

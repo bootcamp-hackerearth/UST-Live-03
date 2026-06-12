@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -168,15 +169,16 @@ class ProductServiceTest {
                 .thenReturn(page);
 
         Mockito.when(modelMapper.map(
-                Mockito.eq(products),
+                Mockito.any(),
                 Mockito.any(Type.class)
         )).thenReturn(dtos);
 
-        List<ProductDto> response = productService.findAll(pageable);
+        WsDto<ProductDto> response = productService.findAll(pageable);
 
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertNotNull(response.getContent());
+        Assertions.assertEquals(1, response.getContent().size());
 
-        verify(productRepository).findAll(pageable);
+        Mockito.verify(productRepository).findAll(pageable);
     }
 }

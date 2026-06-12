@@ -185,14 +185,15 @@
                 <td>${shelf.identifier}</td>
                 <td>
                    <div class="toggle-container"
-                        onclick="window.location.href='${pageContext.request.contextPath}/shelf/toggle?identifier=${shelf.identifier}'">
+                                         onclick="window.location.href='${pageContext.request.contextPath}/shelf/toggle?identifier=${shelf.identifier}'">
 
-                         <label class="switch">
-                         <input type="checkbox" ${shelf.status ? "checked" : ""} disabled>
-                         <span class="slider"></span>
-                         </label>
-                         </div>
-                </td>
+                                        <label class="switch">
+                                            <input type="checkbox" ${shelf.status ? "checked" : ""} disabled>
+                                            <span class="slider"></span>
+                                        </label>
+
+                                    </div>
+                                </td>
                 <td>
                     <a href="/shelf/get?identifier=${shelf.identifier}">
                         <button class="btn edit-btn">Edit</button>

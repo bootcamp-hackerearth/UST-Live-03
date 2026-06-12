@@ -19,7 +19,6 @@ public class ProductController {
     public static final String PRODUCT_LIST = "product/list";
     public static final String PRODUCTS = "products";
     public static final String MESSAGE = "message";
-
     @Autowired
     ProductService productService;
     @Autowired

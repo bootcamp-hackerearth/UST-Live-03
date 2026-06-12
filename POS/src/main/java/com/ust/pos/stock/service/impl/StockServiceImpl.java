@@ -1,6 +1,9 @@
 package com.ust.pos.stock.service.impl;
 
+import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Category;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -25,11 +28,22 @@ public class StockServiceImpl implements StockService {
     ModelMapper modelMapper;
 
     @Override
-    public List<StockDto> findAll(Pageable pageable) {
+    public WsDto<StockDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
+
         Page<Stock> stockPage = stockRepository.findAll(pageable);
-        return modelMapper.map(stockPage.getContent(), listType);
+
+        WsDto<StockDto> dto = new WsDto<>();
+
+        dto.setContent(modelMapper.map(stockPage.getContent(), listType));
+        dto.setTotalRecords(stockPage.getTotalElements());
+        dto.setTotalPages(stockPage.getTotalPages());
+        dto.setSizePerPage(pageable.getPageSize());
+        dto.setPage(pageable.getPageNumber());
+
+        return dto;
     }
 
     @Override

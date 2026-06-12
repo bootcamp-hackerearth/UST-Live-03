@@ -107,6 +107,7 @@ button {
 <form:input path="name" required="true"/>
 <form:errors path="name" cssClass="error"/>
 
+
 <label>Phone Number</label>
 <form:input path="phoneNo"
     type="text"
@@ -117,15 +118,21 @@ button {
     required="true"/>
 <form:errors path="phoneNo" cssClass="error"/>
 
+
 <label>Roles</label>
-<form:select path="roles" multiple="true" required="true">
-     <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+<form:select path="roles" multiple="true">
+    <c:forEach var="role" items="${roles}">
+        <option value="${role.identifier}">
+            ${role.identifier}
+        </option>
+    </c:forEach>
 </form:select>
 
 <div style="display:flex;justify-content:space-between;margin-top:15px;">
     <a href="/user/list">
         <button type="button" class="btn-cancel">Cancel</button>
     </a>
+
     <button type="submit" class="btn-primary">Update</button>
 </div>
 

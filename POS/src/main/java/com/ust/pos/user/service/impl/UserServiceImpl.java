@@ -1,6 +1,7 @@
 package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -25,7 +26,6 @@ public class UserServiceImpl implements UserService {
     public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
     public static final String USER_WITH_USERNAME_EMAIL1 = "User with username/email - ";
     public static final String USER_WITH_USERNAME_EMAIL2 = "User with username/email - ";
-
     @Autowired
     private UserRepository userRepository;
 
@@ -37,11 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findByUserName(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            return null;
-        }
-        return modelMapper.map(user, UserDto.class);
+        return modelMapper.map(userRepository.findByUsername(username), UserDto.class);
     }
 
     @Override
@@ -90,11 +86,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
+    public WsDto<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listType);
+
+        WsDto<UserDto> userWsDto = new WsDto<>();
+        userWsDto.setContent(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+
+        return userWsDto;
     }
 
     @Override

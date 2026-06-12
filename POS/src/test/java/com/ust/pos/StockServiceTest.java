@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -42,12 +43,13 @@ class StockServiceTest {
         List<StockDto> dtoList = List.of(new StockDto());
 
         when(stockRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(stocks), any(Type.class))).thenReturn(dtoList);
+        when(modelMapper.map(any(), any(Type.class))).thenReturn(dtoList);
 
-        List<StockDto> result = stockService.findAll(pageable);
+        WsDto<StockDto> result = stockService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getContent().size());
 
         verify(stockRepository).findAll(pageable);
     }

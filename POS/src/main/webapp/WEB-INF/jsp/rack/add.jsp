@@ -91,6 +91,12 @@
                 itemLabel="identifier"/>
         </form:select>
 
+        <label>Status</label>
+        <form:select path="status">
+            <form:option value="ACTIVE">ACTIVE</form:option>
+            <form:option value="INACTIVE">INACTIVE</form:option>
+        </form:select>
+
         <div class="btn-group">
             <button type="submit" class="save-btn">Save</button>
             <a href="/rack/list" class="back-btn">Back</a>

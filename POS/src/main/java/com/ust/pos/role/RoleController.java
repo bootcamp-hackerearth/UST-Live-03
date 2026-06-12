@@ -7,14 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/role")
 public class RoleController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
     public static final String MESSAGE = "message";
+    public static final String MESSAGE1 = "message";
+    public static final String MESSAGE2 = "message";
 
     @Autowired
     private RoleService roleService;
@@ -26,46 +26,40 @@ public class RoleController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute RoleDto roleDto) {
+    public String add(Model model, @ModelAttribute RoleDto userDto) {
         return "role/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute RoleDto roleDto) {
-        RoleDto response = roleService.save(roleDto);
+    public String addPost(Model model, @ModelAttribute RoleDto userDto) {
+        RoleDto response = roleService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute(MESSAGE, response.getMessage());
         }
-        return REDIRECT_ROLE_LIST;
+        return "redirect:/role/list";
     }
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
         RoleDto response = roleService.findByIdentifier(identifier);
-        if (response == null) {
-            response = new RoleDto();
-        }
         model.addAttribute("role", response);
         return "role/role";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute("role") RoleDto roleDto) {
+    public String updatePost(Model model, @ModelAttribute RoleDto roleDto) {
         RoleDto response = roleService.update(roleDto);
-
         if (!response.isSuccess()) {
-            model.addAttribute("role", roleDto);
-            model.addAttribute(MESSAGE, response.getMessage());
-            return "role/role";
+            model.addAttribute(MESSAGE1, response.getMessage());
         }
-
-        return REDIRECT_ROLE_LIST;
+        return "redirect:/role/list";
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String identifier, RedirectAttributes redirectAttributes) {
+    public String delete(Model model, @RequestParam String identifier, Pageable pageable) {
         roleService.delete(identifier);
-        redirectAttributes.addFlashAttribute(MESSAGE, "Role deleted successfully");
-        return REDIRECT_ROLE_LIST;
+        model.addAttribute("roles", roleService.findAll(pageable));
+        model.addAttribute(MESSAGE2, "Role deleted successfully");
+        return "role/list";
     }
 }

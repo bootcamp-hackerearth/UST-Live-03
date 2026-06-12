@@ -103,7 +103,7 @@
         <form:input path="identifier" readonly="true"/>
 
         <label>Customer Name</label>
-        <form:input path="customerName" type="text"/>
+        <form:input path="customerName"/>
 
         <label>Party Type</label>
         <form:select path="partyType">
@@ -112,18 +112,19 @@
         </form:select>
 
         <label>Phone Number</label>
-        <form:input path="phoneNo" type="number"/>
+        <form:input path="phoneNo"/>
 
         <div class="grid">
             <div>
                 <label>Balance</label>
-                <form:input path="balance" type="number"/>
+                <form:input path="balance"/>
             </div>
             <div>
                 <label>Credit Limit</label>
-                <form:input path="creditLimit" type="number"/>
+                <form:input path="creditLimit"/>
             </div>
         </div>
+
 
         <div class="section">
             <h3>Billing Address</h3>
@@ -136,25 +137,26 @@
             <div class="grid">
                 <div>
                     <label>City</label>
-                    <form:input path="billingAddress.city" type="text"/>
+                    <form:input path="billingAddress.city"/>
                 </div>
                 <div>
                     <label>State</label>
-                    <form:input path="billingAddress.state" type="text"/>
+                    <form:input path="billingAddress.state"/>
                 </div>
             </div>
 
             <div class="grid">
                 <div>
                     <label>Zip Code</label>
-                    <form:input path="billingAddress.zipcode" type="number"/>
+                    <form:input path="billingAddress.zipcode"/>
                 </div>
                 <div>
                     <label>Country</label>
-                    <form:input path="billingAddress.country" type="text"/>
+                    <form:input path="billingAddress.country"/>
                 </div>
             </div>
         </div>
+
 
         <div class="section">
             <h3>Shipping Address</h3>
@@ -167,22 +169,22 @@
             <div class="grid">
                 <div>
                     <label>City</label>
-                    <form:input path="shippingAddress.city" type="text"/>
+                    <form:input path="shippingAddress.city"/>
                 </div>
                 <div>
                     <label>State</label>
-                    <form:input path="shippingAddress.state" type="text"/>
+                    <form:input path="shippingAddress.state"/>
                 </div>
             </div>
 
             <div class="grid">
                 <div>
                     <label>Zip Code</label>
-                    <form:input path="shippingAddress.zipcode" type="number"/>
+                    <form:input path="shippingAddress.zipcode"/>
                 </div>
                 <div>
                     <label>Country</label>
-                    <form:input path="shippingAddress.country" type="text"/>
+                    <form:input path="shippingAddress.country"/>
                 </div>
             </div>
         </div>

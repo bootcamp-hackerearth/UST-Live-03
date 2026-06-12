@@ -15,7 +15,6 @@ public class WarehouseController {
     public static final String WAREHOUSES = "warehouses";
     public static final String WAREHOUSE_LIST = "warehouse/list";
     public static final String MESSAGE = "message";
-
     @Autowired
     WarehouseService warehouseService;
 

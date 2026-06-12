@@ -2,8 +2,11 @@ package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
+import com.ust.pos.model.Category;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -17,7 +20,6 @@ import java.util.List;
 
 @Service
 public class BrandServiceImpl implements BrandService {
-
     @Autowired
     BrandRepository brandRepository;
 
@@ -25,11 +27,22 @@ public class BrandServiceImpl implements BrandService {
     ModelMapper modelMapper;
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
+    public WsDto<BrandDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
+
         Page<Brand> brandPage = brandRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+
+        WsDto<BrandDto> dto = new WsDto<>();
+
+        dto.setContent(modelMapper.map(brandPage.getContent(), listType));
+        dto.setTotalRecords(brandPage.getTotalElements());
+        dto.setTotalPages(brandPage.getTotalPages());
+        dto.setSizePerPage(pageable.getPageSize());
+        dto.setPage(pageable.getPageNumber());
+
+        return dto;
     }
 
     @Override

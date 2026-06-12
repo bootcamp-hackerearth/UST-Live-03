@@ -90,6 +90,8 @@ body {
 }
 </style>
 
+
+
 </head>
 
 <body>
@@ -98,7 +100,7 @@ body {
     <span class="hamburger" onclick="toggleSidebar()">☰</span>
     POS Dashboard
 
-    <a href="/logout" class="logout-link">Logout</a>
+    <a href="/login?logout" class="logout-link">Logout</a>
 </div>
 
 <div class="sidebar" id="sidebar">

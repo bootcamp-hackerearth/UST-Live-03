@@ -1,6 +1,9 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelService;
@@ -80,13 +83,23 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
-    public List<ModelsDto> findAll(Pageable pageable) {
+    public WsDto<ModelsDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
-        return modelMapper.map(modelsPage.getContent(), listType);
-    }
 
+        Page<Models> modelsPage = modelsRepository.findAll(pageable);
+
+        WsDto<ModelsDto> dto = new WsDto<>();
+
+        dto.setContent(modelMapper.map(modelsPage.getContent(), listType));
+        dto.setTotalRecords(modelsPage.getTotalElements());
+        dto.setTotalPages(modelsPage.getTotalPages());
+        dto.setSizePerPage(pageable.getPageSize());
+        dto.setPage(pageable.getPageNumber());
+
+        return dto;
+    }
 
     @Override
     public void toggleStatus(String identifier) {
@@ -101,4 +114,5 @@ public class ModelServiceImpl implements ModelService {
     public List<Models> findActiveModels() {
         return modelsRepository.findByStatus(true);
     }
+
 }

@@ -20,7 +20,6 @@ import javax.sql.DataSource;
 @OpenAPIDefinition
 @ComponentScan({"com.ust.pos.web.controller", "com.ust.pos"})
 public class PosApplication {
-
     @Autowired
     Environment environment;
 

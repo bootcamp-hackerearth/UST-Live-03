@@ -4,7 +4,6 @@ import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,19 +25,18 @@ public class SecurityController {
     }
 
     @GetMapping("/register")
-    public String add(Model model, @ModelAttribute UserDto userDto, Pageable pageable) {
-        model.addAttribute("roles", roleService.findAll(pageable));
+    public String add(Model model, @ModelAttribute UserDto userDto) {
+        model.addAttribute("roles", roleService.findAll(null));
         return "register";
     }
 
     @PostMapping("/register")
-    public String addPost(Model model, @ModelAttribute UserDto userDto, Pageable pageable) {
+    public String addPost(Model model, @ModelAttribute UserDto userDto) {
         UserDto response = userService.save(userDto);
         if (!response.isSuccess()) {
-            model.addAttribute("roles", roleService.findAll(pageable));
             model.addAttribute("message", response.getMessage());
             return "register";
         }
-        return "redirect:/user/list";
+        return "redirect:/login";
     }
 }

@@ -103,6 +103,7 @@ button {
 
 <h4>Edit Node</h4>
 
+
 <label>Path</label>
 <form:input path="path"
             required="true"

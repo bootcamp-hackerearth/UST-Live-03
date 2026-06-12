@@ -3,23 +3,21 @@ package com.ust.pos.api.price;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.price.service.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/api/price")
 public class PriceRestController extends BaseController {
-
     @Autowired
     PriceService priceService;
 
     @PostMapping("/list")
-    public List<PriceDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<PriceDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),

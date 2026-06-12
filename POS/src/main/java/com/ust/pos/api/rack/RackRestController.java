@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.rack.service.RackService;
 import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,6 @@ import java.util.List;
 @Controller
 @RequestMapping("/api/rack")
 public class RackRestController extends BaseController {
-
     @Autowired
     RackService rackService;
 
@@ -25,7 +25,7 @@ public class RackRestController extends BaseController {
     ShelfService shelfService;
 
     @PostMapping("/list")
-    public List<RackDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RackDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),

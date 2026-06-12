@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -149,17 +150,19 @@ class CategoryServiceTest {
         when(categoryRepository.findAll(pageable)).thenReturn(page);
 
         when(modelMapper.map(
-                eq(categories),
+                any(),
                 any(Type.class)
         )).thenReturn(dtos);
 
-        List<CategoryDto> result = categoryService.findAll(pageable);
+        WsDto<CategoryDto> result = categoryService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getContent().size());
 
         verify(categoryRepository).findAll(pageable);
     }
+
 
     @Test
     void testFindAllCategoriesWithNoSuper() {
@@ -168,7 +171,7 @@ class CategoryServiceTest {
         category1.setSuperCategory(List.of("parent"));
 
         Category category2 = new Category();
-        category2.setSuperCategory(List.of()); // empty
+        category2.setSuperCategory(List.of());
 
         List<Category> categories = List.of(category1, category2);
 

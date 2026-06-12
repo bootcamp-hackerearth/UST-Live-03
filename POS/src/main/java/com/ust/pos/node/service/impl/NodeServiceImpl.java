@@ -1,6 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -24,7 +25,6 @@ import java.util.Set;
 
 @Service
 public class NodeServiceImpl implements NodeService {
-
     @Autowired
     private UserRepository userRepository;
 
@@ -41,18 +41,18 @@ public class NodeServiceImpl implements NodeService {
 
         if (authentication != null) {
             org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            if (principalObject != null) {
-                User currentUser = userRepository.findByUsername(principalObject.getUsername());
-                if (currentUser != null && currentUser.getRoles() != null) findEligibleNodes(currentUser, nodeDtos);
-            }
+            if (principalObject != null) findEligibleNodes(principalObject, nodeDtos);
         }
 
         return nodeDtos;
     }
 
-    private void findEligibleNodes(User currentUser, List<NodeDto> nodeDtos) {
+    private void findEligibleNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
+
+        User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesStr = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
+
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
                 if (node.getRoles() != null && node.getRoles().contains(role)) {
@@ -60,24 +60,26 @@ public class NodeServiceImpl implements NodeService {
                 }
             }
         }
+
         for (String nodeStr : nodesStr) {
             nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
         }
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
-
-        if (pageable == null) {
-            pageable = Pageable.unpaged();
-        }
-
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-
         Page<Node> nodePage = nodeRepository.findAll(pageable);
 
-        return modelMapper.map(nodePage.getContent(), listType);
+        WsDto<NodeDto> nodeWsDto = new WsDto<>();
+        nodeWsDto.setContent(modelMapper.map(nodePage.getContent(), listType));
+        nodeWsDto.setTotalRecords(nodePage.getTotalElements());
+        nodeWsDto.setTotalPages(nodePage.getTotalPages());
+        nodeWsDto.setSizePerPage(pageable.getPageSize());
+        nodeWsDto.setPage(pageable.getPageNumber());
+
+        return nodeWsDto;
     }
 
     @Override

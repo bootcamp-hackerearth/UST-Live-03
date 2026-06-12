@@ -81,10 +81,6 @@
             border-bottom-left-radius: 16px;
             border-bottom-right-radius: 16px;
         }
-        .edit-btn {
-            background: #2B2B2B;
-            color: white;
-        }
     </style>
 </head>
 
@@ -118,7 +114,6 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Role</th>
-                                    <th>Description</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -128,11 +123,7 @@
                                     <tr>
                                         <td>${role.id}</td>
                                         <td>${role.identifier}</td>
-                                        <td>${role.description}</td>
                                         <td>
-                                            <a href="/role/get?identifier=${role.identifier}">
-                                               <button class="btn edit-btn">Edit</button>
-                                            </a>
                                             <a href="/role/delete?identifier=${role.identifier}"
                                                class="btn btn-danger btn-sm"
                                                onclick="return confirm('Are you sure you want to delete this role?');">
@@ -142,6 +133,7 @@
                                     </tr>
                                 </c:forEach>
                             </tbody>
+
                         </table>
                     </c:if>
 

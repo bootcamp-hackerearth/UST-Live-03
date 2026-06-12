@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -44,13 +45,14 @@ class ShelfServiceTest {
 
         when(shelfRepository.findAll(pageable)).thenReturn(page);
 
-        when(modelMapper.map(eq(shelfList), any(Type.class)))
+        when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(dtoList);
 
-        List<ShelfDto> result = shelfService.findAll(pageable);
+        WsDto<ShelfDto> result = shelfService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getContent().size());
 
         verify(shelfRepository).findAll(pageable);
     }
@@ -112,7 +114,7 @@ class ShelfServiceTest {
 
         when(shelfRepository.findByIdentifier("S1")).thenReturn(existing);
 
-        doNothing().when(modelMapper).map((dto), eq(existing));
+        doNothing().when(modelMapper).map(eq(dto), eq(existing));
 
         ShelfDto result = shelfService.update(dto);
 

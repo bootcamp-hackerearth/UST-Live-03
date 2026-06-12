@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -42,12 +43,13 @@ class PriceServiceTest {
         List<PriceDto> dtoList = List.of(new PriceDto());
 
         when(priceRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(prices), any(Type.class))).thenReturn(dtoList);
+        when(modelMapper.map(any(), any(Type.class))).thenReturn(dtoList);
 
-        List<PriceDto> result = priceService.findAll(pageable);
+        WsDto<PriceDto> result = priceService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getContent().size());
 
         verify(priceRepository).findAll(pageable);
     }

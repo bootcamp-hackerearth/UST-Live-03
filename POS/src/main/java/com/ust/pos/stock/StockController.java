@@ -3,6 +3,7 @@ package com.ust.pos.stock;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -22,7 +23,6 @@ public class StockController {
     public static final String STOCKS1 = STOCKS;
     public static final String STOCK_LIST = "stock/list";
     public static final String MESSAGE = "message";
-
     @Autowired
     StockService stockService;
 
@@ -40,9 +40,9 @@ public class StockController {
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute StockDto stockDto, Pageable pageable) {
-        List<ProductDto> productDtos = productService.findAll(pageable);
+        WsDto<ProductDto> productDtos = productService.findAll(pageable);
         model.addAttribute("productList", productDtos);
-        List<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
+        WsDto<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
         model.addAttribute("warehouseList", warehouseDtos);
         return "stock/add";
     }
@@ -61,9 +61,9 @@ public class StockController {
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier, Pageable pageable) {
-        List<ProductDto> productDtos = productService.findAll(pageable);
+        WsDto<ProductDto> productDtos = productService.findAll(pageable);
         model.addAttribute("productList", productDtos);
-        List<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
+        WsDto<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable);
         model.addAttribute("warehouseList", warehouseDtos);
         StockDto response = stockService.findByIdentifier(identifier);
         model.addAttribute("stock", response);

@@ -92,15 +92,16 @@
 
 <div class="container">
 
+
     <form:form action="/customer/add" method="post" modelAttribute="customerDto">
+
+
 
         <label>Email (Identifier)</label>
         <form:input path="identifier" type="email" required="true"/>
 
         <label>Customer Name</label>
-        <form:input path="customerName"
-                    pattern="[A-Za-z ]+"
-                    title="Only letters allowed"/>
+        <form:input path="customerName"/>
 
         <label>Party Type</label>
         <form:select path="partyType">
@@ -109,21 +110,19 @@
         </form:select>
 
         <label>Phone Number</label>
-        <form:input path="phoneNo" type="number"
-                    pattern="[0-9]{10}"
-                    maxlength="10"
-                    title="Enter 10 digit phone number"/>
+        <form:input path="phoneNo"/>
 
         <div class="grid">
             <div>
                 <label>Balance</label>
-                <form:input path="balance" type="number" step="0.01"/>
+                <form:input path="balance"/>
             </div>
             <div>
                 <label>Credit Limit</label>
-                <form:input path="creditLimit" type="number" step="0.01"/>
+                <form:input path="creditLimit"/>
             </div>
         </div>
+
 
         <div class="section">
             <h3>Billing Address</h3>
@@ -136,34 +135,26 @@
             <div class="grid">
                 <div>
                     <label>City</label>
-                    <form:input path="billingAddress.city" type="text"
-                                pattern="[A-Za-z ]+"
-                                title="Only letters allowed"/>
+                    <form:input path="billingAddress.city"/>
                 </div>
                 <div>
                     <label>State</label>
-                    <form:input path="billingAddress.state" type="text"
-                                pattern="[A-Za-z ]+"
-                                title="Only letters allowed"/>
+                    <form:input path="billingAddress.state"/>
                 </div>
             </div>
 
             <div class="grid">
                 <div>
                     <label>Zip Code</label>
-                    <form:input path="billingAddress.zipcode" type="number"
-                                pattern="[0-9]+"
-                                maxlength="10"
-                                title="Only numbers allowed"/>
+                    <form:input path="billingAddress.zipcode"/>
                 </div>
                 <div>
                     <label>Country</label>
-                    <form:input path="billingAddress.country" type="text"
-                                pattern="[A-Za-z ]+"
-                                title="Only letters allowed"/>
+                    <form:input path="billingAddress.country"/>
                 </div>
             </div>
         </div>
+
 
         <div class="section">
             <h3>Shipping Address</h3>
@@ -176,40 +167,30 @@
             <div class="grid">
                 <div>
                     <label>City</label>
-                    <form:input path="shippingAddress.city" type="text"
-                                pattern="[A-Za-z ]+"
-                                title="Only letters allowed"/>
+                    <form:input path="shippingAddress.city"/>
                 </div>
                 <div>
                     <label>State</label>
-                    <form:input path="shippingAddress.state" type="text"
-                                pattern="[A-Za-z ]+"
-                                title="Only letters allowed"/>
+                    <form:input path="shippingAddress.state"/>
                 </div>
             </div>
 
             <div class="grid">
                 <div>
                     <label>Zip Code</label>
-                    <form:input path="shippingAddress.zipcode" type="number"
-                                pattern="[0-9]+"
-                                maxlength="10"
-                                title="Only numbers allowed"/>
+                    <form:input path="shippingAddress.zipcode"/>
                 </div>
                 <div>
                     <label>Country</label>
-                    <form:input path="shippingAddress.country" type="text"
-                                pattern="[A-Za-z ]+"
-                                title="Only letters allowed"/>
+                    <form:input path="shippingAddress.country"/>
                 </div>
             </div>
+        </div>
 
-       <div class="btn-group">
-           <button type="submit" class="save-btn">Submit</button>
-           <a href="/customer/list" class="back-btn">Back</a>
-       </div>
-
-       </div>
+        <div class="btn-group">
+            <button type="submit" class="save-btn">Save</button>
+            <a href="/customer/list" class="back-btn">Back</a>
+        </div>
 
     </form:form>
 

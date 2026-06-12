@@ -65,41 +65,6 @@
             margin-bottom: 15px;
             text-align: center;
         }
-        .btn-group {
-                    display: flex;
-                    gap: 10px;
-                    margin-top: 25px;
-                }
-
-                .save-btn {
-                    flex: 1;
-                    padding: 10px;
-                    background: #2B2B2B;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    font-weight: 600;
-                    cursor: pointer;
-                }
-
-                .save-btn:hover {
-                    background: #444;
-                }
-
-                .back-btn {
-                    flex: 1;
-                    padding: 10px;
-                    background: #E5E7EB;
-                    color: #111827;
-                    border-radius: 6px;
-                    font-weight: 600;
-                    text-align: center;
-                    text-decoration: none;
-                }
-
-                .back-btn:hover {
-                    background: #D1D5DB;
-                }
     </style>
 </head>
 
@@ -148,10 +113,7 @@
             <form:options items="${categories}" itemValue="identifier" itemLabel="identifier"/>
         </form:select>
 
-        <div class="btn-group">
-             <button type="submit" class="save-btn">Save</button>
-             <a href="/product/list" class="back-btn">Back</a>
-        </div>
+        <button type="submit" class="btn">Add Product</button>
 
     </form:form>
 

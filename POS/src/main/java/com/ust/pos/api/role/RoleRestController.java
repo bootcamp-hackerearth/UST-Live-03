@@ -3,25 +3,26 @@ package com.ust.pos.api.role;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/role")
 public class RoleRestController extends BaseController {
 
     public static final String MESSAGE = "message";
+    public static final String MESSAGE1 = "message";
+    public static final String MESSAGE2 = "message";
 
     @Autowired
     private RoleService roleService;
 
     @PostMapping("/list")
-    public List<RoleDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -30,8 +31,9 @@ public class RoleRestController extends BaseController {
     }
 
     @PostMapping("/add")
-    public RoleDto addPost(@RequestBody RoleDto roleDto) {
-        return roleService.save(roleDto);
+    public RoleDto addPost(@RequestBody RoleDto userDto) {
+
+        return roleService.save(userDto);
     }
 
     @GetMapping("/get")
