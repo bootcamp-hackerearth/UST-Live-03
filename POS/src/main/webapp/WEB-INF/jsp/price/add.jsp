@@ -139,7 +139,8 @@
             <input type="number" name="amount"
                    value="${priceDto.amount}"
                    placeholder="Enter amount"
-                   required/>
+                   required
+            />
         </div>
         <div class="form-group">
             <label>Type</label>
@@ -168,7 +169,8 @@
             <input type="text" name="currency"
                    value="${priceDto.currency}"
                    placeholder="e.g. INR, USD"
-                   required/>
+                   required
+            />
         </div>
         <button type="submit" class="btn-submit">Save Price</button>
         <div class="back-center">

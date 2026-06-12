@@ -132,13 +132,15 @@
                    name="identifier"
                    value="${brandDto.identifier}"
                    placeholder="Enter brand name"
-                   required/>
+                   required
+            />
         </div>
         <div class="form-group">
             <label>Description</label>
             <textarea name="description"
                    placeholder="Enter brand description"
-                   required>${brandDto.description}</textarea>
+                   required>${brandDto.description}
+            </textarea>
         </div>
         <button type="submit" class="btn-submit">
             Save Brand

@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
@@ -19,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
-
 
 @ExtendWith(MockitoExtension.class)
 class StockServiceTest {
@@ -101,34 +101,34 @@ class StockServiceTest {
     @Test
     void findAllWithPageableTest() {
         Stock stock = new Stock();
-        stock.setIdentifier("Lays IN-001");
+        stock.setIdentifier("Lays In-001");
         StockDto dto = new StockDto();
-        dto.setIdentifier("Lays IN-001");
+        dto.setIdentifier("Lays In-001");
         List<Stock> stocks = List.of(stock);
         List<StockDto> dtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 5);
         Page<Stock> stockPage = new PageImpl<>(stocks);
         Mockito.when(stockRepository.findAll(pageable)).thenReturn(stockPage);
-        Mockito.when(modelMapper.map(Mockito.eq(stocks), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<StockDto> response = stockService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Lays IN-001", response.get(0).getIdentifier());
+        Mockito.when(modelMapper.map(Mockito.eq(stocks), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<StockDto> response = stockService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Lays In-001", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
     void findAllWithoutPageableTest() {
         Stock stock = new Stock();
-        stock.setIdentifier("Lays IN-001");
+        stock.setIdentifier("Lays In-001");
         StockDto dto = new StockDto();
-        dto.setIdentifier("Lays IN-001");
+        dto.setIdentifier("Lays In-001");
         List<Stock> stocks = List.of(stock);
         List<StockDto> dtos = List.of(dto);
         Mockito.when(stockRepository.findAll()).thenReturn(stocks);
-        Mockito.when(modelMapper.map(Mockito.eq(stocks), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<StockDto> response = stockService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(stocks), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<StockDto> response = stockService.findAll(null);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Lays In-001", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

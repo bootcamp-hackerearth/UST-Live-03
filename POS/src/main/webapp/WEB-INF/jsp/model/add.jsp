@@ -118,13 +118,16 @@
         <div class="message">${message}</div>
     </c:if>
     <form method="post" action="${pageContext.request.contextPath}/model/add">
-      <div class="form-group">
-          <label>Identifier</label>
-          <input type="text"
+        <!-- Hidden ID (for edit use-case) -->
+        <input type="hidden" name="identifier" value="${modelDto.identifier}" />
+        <div class="form-group">
+            <label>Identifier</label>
+            <input type="text"
                  name="identifier"
                  value="${modelDto.identifier}"
                  placeholder="Enter model identifier"
-                 required />
+                 required
+            />
         </div>
         <div class="form-group">
             <label>Model Name</label>
@@ -132,7 +135,8 @@
                  name="name"
                  value="${modelDto.name}"
                  placeholder="Enter model name"
-                 required/>
+                 required
+            />
         </div>
         <button type="submit" class="btn-submit">
             Save Model

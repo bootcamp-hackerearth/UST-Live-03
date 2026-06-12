@@ -1,6 +1,7 @@
 package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -40,6 +41,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto save(UserDto userDto) {
         String username = userDto.getUsername();
+        userDto.setIdentifier(username);
         User existingUser = userRepository.findByUsername(username);
         if (existingUser != null) {
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
@@ -74,18 +76,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(String username) {
-        userRepository.deleteByUsername(username);
+    public void delete(String identifier) {
+        userRepository.deleteByUsername(identifier);
     }
 
+
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<UserDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(userRepository.findAll(),listType);
+    public PaginationResponseDto<UserDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<UserDto>>() {}.getType();
+        PaginationResponseDto<UserDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<User> users = userRepository.findAll();
+            response.setDtoList(modelMapper.map(users, listType));
+            response.setTotalRecords((long) users.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(users.size());
+            response.setPage(0);
+        } else {
+            Page<User> userPage = userRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(userPage.getContent(), listType));
+            response.setTotalRecords(userPage.getTotalElements());
+            response.setTotalPages(userPage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listType);
+        return response;
     }
 }

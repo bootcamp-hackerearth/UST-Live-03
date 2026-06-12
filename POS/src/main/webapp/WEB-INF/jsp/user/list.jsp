@@ -7,6 +7,7 @@
     <title>User Management</title>
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
     <style>
@@ -116,13 +117,30 @@
             border-radius: 6px;
         }
 
+        .register-btn {
+            background-color:  #4B2E2B;
+            color: #FFF8F0;
+            border: none;
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
         .btn-delete {
-            background-color: #4B2E2B;
+            background-color: #8d3c36;
             color: #FFF8F0;
         }
 
         .btn-delete:hover {
-            background-color: #3a2421;
+            background-color: #702f2a;
+            color: #FFF8F0;
+        }
+
+        .register-btn:hover {
+            background-color: #4B2E2B;
             color: #FFF8F0;
         }
 
@@ -130,25 +148,13 @@
             font-size: 13px;
             color: #FFF8F0;
         }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="card">
         <div class="card-body">
-            <div class="page-header">
-                <h3 class="mb-0">User Management</h3>
-                <a href="/" class="btn btn-secondary">
-                    Home
-                </a>
-            </div>
+            <h3 class="text-center mb-4">User Management</h3>
             <c:if test="${empty users}">
                 <div class="alert alert-warning text-center">
                     No users found
@@ -175,14 +181,14 @@
                                 <td>${user.phoneNo}</td>
                                 <td>${user.roles}</td>
                                 <td>
-                                    <a href="/user/get?username=${user.username}"
+                                    <a href="/user/get?identifier=${user.identifier}"
                                        class="btn-edit btn-icon"
                                        title="Edit User">
                                        <i class="fa-solid fa-pen"></i>
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="/user/delete?username=${user.username}"
+                                    <a href="/user/delete?identifier=${user.identifier}"
                                        class="btn-delete btn-icon"
                                        title="Delete User"
                                        onclick="return confirm('Are you sure you want to delete this user?');">
@@ -197,7 +203,15 @@
             </c:if>
         </div>
         <div class="card-footer text-center">
-            <div class="text-muted small">
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/" class="btn btn-secondary">
+                    Home
+                </a>
+                <a href="/register" class="register-btn">
+                            Register
+                </a>
+            </div>
+            <div class="text-muted small mt-2">
                 User Management System
             </div>
         </div>

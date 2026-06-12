@@ -32,14 +32,21 @@ public class TokenGenerationController {
     @Autowired
     private UserService userService;
 
+
     @PostMapping("/api/authenticate")
-    @ResponseBody
     public UserDto authenticate(@RequestBody UserDto userDto) {
         try {
-            authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
+            authenticationProvider.authenticate(
+                    new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword())
+            );
+            UserDto persistedUser = userService.findByUserName(userDto.getUsername());
             UserDetails userDetails = userDetailsService.loadUserByUsername(userDto.getUsername());
             final String token = jwtUtility.generateToken(userDetails);
-            return new UserDto(token);
+
+            UserDto response = new UserDto(token);
+            response.setUsername(persistedUser.getUsername());
+            response.setRoles(persistedUser.getRoles());
+            return response;
         } catch (Exception e) {
             return new UserDto("Error");
         }
@@ -47,7 +54,7 @@ public class TokenGenerationController {
 
     @PostMapping("/api/validateToken")
     @ResponseBody
-    public Boolean validateToken(@RequestBody UserDto jwtRequest) {
+    public boolean validateToken(@RequestBody UserDto jwtRequest) {
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(jwtRequest.getUsername());
             return jwtUtility.validateToken(jwtRequest.getToken(), userDetails);

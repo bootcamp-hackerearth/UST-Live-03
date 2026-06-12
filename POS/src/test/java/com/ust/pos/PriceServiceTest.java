@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
@@ -58,11 +59,10 @@ class PriceServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Price> pricePage = new PageImpl<>(prices);
         Mockito.when(priceRepository.findAll(pageable)).thenReturn(pricePage);
-        Mockito.when(modelMapper.map(Mockito.eq(prices), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<PriceDto> response = priceService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("P001", response.get(0).getIdentifier());
+        Mockito.when(modelMapper.map(Mockito.eq(prices), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<PriceDto> response = priceService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("P001", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -74,11 +74,12 @@ class PriceServiceTest {
         List<Price> prices = List.of(price);
         List<PriceDto> dtos = List.of(dto);
         Mockito.when(priceRepository.findAll()).thenReturn(prices);
-        Mockito.when(modelMapper.map(Mockito.eq(prices), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<PriceDto> response = priceService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(prices), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<PriceDto> response = priceService.findAll(null);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("P001", response.getDtoList().get(0).getIdentifier());
     }
+
 
     @Test
     void updateTest() {

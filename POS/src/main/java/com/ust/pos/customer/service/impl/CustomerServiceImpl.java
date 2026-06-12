@@ -4,6 +4,7 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import jakarta.transaction.Transactional;
@@ -36,6 +37,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDto findByIdentifier(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
         if (customer == null) {
+
             return null;
         }
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
@@ -119,13 +121,24 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CustomerDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(customerRepository.findAll(),listType);
+    public PaginationResponseDto<CustomerDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
+        PaginationResponseDto<CustomerDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Customer> customers = customerRepository.findAll();
+            response.setDtoList(modelMapper.map(customers, listType));
+            response.setTotalRecords((long) customers.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(customers.size());
+            response.setPage(0);
+        } else {
+            Page<Customer> customerPage = customerRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+            response.setTotalRecords(customerPage.getTotalElements());
+            response.setTotalPages(customerPage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        return response;
     }
 }

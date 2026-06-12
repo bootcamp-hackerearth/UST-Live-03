@@ -6,114 +6,136 @@
 <head>
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<title>Customer List</title>
+    <title>Customer List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body {
-            background-color: #FFF8F0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            padding-top: 40px;
+            min-height: 100vh;
+            background: #fff8f0;
+            font-family: 'Poppins', sans-serif;
         }
 
-        .container {
-            width: 90%;
-            margin: auto;
+        h4 {
+            color: #4a2e2b;
+            font-weight: 700;
         }
 
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .page-header h2 {
-            margin: 0;
-            color: #4B2E2B;
-            font-weight: 600;
-        }
-
-        .register-btn {
-            background-color: #4B2E2B;
-            color: #FFF8F0;
-            border: none;
-            padding: 8px 18px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .register-btn:hover {
-            background-color: #3a2421;
-            color: #FFF8F0;
-        }
-
-        .btn-secondary {
-            background-color: #4B2E2B;
-            color: #FFF8F0;
-            border: none;
-            padding: 8px 18px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-secondary:hover {
-            background-color: #3a2421;
-            color: #FFF8F0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .table-wrapper {
+            background: #efe3d9;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(75, 46, 43, 0.15);
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.15);
         }
 
-        th {
-            background-color: #4B2E2B;
-            color: #FFF8F0;
-            padding: 14px;
-            font-size: 13px;
-            text-transform: uppercase;
+        .table {
+            margin-bottom: 0;
+            background: transparent;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
-        td {
-            padding: 14px;
+        .table thead th {
+            background: #4a2e2b;
+            color: #fff8f0;
+            font-weight: 600;
+            padding: 14px 16px;
             text-align: center;
-            font-size: 14px;
+            vertical-align: middle;
+            border: none;
         }
 
-        tr:nth-child(even) {
-            background-color: #efe4dc;
+        .table tbody tr {
+            background: #fff8f0;
+            height: 68px;
         }
 
-        tr:hover {
-            background-color: #f7ebe4;
+        .table tbody tr:nth-child(even) {
+            background: #eadfd6;
         }
 
-        .btn {
-            background-color: #6b4a46;
-            color: #FFF8F0;
+        .table td {
+            vertical-align: middle !important;
+            text-align: center;
+            padding: 12px 16px;
+            border: none;
+            line-height: 1.4;
+        }
+
+        .table td:nth-child(4) {
+            white-space: nowrap;
+        }
+
+        .table td:nth-child(5) {
+            word-break: break-word;
+        }
+
+        .table td:nth-child(7) {
+            white-space: nowrap;
+        }
+
+        .table td:last-child {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .btn-sm {
+            height: 36px;
+            min-width: 36px;
+            padding: 0 14px;
             border-radius: 10px;
-            padding: 6px 14px;
-            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 500;
         }
 
-        .btn:hover {
+        .btn-info {
+            background-color: #8b5e59;
+            color: #fff8f0;
+            border: none;
+        }
+
+        .btn-info:hover {
+            background-color: #6f4844;
+        }
+
+        .btn-success {
+            background-color: #6b4a46;
+            color: #fff8f0;
+            border: none;
+        }
+
+        .btn-success:hover {
             background-color: #543835;
         }
 
-        .action-cell {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
+        .btn-danger {
+            background-color: #6b4a46;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #543835;
+        }
+
+        .btn-secondary,
+        .btn-primary {
+            background-color: #6b4a46;
+            color: #fff8f0;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 22px;
+        }
+
+        .btn-secondary:hover,
+        .btn-primary:hover {
+            background-color: #543835;
         }
 
         .switch {
@@ -156,97 +178,100 @@
         input:checked + .slider:before {
             transform: translateX(24px);
         }
-
-        @media (max-width: 900px) {
-            .page-header {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="page-header">
-        <h2>Customer Management</h2>
-        <div>
-            <a href="/customer/add" class="register-btn">
-                <i class="fa-solid fa-plus"></i> Add Customer
-            </a>
-            <a href="/" class="btn-secondary">
-                Home
-            </a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <h4 class="text-center mb-4">List of Customers</h4>
+            <c:if test="${not empty message}">
+                <div id="customToast" class="custom-toast">
+                    ${message}
+                </div>
+                <c:remove var="message" scope="session"/>
+            </c:if>
+            <c:if test="${empty customers}">
+                <div class="alert alert-warning text-center">
+                    No customers found
+                </div>
+            </c:if>
+            <c:if test="${not empty customers}">
+                <div class="table-wrapper">
+                    <table class="table align-middle">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer Name</th>
+                            <th>Party Type</th>
+                            <th>Balance</th>
+                            <th>Email</th>
+                            <th>Party Credit Limit</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <c:forEach var="customer" items="${customers}">
+                            <tr>
+                                <td>${customer.id}</td>
+                                <td>${customer.name}</td>
+                                <td>${customer.partyType}</td>
+                                <td>${customer.balance} ${customer.balanceType}</td>
+                                <td>${customer.email}</td>
+                                <td>${customer.creditLimit}</td>
+                                <td class="text-center">
+                                    <form action="${pageContext.request.contextPath}/customer/toggleStatus" method="post">
+                                        <input type="hidden" name="identifier" value="${customer.identifier}"/>
+                                            <label class="switch">
+                                                <input type="checkbox" onchange="this.form.submit()"
+                                                    <c:if test="${customer.status}">checked</c:if>>
+                                                    <span class="slider"></span>
+                                            </label>
+                                    </form>
+                                    <small class="text-primary">
+                                        <c:choose>
+                                            <c:when test="${customer.status}">Active</c:when>
+                                            <c:otherwise>Inactive</c:otherwise>
+                                        </c:choose>
+                                    </small>
+                                </td>
+                                <td class="d-flex justify-content-center gap-2">
+                                    <a href="/customer/get?identifier=${customer.identifier}"
+                                       class="btn btn-success btn-sm"
+                                       title = "Edit Customer">
+                                       <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                    <a href="/customer/delete?identifier=${customer.identifier}"
+                                       class="btn btn-danger btn-sm"
+                                       onclick="return confirm('Are you sure you want to delete this customer?');"
+                                       title = "Delete Customer">
+                                       <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:if>
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                <a href="/" class="btn btn-secondary">Home</a>
+                <a href="/customer/add" class="btn btn-primary">+ Add New Customer</a>
+            </div>
         </div>
     </div>
-    <c:if test="${not empty message}">
-        <div style="text-align:center; color:green; margin-bottom:10px;">
-            ${message}
-        </div>
-        <c:remove var="message" scope="session"/>
-    </c:if>
-    <c:if test="${empty customers}">
-        <div style="text-align:center; color:#4B2E2B;">
-            No customers found
-        </div>
-    </c:if>
-    <c:if test="${not empty customers}">
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Customer Name</th>
-                <th>Party Type</th>
-                <th>Balance</th>
-                <th>Email</th>
-                <th>Credit Limit</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-            <c:forEach var="customer" items="${customers}">
-                <tr>
-                    <td>${customer.id}</td>
-                    <td>${customer.name}</td>
-                    <td>${customer.partyType}</td>
-                    <td>${customer.balance} ${customer.balanceType}</td>
-                    <td>${customer.email}</td>
-                    <td>${customer.creditLimit}</td>
-                    <td>
-                        <form action="${pageContext.request.contextPath}/customer/toggleStatus" method="post">
-                            <input type="hidden" name="identifier" value="${customer.identifier}"/>
-                            <label class="switch">
-                                <input type="checkbox"
-                                       onchange="this.form.submit()"
-                                       <c:if test="${customer.status}">checked</c:if>>
-                                <span class="slider"></span>
-                            </label>
-                        </form>
-                        <small>
-                            <c:choose>
-                                <c:when test="${customer.status}">
-                                    Active
-                                </c:when>
-                                <c:otherwise>
-                                    Inactive
-                                </c:otherwise>
-                            </c:choose>
-                        </small>
-                    </td>
-                    <td class="action-cell">
-                        <a href="/customer/get?identifier=${customer.identifier}"
-                           class="btn"
-                           title="Edit Customer">
-                           <i class="fa-solid fa-pen"></i>
-                        </a>
-                        <a href="/customer/delete?identifier=${customer.identifier}"
-                           class="btn"
-                           onclick="return confirm('Are you sure you want to delete this customer?');"
-                           title="Delete Customer">
-                           <i class="fa-solid fa-trash"></i>
-                        </a>
-                    </td>
-                </tr>
-            </c:forEach>
-        </table>
-    </c:if>
 </div>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+    const toast = document.getElementById("customToast");
+    if (toast) {
+        setTimeout(() => {
+            toast.classList.add("hide");
+            setTimeout(() => toast.remove(), 400);
+        }, 3500);
+    }
+});
+</script>
 </body>
 </html>

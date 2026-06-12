@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
@@ -42,7 +43,7 @@ class RackServiceTest {
         Mockito.when(rackRepository.save(rack)).thenReturn(rack);
         RackDto response = rackService.save(rackDto);
         Assertions.assertEquals("Rack1", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess()); // remains null unless set inside service
+        Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
@@ -68,11 +69,10 @@ class RackServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Rack> rackPage = new PageImpl<>(racks);
         Mockito.when(rackRepository.findAll(pageable)).thenReturn(rackPage);
-        Mockito.when(modelMapper.map(Mockito.eq(racks), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<RackDto> response = rackService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Rack1", response.get(0).getIdentifier());
+        Mockito.when(modelMapper.map(Mockito.eq(racks), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<RackDto> response = rackService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Rack1", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -84,10 +84,10 @@ class RackServiceTest {
         List<Rack> racks = List.of(rack);
         List<RackDto> dtos = List.of(dto);
         Mockito.when(rackRepository.findAll()).thenReturn(racks);
-        Mockito.when(modelMapper.map(Mockito.eq(racks), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<RackDto> response = rackService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(racks), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<RackDto> response = rackService.findAll(null);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Rack1", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

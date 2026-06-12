@@ -1,5 +1,6 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -62,12 +63,6 @@
             border: 1px solid #ccb7b2;
             border-radius: 6px;
             font-size: 14px;
-            background-color: #ffffff;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #4B2E2B;
         }
 
         .multi-role-box {
@@ -80,10 +75,10 @@
         }
 
         .role-item {
-            display: block;
+            display: flex;
+            align-items: center;
             font-size: 14px;
             margin-bottom: 6px;
-            cursor: pointer;
             color: #4B2E2B;
             font-weight: 500;
         }
@@ -93,7 +88,7 @@
             accent-color: #4B2E2B;
         }
 
-        .btn {
+        .btn-save {
             padding: 12px;
             width: 100%;
             font-size: 15px;
@@ -101,9 +96,6 @@
             border: none;
             cursor: pointer;
             font-weight: 600;
-        }
-
-        .btn-save {
             background-color: #4B2E2B;
             color: #FFF8F0;
         }
@@ -141,18 +133,24 @@
                 <td>
                     <div class="multi-role-box">
                         <c:forEach items="${roles}" var="role">
-                            <label class="role-item">
+                            <div class="role-item">
                                 <input type="checkbox"
+                                       id="role_${role.identifier}"
                                        name="roles"
-                                       value="${role.identifier}">
-                                ${role.identifier}
-                            </label>
+                                       value="${role.identifier}"
+                                       <c:if test="${fn:contains(node.roles, role.identifier)}">
+                                           checked
+                                       </c:if> />
+                                <label for="role_${role.identifier}">
+                                    ${role.identifier}
+                                </label>
+                            </div>
                         </c:forEach>
                     </div>
                 </td>
             </tr>
         </table>
-        <input type="submit" name="save" value="Save" class="btn btn-save">
+        <input type="submit" value="Save" class="btn-save">
     </form>
 </div>
 </body>

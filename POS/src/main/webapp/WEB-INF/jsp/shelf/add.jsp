@@ -125,7 +125,8 @@
                     name="identifier"
                     value="${shelfDto.identifier}"
                     placeholder="Enter shelf identifier"
-                    required/>
+                    required
+                />
         </div>
         <div class="form-group">
             <label>Shelf Name</label>
@@ -133,7 +134,8 @@
                     name="name"
                     value="${shelfDto.name}"
                     placeholder="Enter shelf name"
-                    required/>
+                    required
+                />
         </div>
         <button type="submit" class="btn-submit">Save Shelf</button>
         <div class="back-center">

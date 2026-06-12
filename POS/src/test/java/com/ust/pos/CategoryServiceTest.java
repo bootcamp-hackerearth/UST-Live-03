@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -110,9 +111,9 @@ class CategoryServiceTest {
         Page<Category> categoryPage = new PageImpl<>(categorys);
         Mockito.when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
         Mockito.when(modelMapper.map(Mockito.eq(categorys), Mockito.any(Type.class))).thenReturn(dtos);
-        List<CategoryDto> response = categoryService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Chips", response.get(0).getIdentifier());
+        PaginationResponseDto<CategoryDto> response = categoryService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Chips", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -125,8 +126,10 @@ class CategoryServiceTest {
         List<CategoryDto> dtos = List.of(dto);
         Mockito.when(categoryRepository.findAll()).thenReturn(categorys);
         Mockito.when(modelMapper.map(Mockito.eq(categorys), Mockito.any(Type.class))).thenReturn(dtos);
-        List<CategoryDto> response = categoryService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        PaginationResponseDto<CategoryDto> response = categoryService.findAll(null);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Chips", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

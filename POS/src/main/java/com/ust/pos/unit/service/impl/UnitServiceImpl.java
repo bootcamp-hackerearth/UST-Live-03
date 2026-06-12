@@ -1,5 +1,6 @@
 package com.ust.pos.unit.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
@@ -41,15 +42,27 @@ public class UnitServiceImpl implements UnitService {
         return unitDto;
     }
 
+
     @Override
-    public List<UnitDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<UnitDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(unitRepository.findAll(),listType);
+    public PaginationResponseDto<UnitDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
+        PaginationResponseDto<UnitDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Unit> units = unitRepository.findAll();
+            response.setDtoList(modelMapper.map(units, listType));
+            response.setTotalRecords((long) units.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(units.size());
+            response.setPage(0);
+        } else {
+            Page<Unit> unitPage = unitRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(unitPage.getContent(), listType));
+            response.setTotalRecords(unitPage.getTotalElements());
+            response.setTotalPages(unitPage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Unit> unitPage = unitRepository.findAll(pageable);
-        return modelMapper.map(unitPage.getContent(), listType);
+        return response;
     }
 
     @Override
@@ -65,7 +78,8 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public UnitDto update(UnitDto unitDto) {
-        Unit existingUnit = unitRepository.findByIdentifier(unitDto.getIdentifier());
+        Unit existingUnit =
+                unitRepository.findByIdentifier(unitDto.getIdentifier());
         if (existingUnit == null) {
             unitDto.setMessage(
                     "Unit with identifier - " + unitDto.getIdentifier() + " not found"

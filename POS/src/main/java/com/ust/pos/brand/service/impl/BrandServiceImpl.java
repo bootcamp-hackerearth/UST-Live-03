@@ -2,6 +2,7 @@ package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import jakarta.transaction.Transactional;
@@ -20,10 +21,10 @@ import java.util.List;
 public class BrandServiceImpl implements BrandService {
 
     @Autowired
-    private BrandRepository brandRepository;
+    BrandRepository brandRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
 
     @Override
     public BrandDto save(BrandDto brandDto) {
@@ -39,14 +40,25 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<BrandDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(brandRepository.findAll(),listType);
+    public PaginationResponseDto<BrandDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<BrandDto>>() {}.getType();
+        PaginationResponseDto<BrandDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Brand> brands = brandRepository.findAll();
+            response.setDtoList(modelMapper.map(brands, listType));
+            response.setTotalRecords((long) brands.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(brands.size());
+            response.setPage(0);
+        } else {
+            Page<Brand> brandPage = brandRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(brandPage.getContent(), listType));
+            response.setTotalRecords(brandPage.getTotalElements());
+            response.setTotalPages(brandPage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Brand> brandPage = brandRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+        return response;
     }
 
     @Override
@@ -78,7 +90,7 @@ public class BrandServiceImpl implements BrandService {
     public BrandDto toggleStatus(String identifier, boolean status) {
         Brand brand = brandRepository.findByIdentifier(identifier);
         if (brand != null) {
-            brand.setStatus(!brand.isStatus()); 
+            brand.setStatus(!brand.isStatus());
             brandRepository.save(brand);
         }
         return modelMapper.map(brand, BrandDto.class);

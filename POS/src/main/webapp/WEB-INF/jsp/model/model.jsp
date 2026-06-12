@@ -123,14 +123,16 @@
                  name="identifier"
                  value="${model.identifier}"
                  required
-                 readonly/>
+            />
         </div>
+        <!-- Model Name -->
         <div class="form-group">
             <label>Model Name</label>
             <input type="text"
                  name="name"
                  value="${model.name}"
-                 required/>
+                 required
+            />
         </div>
         <input type="hidden" name="status" value="${model.status}" />
         <div class="btn-group">

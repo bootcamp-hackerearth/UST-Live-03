@@ -1,5 +1,6 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
@@ -41,14 +42,25 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<PriceDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(priceRepository.findAll(),listType);
+    public PaginationResponseDto<PriceDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<PriceDto>>() {}.getType();
+        PaginationResponseDto<PriceDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Price> prices = priceRepository.findAll();
+            response.setDtoList(modelMapper.map(prices, listType));
+            response.setTotalRecords((long) prices.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(prices.size());
+            response.setPage(0);
+        } else {
+            Page<Price> pricePage = priceRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+            response.setTotalRecords(pricePage.getTotalElements());
+            response.setTotalPages(pricePage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+        return response;
     }
 
     @Override
@@ -67,7 +79,11 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-        return modelMapper.map(priceRepository.findByIdentifier(identifier), PriceDto.class);
+        Price price=priceRepository.findByIdentifier(identifier);
+        if(price==null){
+            return null;
+        }
+        return modelMapper.map(price, PriceDto.class);
     }
 
     @Override

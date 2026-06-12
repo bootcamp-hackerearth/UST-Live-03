@@ -118,6 +118,7 @@
         <div class="message">${message}</div>
     </c:if>
     <form method="post" action="${pageContext.request.contextPath}/unit/add">
+        <!-- ID (hidden for edit use later) -->
         <input type="hidden" name="id" value="${unitDto.id}" />
         <div class="form-group">
             <label>Unit Name</label>
@@ -125,7 +126,8 @@
                 name="identifier"
                 value="${unitDto.identifier}"
                 placeholder="Enter unit identifier"
-                required/>
+                required
+            />
         </div>
         <button type="submit" class="btn-submit">Save Unit</button>
         <div class="back-center">

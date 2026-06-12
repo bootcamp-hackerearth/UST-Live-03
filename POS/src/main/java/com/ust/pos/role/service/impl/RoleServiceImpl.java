@@ -1,6 +1,6 @@
 package com.ust.pos.role.service.impl;
 
-import com.ust.pos.dao.RoleDao;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
@@ -25,9 +25,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private RoleDao roleDao;
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
@@ -74,17 +71,29 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void delete(String identifier) {
-        roleDao.deleteByIdentifier(identifier);
+        roleRepository.deleteByIdentifier(identifier);
     }
 
+
     @Override
-    public List<RoleDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<RoleDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(roleRepository.findAll(),listType);
+    public PaginationResponseDto<RoleDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+        PaginationResponseDto<RoleDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Role> roles = roleRepository.findAll();
+            response.setDtoList(modelMapper.map(roles, listType));
+            response.setTotalRecords((long) roles.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(roles.size());
+            response.setPage(0);
+        } else {
+            Page<Role> rolePage = roleRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+            response.setTotalRecords(rolePage.getTotalElements());
+            response.setTotalPages(rolePage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Role> rolePage = roleRepository.findAll(pageable);
-        return modelMapper.map(rolePage.getContent(), listType);
+        return response;
     }
 }

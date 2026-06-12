@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
@@ -108,11 +109,10 @@ class RoleServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Role> rolePage = new PageImpl<>(roles);
         Mockito.when(roleRepository.findAll(pageable)).thenReturn(rolePage);
-        Mockito.when(modelMapper.map(Mockito.eq(roles), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<RoleDto> response = roleService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
+        Mockito.when(modelMapper.map(Mockito.eq(roles), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<RoleDto> response = roleService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -124,10 +124,11 @@ class RoleServiceTest {
         List<Role> roles = List.of(role);
         List<RoleDto> dtos = List.of(dto);
         Mockito.when(roleRepository.findAll()).thenReturn(roles);
-        Mockito.when(modelMapper.map(Mockito.eq(roles), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<RoleDto> response = roleService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(roles), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<RoleDto> response = roleService.findAll(null);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

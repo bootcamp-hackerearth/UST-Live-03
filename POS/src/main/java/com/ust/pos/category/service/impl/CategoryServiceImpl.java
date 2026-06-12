@@ -2,6 +2,7 @@ package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import io.micrometer.common.util.StringUtils;
@@ -27,14 +28,25 @@ public class CategoryServiceImpl implements CategoryService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CategoryDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(categoryRepository.findAll(),listType);
+    public PaginationResponseDto<CategoryDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
+        PaginationResponseDto<CategoryDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Category> categorys = categoryRepository.findAll();
+            response.setDtoList(modelMapper.map(categorys, listType));
+            response.setTotalRecords((long) categorys.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(categorys.size());
+            response.setPage(0);
+        } else {
+            Page<Category> categoryPage = categoryRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+            response.setTotalRecords(categoryPage.getTotalElements());
+            response.setTotalPages(categoryPage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+        return response;
     }
 
     @Override

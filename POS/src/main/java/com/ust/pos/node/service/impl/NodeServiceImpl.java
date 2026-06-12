@@ -1,6 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
@@ -59,13 +60,25 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public PaginationResponseDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {}.getType();
-        if(pageable == null){
-            return modelMapper.map(nodeRepository.findAll(),listType);
+        PaginationResponseDto<NodeDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Node> nodes = nodeRepository.findAll();
+            response.setDtoList(modelMapper.map(nodes, listType));
+            response.setTotalRecords((long) nodes.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(nodes.size());
+            response.setPage(0);
+        } else {
+            Page<Node> nodePage = nodeRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+            response.setTotalRecords(nodePage.getTotalElements());
+            response.setTotalPages(nodePage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+        return response;
     }
 
     @Override
@@ -105,5 +118,6 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public NodeDto findByIdentifier(String identifier) {
         return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+
     }
 }

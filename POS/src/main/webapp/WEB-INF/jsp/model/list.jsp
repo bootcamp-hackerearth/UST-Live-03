@@ -25,52 +25,18 @@
             box-shadow: 0 14px 35px rgba(0, 0, 0, 0.15);
         }
 
-        .page-header {
+        .top-bar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
-        .page-header h2 {
-            margin: 0;
-            color: #4B2E2B;
-            font-weight: 600;
-        }
-
-        .register-btn {
-            background-color: #4B2E2B;
-            color: #FFF8F0;
-            border: none;
-            padding: 8px 18px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .register-btn:hover {
-            background-color: #3a2421;
-            color: #FFF8F0;
-        }
-
-        .btn-secondary {
-            background-color: #4B2E2B;
-            color: #FFF8F0;
-            border: none;
-            padding: 8px 18px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-secondary:hover {
-            background-color: #3a2421;
-            color: #FFF8F0;
+        h2 {
+            text-align: center;
+            margin: 20px 0 30px;
+            color: #4a2e2b;
+            font-size: 24px;
+            font-weight: 700;
         }
 
         .btn {
@@ -90,23 +56,23 @@
         }
 
         .btn:hover {
-            background-color: #3a2421;
+            background-color: #543835;
         }
 
         .btn-edit {
-            background-color: #4B2E2B;
+            background-color: #6b4a46;
         }
 
         .btn-edit:hover {
-            background-color: #3a2421;
+            background-color: #543835;
         }
 
         .btn-delete {
-            background-color: #4B2E2B;
+            background-color: #6b4a46;
         }
 
         .btn-delete:hover {
-            background-color: #3a2421;
+            background-color: #543835;
         }
 
         table {
@@ -151,7 +117,7 @@
             vertical-align: middle;
         }
 
-        td:nth-child(4) form {
+        td:nth-child(3) form {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -210,30 +176,17 @@
         input:checked + .slider:before {
             transform: translateX(24px);
         }
-
-        @media (max-width: 900px) {
-            .page-header {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="page-header">
-        <h2>Model Management</h2>
-        <div>
-            <a href="${pageContext.request.contextPath}/model/add"
-               class="register-btn">
-                <i class="fa-solid fa-plus"></i> Add Model
-            </a>
-            <a href="${pageContext.request.contextPath}/"
-               class="btn-secondary">
-                Home
-            </a>
-        </div>
+    <div class="top-bar">
+        <a href="${pageContext.request.contextPath}/" class="btn">Home</a>
+        <a href="${pageContext.request.contextPath}/model/add" class="btn">
+            + Add Model
+        </a>
     </div>
+    <h2>Model List</h2>
     <table>
         <tr>
             <th>ID</th>
@@ -244,39 +197,35 @@
         </tr>
         <c:forEach var="model" items="${models}">
             <tr>
-                <td>${model.id}</td>
-                <td>${model.identifier}</td>
-                <td>${model.name}</td>
-                <td class="text-center">
-                    <form action="${pageContext.request.contextPath}/model/toggleStatus"
-                          method="post">
-                        <input type="hidden"
-                               name="identifier"
-                               value="${model.identifier}"/>
-                        <label class="switch">
-                            <input type="checkbox"
-                                   onchange="this.form.submit()"
-                                   <c:if test="${model.status}">checked</c:if>>
-                            <span class="slider"></span>
-                        </label>
-                    </form>
-                    <small class="text-primary">
-                        <c:choose>
-                            <c:when test="${model.status}">Active</c:when>
-                            <c:otherwise>Inactive</c:otherwise>
-                        </c:choose>
-                    </small>
-                </td>
+                 <td>${model.id}</td>
+                 <td>${model.identifier}</td>
+                 <td>${model.name}</td>
+                 <td class="text-center">
+                     <form action="${pageContext.request.contextPath}/model/toggleStatus" method="get">
+                         <input type="hidden" name="identifier" value="${model.identifier}"/>
+                             <label class="switch">
+                                 <input type="checkbox" onchange="this.form.submit()"
+                                     <c:if test="${model.status}">checked</c:if>>
+                                     <span class="slider"></span>
+                             </label>
+                     </form>
+                     <small class="text-primary">
+                         <c:choose>
+                             <c:when test="${model.status}">Active</c:when>
+                             <c:otherwise>Inactive</c:otherwise>
+                         </c:choose>
+                     </small>
+                 </td>
                 <td class="action-cell">
                     <a href="${pageContext.request.contextPath}/model/get?identifier=${model.identifier}"
                        class="btn btn-edit"
-                       title="Edit Model">
+                       title = "Edit Model">
                        <i class="fa-solid fa-pen"></i>
                     </a>
                     <a href="${pageContext.request.contextPath}/model/delete?identifier=${model.identifier}"
                        class="btn btn-delete"
                        onclick="return confirm('Are you sure you want to delete this model?');"
-                       title="Delete Model">
+                       title = "Delete Model">
                        <i class="fa-solid fa-trash"></i>
                     </a>
                 </td>

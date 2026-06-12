@@ -65,9 +65,9 @@ public class ModelController extends BaseController {
         return REDIRECT_MODEL_LIST;
     }
 
-    @PostMapping("/toggleStatus")
-    public String toggleStatus(@RequestParam String identifier, boolean status) {
-        modelService.toggleStatus(identifier,status);
-        return REDIRECT_MODEL_LIST;
+    @PostMapping("/toggle")
+    @ResponseBody
+    public ModelDto toggleStatus(@RequestBody ModelDto modelDto) {
+        return modelService.toggleStatus(modelDto.getIdentifier(), modelDto.isStatus());
     }
 }

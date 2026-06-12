@@ -5,10 +5,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Home</title>
-<link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
     <style>
         body {
             margin: 0;
@@ -16,7 +17,6 @@
             background: linear-gradient(120deg, #f5ede6, #e8d8c8);
             display: flex;
             height: 100vh;
-            overflow: hidden;
         }
 
         .sidebar {
@@ -30,23 +30,6 @@
             box-shadow: 6px 0 30px rgba(0, 0, 0, 0.3);
             overflow-y: auto;
             overflow-x: hidden;
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: #2b1a18;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #8a6b5f;
-            border-radius: 10px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #b38b7d;
         }
 
         .sidebar a {
@@ -102,8 +85,6 @@
 
         .nav-logout:hover {
             background: #8f2f2c;
-            color: white;
-            text-decoration: none;
             transform: scale(1.05);
         }
 
@@ -111,8 +92,7 @@
             margin-left: 240px;
             margin-top: 65px;
             padding: 60px;
-            width: calc(100% - 240px);
-            overflow-y: auto;
+            width: 100%;
         }
 
         .dashboard-card {

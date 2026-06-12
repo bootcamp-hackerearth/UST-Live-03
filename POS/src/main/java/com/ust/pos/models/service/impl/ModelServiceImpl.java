@@ -1,6 +1,7 @@
 package com.ust.pos.models.service.impl;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.ModelService;
@@ -20,10 +21,10 @@ import java.util.List;
 public class ModelServiceImpl implements ModelService {
 
     @Autowired
-    private ModelRepository modelRepository;
+    ModelRepository modelRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
 
     @Override
     public ModelDto save(ModelDto modelDto) {
@@ -38,15 +39,27 @@ public class ModelServiceImpl implements ModelService {
         return modelDto;
     }
 
+
     @Override
-    public List<ModelDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ModelDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(modelRepository.findAll(),listType);
+    public PaginationResponseDto<ModelDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<ModelDto>>() {}.getType();
+        PaginationResponseDto<ModelDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Model> models = modelRepository.findAll();
+            response.setDtoList(modelMapper.map(models, listType));
+            response.setTotalRecords((long) models.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(models.size());
+            response.setPage(0);
+        } else {
+            Page<Model> modelPage = modelRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(modelPage.getContent(), listType));
+            response.setTotalRecords(modelPage.getTotalElements());
+            response.setTotalPages(modelPage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Model> modelPage = modelRepository.findAll(pageable);
-        return modelMapper.map(modelPage.getContent(), listType);
+        return response;
     }
 
     @Override
@@ -76,11 +89,16 @@ public class ModelServiceImpl implements ModelService {
     @Override
     @Transactional
     public ModelDto toggleStatus(String identifier, boolean status) {
+        ModelDto response = new ModelDto();
         Model model = modelRepository.findByIdentifier(identifier);
-        if (model != null) {
-            model.setStatus(!model.isStatus());
-            modelRepository.save(model);
+        if (model == null) {
+            response.setSuccess(false);
+            response.setMessage("Model not found");
+            return response;
         }
-        return modelMapper.map(model, ModelDto.class);
+        model.setStatus(status);
+        response.setSuccess(true);
+        response.setMessage("Status updated successfully");
+        return response;
     }
 }

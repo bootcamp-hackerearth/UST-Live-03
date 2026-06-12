@@ -6,7 +6,7 @@
 <head>
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<title>Rack List</title>
+    <title>Rack List</title>
     <style>
         body {
             margin: 0;
@@ -28,30 +28,18 @@
         .top-bar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
-        .top-bar h2 {
-            margin: 0;
+        h2 {
+            text-align: center;
+            margin: 20px 0 30px;
             color: #4a2e2b;
             font-size: 24px;
             font-weight: 700;
         }
 
-        .top-buttons {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-width: 130px;
-            min-height: 42px;
             padding: 10px 18px;
             border-radius: 10px;
             border: none;
@@ -60,35 +48,31 @@
             cursor: pointer;
             text-decoration: none;
             color: #fff8f0;
-            background-color: #4B2E2B;
+            background-color: #6b4a46;
             transition: 0.2s ease;
-            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn:hover {
-            background-color: #3a2421;
+            background-color: #543835;
         }
 
         .btn-edit {
-            background-color: #;4B2E2B;
-            min-width: 42px;
-            min-height: 42px;
-            padding: 10px;
+            background-color: #6b4a46;
         }
 
         .btn-edit:hover {
-            background-color: #3a2421;
+            background-color: #543835;
         }
 
         .btn-delete {
-            background-color: #4B2E2B;
-            min-width: 42px;
-            min-height: 42px;
-            padding: 10px;
+            background-color: #96b4a46;
         }
 
         .btn-delete:hover {
-            background-color: #3a2421;
+            background-color: #543835;
         }
 
         table {
@@ -197,16 +181,12 @@
 <body>
 <div class="container">
     <div class="top-bar">
-        <h2>Rack List</h2>
-        <div class="top-buttons">
-            <a href="${pageContext.request.contextPath}/rack/add" class="btn">
-                <i class="fa-solid fa-plus"></i> Add Rack
-            </a>
-            <a href="${pageContext.request.contextPath}/" class="btn">
-                Home
-            </a>
-        </div>
+        <a href="${pageContext.request.contextPath}/" class="btn">Home</a>
+        <a href="${pageContext.request.contextPath}/rack/add" class="btn">
+            + Add Rack
+        </a>
     </div>
+    <h2>Rack List</h2>
     <table>
         <tr>
             <th>ID</th>
@@ -231,35 +211,35 @@
                     </c:forEach>
                 </td>
                 <td class="text-center">
-                    <form action="${pageContext.request.contextPath}/rack/toggleStatus" method="post">
-                        <input type="hidden" name="identifier" value="${rack.identifier}" />
-                        <input type="hidden" name="status" value="false" />
-                        <label class="switch">
-                            <input type="checkbox"
-                                   name="status"
-                                   value="true"
-                                   onchange="this.form.submit()"
-                                   <c:if test="${rack.status}">checked</c:if> />
-                            <span class="slider"></span>
-                        </label>
-                    </form>
-                    <small class="text-primary">
-                        <c:choose>
-                            <c:when test="${rack.status}">Active</c:when>
-                            <c:otherwise>Inactive</c:otherwise>
-                        </c:choose>
-                    </small>
+                     <form action="${pageContext.request.contextPath}/rack/toggleStatus" method="post">
+                         <input type="hidden" name="identifier" value="${rack.identifier}" />
+                         <input type="hidden" name="status" value="false" />
+                              <label class="switch">
+                                   <input type="checkbox"
+                                       name="status"
+                                       value="true"
+                                       onchange="this.form.submit()"
+                                       <c:if test="${rack.status}">checked</c:if> />
+                                       <span class="slider"></span>
+                              </label>
+                     </form>
+                     <small class="text-primary">
+                          <c:choose>
+                              <c:when test="${rack.status}">Active</c:when>
+                              <c:otherwise>Inactive</c:otherwise>
+                          </c:choose>
+                     </small>
                 </td>
                 <td class="action-cell">
                     <a href="${pageContext.request.contextPath}/rack/get?identifier=${rack.identifier}"
                        class="btn btn-edit"
-                       title="Edit Rack">
+                       title = "Edit Rack">
                        <i class="fa-solid fa-pen"></i>
                     </a>
                     <a href="${pageContext.request.contextPath}/rack/delete?identifier=${rack.identifier}"
                        class="btn btn-delete"
                        onclick="return confirm('Are you sure you want to delete this rack?');"
-                       title="Delete Rack">
+                       title = "Delete Rack">
                        <i class="fa-solid fa-trash"></i>
                     </a>
                 </td>

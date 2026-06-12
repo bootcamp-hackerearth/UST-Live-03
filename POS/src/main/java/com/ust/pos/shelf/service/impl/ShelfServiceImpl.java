@@ -1,5 +1,6 @@
 package com.ust.pos.shelf.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
@@ -20,10 +21,10 @@ import java.util.List;
 public class ShelfServiceImpl implements ShelfService {
 
     @Autowired
-    private ShelfRepository shelfRepository;
+    ShelfRepository shelfRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
 
     @Override
     public ShelfDto save(ShelfDto shelfDto) {
@@ -39,14 +40,24 @@ public class ShelfServiceImpl implements ShelfService {
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ShelfDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(shelfRepository.findAll(),listType);
+    public PaginationResponseDto<ShelfDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<ShelfDto>>() {}.getType();
+        PaginationResponseDto<ShelfDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Shelf> shelfs = shelfRepository.findAll();
+            response.setDtoList(modelMapper.map(shelfs, listType));
+            response.setTotalRecords((long) shelfs.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(shelfs.size());
+            response.setPage(0);
+        } else {
+            Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(shelfPage.getContent(), listType));
+            response.setTotalRecords(shelfPage.getTotalElements());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
-        return modelMapper.map(shelfPage.getContent(), listType);
+        return response;
     }
 
     @Override

@@ -108,49 +108,56 @@
             <input type="text" name="identifier"
                 value="${warehouseDto.identifier}"
                 placeholder="Enter warehouse identifier"
-                required/>
+                required
+            />
         </div>
         <div class="form-group">
             <label>Region</label>
             <input type="text" name="region"
                 value="${warehouseDto.region}"
                 placeholder="Enter region"
-                required/>
+                required
+            />
         </div>
         <div class="form-group">
             <label>City</label>
             <input type="text" name="city"
                 value="${warehouseDto.city}"
                 placeholder="Enter city"
-                required/>
+                required
+            />
         </div>
         <div class="form-group">
             <label>State</label>
             <input type="text" name="state"
                 value="${warehouseDto.state}"
                 placeholder="Enter state"
-                required/>
+                required
+            />
         </div>
         <div class="form-group">
             <label>Country</label>
             <input type="text" name="country"
                 value="${warehouseDto.country}"
                 placeholder="Enter country"
-                required/>
+                required
+            />
         </div>
         <div class="form-group">
             <label>Capacity</label>
             <input type="text" name="capacity"
                 value="${warehouseDto.capacity}"
                 placeholder="e.g. 10,000 sq.ft / 500 units"
-                required/>
+                required
+            />
         </div>
         <div class="form-group">
             <label>Contact Name</label>
             <input type="text" name="contactName"
                 value="${warehouseDto.contactName}"
                 placeholder="Enter contact person name"
-                required/>
+                required
+            />
         </div>
         <div class="form-group">
             <label>Contact Number</label>
@@ -160,7 +167,8 @@
                 maxlength="10"
                 pattern="^[0-9]{10}$"
                 oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                required/>
+                required
+            />
         </div>
         <button type="submit" class="btn-submit">Save Warehouse</button>
         <div class="back-center">

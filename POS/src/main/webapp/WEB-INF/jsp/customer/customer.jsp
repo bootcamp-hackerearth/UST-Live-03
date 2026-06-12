@@ -161,14 +161,16 @@
                         <label class="form-label fw-semibold">Customer Name</label>
                         <form:input path="name"
                                     cssClass="form-control"
-                                    placeholder="Enter Customer Name"/>
+                                    placeholder="Enter Customer Name"
+                        />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Phone Number</label>
                         <form:input path="phoneNo"
                                     cssClass="form-control"
                                     placeholder="Enter Phone Number"
-                                    readonly="true"/>
+                                    readonly="true"
+                        />
                     </div>
                 </div>
                 <div class="row g-3 mt-1">
@@ -186,7 +188,8 @@
                         <div class="input-group">
                             <form:input path="balance"
                                         cssClass="form-control"
-                                        placeholder="Ex: 500"/>
+                                        placeholder="Ex: 500"
+                            />
                             <form:select path="balanceType" cssClass="form-select" style="max-width: 120px;">
                                 <form:option value="Due">Due</form:option>
                                 <form:option value="Advance">Advance</form:option>
@@ -199,13 +202,15 @@
                         <label class="form-label fw-semibold">Email</label>
                         <form:input path="email"
                                     cssClass="form-control"
-                                    placeholder="Enter Email"/>
+                                    placeholder="Enter Email"
+                        />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Party Credit Limit</label>
                         <form:input path="creditLimit"
                                     cssClass="form-control"
-                                    placeholder="Ex: 800"/>
+                                    placeholder="Ex: 800"
+                        />
                     </div>
                 </div>
                 <div class="mt-4">
@@ -215,13 +220,15 @@
                             <label class="form-label">Address Line 1</label>
                             <form:input path="billingAddress.addressLine"
                                         cssClass="form-control"
-                                        placeholder="Enter Address"/>
+                                        placeholder="Enter Address"
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">City</label>
                             <form:input path="billingAddress.city"
                                         cssClass="form-control"
-                                        placeholder="Enter city"/>
+                                        placeholder="Enter city"
+                            />
                         </div>
                     </div>
                     <div class="row g-3 mt-1">
@@ -229,13 +236,15 @@
                             <label class="form-label">State</label>
                             <form:input path="billingAddress.state"
                                         cssClass="form-control"
-                                        placeholder="Enter state"/>
+                                        placeholder="Enter state"
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Zip Code</label>
                             <form:input path="billingAddress.zip"
                                         cssClass="form-control"
-                                        placeholder="Enter zip code"/>
+                                        placeholder="Enter zip code"
+                            />
                         </div>
                     </div>
                     <div class="row g-3 mt-1">
@@ -243,7 +252,8 @@
                             <label class="form-label">Country</label>
                             <form:input path="billingAddress.country"
                                         cssClass="form-control"
-                                        placeholder="Enter country"/>
+                                        placeholder="Enter country"
+                            />
                         </div>
                     </div>
                 </div>
@@ -254,13 +264,15 @@
                             <label class="form-label">Address Line 1</label>
                             <form:input path="shippingAddress.addressLine"
                                         cssClass="form-control"
-                                        placeholder="Enter Address"/>
+                                        placeholder="Enter Address"
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">City</label>
                             <form:input path="shippingAddress.city"
                                         cssClass="form-control"
-                                        placeholder="Enter city"/>
+                                        placeholder="Enter city"
+                            />
                         </div>
                     </div>
                     <div class="row g-3 mt-1">
@@ -268,13 +280,15 @@
                             <label class="form-label">State</label>
                             <form:input path="shippingAddress.state"
                                         cssClass="form-control"
-                                        placeholder="Enter state"/>
+                                        placeholder="Enter state"
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Zip Code</label>
                             <form:input path="shippingAddress.zip"
                                         cssClass="form-control"
-                                        placeholder="Enter zip code"/>
+                                        placeholder="Enter zip code"
+                            />
                         </div>
                     </div>
                     <div class="row g-3 mt-1">
@@ -282,7 +296,8 @@
                             <label class="form-label">Country</label>
                             <form:input path="shippingAddress.country"
                                         cssClass="form-control"
-                                        placeholder="Enter country"/>
+                                        placeholder="Enter country"
+                            />
                         </div>
                     </div>
                 </div>

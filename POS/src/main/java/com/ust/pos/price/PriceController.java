@@ -42,8 +42,8 @@ public class PriceController extends BaseController {
 
     @GetMapping("/list")
     public String home(Model model, @ModelAttribute PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage()
-                ,paginationDto.getSortDirection(),paginationDto.getSortField());
+        Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),paginationDto.getSortField());
         model.addAttribute("prices", priceService.findAll(pageable));
         return "price/list";
     }

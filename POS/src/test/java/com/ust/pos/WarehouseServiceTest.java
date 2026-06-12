@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -108,11 +109,10 @@ class WarehouseServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Warehouse> warehousePage = new PageImpl<>(warehouses);
         Mockito.when(warehouseRepository.findAll(pageable)).thenReturn(warehousePage);
-        Mockito.when(modelMapper.map(Mockito.eq(warehouses),Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<WarehouseDto> response = warehouseService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Lays Warehouse", response.get(0).getIdentifier());
+        Mockito.when(modelMapper.map(Mockito.eq(warehouses), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<WarehouseDto> response = warehouseService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Lays Warehouse", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -124,9 +124,10 @@ class WarehouseServiceTest {
         List<Warehouse> warehouses = List.of(warehouse);
         List<WarehouseDto> dtos = List.of(dto);
         Mockito.when(warehouseRepository.findAll()).thenReturn(warehouses);
-        Mockito.when(modelMapper.map(Mockito.eq(warehouses),Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<WarehouseDto> response = warehouseService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(warehouses), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<WarehouseDto> response = warehouseService.findAll(null);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Lays Warehouse", response.getDtoList().get(0).getIdentifier());
     }
 }

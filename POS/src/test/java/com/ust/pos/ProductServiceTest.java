@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
+
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -108,11 +110,10 @@ class ProductServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Product> productPage = new PageImpl<>(products);
         Mockito.when(productRepository.findAll(pageable)).thenReturn(productPage);
-        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<ProductDto> response = productService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Lays Chili", response.get(0).getIdentifier());
+        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<ProductDto> response = productService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Lays Chili", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -124,9 +125,9 @@ class ProductServiceTest {
         List<Product> products = List.of(product);
         List<ProductDto> dtos = List.of(dto);
         Mockito.when(productRepository.findAll()).thenReturn(products);
-        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<ProductDto> response = productService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<ProductDto> response = productService.findAll(null);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Lays Chili", response.getDtoList().get(0).getIdentifier());
     }
 }

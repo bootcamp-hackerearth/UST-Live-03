@@ -155,26 +155,21 @@
                         <form:input path="name"
                               cssClass="form-control"
                               placeholder="Enter Customer Name"
-                              required="required"
-                              minlength="3"
-                              maxlength="50"/>
+                        />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Phone Number</label>
                         <form:input path="phoneNo"
                               cssClass="form-control"
-                              type="tel"
-                              maxlength="10"
+                              pattern="^[6-9][0-9]{9}$"
                               placeholder="Enter Phone Number"
-                              required="required"
-                              pattern="[6-9][0-9]{9}"
-                              title="Enter valid 10 digit mobile number"/>
+                        />
                     </div>
                 </div>
                 <div class="row g-3 mt-1">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Party Type</label>
-                        <form:select path="partyType" cssClass="form-control" required="required">
+                        <form:select path="partyType" cssClass="form-control">
                             <form:option value="">Select one</form:option>
                             <form:option value="Customer">Customer</form:option>
                             <form:option value="Dealer">Dealer</form:option>
@@ -186,10 +181,8 @@
                         <div class="input-group">
                             <form:input path="balance"
                                   cssClass="form-control"
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  placeholder="Ex: 500"/>
+                                  placeholder="Ex: 500"
+                            />
                             <form:select path="balanceType" cssClass="form-select" style="max-width: 120px;">
                                 <form:option value="Due">Due</form:option>
                                 <form:option value="Advance">Advance</form:option>
@@ -204,17 +197,14 @@
                               cssClass="form-control"
                               pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
                               placeholder="Enter Email"
-                              required="required"
-                              type="email"/>
+                        />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Party Credit Limit</label>
                         <form:input path="creditLimit"
-                              type="number"
                               cssClass="form-control"
-                              min="0"
-                              step="0.01"
-                              placeholder="Ex: 800"/>
+                              placeholder="Ex: 800"
+                        />
                     </div>
                 </div>
                 <div class="mt-4">
@@ -225,15 +215,14 @@
                             <form:input path="billingAddress.addressLine"
                                   cssClass="form-control"
                                   placeholder="Enter Address"
-                                  required="required"/>
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">City</label>
                             <form:input path="billingAddress.city"
                                   cssClass="form-control"
                                   placeholder="Enter city"
-                                  required="required"
-                                  pattern="[A-Za-z]+"/>
+                            />
                         </div>
                     </div>
                     <div class="row g-3 mt-1">
@@ -242,19 +231,14 @@
                             <form:input path="billingAddress.state"
                                   cssClass="form-control"
                                   placeholder="Enter state"
-                                  pattern="[A-Za-z]+"
-                                  required="required"/>
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Zip Code</label>
                             <form:input path="billingAddress.zip"
                                   cssClass="form-control"
-                                  type="text"
-                                  maxlength="6"
                                   placeholder="Enter zip code"
-                                  required="required"
-                                  title="Enter exactly 6 digits"
-                                  pattern="[0-9]{6}"/>
+                            />
                         </div>
                     </div>
                     <div class="row g-3 mt-1">
@@ -263,8 +247,7 @@
                             <form:input path="billingAddress.country"
                                   cssClass="form-control"
                                   placeholder="Enter country"
-                                  required="required"
-                                  pattern="[A-Za-z]+"/>
+                            />
                         </div>
                     </div>
                 </div>
@@ -276,15 +259,14 @@
                             <form:input path="shippingAddress.addressLine"
                                   cssClass="form-control"
                                   placeholder="Enter Address"
-                                  required="required"/>
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">City</label>
                             <form:input path="shippingAddress.city"
                                   cssClass="form-control"
                                   placeholder="Enter city"
-                                  required="required"
-                                  pattern="[A-Za-z]+"/>
+                            />
                         </div>
                     </div>
                     <div class="row g-3 mt-1">
@@ -293,19 +275,14 @@
                             <form:input path="shippingAddress.state"
                                   cssClass="form-control"
                                   placeholder="Enter state"
-                                  required="required"
-                                  pattern="[A-Za-z]+"/>
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Zip Code</label>
                             <form:input path="shippingAddress.zip"
                                   cssClass="form-control"
                                   placeholder="Enter zip code"
-                                  required="required"
-                                  type="text"
-                                  maxlength="6"
-                                  title="Enter exactly 6 digits"
-                                  pattern="[0-9]{6}"/>
+                            />
                         </div>
                     </div>
                     <div class="row g-3 mt-1">
@@ -314,8 +291,7 @@
                             <form:input path="shippingAddress.country"
                                   cssClass="form-control"
                                   placeholder="Enter country"
-                                  required="required"
-                                  pattern="[A-Za-z]+"/>
+                            />
                         </div>
                     </div>
                 </div>

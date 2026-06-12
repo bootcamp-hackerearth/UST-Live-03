@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -19,10 +20,10 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     @Autowired
-    private ProductRepository productRepository;
+    ProductRepository productRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
 
     @Override
     public ProductDto save(ProductDto productDto) {
@@ -38,14 +39,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ProductDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(productRepository.findAll(),listType);
+    public PaginationResponseDto<ProductDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+        PaginationResponseDto<ProductDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Product> products = productRepository.findAll();
+            response.setDtoList(modelMapper.map(products, listType));
+            response.setTotalRecords((long) products.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(products.size());
+            response.setPage(0);
+        } else {
+            Page<Product> productPage = productRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(productPage.getContent(), listType));
+            response.setTotalRecords(productPage.getTotalElements());
+            response.setTotalPages(productPage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listType);
+        return response;
     }
 
     @Override

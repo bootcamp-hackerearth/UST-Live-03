@@ -152,7 +152,8 @@
             <label>Quantity</label>
             <input type="number" name="quantity"
                    value="${stockDto.quantity}"
-                   placeholder="Enter quantity" required/>
+                   placeholder="Enter quantity" required
+            />
         </div>
         <div class="form-group">
             <label>Status</label>
@@ -171,7 +172,8 @@
         <div class="form-group">
             <label>Expiry Date</label>
             <input type="datetime-local" name="expiryDate"
-                   value="${stockDto.expiryDate}" required/>
+                   value="${stockDto.expiryDate}" required
+            />
         </div>
         <button type="submit" class="btn-submit">Submit</button>
         <div class="back-center">

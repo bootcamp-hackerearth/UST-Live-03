@@ -7,6 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <title>User Registration</title>
+    <!-- Bootstrap + Font -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -126,18 +127,20 @@
         <div class="mb-3">
             <label class="form-label">Full Name <span class="text-danger">*</span></label>
             <form:input path="name"
-                        cssClass="form-control"
-                        placeholder="Enter your name"
-                        required="required"/>
+                cssClass="form-control"
+                placeholder="Enter your name"
+                required="required"
+            />
         </div>
         <div class="mb-3">
             <label class="form-label">Email Address <span class="text-danger">*</span></label>
             <form:input path="username"
-                        cssClass="form-control"
-                        placeholder="Enter valid email"
-                        type="email"
-                        pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
-                        required="required"/>
+                cssClass="form-control"
+                placeholder="Enter valid email"
+                type="email"
+                pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
+                required="required"
+            />
         </div>
         <div class="mb-3">
             <label class="form-label">Select Roles <span class="text-danger">*</span></label>
@@ -145,9 +148,10 @@
                 <c:forEach items="${roles}" var="role">
                     <div class="form-check">
                         <form:checkbox path="roles"
-                                       value="${role.identifier}"
-                                       cssClass="form-check-input"
-                                       id="role_${role.identifier}"/>
+                            value="${role.identifier}"
+                            cssClass="form-check-input"
+                            id="role_${role.identifier}"
+                        />
                         <label class="form-check-label" for="role_${role.identifier}">
                             ${role.identifier}
                         </label>
@@ -158,24 +162,25 @@
         <div class="mb-3">
             <label class="form-label">Phone Number <span class="text-danger">*</span></label>
             <form:input path="phoneNo"
-                  type="tel"
-                  cssClass="form-control"
-                  placeholder="Enter 10-digit number"
-                  required="required"
-                  maxlength="10"
-                  pattern="^[6-9][0-9]{9}$"
-                  title="Enter valid 10-digit mobile number starting with 6-9"
-                  oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" />
+                type="tel"
+                cssClass="form-control"
+                placeholder="Enter 10-digit number"
+                required="required"
+                maxlength="10"
+                pattern="^[6-9][0-9]{9}$"
+                title="Enter valid 10-digit mobile number starting with 6-9"
+            />
         </div>
         <div class="mb-4">
             <label class="form-label">Password <span class="text-danger">*</span></label>
             <form:password path="password"
-                      cssClass="form-control"
-                      placeholder="Enter password"
-                      required="required"
-                      minlength="8"
-                      pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
-                      title="Minimum 8 characters with uppercase, lowercase, number, and special character"/>
+                cssClass="form-control"
+                placeholder="Enter password"
+                required="required"
+                minlength="8"
+                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+                title="Minimum 8 characters with uppercase, lowercase, number, and special character"
+            />
         </div>
         <button type="submit" class="btn btn-primary mb-2">
             Register

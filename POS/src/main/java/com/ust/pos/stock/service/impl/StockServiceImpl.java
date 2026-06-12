@@ -1,5 +1,6 @@
 package com.ust.pos.stock.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
@@ -17,12 +18,11 @@ import java.util.List;
 
 @Service
 public class StockServiceImpl implements StockService {
+    @Autowired
+    StockRepository stockRepository;
 
     @Autowired
-    private StockRepository stockRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
 
     @Override
     public StockDto save(StockDto stockDto) {
@@ -38,15 +38,27 @@ public class StockServiceImpl implements StockService {
         return stockDto;
     }
 
+
     @Override
-    public List<StockDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<StockDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(stockRepository.findAll(),listType);
+    public PaginationResponseDto<StockDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<StockDto>>() {}.getType();
+        PaginationResponseDto<StockDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Stock> stocks = stockRepository.findAll();
+            response.setDtoList(modelMapper.map(stocks, listType));
+            response.setTotalRecords((long) stocks.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(stocks.size());
+            response.setPage(0);
+        } else {
+            Page<Stock> stockPage = stockRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(stockPage.getContent(), listType));
+            response.setTotalRecords(stockPage.getTotalElements());
+            response.setTotalPages(stockPage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
-        return modelMapper.map(stockPage.getContent(), listType);
+        return response;
     }
 
     @Override

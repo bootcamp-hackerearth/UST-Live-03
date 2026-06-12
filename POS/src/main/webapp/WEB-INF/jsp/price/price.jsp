@@ -129,7 +129,8 @@
             <input type="number"
                 name="amount"
                 value="${price.amount}"
-                required/>
+                required
+            />
         </div>
         <div class="form-group">
             <label>Type</label>
@@ -154,7 +155,8 @@
             <input type="text"
                 name="currency"
                 value="${price.currency}"
-                required/>
+                required
+            />
         </div>
         <div class="btn-group">
             <button type="submit" class="btn">Update Price</button>

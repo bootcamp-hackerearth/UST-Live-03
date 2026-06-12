@@ -79,23 +79,20 @@
             </div>
         </c:if>
         <c:if test="${not empty role}">
-            <form:form action="/role/update"
-                       method="post"
-                       modelAttribute="roleDto">
+            <form:form action="/role/update" method="post" modelAttribute="roleDto">
                 <form:hidden path="id" value="${role.id}"/>
                 <div class="mb-4">
                     <label class="form-label"><b>Role Name</b></label>
-                    <form:input path="identifier"
-                                cssClass="form-control"
-                                readonly="true"/>
+                    <form:input path="identifier" cssClass="form-control" readonly="true"/>
                 </div>
                 <div class="mb-4">
                     <label class="form-label"><b>Description</b></label>
                     <form:input path="description"
-                                   cssClass="form-control"
-                                   value="${role.description}"
-                                   rows="3"
-                                   required="true"/>
+                        cssClass="form-control"
+                        value="${role.description}"
+                        rows="3"
+                        required="true"
+                    />
                 </div>
                 <div class="d-flex justify-content-between">
                     <a href="/role/list" class="btn btn-outline-secondary">

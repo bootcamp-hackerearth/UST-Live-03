@@ -1,5 +1,6 @@
 package com.ust.pos.warehouse.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -19,10 +20,10 @@ import java.util.List;
 public class WarehouseServiceImpl implements WarehouseService {
 
     @Autowired
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
 
     @Autowired
-    private WarehouseRepository warehouseRepository;
+    WarehouseRepository warehouseRepository;
 
     @Override
     public WarehouseDto save(WarehouseDto warehouseDto) {
@@ -38,14 +39,25 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<WarehouseDto>>() {
-        }.getType();
-        if(pageable == null){
-            return modelMapper.map(warehouseRepository.findAll(),listType);
+    public PaginationResponseDto<WarehouseDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
+        PaginationResponseDto<WarehouseDto> response = new PaginationResponseDto<>();
+        if (pageable == null) {
+            List<Warehouse> warehouses = warehouseRepository.findAll();
+            response.setDtoList(modelMapper.map(warehouses, listType));
+            response.setTotalRecords((long) warehouses.size());
+            response.setTotalPages(1);
+            response.setSizePerPage(warehouses.size());
+            response.setPage(0);
+        } else {
+            Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
+            response.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
+            response.setTotalRecords(warehousePage.getTotalElements());
+            response.setTotalPages(warehousePage.getTotalPages());
+            response.setSizePerPage(pageable.getPageSize());
+            response.setPage(pageable.getPageNumber());
         }
-        Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+        return response;
     }
 
     @Override

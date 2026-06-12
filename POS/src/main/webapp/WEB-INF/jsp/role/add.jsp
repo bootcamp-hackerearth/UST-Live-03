@@ -3,12 +3,12 @@
 
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Add Role</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
     <style>
@@ -89,22 +89,22 @@
                 ${role}
             </div>
         </c:if>
-        <form:form method="post"
-                   action="/role/add"
-                   modelAttribute="roleDto">
+        <form:form method="post" action="/role/add" modelAttribute="roleDto">
             <div class="mb-3">
                 <label class="form-label"><b>Role Name</b></label>
                 <form:input path="identifier"
-                            cssClass="form-control"
-                            placeholder="Enter role name"
-                            required="true"/>
+                    cssClass="form-control"
+                    placeholder="Enter role name"
+                    required="true"
+                />
             </div>
             <div class="mb-4">
                 <label class="form-label"><b>Role Description</b></label>
                 <form:input path="description"
-                            cssClass="form-control"
-                            placeholder="Enter role description"
-                            required="true"/>
+                    cssClass="form-control"
+                    placeholder="Enter role description"
+                    required="true"
+                />
             </div>
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary">

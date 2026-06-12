@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Controller
 @RequestMapping("/user")
@@ -50,16 +51,23 @@ public class UserController extends BaseController {
     }
 
     @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String username) {
+    public String delete(Model model, @RequestParam String identifier) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             String loggedInUser = authentication.getName();
-            userService.delete(username);
-            if (loggedInUser.equals(username)) {
+            userService.delete(identifier);
+            if (loggedInUser.equals(identifier)) {
                 SecurityContextHolder.clearContext();
                 return "redirect:/login";
             }
         }
         return "redirect:/user/list";
+    }
+
+    @PostMapping("/save")
+    @ResponseBody
+    public UserDto save(@RequestBody UserDto userDto) {
+
+        return userService.save(userDto);
     }
 }

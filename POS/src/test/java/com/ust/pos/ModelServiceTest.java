@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.impl.ModelServiceImpl;
@@ -54,11 +55,10 @@ class ModelServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Model> modelPage = new PageImpl<>(models);
         Mockito.when(modelRepository.findAll(pageable)).thenReturn(modelPage);
-        Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<ModelDto> response = modelService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Jordan", response.get(0).getIdentifier());
+        Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<ModelDto> response = modelService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Jordan", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -70,10 +70,11 @@ class ModelServiceTest {
         List<Model> models = List.of(model);
         List<ModelDto> dtos = List.of(dto);
         Mockito.when(modelRepository.findAll()).thenReturn(models);
-        Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<ModelDto> response = modelService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<ModelDto> response = modelService.findAll(null);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Jordan", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

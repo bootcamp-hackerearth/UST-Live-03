@@ -171,7 +171,8 @@
             <input type="datetime-local"
                 name="expiryDate"
                 value="${stock.expiryDate}"
-                required/>
+                required
+            />
         </div>
         <div class="btn-group">
             <button type="submit" class="btn">Update Stock</button>

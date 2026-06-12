@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
@@ -104,7 +105,7 @@ class UserServiceTest {
         userService.delete("chaila@gmail.com");
         Mockito.verify(userRepository).deleteByUsername("chaila@gmail.com");
     }
-    
+
     @Test
     void findAllWithPageableTest() {
         User user = new User();
@@ -116,11 +117,10 @@ class UserServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<User> userPage = new PageImpl<>(users);
         Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
-        Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<UserDto> response = userService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("chaila@gmail.com", response.get(0).getIdentifier());
+        Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<UserDto> response = userService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("chaila@gmail.com", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -132,9 +132,10 @@ class UserServiceTest {
         List<User> users = List.of(user);
         List<UserDto> dtos = List.of(dto);
         Mockito.when(userRepository.findAll()).thenReturn(users);
-        Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        List<UserDto> response = userService.findAll(null);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<UserDto> response = userService.findAll(null);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("chaila@gmail.com", response.getDtoList().get(0).getIdentifier());
     }
 }
