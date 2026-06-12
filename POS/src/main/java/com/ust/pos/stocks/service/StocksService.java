@@ -8,18 +8,13 @@ import java.util.List;
 
 @Transactional
 public interface StocksService {
+
     List<StocksDto> findAll(Pageable pageable);
-
     StocksDto save(StocksDto stocksDto);
-
     StocksDto update(StocksDto stocksDto);
-
     boolean delete(String identifier);
-
     StocksDto findByIdentifier(String identifer);
-
     List<StocksDto> findIfTrue();
-
     StocksDto toggleStatus(String identifier);
 
 }

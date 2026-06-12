@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleHover {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+* {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.featureBox {
+  transition: transform 0.28s ease, box-shadow 0.28s ease, background-color 0.28s ease;
+}
+
+.featureBox:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+  background-color: #f5f5f5;
+}
+
+.featureBoxAccent:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.18);
+}
+
+button.home-back-button {
+  background-color: transparent;
+  border: none;
+}
+
+button.home-back-button:hover {
+  background-color: #f5f5f5;
+}
+
+.login-register-link {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.login-register-link:hover {
+  background-color: #d2d2d2;
+  color: #000000;
+}
+
+button.logout-button {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+button.logout-button:hover {
+  background-color: #fff5f5;
+  color: #b91c1c;
+  border-color: #f5c6c6;
+}
+
+button.sign-in-button {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+button.sign-in-button:hover:not(:disabled) {
+  background-color: #d2d2d2;
+  color: #000000;
+}
+
+button.register-button {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+button.register-button:hover:not(:disabled) {
+  background-color: #d2d2d2;
+  color: #000000;
+}

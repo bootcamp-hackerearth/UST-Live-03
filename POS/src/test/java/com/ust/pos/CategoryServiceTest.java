@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -99,14 +100,23 @@ class CategoryServiceTest {
     void findAllTest() {
         Category category = new Category();
         category.setIdentifier("Admin");
+        CategoryDto categoryDto = new CategoryDto();
+        categoryDto.setIdentifier("Admin");
         List<Category> categories = List.of(category);
-        Page<Category> categoryPage =
-                new PageImpl<>(categories, PageRequest.of(0, 2), categories.size());
+        List<CategoryDto> categoryDtos = List.of(categoryDto);
+        Page<Category> categoryPage = new PageImpl<>(categories, PageRequest.of(0, 2), categories.size());
         Pageable pageable = PageRequest.of(0, 50);
-        Mockito.when(categoryRepository.findAll(pageable))
-                .thenReturn(categoryPage);
-        List<CategoryDto> response = categoryService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
+        Mockito.doReturn(categoryDtos).when(modelMapper).map(
+                Mockito.eq(categories),
+                Mockito.any(java.lang.reflect.Type.class)
+        );
+        WsDto<CategoryDto> response = categoryService.findAll(pageable);
+        Assertions.assertEquals(categoryDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

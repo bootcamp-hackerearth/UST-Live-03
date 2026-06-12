@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/price")
 public class PriceController {
+
     public static final String REDIRECT_PRICE_LIST = "redirect:/price/list";
     private static final String PRODUCTS = "products";
-
 
     @Autowired
     private PriceService priceService;
@@ -23,14 +23,14 @@ public class PriceController {
     private ProductService productService;
 
     @GetMapping("/list")
-    public String home(Model model, Pageable pageable) {
+    public String home(Model model,Pageable pageable) {
         model.addAttribute("prices", priceService.findAll(pageable));
         return "price/list";
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute PriceDto priceDto) {
-        model.addAttribute(PRODUCTS, productService.findIfTrue());
+    public String add(Model model,@ModelAttribute PriceDto priceDto) {
+        model.addAttribute(PRODUCTS,productService.findIfTrue());
         return "price/add";
     }
 
@@ -39,7 +39,7 @@ public class PriceController {
         PriceDto response = priceService.save(priceDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute(PRODUCTS, productService.findIfTrue());
+            model.addAttribute(PRODUCTS,productService.findIfTrue());
             return "price/add";
         }
         return REDIRECT_PRICE_LIST;
@@ -49,7 +49,7 @@ public class PriceController {
     public String update(Model model, @RequestParam String identifier) {
         PriceDto response = priceService.findByIdentifier(identifier);
         model.addAttribute("price", response);
-        model.addAttribute(PRODUCTS, productService.findIfTrue());
+        model.addAttribute(PRODUCTS,productService.findIfTrue());
         return "price/price";
     }
 
@@ -59,7 +59,7 @@ public class PriceController {
         if (!response.isSuccess()) {
             model.addAttribute("price", response);
             model.addAttribute("message", response.getMessage());
-            model.addAttribute(PRODUCTS, productService.findIfTrue());
+            model.addAttribute(PRODUCTS,productService.findIfTrue());
             return "price/price";
         }
         return REDIRECT_PRICE_LIST;

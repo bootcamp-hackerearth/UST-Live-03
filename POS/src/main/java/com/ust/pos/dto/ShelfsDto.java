@@ -5,5 +5,4 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class ShelfsDto extends CommonDto {
-}
+public class ShelfsDto extends CommonDto { }

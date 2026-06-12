@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/product")
 public class ProductController {
+
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
 
     private static final String BRAND = "brand";
@@ -45,7 +46,7 @@ public class ProductController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute ProductDto productDto) {
+    public String add(Model model,@ModelAttribute ProductDto productDto) {
         model.addAttribute(CATEGORIES, categoryService.findBySuperCategoryNotNull());
         model.addAttribute(BRAND, brandService.findIfTrue());
         model.addAttribute("unit", unitService.findIfTrue());

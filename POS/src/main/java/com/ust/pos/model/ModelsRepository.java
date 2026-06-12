@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ModelsRepository extends JpaRepository<Models, Long> {
+public interface ModelsRepository extends JpaRepository<Models,Long> {
 
     Models findByIdentifier(String identifier);
 

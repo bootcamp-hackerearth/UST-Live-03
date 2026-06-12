@@ -10,9 +10,11 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class PriceDto extends CommonDto {
+
     private BigDecimal mrp;
     private BigDecimal sellingPrice;
     private BigDecimal costPrice;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate effectiveFrom;
+
 }

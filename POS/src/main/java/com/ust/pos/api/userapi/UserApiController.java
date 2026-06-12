@@ -1,12 +1,13 @@
 package com.ust.pos.api.userapi;
 
 import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
-import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,19 +19,21 @@ public class UserApiController extends BaseController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private RoleService roleService;
-
     @PostMapping("/list")
-    public List<UserDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+    public WsDto<UserDto> home(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField());
         return userService.findAll(pageable);
+    }
+
+    @PostMapping("/register")
+    public UserDto addPost(@RequestBody UserDto userDto) {
+        return userService.save(userDto);
     }
 
     @GetMapping("/get")
     public UserDto update(@RequestParam String username) {
         return userService.findByUserName(username);
-
     }
 
     @PostMapping("/update")
@@ -49,12 +52,17 @@ public class UserApiController extends BaseController {
     }
 
     @PostMapping("/toggle-status")
-    public UserDto toggle(@RequestParam String identifier) {
-        return userService.toggleStatus(identifier);
+    public UserDto toggle(@RequestParam String username) {
+        return userService.toggleStatus(username);
     }
 
     @GetMapping("/findByStatus")
     public List<UserDto> findByStatus() {
         return userService.findIfTrue();
+    }
+
+    @GetMapping("/profile")
+    public UserDto getProfile(Authentication authentication) {
+        return userService.getUserDetails(authentication.getName());
     }
 }

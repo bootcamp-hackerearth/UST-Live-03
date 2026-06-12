@@ -41,7 +41,6 @@ public class CustomerApiController extends BaseController {
     @PostMapping("/update")
     public CustomerDto updatePost(Model model, @RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
-
     }
 
     @GetMapping("/delete")
@@ -56,13 +55,11 @@ public class CustomerApiController extends BaseController {
 
     @PostMapping("/toggle-status")
     public CustomerDto toggle(@RequestParam String identifier) {
-
         return customerService.toggleStatus(identifier);
     }
 
     @GetMapping("/findByStatus")
     public List<CustomerDto> findByStatus() {
-
         return customerService.findIfTrue();
     }
 

@@ -1,0 +1,38 @@
+"use client";
+ 
+import AddFormSkeleton from "@/components/CommonAddForm";
+import SingleDropdown from "@/components/dropdowns/CommonSingleDropdown";
+import { useState } from "react";
+ 
+export default function AddCategory() {
+ 
+  const [superCategory, setSuperCategory] = useState("");
+ 
+  const extraFields = [
+    {
+      key: "superCategory",
+      type: "custom",
+      label: "Super Category",
+      component: (
+        <SingleDropdown
+          label="Super Category"
+          apiUrl="/category/findByStatus"
+          valueField="identifier"
+          labelField="identifier"
+          selectedValue={superCategory}
+          onChange={(val) => setSuperCategory(val)}
+        />
+      ),
+    },
+  ];
+ 
+  return (
+    <AddFormSkeleton
+      title="Category"
+      apiPath="category"
+      identifierLabel="Category Name"
+      extraFields={extraFields}
+      extraData={{ superCategory }}
+    />
+  );
+}

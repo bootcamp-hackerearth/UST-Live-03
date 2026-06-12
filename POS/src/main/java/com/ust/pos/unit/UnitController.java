@@ -66,7 +66,7 @@ public class UnitController extends BaseController {
 
     @PostMapping("/toggle-status")
     @ResponseBody
-    public void toggle(Model model, @RequestParam String identifier) {
+    public void toggle(Model model,@RequestParam String identifier){
         unitService.toggleStatus(identifier);
     }
 }

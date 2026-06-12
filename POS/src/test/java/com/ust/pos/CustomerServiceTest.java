@@ -35,9 +35,6 @@ class CustomerServiceTest {
     @Mock
     private AddressServiceImpl addressService;
 
-    @Mock
-    private AddressRepository addressRepository;
-
     @Test
     void findByIdentifierTest() {
         Customer customer = new Customer();

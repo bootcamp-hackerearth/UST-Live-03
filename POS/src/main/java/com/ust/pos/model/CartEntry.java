@@ -1,27 +1,23 @@
 package com.ust.pos.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "cart_entry")
 @Getter
 @Setter
-public class CartEntry {
+@Entity
+public class CartEntry extends CommonFields{
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String cartId;
-
-    private Long productId;
-
-    private BigDecimal discount;
-
+    private BigDecimal price;
     private BigDecimal totalPrice;
+    private BigDecimal sellingPrice;
+    private BigDecimal discount;
+    private BigDecimal quantity;
+    private String couponCode;
+    private String product;
+    private String cart;
 
 }

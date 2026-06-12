@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/stocks")
 public class StocksController {
+
     public static final String REDIRECT_STOCKS_LIST = "redirect:/stocks/list";
 
     private static final String PRODUCTS = "products";
@@ -37,7 +38,7 @@ public class StocksController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute StocksDto stocksDto) {
+    public String add(Model model,@ModelAttribute StocksDto stocksDto) {
         model.addAttribute(PRODUCTS, productService.findIfTrue());
         model.addAttribute(WAREHOUSE, warehouseService.findIfTrue());
         return "stocks/add";

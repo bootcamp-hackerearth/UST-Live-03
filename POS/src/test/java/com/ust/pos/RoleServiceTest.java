@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -107,16 +108,19 @@ RoleServiceTest {
         roleDto.setIdentifier("Admin");
         List<Role> roles = List.of(role);
         List<RoleDto> roleDtos = List.of(roleDto);
-        Page<Role> rolePage =
-                new PageImpl<>(roles, PageRequest.of(0, 2), roles.size());
+        Page<Role> rolePage = new PageImpl<>(roles, PageRequest.of(0, 2), roles.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
         Mockito.when(roleRepository.findAll(pageable)).thenReturn(rolePage);
         Mockito.when(modelMapper.map(
                 Mockito.eq(roles),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(roleDtos);
-        List<RoleDto> response = roleService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<RoleDto> response = roleService.findAll(pageable);
+        Assertions.assertEquals(roleDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

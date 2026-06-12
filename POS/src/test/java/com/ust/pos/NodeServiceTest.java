@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -26,13 +27,16 @@ import java.util.List;
 class NodeServiceTest {
 
     @Mock
-    UserRepository userRepository;
-    @Mock
     private NodeRepository nodeRepository;
+
     @Mock
     private ModelMapper modelMapper;
+
     @InjectMocks
     private NodeServiceImpl nodeService;
+
+    @Mock
+    UserRepository userRepository;
 
     @Test
     void saveTest() {
@@ -73,9 +77,8 @@ class NodeServiceTest {
 
     @Test
     void getNodesForRolesTest() {
-        org.springframework.security.core.userdetails.User principal =
-                new org.springframework.security.core.userdetails.User(
-                        "admin@test.com", "password", List.of());
+        org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User(
+                "admin@test.com", "password", List.of());
         Authentication authentication = Mockito.mock(Authentication.class);
         Mockito.when(authentication.getPrincipal()).thenReturn(principal);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -87,7 +90,7 @@ class NodeServiceTest {
         Node node = new Node();
         node.setIdentifier("dashboard");
         node.setRoles(List.of("ADMIN"));
-        Mockito.when(nodeRepository.findAll()).thenReturn(List.of(node));
+        Mockito.when(nodeRepository.findByStatusIsTrue()).thenReturn(List.of(node)); // ← fix here
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("dashboard");
         Mockito.when(nodeRepository.findByIdentifier("dashboard")).thenReturn(node);
@@ -146,17 +149,18 @@ class NodeServiceTest {
         nodeDto.setIdentifier("Admin");
         List<Node> nodes = List.of(node);
         List<NodeDto> nodeDtos = List.of(nodeDto);
-        Page<Node> nodePage =
-                new PageImpl<>(nodes, PageRequest.of(0, 2), nodes.size());
+        Page<Node> nodePage = new PageImpl<>(nodes, PageRequest.of(0, 2), nodes.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
         Mockito.when(nodeRepository.findAll(pageable)).thenReturn(nodePage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(nodes),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(nodeDtos);
-        List<NodeDto> response = nodeService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(java.lang.reflect.Type.class))).thenReturn(nodeDtos);
+        WsDto<NodeDto> response = nodeService.findAll(pageable);
+        Assertions.assertEquals(nodeDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
+
 
     @Test
     void findByStatusTest() {
