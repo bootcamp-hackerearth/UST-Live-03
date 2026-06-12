@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>POS Retail Management | Role Details</title>
+    <title>POS Management | Role Profile</title>
 
     <style>
         body {
@@ -135,38 +135,13 @@
             color: #0B3C5D;
             text-decoration: underline;
         }
-
-        /* Toast Styles */
-        .toast {
-            position: fixed;
-            top: 24px;
-            right: -400px;
-            min-width: 280px;
-            padding: 16px 20px;
-            border-radius: 12px;
-            color: #FFFFFF;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            z-index: 9999;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        .toast-success { background: #16A34A; }
-        .toast.show { right: 24px; }
     </style>
 </head>
 
 <body>
-    <c:if test="${not empty message}">
-        <div id="toast" class="toast toast-success">
-            ${message}
-        </div>
-    </c:if>
-
     <div class="profile-card">
         <div class="brand-header">
-            <h1>POS Retail Management</h1>
+            <h1>POS Management</h1>
         </div>
 
         <div class="profile-body">
@@ -215,19 +190,15 @@
         function enableEdit() {
             document.querySelectorAll('.value')
                 .forEach(v => v.style.display = 'none');
+
             document.querySelectorAll('input[type="text"]')
                 .forEach(i => i.style.display = 'inline-block');
+
             document.querySelector('.edit-btn').style.display = 'none';
             document.querySelector('.save-btn').style.display = 'inline-block';
             document.querySelector('h2').innerText = "Edit Role Details";
         }
-        document.addEventListener("DOMContentLoaded", function () {
-            const toast = document.getElementById("toast");
-            if (toast) {
-                setTimeout(() => toast.classList.add("show"), 200);
-                setTimeout(() => toast.classList.remove("show"), 3500);
-            }
-        });
     </script>
+
 </body>
 </html>

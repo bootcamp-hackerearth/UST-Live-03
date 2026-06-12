@@ -1,43 +1,41 @@
 package com.ust.pos.role;
 
+import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/role")
-public class RoleController {
-
+public class RoleController extends BaseController {
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
+
     @Autowired
     private RoleService roleService;
 
-    @GetMapping("/list")
-    public String home(Model model) {
-        model.addAttribute("roles", roleService.findAll());
-        return "role/list";
-    }
-
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute RoleDto roleDto) {
+    public String add() {
         return "role/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute RoleDto roleDto, RedirectAttributes redirectAttributes) {
+    public String addPost(Model model, @ModelAttribute RoleDto roleDto) {
         RoleDto response = roleService.save(roleDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            redirectAttributes.addFlashAttribute("error", response.getMessage());
             return "redirect:/role/add";
         }
-
-        redirectAttributes.addFlashAttribute("success","Role added successfully");
         return REDIRECT_ROLE_LIST;
+    }
+
+    @GetMapping("/list")
+    public String home(Model model, Pageable pageable) {
+        model.addAttribute("roles", roleService.findAll(pageable));
+        return "role/list";
     }
 
     @GetMapping("/get")
@@ -48,16 +46,22 @@ public class RoleController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute RoleDto roleDto) {
-        RoleDto response = roleService.update(roleDto);
+    public String updatePost(Model model, @ModelAttribute RoleDto userDto) {
+        RoleDto response = roleService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
         }
         return REDIRECT_ROLE_LIST;
     }
 
+    @PostMapping("/toggle")
+    @ResponseBody
+    public void toggleStatus(@RequestParam String identifier) {
+        roleService.toggleStatus(identifier);
+    }
+
     @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String identifier) {
+    public String delete(@RequestParam String identifier) {
         roleService.delete(identifier);
         return REDIRECT_ROLE_LIST;
     }

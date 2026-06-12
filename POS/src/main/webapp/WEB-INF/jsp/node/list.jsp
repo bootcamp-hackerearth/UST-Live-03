@@ -156,35 +156,10 @@
             color: #0B3C5D;
             text-decoration: underline;
         }
-
-        .toast {
-            position: fixed;
-            top: 24px;
-            right: -400px;
-            min-width: 280px;
-            padding: 16px 20px;
-            border-radius: 12px;
-            color: #FFFFFF;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            z-index: 9999;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        .toast-success { background: #16A34A; }
-        .toast-error { background: #DC2626; }
-        .toast.show { right: 24px; }
     </style>
 </head>
 
 <body>
-    <c:if test="${not empty message}">
-        <div id="toast" class="toast ${colour eq 'red' ? 'toast-error' : 'toast-success'}">
-            ${message}
-        </div>
-    </c:if>
-
     <div class="container">
         <div class="brand-header">
             <h1>POS Management</h1>
@@ -202,14 +177,14 @@
                         <th>ID</th>
                         <th>Node Name</th>
                         <th>Path Mapping</th>
-                        <th>Assigned Roles</th>
+                        <th>Authorized Roles</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <c:forEach var="node" items="${nodes}">
                         <tr>
-                            <td style="font-weight: 600; color: #6B7280;">#${node.id}</td>
+                            <td style="font-weight: 600; color: #6B7280;">${node.id}</td>
                             <td style="font-weight: 600;">${node.identifier}</td>
                             <td><code>${node.path}</code></td>
                             <td>
@@ -238,17 +213,5 @@
             </a>
         </div>
     </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const toast = document.getElementById("toast");
-            if (toast) {
-                setTimeout(() => toast.classList.add("show"), 200);
-                setTimeout(() => {
-                    toast.classList.remove("show");
-                }, 3500);
-            }
-        });
-    </script>
 </body>
 </html>

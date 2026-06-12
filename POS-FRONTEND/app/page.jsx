@@ -1,0 +1,20 @@
+// app/page.jsx
+
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export default function RootPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/pos/home");
+    } else {
+      router.push("/login");
+    }
+  }, [router]);
+  return null;
+}

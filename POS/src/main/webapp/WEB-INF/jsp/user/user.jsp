@@ -6,7 +6,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>POS Retail Management | User Profile</title>
+<title>POS Management | User Profile</title>
 
 <style>
     body {
@@ -139,6 +139,7 @@
         text-decoration: underline;
     }
 
+    /* Toast Notification */
     .toast {
         position: fixed;
         top: 24px;
@@ -164,7 +165,7 @@
 
 <div class="profile-card">
     <div class="brand-header">
-        <h1>POS Retail Management</h1>
+        <h1>POS Management</h1>
     </div>
 
     <div class="profile-body">

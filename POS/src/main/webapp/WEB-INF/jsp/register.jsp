@@ -3,208 +3,269 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>POS Retail Management | Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Management | Register Account</title>
 
     <style>
-        body {
+        :root {
+            --navy: #0B3C5D;
+            --accent: #3282B8;
+            --text-main: #1F2937;
+            --panel-bg: #F8FAFC; /* Matches the login page panel contrast */
+        }
+
+        body, html {
             margin: 0;
-            min-height: 100vh;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: #F4F5F7;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: #F3F4F6;
+            overflow: hidden; /* Prevents page-level scrolling */
+        }
+
+        .wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* ===== Left Side: Brand Panel (35% Width) ===== */
+        .brand-panel {
+            flex: 0.35;
+            background: var(--navy);
+            background: linear-gradient(135deg, #0B3C5D 0%, #164E75 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            color: white;
+        }
+
+        .brand-panel h1 {
+            font-size: 38px;
+            font-weight: 800;
+            margin: 0 0 20px 0;
+            line-height: 1.2;
+        }
+
+        .brand-panel p {
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.9;
+            max-width: 320px;
+        }
+
+        .feature-tag {
+            margin-top: 30px;
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* ===== Right Side: Form Panel (65% Width) ===== */
+        .register-panel {
+            flex: 0.65;
+            background: var(--panel-bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px 0;
-        }
-
-        .register-card {
-            background: #FFFFFF;
-            width: 100%;
-            max-width: 430px;
             padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
 
-        .brand-header {
-            background: #0B3C5D;
-            margin: -40px -40px 30px -40px;
-            padding: 25px;
-            border-radius: 16px 16px 0 0;
-            color: #FFFFFF;
-            text-align: center;
+        .login-card {
+            width: 100%;
+            max-width: 600px; /* Wider for the 2-column illusion */
+            background: white;
+            padding: 45px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.04);
         }
 
-        .brand-header h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 8px;
+        .login-card h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0 0 8px 0;
         }
 
         .subtitle {
-            text-align: center;
-            font-size: 14px;
             color: #6B7280;
-            margin-bottom: 25px;
+            font-size: 15px;
+            margin-bottom: 30px;
+        }
+
+        /* Form Grid to prevent scrolling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 25px;
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 5px;
         }
 
-        label {
+        .full-row {
+            grid-column: span 2;
+        }
+
+        .form-group label {
             display: block;
             font-size: 13px;
             font-weight: 600;
-            margin-bottom: 6px;
+            color: #374151;
+            margin-bottom: 8px;
         }
 
-        input, select {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 12px;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 10px;
             font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.2s;
         }
 
-        input:focus, select:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
-            border-color: #0B3C5D;
-            background: #F9FAFB;
+            border-color: var(--navy);
+            box-shadow: 0 0 0 4px rgba(11, 60, 93, 0.08);
         }
 
-        select[multiple] {
-            height: 100px;
+        .form-group select[multiple] {
+            height: 75px;
         }
 
-        .btn-submit {
+        .btn-login {
             width: 100%;
-            padding: 12px;
-            background: #0B3C5D;
-            color: #FFFFFF;
+            padding: 14px;
+            background: var(--navy);
+            color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
             margin-top: 15px;
         }
 
-        .btn-submit:hover {
-            opacity: 0.9;
+        .btn-login:hover {
+            background: #082d47;
         }
 
-        .error-message {
-            color: #B91C1C;
-            font-size: 12px;
-            margin-top: 4px;
-            display: block;
+        .btn-login:active {
+            transform: scale(0.98);
         }
 
-        .global-error {
-            background: #FEE2E2;
+        .error-box {
+            background: #FEF2F2;
+            color: #991B1B;
             padding: 10px;
             border-radius: 8px;
+            font-size: 13px;
             margin-bottom: 20px;
+            border: 1px solid #FEE2E2;
             text-align: center;
         }
 
-        .login-link, .footer {
+        .register-link {
+            margin-top: 25px;
             text-align: center;
-            margin-top: 20px;
             font-size: 14px;
+            color: #6B7280;
+        }
+
+        .register-link a {
+            color: var(--navy);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        @media (max-width: 900px) {
+            .brand-panel { display: none; }
+            .form-grid { grid-template-columns: 1fr; }
+            .register-panel { flex: 1; background: white; }
+            .login-card { box-shadow: none; border: none; padding: 20px; }
+            body { overflow: auto; }
         }
     </style>
 </head>
-
 <body>
 
-<div class="register-card">
-    <div class="brand-header">
-        <h1>POS Retail Management</h1>
-    </div>
-    <h2>Registration</h2>
-    <p class="subtitle">Enter all the details to register</p>
+    <div class="wrapper">
+        <!-- Brand Visual Section -->
+        <section class="brand-panel">
+            <h1>Join the <br>Network.</h1>
+            <p>Ready to scale? Set up your workspace account in just a few minutes.</p>
 
-    <c:if test="${not empty message}">
-        <div class="global-error">${message}</div>
-    </c:if>
+            <div class="feature-tag">UST JAVA POD-1 &bull; 2026</div>
 
-    <form:form action="register" method="post" modelAttribute="userDto">
-        <div class="form-group">
-            <label>Full Name *</label>
-            <form:input
-                    path="name"
-                    required="required"
-                    minlength="3"
-                    maxlength="50"
-                    pattern="^[A-Za-z ]+$"
-                    placeholder="eg. kushal"
-                    title="Only alphabets allowed (3–50 characters)"
-            />
-            <form:errors path="name" cssClass="error-message"/>
-        </div>
-        <div class="form-group">
-            <label>Email Address *</label>
-            <form:input
-                    path="username"
-                    type="email"
-                    required="required"
-                    placeholder="eg. user@ust.com"
-                    pattern="^[a-zA-Z0-9._%+-]+@(ust\.com|gmail\.com|yahoo\.com|outlook\.com)$"
-                    title="Only ust, gmail, yahoo, outlook domains allowed"
-            />
-            <form:errors path="username" cssClass="error-message"/>
-        </div>
-        <div class="form-group">
-            <label>Roles *</label>
-            <form:select path="roles" multiple="true" required="required">
-                <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
-            </form:select>
-            <form:errors path="roles" cssClass="error-message"/>
-        </div>
-        <div class="form-group">
-            <label>Phone Number *</label>
-            <form:input
-                    path="phoneNo"
-                    required="required"
-                    inputmode="numeric"
-                    maxlength="10"
-                    pattern="^[6-9][0-9]{9}$"
-                    placeholder="10-digit mobile number"
-                    title="Must be 10 digits starting from 6–9"
-            />
-            <form:errors path="phoneNo" cssClass="error-message"/>
-        </div>
-        <div class="form-group">
-            <label>Password *</label>
-            <form:password
-                    path="password"
-                    required="required"
-                    minlength="8"
-                    maxlength="18"
-                    pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&+=]).{8,18}$"
-                    placeholder="Strong password"
-                    title="8–18 chars with letter, number & special character"
-            />
-            <form:errors path="password" cssClass="error-message"/>
-        </div>
-        <input type="submit" value="Register User" class="btn-submit"/>
-    </form:form>
+            <div style="margin-top: auto; font-size: 12px; opacity: 0.6;">
+                Security verified by UST Security &copy;
+            </div>
+        </section>
 
-    <div class="login-link">
-        Already have an account?
-        <a href="${pageContext.request.contextPath}/login">Login here</a>
+        <!-- Register Interaction Section (The Box Illusion) -->
+        <main class="register-panel">
+            <div class="login-card">
+                <h2>Registration</h2>
+                <p class="subtitle">Complete the fields below to create your profile.</p>
+
+                <c:if test="${not empty message}">
+                    <div class="error-box">
+                        ${message}
+                    </div>
+                </c:if>
+
+                <form:form action="register" method="post" modelAttribute="userDto">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <form:input path="name" required="required" placeholder="Kushal" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Corporate Email</label>
+                            <form:input path="username" type="email" required="required" placeholder="user@ust.com" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <form:input path="phoneNo" required="required" pattern="[0-9]{10}" placeholder="10-digit mobile" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Password</label>
+                            <form:password path="password" required="required" placeholder="••••••••" />
+                        </div>
+
+                        <div class="form-group full-row">
+                            <label>Assigned Roles (Multi-select)</label>
+                            <form:select path="roles" multiple="true" required="required">
+                                <form:options items="${roles}" itemValue="identifier" itemLabel="identifier"/>
+                            </form:select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-login">Create Account</button>
+                </form:form>
+
+                <p class="register-link">
+                    Already have an account? <a href="${pageContext.request.contextPath}/login">Sign in</a>
+                </p>
+            </div>
+        </main>
     </div>
 
-    <div class="footer">
-        Developed by <strong>UST Global</strong> | Dev POD-1
-    </div>
-</div>
 </body>
 </html>

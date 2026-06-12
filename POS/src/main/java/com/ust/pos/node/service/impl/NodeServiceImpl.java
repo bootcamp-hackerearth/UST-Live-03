@@ -1,14 +1,18 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Transactional
 @Service
 public class NodeServiceImpl implements NodeService {
     @Autowired
@@ -45,6 +50,52 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
+    public WsDto<NodeDto> findAll(Pageable pageable) {
+        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        Type type = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        WsDto<NodeDto> nodeWsDto = new WsDto<>();
+        nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), type));
+        nodeWsDto.setTotalRecords(nodePage.getTotalElements());
+        nodeWsDto.setTotalPages(nodePage.getTotalPages());
+        nodeWsDto.setSizePerPage(pageable.getPageSize());
+        nodeWsDto.setPage(pageable.getPageNumber());
+        return nodeWsDto;
+    }
+
+    @Override
+    public NodeDto findByIdentifier(String identifier) {
+        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+    }
+
+    public List<NodeDto> getNodesForRoles() {
+        List<NodeDto> nodeDtos = new ArrayList<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            org.springframework.security.core.userdetails.User principalObject
+                    = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+            if (principalObject != null) findNodes(principalObject, nodeDtos);
+        }
+        return nodeDtos;
+    }
+
+    public void findNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
+        User currentUser = userRepository.findByUsername(principalObject.getUsername());
+        Set<String> nodesStr = new HashSet<>();
+        List<Node> nodes = nodeRepository.findAllByStatus(true);
+        for (String role : currentUser.getRoles()) {
+            for (Node node : nodes) {
+                if (node.getRoles() != null && node.getRoles().contains(role)) {
+                    nodesStr.add(node.getIdentifier());
+                }
+            }
+        }
+        for (String nodeStr : nodesStr) {
+            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
+        }
+    }
+
+    @Override
     public NodeDto update(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
@@ -59,49 +110,16 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
+    public NodeDto toggleStatus(String identifier) {
+        Node node = nodeRepository.findByIdentifier(identifier);
+        node.setStatus(!node.isStatus());
+        nodeRepository.save(node);
+        return modelMapper.map(node, NodeDto.class);
+    }
+
+    @Override
     public boolean delete(String identifier) {
         nodeRepository.deleteByIdentifier(identifier);
         return true;
-    }
-
-    @Override
-    public List<NodeDto> findAll() {
-        Type listType = new TypeToken<List<NodeDto>>() {
-        }.getType();
-        return modelMapper.map(nodeRepository.findAll(), listType);
-    }
-
-    @Override
-    public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
-    }
-
-    public List<NodeDto> getNodesForRoles() {
-        List<NodeDto> nodeDtos = new ArrayList<>();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            org.springframework.security.core.userdetails.User principalObject
-                    = (org.springframework.security.core.userdetails.User)
-                    authentication.getPrincipal();
-            if (principalObject != null) findNodes(principalObject, nodeDtos);
-        }
-        return nodeDtos;
-    }
-
-    private void findNodes(org.springframework.security.core.userdetails
-                                   .User principalObject, List<NodeDto> nodeDtos) {
-        User currentUser = userRepository.findByUsername(principalObject.getUsername());
-        Set<String> nodesStr = new HashSet<>();
-        List<Node> nodes = nodeRepository.findAll();
-        for (String role : currentUser.getRoles()) {
-            for (Node node : nodes) {
-                if (node.getRoles() != null && node.getRoles().contains(role)) {
-                    nodesStr.add(node.getIdentifier());
-                }
-            }
-        }
-        for (String nodeStr : nodesStr) {
-            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
-        }
     }
 }

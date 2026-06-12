@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>POS Retail Management | User List</title>
+    <title>POS Management | User List</title>
 
     <style>
         body {
@@ -201,16 +201,14 @@
 
     <div class="container">
         <div class="brand-header">
-            <h1>POS Retail Management</h1>
+            <h1>POS Management</h1>
         </div>
 
         <div class="content-body">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>User Administration</h2>
-                <a href="${pageContext.request.contextPath}/register" class="btn-register">
-                    + Add New User
-                </a>
             </div>
+
             <table>
                 <thead>
                     <tr>
@@ -222,12 +220,13 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     <c:choose>
                         <c:when test="${not empty users}">
                             <c:forEach var="user" items="${users}">
                                 <tr>
-                                    <td style="font-weight: 600; color: #6B7280;">#${user.id}</td>
+                                    <td style="font-weight: 600; color: #6B7280;">${user.id}</td>
                                     <td>${user.name}</td>
                                     <td>${user.username}</td>
                                     <td>${user.phoneNo}</td>
@@ -269,6 +268,7 @@
                     </c:choose>
                 </tbody>
             </table>
+
             <a href="${pageContext.request.contextPath}/" class="back-link">
                 ← Back to Dashboard
             </a>

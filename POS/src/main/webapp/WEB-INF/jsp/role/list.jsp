@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>POS Retail Management | Role Management</title>
+    <title>POS Management | Role Management</title>
 
     <style>
         body {
@@ -23,7 +23,6 @@
             width: 95%;
             max-width: 950px;
             background: #ffffff;
-            padding: 0;
             border-radius: 16px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
             overflow: hidden;
@@ -40,7 +39,6 @@
             margin: 0;
             font-size: 22px;
             font-weight: 600;
-            letter-spacing: 0.8px;
         }
 
         .content-body {
@@ -55,11 +53,6 @@
             text-decoration: none;
             font-size: 14px;
             font-weight: 600;
-            transition: opacity 0.2s;
-        }
-
-        .btn-add:hover {
-            opacity: 0.9;
         }
 
         table {
@@ -76,18 +69,18 @@
 
         th {
             padding: 15px;
-            text-align: left;
             color: #4B5563;
             font-size: 12px;
             text-transform: uppercase;
             font-weight: 700;
+            text-align: left;
         }
 
         td {
             padding: 15px;
-            text-align: left;
             border-bottom: 1px solid #F3F4F6;
             color: #1F2937;
+            vertical-align: middle;
         }
 
         tbody tr:hover {
@@ -100,14 +93,13 @@
             text-decoration: none;
             font-size: 12px;
             font-weight: 700;
-            transition: opacity 0.2s;
             display: inline-block;
         }
 
         .btn-view {
             background: #E5E7EB;
             color: #1F2937;
-            margin-right: 8px;
+            margin-right: 6px;
         }
 
         .btn-delete {
@@ -115,8 +107,54 @@
             color: #DC2626;
         }
 
-        .btn-action:hover {
-            opacity: 0.8;
+        /* ===== Toggle Switch ===== */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+            vertical-align: middle;
+        }
+
+        .switch input {
+            opacity: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            background: #E5E7EB;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .slider:before {
+            content: "";
+            position: absolute;
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+        }
+
+        input:checked + .slider {
+            background: #16A34A;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .status-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            margin-left: 8px;
         }
 
         .back-link {
@@ -124,102 +162,111 @@
             margin-top: 15px;
             font-size: 14px;
             color: #6B7280;
+            text-align: center;
             text-decoration: none;
             font-weight: 600;
-            text-align: center;
         }
-
-        .back-link:hover {
-            color: #0B3C5D;
-            text-decoration: underline;
-        }
-
-        .toast {
-            position: fixed;
-            top: 24px;
-            right: -400px;
-            min-width: 280px;
-            padding: 16px 20px;
-            border-radius: 12px;
-            color: #FFFFFF;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            z-index: 9999;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        .toast-success { background: #16A34A; }
-        .toast-error { background: #DC2626; }
-        .toast.show { right: 24px; }
     </style>
 </head>
 
 <body>
-    <c:set var="toastClass" value="${colour eq 'red' ? 'toast-error' : 'toast-success'}" />
 
-    <c:if test="${not empty message}">
-        <div id="toast" class="toast ${toastClass}">
-            ${message}
-        </div>
-    </c:if>
+<div class="container">
+    <div class="brand-header">
+        <h1>POS Management</h1>
+    </div>
 
-    <div class="container">
-        <div class="brand-header">
-            <h1>POS Retail Management</h1>
-        </div>
-
-        <div class="content-body">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <h2 style="margin:0; font-size:18px; color:#1F2937;">Role Management</h2>
-                <a href="${pageContext.request.contextPath}/role/add" class="btn-add">
-                    + Add New Role
-                </a>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Role Identifier</th>
-                        <th>Description</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach var="role" items="${roles}">
-                        <tr>
-                            <td style="font-weight: 600; color: #6B7280;">#${role.id}</td>
-                            <td style="font-weight: 600;">${role.identifier}</td>
-                            <td style="color: #6B7280;">${empty role.description ? '-' : role.description}</td>
-                            <td>
-                                <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
-                                   class="btn-action btn-view">View / Edit</a>
-
-                                <a href="${pageContext.request.contextPath}/role/delete?identifier=${role.identifier}"
-                                   class="btn-action btn-delete"
-                                   onclick="return confirm('Are you sure you want to delete this role?')">
-                                    Delete
-                                </a>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                </tbody>
-            </table>
-
-            <a href="${pageContext.request.contextPath}/" class="back-link">
-                ← Back to Homepage
+    <div class="content-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h2 style="margin:0; font-size:18px;">Role Management</h2>
+            <a href="${pageContext.request.contextPath}/role/add" class="btn-add">
+                + Add New Role
             </a>
         </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Roles</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="role" items="${roles}">
+                <tr>
+                    <td style="font-weight:600; color:#6B7280;">
+                        ${role.id}
+                    </td>
+
+                    <td style="font-weight:600;">
+                        ${role.identifier}
+                    </td>
+
+                    <td style="color:#6B7280;">
+                        ${empty role.description ? '-' : role.description}
+                    </td>
+
+                    <!-- STATUS TOGGLE -->
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox"
+                                   ${role.status ? "checked" : ""}
+                                   onchange="toggleRoleStatus('${role.identifier}', this)">
+                            <span class="slider"></span>
+                        </label>
+
+                        <span class="status-label">
+                            <c:choose>
+                                <c:when test="${role.status}">Active</c:when>
+                                <c:otherwise>Inactive</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </td>
+
+                    <td>
+                        <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
+                           class="btn-action btn-view">
+                            View / Edit
+                        </a>
+
+                        <a href="${pageContext.request.contextPath}/role/delete?identifier=${role.identifier}"
+                           class="btn-action btn-delete"
+                           onclick="return confirm('Are you sure you want to delete this role?')">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+
+        <a href="${pageContext.request.contextPath}/" class="back-link">
+            ← Back to Homepage
+        </a>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const toast = document.getElementById("toast");
-            if (toast) {
-                setTimeout(() => toast.classList.add("show"), 200);
-                setTimeout(() => toast.classList.remove("show"), 3500);
-            }
-        });
-    </script>
+</div>
+
+<script>
+function toggleRoleStatus(identifier, checkbox) {
+    fetch('${pageContext.request.contextPath}/role/toggle', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'identifier=' + encodeURIComponent(identifier)
+    }).then(() => {
+        const label = checkbox.closest('td').querySelector('.status-label');
+        label.textContent = checkbox.checked ? 'Active' : 'Inactive';
+    }).catch(() => {
+        alert('Failed to update role status');
+        checkbox.checked = !checkbox.checked;
+    });
+}
+</script>
+
 </body>
 </html>
