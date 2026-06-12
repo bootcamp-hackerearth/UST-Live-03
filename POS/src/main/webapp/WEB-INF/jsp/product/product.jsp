@@ -66,11 +66,13 @@ input:focus, select:focus {
     border-color: #6366f1;
 }
 
+/* Readonly */
 input[readonly] {
     background: #f1f5f9;
     cursor: not-allowed;
 }
 
+/* Checkbox list */
 .checkbox-list {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -97,6 +99,7 @@ input[readonly] {
     justify-self: center;
 }
 
+/* Error styles */
 .error-box {
     background: #fee2e2;
     color: #7f1d1d;
@@ -151,6 +154,7 @@ function validateForm() {
 
     let valid = true;
 
+    // clear previous error
     document.getElementById("categoryError").innerText = "";
 
     const categories = document.querySelectorAll('[name="category"]:checked');
@@ -182,13 +186,16 @@ function validateForm() {
               method="post"
               onsubmit="return validateForm()">
 
+            <!-- Hidden Identifier -->
             <input type="hidden" name="identifier" value="${product.identifier}" />
 
+            <!-- Product Name (READ ONLY) -->
             <div class="form-group">
                 <label>Product Name</label>
                 <input type="text" value="${product.identifier}" readonly />
             </div>
 
+            <!-- Categories -->
             <div class="form-group">
                 <label>Categories</label>
 
@@ -227,6 +234,7 @@ function validateForm() {
                 <div class="field-error" id="categoryError"></div>
             </div>
 
+            <!-- Brand -->
             <div class="form-group">
                 <label>Brand</label>
                 <select name="brand" required>
@@ -242,6 +250,7 @@ function validateForm() {
                 </select>
             </div>
 
+            <!-- Model -->
             <div class="form-group">
                 <label>Model</label>
                 <select name="model" required>
@@ -257,6 +266,7 @@ function validateForm() {
                 </select>
             </div>
 
+            <!-- Unit -->
             <div class="form-group">
                 <label>Unit</label>
                 <select name="unit" required>

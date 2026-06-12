@@ -65,6 +65,7 @@ public class ModelController {
     @PostMapping("/toggle")
     @ResponseBody
     public String toggle(@RequestParam String identifier, boolean status) {
+
         modelService.changeStatus(identifier, status);
         return "success";
     }

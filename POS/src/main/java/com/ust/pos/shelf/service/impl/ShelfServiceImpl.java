@@ -1,5 +1,6 @@
 package com.ust.pos.shelf.service.impl;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
@@ -60,11 +61,21 @@ public class ShelfServiceImpl implements ShelfService {
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
+    public PaginatedResponseDto<ShelfDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
         Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
-        return modelMapper.map(shelfPage.getContent(), listType);
+
+        List<ShelfDto> items = modelMapper.map(shelfPage.getContent(), listType);
+
+        PaginatedResponseDto<ShelfDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(shelfPage.getTotalElements());
+        response.setTotalPages(shelfPage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override

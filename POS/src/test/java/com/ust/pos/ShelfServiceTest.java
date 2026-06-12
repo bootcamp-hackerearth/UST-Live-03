@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
@@ -150,9 +151,9 @@ class ShelfServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(shelfDtos);
 
-        List<ShelfDto> response = shelfService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<ShelfDto> response = shelfService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test

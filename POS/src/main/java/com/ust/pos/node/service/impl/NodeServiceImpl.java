@@ -1,6 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -48,7 +49,6 @@ public class NodeServiceImpl implements NodeService {
     }
 
     private void findNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
-
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesStr = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
@@ -100,12 +100,22 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public PaginatedResponseDto<NodeDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+
+        List<NodeDto> items = modelMapper.map(nodePage.getContent(), listType);
+
+        PaginatedResponseDto<NodeDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(nodePage.getTotalElements());
+        response.setTotalPages(nodePage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
@@ -115,7 +125,6 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public List<NodeDto> findAllActive() {
-
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         return modelMapper.map(nodeRepository.findByStatus(true), listType);
@@ -123,7 +132,6 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public void changeStatus(String identifier, boolean status) {
-
         Node node = nodeRepository.findByIdentifier(identifier);
         node.setStatus(status);
         nodeRepository.save(node);

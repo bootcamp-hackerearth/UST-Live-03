@@ -19,11 +19,13 @@
             color: #1e293b;
         }
 
+        /* Layout */
         .wrapper {
             display: flex;
             min-height: 100vh;
         }
 
+        /* Sidebar */
         .sidebar {
             width: 250px;
             background: #ffffff;
@@ -44,6 +46,7 @@
             font-weight: 600;
         }
 
+        /* Menu links */
         .menu a {
             display: block;
             padding: 12px 15px;
@@ -61,6 +64,7 @@
             color: #ffffff;
         }
 
+        /* Main Content */
         .content {
             flex: 1;
             display: flex;
@@ -68,6 +72,7 @@
             align-items: center;
         }
 
+        /* Center card */
         .center-box {
             text-align: center;
             background: #ffffff;
@@ -89,6 +94,7 @@
             font-size: 14px;
         }
 
+        /* Logout button */
         .logout-btn {
             width: 100%;
             padding: 12px;
@@ -105,6 +111,7 @@
             background: #dc2626;
         }
 
+        /* Signed In User */
         .top-user {
             position: absolute;
             top: 25px;
@@ -133,6 +140,7 @@
                 0 12px 24px rgba(0,0,0,0.10);
         }
 
+        /* User Avatar */
         .user-avatar {
             width: 42px;
             height: 42px;
@@ -151,6 +159,7 @@
             font-size: 16px;
         }
 
+        /* Text */
         .user-details {
             display: flex;
             flex-direction: column;
@@ -175,9 +184,11 @@
 
 <div class="wrapper">
 
+    <!-- Sidebar -->
     <div class="sidebar">
         <h2>POS System</h2>
 
+        <!-- Signed In User -->
         <div class="top-user">
 
             <div class="user-avatar">
@@ -219,6 +230,7 @@
 
     </div>
 
+    <!-- Main Content -->
     <div class="content">
         <div class="center-box">
             <h1>POS Dashboard</h1>

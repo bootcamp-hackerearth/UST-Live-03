@@ -8,5 +8,6 @@ import lombok.Setter;
 @Setter
 @Entity
 public class Category extends CommonFields {
+
     private String superCategory;
 }

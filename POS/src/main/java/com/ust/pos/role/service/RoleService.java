@@ -1,5 +1,6 @@
 package com.ust.pos.role.service;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RoleDto;
 import org.springframework.data.domain.Pageable;
 
@@ -13,7 +14,7 @@ public interface RoleService {
 
     void delete(String username);
 
-    List<RoleDto> findAll(Pageable pageable);
+    PaginatedResponseDto<RoleDto> findAll(Pageable pageable);
 
     RoleDto findByIdentifier(String identifier);
 

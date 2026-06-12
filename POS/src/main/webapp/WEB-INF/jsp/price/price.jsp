@@ -50,6 +50,7 @@ input, select {
     font-size: 14px;
 }
 
+/* Disabled field style */
 input[disabled] {
     background: #f1f5f9;
     cursor: not-allowed;
@@ -120,6 +121,7 @@ function validateForm() {
 
     <div class="form-container">
 
+        <!-- Backend Error -->
         <c:if test="${not empty message}">
             <div class="error">${message}</div>
         </c:if>
@@ -129,20 +131,24 @@ function validateForm() {
               method="post"
               onsubmit="return validateForm()">
 
+            <!-- Product (Disabled) -->
             <label>Product</label>
             <input type="text" value="${priceDto.product}" disabled />
 
+            <!-- Hidden (this is what gets sent) -->
             <input type="hidden" name="product" value="${priceDto.product}" />
 
             <label>Identifier</label>
             <input type="hidden" name="identifier" value="${priceDto.identifier}" hidden />
 
+            <!-- Price -->
             <label>Price</label>
             <input type="number" step="0.01" name="costPrice"
-                   value="${priceDto.costPrice}" required = "true"/>
+                   value="${priceDto.costPrice}" />
 
+            <!-- Price Type -->
             <label>Price Type</label>
-            <input type="text" name="priceType" value="${priceDto.priceType}" required = "true"/>
+            <input type="text" name="priceType" value="${priceDto.priceType}" />
 
             <button type="submit" class="btn">Update Price</button>
 

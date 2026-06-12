@@ -1,5 +1,6 @@
 package com.ust.pos.rack.service.impl;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
@@ -65,12 +66,22 @@ public class RackServiceImpl implements RackService {
     }
 
     @Override
-    public List<RackDto> findAll(Pageable pageable) {
+    public PaginatedResponseDto<RackDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
         Page<Rack> rackPage = rackRepository.findAll(pageable);
-        return modelMapper.map(rackPage.getContent(), listType);
+
+        List<RackDto> items = modelMapper.map(rackPage.getContent(), listType);
+
+        PaginatedResponseDto<RackDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(rackPage.getTotalElements());
+        response.setTotalPages(rackPage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
@@ -80,7 +91,6 @@ public class RackServiceImpl implements RackService {
 
     @Override
     public List<RackDto> findAllActive() {
-
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
         return modelMapper.map(rackRepository.findByStatus(true), listType);
@@ -88,7 +98,6 @@ public class RackServiceImpl implements RackService {
 
     @Override
     public void changeStatus(String identifier, boolean status) {
-
         Rack rack = rackRepository.findByIdentifier(identifier);
         rack.setStatus(status);
         rackRepository.save(rack);

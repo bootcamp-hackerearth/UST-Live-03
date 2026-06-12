@@ -9,12 +9,14 @@
 
 <style>
 
+/* RESET */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* BODY */
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: linear-gradient(135deg, #e0e7ff, #f8fafc);
@@ -25,11 +27,13 @@ body {
     justify-content: center;
 }
 
+/* CONTAINER */
 .container {
     width: 100%;
     max-width: 700px;
 }
 
+/* TITLE */
 h2 {
     text-align: center;
     margin-bottom: 30px;
@@ -37,6 +41,7 @@ h2 {
     font-weight: 600;
 }
 
+/* CARD */
 .form-container {
     background: #ffffff;
     border-radius: 16px;
@@ -45,6 +50,7 @@ h2 {
     box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 }
 
+/* LABEL */
 label {
     display: block;
     margin-top: 18px;
@@ -52,6 +58,7 @@ label {
     font-weight: 500;
 }
 
+/* INPUT + SELECT */
 input, select {
     width: 100%;
     padding: 12px;
@@ -68,11 +75,13 @@ input:focus, select:focus {
     background: #ffffff;
 }
 
+/* DISABLED SELECT */
 select:disabled {
     background: #e2e8f0;
     cursor: not-allowed;
 }
 
+/* BUTTON */
 button {
     width: 100%;
     padding: 14px;
@@ -89,6 +98,7 @@ button:hover {
     box-shadow: 0 6px 15px rgba(79,70,229,0.25);
 }
 
+/* MESSAGE */
 .message {
     margin-top: 15px;
     color: #ef4444;
@@ -96,6 +106,7 @@ button:hover {
     text-align: center;
 }
 
+/* BUTTON LINK */
 .btn-container {
     text-align: center;
     margin-top: 25px;
@@ -151,12 +162,14 @@ function validateForm() {
               method="post"
               onsubmit="return validateForm()">
 
+            <!-- Identifier -->
             <label>Identifier</label>
             <input type="text"
                    name="identifier"
                    value="${stock.identifier}"
                    readonly />
 
+            <!-- PRODUCT (DISABLED DROPDOWN) -->
             <label>Product</label>
             <select disabled>
                 <c:forEach var="product" items="${products}">
@@ -167,8 +180,10 @@ function validateForm() {
                 </c:forEach>
             </select>
 
+            <!-- Hidden field (IMPORTANT) -->
             <input type="hidden" name="product" value="${stock.product}" />
 
+            <!-- WAREHOUSE (DISABLED DROPDOWN) -->
             <label>Warehouse</label>
             <select disabled>
                 <c:forEach var="warehouse" items="${warehouses}">
@@ -179,8 +194,10 @@ function validateForm() {
                 </c:forEach>
             </select>
 
+            <!-- Hidden field -->
             <input type="hidden" name="warehouse" value="${stock.warehouse}" />
 
+            <!-- MINIMUM STOCK -->
             <label>Minimum Stock</label>
             <input type="number"
                    name="minimumStock"
@@ -188,6 +205,7 @@ function validateForm() {
                    min="0"
                    required />
 
+            <!-- QUANTITY -->
             <label>Quantity</label>
             <input type="number"
                    name="quantity"

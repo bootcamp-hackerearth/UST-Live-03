@@ -1,7 +1,7 @@
 package com.ust.pos.api.shelf;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.category.service.CategoryService;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.shelf.service.ShelfService;
@@ -18,11 +18,8 @@ public class ShelfControllerApi extends BaseController {
     @Autowired
     private ShelfService shelfService;
 
-    @Autowired
-    private CategoryService categoryService;
-
     @PostMapping("/list")
-    public List<ShelfDto> home(@RequestBody PaginationDto paginationDto) {
+    public PaginatedResponseDto<ShelfDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());

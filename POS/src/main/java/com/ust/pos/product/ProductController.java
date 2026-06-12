@@ -100,7 +100,6 @@ public class ProductController {
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
-
         productService.delete(identifier);
         return REDIRECT_PRODUCT_LIST;
     }

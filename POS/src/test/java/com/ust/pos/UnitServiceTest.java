@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
@@ -151,9 +152,9 @@ class UnitServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(unitDtos);
 
-        List<UnitDto> response = unitService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<UnitDto> response = unitService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test

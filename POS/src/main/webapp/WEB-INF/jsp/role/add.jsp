@@ -28,6 +28,7 @@ body {
     color: #1e293b;
 }
 
+/* Card */
 .container {
     width: 400px;
     background: #ffffff;
@@ -37,6 +38,7 @@ body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
+/* Title */
 h2 {
     text-align: center;
     margin-bottom: 20px;
@@ -44,10 +46,12 @@ h2 {
     color: #0f172a;
 }
 
+/* Input group */
 .input-group {
     margin-bottom: 16px;
 }
 
+/* Label */
 label {
     font-size: 13px;
     color: #475569;
@@ -55,6 +59,7 @@ label {
     margin-bottom: 5px;
 }
 
+/* Input */
 input {
     width: 100%;
     padding: 10px;
@@ -71,6 +76,7 @@ input:focus {
     background: #ffffff;
 }
 
+/* Button */
 button {
     width: 100%;
     padding: 12px;
@@ -87,6 +93,7 @@ button:hover {
     box-shadow: 0 5px 15px rgba(99,102,241,0.3);
 }
 
+/* Message */
 .success-msg {
     margin-bottom: 12px;
     padding: 10px;

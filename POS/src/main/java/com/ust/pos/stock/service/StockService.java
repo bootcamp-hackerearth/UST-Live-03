@@ -1,5 +1,6 @@
 package com.ust.pos.stock.service;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.StockDto;
 import org.springframework.data.domain.Pageable;
 
@@ -15,7 +16,7 @@ public interface StockService {
 
     void delete(String identifier);
 
-    List<StockDto> findAll(Pageable pageable);
+    PaginatedResponseDto<StockDto> findAll(Pageable pageable);
 
     List<StockDto> findAllActive();
 

@@ -1,5 +1,6 @@
 package com.ust.pos.rack.service;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RackDto;
 import org.springframework.data.domain.Pageable;
 
@@ -13,7 +14,7 @@ public interface RackService {
 
     void delete(String identifier);
 
-    List<RackDto> findAll(Pageable pageable);
+    PaginatedResponseDto<RackDto> findAll(Pageable pageable);
 
     RackDto findByIdentifier(String identifier);
 

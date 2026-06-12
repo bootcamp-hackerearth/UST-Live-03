@@ -9,6 +9,7 @@
 
 <style>
 
+/* BASE UI (same as shelf) */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -84,6 +85,7 @@ tbody tr:hover {
     color: #64748b;
 }
 
+/* Buttons */
 .btn-container {
     text-align: center;
     margin-top: 25px;
@@ -115,6 +117,7 @@ tbody tr:hover {
     background: #0284c7;
 }
 
+/* TOGGLE */
 .switch {
     position: relative;
     display: inline-block;
@@ -153,6 +156,7 @@ input:checked + .slider:before {
     transform: translateX(20px);
 }
 
+/* Status label */
 .status-label {
     margin-left: 8px;
     font-size: 13px;
@@ -162,6 +166,7 @@ input:checked + .slider:before {
 .status-label.active { color: #10b981; }
 .status-label.inactive { color: #ef4444; }
 
+/* Toast */
 .toast {
     position: fixed;
     top: 20px;
@@ -206,10 +211,13 @@ input:checked + .slider:before {
 
 <tr>
 
+    <!-- SL No -->
     <td>${unit.id}</td>
 
+    <!-- Unit Name -->
     <td>${unit.identifier}</td>
 
+    <!-- Status -->
    <td>
        <label class="switch">
            <input type="checkbox"
@@ -230,8 +238,10 @@ input:checked + .slider:before {
        </span>
    </td>
 
+   <!--Description -->
          <td>${unit.description}</td>
 
+    <!-- Actions -->
     <td>
 
         <a class="action-btn edit-btn"
@@ -268,6 +278,7 @@ input:checked + .slider:before {
 
 </div>
 
+<!-- Buttons -->
 <div class="btn-container">
 
     <a href="${pageContext.request.contextPath}/" class="btn home-btn">
@@ -282,6 +293,7 @@ input:checked + .slider:before {
 
 </div>
 
+<!-- Toast -->
 <div id="toast" class="toast">Status Updated</div>
 
 <script>

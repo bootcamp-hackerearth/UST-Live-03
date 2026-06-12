@@ -9,6 +9,7 @@
 
 <style>
 
+/* BASE UI */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -66,6 +67,7 @@ tbody tr:hover {
     background: #f1f5f9;
 }
 
+/* Category badge */
 .badge {
     padding: 5px 10px;
     border-radius: 8px;
@@ -76,6 +78,7 @@ tbody tr:hover {
     display: inline-block;
 }
 
+/* Buttons */
 .action-btn {
     display: inline-block;
     padding: 6px 12px;
@@ -94,6 +97,7 @@ tbody tr:hover {
     color: #64748b;
 }
 
+/* Bottom buttons */
 .btn-container {
     text-align: center;
     margin-top: 25px;
@@ -117,6 +121,7 @@ tbody tr:hover {
     background: #0ea5e9;
 }
 
+/* TOGGLE (copied exactly) */
 .switch {
     position: relative;
     display: inline-block;
@@ -164,6 +169,7 @@ input:checked + .slider:before {
 .status-label.active { color: #10b981; }
 .status-label.inactive { color: #ef4444; }
 
+/* Toast */
 .toast {
     position: fixed;
     top: 20px;
@@ -212,20 +218,26 @@ input:checked + .slider:before {
 
     <td>${product.id}</td>
 
+    <!-- Product -->
     <td>${product.identifier}</td>
 
+    <!-- Brand -->
     <td>${product.brand}</td>
 
+    <!-- Model -->
     <td>${product.model}</td>
 
+    <!-- Unit -->
     <td>${product.unit}</td>
 
+    <!-- Category -->
     <td>
         <c:forEach var="cat" items="${product.category}">
             <span class="badge">${cat}</span>
         </c:forEach>
     </td>
 
+    <!-- Status -->
     <td>
         <label class="switch">
             <input type="checkbox"
@@ -246,6 +258,7 @@ input:checked + .slider:before {
         </span>
     </td>
 
+    <!-- Actions -->
     <td>
         <a class="action-btn edit-btn"
            href="${pageContext.request.contextPath}/product/get?identifier=${product.identifier}">
@@ -280,6 +293,7 @@ input:checked + .slider:before {
 
 </div>
 
+<!-- Buttons -->
 <div class="btn-container">
 
     <a href="${pageContext.request.contextPath}/" class="btn home-btn">
@@ -294,6 +308,7 @@ input:checked + .slider:before {
 
 </div>
 
+<!-- Toast -->
 <div id="toast" class="toast">Status Updated</div>
 
 <script>

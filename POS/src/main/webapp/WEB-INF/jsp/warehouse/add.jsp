@@ -71,6 +71,7 @@ textarea {
     resize: none;
 }
 
+/* Error styles */
 .error-box {
     background: #fee2e2;
     color: #7f1d1d;
@@ -86,6 +87,7 @@ textarea {
     margin-top: 4px;
 }
 
+/* Buttons */
 .btn-container {
     text-align: center;
     margin-top: 20px;
@@ -169,6 +171,7 @@ function showError(input, message) {
     errorDiv.innerText = message;
 }
 
+// Restrict input to numbers only
 function allowOnlyNumbers(event) {
     event.target.value = event.target.value.replace(/[^0-9]/g, '');
 }
@@ -184,6 +187,7 @@ function allowOnlyNumbers(event) {
 
     <div class="form-container">
 
+        <!-- Backend Error -->
         <c:if test="${not empty error}">
             <div class="error-box">${error}</div>
         </c:if>
@@ -192,30 +196,35 @@ function allowOnlyNumbers(event) {
               method="post"
               onsubmit="return validateForm()">
 
+            <!-- Warehouse Name -->
             <div class="form-group">
                 <label>Warehouse Name</label>
                 <input type="text" name="identifier" />
                 <div class="field-error"></div>
             </div>
 
+            <!-- Location -->
             <div class="form-group">
                 <label>Country</label>
                 <input type="text" name="country" />
                 <div class="field-error"></div>
             </div>
 
-            <div class="form-group">
-                <label>Region</label>
-                <input type="text" name="region" />
-                <div class="field-error"></div>
-            </div>
+            <!-- Location -->
+                        <div class="form-group">
+                            <label>Region</label>
+                            <input type="text" name="region" />
+                            <div class="field-error"></div>
+                        </div>
 
+            <!-- Address -->
             <div class="form-group">
                 <label>Address</label>
                 <textarea name="address" rows="3"></textarea>
                 <div class="field-error"></div>
             </div>
 
+            <!-- Phone Number -->
             <div class="form-group">
                 <label>Phone Number</label>
                 <input type="text" name="phoneNumber" maxlength="10"

@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
@@ -186,11 +187,11 @@ class PriceServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(priceDtos);
 
-        List<PriceDto> response = priceService.findAll(pageable);
+        PaginatedResponseDto<PriceDto> response = priceService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
         Assertions.assertEquals("Admin",
-                response.get(0).getIdentifier());
+                response.getItems().get(0).getIdentifier());
     }
 
     @Test

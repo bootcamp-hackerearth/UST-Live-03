@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -152,9 +153,9 @@ class CategoryServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(categoryDtos);
 
-        List<CategoryDto> response = categoryService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<CategoryDto> response = categoryService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test

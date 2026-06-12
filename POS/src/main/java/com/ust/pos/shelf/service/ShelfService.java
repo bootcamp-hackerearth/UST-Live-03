@@ -1,5 +1,6 @@
 package com.ust.pos.shelf.service;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.ShelfDto;
 import org.springframework.data.domain.Pageable;
 
@@ -13,7 +14,7 @@ public interface ShelfService {
 
     void delete(String identifier);
 
-    List<ShelfDto> findAll(Pageable pageable);
+    PaginatedResponseDto<ShelfDto> findAll(Pageable pageable);
 
     ShelfDto findByIdentifier(String identifier);
 

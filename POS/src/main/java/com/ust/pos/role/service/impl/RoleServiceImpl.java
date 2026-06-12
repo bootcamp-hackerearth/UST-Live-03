@@ -1,6 +1,6 @@
 package com.ust.pos.role.service.impl;
 
-import com.ust.pos.dao.RoleDao;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
@@ -25,9 +25,6 @@ public class RoleServiceImpl implements RoleService {
     private RoleRepository roleRepository;
 
     @Autowired
-    private RoleDao roleDao;
-
-    @Autowired
     private ModelMapper modelMapper;
 
     @Override
@@ -37,7 +34,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleDto save(RoleDto roleDto) {
-
         String identifier = roleDto.getIdentifier();
         Role existingRole = roleRepository.findByIdentifier(identifier);
         if (existingRole != null) {
@@ -52,7 +48,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleDto update(RoleDto roleDto) {
-
         String identifier = roleDto.getIdentifier();
         Role existingRole = roleRepository.findByIdentifier(identifier);
         if (existingRole == null) {
@@ -71,17 +66,25 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleDto> findAll(Pageable pageable) {
-
+    public PaginatedResponseDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         Page<Role> rolePage = roleRepository.findAll(pageable);
-        return modelMapper.map(rolePage.getContent(), listType);
+
+        List<RoleDto> items = modelMapper.map(rolePage.getContent(), listType);
+
+        PaginatedResponseDto<RoleDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(rolePage.getTotalElements());
+        response.setTotalPages(rolePage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
     public List<RoleDto> findAllActive() {
-
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         return modelMapper.map(roleRepository.findByStatus(true), listType);
@@ -89,7 +92,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void changeStatus(String identifier, boolean status) {
-
         Role role = roleRepository.findByIdentifier(identifier);
         role.setStatus(status);
         roleRepository.save(role);

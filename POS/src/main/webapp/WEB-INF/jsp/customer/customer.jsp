@@ -26,6 +26,7 @@ body {
     padding: 30px 0;
 }
 
+/* Card */
 .container {
     background: #ffffff;
     padding: 30px;
@@ -37,6 +38,7 @@ body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
+/* Scrollbar */
 .container::-webkit-scrollbar {
     width: 8px;
 }
@@ -46,6 +48,7 @@ body {
     border-radius: 10px;
 }
 
+/* Title */
 h2 {
     text-align: center;
     margin-bottom: 22px;
@@ -53,6 +56,7 @@ h2 {
     color: #0f172a;
 }
 
+/* Section */
 .section-title {
     margin-top: 20px;
     margin-bottom: 15px;
@@ -61,6 +65,7 @@ h2 {
     font-weight: 600;
 }
 
+/* Grid */
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -71,6 +76,7 @@ h2 {
     grid-column: span 2;
 }
 
+/* Labels */
 label {
     font-size: 13px;
     margin-bottom: 5px;
@@ -78,6 +84,7 @@ label {
     display: block;
 }
 
+/* Inputs */
 input,
 select,
 textarea {
@@ -90,11 +97,13 @@ textarea {
     font-size: 14px;
 }
 
+/* Readonly Fields */
 input[readonly] {
     background-color: #e2e8f0;
     cursor: not-allowed;
 }
 
+/* Focus */
 input:focus,
 select:focus,
 textarea:focus {
@@ -104,6 +113,7 @@ textarea:focus {
     background-color: #ffffff;
 }
 
+/* Party Type List */
 .role-list {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -122,6 +132,7 @@ textarea:focus {
     border-radius: 10px;
 }
 
+/* Checkbox Layout */
 .role-item {
     display: flex;
     justify-content: space-between;
@@ -142,6 +153,7 @@ textarea:focus {
     cursor: pointer;
 }
 
+/* Same Address Checkbox */
 .checkbox-wrapper {
     display: flex;
     align-items: center;
@@ -155,6 +167,7 @@ textarea:focus {
     margin: 0;
 }
 
+/* Button */
 button {
     width: 100%;
     padding: 12px;
@@ -171,6 +184,7 @@ button:hover {
     box-shadow: 0 5px 15px rgba(99,102,241,0.3);
 }
 
+/* Error */
 .error-msg {
     color: red;
     font-size: 13px;
@@ -178,6 +192,7 @@ button:hover {
     margin-bottom: 10px;
 }
 
+/* Success */
 .success-msg {
     color: green;
     font-size: 13px;
@@ -185,6 +200,7 @@ button:hover {
     margin-bottom: 10px;
 }
 
+/* Link */
 .link-btn {
     display: block;
     text-align: center;
@@ -257,10 +273,12 @@ function copyShippingAddress() {
 
 <h2>Update Customer</h2>
 
+<!-- SUCCESS MESSAGE -->
 <c:if test="${not empty customer}">
     <div class="success-msg">${customer}</div>
 </c:if>
 
+<!-- ERROR MESSAGE -->
 <c:if test="${not empty message}">
     <div class="error-msg">${message}</div>
 </c:if>
@@ -271,6 +289,8 @@ function copyShippingAddress() {
            onsubmit="return validatePartyType()">
 
 <div class="form-grid">
+
+    <!-- BASIC DETAILS -->
 
     <div>
         <label>Name</label>
@@ -351,6 +371,8 @@ function copyShippingAddress() {
                     required="true"/>
     </div>
 
+    <!-- SHIPPING ADDRESS -->
+
     <div class="full-width section-title">
         Shipping Address
     </div>
@@ -408,6 +430,8 @@ function copyShippingAddress() {
                     title="Enter a valid country"/>
     </div>
 
+    <!-- SAME ADDRESS -->
+
     <div class="full-width checkbox-wrapper">
         <input type="checkbox"
                id="sameAddress"
@@ -417,6 +441,8 @@ function copyShippingAddress() {
             Billing Address same as Shipping Address
         </label>
     </div>
+
+    <!-- BILLING ADDRESS -->
 
     <div class="full-width section-title">
         Billing Address

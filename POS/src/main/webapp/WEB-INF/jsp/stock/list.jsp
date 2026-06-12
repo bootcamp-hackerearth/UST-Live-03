@@ -22,12 +22,14 @@ body {
     padding: 40px 20px;
 }
 
+/* Container */
 .container {
     width: 95%;
     max-width: 900px;
     margin: auto;
 }
 
+/* Title */
 h2 {
     text-align: center;
     margin-bottom: 30px;
@@ -35,6 +37,7 @@ h2 {
     color: #0f172a;
 }
 
+/* Card */
 .table-container {
     background: #ffffff;
     border-radius: 12px;
@@ -43,11 +46,13 @@ h2 {
     box-shadow: 0 8px 20px rgba(0,0,0,0.05);
 }
 
+/* Table */
 table {
     width: 100%;
     border-collapse: collapse;
 }
 
+/* Header */
 thead {
     background: #6366f1;
     color: white;
@@ -59,6 +64,7 @@ th {
     text-transform: uppercase;
 }
 
+/* Rows */
 td {
     padding: 12px;
     text-align: center;
@@ -70,6 +76,7 @@ tbody tr:hover {
     background: #f1f5f9;
 }
 
+/* Highlights */
 
 .low-row {
     background: #fff7ed;
@@ -79,12 +86,14 @@ tbody tr:hover {
     background: #fee2e2;
 }
 
+/* Badge */
 .badge {
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
 }
 
+/* Status styles */
 .active {
     background: #dcfce7;
     color: #166534;
@@ -100,6 +109,7 @@ tbody tr:hover {
         color: #7f1d1d;
 }
 
+/* Action buttons */
 .action-btn {
     display: inline-block;
     padding: 6px 10px;
@@ -126,11 +136,13 @@ tbody tr:hover {
     background: #dc2626;
 }
 
+/* Empty */
 .empty {
     padding: 20px;
     color: #64748b;
 }
 
+/* Buttons */
 .btn-container {
     text-align: center;
     margin-top: 25px;
@@ -196,12 +208,18 @@ tbody tr:hover {
 
                             <td>${stock.id}</td>
 
-                            <td><span class="badge">${stock.identifier}</span></td>
+                            <!-- Identifier -->
+                            <td>
+                                <span class="badge">${stock.identifier}</span>
+                            </td>
 
+                            <!-- Minimum Stock -->
                             <td>${stock.minimumStock}</td>
 
+                            <!-- Quantity -->
                             <td>${stock.quantity}</td>
 
+                            <!-- Computed Status -->
                             <td>
                                 <span class="badge
                                     ${stock.quantity == 0 ? 'inactive' :
@@ -222,6 +240,7 @@ tbody tr:hover {
                                 </span>
                             </td>
 
+                            <!-- Actions -->
                             <td>
 
                                 <a class="action-btn edit-btn"

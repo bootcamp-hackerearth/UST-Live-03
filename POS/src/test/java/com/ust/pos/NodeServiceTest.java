@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -40,7 +41,6 @@ class NodeServiceTest {
     @Test
     void getNodesForRolesTest() {
 
-        // Mock Authentication
         org.springframework.security.core.userdetails.User principal =
                 new org.springframework.security.core.userdetails.User(
                         "Admin",
@@ -60,14 +60,12 @@ class NodeServiceTest {
 
         org.springframework.security.core.context.SecurityContextHolder.setContext(securityContext);
 
-        // Mock current user from DB
         User user = new User();
         user.setUsername("Admin");
         user.setRoles(java.util.Arrays.asList("ROLE_ADMIN"));
 
         Mockito.when(userRepository.findByUsername("Admin")).thenReturn(user);
 
-        // Mock nodes
         Node node1 = new Node();
         node1.setIdentifier("N1");
         node1.setRoles(java.util.Arrays.asList("ROLE_ADMIN"));
@@ -80,17 +78,14 @@ class NodeServiceTest {
 
         Mockito.when(nodeRepository.findAll()).thenReturn(nodes);
 
-        // Mock mapping
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("N1");
 
         Mockito.when(nodeRepository.findByIdentifier("N1")).thenReturn(node1);
         Mockito.when(modelMapper.map(node1, NodeDto.class)).thenReturn(nodeDto);
 
-        // Call service
         List<NodeDto> response = nodeService.getNodesForRoles();
 
-        // Assertions
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("N1", response.get(0).getIdentifier());
     }
@@ -213,9 +208,9 @@ class NodeServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(nodeDtos);
 
-        List<NodeDto> response = nodeService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<NodeDto> response = nodeService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test

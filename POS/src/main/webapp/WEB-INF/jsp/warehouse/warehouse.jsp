@@ -71,11 +71,13 @@ textarea {
     resize: none;
 }
 
+/* Readonly style */
 input[readonly] {
     background: #f1f5f9;
     cursor: not-allowed;
 }
 
+/* Error styles */
 .error-box {
     background: #fee2e2;
     color: #7f1d1d;
@@ -91,6 +93,7 @@ input[readonly] {
     margin-top: 4px;
 }
 
+/* Buttons */
 .btn-container {
     text-align: center;
     margin-top: 20px;
@@ -168,6 +171,7 @@ function showError(input, message) {
     errorDiv.innerText = message;
 }
 
+// Restrict input to numbers only
 function allowOnlyNumbers(event) {
     event.target.value = event.target.value.replace(/[^0-9]/g, '');
 }
@@ -183,6 +187,7 @@ function allowOnlyNumbers(event) {
 
     <div class="form-container">
 
+        <!-- Backend Error -->
         <c:if test="${not empty message}">
             <div class="error-box">${message}</div>
         </c:if>
@@ -191,31 +196,37 @@ function allowOnlyNumbers(event) {
               method="post"
               onsubmit="return validateForm()">
 
+            <!-- Hidden Identifier -->
             <input type="hidden" name="identifier" value="${warehouse.identifier}" />
 
+            <!-- Warehouse Name (READ ONLY) -->
             <div class="form-group">
                 <label>Warehouse Name</label>
                 <input type="text" value="${warehouse.identifier}" readonly />
             </div>
 
+            <!-- Location -->
             <div class="form-group">
                 <label>Country</label>
                 <input type="text" name="country" value="${warehouse.country}" />
                 <div class="field-error"></div>
             </div>
 
-            <div class="form-group">
-                 <label>Region</label>
-                 <input type="text" name="region" value="${warehouse.region}" />
-                 <div class="field-error"></div>
-            </div>
+              <!-- Location -->
+                        <div class="form-group">
+                            <label>Region</label>
+                            <input type="text" name="region" value="${warehouse.region}" />
+                            <div class="field-error"></div>
+                        </div>
 
+            <!-- Address -->
             <div class="form-group">
                 <label>Address</label>
                 <textarea name="address" rows="3">${warehouse.address}</textarea>
                 <div class="field-error"></div>
             </div>
 
+            <!-- Phone Number -->
             <div class="form-group">
                 <label>Phone Number</label>
                 <input type="text" name="phoneNumber" maxlength="10"

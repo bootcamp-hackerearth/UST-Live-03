@@ -26,6 +26,7 @@ body {
     color: #1e293b;
 }
 
+/* Card */
 .container {
     width: 420px;
     background: #ffffff;
@@ -63,6 +64,7 @@ input:focus {
     background: #ffffff;
 }
 
+/* Shelf list (same as Node roles) */
 .shelf-list {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -90,6 +92,7 @@ input:focus {
     justify-self: center;
 }
 
+/* Button */
 button {
     width: 100%;
     padding: 12px;
@@ -105,6 +108,7 @@ button:hover {
     box-shadow: 0 5px 15px rgba(99,102,241,0.3);
 }
 
+/* Error */
 .bottom-error {
     margin-top: 12px;
     padding: 10px;
@@ -115,6 +119,7 @@ button:hover {
     font-size: 13px;
 }
 
+/* Link */
 .link {
     text-align: center;
     margin-top: 14px;
@@ -141,12 +146,13 @@ button:hover {
 
 <form:form modelAttribute="rackDto"
            action="${pageContext.request.contextPath}/rack/add"
-           method="post"
-           onsubmit="return validateShelves()">
+           method="post">
 
+    <!-- Rack Name -->
     <label>Rack Name</label>
     <form:input path="identifier" required="true"/>
 
+    <!-- Shelves -->
     <label>Shelves</label>
 
     <div class="shelf-list">
@@ -154,11 +160,9 @@ button:hover {
         <c:forEach var="s" items="${shelves}">
             <div class="shelf-item">
                 <span>${s.identifier}</span>
-                <form:checkbox path="shelves" value="${s.identifier}" class="shelf-checkbox" />
+                <form:checkbox path="shelves" value="${s.identifier}" />
             </div>
         </c:forEach>
-
-        <span id="shelfError" style="color:red;"></span>
 
     </div>
 
@@ -169,6 +173,7 @@ button:hover {
 
 </form:form>
 
+<!-- Error -->
 <c:if test="${not empty error}">
     <div class="bottom-error">
         ${error}
@@ -182,23 +187,6 @@ button:hover {
 </div>
 
 </div>
-
-<script>
-function validateShelves() {
-
-    const checkboxes = document.querySelectorAll(".shelf-checkbox");
-    const checked = Array.from(checkboxes).some(cb => cb.checked);
-    const error = document.getElementById("shelfError");
-
-    if (!checked) {
-        error.innerText = "Please select at least one shelf";
-        return false;
-    }
-
-    error.innerText = "";
-    return true;
-}
-</script>
 
 </body>
 </html>

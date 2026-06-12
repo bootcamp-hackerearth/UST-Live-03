@@ -1,6 +1,7 @@
 package com.ust.pos.product.service.impl;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -27,7 +28,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
-
         return modelMapper.map(
                 productRepository.findByIdentifier(identifier),
                 ProductDto.class
@@ -75,17 +75,26 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
+    public PaginatedResponseDto<ProductDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
         Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listType);
+
+        List<ProductDto> items = modelMapper.map(productPage.getContent(), listType);
+
+        PaginatedResponseDto<ProductDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(productPage.getTotalElements());
+        response.setTotalPages(productPage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
     public List<ProductDto> findAllActive() {
-
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
         return modelMapper.map(productRepository.findByStatus(true), listType);
@@ -93,7 +102,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void changeStatus(String identifier, boolean status) {
-
         Product product = productRepository.findByIdentifier(identifier);
         product.setStatus(status);
         productRepository.save(product);

@@ -2,6 +2,7 @@ package com.ust.pos.api.node;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
@@ -24,7 +25,7 @@ public class NodeControllerApi extends BaseController {
     private RoleService roleService;
 
     @PostMapping("/list")
-    public List<NodeDto> home(@RequestBody PaginationDto paginationDto) {
+    public PaginatedResponseDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -46,10 +47,10 @@ public class NodeControllerApi extends BaseController {
         return nodeService.update(nodeDto);
     }
 
-    @GetMapping("/delete")
-    public Boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public Boolean delete(@RequestBody NodeDto nodeDto) {
         try {
-            nodeService.delete(identifier);
+            nodeService.delete(nodeDto.getIdentifier());
         } catch (Exception e) {
             return false;
         }
@@ -59,5 +60,16 @@ public class NodeControllerApi extends BaseController {
     @GetMapping("/getnodes")
     public List<NodeDto> getNodesForRoles() {
         return nodeService.getNodesForRoles();
+    }
+
+
+    @PostMapping("/toggle")
+    public boolean changeStatus(@RequestBody NodeDto nodeDto) {
+        try {
+            nodeService.changeStatus(nodeDto.getIdentifier(), nodeDto.getStatus());
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 }

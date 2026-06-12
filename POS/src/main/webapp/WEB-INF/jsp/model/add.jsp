@@ -35,6 +35,7 @@ h2 {
     font-weight: 600;
 }
 
+/* Card */
 .form-card {
     background: #ffffff;
     border-radius: 14px;
@@ -43,6 +44,7 @@ h2 {
     box-shadow: 0 10px 25px rgba(0,0,0,0.06);
 }
 
+/* Input group */
 .form-group {
     margin-bottom: 20px;
 }
@@ -67,11 +69,13 @@ input:focus, textarea:focus {
     border-color: #6366f1;
 }
 
+/* Make textarea same as input */
 textarea {
     height: 40px;
     resize: none;
 }
 
+/* Error */
 .error {
     background: #fee2e2;
     color: #b91c1c;
@@ -81,6 +85,7 @@ textarea {
     font-size: 14px;
 }
 
+/* Buttons */
 .btn-container {
     text-align: center;
     margin-top: 25px;
@@ -126,6 +131,7 @@ textarea {
 
     <div class="form-card">
 
+        <!-- Backend Error -->
         <c:if test="${not empty error}">
             <div class="error">${error}</div>
         </c:if>
@@ -134,6 +140,7 @@ textarea {
               action="${pageContext.request.contextPath}/model/add"
               method="post">
 
+            <!-- Model Name -->
             <div class="form-group">
                 <label>Model Name *</label>
                 <input type="text" name="identifier"
@@ -143,6 +150,7 @@ textarea {
                        minlength="2">
             </div>
 
+            <!-- Description -->
             <div class="form-group">
                 <label>Description *</label>
                 <textarea name="description"
@@ -151,6 +159,7 @@ textarea {
                           minlength="2">${model.description}</textarea>
             </div>
 
+            <!-- Buttons -->
             <div class="btn-container">
 
                 <button type="submit" class="btn save-btn">

@@ -22,12 +22,14 @@ body {
     padding: 50px 20px;
 }
 
+/* Container */
 .container {
     width: 96%;
     max-width: 1200px;
     margin: auto;
 }
 
+/* Title */
 h2 {
     text-align: center;
     margin-bottom: 35px;
@@ -36,12 +38,14 @@ h2 {
     color: #0f172a;
 }
 
+/* Top Actions */
 .top-actions {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
 }
 
+/* Buttons */
 .btn {
     display: inline-block;
     padding: 10px 20px;
@@ -68,6 +72,7 @@ h2 {
     background: #4f46e5;
 }
 
+/* Card */
 .table-container {
     background: #ffffff;
     border-radius: 14px;
@@ -76,11 +81,13 @@ h2 {
     box-shadow: 0 10px 25px rgba(0,0,0,0.06);
 }
 
+/* Table */
 table {
     width: 100%;
     border-collapse: collapse;
 }
 
+/* Header */
 thead {
     background: #6366f1;
     color: white;
@@ -93,6 +100,7 @@ th {
     letter-spacing: 0.5px;
 }
 
+/* Rows */
 td {
     padding: 14px;
     text-align: center;
@@ -104,6 +112,7 @@ tbody tr:hover {
     background: #f1f5f9;
 }
 
+/* Badge */
 .badge {
     padding: 5px 12px;
     border-radius: 8px;
@@ -113,6 +122,7 @@ tbody tr:hover {
     font-weight: 500;
 }
 
+/* Actions */
 .action-btn {
     display: inline-block;
     padding: 6px 12px;
@@ -139,17 +149,20 @@ tbody tr:hover {
     background: #dc2626;
 }
 
+/* Empty */
 .empty {
     padding: 25px;
     color: #64748b;
     font-size: 15px;
 }
 
+/* Bottom Buttons */
 .btn-container {
     text-align: center;
     margin-top: 30px;
 }
 
+/* TOGGLE */
 .switch {
     position: relative;
     display: inline-block;
@@ -188,6 +201,7 @@ input:checked + .slider:before {
     transform: translateX(20px);
 }
 
+/* Status label */
 .status-label {
     margin-left: 8px;
     font-size: 13px;
@@ -197,6 +211,7 @@ input:checked + .slider:before {
 .status-label.active { color: #10b981; }
 .status-label.inactive { color: #ef4444; }
 
+/* Toast */
 .toast {
     position: fixed;
     top: 20px;
@@ -240,12 +255,15 @@ input:checked + .slider:before {
 
                         <tr>
 
+                            <!-- ID -->
                             <td>${cat.id}</td>
 
+                            <!-- Category Name -->
                             <td>
                                 ${cat.identifier}
                             </td>
 
+                            <!-- Super Category -->
                             <td>
                                 <c:choose>
                                     <c:when test="${not empty cat.superCategory}">
@@ -257,6 +275,7 @@ input:checked + .slider:before {
                                 </c:choose>
                             </td>
 
+                            <!-- Status -->
                             <td>
                                 <label class="switch">
                                     <input type="checkbox"
@@ -277,6 +296,7 @@ input:checked + .slider:before {
                                 </span>
                             </td>
 
+                            <!-- Actions -->
                             <td>
 
                                <c:url var="editUrl" value="/category/get">
@@ -316,6 +336,7 @@ input:checked + .slider:before {
 
     </div>
 
+    <!-- Bottom Buttons -->
     <div class="btn-container">
 
         <a href="${pageContext.request.contextPath}/" class="btn home-btn">
@@ -330,6 +351,7 @@ input:checked + .slider:before {
 
 </div>
 
+<!-- Toast -->
 <div id="toast" class="toast">Status Updated</div>
 
 <script>

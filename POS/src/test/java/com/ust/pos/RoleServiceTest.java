@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
@@ -151,9 +152,9 @@ class RoleServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(roleDtos);
 
-        List<RoleDto> response = roleService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<RoleDto> response = roleService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test

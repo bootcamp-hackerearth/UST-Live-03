@@ -121,6 +121,7 @@ function validateForm() {
 
     <div class="form-container">
 
+        <!-- Backend Error -->
         <c:if test="${not empty message}">
             <div class="error">${message}</div>
         </c:if>
@@ -130,8 +131,9 @@ function validateForm() {
               method="post"
               onsubmit="return validateForm()">
 
+            <!-- Product Dropdown -->
             <label>Product</label>
-            <select name="product" required>
+            <select name="product">
                 <option value="">-- Select Product --</option>
                 <c:forEach items="${products}" var="product">
                     <option value="${product.identifier}">
@@ -140,11 +142,13 @@ function validateForm() {
                 </c:forEach>
             </select>
 
+            <!-- Price -->
             <label>Price</label>
-            <input type="number" step="0.01" name="costPrice" required = "true"/>
+            <input type="number" step="0.01" name="costPrice" />
 
+            <!-- Price Type -->
             <label>Price Type</label>
-            <input type="text" name="priceType" required = "true"/>
+            <input type="text" name="priceType" />
 
             <button type="submit" class="btn">Save Price</button>
 

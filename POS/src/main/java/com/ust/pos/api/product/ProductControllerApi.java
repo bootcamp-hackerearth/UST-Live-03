@@ -4,10 +4,10 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class ProductControllerApi extends BaseController {
     private CategoryService categoryService;
 
     @PostMapping("/list")
-    public List<ProductDto> home(@RequestBody PaginationDto paginationDto) {
+    public PaginatedResponseDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -45,13 +45,28 @@ public class ProductControllerApi extends BaseController {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete")
-    public Boolean delete(Model model, @RequestParam String identifier) {
+    @PostMapping("/delete")
+    public Boolean delete(@RequestBody ProductDto productDto) {
         try {
-            productService.delete(identifier);
+            productService.delete(productDto.getIdentifier());
         } catch (Exception e) {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public boolean changeStatus(@RequestBody ProductDto productDto) {
+        try {
+            productService.changeStatus(productDto.getIdentifier(), productDto.getStatus());
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    @GetMapping("/active")
+    public List<ProductDto> getActiveProducts() {
+        return productService.findAllActive();
     }
 }

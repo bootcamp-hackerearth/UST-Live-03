@@ -1,6 +1,7 @@
 package com.ust.pos.models.service.impl;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.ModelService;
@@ -62,12 +63,21 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
-    public List<ModelDto> findAll(Pageable pageable) {
-
+    public PaginatedResponseDto<ModelDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
         Page<Model> modelPage = modelRepository.findAll(pageable);
-        return modelMapper.map(modelPage.getContent(), listType);
+
+        List<ModelDto> items = modelMapper.map(modelPage.getContent(), listType);
+
+        PaginatedResponseDto<ModelDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(modelPage.getTotalElements());
+        response.setTotalPages(modelPage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
@@ -77,7 +87,6 @@ public class ModelServiceImpl implements ModelService {
 
     @Override
     public List<ModelDto> findAllActive() {
-
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
         return modelMapper.map(modelRepository.findByStatus(true), listType);
@@ -85,7 +94,6 @@ public class ModelServiceImpl implements ModelService {
 
     @Override
     public void changeStatus(String identifier, boolean status) {
-
         Model model = modelRepository.findByIdentifier(identifier);
         model.setStatus(status);
         modelRepository.save(model);

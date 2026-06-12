@@ -1,5 +1,6 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
@@ -96,17 +97,26 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public PaginatedResponseDto<PriceDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
         Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+
+        List<PriceDto> items = modelMapper.map(pricePage.getContent(), listType);
+
+        PaginatedResponseDto<PriceDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(pricePage.getTotalElements());
+        response.setTotalPages(pricePage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
     public List<PriceDto> findAllActive() {
-
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
         return modelMapper.map(priceRepository.findByStatus(true), listType);
@@ -114,7 +124,6 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public void changeStatus(String identifier, boolean status) {
-
         Price price = priceRepository.findByIdentifier(identifier);
         price.setStatus(status);
         priceRepository.save(price);

@@ -1,5 +1,6 @@
 package com.ust.pos.price.service;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PriceDto;
 import org.springframework.data.domain.Pageable;
 
@@ -13,7 +14,7 @@ public interface PriceService {
 
     void delete(String identifier);
 
-    List<PriceDto> findAll(Pageable pageable);
+    PaginatedResponseDto<PriceDto> findAll(Pageable pageable);
 
     PriceDto findByIdentifier(String identifier);
 

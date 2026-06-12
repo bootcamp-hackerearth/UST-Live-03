@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
@@ -185,9 +186,9 @@ class UserServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(userDtos);
 
-        List<UserDto> response = userService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<UserDto> response = userService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test

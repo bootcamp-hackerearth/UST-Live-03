@@ -38,9 +38,7 @@ public class RackController {
 
     @PostMapping("/add")
     public String addPost(Model model, @ModelAttribute RackDto rackDto) {
-
         RackDto response = rackService.save(rackDto);
-
         if (!response.isSuccess()) {
             model.addAttribute("error", response.getMessage());
             model.addAttribute(SHELVES, shelfService.findAllActive());
@@ -75,7 +73,6 @@ public class RackController {
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
-
         rackService.delete(identifier);
         return REDIRECT_RACK_LIST;
     }

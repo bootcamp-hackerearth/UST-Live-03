@@ -1,5 +1,6 @@
 package com.ust.pos.warehouse.service.impl;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -66,21 +67,31 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public void delete(String identifier) {
+
         warehouseRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
+    public PaginatedResponseDto<WarehouseDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
         Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+
+        List<WarehouseDto> items = modelMapper.map(warehousePage.getContent(), listType);
+
+        PaginatedResponseDto<WarehouseDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(warehousePage.getTotalElements());
+        response.setTotalPages(warehousePage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
     public List<WarehouseDto> findAllActive() {
-
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
         return modelMapper.map(warehouseRepository.findByStatus(true), listType);
@@ -88,7 +99,6 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public void changeStatus(String identifier, boolean status) {
-
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
         warehouse.setStatus(status);
         warehouseRepository.save(warehouse);

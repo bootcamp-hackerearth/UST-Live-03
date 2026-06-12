@@ -1,6 +1,7 @@
 package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -40,17 +41,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto save(UserDto userDto) {
-
         String username = userDto.getUsername();
         User existingUser = userRepository.findByUsername(username);
-
         if (existingUser != null) {
-
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
             userDto.setSuccess(false);
             return userDto;
         }
-
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         userRepository.save(user);
@@ -59,7 +56,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto update(UserDto userDto) {
-
         String username = userDto.getUsername();
         Optional<User> userOptional = userRepository.findById(userDto.getId());
 
@@ -69,13 +65,11 @@ public class UserServiceImpl implements UserService {
             return userDto;
         } else {
             User existingUser = userOptional.get();
-
             if (!username.equalsIgnoreCase(existingUser.getUsername()) && (userRepository.findByUsername(username) != null)) {
                 userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
                 userDto.setSuccess(false);
                 return userDto;
             }
-
             modelMapper.map(userDto, existingUser);
             userRepository.save(existingUser);
         }
@@ -88,17 +82,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
+    public PaginatedResponseDto<UserDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listType);
+
+        List<UserDto> items = modelMapper.map(userPage.getContent(), listType);
+
+        PaginatedResponseDto<UserDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(userPage.getTotalElements());
+        response.setTotalPages(userPage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
     public List<UserDto> findAllActive() {
-
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         return modelMapper.map(userRepository.findByStatus(true), listType);
@@ -106,7 +109,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changeStatus(String username, boolean status) {
-
         User user = userRepository.findByUsername(username);
         user.setStatus(status);
         userRepository.save(user);

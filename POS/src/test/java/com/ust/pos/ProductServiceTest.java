@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -151,9 +152,9 @@ class ProductServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(productDtos);
 
-        List<ProductDto> response = productService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<ProductDto> response = productService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test

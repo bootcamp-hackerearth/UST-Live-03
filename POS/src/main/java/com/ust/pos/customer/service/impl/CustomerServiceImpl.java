@@ -4,6 +4,7 @@ import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
@@ -48,6 +49,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
 
         if (existingCustomer != null) {
+
             customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
             customerDto.setSuccess(false);
             return customerDto;
@@ -75,6 +77,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
 
         if (existingCustomer == null) {
+
             customerDto.setMessage("Customer with identifier - " + identifier + " not found");
             customerDto.setSuccess(false);
             return customerDto;
@@ -109,17 +112,26 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public PaginatedResponseDto<CustomerDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+
+        List<CustomerDto> items = modelMapper.map(customerPage.getContent(), listType);
+
+        PaginatedResponseDto<CustomerDto> response = new PaginatedResponseDto<>();
+        response.setItems(items);
+        response.setTotalRecords(customerPage.getTotalElements());
+        response.setTotalPages(customerPage.getTotalPages());
+        response.setSizePerPage(pageable.getPageSize());
+        response.setPage(pageable.getPageNumber());
+
+        return response;
     }
 
     @Override
     public List<CustomerDto> findAllActive() {
-
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         return modelMapper.map(customerRepository.findByStatus(true), listType);
@@ -127,7 +139,6 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void changeStatus(String identifier, boolean status) {
-
         Customer customer = customerRepository.findByIdentifier(identifier);
         customer.setStatus(status);
         customerRepository.save(customer);

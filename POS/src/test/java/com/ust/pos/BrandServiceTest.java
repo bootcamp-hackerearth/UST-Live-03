@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -151,9 +152,9 @@ class BrandServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(brandDtos);
 
-        List<BrandDto> response = brandService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<BrandDto> response = brandService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test

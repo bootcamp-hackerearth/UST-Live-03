@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
@@ -151,9 +152,9 @@ class RackServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(rackDtos);
 
-        List<RackDto> response = rackService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<RackDto> response = rackService.findAll(PageRequest.of(0, 10));
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getItems().size());
     }
 
     @Test
