@@ -3,6 +3,7 @@ package com.ust.pos.category.service.impl;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.ShelfsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +29,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto findByIdentifier(String identifier) {
         return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
     }
+
 
     @Override
     public CategoryDto save(CategoryDto categoryDto) {
@@ -65,11 +66,17 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CategoryDto>>() {
+    public WsDto<CategoryDto> findAll(Pageable pageable) {
+        Type typeList = new TypeToken<List<CategoryDto>>() {
         }.getType();
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+        WsDto<CategoryDto> categoryDtoWsDto = new WsDto<>();
+        categoryDtoWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), typeList));
+        categoryDtoWsDto.setTotalRecords(categoryPage.getTotalElements());
+        categoryDtoWsDto.setTotalPages(categoryPage.getTotalPages());
+        categoryDtoWsDto.setSizePerPage(pageable.getPageSize());
+        categoryDtoWsDto.setPage(pageable.getPageNumber());
+        return categoryDtoWsDto;
     }
 
     @Override

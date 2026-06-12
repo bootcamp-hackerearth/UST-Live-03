@@ -1,5 +1,6 @@
 package com.ust.pos.user.service.impl;
 
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
@@ -89,7 +90,6 @@ public class UserServiceImpl implements UserService {
                 user.setSuccess(false);
                 return user;
             }
-
             userRepository.deleteByUsername(username);
             return user;
         }
@@ -97,11 +97,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
+    public WsDto<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listType);
+        WsDto<UserDto> pageDto = new WsDto<>();
+        pageDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        pageDto.setTotalRecords(userPage.getTotalElements());
+        pageDto.setTotalPages(userPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        return pageDto;
     }
 
     @Override
@@ -117,5 +123,16 @@ public class UserServiceImpl implements UserService {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         return modelMapper.map(userRepository.findByStatusIsTrue(), listType);
+    }
+
+    @Override
+    public UserDto getUserDetails(String username) {
+        User user = userRepository.findByUsername(username);
+        UserDto dto = new UserDto();
+        dto.setName(user.getName());
+        dto.setUsername(user.getUsername());
+        dto.setPhoneNo(user.getPhoneNo());
+        dto.setRoles(user.getRoles());
+        return dto;
     }
 }

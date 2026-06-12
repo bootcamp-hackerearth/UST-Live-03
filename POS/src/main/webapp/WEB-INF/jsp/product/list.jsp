@@ -9,18 +9,21 @@
     <style>
         body {
             margin: 0;
+            min-height: 100vh;
             font-family: "Segoe UI", Roboto, Arial, sans-serif;
             background: #ffffff;
+            color: #020617;
         }
 
+        /* ===== CONTAINER ===== */
         .container {
             width: 95%;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 40px auto;
             background: #ffffff;
-            padding: 18px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 18px;
         }
 
         .app-title {
@@ -37,7 +40,8 @@
             margin-bottom: 12px;
         }
 
-        .actions {
+        /* ===== ACTION BAR ===== */
+        .list-actions {
             display: flex;
             justify-content: flex-end;
             gap: 8px;
@@ -56,15 +60,16 @@
         }
 
         .add-btn {
-            background: teal;
-            color: white;
-            text-decoration: none;
             padding: 7px 16px;
+            background: teal;
+            color: #ffffff;
+            text-decoration: none;
             border-radius: 18px;
-            font-weight: 600;
             font-size: 13px;
+            font-weight: 600;
         }
 
+        /* ===== TABLE ===== */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -73,8 +78,8 @@
 
         th, td {
             padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
             text-align: center;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         th {
@@ -90,30 +95,49 @@
             background: #f8fafc;
         }
 
-        .action-link {
-            padding: 6px 12px;
-            border-radius: 18px;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        .edit { background: teal; }
-        .delete { background: #ef4444; margin-left: 6px; }
-
-        .status-btn {
-            border: none;
+        /* ===== STATUS TOGGLE ===== */
+        .status-toggle {
             padding: 5px 12px;
             border-radius: 18px;
             font-size: 12px;
             font-weight: 600;
             color: white;
+            border: none;
             cursor: pointer;
         }
 
-        .status-btn.active { background: teal; }
-        .status-btn.inactive { background: #9ca3af; }
+        .status-true {
+            background-color: teal;
+        }
+
+        .status-false {
+            background-color: #9ca3af;
+        }
+
+        /* ===== ACTION BUTTONS ===== */
+        .action-link {
+            padding: 6px 12px;
+            border-radius: 18px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 12px;
+            color: #ffffff;
+        }
+
+        .edit {
+            background: teal;
+        }
+
+        .delete {
+            background: #ef4444;
+            margin-left: 6px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 18px;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -122,10 +146,9 @@
 <div class="container">
 
     <div class="app-title">POS Application</div>
-
     <h2>Product Management</h2>
-    <div class="actions">
 
+    <div class="list-actions">
         <a href="${pageContext.request.contextPath}/" class="home-btn">Home</a>
 
         <a href="${pageContext.request.contextPath}/product/add" class="add-btn">
@@ -133,83 +156,93 @@
         </a>
     </div>
 
-    <c:if test="${empty products}">
-        <div style="text-align:center;">No products found</div>
-    </c:if>
+    <c:choose>
 
-    <c:if test="${not empty products}">
-        <table>
-            <tr>
-                <th>Product Skucode</th>
-                <th>Category</th>
-                <th>Product name</th>
-                <th>Brand</th>
-                <th>Model</th>
-                <th>Unit</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
+        <c:when test="${empty products}">
+            <div class="empty">No products found</div>
+        </c:when>
 
-            <c:forEach var="product" items="${products}">
+        <c:otherwise>
+
+            <table>
+
+                <thead>
                 <tr>
-                    <td>${product.identifier}</td>
-                    <td>${product.category}</td>
-                    <td>${product.name}</td>
-                    <td>${product.brand}</td>
-                    <td>${product.model}</td>
-                    <td>${product.unit}</td>
-
-                    <td>
-                        <button
-                            class="status-btn ${product.status ? 'active' : 'inactive'}"
-                            onclick="toggleStatus('${product.identifier}', this)">
-                            ${product.status ? 'Active' : 'Inactive'}
-                        </button>
-                    </td>
-
-                    <td>
-                        <a class="action-link edit"
-                           href="${pageContext.request.contextPath}/product/get/${product.identifier}">
-                            Edit
-                        </a>
-
-                        <a class="action-link delete"
-                           href="${pageContext.request.contextPath}/product/delete/${product.identifier}"
-                           onclick="return confirm('Delete this product?');">
-                           Delete
-                        </a>
-                    </td>
+                    <th>Sku Code</th>
+                    <th>Category</th>
+                    <th>Product Name</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Unit</th>
+                    <th>Status</th>
+                    <th>Action</th>
                 </tr>
-            </c:forEach>
-        </table>
-    </c:if>
+                </thead>
+
+                <tbody>
+
+                <c:forEach var="product" items="${products}">
+                    <tr>
+
+                        <td>${product.identifier}</td>
+                        <td>${product.category}</td>
+                        <td>${product.name}</td>
+                        <td>${product.brand}</td>
+                        <td>${product.model}</td>
+                        <td>${product.unit}</td>
+
+                        <!-- STATUS -->
+                        <td>
+
+                            <button
+                                class="status-toggle ${product.status ? 'status-true' : 'status-false'}"
+                                onclick="toggleStatus('${product.identifier}')">
+
+                                ${product.status ? 'Active' : 'Inactive'}
+
+                            </button>
+
+                        </td>
+
+                        <!-- ACTION -->
+                        <td>
+
+                            <a class="action-link edit"
+                               href="${pageContext.request.contextPath}/product/get/${product.identifier}">
+                                Edit
+                            </a>
+
+                            <a class="action-link delete"
+                               href="${pageContext.request.contextPath}/product/delete/${product.identifier}"
+                               onclick="return confirm('Delete this product?');">
+                                Delete
+                            </a>
+
+                        </td>
+
+                    </tr>
+                </c:forEach>
+
+                </tbody>
+
+            </table>
+
+        </c:otherwise>
+
+    </c:choose>
 
 </div>
 
 <script>
-function toggleStatus(identifier, button) {
-    fetch('${pageContext.request.contextPath}/product/toggle-status', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: 'identifier=' + encodeURIComponent(identifier)
-    })
-    .then(() => {
-        if (button.classList.contains('active')) {
-            button.classList.remove('active');
-            button.classList.add('inactive');
-            button.innerText = 'Inactive';
-        } else {
-            button.classList.remove('inactive');
-            button.classList.add('active');
-            button.innerText = 'Active';
-        }
-    })
-    .catch(() => {
-        alert('Failed to update status');
-    });
+
+function toggleStatus(identifier) {
+
+    fetch('${pageContext.request.contextPath}/product/toggle-status?identifier=' + identifier, {
+        method: 'POST'
+    }).then(() => location.reload());
+
 }
+
 </script>
 
 </body>

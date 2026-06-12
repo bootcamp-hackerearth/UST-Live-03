@@ -111,6 +111,7 @@
 
         <h2>Login</h2>
 
+        <!-- LOGIN FORM -->
         <form action="${pageContext.request.contextPath}/login" method="post">
 
             <div class="form-group">
@@ -134,12 +135,14 @@
             </a>
         </div>
 
+        <!-- ERROR -->
         <c:if test="${param.error != null}">
             <div class="error-message">
                 Invalid username or password
             </div>
         </c:if>
 
+        <!-- LOGOUT -->
         <c:if test="${param.logout != null}">
             <div class="logout-message">
                 Logged out successfully

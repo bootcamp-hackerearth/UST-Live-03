@@ -13,12 +13,12 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class UnitServiceTest {
+
     @Mock
     private UnitRepository unitRepository;
 
@@ -110,7 +110,6 @@ class UnitServiceTest {
         List<UnitDto> response = unitService.findAll(pageable);
         Assertions.assertEquals(1, response.size());
     }
-
     @Test
     void findByStatusTest() {
         Unit unit = new Unit();

@@ -13,12 +13,12 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class AddressServiceTest {
+
     @Mock
     private AddressRepository addressRepository;
 
@@ -27,7 +27,6 @@ class AddressServiceTest {
 
     @InjectMocks
     private AddressServiceImpl addressService;
-
 
     @Test
     void saveTest() {

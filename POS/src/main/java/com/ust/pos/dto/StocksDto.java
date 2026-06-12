@@ -3,7 +3,6 @@ package com.ust.pos.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 public class StocksDto extends CommonDto {
@@ -13,6 +12,6 @@ public class StocksDto extends CommonDto {
     private Long incomingStock;
     private String productStatus;
     private String wareHouse;
-    private String skuCode;
+    private String name;
 
 }

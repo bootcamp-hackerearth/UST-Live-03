@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class PriceServiceTest {
+
     @Mock
     private PriceRepository priceRepository;
 
@@ -100,12 +102,21 @@ class PriceServiceTest {
         priceDto.setIdentifier("Admin");
         List<Price> prices = List.of(price);
         List<PriceDto> priceDtos = List.of(priceDto);
-        Page<Price> pricePage = new PageImpl<>(prices, PageRequest.of(0, 2), prices.size());
-        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Page<Price> pricePage = new PageImpl<>(prices,
+                PageRequest.of(0, 2), prices.size());
+        Pageable pageable = PageRequest.of(0,
+                50, Sort.by(new ArrayList<>()));
         Mockito.when(priceRepository.findAll(pageable)).thenReturn(pricePage);
-        Mockito.when(modelMapper.map(Mockito.eq(prices), Mockito.any(java.lang.reflect.Type.class))).thenReturn(priceDtos);
-        List<PriceDto> response = priceService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(
+                Mockito.eq(prices),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(priceDtos);
+        WsDto<PriceDto> response = priceService.findAll(pageable);
+        Assertions.assertEquals(priceDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -117,7 +128,10 @@ class PriceServiceTest {
         List<Price> prices = List.of(price);
         List<PriceDto> priceDtos = List.of(priceDto);
         Mockito.when(priceRepository.findByStatusIsTrue()).thenReturn(prices);
-        Mockito.when(modelMapper.map(Mockito.eq(prices), Mockito.any(java.lang.reflect.Type.class))).thenReturn(priceDtos);
+        Mockito.when(modelMapper.map(
+                Mockito.eq(prices),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(priceDtos);
         List<PriceDto> response = priceService.findIfTrue();
         Assertions.assertEquals(1, response.size());
     }

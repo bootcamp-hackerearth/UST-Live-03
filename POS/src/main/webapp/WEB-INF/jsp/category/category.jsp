@@ -15,6 +15,7 @@
             background: #ffffff;
         }
 
+        /* ===== CARD ===== */
         .card {
             width: 360px;
             margin: 40px auto;
@@ -25,6 +26,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         }
 
+        /* POS */
         .app-title {
             text-align: center;
             font-size: 14px;
@@ -107,6 +109,7 @@
         <div class="error">${message}</div>
     </c:if>
 
+    <!-- FORM (UNCHANGED) -->
     <form:form action="${pageContext.request.contextPath}/category/update"
                method="post"
                modelAttribute="category">

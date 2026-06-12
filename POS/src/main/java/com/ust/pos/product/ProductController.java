@@ -1,26 +1,28 @@
 package com.ust.pos.product;
 
-import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.category.service.CategoryService;
-import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/product")
-public class ProductController extends BaseController {
+public class ProductController {
 
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
-    public static final String CATEGORIES = "categories";
-    public static final String BRAND = "brand";
-    public static final String MODEL = "model";
+
+    private static final String BRAND = "brand";
+
+    private static final String MODEL = "model";
+
+    private static final String CATEGORIES = "categories";
 
     @Autowired
     private ProductService productService;
@@ -38,19 +40,17 @@ public class ProductController extends BaseController {
     private ModelsService modelsService;
 
     @GetMapping("/list")
-    public String home(Model model) {
-        PaginationDto paginationDto = new PaginationDto();
-        model.addAttribute("products", productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
+    public String home(Model model, Pageable pageable) {
+        model.addAttribute("products", productService.findAll(pageable));
         return "product/list";
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute ProductDto productDto) {
+    public String add(Model model,@ModelAttribute ProductDto productDto) {
         model.addAttribute(CATEGORIES, categoryService.findBySuperCategoryNotNull());
         model.addAttribute(BRAND, brandService.findIfTrue());
         model.addAttribute("unit", unitService.findIfTrue());
         model.addAttribute(MODEL, modelsService.findIfTrue());
-        model.addAttribute(CATEGORIES, categoryService.findAllActive());
         return "product/add";
     }
 
@@ -95,14 +95,14 @@ public class ProductController extends BaseController {
     }
 
     @GetMapping("/delete/{identifier}")
-    public String delete(Model model, @PathVariable String identifier) {
+    public String delete(@PathVariable String identifier) {
         productService.delete(identifier);
         return REDIRECT_PRODUCT_LIST;
     }
 
     @PostMapping("/toggle-status")
     @ResponseBody
-    public void toggle(Model model, @RequestParam String identifier) {
+    public void toggle(@RequestParam String identifier) {
         productService.toggleStatus(identifier);
     }
 }

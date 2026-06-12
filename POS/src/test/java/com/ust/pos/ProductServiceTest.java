@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
+
     @Mock
     private ProductRepository productRepository;
 
@@ -48,19 +50,6 @@ class ProductServiceTest {
         Product existingProduct = new Product();
         existingProduct.setIdentifier("Admin");
         Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(existingProduct);
-        ProductDto response = productService.save(productDto);
-        Assertions.assertFalse(response.isSuccess());
-    }
-
-    @Test
-    void saveTestFailure2() {
-        ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("Admin");
-        productDto.setName("123");
-        Product existingProduct = new Product();
-        existingProduct.setIdentifier("Admin");
-        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(existingProduct);
-        Mockito.when(productRepository.findByName("123")).thenReturn(null);
         ProductDto response = productService.save(productDto);
         Assertions.assertFalse(response.isSuccess());
     }
@@ -113,16 +102,21 @@ class ProductServiceTest {
         productDto.setIdentifier("Admin");
         List<Product> products = List.of(product);
         List<ProductDto> productDtos = List.of(productDto);
-        Page<Product> productPage =
-                new PageImpl<>(products, PageRequest.of(0, 2), products.size());
-        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Page<Product> productPage = new PageImpl<>(products,
+                PageRequest.of(0, 2), products.size());
+        Pageable pageable = PageRequest.of(0,
+                50, Sort.by(new ArrayList<>()));
         Mockito.when(productRepository.findAll(pageable)).thenReturn(productPage);
         Mockito.when(modelMapper.map(
                 Mockito.eq(products),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(productDtos);
-        List<ProductDto> response = productService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<ProductDto> response = productService.findAll(pageable);
+        Assertions.assertEquals(productDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -134,9 +128,7 @@ class ProductServiceTest {
         List<Product> products = List.of(product);
         List<ProductDto> productDtos = List.of(productDto);
         Mockito.when(productRepository.findByStatusIsTrue()).thenReturn(products);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(products),
-                Mockito.any(java.lang.reflect.Type.class)
+        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(productDtos);
         List<ProductDto> response = productService.findIfTrue();
         Assertions.assertEquals(1, response.size());

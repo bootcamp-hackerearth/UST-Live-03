@@ -1,6 +1,7 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -16,7 +17,6 @@ import java.util.List;
 
 @Service
 public class PriceServiceImpl implements PriceService {
-
     @Autowired
     private PriceRepository priceRepository;
 
@@ -63,11 +63,18 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public WsDto<PriceDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
         Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+        WsDto<PriceDto> productWsDto = new WsDto<>();
+        productWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+        productWsDto.setTotalRecords(pricePage.getTotalElements());
+        productWsDto.setTotalPages(pricePage.getTotalPages());
+        productWsDto.setSizePerPage(pageable.getPageSize());
+        productWsDto.setPage(pageable.getPageNumber());
+
+        return productWsDto;
     }
 
     @Override

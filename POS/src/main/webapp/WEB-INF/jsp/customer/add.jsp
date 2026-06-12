@@ -6,8 +6,10 @@
 <html>
 <head>
     <title>Add Customer</title>
+
     <style>
         * { box-sizing: border-box; }
+
         body {
             margin: 0;
             min-height: 100vh;
@@ -15,6 +17,7 @@
             background: #ffffff;
         }
 
+        /* ===== CARD ===== */
         .card {
             max-width: 1000px;
             background: #ffffff;
@@ -53,6 +56,7 @@
             font-size: 20px;
         }
 
+        /* ===== SECTIONS ===== */
         .section {
             border: 1px solid #e5e7eb;
             border-radius: 10px;
@@ -77,6 +81,8 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 14px;
         }
+
+        /* ===== FORM ===== */
         label {
             display: block;
             font-size: 12px;
@@ -170,8 +176,10 @@
                     <label>Credit Limit</label>
                     <form:input path="creditLimit" type="number" min="0" required="true"/>
                 </div>
+
             </div>
         </div>
+
 
         <div class="section">
             <div class="section-title">Billing Address</div>
@@ -239,5 +247,6 @@
         <button type="submit" class="submit-btn">Add Customer</button>
     </form:form>
 </div>
+
 </body>
 </html>

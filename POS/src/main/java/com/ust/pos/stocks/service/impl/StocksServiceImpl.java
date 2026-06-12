@@ -18,7 +18,6 @@ import java.util.List;
 
 @Service
 public class StocksServiceImpl implements StocksService {
-
     @Autowired
     private StocksRepository stocksRepository;
 
@@ -27,6 +26,7 @@ public class StocksServiceImpl implements StocksService {
 
     @Autowired
     private ProductService productService;
+
 
     @Override
     public StocksDto findByIdentifier(String identifier) {
@@ -37,6 +37,7 @@ public class StocksServiceImpl implements StocksService {
     public StocksDto save(StocksDto stocksDto) {
         String identifier = stocksDto.getIdentifier();
         Stocks existingStocks = stocksRepository.findByIdentifier(identifier);
+
         if (existingStocks != null) {
             stocksDto.setMessage("Stocks with identifier - " + identifier + " already exists");
             stocksDto.setSuccess(false);
@@ -44,7 +45,7 @@ public class StocksServiceImpl implements StocksService {
         }
         Stocks stocks = modelMapper.map(stocksDto, Stocks.class);
         ProductDto productDto = productService.findByIdentifier(stocksDto.getIdentifier());
-        stocks.setSkuCode(productDto.getIdentifier());
+        stocks.setName(productDto.getName());
         stocksRepository.save(stocks);
         return stocksDto;
     }
@@ -91,4 +92,5 @@ public class StocksServiceImpl implements StocksService {
         stocksRepository.save(stocks);
         return modelMapper.map(stocks, StocksDto.class);
     }
+
 }

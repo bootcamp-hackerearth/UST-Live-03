@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,10 +28,13 @@ class UserServiceTest {
 
     @Mock
     PasswordEncoder passwordEncoder;
+
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private ModelMapper modelMapper;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -130,8 +133,12 @@ class UserServiceTest {
                 Mockito.eq(users),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(userDtos);
-        List<UserDto> response = userService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<UserDto> response = userService.findAll(pageable);
+        Assertions.assertEquals(userDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

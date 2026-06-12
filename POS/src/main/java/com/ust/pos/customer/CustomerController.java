@@ -24,35 +24,44 @@ public class CustomerController extends BaseController {
 
     @GetMapping("/list")
     public String home(Model model) {
+
         PaginationDto paginationDto = new PaginationDto();
         model.addAttribute("customers", customerService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "customer/list";
+
     }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute CustomerDto customerDto) {
+
         return "customer/add";
+
     }
 
     @PostMapping("/add")
     public String addPost(Model model, @ModelAttribute CustomerDto customerDto) {
+
         CustomerDto response = customerService.save(customerDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "customer/add";
         }
         return REDIRECT_CUSTOMER_LIST;
+
     }
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
+
         CustomerDto response = customerService.findByIdentifierWithAddressDto(identifier);
         model.addAttribute("customer", response);
         return "customer/customer";
+
     }
 
     @PostMapping("/update")
     public String updatePost(Model model, @ModelAttribute CustomerDto customerDto) {
+
         CustomerDto response = customerService.update(customerDto);
         if (!response.isSuccess()) {
             model.addAttribute("customer", response);
@@ -60,17 +69,22 @@ public class CustomerController extends BaseController {
             return "customer/customer";
         }
         return REDIRECT_CUSTOMER_LIST;
+
     }
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
+
         customerService.delete(identifier);
         return REDIRECT_CUSTOMER_LIST;
+
     }
 
     @PostMapping("/toggle-status")
     @ResponseBody
     public void toggle(Model model, @RequestParam String identifier) {
+
         customerService.toggleStatus(identifier);
+
     }
 }

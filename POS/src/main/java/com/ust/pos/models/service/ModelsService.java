@@ -10,17 +10,11 @@ import java.util.List;
 public interface ModelsService {
 
     ModelsDto save(ModelsDto modelsDto);
-
     ModelsDto update(ModelsDto modelsDto);
-
     boolean delete(String identifier);
-
     List<ModelsDto> findAll(Pageable pageable);
-
     ModelsDto findByIdentifier(String identifier);
-
     ModelsDto toggleStatus(String identifier);
-
     List<ModelsDto> findIfTrue();
 
 }

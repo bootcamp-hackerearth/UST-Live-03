@@ -59,7 +59,6 @@ public class CustomerServiceImpl implements CustomerService {
         billingAddress.setIdentifier(customerDto.getIdentifier() + "_" + "Billing");
         billingAddress.setAddressType("Billing");
         billingAddress.setPhoneNo(customerDto.getIdentifier());
-
         addressService.save(billingAddress);
         AddressDto shippingAddress = modelMapper.map(customerDto.getShippingAddress(), AddressDto.class);
         shippingAddress.setIdentifier(customerDto.getIdentifier() + "_" + "Shipping");

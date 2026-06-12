@@ -24,8 +24,10 @@ public class JwtFilter extends OncePerRequestFilter {
     private UserDetailsService userService;
 
     @Override
-
-    protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest httpServletRequest, jakarta.servlet.http.HttpServletResponse httpServletResponse, jakarta.servlet.FilterChain filterChain) throws jakarta.servlet.ServletException, IOException {
+    protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest httpServletRequest,
+                                    jakarta.servlet.http.HttpServletResponse httpServletResponse,
+                                    jakarta.servlet.FilterChain filterChain)
+            throws jakarta.servlet.ServletException, IOException {
         String authorization = httpServletRequest.getHeader("Authorization");
         String token = null;
         String userName = null;
@@ -34,21 +36,24 @@ public class JwtFilter extends OncePerRequestFilter {
                 token = authorization.substring(7);
                 userName = jwtUtility.getUsernameFromToken(token);
             }
-            if (null != userName && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (null != userName && SecurityContextHolder.getContext().getAuthentication()
+                    == null) {
                 UserDetails userDetails = userService.loadUserByUsername(userName);
                 if (BooleanUtils.isTrue(jwtUtility.validateToken(token, userDetails))) {
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
+                            = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
-                    usernamePasswordAuthenticationToken
-                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
-                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    usernamePasswordAuthenticationToken.setDetails
+                            (new WebAuthenticationDetailsSource().
+                                    buildDetails(httpServletRequest));
+                    SecurityContextHolder.getContext().setAuthentication
+                            (usernamePasswordAuthenticationToken);
                 }
             }
             filterChain.doFilter(httpServletRequest, httpServletResponse);
         } catch (ExpiredJwtException e) {
-            httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "The token is not valid.");
+            httpServletResponse.sendError
+                    (HttpServletResponse.SC_UNAUTHORIZED, "The token is not valid.");
         }
-
     }
-
 }

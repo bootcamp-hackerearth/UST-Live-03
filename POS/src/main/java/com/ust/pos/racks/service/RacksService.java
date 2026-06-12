@@ -10,17 +10,11 @@ import java.util.List;
 public interface RacksService {
 
     RacksDto save(RacksDto racksDto);
-
     RacksDto update(RacksDto racksDto);
-
     boolean delete(String identifier);
-
     List<RacksDto> findAll(Pageable pageable);
-
     RacksDto findByIdentifier(String identifier);
-
     RacksDto toggleStatus(String identifier);
-
     List<RacksDto> findIfTrue();
 
 }

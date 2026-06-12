@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class CategoryController extends BaseController {
 
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
+
     public static final String CATEGORIES = "categories";
 
     @Autowired

@@ -14,6 +14,7 @@
             background: #ffffff;
         }
 
+        /* ===== CARD ===== */
         .card {
             width: 360px;
             margin: 40px auto;
@@ -52,6 +53,7 @@
             font-size: 20px;
         }
 
+        /* ===== FORM ===== */
         label {
             display: block;
             margin-top: 12px;
@@ -105,8 +107,10 @@
 
 <div class="card">
 
+    <!-- ✅ POS APPLICATION -->
     <div class="app-title">POS Application</div>
 
+    <!-- ✅ BACK -->
     <a href="${pageContext.request.contextPath}/racks/list" class="back-btn">
         Back
     </a>
@@ -117,6 +121,7 @@
         <div class="error-message">${message}</div>
     </c:if>
 
+    <!-- ✅ FORM -->
     <form:form modelAttribute="racksDto"
                action="${pageContext.request.contextPath}/racks/add"
                method="post">
@@ -132,8 +137,11 @@
                 </form:option>
             </c:forEach>
         </form:select>
+
         <button type="submit">Add Rack</button>
+
     </form:form>
+
 </div>
 
 </body>

@@ -14,6 +14,6 @@ public class Stocks extends CommonFields {
     private Long outgoingStock;
     private String productStatus;
     private String wareHouse;
-    private String skuCode;
+    private String name;
 
 }

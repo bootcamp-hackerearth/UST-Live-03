@@ -13,6 +13,7 @@
             background:#ffffff;
         }
 
+        /* ===== CONTAINER ===== */
         .container {
             width:95%;
             max-width:1000px;
@@ -22,6 +23,7 @@
             border-radius:12px;
             box-shadow:0 4px 12px rgba(0,0,0,0.15);
         }
+
 
         .app-title {
             text-align:center;
@@ -65,6 +67,7 @@
             margin-left:6px;
         }
 
+        /* ===== TABLE ===== */
         table {
             width:100%;
             border-collapse:collapse;
@@ -90,6 +93,7 @@
             background:#f8fafc;
         }
 
+        /* ===== STATUS ===== */
         .status-toggle {
             padding:5px 12px;
             border-radius:20px;
@@ -103,6 +107,7 @@
         .status-true { background-color: teal; }
         .status-false { background-color: #9ca3af; }
 
+        /* ===== ACTION BUTTONS ===== */
         .action-link {
             padding:6px 12px;
             border-radius:18px;

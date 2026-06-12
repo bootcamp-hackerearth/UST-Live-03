@@ -10,18 +10,20 @@
     <style>
         body {
             margin: 0;
+            min-height: 100vh;
             font-family: "Segoe UI", Roboto, Arial, sans-serif;
             background: #ffffff;
         }
 
+        /* ===== CARD ===== */
         .card {
             width: 360px;
-            margin: 40px auto;
             background: #ffffff;
+            margin: 40px auto;
             padding: 22px;
             border-radius: 14px;
-            position: relative;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
         }
 
         .app-title {
@@ -39,11 +41,11 @@
             padding: 5px 12px;
             background: #ffffff;
             border: 1px solid teal;
+            color: teal;
             text-decoration: none;
             border-radius: 16px;
             font-size: 12px;
             font-weight: 600;
-            color: teal;
         }
 
         h2 {
@@ -52,6 +54,7 @@
             font-size: 20px;
         }
 
+        /* ===== FORM ===== */
         label {
             display: block;
             margin-top: 10px;
@@ -60,20 +63,28 @@
             color: #475569;
         }
 
-        input {
+        input,
+        select {
             display: block;
             width: 100%;
             box-sizing: border-box;
-            height: 34px;
             padding: 8px 10px;
             margin-top: 4px;
-            border-radius: 18px;
             border: 1px solid #d1d5db;
+            border-radius: 18px;
             font-size: 13px;
         }
 
         input[readonly] {
             background: #f1f5f9;
+        }
+
+        /* REMOVE DROPDOWN ARROW */
+        select:disabled {
+            background: #f1f5f9;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
         }
 
         button {
@@ -82,16 +93,16 @@
             height: 34px;
             background: teal;
             color: white;
-            border: none;
             border-radius: 18px;
+            border: none;
             font-weight: 600;
             font-size: 13px;
             cursor: pointer;
         }
 
-        .error-message {
+        .error {
             text-align: center;
-            color: #dc2626;
+            color: #ef4444;
             font-size: 12px;
             font-weight: 600;
             margin-bottom: 10px;
@@ -110,8 +121,9 @@
     </a>
 
     <h2>Edit Price</h2>
+
     <c:if test="${not empty message}">
-        <div class="error-message">${message}</div>
+        <div class="error">${message}</div>
     </c:if>
 
     <form:form action="${pageContext.request.contextPath}/price/update"
@@ -120,20 +132,62 @@
 
         <form:hidden path="id"/>
 
-        <label>Product Name</label>
-        <form:input path="identifier" readonly="true"/>
+        <!-- SKU CODE -->
+        <label>Sku Code</label>
 
+        <form:select path="identifier" disabled="true">
+
+            <form:option value="">
+                -- Select Product --
+            </form:option>
+
+            <c:forEach items="${products}" var="product">
+
+                <form:option value="${product.identifier}">
+                    ${product.identifier}
+                </form:option>
+
+            </c:forEach>
+
+        </form:select>
+
+        <form:hidden path="identifier"/>
+
+        <!-- MRP -->
         <label>MRP</label>
-        <form:input path="mrp" type="number" step="0.01"/>
 
+        <form:input
+            path="mrp"
+            type="number"
+            step="0.01"/>
+
+        <!-- SELLING PRICE -->
         <label>Selling Price</label>
-        <form:input path="sellingPrice" type="number" step="0.01"/>
 
+        <form:input
+            path="sellingPrice"
+            type="number"
+            step="0.01"/>
+
+        <!-- COST PRICE -->
+        <label>Cost Price</label>
+
+        <form:input
+            path="costPrice"
+            type="number"
+            step="0.01"/>
+
+        <!-- EFFECTIVE FROM -->
         <label>Effective From</label>
-        <form:input path="effectiveFrom" type="date"/>
+
+        <form:input
+            path="effectiveFrom"
+            type="date"/>
 
         <button type="submit">Update Price</button>
+
     </form:form>
+
 </div>
 
 </body>

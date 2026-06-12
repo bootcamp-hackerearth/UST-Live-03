@@ -23,9 +23,7 @@ public class SecurityController extends BaseController {
 
     @GetMapping("/login")
     public String login(Model model) {
-
         return "login";
-
     }
 
     @GetMapping("/register")
@@ -37,7 +35,7 @@ public class SecurityController extends BaseController {
     @PostMapping("/register")
     public String addPost(Model model, @ModelAttribute UserDto userDto) {
         UserDto response = userService.save(userDto);
-        PaginationDto paginationDto = new PaginationDto();
+        PaginationDto paginationDto=new PaginationDto();
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute("roles", roleService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));

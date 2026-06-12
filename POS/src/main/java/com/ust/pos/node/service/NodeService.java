@@ -1,6 +1,7 @@
 package com.ust.pos.node.service;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,19 +11,12 @@ import java.util.List;
 public interface NodeService {
 
     List<NodeDto> getNodesForRoles();
-
     NodeDto save(NodeDto nodeDto);
-
     NodeDto update(NodeDto nodeDto);
-
     boolean delete(String identifier);
-
-    List<NodeDto> findAll(Pageable pageable);
-
+    WsDto<NodeDto> findAll(Pageable pageable);
     NodeDto findByIdentifier(String identifier);
-
     NodeDto toggleStatus(String identifier);
-
     List<NodeDto> findIfTrue();
 
 }

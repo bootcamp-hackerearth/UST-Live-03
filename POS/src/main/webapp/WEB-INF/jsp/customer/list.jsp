@@ -14,6 +14,7 @@
             background: #ffffff;
         }
 
+        /* ===== CONTAINER ===== */
         .container {
             width: 95%;
             max-width: 1000px;
@@ -23,6 +24,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+
 
         .app-title {
             text-align: center;
@@ -38,6 +40,7 @@
             margin-bottom: 10px;
         }
 
+        /* ===== ACTIONS ===== */
         .list-actions {
             display: flex;
             justify-content: flex-end;
@@ -66,6 +69,7 @@
             font-size: 13px;
         }
 
+        /* ===== TABLE ===== */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -94,6 +98,7 @@
             background: #f8fafc;
         }
 
+        /* ===== ACTION BUTTONS ===== */
         .action-link {
             padding: 6px 12px;
             border-radius: 18px;

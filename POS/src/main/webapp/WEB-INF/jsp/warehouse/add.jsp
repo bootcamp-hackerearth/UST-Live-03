@@ -14,6 +14,7 @@
             background: #ffffff;
         }
 
+        /* ===== CARD ===== */
         .card {
             width: 360px;
             margin: 40px auto;

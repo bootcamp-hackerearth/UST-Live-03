@@ -24,10 +24,13 @@ class StocksServiceTest {
 
     @Mock
     ProductServiceImpl productService;
+
     @Mock
     private StocksRepository stocksRepository;
+
     @Mock
     private ModelMapper modelMapper;
+
     @InjectMocks
     private StocksServiceImpl stocksService;
 
@@ -36,7 +39,7 @@ class StocksServiceTest {
         StocksDto stocksDto = new StocksDto();
         stocksDto.setIdentifier("Admin");
         ProductDto productDto = new ProductDto();
-        productDto.setName("123");
+        productDto.setName("Srujan");
         Mockito.when(stocksRepository.findByIdentifier("Admin")).thenReturn(null);
         Stocks stocks = new Stocks();
         Mockito.when(modelMapper.map(stocksDto, Stocks.class)).thenReturn(stocks);
@@ -53,7 +56,8 @@ class StocksServiceTest {
         stocksDto.setIdentifier("Admin");
         Stocks existingStocks = new Stocks();
         existingStocks.setIdentifier("Admin");
-        Mockito.when(stocksRepository.findByIdentifier("Admin")).thenReturn(existingStocks);
+        Mockito.when(stocksRepository.findByIdentifier("Admin"))
+                .thenReturn(existingStocks);
         StocksDto response = stocksService.save(stocksDto);
         Assertions.assertFalse(response.isSuccess());
     }
@@ -76,8 +80,10 @@ class StocksServiceTest {
         stocksDto.setIdentifier("Admin");
         Stocks existingStocks = new Stocks();
         existingStocks.setIdentifier("Admin");
-        Mockito.when(stocksRepository.findByIdentifier("Admin")).thenReturn(existingStocks);
-        Mockito.when(stocksRepository.save(existingStocks)).thenReturn(existingStocks);
+        Mockito.when(stocksRepository.findByIdentifier("Admin"))
+                .thenReturn(existingStocks);
+        Mockito.when(stocksRepository.save(existingStocks))
+                .thenReturn(existingStocks);
         StocksDto response = stocksService.update(stocksDto);
         Assertions.assertTrue(response.isSuccess());
     }
@@ -86,14 +92,16 @@ class StocksServiceTest {
     void updateTestFailure() {
         StocksDto stocksDto = new StocksDto();
         stocksDto.setIdentifier("Admin");
-        Mockito.when(stocksRepository.findByIdentifier("Admin")).thenReturn(null);
+        Mockito.when(stocksRepository.findByIdentifier("Admin"))
+                .thenReturn(null);
         StocksDto response = stocksService.update(stocksDto);
         Assertions.assertFalse(response.isSuccess());
     }
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(stocksRepository).deleteByIdentifier("Admin");
+        Mockito.doNothing().when(stocksRepository)
+                .deleteByIdentifier("Admin");
         boolean response = stocksService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -106,8 +114,10 @@ class StocksServiceTest {
         stocksDto.setIdentifier("Admin");
         List<Stocks> stockss = List.of(stocks);
         List<StocksDto> stocksDtos = List.of(stocksDto);
-        Page<Stocks> stocksPage = new PageImpl<>(stockss, PageRequest.of(0, 2), stockss.size());
-        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Page<Stocks> stocksPage = new PageImpl<>(stockss, PageRequest.of(0,
+                2), stockss.size());
+        Pageable pageable = PageRequest.of(0,
+                50, Sort.by(new ArrayList<>()));
         Mockito.when(stocksRepository.findAll(pageable)).thenReturn(stocksPage);
         Mockito.when(modelMapper.map(
                 Mockito.eq(stockss),

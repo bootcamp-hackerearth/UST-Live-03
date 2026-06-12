@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -18,18 +19,21 @@ import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class NodeServiceTest {
+
     @Mock
     UserRepository userRepository;
+
     @Mock
     private NodeRepository nodeRepository;
+
     @Mock
     private ModelMapper modelMapper;
+
     @InjectMocks
     private NodeServiceImpl nodeService;
 
@@ -84,7 +88,7 @@ class NodeServiceTest {
         Node node = new Node();
         node.setIdentifier("dashboard");
         node.setRoles(List.of("ADMIN"));
-        Mockito.when(nodeRepository.findAll()).thenReturn(List.of(node));
+        Mockito.when(nodeRepository.findByStatusIsTrue()).thenReturn(List.of(node)); // ← fix here
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("dashboard");
         Mockito.when(nodeRepository.findByIdentifier("dashboard")).thenReturn(node);
@@ -143,8 +147,12 @@ class NodeServiceTest {
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
         Mockito.when(nodeRepository.findAll(pageable)).thenReturn(nodePage);
         Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(java.lang.reflect.Type.class))).thenReturn(nodeDtos);
-        List<NodeDto> response = nodeService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<NodeDto> response = nodeService.findAll(pageable);
+        Assertions.assertEquals(nodeDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

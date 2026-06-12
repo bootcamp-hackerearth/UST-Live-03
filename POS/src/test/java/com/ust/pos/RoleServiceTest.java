@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -13,7 +14,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,8 +109,12 @@ RoleServiceTest {
                 Mockito.eq(roles),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(roleDtos);
-        List<RoleDto> response = roleService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<RoleDto> response = roleService.findAll(pageable);
+        Assertions.assertEquals(roleDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test

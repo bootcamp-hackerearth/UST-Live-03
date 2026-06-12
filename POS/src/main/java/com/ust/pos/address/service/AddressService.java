@@ -10,15 +10,10 @@ import java.util.List;
 public interface AddressService {
 
     AddressDto save(AddressDto addressDto);
-
     AddressDto update(AddressDto addressDto);
-
     boolean delete(String identifier);
-
     List<AddressDto> findAll(Pageable pageable);
-
     AddressDto findByIdentifier(String identifier);
-
     List<AddressDto> findAllByPhoneNo(String phoneNo);
 
 }

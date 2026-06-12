@@ -14,6 +14,7 @@
             background: #ffffff;
         }
 
+        /* ===== CONTAINER ===== */
         .container {
             width: 95%;
             max-width: 1000px;
@@ -68,6 +69,7 @@
             font-weight: 600;
         }
 
+        /* ===== TABLE ===== */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -98,6 +100,7 @@
             background-color: #f8fafc;
         }
 
+        /* ===== STATUS ===== */
         .status-toggle {
             padding: 5px 12px;
             border-radius: 20px;
@@ -116,6 +119,7 @@
             background-color: #9ca3af;
         }
 
+        /* ===== ACTION BUTTONS ===== */
         .action-link {
             padding: 6px 12px;
             border-radius: 18px;

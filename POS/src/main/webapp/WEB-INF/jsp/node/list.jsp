@@ -15,6 +15,7 @@
             color: #020617;
         }
 
+        /* ===== CONTAINER ===== */
         .container {
             width: 95%;
             max-width: 1000px;
@@ -39,6 +40,7 @@
             margin-bottom: 12px;
         }
 
+        /* ===== ACTION BAR ===== */
         .list-actions {
             display: flex;
             justify-content: flex-end;
@@ -67,6 +69,7 @@
             font-weight: 600;
         }
 
+        /* ===== TABLE ===== */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -96,6 +99,7 @@
             font-size: 13px;
         }
 
+        /* ===== ACTION BUTTONS ===== */
         .action-link {
             padding: 6px 12px;
             border-radius: 18px;
@@ -181,5 +185,6 @@
         </c:otherwise>
     </c:choose>
 </div>
+
 </body>
 </html>

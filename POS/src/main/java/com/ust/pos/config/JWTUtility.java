@@ -16,25 +16,21 @@ import java.util.function.Function;
 
 @Component
 public class JWTUtility implements Serializable {
+
     public static final long JWT_TOKEN_VALIDITY = 5L * 60 * 60;
     private static final long serialVersionUID = 234234523523L;
     @Value("${jwt.secret}")
     private String secretKey;
-
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
-
-
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
-
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
-
 
     private Claims getAllClaimsFromToken(String token) {
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
