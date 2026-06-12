@@ -100,6 +100,7 @@
     <a href="/login" class="back-icon">←</a>
     <h2>User Registration</h2>
 
+    <!-- ✅ MESSAGE DISPLAY -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}
@@ -113,13 +114,16 @@
             <form:input path="name"/>
         </div>
 
+
         <div class="form-group">
             <label>Email</label>
             <form:input path="username"
                         type="email"
                         required="required"
+                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$"
                         title="Email must end with .com"/>
         </div>
+
 
         <div class="form-group">
             <label>Roles</label>
@@ -139,7 +143,8 @@
 
         <div class="form-group">
             <label>Password</label>
-            <form:password path="password"/>
+            <form:password path="password"
+            required="required"/>
         </div>
 
         <input type="submit" value="Register" class="btn-submit"/>

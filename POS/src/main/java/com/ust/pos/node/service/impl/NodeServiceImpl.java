@@ -1,15 +1,20 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.*;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.NodeRepository;
+import com.ust.pos.model.User;
+import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -31,16 +36,9 @@ public class NodeServiceImpl implements NodeService {
 
     public List<NodeDto> getNodesForRoles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<NodeDto> nodeDtos = new ArrayList<>();
-        if (authentication != null) {
-            org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            if (principalObject != null) findEligibleNodes(principalObject, nodeDtos);
-        }
-        return nodeDtos;
-    }
-
-    private void findEligibleNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
+        org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
+        List<NodeDto> nodeDtos = new ArrayList<>();
         Set<String> nodesStr = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
         for (String role : currentUser.getRoles()) {
@@ -53,6 +51,7 @@ public class NodeServiceImpl implements NodeService {
         for (String nodeStr : nodesStr) {
             nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
         }
+        return nodeDtos;
     }
 
     @Override
@@ -68,6 +67,7 @@ public class NodeServiceImpl implements NodeService {
         nodeRepository.save(node);
         return nodeDto;
     }
+
 
     @Override
     public NodeDto update(NodeDto nodeDto) {
@@ -98,5 +98,17 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public NodeDto findByIdentifier(String identifier) {
         return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+    }
+
+    @Override
+    public Page<NodeDto> findAll(Pageable pageable, String search) {
+        Page<Node> nodePage;
+        if (search != null && !search.trim().isEmpty()) {
+            nodePage = nodeRepository.findByIdentifierContainingIgnoreCase
+                    (search, pageable);
+        } else {
+            nodePage = nodeRepository.findAll(pageable);
+        }
+        return nodePage.map(node -> modelMapper.map(node, NodeDto.class));
     }
 }

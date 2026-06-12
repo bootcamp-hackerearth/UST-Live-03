@@ -6,207 +6,134 @@
 <head>
     <title>Node List</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
     <style>
         body {
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
             background: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            min-height: 100vh;
         }
 
-        .card-container {
-            position: relative;
-            width: 900px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 35px 40px;
+        .card {
             border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #4b6cb7;
-            font-weight: 600;
+        .card-header {
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
         }
 
-        .back-icon {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #4b6cb7;
-            text-decoration: none;
-            font-weight: 600;
-            background: rgba(75, 108, 183, 0.08);
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-            transition: all 0.25s ease;
-        }
-
-        .back-icon:hover {
-            background: #4b6cb7;
-            color: #ffffff;
-            transform: translateX(-4px) scale(1.05);
-            box-shadow: 0 8px 18px rgba(75, 108, 183, 0.35);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th {
-            background: #4b6cb7;
+        table th {
+            background-color: #0d6efd;
             color: white;
-            padding: 12px;
-            font-size: 14px;
         }
 
-        td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-            color: #333;
-            word-break: break-word;
+        .role-badge {
+            font-size: 12px;
+            margin: 2px;
         }
 
-        tr:hover {
-            background: #f7f9ff;
-        }
-
+        /* ✅ DULL ICON STYLES */
         .action-icon {
             font-size: 18px;
             margin: 0 6px;
             text-decoration: none;
-            color: #4b6cb7;
-            transition: 0.2s ease;
+            color: #6c757d; /* dull gray */
         }
 
         .action-icon:hover {
-            color: #182848;
-            transform: scale(1.2);
-        }
-
-        .alert {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .footer-actions {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .btn {
-            padding: 10px 16px;
-            border-radius: 10px;
+            color: #495057; /* slightly darker on hover */
             text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            display: inline-block;
-            transition: 0.25s ease;
-        }
-
-        .btn-home {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-home:hover {
-            background: #555;
-        }
-
-        .btn-add {
-            background: linear-gradient(135deg, #4b6cb7, #182848);
-            color: white;
-        }
-
-        .btn-add:hover {
-            transform: scale(1.05);
         }
     </style>
 </head>
 
 <body>
 
-<div class="card-container">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
 
-    <a href="/" class="back-icon">←</a>
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">List of Nodes</h4>
+                </div>
 
-    <h2>List of Nodes</h2>
+                <div class="card-body">
 
-    <c:if test="${empty nodes}">
-        <div class="alert alert-warning">
-            No nodes found
+                    <c:if test="${empty nodes}">
+                        <div class="alert alert-warning text-center">
+                            No nodes found
+                        </div>
+                    </c:if>
+
+                    <c:if test="${not empty nodes}">
+                        <table class="table table-bordered table-hover text-center align-middle">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Node</th>
+                                <th>Path</th>
+                                <th>Roles</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            <c:forEach var="node" items="${nodes}">
+                                <tr>
+                                    <td>${node.id}</td>
+                                    <td>${node.identifier}</td>
+                                    <td>${node.path}</td>
+
+                                    <td>
+                                        <c:if test="${empty node.roles}">
+                                            <span class="text-muted">No roles</span>
+                                        </c:if>
+
+                                        <c:forEach var="role" items="${node.roles}">
+                                            <span class="badge bg-secondary role-badge">
+                                                ${role}
+                                            </span>
+                                        </c:forEach>
+                                    </td>
+
+                                    <!-- ✅ DULL ICON ACTIONS -->
+                                    <td>
+                                        <!-- ✏️ Edit -->
+                                        <a href="/node/get?identifier=${node.identifier}"
+                                           class="action-icon"
+                                           title="Edit">
+                                            ✏️
+                                        </a>
+
+                                        <!-- 🗑 Delete -->
+                                        <a href="/node/delete?identifier=${node.identifier}"
+                                           class="action-icon"
+                                           title="Delete"
+                                           onclick="return confirm('Are you sure you want to delete this node?');">
+                                            🗑
+                                        </a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            </tbody>
+                        </table>
+                    </c:if>
+
+                </div>
+
+                <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
+                    <a href="/" class="btn btn-secondary">Home</a>
+                    <a href="/node/add" class="btn btn-success">+ Add New Node</a>
+                </div>
+
+            </div>
+
         </div>
-    </c:if>
-
-    <c:if test="${not empty nodes}">
-        <table>
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Node</th>
-                <th>Path</th>
-                <th>Roles</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            <c:forEach var="node" items="${nodes}">
-                <tr>
-                    <td>${node.id}</td>
-                    <td>${node.identifier}</td>
-                    <td>${node.path}</td>
-                    <td>${node.roles}</td>
-
-                    <td>
-                        <a href="/node/get?identifier=${node.identifier}"
-                           class="action-icon"
-                           title="Edit">✏️</a>
-
-                        <a href="/node/delete?identifier=${node.identifier}"
-                           class="action-icon"
-                           title="Delete"
-                           onclick="return confirm('Are you sure you want to delete this node?');">
-                            🗑
-                        </a>
-                    </td>
-                </tr>
-            </c:forEach>
-            </tbody>
-        </table>
-    </c:if>
-
-    <div class="footer-actions">
-        <a href="/" class="btn btn-home">Home</a>
-        <a href="/node/add" class="btn btn-add">+ Add New Node</a>
     </div>
-
 </div>
 
 </body>

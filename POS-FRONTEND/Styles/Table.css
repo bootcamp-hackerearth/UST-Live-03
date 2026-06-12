@@ -1,0 +1,243 @@
+/* ================= SECTION ================= */
+
+.section {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* ================= BUTTONS ================= */
+
+.actionBtn {
+  background: #0b6e69;
+  color: #ffffff;
+
+  padding: 10px 16px;
+
+  border: none;
+  border-radius: 10px;
+
+  cursor: pointer;
+  font-weight: 600;
+
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: #085c58;
+  transform: translateY(-1px);
+}
+
+/* ================= SWITCH ================= */
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+
+  cursor: pointer;
+
+  background: #cbd5e1;
+  transition: 0.3s;
+
+  border-radius: 30px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+
+  height: 18px;
+  width: 18px;
+
+  left: 3px;
+  bottom: 3px;
+
+  background: white;
+  border-radius: 50%;
+
+  transition: 0.3s;
+}
+
+.switch input:checked + .slider {
+  background: #14b8a6;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* ================= TABLE HEADER ================= */
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ================= SEARCH ================= */
+
+.searchInput {
+  padding: 10px 14px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+
+  min-width: 250px;
+
+  color: #0f172a;
+  background: #ffffff;
+
+  transition: all 0.2s ease;
+}
+
+.searchInput::placeholder {
+  color: #475569;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+}
+
+/* ================= TABLE ================= */
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.productTable {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+}
+
+.productTable thead {
+  background: #f8fafc;
+}
+
+.productTable th {
+  text-align: left;
+  padding: 14px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #475569;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.productTable td {
+  padding: 14px;
+
+  font-size: 14px;
+  color: #0f172a;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.productTable tbody tr {
+  transition: background 0.2s ease;
+}
+
+.productTable tbody tr:hover {
+  background: rgba(20, 184, 166, 0.05);
+}
+
+/* ================= EMPTY STATE ================= */
+
+.emptyRow {
+  text-align: center;
+  padding: 24px;
+  color: #475569;
+}
+
+/* ================= ROW ACTIONS ================= */
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editBtn,
+.deleteBtn {
+  border: none;
+  border-radius: 8px;
+
+  padding: 8px 14px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* Edit */
+
+/* Edit */
+.editBtn {
+  background: #ccfbf1;
+  color: #042f2e;
+}
+
+.editBtn:hover {
+  background: #99f6e4;
+}
+
+/* Delete */
+
+.deleteBtn {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.deleteBtn:hover {
+  background: #fca5a5;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .tableHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .searchInput {
+    width: 100%;
+    min-width: unset;
+  }
+}

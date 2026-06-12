@@ -1,20 +1,22 @@
 package com.ust.pos;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.sql.DataSource;
 
 @SpringBootApplication
-@ComponentScan({"com.ust.pos.web.controller", "com.ust.pos"})
+@OpenAPIDefinition
 public class PosApplication {
     @Autowired
     Environment environment;
@@ -45,10 +47,15 @@ public class PosApplication {
         ds.setUsername(environment.getProperty("spring.datasource.username"));
         ds.setPassword(environment.getProperty("spring.datasource.password"));
         String driverClass = environment.getProperty("spring.datasource.driver-class-name");
-        if(driverClass != null)
-        {
+        if (driverClass != null) {
             ds.setDriverClassName(driverClass);
         }
         return ds;
     }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
 }

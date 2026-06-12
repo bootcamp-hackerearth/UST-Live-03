@@ -1,6 +1,8 @@
 package com.ust.pos.node.service;
 
 import com.ust.pos.dto.NodeDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -11,9 +13,11 @@ public interface NodeService {
 
     NodeDto update(NodeDto nodeDto);
 
-    void delete(String username);
+    void delete(String nodename);
 
     List<NodeDto> findAll();
 
     NodeDto findByIdentifier(String identifier);
+
+    Page<NodeDto> findAll(Pageable pageable, String search);
 }

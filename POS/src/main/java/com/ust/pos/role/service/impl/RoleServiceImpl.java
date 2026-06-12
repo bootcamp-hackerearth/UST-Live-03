@@ -4,11 +4,13 @@ import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -51,6 +53,7 @@ public class RoleServiceImpl implements RoleService {
             roleDto.setSuccess(false);
             return roleDto;
         }
+        roleDto.setSuccess(true);
         modelMapper.map(roleDto, existingRole);
         roleRepository.save(existingRole);
         return roleDto;
@@ -66,5 +69,17 @@ public class RoleServiceImpl implements RoleService {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         return modelMapper.map(roleRepository.findAll(), listType);
+    }
+
+    @Override
+    public Page<RoleDto> findAll(Pageable pageable, String search) {
+        Page<Role> rolePage;
+        if (search != null && !search.trim().isEmpty()) {
+            rolePage = roleRepository.findByIdentifierContainingIgnoreCase
+                    (search, pageable);
+        } else {
+            rolePage = roleRepository.findAll(pageable);
+        }
+        return rolePage.map(role -> modelMapper.map(role, RoleDto.class));
     }
 }
