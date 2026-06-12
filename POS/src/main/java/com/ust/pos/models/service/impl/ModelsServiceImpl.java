@@ -77,11 +77,13 @@ public class ModelsServiceImpl implements ModelsService {
     }
 
     @Override
-    public void toggleStatus(String identifier) {
+    public ModelsDto toggleStatus(String identifier) {
         Models models = modelsRepository.findByIdentifier(identifier);
-        if (models != null) {
+        if (models == null) {
+            return null;
+        }
             models.setStatus(!models.isStatus());
             modelsRepository.save(models);
-        }
+        return modelMapper.map(models, ModelsDto.class);
     }
 }

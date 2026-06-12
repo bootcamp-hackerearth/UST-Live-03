@@ -5,6 +5,8 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Brand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/brand")
 public class BrandControllerApi extends BaseController {
+
     @Autowired
     private BrandService brandService;
 
@@ -21,8 +24,9 @@ public class BrandControllerApi extends BaseController {
     private CategoryService categoryService;
 
     @PostMapping("/list")
-    public List<BrandDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+    public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField());
         return brandService.findAll(pageable);
     }
 
@@ -49,5 +53,15 @@ public class BrandControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @GetMapping("/toggle")
+    public BrandDto toggle(@RequestParam String identifier) {
+        return brandService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/active")
+    public List<Brand> findActiveBrand() {
+        return brandService.findActiveBrands();
     }
 }

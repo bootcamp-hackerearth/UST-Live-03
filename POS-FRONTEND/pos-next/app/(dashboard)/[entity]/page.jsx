@@ -1,0 +1,86 @@
+import PropTypes from "prop-types";
+import axios from "axios";
+import Link from "next/link";
+import {cookies} from "next/headers";
+import {redirect} from "next/navigation";
+import GenericTable from "../components/GenericTable";
+import {ENTITY_CONFIG} from "../lib/entityConfig";
+
+export default async function EntityPage({
+  params,
+  searchParams,
+}) {
+
+  const {entity} = await params;
+  const page = Number(searchParams?.page || 0);
+  const sizePerPage = Number(searchParams?.size || 30);
+  const config = ENTITY_CONFIG[entity];
+
+  if (!config) {
+    redirect("/home");}
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  if (!token) {redirect("/login");}
+
+  let rows = [];
+  let totalPages = 1;
+  let totalRecords = 0;
+
+  try {
+    const response = await axios.post(`http://localhost:8080${config.endpoint}`,
+        {
+          page,
+          sizePerPage,
+          sortField: "id",
+          sortDirection: "ASC",
+        },
+        {headers: {Authorization:`Bearer ${token}`}}
+      );
+
+    const data = response.data;
+    rows = data.dtoList || [];
+    totalPages = data.totalPages || 1;
+    totalRecords = data.totalRecords || 0;
+
+  } catch (error) {
+    console.error(error);
+  }
+
+  return (
+    <div>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-semibold capitalize text-slate-800">
+          {entity} Listing
+        </h1>
+
+        <Link
+          href={`/${entity}/add`}
+          className="rounded-lg bg-blue-600 px-5 py-2.5 text-white font-medium hover:bg-blue-700 transition"
+          >
+          Add New
+        </Link>
+      </div>
+
+      <GenericTable
+        columns={config.columns}
+        rows={rows}
+        entity={entity}
+        config={config}
+        toggleEndpoint={config.toggleEndpoint}
+        currentPage={page}
+        pageSize={sizePerPage}
+        totalPages={totalPages}
+        totalRecords={totalRecords}
+      />
+    </div>
+  );
+}
+
+EntityPage.propTypes = {
+  params: PropTypes.shape({
+    entity: PropTypes.string.isRequired,
+  }).isRequired,
+  searchParams: PropTypes.object,
+};

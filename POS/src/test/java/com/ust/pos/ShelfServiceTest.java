@@ -274,9 +274,9 @@ class ShelfServiceTest {
     void testFindActiveShelves() {
 
         when(shelfRepository.findByStatus(true))
-                .thenReturn(Collections.singletonList(shelf));
+                .thenReturn(Collections.singletonList(shelfDto));
 
-        List<Shelf> result =
+        List<ShelfDto> result =
                 shelfService.findActiveShelves();
 
         assertNotNull(result);

@@ -7,6 +7,7 @@
 <head>
     <title>Customer Management</title>
 
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
@@ -32,6 +33,7 @@
 </head>
 
 <body>
+
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -41,6 +43,7 @@
 
                     <h3 class="text-center mb-4">Update Customer</h3>
 
+                    <!-- SUCCESS MESSAGE -->
                     <c:if test="${not empty customer}">
                         <div class="alert alert-success text-center">
                             ${customer}
@@ -49,6 +52,7 @@
 
                     <form:form action="/customer/update" method="post" modelAttribute="customerDto">
 
+                        <!-- BASIC INFO -->
                         <div class="mb-3">
                             <label>Name</label>
                             <form:input path="name" cssClass="form-control" readonly="true"/>
@@ -56,7 +60,7 @@
 
                         <div class="mb-3">
                             <label>Phone Number</label>
-                            <form:input path="phoneNo" cssClass="form-control" type="tel" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required="true"/>
+                            <form:input path="phoneNo" cssClass="form-control" type="tel" required="true"/>
                         </div>
 
                         <div class="mb-3">
@@ -83,7 +87,10 @@
                             <form:input path="creditLimit" cssClass="form-control" type="number" step="0.01" required="true"/>
                         </div>
 
+                        <!-- SHIPPING ADDRESS -->
                         <h5>Shipping Address</h5>
+
+
                         <div class="mb-3">
                             <label>Address Line</label>
                             <form:input path="shippingAddress.addressLine" cssClass="form-control" required="true"/>
@@ -99,14 +106,9 @@
                             <form:input path="shippingAddress.state" cssClass="form-control" required="true"/>
                         </div>
 
-                        <div class="col-md-6">
-                             <label>Zip Code</label>
-                             <form:input path="shippingAddress.zipcode"
-                                         class="form-control"
-                                         oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                         pattern="[0-9]{6}"
-                                         inputmode="numeric"
-                                         required="true"/>
+                        <div class="mb-3">
+                            <label>Zip Code</label>
+                            <form:input path="shippingAddress.zipcode" cssClass="form-control" type="number" required="true"/>
                         </div>
 
                         <div class="mb-3">
@@ -121,7 +123,10 @@
                             </form:select>
                         </div>
 
+                        <!-- BILLING ADDRESS -->
                         <h5>Billing Address</h5>
+
+
                         <div class="mb-3">
                             <label>Address Line</label>
                             <form:input path="billingAddress.addressLine" cssClass="form-control" required="true"/>
@@ -137,14 +142,9 @@
                             <form:input path="billingAddress.state" cssClass="form-control" required="true"/>
                         </div>
 
-                        <div class="col-md-6">
-                             <label>Zip Code</label>
-                             <form:input path="shippingAddress.zipcode"
-                                         class="form-control"
-                                         oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                         pattern="[0-9]{6}"
-                                         inputmode="numeric"
-                                         required="true"/>
+                        <div class="mb-3">
+                            <label>Zip Code</label>
+                            <form:input path="billingAddress.zipcode" cssClass="form-control" type="number" required="true"/>
                         </div>
 
                         <div class="mb-3">
@@ -159,6 +159,7 @@
                             </form:select>
                         </div>
 
+                        <!-- SUBMIT -->
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-success">
                                 Update Customer
@@ -172,21 +173,27 @@
                                     </a>
                               </div>
                         </div>
+
                     </form:form>
 
+                    <!-- ERROR MESSAGE -->
                     <c:if test="${not empty message}">
                         <div class="alert alert-danger text-center mt-3">
                             ${message}
                         </div>
                     </c:if>
+
                 </div>
 
+                <!-- FOOTER -->
                 <div class="card-footer text-center">
                     <div class="text-muted small">
                         Customer Management System
                     </div>
                 </div>
+
             </div>
+
         </div>
     </div>
 </div>

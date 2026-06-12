@@ -59,12 +59,11 @@ ${message}
                 </div>
 
                 <div class="mb-4">
-                      <label class="form-label">Shelf Description</label>
-                      <form:input path="description"
-                                  cssClass="form-control"
-                                  required="true"
-                                  placeholder="Enter shelf Description"/>
-                </div>
+                                     <label class="form-label">Shelf Description</label>
+                                     <form:input path="description"
+                                                 cssClass="form-control"
+                                                 placeholder="Enter shelf Description"/>
+                                </div>
 
                 <div class="d-flex justify-content-between">
                     <a href="/shelf/list" class="btn btn-outline-secondary">
@@ -74,8 +73,10 @@ ${message}
                         Update
                     </button>
                 </div>
+
             </form:form>
         </c:if>
+
     </div>
 </div>
 

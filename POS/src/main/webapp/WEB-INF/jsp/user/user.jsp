@@ -76,26 +76,31 @@
 
         <form:input type="hidden" path="id"/>
 
+        <!-- Name -->
         <div class="mb-3">
             <label>Name</label>
             <form:input path="name" cssClass="form-control" required="true"/>
             <form:errors path="name" cssClass="error"/>
         </div>
 
+        <!-- Email -->
         <div class="mb-3">
             <label>Email</label>
             <form:input path="username" type="email" cssClass="form-control" required="true"/>
             <form:errors path="username" cssClass="error"/>
         </div>
 
+        <!-- Phone -->
         <div class="mb-3">
             <label>Phone Number</label>
             <form:input path="phoneNo" cssClass="form-control" required="true" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
             <form:errors path="phoneNo" cssClass="error"/>
         </div>
 
+        <!-- Roles -->
         <div class="mb-3">
             <label>Roles</label>
+
             <div class="mb-1 text-muted">
                 Current:
                 <c:forEach var="r" items="${user.roles}">
@@ -122,6 +127,8 @@
     <div class="text-center mt-3">
         <a href="/user/list">← Back to User List</a>
     </div>
+
 </div>
+
 </body>
 </html>

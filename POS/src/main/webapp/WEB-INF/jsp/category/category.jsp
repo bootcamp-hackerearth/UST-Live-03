@@ -36,6 +36,7 @@ ${message}
     <div class="card-body">
 
         <h4 class="text-center mb-4 text-primary">Edit Category</h4>
+
         <c:if test="${empty categories}">
             <div class="alert alert-danger text-center">
                 Category not found
@@ -48,6 +49,7 @@ ${message}
                        modelAttribute="category">
 
                 <form:hidden path="id" value="${category.id}"/>
+
                 <div class="mb-4">
                      <label class="form-label">Category Name</label>
                      <form:input path="identifier"
@@ -77,9 +79,12 @@ ${message}
                         Update
                     </button>
                 </div>
+
             </form:form>
         </c:if>
+
     </div>
 </div>
+
 </body>
 </html>

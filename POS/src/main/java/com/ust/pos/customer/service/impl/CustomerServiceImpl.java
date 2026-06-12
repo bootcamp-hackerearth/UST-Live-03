@@ -64,7 +64,6 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto update(CustomerDto customerDto) {
-
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
         if (existingCustomer == null) {
@@ -93,11 +92,11 @@ public class CustomerServiceImpl implements CustomerService {
     public void delete(String identifier, Long phoneNo) {
         customerRepository.deleteByIdentifier(identifier);
         addressService.deleteByPhone(phoneNo);
+
     }
 
     @Override
     public List<CustomerDto> findAll(Pageable pageable) {
-
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         Page<Customer> customerPage = customerRepository.findAll(pageable);

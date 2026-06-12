@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -11,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -118,20 +120,31 @@ class RoleServiceTest {
 
     @Test
     void testFindAll() {
+
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<Role> rolePage = new PageImpl<>(
-                Collections.singletonList(role)
-        );
+        Page<Role> rolePage =
+                new PageImpl<>(Collections.singletonList(role), pageable, 1);
 
-        when(roleRepository.findAll(pageable)).thenReturn(rolePage);
-        when(modelMapper.map(anyList(), any(Type.class)))
+        Type listType =
+                new TypeToken<List<RoleDto>>() {
+                }.getType();
+
+        when(roleRepository.findAll(pageable))
+                .thenReturn(rolePage);
+
+        when(modelMapper.map(rolePage.getContent(), listType))
                 .thenReturn(List.of(roleDto));
 
-        List<RoleDto> result = roleService.findAll(pageable);
+        WsDto<RoleDto> result =
+                roleService.findAll(pageable);
 
-        assertEquals(1, result.size());
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+
         verify(roleRepository).findAll(pageable);
-        verify(modelMapper).map(anyList(), any(Type.class));
+
+        verify(modelMapper)
+                .map(rolePage.getContent(), listType);
     }
 }

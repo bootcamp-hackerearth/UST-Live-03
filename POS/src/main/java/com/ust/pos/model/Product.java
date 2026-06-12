@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 public class Product extends CommonFields {
+
     private List<String> category;
     private String name;
     private String brand;

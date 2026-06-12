@@ -277,17 +277,12 @@ class RackServiceTest {
     @Test
     void testFindActiveRacks() {
 
-        when(rackRepository.findByStatus(true))
-                .thenReturn(Collections.singletonList(rack));
-
-        List<Rack> result =
-                rackService.findActiveRacks();
-
+        List<RackDto> rackDtos = Collections.singletonList(rackDto);
+        when(rackRepository.findByStatus(true)).thenReturn(rackDtos);
+        List<RackDto> result = rackService.findActiveRacks();
         assertNotNull(result);
         assertEquals(1, result.size());
-
-        verify(rackRepository, times(1))
-                .findByStatus(true);
+        verify(rackRepository).findByStatus(true);
     }
 
     @Test

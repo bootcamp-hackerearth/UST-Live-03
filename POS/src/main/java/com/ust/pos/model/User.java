@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 @Entity
 public class User extends CommonFields {
+
     private String username;
     private String name;
     private String phoneNo;

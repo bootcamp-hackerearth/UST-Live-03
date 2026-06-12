@@ -1,4 +1,5 @@
 package com.ust.pos;
+
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
@@ -6,247 +7,235 @@ import com.ust.pos.stock.service.impl.StockServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.*;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.*;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StockServiceTest {
 
     @Mock
-    private ModelMapper modelMapper;
+    private StockRepository stockRepository;
 
     @Mock
-    private StockRepository stockRepository;
+    private ModelMapper modelMapper;
 
     @InjectMocks
     private StockServiceImpl stockService;
 
-    private StockDto stockDto;
     private Stock stock;
+    private StockDto stockDto;
 
     @BeforeEach
     void setUp() {
-
         stockDto = new StockDto();
-        stockDto.setProduct("Product1");
-        stockDto.setWarehouse("Warehouse1");
-        stockDto.setQuantity(20);
-        stockDto.setMinimumStock(10);
+        stockDto.setIdentifier("PROD-001");
+        stockDto.setWarehouse("WH1");
+        stockDto.setQuantity(50);
+        stockDto.setMinimumStock(20);
+        stockDto.setSuccess(true);
 
         stock = new Stock();
-        stock.setIdentifier("Product1_Warehouse1");
+        stock.setIdentifier("PROD-001_WH1");
+        stock.setQuantity(50);
+        stock.setMinimumStock(20);
+        stock.setStockStatus("Available");
     }
 
     @Test
-    void save_ShouldSaveSuccessfully_WhenStockDoesNotExist() {
+    void save_existingStock() {
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(stock);
 
-        when(stockRepository.findByIdentifier(
-                "Product1_Warehouse1"))
-                .thenReturn(null);
-
-        when(modelMapper.map(
-                stockDto,
-                Stock.class))
-                .thenReturn(stock);
-
-        StockDto result =
-                stockService.save(stockDto);
-
-        assertEquals(
-                "Product1_Warehouse1",
-                result.getIdentifier());
-
-        assertEquals(
-                "Available",
-                result.getStockStatus());
-
-        verify(stockRepository)
-                .save(any(Stock.class));
-    }
-
-    @Test
-    void save_ShouldFail_WhenDuplicateStockExists() {
-
-        when(stockRepository.findByIdentifier(
-                "Product1_Warehouse1"))
-                .thenReturn(stock);
-
-        StockDto result =
-                stockService.save(stockDto);
+        StockDto result = stockService.save(stockDto);
 
         assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("already exists"));
 
-        assertTrue(
-                result.getMessage()
-                        .contains("already exists"));
-
-        verify(stockRepository,
-                never())
-                .save(any());
+        verify(stockRepository, never()).save(any());
+        verify(modelMapper, never()).map(any(), any());
     }
 
     @Test
-    void save_ShouldSetLowStockStatus() {
+    void save_available() {
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(null);
+        when(modelMapper.map(any(StockDto.class), eq(Stock.class))).thenReturn(stock);
 
-        stockDto.setQuantity(5);
-        stockDto.setMinimumStock(10);
+        StockDto result = stockService.save(stockDto);
 
-        when(stockRepository.findByIdentifier(
-                "Product1_Warehouse1"))
-                .thenReturn(null);
+        assertEquals("Available", result.getStockStatus());
+        assertEquals("PROD-001_WH1", result.getIdentifier());
 
-        when(modelMapper.map(
-                stockDto,
-                Stock.class))
-                .thenReturn(stock);
-
-        StockDto result =
-                stockService.save(stockDto);
-
-        assertEquals(
-                "Low Stock",
-                result.getStockStatus());
+        verify(stockRepository).save(stock);
     }
 
     @Test
-    void save_ShouldSetOutOfStockStatus() {
+    void save_lowStock() {
+        stockDto.setQuantity(10);
 
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(null);
+        when(modelMapper.map(any(StockDto.class), eq(Stock.class))).thenReturn(stock);
+
+        StockDto result = stockService.save(stockDto);
+
+        assertEquals("Low Stock", result.getStockStatus());
+        assertEquals("PROD-001_WH1", result.getIdentifier());
+
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void save_outOfStock() {
         stockDto.setQuantity(0);
-        stockDto.setMinimumStock(10);
 
-        when(stockRepository.findByIdentifier(
-                "Product1_Warehouse1"))
-                .thenReturn(null);
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(null);
+        when(modelMapper.map(any(StockDto.class), eq(Stock.class))).thenReturn(stock);
 
-        when(modelMapper.map(
-                stockDto,
-                Stock.class))
-                .thenReturn(stock);
+        StockDto result = stockService.save(stockDto);
 
-        StockDto result =
-                stockService.save(stockDto);
-
-        assertEquals(
-                "Out of Stock",
-                result.getStockStatus());
+        assertEquals("Out of Stock", result.getStockStatus());
+        verify(stockRepository).save(stock);
     }
 
     @Test
-    void update_ShouldUpdateSuccessfully() {
+    void save_boundary_equalMinimumStock() {
+        stockDto.setQuantity(20);
 
-        stockDto.setIdentifier(
-                "Product1_Warehouse1");
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(null);
+        when(modelMapper.map(any(StockDto.class), eq(Stock.class))).thenReturn(stock);
 
-        when(stockRepository.findByIdentifier(
-                "Product1_Warehouse1"))
-                .thenReturn(stock);
+        StockDto result = stockService.save(stockDto);
 
-        StockDto result =
-                stockService.update(stockDto);
-
-        assertEquals(
-                "Available",
-                result.getStockStatus());
-
-        verify(modelMapper)
-                .map(stockDto, stock);
-
-        verify(stockRepository)
-                .save(stock);
+        assertEquals("Low Stock", result.getStockStatus());
+        verify(stockRepository).save(stock);
     }
 
     @Test
-    void update_ShouldFail_WhenStockNotFound() {
+    void update_notFound() {
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(null);
 
-        stockDto.setIdentifier(
-                "Product1_Warehouse1");
-
-        when(stockRepository.findByIdentifier(
-                "Product1_Warehouse1"))
-                .thenReturn(null);
-
-        StockDto result =
-                stockService.update(stockDto);
+        StockDto result = stockService.update(stockDto);
 
         assertFalse(result.isSuccess());
 
-        assertTrue(
-                result.getMessage()
-                        .contains("not found"));
-
-        verify(stockRepository,
-                never())
-                .save(any());
+        verify(stockRepository, never()).save(any());
+        verify(modelMapper, never()).map(any(), any());
     }
 
     @Test
-    void delete_ShouldCallRepository() {
+    void update_available() {
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(stock);
 
-        stockService.delete(
-                "Product1_Warehouse1");
+        StockDto result = stockService.update(stockDto);
 
-        verify(stockRepository)
-                .deleteByIdentifier(
-                        "Product1_Warehouse1");
+        assertEquals("Available", result.getStockStatus());
+
+        verify(modelMapper).map(stockDto, stock);
+        verify(stockRepository).save(stock);
     }
 
     @Test
-    void findAll_ShouldReturnDtoList() {
+    void update_lowStock() {
+        stockDto.setQuantity(10);
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(stock);
 
-        Page<Stock> page =
-                new PageImpl<>(
-                        List.of(stock));
+        StockDto result = stockService.update(stockDto);
 
-        List<StockDto> dtoList =
-                List.of(stockDto);
+        assertEquals("Low Stock", result.getStockStatus());
 
-        when(stockRepository.findAll(pageable))
-                .thenReturn(page);
+        verify(modelMapper).map(stockDto, stock);
+        verify(stockRepository).save(stock);
+    }
 
-        when(modelMapper.map(
-                eq(page.getContent()),
-                any(java.lang.reflect.Type.class)))
-                .thenReturn(dtoList);
+    @Test
+    void update_outOfStock() {
+        stockDto.setQuantity(0);
 
-        List<StockDto> result =
-                stockService.findAll(pageable);
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(stock);
+
+        StockDto result = stockService.update(stockDto);
+
+        assertEquals("Out of Stock", result.getStockStatus());
+
+        verify(modelMapper).map(stockDto, stock);
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void update_boundary_equalMinimumStock() {
+        stockDto.setQuantity(20);
+
+        when(stockRepository.findByIdentifier("PROD-001")).thenReturn(stock);
+
+        StockDto result = stockService.update(stockDto);
+
+        assertEquals("Low Stock", result.getStockStatus());
+
+        verify(modelMapper).map(stockDto, stock);
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void delete_test() {
+        stockService.delete("PROD-001_WH1");
+
+        verify(stockRepository).deleteByIdentifier("PROD-001_WH1");
+    }
+
+    @Test
+    void findAll_test() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Stock> page = new PageImpl<>(List.of(stock));
+
+        when(stockRepository.findAll(pageable)).thenReturn(page);
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(stockDto));
+
+        List<StockDto> result = stockService.findAll(pageable);
 
         assertEquals(1, result.size());
+        verify(stockRepository).findAll(pageable);
     }
 
     @Test
-    void findByIdentifier_ShouldReturnDto() {
+    void findAll_emptyList() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Stock> page = new PageImpl<>(List.of(), pageable, 0);
 
-        when(stockRepository.findByIdentifier(
-                "Product1_Warehouse1"))
-                .thenReturn(stock);
+        when(stockRepository.findAll(pageable)).thenReturn(page);
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of());
 
-        when(modelMapper.map(
-                stock,
-                StockDto.class))
-                .thenReturn(stockDto);
-
-        StockDto result =
-                stockService.findByIdentifier(
-                        "Product1_Warehouse1");
+        List<StockDto> result = stockService.findAll(pageable);
 
         assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
 
-        verify(stockRepository)
-                .findByIdentifier(
-                        "Product1_Warehouse1");
+    @Test
+    void findById_found() {
+        when(stockRepository.findByIdentifier("PROD-001_WH1")).thenReturn(stock);
+        when(modelMapper.map(stock, StockDto.class)).thenReturn(stockDto);
+
+        StockDto result = stockService.findByIdentifier("PROD-001_WH1");
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void findById_notFound() {
+        when(stockRepository.findByIdentifier("PROD-001_WH1")).thenReturn(null);
+        when(modelMapper.map(null, StockDto.class)).thenReturn(null);
+
+        StockDto result = stockService.findByIdentifier("PROD-001_WH1");
+
+        assertNull(result);
     }
 }

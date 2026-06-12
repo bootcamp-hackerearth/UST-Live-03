@@ -62,25 +62,24 @@
 
                 <div class="mb-4">
                         <label class="form-label">Price Amount</label>
-                        <form:input path="priceAmount"
-                                    cssClass="form-control"
-                                    type="number" step="0.01"
-                                    placeholder="Enter Price"
-                                    required="true"/>
+                                    <form:input path="priceAmount"
+                                                cssClass="form-control"
+                                                type="number" step="0.01"
+                                                placeholder="Enter Price"
+                                                required="true"/>
                 </div>
 
                 <div class="mb-3">
                         <label class="form-label fw-semibold">Price Type</label>
-                            <form:select path="priceType"
-                                         cssClass="form-select"
-                                         readonly="true"
-                                         required="true">
-                                         <form:option value="" label="-- Select Price Type --"/>
-                                         <form:option value="MRP" label="MRP"/>
-                                         <form:option value="Cost Price" label="Cost Price"/>
-                                         <form:option value="Selling Price" label="Selling Price"/>
-                            </form:select>
-                </div>
+                                      <form:select path="priceType"
+                                                   cssClass="form-select"
+                                                   required="true">
+                                          <form:option value="" label="-- Select Price Type --"/>
+                                          <form:option value="MRP" label="MRP"/>
+                                          <form:option value="Cost Price" label="Cost Price"/>
+                                          <form:option value="Selling Price" label="Selling Price"/>
+                                      </form:select>
+                                  </div>
 
                 <div class="d-flex justify-content-between">
                     <a href="/price/list" class="btn btn-outline-secondary">
@@ -96,6 +95,7 @@
         <div class="text-center mt-3">
                 <a href="/price/list">← Back to stock List</a>
             </div>
+
     </div>
 
      <c:if test="${not empty message}">
@@ -110,5 +110,6 @@
             </div>
         </c:if>
 </div>
+
 </body>
 </html>

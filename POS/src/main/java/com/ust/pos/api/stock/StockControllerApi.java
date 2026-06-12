@@ -3,6 +3,7 @@ package com.ust.pos.api.stock;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,9 @@ public class StockControllerApi extends BaseController {
 
     @Autowired
     private StockService stockService;
+
+    @Autowired
+    private ProductService productService;
 
     @Autowired
     private WarehouseService warehouseService;

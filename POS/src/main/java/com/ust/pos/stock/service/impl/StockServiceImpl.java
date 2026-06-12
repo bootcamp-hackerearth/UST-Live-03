@@ -26,10 +26,10 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public StockDto save(StockDto stockDto) {
-        String identifier = stockDto.getProduct() + "_" + stockDto.getWarehouse();
+        String identifier = stockDto.getIdentifier();
         Stock existingStock = stockRepository.findByIdentifier(identifier);
         if (existingStock != null) {
-            stockDto.setMessage("Stock with identifier - " + identifier + " already exists");
+            stockDto.setMessage("Role with identifier - " + identifier + " already exists");
             stockDto.setSuccess(false);
             return stockDto;
         }
@@ -40,7 +40,7 @@ public class StockServiceImpl implements StockService {
         } else {
             stockDto.setStockStatus("Out of Stock");
         }
-        stockDto.setIdentifier(identifier);
+        stockDto.setIdentifier(stockDto.getIdentifier() + "_" + stockDto.getWarehouse());
         Stock stock = modelMapper.map(stockDto, Stock.class);
         stockRepository.save(stock);
         return stockDto;

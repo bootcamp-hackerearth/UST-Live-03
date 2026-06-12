@@ -19,5 +19,5 @@ public interface ModelsService {
 
     List<Models> findActiveModels();
 
-    void toggleStatus(String identifier);
+    ModelsDto toggleStatus(String identifier);
 }

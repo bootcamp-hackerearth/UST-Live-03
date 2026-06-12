@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
@@ -183,16 +184,23 @@ class WarehouseServiceTest {
         when(modelMapper.map(warehousePage.getContent(), listType))
                 .thenReturn(warehouseDtoList);
 
-        List<WarehouseDto> result =
+        WsDto<WarehouseDto> result =
                 warehouseService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
 
-        verify(warehouseRepository, times(1))
+        assertNotNull(result.getDtoList());
+        assertEquals(1, result.getDtoList().size());
+
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(warehouseRepository)
                 .findAll(pageable);
 
-        verify(modelMapper, times(1))
+        verify(modelMapper)
                 .map(warehousePage.getContent(), listType);
     }
 
@@ -202,7 +210,7 @@ class WarehouseServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Warehouse> emptyPage =
-                new PageImpl<>(Collections.emptyList());
+                new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         Type listType =
                 new TypeToken<List<WarehouseDto>>() {
@@ -214,11 +222,16 @@ class WarehouseServiceTest {
         when(modelMapper.map(emptyPage.getContent(), listType))
                 .thenReturn(Collections.emptyList());
 
-        List<WarehouseDto> result =
+        WsDto<WarehouseDto> result =
                 warehouseService.findAll(pageable);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
+
+        assertNotNull(result.getDtoList());
+        assertTrue(result.getDtoList().isEmpty());
+
+        assertEquals(0, result.getTotalRecords());
+        assertEquals(0, result.getPage());
 
         verify(warehouseRepository, times(1))
                 .findAll(pageable);

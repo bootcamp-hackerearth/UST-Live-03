@@ -7,6 +7,7 @@
 <head>
     <title>Customer Registration</title>
 
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
@@ -32,24 +33,28 @@
 
             <h3 class="text-center mb-4">Add New Customer</h3>
 
+            <!-- SUCCESS MESSAGE -->
             <c:if test="${not empty customer}">
                 <div class="alert alert-success text-center">
                     ${customer}
                 </div>
             </c:if>
 
+            <!-- ERROR MESSAGE -->
             <c:if test="${not empty message}">
                 <div class="alert alert-danger text-center">
                     ${message}
                 </div>
             </c:if>
 
+            <!-- CUSTOMER FORM -->
             <form:form action="${pageContext.request.contextPath}/customer/add"
                        method="post"
                        modelAttribute="customerDto">
 
                 <div class="row g-3">
 
+                    <!-- BASIC DETAILS -->
                     <div class="col-md-6">
                         <label>Name</label>
                         <form:input path="name" class="form-control" required="true"/>
@@ -57,14 +62,9 @@
 
                     <div class="col-md-6">
                         <label>Phone Number</label>
-                        <form:input path="phoneNo"
-                                    type="number"
-                                    maxlength="10"
+                        <form:input path="phoneNo" type="number"
                                     class="form-control"
-                                    title="10 digits"
-                                    pattern="[0-9]{10}"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                    required="true"/>
+                                    title="10 digits" required="true"/>
                     </div>
 
                     <div class="col-md-6">
@@ -98,6 +98,7 @@
                                     required="true"/>
                     </div>
 
+                    <!-- SHIPPING ADDRESS -->
                     <hr class="mt-4">
                     <h5 class="text-center mt-3">Shipping Address</h5>
 
@@ -118,12 +119,7 @@
 
                     <div class="col-md-6">
                         <label>Zip Code</label>
-                        <form:input path="shippingAddress.zipcode"
-                                    class="form-control"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                    pattern="[0-9]{6}"
-                                    inputmode="numeric"
-                                    required="true"/>
+                        <form:input path="shippingAddress.zipcode" class="form-control" type="number" required="true"/>
                     </div>
 
                     <div class="col-md-6">
@@ -138,6 +134,7 @@
                         </form:select>
                     </div>
 
+                    <!-- BILLING ADDRESS -->
                     <hr class="mt-4">
                     <h5 class="text-center mt-3">Billing Address</h5>
 
@@ -157,13 +154,8 @@
                     </div>
 
                     <div class="col-md-6">
-                          <label>Zip Code</label>
-                          <form:input path="shippingAddress.zipcode"
-                                      class="form-control"
-                                      oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                      pattern="[0-9]{6}"
-                                      inputmode="numeric"
-                                      required="true"/>
+                        <label>Zip Code</label>
+                        <form:input path="billingAddress.zipcode" class="form-control" type="number" required="true"/>
                     </div>
 
                     <div class="col-md-6">
@@ -178,15 +170,19 @@
                         </form:select>
                     </div>
 
+                    <!-- SUBMIT -->
                     <div class="col-12 text-center mt-4">
                         <button type="submit" class="btn btn-success px-5">
                             Register Customer
                         </button>
                     </div>
+
                 </div>
             </form:form>
+
         </div>
 
+        <!-- FOOTER -->
         <div class="card-footer text-center">
             <div class="d-flex justify-content-center gap-3">
                 <a href="${pageContext.request.contextPath}/" class="btn btn-secondary">
@@ -201,6 +197,7 @@
                 Customer Management System
             </div>
         </div>
+
     </div>
 </div>
 

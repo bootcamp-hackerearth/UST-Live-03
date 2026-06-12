@@ -1,5 +1,6 @@
 package com.ust.pos.model;
 
+import com.ust.pos.dto.RackDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,5 +13,5 @@ public interface RackRepository extends JpaRepository<Rack, Long> {
 
     void deleteByIdentifier(String identifier);
 
-    List<Rack> findByStatus(boolean status);
+    List<RackDto> findByStatus(boolean status);
 }

@@ -24,16 +24,6 @@
         .form-control {
             border-radius: 8px;
         }
-
-        .bottom-error {
-            margin-top: 12px;
-            padding: 10px;
-            text-align: center;
-            border-radius: 6px;
-            background: #fee2e2;
-            color: #b91c1c;
-            font-size: 13px;
-            }
     </style>
 </head>
 <body>
@@ -67,13 +57,12 @@
                      </div>
 
                      <div class="mb-3">
-                           <label class="form-label fw-semibold">Shelf Description</label>
-                           <form:input path="description"
-                                       cssClass="form-control"
-                                       required="true"
-                                       placeholder="Enter Shelf Description"
-                                       required="true"/>
-                     </div>
+                                               <label class="form-label fw-semibold">Shelf Description</label>
+                                               <form:input path="description"
+                                                           cssClass="form-control"
+                                                           placeholder="Enter Shelf Description"
+                                                           required="true"/>
+                                          </div>
 
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">
@@ -89,16 +78,20 @@
                     </div>
 
                 <c:if test="${not empty message}">
-                        <div class="bottom-error">${message}</div>
+                        <p class="error">${message}</p>
                     </c:if>
+
                 </form:form>
+
             </div>
 
             <div class="card-footer text-center text-muted small">
                 POS Management System
             </div>
         </div>
+
     </div>
 </div>
+
 </body>
 </html>

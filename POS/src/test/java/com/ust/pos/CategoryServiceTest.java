@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,12 +14,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -192,7 +191,7 @@ class CategoryServiceTest {
                 List.of(categoryDto);
 
         Pageable pageable =
-                PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+                PageRequest.of(0, 50);
 
         Page<Category> categoryPage =
                 new PageImpl<>(categories, pageable, categories.size());
@@ -207,11 +206,12 @@ class CategoryServiceTest {
         when(modelMapper.map(categoryPage.getContent(), listType))
                 .thenReturn(dtoList);
 
-        List<CategoryDto> result =
+        WsDto<CategoryDto> result =
                 categoryService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
 
         verify(categoryRepository).findAll(pageable);
         verify(modelMapper).map(categoryPage.getContent(), listType);
@@ -224,7 +224,7 @@ class CategoryServiceTest {
                 PageRequest.of(0, 10);
 
         Page<Category> emptyPage =
-                new PageImpl<>(Collections.emptyList());
+                new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         Type listType =
                 new TypeToken<List<CategoryDto>>() {
@@ -236,11 +236,11 @@ class CategoryServiceTest {
         when(modelMapper.map(emptyPage.getContent(), listType))
                 .thenReturn(Collections.emptyList());
 
-        List<CategoryDto> result =
+        WsDto<CategoryDto> result =
                 categoryService.findAll(pageable);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertTrue(result.getDtoList().isEmpty());
 
         verify(categoryRepository).findAll(pageable);
         verify(modelMapper).map(emptyPage.getContent(), listType);

@@ -2,6 +2,7 @@ package com.ust.pos.unit;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.unit.service.UnitService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -14,6 +15,9 @@ public class UnitController {
 
     public static final String UNITS = "units";
     public static final String REDIRECT_UNIT_LIST = "redirect:/unit/list";
+
+    @Autowired
+    ModelMapper modelMapper;
 
     @Autowired
     UnitService unitService;

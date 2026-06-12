@@ -47,4 +47,14 @@ public class RackControllerApi extends BaseController {
         }
         return true;
     }
+
+    @GetMapping("/toggle")
+    public RackDto toggle(@RequestParam String identifier) {
+        return rackService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/active")
+    public List<RackDto> findActiveBrand() {
+        return rackService.findActiveRacks();
+    }
 }

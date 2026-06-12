@@ -1,7 +1,6 @@
 package com.ust.pos.rack.service;
 
 import com.ust.pos.dto.RackDto;
-import com.ust.pos.model.Rack;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -17,8 +16,8 @@ public interface RackService {
 
     RackDto findByIdentifier(String identifier);
 
-    List<Rack> findActiveRacks();
+    List<RackDto> findActiveRacks();
 
-    void toggleStatus(String identifier);
+    RackDto toggleStatus(String identifier);
 
 }

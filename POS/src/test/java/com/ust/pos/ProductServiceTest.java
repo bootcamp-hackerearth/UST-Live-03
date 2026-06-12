@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -183,11 +184,18 @@ class ProductServiceTest {
         when(modelMapper.map(productPage.getContent(), listType))
                 .thenReturn(productDtoList);
 
-        List<ProductDto> result =
+        WsDto<ProductDto> result =
                 productService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+
+        assertNotNull(result.getDtoList());
+        assertEquals(1, result.getDtoList().size());
+
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(50, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(productRepository, times(1))
                 .findAll(pageable);
@@ -202,7 +210,7 @@ class ProductServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Product> emptyPage =
-                new PageImpl<>(Collections.emptyList());
+                new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         Type listType =
                 new TypeToken<List<ProductDto>>() {
@@ -214,11 +222,12 @@ class ProductServiceTest {
         when(modelMapper.map(emptyPage.getContent(), listType))
                 .thenReturn(Collections.emptyList());
 
-        List<ProductDto> result =
+        WsDto<ProductDto> result =
                 productService.findAll(pageable);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertNotNull(result.getDtoList());
+        assertTrue(result.getDtoList().isEmpty());
 
         verify(productRepository, times(1))
                 .findAll(pageable);

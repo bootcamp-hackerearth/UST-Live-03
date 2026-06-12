@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,7 +48,7 @@ class PriceServiceTest {
         priceDto = new PriceDto();
         priceDto.setProduct("PROD1");
         priceDto.setPriceType("MRP");
-        priceDto.setPriceAmount(100.0);
+        priceDto.setPriceAmount(BigDecimal.valueOf(100.0));
         priceDto.setIdentifier("PROD1_MRP");
         priceDto.setSuccess(true);
 
@@ -54,7 +56,7 @@ class PriceServiceTest {
         price.setId(1L);
         price.setProduct("PROD1");
         price.setPriceType("MRP");
-        price.setPriceAmount(100.0);
+        price.setPriceAmount(BigDecimal.valueOf(100.0));
         price.setIdentifier("PROD1_MRP");
     }
 
@@ -215,11 +217,11 @@ class PriceServiceTest {
     void testUpdate_DuplicateSameId_ShouldUpdateSuccessfully() {
 
         Price duplicate = new Price();
-        duplicate.setId(1L); // SAME ID
+        duplicate.setId(1L);
         duplicate.setIdentifier("PROD1_SALE");
 
         priceDto.setPriceType("SALE");
-        priceDto.setPriceAmount(150.0);
+        priceDto.setPriceAmount(BigDecimal.valueOf(100.0));
 
         when(priceRepository.findByIdentifier("PROD1_MRP"))
                 .thenReturn(price);
@@ -234,8 +236,16 @@ class PriceServiceTest {
         assertEquals("PROD1_SALE", result.getIdentifier());
 
         assertEquals("SALE", price.getPriceType());
-        assertEquals(150.0, price.getPriceAmount());
-        assertEquals("PROD1_SALE", price.getIdentifier());
+
+        assertEquals(
+                BigDecimal.valueOf(100.0),
+                price.getPriceAmount()
+        );
+
+        assertEquals(
+                "PROD1_SALE",
+                price.getIdentifier()
+        );
 
         verify(priceRepository, times(1))
                 .save(price);
@@ -245,7 +255,7 @@ class PriceServiceTest {
     void testUpdate_Success_NoDuplicate() {
 
         priceDto.setPriceType("SALE");
-        priceDto.setPriceAmount(120.0);
+        priceDto.setPriceAmount(BigDecimal.valueOf(100.0));
 
         when(priceRepository.findByIdentifier("PROD1_MRP"))
                 .thenReturn(price);
@@ -260,7 +270,10 @@ class PriceServiceTest {
         assertEquals("PROD1_SALE", result.getIdentifier());
 
         assertEquals("SALE", price.getPriceType());
-        assertEquals(120.0, price.getPriceAmount());
+        assertEquals(
+                BigDecimal.valueOf(100.0),
+                price.getPriceAmount()
+        );
         assertEquals("PROD1_SALE", price.getIdentifier());
 
         verify(priceRepository, times(1))
@@ -338,11 +351,16 @@ class PriceServiceTest {
         when(modelMapper.map(pricePage.getContent(), listType))
                 .thenReturn(priceDtoList);
 
-        List<PriceDto> result =
+        WsDto<PriceDto> result =
                 priceService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+
+        assertNotNull(result.getDtoList());
+        assertEquals(1, result.getDtoList().size());
+
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
 
         verify(priceRepository, times(1))
                 .findAll(pageable);
@@ -358,7 +376,7 @@ class PriceServiceTest {
                 PageRequest.of(0, 10);
 
         Page<Price> emptyPage =
-                new PageImpl<>(Collections.emptyList());
+                new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         Type listType =
                 new TypeToken<List<PriceDto>>() {
@@ -370,11 +388,15 @@ class PriceServiceTest {
         when(modelMapper.map(emptyPage.getContent(), listType))
                 .thenReturn(Collections.emptyList());
 
-        List<PriceDto> result =
+        WsDto<PriceDto> result =
                 priceService.findAll(pageable);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
+
+        assertNotNull(result.getDtoList());
+        assertTrue(result.getDtoList().isEmpty());
+
+        assertEquals(0, result.getTotalRecords());
 
         verify(priceRepository, times(1))
                 .findAll(pageable);

@@ -54,7 +54,6 @@ public class UserController {
             String loggedInUser = authentication.getName();
             if (loggedInUser != null) {
                 userService.delete(username);
-
                 if (loggedInUser.equals(username)) {
                     SecurityContextHolder.clearContext();
                     return "redirect:/login";

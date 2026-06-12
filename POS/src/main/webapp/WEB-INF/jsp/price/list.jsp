@@ -30,9 +30,9 @@
         }
 
         .btn-pos-update {
-                    background-color: #fdfafc;
-                    border-color: #4b6cb7;
-                    color: #000;
+                        background-color: #fdfafc;
+                        border-color: #4b6cb7;
+                        color: #000;
                 }
 
                 .btn-pos-update:hover {
@@ -100,30 +100,35 @@
                                      >Update</a>
                                     </td>
                                     <td>
-                                       <a href="/price/delete?identifier=${itemPrice.identifier}"
-                                       class="btn btn-danger btn-sm"
-                                       onclick="return confirm('Are you sure you want to delete this price?');">
-                                         Delete
-                                       </a>
+                                          <a href="/price/delete?identifier=${itemPrice.identifier}"
+                                          class="btn btn-danger btn-sm"
+                                          onclick="return confirm('Are you sure you want to delete this price?');">
+                                            Delete
+                                          </a>
                                     </td>
                                 </tr>
                             </c:forEach>
                             </tbody>
                         </table>
                     </c:if>
+
                 </div>
 
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
                     <a href="/" class="btn btn-secondary">
                         Home
                     </a>
+
                     <a href="/price/add" class="btn btn-success">
                         + Add New Product Price
                     </a>
                 </div>
+
             </div>
+
         </div>
     </div>
 </div>
+
 </body>
 </html>

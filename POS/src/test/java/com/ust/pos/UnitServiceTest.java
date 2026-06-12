@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -241,14 +242,20 @@ class UnitServiceTest {
         when(modelMapper.map(units, listType))
                 .thenReturn(unitDtos);
 
-        List<UnitDto> result =
+        WsDto<UnitDto> result =
                 unitService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
 
-        assertEquals("Kg", result.get(0).getIdentifier());
-        assertEquals("L", result.get(1).getIdentifier());
+        assertEquals(2, result.getDtoList().size());
+
+        assertEquals("Kg",
+                result.getDtoList().get(0).getIdentifier());
+
+        assertEquals("L",
+                result.getDtoList().get(1).getIdentifier());
+
+        assertEquals(2, result.getTotalRecords());
 
         verify(unitRepository, times(1))
                 .findAll(pageable);
@@ -263,7 +270,7 @@ class UnitServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Unit> emptyPage =
-                new PageImpl<>(Collections.emptyList());
+                new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         Type listType =
                 new TypeToken<List<UnitDto>>() {
@@ -275,11 +282,13 @@ class UnitServiceTest {
         when(modelMapper.map(emptyPage.getContent(), listType))
                 .thenReturn(Collections.emptyList());
 
-        List<UnitDto> result =
+        WsDto<UnitDto> result =
                 unitService.findAll(pageable);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertTrue(result.getDtoList().isEmpty());
+
+        assertEquals(0, result.getTotalRecords());
 
         verify(unitRepository, times(1))
                 .findAll(pageable);

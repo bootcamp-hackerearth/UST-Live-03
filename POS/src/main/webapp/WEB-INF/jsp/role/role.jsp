@@ -74,9 +74,12 @@ ${message}
                         Update
                     </button>
                 </div>
+
             </form:form>
         </c:if>
+
     </div>
 </div>
+
 </body>
 </html>

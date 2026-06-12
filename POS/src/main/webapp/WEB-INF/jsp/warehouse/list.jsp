@@ -90,7 +90,7 @@
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-12">
+        <div class="col-md-8">
 
             <div class="card shadow-lg">
                 <div class="card-header bg-primary text-white text-center">
@@ -158,6 +158,7 @@
                             </tbody>
                         </table>
                     </c:if>
+
                 </div>
 
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
@@ -171,8 +172,10 @@
                 </div>
 
             </div>
+
         </div>
     </div>
 </div>
+
 </body>
 </html>

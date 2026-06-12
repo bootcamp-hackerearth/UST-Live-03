@@ -24,16 +24,6 @@
         .form-control {
             border-radius: 8px;
         }
-
-        .bottom-error {
-             margin-top: 12px;
-             padding: 10px;
-             text-align: center;
-             border-radius: 6px;
-             background: #fee2e2;
-             color: #b91c1c;
-             font-size: 13px;
-             }
     </style>
 </head>
 <body>
@@ -119,8 +109,7 @@
                               <label>Super Category List</label>
                               <form:select path="category"
                                            multiple="true"
-                                           cssClass="form-control"
-                                           required="true">
+                                           cssClass="form-control">
                                            <form:option value="" label="-- Select Super Categories--"/>
                                            <form:options items="${categories}"
                                                 itemValue="identifier"
@@ -143,8 +132,9 @@
                     </div>
 
                 <c:if test="${not empty message}">
-                        <div class="bottom-error">${message}</div>
+                        <p class="error">${message}</p>
                     </c:if>
+
                 </form:form>
 
             </div>

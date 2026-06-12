@@ -30,7 +30,7 @@
             left: -260px;
             top: 0;
             width: 260px;
-            height: 100vh;
+            height: 100%;
             background: linear-gradient(180deg, #0f766e, #022c43);
             padding: 25px 15px;
             display: flex;
@@ -52,21 +52,6 @@
 
         .menu {
             flex-grow: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        .menu::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .menu::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 10px;
-        }
-
-        .menu::-webkit-scrollbar-track {
-            background: transparent;
         }
 
         .menu a {
@@ -158,11 +143,11 @@
             color: #64748b;
             font-size: 14px;
         }
-
     </style>
 </head>
 
 <body>
+
 <div class="wrapper">
 
     <div class="sidebar" id="sidebar">
@@ -171,8 +156,7 @@
         <div class="menu">
             <c:if test="${not empty nodes}">
                 <c:forEach var="n" items="${nodes}">
-                    <a
-                        href="${pageContext.request.contextPath}${n.path}">
+                    <a href="${pageContext.request.contextPath}${n.path}">
                         ${n.identifier}
                     </a>
                 </c:forEach>
@@ -191,6 +175,7 @@
     </div>
 
     <div class="main" id="main">
+
         <div class="topbar">
             <span class="toggle-btn" onclick="toggleSidebar()">☰</span>
             <h3>POS Dashboard</h3>
@@ -213,5 +198,6 @@
         main.classList.toggle("shift");
     }
 </script>
+
 </body>
 </html>

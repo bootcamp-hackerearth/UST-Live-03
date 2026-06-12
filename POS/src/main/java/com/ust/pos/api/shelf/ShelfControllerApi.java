@@ -3,7 +3,6 @@ package com.ust.pos.api.shelf;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
-import com.ust.pos.model.Shelf;
 import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -49,8 +48,13 @@ public class ShelfControllerApi extends BaseController {
         return true;
     }
 
-    @GetMapping("/activeshelf")
-    public List<Shelf> findActiveShelves() {
+    @GetMapping("/toggle")
+    public ShelfDto toggle(@RequestParam String identifier) {
+        return shelfService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/active")
+    public List<ShelfDto> findActiveShelves() {
         return shelfService.findActiveShelves();
     }
 }

@@ -3,6 +3,7 @@ package com.ust.pos.api.models;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.model.Models;
 import com.ust.pos.models.service.ModelsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -46,5 +47,15 @@ public class ModelsControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @GetMapping("/toggle")
+    public ModelsDto toggle(@RequestParam String identifier) {
+        return modelsService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/active")
+    public List<Models> findActiveModels() {
+        return modelsService.findActiveModels();
     }
 }

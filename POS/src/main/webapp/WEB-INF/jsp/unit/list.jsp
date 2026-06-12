@@ -75,6 +75,7 @@
     transition: 0.4s;
 }
 
+
 input:not(:checked) + .slider {
 background-color: #dc2626; /* RED */
 }
@@ -166,9 +167,12 @@ input:checked + .slider:before {
                         + Add New Unit
                     </a>
                 </div>
+
             </div>
+
         </div>
     </div>
 </div>
+
 </body>
 </html>

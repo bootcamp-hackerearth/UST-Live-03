@@ -1,5 +1,6 @@
 package com.ust.pos.model;
 
+import com.ust.pos.dto.ShelfDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,5 +13,5 @@ public interface ShelfRepository extends JpaRepository<Shelf, Long> {
 
     void deleteByIdentifier(String identifier);
 
-    List<Shelf> findByStatus(boolean status);
+    List<ShelfDto> findByStatus(boolean status);
 }

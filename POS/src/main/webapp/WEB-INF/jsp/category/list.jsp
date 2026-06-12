@@ -82,19 +82,24 @@
                             </tbody>
                         </table>
                     </c:if>
+
                 </div>
 
                 <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
                     <a href="/" class="btn btn-secondary">
                         Home
                     </a>
+
                     <a href="/category/add" class="btn btn-success">
                         + Add New Category
                     </a>
                 </div>
+
             </div>
+
         </div>
     </div>
 </div>
+
 </body>
 </html>

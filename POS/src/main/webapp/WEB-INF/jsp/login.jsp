@@ -1,3 +1,4 @@
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -22,7 +23,6 @@
             height: 100vh;
         }
 
-        /* LEFT PANEL */
         .left-panel {
             flex: 60%;
             background: linear-gradient(135deg, #0f766e, #022c43);
@@ -55,7 +55,6 @@
             margin-bottom: 10px;
         }
 
-        /* RIGHT PANEL */
         .right-panel {
             flex: 40%;
             display: flex;
@@ -165,13 +164,17 @@
             <h2>Login</h2>
 
             <%String logout = request.getParameter("logout");
-                if ("true".equals(logout)) {%>
+               if ("true".equals(logout)) {
+            %>
                 <div class="alert">You have logged out successfully</div>
-            <%}%>
+            <%
+                }
+            %>
 
             <form action="login" method="post">
                 <input type="email" name="username" placeholder="Enter your email" required />
                 <input type="password" name="password" placeholder="Enter your password" required />
+
                 <button type="submit">Login</button>
             </form>
 
@@ -179,7 +182,6 @@
             New User?
             <a href="${pageContext.request.contextPath}/register">Register here</a>
             </div>
-
         </div>
     </div>
 </div>
