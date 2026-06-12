@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class RoleController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
-    
+
     @Autowired
     private RoleService roleService;
 

@@ -191,6 +191,7 @@
         <table>
             <thead>
             <tr>
+                <th>SL</th>
                 <th>Node</th>
                 <th>Path</th>
                 <th>Roles</th>
@@ -199,8 +200,9 @@
             </thead>
 
             <tbody>
-            <c:forEach var="node" items="${nodes}">
+            <c:forEach var="node" items="${nodes}" varStatus="status">
                 <tr>
+                    <td>${status.count}</td>
                     <td>${node.identifier}</td>
                     <td>${node.path}</td>
                     <td>${node.roles}</td>

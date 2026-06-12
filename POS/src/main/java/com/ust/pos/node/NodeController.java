@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/node")
 public class NodeController {
+
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
+
     @Autowired
     private NodeService nodeService;
 
