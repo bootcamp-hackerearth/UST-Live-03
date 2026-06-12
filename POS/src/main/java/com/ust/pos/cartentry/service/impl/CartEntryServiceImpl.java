@@ -66,7 +66,9 @@ public class CartEntryServiceImpl implements CartEntryService {
         }
 
         BigDecimal existingQuantity =
-                cartEntry.getQuantity();
+                cartEntry.getQuantity() == null
+                        ? BigDecimal.ZERO
+                        : cartEntry.getQuantity();
 
         BigDecimal updatedQuantity = existingQuantity.add(quantity);
 
