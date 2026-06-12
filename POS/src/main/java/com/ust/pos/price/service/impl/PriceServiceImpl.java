@@ -1,6 +1,7 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -22,27 +23,33 @@ public class PriceServiceImpl implements PriceService {
     PriceRepository priceRepository;
 
     @Override
-    public PriceDto save(PriceDto dto) {
-        String identifier = dto.getIdentifier();
-        if (priceRepository.existsByIdentifier(identifier)) {
-            dto.setMessage("Already Exist!");
-            dto.setSuccess(false);
-            return dto;
+    public PriceDto save(PriceDto priceDto) {
+        String identifier = priceDto.getIdentifier();
+        Price existingPrice = priceRepository.findByIdentifier(identifier);
+        if (existingPrice != null) {
+            priceDto.setMessage("Price with identifier - " + identifier + " already exists");
+            priceDto.setSuccess(false);
+            return priceDto;
         }
-        Price price = modelMapper.map(dto, Price.class);
+        Price price = modelMapper.map(priceDto, Price.class);
         priceRepository.save(price);
-        dto.setSuccess(true);
-        dto.setMessage("Price Saved ");
-        return dto;
+        return priceDto;
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public WsDto<PriceDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
         Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+        WsDto<PriceDto> priceWsDto = new WsDto<>();
+        priceWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+        priceWsDto.setTotalRecords(pricePage.getTotalElements());
+        priceWsDto.setTotalPages(pricePage.getTotalPages());
+        priceWsDto.setSizePerPage(pageable.getPageSize());
+        priceWsDto.setPage(pageable.getPageNumber());
+
+        return priceWsDto;
     }
 
     @Override
@@ -84,6 +91,18 @@ public class PriceServiceImpl implements PriceService {
     public PriceDto findByIdentifier(String identifier) {
 
         Price price = priceRepository.findByIdentifier(identifier);
+        return modelMapper.map(price, PriceDto.class);
+
+    }
+
+    @Override
+    public PriceDto changePriceStatus(String identifier, boolean status) {
+        Price price = priceRepository.findByIdentifier(identifier);
+        if (price == null) {
+            return null; // test expects null
+        }
+        price.setStatus(status);
+        priceRepository.save(price);
         return modelMapper.map(price, PriceDto.class);
     }
 }

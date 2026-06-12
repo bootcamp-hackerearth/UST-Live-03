@@ -8,7 +8,7 @@ import java.util.List;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    List<Category> findBySupercategoryIsNot(String supercategory);
+    List<Category> findByStatusTrueAndSupercategoryIsNot(String supercategory);
 
     Category findByIdentifier(String identifier);
 }

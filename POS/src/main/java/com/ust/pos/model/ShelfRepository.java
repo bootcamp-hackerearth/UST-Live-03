@@ -9,7 +9,7 @@ import java.util.List;
 public interface ShelfRepository extends JpaRepository<Shelf, Long> {
     Shelf findByIdentifier(String identifier);
 
-    List<Shelf> findByStatusTrue();
+    List<Shelf> findByStatusTrue(boolean status);
 
     boolean existsByIdentifier(String identifier);
 

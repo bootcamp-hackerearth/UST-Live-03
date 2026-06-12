@@ -20,7 +20,7 @@ public class RacksController {
     ShelfService shelfService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String listCategories(Model model, Pageable pageable) {
         model.addAttribute("racks", racksService.findAll(pageable));
         model.addAttribute(SHELF_LIST, shelfService.findActiveShelf());
         return "racks/list";

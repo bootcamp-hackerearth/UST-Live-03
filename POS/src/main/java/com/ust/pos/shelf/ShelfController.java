@@ -16,7 +16,7 @@ public class ShelfController {
     ShelfService shelfService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String listCategories(Model model, Pageable pageable) {
         model.addAttribute("categories", shelfService.findAll(pageable));
         return "shelf/list";
     }

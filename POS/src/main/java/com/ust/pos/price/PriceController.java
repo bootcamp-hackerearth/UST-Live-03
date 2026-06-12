@@ -3,7 +3,6 @@ package com.ust.pos.price;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.price.service.PriceService;
-import com.ust.pos.product.service.ProductService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +16,6 @@ public class PriceController {
     public static final String PRICE_DTO = "priceDto";
     @Autowired
     PriceService priceService;
-    @Autowired
-    ProductService productService;
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
@@ -29,7 +26,6 @@ public class PriceController {
     @GetMapping("/add")
     public String add(Model model) {
         model.addAttribute(PRICE_DTO, new PriceDto());
-        model.addAttribute("product", productService.findAllActiveProduct());
         return "price/add";
     }
 
@@ -53,7 +49,6 @@ public class PriceController {
     public String update(Model model, @RequestParam String identifier) {
         PriceDto response = priceService.findByIdentifier(identifier);
         model.addAttribute(PRICE_DTO, response);
-        model.addAttribute("product", productService.findAllActiveProduct());
         return "price/price";
     }
 

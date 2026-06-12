@@ -96,12 +96,9 @@
                method="post"
                modelAttribute="productDto">
 
-        <!-- PRODUCT identifier -->
-        <label>Product identifier</label>
-        <form:input path="identifier" required="required"/>
-
+        <!-- PRODUCT NAME -->
         <label>Product Name</label>
-                <form:input path="productName" required="required"/>
+        <form:input path="identifier" required="required"/>
 
         <!-- DESCRIPTION -->
         <label>Description</label>
@@ -128,17 +125,6 @@
                 </option>
             </c:forEach>
         </form:select>
-
-             <!-- MODEL -->
-                    <label>Model</label>
-                    <form:select path="model" required="required">
-                        <option value="">-- Select Brand --</option>
-                        <c:forEach var="model" items="${models}">
-                            <option value="${model.identifier}">
-                                ${model.identifier}
-                            </option>
-                        </c:forEach>
-                    </form:select>
 
         <!-- STATUS -->
         <label>Status</label>

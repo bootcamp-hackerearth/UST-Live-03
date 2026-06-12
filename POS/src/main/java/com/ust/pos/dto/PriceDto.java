@@ -8,7 +8,9 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class PriceDto extends CommonDto {
-    private BigDecimal costPrice; // 120
-    private BigDecimal sellingPrice;// 150
-    private BigDecimal mrp; // //150
+
+    private BigDecimal costPrice;
+    private BigDecimal sellingPrice;
+    private String productName;
+    private BigDecimal mrp;
 }

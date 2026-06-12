@@ -3,7 +3,6 @@ package com.ust.pos.product;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ProductDto;
-import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -16,21 +15,17 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
     public static final String PRODUCT_DTO = "productDto";
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
-    public static final String MODELS = "models";
     @Autowired
     BrandService brandService;
     @Autowired
     ProductService productService;
     @Autowired
     CategoryService categoryService;
-    @Autowired
-    ModelsService modelsService;
 
     @GetMapping("/list")
     public String findAll(Model model, Pageable pageable) {
         model.addAttribute(PRODUCT_DTO, productService.findAll(pageable));
         model.addAttribute("brand", brandService.findAll(pageable));
-        model.addAttribute(MODELS, modelsService.findAll(pageable));
         return "product/list";
     }
 
@@ -39,7 +34,6 @@ public class ProductController {
         model.addAttribute(PRODUCT_DTO, new ProductDto());
         model.addAttribute("categories", categoryService.findSubCategories());
         model.addAttribute("brand", brandService.findAll(pageable));
-        model.addAttribute(MODELS, modelsService.findAll(pageable));
         return "product/add";
     }
 
@@ -64,7 +58,6 @@ public class ProductController {
         model.addAttribute(PRODUCT_DTO, response);
         model.addAttribute("categories", categoryService.findSubCategories());
         model.addAttribute("brands", brandService.findAll(pageable));
-        model.addAttribute(MODELS, modelsService.findAll(pageable));
         return "product/product";
     }
 

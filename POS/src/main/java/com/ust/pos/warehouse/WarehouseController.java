@@ -12,15 +12,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/warehouse")
 public class WarehouseController {
     public static final String REDIRECT_WAREHOUSE_LIST = "redirect:/warehouse/list";
+    @Autowired
+    WarehouseService warehouseService;
 
     @GetMapping("/list")
     public String listWarehouses(Model model, Pageable pageable) {
         model.addAttribute("warehouseList", warehouseService.findAll(pageable));
         return "warehouse/list";
     }
-
-    @Autowired
-    WarehouseService warehouseService;
 
     @GetMapping("/add")
     public String showAddPage(Model model) {

@@ -3,6 +3,8 @@ package com.ust.pos.model;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
     Role findByIdentifier(String identifier);
@@ -10,4 +12,6 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     void deleteByIdentifier(String identifier);
 
     boolean existsByIdentifier(String identifier);
+
+    List<Role> findByStatusTrue(boolean status);
 }

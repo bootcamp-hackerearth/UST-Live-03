@@ -1,6 +1,7 @@
 package com.ust.pos.models.service;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public interface ModelsService {
 
     ModelsDto findById(Long id);
 
-    List<ModelsDto> findAll(Pageable pageable);
+    WsDto<ModelsDto> findAll(Pageable pageable);
 
     void deleteById(Long id);
 
@@ -19,4 +20,5 @@ public interface ModelsService {
 
     ModelsDto changeModelsStatus(String identifier, boolean status);
 
+    List<ModelsDto> findActiveModels();
 }

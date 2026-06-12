@@ -18,7 +18,7 @@ public class BrandController {
     BrandService brandService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String listCategories(Model model, Pageable pageable) {
         model.addAttribute(BRANDS, brandService.findAll(pageable));
         return "brand/list";
     }

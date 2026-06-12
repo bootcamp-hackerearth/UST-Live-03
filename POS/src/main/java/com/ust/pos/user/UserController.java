@@ -20,7 +20,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
         model.addAttribute("users", userService.findAll(pageable));
         return "user/list";
     }

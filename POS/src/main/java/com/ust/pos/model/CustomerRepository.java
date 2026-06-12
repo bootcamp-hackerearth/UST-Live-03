@@ -12,6 +12,4 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     void deleteByIdentifier(String identifier);
 
     Customer findByIdentifier(String identifier);
-
-    boolean existsByIdentifier(String identifier);
 }

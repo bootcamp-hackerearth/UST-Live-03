@@ -22,6 +22,7 @@ class PosUserDetailsServiceTest {
     @InjectMocks
     private PosUserDetailsService posUserDetailsService;
 
+
     @Test
     void loadUserByUsername_success() {
         UserDto userDto = new UserDto();

@@ -7,12 +7,12 @@ import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
@@ -150,7 +150,7 @@ class ShelfServiceTest {
                 .thenReturn(List.of(dto));
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
-        List<ShelfDto> response = shelfsService.findAll(pageable);
+        List<ShelfDto> response = shelfsService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
     }
@@ -165,11 +165,13 @@ class ShelfServiceTest {
         dto.setIdentifier("Shelf");
         dto.setStatus(true);
 
-        Mockito.when(shelfsRepository.findByStatusTrue())
+        Mockito.when(shelfsRepository.findByStatusTrue(true))
                 .thenReturn(List.of(shelf));
 
-        Mockito.when(modelMapper.map(shelf, ShelfDto.class))
-                .thenReturn(dto);
+        Mockito.when(modelMapper.map(
+                Mockito.anyList(),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(List.of(dto));
 
         List<ShelfDto> response = shelfsService.findActiveShelf();
 

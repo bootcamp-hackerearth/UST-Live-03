@@ -7,13 +7,16 @@ import com.ust.pos.models.service.impl.ModelsServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -110,7 +113,7 @@ class ModelsServiceTest {
                 .thenReturn(List.of(dto));
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<ModelsDto> response = modelsService.findAll(pageable);
+        List<ModelsDto> response = modelsService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
     }
@@ -172,5 +175,31 @@ class ModelsServiceTest {
 
         Mockito.verify(modelsRepository, Mockito.times(1))
                 .deleteById(1L);
+    }
+    @Test
+    void findActiveModelsTest() {
+        Models models = new Models();
+        models.setIdentifier("MODEL-1");
+        models.setStatus(true);
+
+        ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("MODEL-1");
+        dto.setStatus(true);
+
+        List<Models> modelsList = List.of(models);
+
+        Mockito.when(modelsRepository.findByStatus(true))
+                .thenReturn(modelsList);
+
+        Type listType = new TypeToken<List<ModelsDto>>() {}.getType();
+        Mockito.when(modelMapper.map(modelsList, listType))
+                .thenReturn(List.of(dto));
+
+        List<ModelsDto> response = modelsService.findActiveModels();
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("MODEL-1", response.get(0).getIdentifier());
+        Assertions.assertTrue(response.get(0).isStatus());
     }
 }

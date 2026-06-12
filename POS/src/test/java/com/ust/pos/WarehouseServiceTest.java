@@ -7,12 +7,12 @@ import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
@@ -135,7 +135,7 @@ class WarehouseServiceTest {
                 .thenReturn(List.of(warehouseDto));
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
-        List<WarehouseDto> response = warehouseService.findAll(pageable);
+        List<WarehouseDto> response = warehouseService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Admin", response.get(0).getIdentifier());

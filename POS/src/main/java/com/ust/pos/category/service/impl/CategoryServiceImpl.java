@@ -2,6 +2,7 @@ package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
@@ -57,12 +58,19 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public WsDto<CategoryDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        Page<Category> brandPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+        WsDto<CategoryDto> categoryWsDto = new WsDto<>();
+        categoryWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        categoryWsDto.setTotalRecords(categoryPage.getTotalElements());
+        categoryWsDto.setTotalPages(categoryPage.getTotalPages());
+        categoryWsDto.setSizePerPage(pageable.getPageSize());
+        categoryWsDto.setPage(pageable.getPageNumber());
+
+        return categoryWsDto;
     }
 
     @Override
@@ -72,8 +80,19 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDto> findSubCategories() {
-        return categoryRepository.findBySupercategoryIsNot("").stream()
+        return categoryRepository.findByStatusTrueAndSupercategoryIsNot("").stream()
                 .map(cat -> modelMapper.map(cat, CategoryDto.class))
                 .toList();
+    }
+
+    @Override
+    public CategoryDto changeCategoryStatus(String identifier, boolean status) {
+        Category category = categoryRepository.findByIdentifier(identifier);
+        if (category == null) {
+            return null;
+        }
+        category.setStatus(status);
+        categoryRepository.save(category);
+        return modelMapper.map(category, CategoryDto.class);
     }
 }

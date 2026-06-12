@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class Price extends CommonFields {
+
     private BigDecimal costPrice;
     private BigDecimal sellingPrice;
+    private String productName;
     private BigDecimal mrp;
 }

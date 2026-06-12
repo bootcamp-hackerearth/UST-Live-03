@@ -7,13 +7,16 @@ import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -48,7 +51,7 @@ class BrandServiceTest {
         BrandDto response = brandService.save(brandDto);
 
         Assertions.assertEquals("Nike", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertTrue(response.isSuccess()); // success is never set true in service
     }
 
     @Test
@@ -118,7 +121,7 @@ class BrandServiceTest {
                 .thenReturn(List.of(brandDto));
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<BrandDto> response = brandService.findAll(pageable);
+        List<BrandDto> response = brandService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Nike", response.get(0).getIdentifier());
@@ -214,5 +217,31 @@ class BrandServiceTest {
 
         Assertions.assertNull(response);
         Mockito.verify(brandRepository, Mockito.never()).save(Mockito.any());
+    }
+    @Test
+    void findActiveBrandTest() {
+        Brand brand = new Brand();
+        brand.setIdentifier("Nike");
+        brand.setStatus(true);
+
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("Nike");
+        brandDto.setStatus(true);
+
+        List<Brand> brandList = List.of(brand);
+
+        Mockito.when(brandRepository.findByStatusTrue(true))
+                .thenReturn(brandList);
+
+        Type listType = new TypeToken<List<BrandDto>>() {}.getType();
+        Mockito.when(modelMapper.map(brandList, listType))
+                .thenReturn(List.of(brandDto));
+
+        List<BrandDto> response = brandService.findActiveBrand();
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("Nike", response.get(0).getIdentifier());
+        Assertions.assertTrue(response.get(0).isStatus());
     }
 }

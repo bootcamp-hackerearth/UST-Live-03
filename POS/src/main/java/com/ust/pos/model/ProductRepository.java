@@ -11,5 +11,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     boolean existsByIdentifier(String identifier);
 
-    List<Product> findByStatusTrue();
+    List<Product> findByStatusTrue(boolean status);
 }

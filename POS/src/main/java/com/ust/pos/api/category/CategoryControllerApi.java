@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class CategoryControllerApi extends BaseController {
     CategoryService categoryService;
 
     @PostMapping("/list")
-    public List<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<CategoryDto> listCategories(@RequestBody PaginationDto paginationDto) {
         Pageable pageable
                 = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return categoryService.findAll(pageable);
@@ -30,14 +31,14 @@ public class CategoryControllerApi extends BaseController {
 
     }
 
-    @GetMapping("/save")
+    @GetMapping("/update")
     public CategoryDto showEditPage(@RequestParam Long id) {
 
         return categoryService.findById(id);
 
     }
 
-    @PostMapping("/save")
+    @PostMapping("/update")
     public CategoryDto saveEditedCategory(@RequestBody CategoryDto categoryDto) {
 
         return categoryService.update(categoryDto);
@@ -51,10 +52,16 @@ public class CategoryControllerApi extends BaseController {
             return false;
         }
         return true;
+
     }
 
-    @GetMapping("/findSubCategories")
+    @GetMapping("/findActiveSubCategories")
     public List<CategoryDto> findsubcategories() {
         return categoryService.findSubCategories();
+    }
+
+    @PostMapping("/changeStatus")
+    public CategoryDto toggle(@RequestBody CategoryDto categoryDto) {
+        return categoryService.changeCategoryStatus(categoryDto.getIdentifier(), categoryDto.isStatus());
     }
 }

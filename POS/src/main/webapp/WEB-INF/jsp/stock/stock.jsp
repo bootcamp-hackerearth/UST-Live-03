@@ -35,20 +35,16 @@
                 <form:hidden path="id"/>
 
                 <!--  Product / Identifier -->
-
-<div class="mb-3">
-    <label class="form-label">Product</label>
-
-    <!-- Read-only display -->
-    <input type="text"
-           class="form-control"
-           value="${stockDto.identifier}"
-           readonly />
-
-    <!-- Hidden field to submit value -->
-    <form:hidden path="identifier"/>
-</div>
-
+                <div class="mb-3">
+                    <label class="form-label">Product</label>
+                    <form:select path="identifier"
+                                 cssClass="form-select"
+                                 required="true">
+                        <form:options items="${products}"
+                                      itemValue="identifier"
+                                      itemLabel="identifier"/>
+                    </form:select>
+                </div>
 
                 <!-- Warehouse -->
                 <div class="mb-3">

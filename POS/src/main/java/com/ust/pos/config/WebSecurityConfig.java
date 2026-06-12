@@ -51,15 +51,11 @@ public class WebSecurityConfig {
 
     private JwtFilter jwtFilter;
 
-    public WebSecurityConfig(JwtFilter jwtFilter) {
-        this.jwtFilter = jwtFilter;
-    }
-
     @Bean
 
-    public SecurityFilterChain filterChain(HttpSecurity http,JwtFilter jwtFilter) {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) {
         http
-
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .sessionManagement(session ->
@@ -70,7 +66,7 @@ public class WebSecurityConfig {
 
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
 
-                        .requestMatchers("/login", "/api/user/add", "/api/role/list", "/api/authenticate", "/api/validateToken", "/swagger-ui/**", "/v3/**").permitAll()
+                        .requestMatchers("/login", "/register", "/api/authenticate", "/api/user/add", "/api/role/list", "/api/role/findAllActive", "/api/validateToken", "/swagger-ui/**", "/v3/**").permitAll()
 
                         .anyRequest().authenticated()
 
@@ -112,7 +108,7 @@ public class WebSecurityConfig {
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 
         configuration.setAllowCredentials(true); // Allow credentials if needed
 

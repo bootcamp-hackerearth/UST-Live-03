@@ -7,12 +7,12 @@ import com.ust.pos.price.service.impl.PriceServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
@@ -38,13 +38,21 @@ class PriceServiceTest {
 
         Price price = new Price();
 
+        Mockito.when(priceRepository.findByIdentifier("Admin"))
+                .thenReturn(null);
+
         Mockito.when(modelMapper.map(priceDto, Price.class))
                 .thenReturn(price);
 
         PriceDto response = priceService.save(priceDto);
 
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("Admin", response.getIdentifier());
+        Assertions.assertNull(response.getMessage());
+        Assertions.assertEquals(priceDto.isSuccess(), response.isSuccess());
+
+        Mockito.verify(priceRepository, Mockito.times(1))
+                .save(price);
     }
 
     @Test
@@ -163,7 +171,7 @@ class PriceServiceTest {
                 .thenReturn(List.of(priceDto));
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
-        List<PriceDto> response = priceService.findAll(pageable);
+        List<PriceDto> response = priceService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Admin", response.get(0).getIdentifier());
@@ -179,5 +187,59 @@ class PriceServiceTest {
 
         Mockito.verify(priceRepository, Mockito.times(1))
                 .deleteByIdentifier("Admin");
+    }
+
+    @Test
+    void changePriceStatusTest() {
+        Price price = new Price();
+        price.setIdentifier("price1");
+        price.setStatus(false);
+
+        PriceDto priceDto = new PriceDto();
+        priceDto.setIdentifier("price1");
+        priceDto.setStatus(true);
+
+        Mockito.when(priceRepository.findByIdentifier("price1")).thenReturn(price);
+        Mockito.when(priceRepository.save(price)).thenReturn(price);
+        Mockito.when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
+
+        PriceDto response = priceService.changePriceStatus("price1", true);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.isStatus());
+        Assertions.assertEquals("price1", response.getIdentifier());
+
+        Mockito.verify(priceRepository, Mockito.times(1)).save(price);
+    }
+
+    @Test
+    void changePriceStatus_NotFound() {
+        Mockito.when(priceRepository.findByIdentifier("price1")).thenReturn(null);
+
+        PriceDto response = priceService.changePriceStatus("price1", true);
+
+        Assertions.assertNull(response);
+    }
+
+    @Test
+    void saveTestFailure_DuplicateIdentifier() {
+        PriceDto priceDto = new PriceDto();
+        priceDto.setIdentifier("PRICE1");
+
+        Price existingPrice = new Price();
+        existingPrice.setIdentifier("PRICE1");
+
+        Mockito.when(priceRepository.findByIdentifier("PRICE1"))
+                .thenReturn(existingPrice);
+
+        PriceDto response = priceService.save(priceDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals(
+                "Price with identifier - PRICE1 already exists",
+                response.getMessage()
+        );
+
+        Mockito.verify(priceRepository, Mockito.never()).save(Mockito.any());
     }
 }

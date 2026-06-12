@@ -7,12 +7,12 @@ import com.ust.pos.product.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
@@ -85,7 +85,7 @@ class ProductServiceTest {
                 .thenReturn(List.of(dto));
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
-        List<ProductDto> response = productService.findAll(pageable);
+        List<ProductDto> response = productService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("PROD-1", response.get(0).getIdentifier());
@@ -217,7 +217,7 @@ class ProductServiceTest {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
 
-        Mockito.when(productRepository.findByStatusTrue())
+        Mockito.when(productRepository.findByStatusTrue(true))
                 .thenReturn(activeProducts);
         Mockito.when(modelMapper.map(activeProducts, listType))
                 .thenReturn(activeDtos);

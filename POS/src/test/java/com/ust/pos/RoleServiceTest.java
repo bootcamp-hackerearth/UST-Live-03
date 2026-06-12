@@ -7,12 +7,12 @@ import com.ust.pos.role.service.impl.RoleServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
@@ -137,7 +137,7 @@ class RoleServiceTest {
                 .thenReturn(List.of(roleDto));
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
-        List<RoleDto> response = roleService.findAll(pageable);
+        List<RoleDto> response = roleService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Admin", response.get(0).getIdentifier());
@@ -171,5 +171,30 @@ class RoleServiceTest {
 
         Assertions.assertNull(response);
         Mockito.verify(roleRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findActiveRoleTest() {
+        Role role = new Role();
+        role.setIdentifier("Admin");
+        role.setStatus(true);
+
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("Admin");
+
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+
+        Mockito.when(roleRepository.findByStatusTrue(true))
+                .thenReturn(List.of(role));
+
+        Mockito.when(modelMapper.map(List.of(role), listType))
+                .thenReturn(List.of(roleDto));
+
+        List<RoleDto> response = roleService.findActiveRole();
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
     }
 }

@@ -7,13 +7,16 @@ import com.ust.pos.user.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -166,12 +169,20 @@ class UserServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing()
-                .when(userRepository)
-                .deleteByUsername("admin@test.com");
+    void deleteTest_Success() {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        Mockito.when(authentication.getName()).thenReturn("other@test.com");
 
-        userService.delete("admin@test.com");
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        Mockito.doNothing().when(userRepository).deleteByUsername("admin@test.com");
+
+        UserDto response = userService.delete("admin@test.com");
+
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("User deleted", response.getMessage());
 
         Mockito.verify(userRepository, Mockito.times(1))
                 .deleteByUsername("admin@test.com");
@@ -196,9 +207,68 @@ class UserServiceTest {
                 .thenReturn(List.of(userDto));
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
-        List<UserDto> response = userService.findAll(pageable);
+        List<UserDto> response = userService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("admin@test.com", response.get(0).getUsername());
+    }
+
+    @Test
+    void changeUserStatusTest() {
+        User user = new User();
+        user.setUsername("admin@test.com");
+        user.setStatus(false);
+
+        UserDto userDto = new UserDto();
+        userDto.setUsername("admin@test.com");
+        userDto.setStatus(true);
+
+        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(user);
+        Mockito.when(userRepository.save(user)).thenReturn(user);
+        Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
+
+        UserDto response = userService.changeUserStatus("admin@test.com", true);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.isStatus());
+        Assertions.assertEquals("admin@test.com", response.getUsername());
+
+        Mockito.verify(userRepository, Mockito.times(1)).save(user);
+    }
+
+    @Test
+    void changeUserStatus_UserNotFound() {
+        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(null);
+
+        UserDto response = userService.changeUserStatus("admin@test.com", true);
+
+        Assertions.assertNull(response);
+    }
+
+    @Test
+    void deleteTest_NoAuthentication() {
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(null);
+        SecurityContextHolder.setContext(securityContext);
+
+        UserDto response = userService.delete("admin@test.com");
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("No authenticated user", response.getMessage());
+    }
+
+    @Test
+    void deleteTest_SelfDeleteNotAllowed() {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        Mockito.when(authentication.getName()).thenReturn("admin@test.com");
+
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        UserDto response = userService.delete("admin@test.com");
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Cannot delete the logged in User", response.getMessage());
     }
 }

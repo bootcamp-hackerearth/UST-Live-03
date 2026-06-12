@@ -4,17 +4,23 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
-import com.ust.pos.model.*;
+import com.ust.pos.model.Address;
+import com.ust.pos.model.AddressRepository;
+import com.ust.pos.model.Customer;
+import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -151,7 +157,7 @@ class CustomerServiceTest {
                 .thenReturn(List.of(new CustomerDto()));
 
         List<CustomerDto> result =
-                customerService.findAll(PageRequest.of(0, 5));
+                customerService.findAll(PageRequest.of(0, 5)).getDtoList();
 
         Assertions.assertEquals(1, result.size());
     }

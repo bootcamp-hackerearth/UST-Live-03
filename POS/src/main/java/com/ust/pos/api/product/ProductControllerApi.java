@@ -3,6 +3,7 @@ package com.ust.pos.api.product;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,7 @@ public class ProductControllerApi extends BaseController {
     ProductService productService;
 
     @PostMapping("/list")
-    public List<ProductDto> findAll(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ProductDto> findAll(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return productService.findAll(pageable);
@@ -26,7 +27,6 @@ public class ProductControllerApi extends BaseController {
 
     @PostMapping("/add")
     public ProductDto save(@RequestBody ProductDto productDto) {
-
         return productService.save(productDto);
 
     }
@@ -43,7 +43,6 @@ public class ProductControllerApi extends BaseController {
 
     @GetMapping("/update")
     public ProductDto update(@RequestParam Long id) {
-
         return productService.findById(id);
 
     }
@@ -57,5 +56,10 @@ public class ProductControllerApi extends BaseController {
     public ProductDto toggle(@RequestBody ProductDto productDto) {
         return productService.changeProductStatus(productDto.getIdentifier(), productDto.isStatus());
 
+    }
+
+    @GetMapping("/findAllActive")
+    public List<ProductDto> allactive() {
+        return productService.findAllActiveProduct();
     }
 }

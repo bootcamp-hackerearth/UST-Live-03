@@ -1,8 +1,8 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.UserDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.user.service.UserService;
-import com.ust.pos.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

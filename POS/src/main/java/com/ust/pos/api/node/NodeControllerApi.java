@@ -3,6 +3,7 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +22,7 @@ public class NodeControllerApi extends BaseController {
     private NodeService nodeService;
 
     @PostMapping("/list")
-    public List<NodeDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return nodeService.findAll(pageable);
@@ -38,7 +39,7 @@ public class NodeControllerApi extends BaseController {
         return nodeService.save(nodeDto);
     }
 
-    @GetMapping("/get")
+    @GetMapping("/update")
     public NodeDto update(@RequestParam String identifier) {
 
         return nodeService.findByIdentifier(identifier);
@@ -58,5 +59,15 @@ public class NodeControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/changeStatus")
+    public NodeDto changestatus(@RequestBody NodeDto nodeDto) {
+        return nodeService.changeNodeStatus(nodeDto.getIdentifier(), nodeDto.isStatus());
+    }
+
+    @GetMapping("/findAllActive")
+    public List<NodeDto> allactive() {
+        return nodeService.findActiveNode();
     }
 }

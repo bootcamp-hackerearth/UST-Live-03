@@ -7,12 +7,12 @@ import com.ust.pos.unit.service.impl.UnitServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
@@ -117,7 +117,7 @@ class UnitServiceTest {
                 .thenReturn(List.of(unitDto));
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
-        List<UnitDto> response = unitService.findAll(pageable);
+        List<UnitDto> response = unitService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Unit", response.get(0).getIdentifier());

@@ -1,7 +1,7 @@
 package com.ust.pos.models;
 
-import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.models.service.ModelsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -16,7 +16,7 @@ public class ModelsController {
     ModelsService modelsService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String listCategories(Model model, Pageable pageable) {
         model.addAttribute("Models", modelsService.findAll(pageable));
         return "models/list";
     }

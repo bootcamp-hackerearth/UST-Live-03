@@ -21,7 +21,7 @@ public class NodeController {
     private NodeService nodeService;
 
     @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
+    public String home(Model model, Pageable pageable) {
         model.addAttribute("nodes", nodeService.findAll(pageable));
         return "node/list";
     }

@@ -3,6 +3,7 @@ package com.ust.pos.api.shelf;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,7 @@ public class ShelfControllerApi extends BaseController {
     ShelfService shelfService;
 
     @PostMapping("/list")
-    public List<ShelfDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ShelfDto> listCategories(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return shelfService.findAll(pageable);
@@ -27,17 +28,18 @@ public class ShelfControllerApi extends BaseController {
     public ShelfDto saveShelf(@RequestBody ShelfDto shelfDto) {
 
         return shelfService.save(shelfDto);
+
     }
 
 
-    @GetMapping("/save")
+    @GetMapping("/update")
     public ShelfDto showEditPage(@RequestParam String identifier) {
 
         return shelfService.findByIdentifier(identifier);
 
     }
 
-    @PostMapping("/save")
+    @PostMapping("/update")
     public ShelfDto saveEditedShelf(@RequestBody ShelfDto shelfDto) {
 
         return shelfService.update(shelfDto);
