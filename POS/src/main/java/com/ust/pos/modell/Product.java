@@ -15,7 +15,4 @@ public class Product extends CommonFields {
     private String model;
     private String unit;
     private Integer quantity;
-    private String shelf;
-    private String rack;
-
 }

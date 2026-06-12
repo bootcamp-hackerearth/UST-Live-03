@@ -1,6 +1,7 @@
 package com.ust.pos.model.service.impl;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.service.ModelService;
 import com.ust.pos.modell.Model;
 import com.ust.pos.modell.ModelRepository;
@@ -18,7 +19,8 @@ import java.util.List;
 @Service
 public class ModelServiceImpl implements ModelService {
 
-    public static final RuntimeException MODEL_NOT_FOUND = new RuntimeException("model not found");
+    public static final RuntimeException MODEL_NOT_FOUND =
+            new RuntimeException("model not found");
 
     @Autowired
     private ModelMapper modelMapper;
@@ -43,6 +45,7 @@ public class ModelServiceImpl implements ModelService {
             modelDto.setSuccess(false);
             return modelDto;
         }
+
         Model model = modelMapper.map(modelDto, Model.class);
         modelRepository.save(model);
         return modelDto;
@@ -59,6 +62,7 @@ public class ModelServiceImpl implements ModelService {
             modelDto.setSuccess(false);
             return modelDto;
         }
+
         modelMapper.map(modelDto, existingModel);
         modelRepository.save(existingModel);
         return modelDto;
@@ -71,11 +75,17 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
-    public List<ModelDto> findAll(Pageable pageable) {
+    public WsDto<ModelDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
         Page<Model> modelPage = modelRepository.findAll(pageable);
-        return modelMapper.map(modelPage.getContent(), listType);
+        WsDto<ModelDto> modelWsDto = new WsDto<>();
+        modelWsDto.setDtoList(modelMapper.map(modelPage.getContent(), listType));
+        modelWsDto.setTotalRecords(modelPage.getTotalElements());
+        modelWsDto.setTotalPage(modelPage.getTotalPages());
+        modelWsDto.setSizePerPage(pageable.getPageSize());
+        modelWsDto.setPage(pageable.getPageNumber());
+        return modelWsDto;
     }
 
     @Override
@@ -93,6 +103,7 @@ public class ModelServiceImpl implements ModelService {
         if (model == null) {
             throw MODEL_NOT_FOUND;
         }
+
         model.setStatus(!model.getStatus());
         modelRepository.save(model);
     }

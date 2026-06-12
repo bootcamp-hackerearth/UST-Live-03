@@ -47,7 +47,6 @@ public class RackController {
             );
             return "redirect:/rack/add";
         }
-
         redirectAttributes.addFlashAttribute(
                 SUCCESS_MESSAGE,
                 "Rack added successfully"
@@ -70,6 +69,7 @@ public class RackController {
             redirectAttributes.addFlashAttribute("errorMessage", response.getMessage());
             return redirectToEdit(rackDto);
         }
+
         redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, getStatusMessage(rackDto));
         return REDIRECT_LIST;
     }

@@ -64,8 +64,10 @@
         <form method="post"
               action="${pageContext.request.contextPath}/warehouse/update">
 
+            <!-- Hidden ID -->
             <input type="hidden" name="id" value="${warehouse.id}"/>
 
+            <!-- Identifier -->
             <div class="mb-3">
                 <label class="form-label">Warehouse Name</label>
                 <input type="text"
@@ -75,6 +77,7 @@
                        readonly>
             </div>
 
+            <!-- Location -->
             <div class="mb-3">
                 <label class="form-label">Location</label>
                 <input type="text"
@@ -84,6 +87,7 @@
                        required>
             </div>
 
+            <!-- Capacity -->
             <div class="mb-3">
                 <label class="form-label">Capacity</label>
                 <input type="number"
@@ -94,6 +98,7 @@
                        required>
             </div>
 
+            <!-- Status -->
             <div class="mb-4">
                 <label class="form-label">Status</label>
                 <select name="status" class="form-select">

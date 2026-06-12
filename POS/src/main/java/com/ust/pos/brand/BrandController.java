@@ -15,7 +15,6 @@ public class BrandController {
     public static final String MESSAGE = "message";
     public static final String BRAND = "brand";
     public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
-
     @Autowired
     private BrandService brandService;
 
@@ -34,6 +33,7 @@ public class BrandController {
             model.addAttribute(BRAND, brandDto);
             return "brand/add";
         }
+
         return REDIRECT_BRAND_LIST;
     }
 
@@ -51,6 +51,7 @@ public class BrandController {
             model.addAttribute(MESSAGE, "Brand not found");
             return REDIRECT_BRAND_LIST;
         }
+
         model.addAttribute(BRAND, brandDto);
         return "brand/brand";
     }
@@ -64,12 +65,13 @@ public class BrandController {
             model.addAttribute(BRAND, brandDto);
             return "brand/brand";
         }
+
         return REDIRECT_BRAND_LIST;
     }
 
     @GetMapping("/delete")
     public String delete(@RequestParam("identifier") String identifier) {
-        brandService.deleteByIdentifier(identifier);
+        brandService.delete(identifier);
         return REDIRECT_BRAND_LIST;
     }
 }

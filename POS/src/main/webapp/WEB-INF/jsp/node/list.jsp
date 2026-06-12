@@ -29,10 +29,9 @@
         .edit-icon { color:#0d6efd; }
         .delete-icon { color:#dc3545; }
 
-          .role-text {
-              margin:2px 6px;
-              color:#495057;
-          }
+        .role-text {
+            margin:2px 6px;
+            font-weight:500;
         }
 
         .add-btn { background:#198754; color:#fff; }
@@ -86,16 +85,15 @@
                             <td>${node.id}</td>
                             <td>${node.identifier}</td>
                             <td>${node.path}</td>
-                            <td class="role-text">
 
+                            <td>
                                 <c:if test="${empty node.roles}">
                                     <span class="text-muted">No roles</span>
                                 </c:if>
 
-                                <c:forEach var="role" items="${node.roles}" varStatus="status">
-                                    ${role}<c:if test="${!status.last}">, </c:if>
+                                <c:forEach var="role" items="${node.roles}">
+                                    <span class="badge bg-info text-dark">${role}</span>
                                 </c:forEach>
-
                             </td>
 
                             <td class="text-center">

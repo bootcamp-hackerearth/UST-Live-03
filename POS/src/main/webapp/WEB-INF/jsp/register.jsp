@@ -1,8 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -176,6 +174,7 @@
 
     <div class="back-btn" onclick="history.back()"></div>
 
+    <!-- Registration Card -->
     <div class="register-card">
 
         <h2>User Registration</h2>
@@ -190,29 +189,59 @@
 
             <div class="form-group">
                 <label>Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter full name">
-                <span class="error" id="nameError">Name must contain only alphabets</span>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       placeholder="Enter full name">
+                <span class="error" id="nameError">
+                    Name must contain only alphabets
+                </span>
             </div>
 
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" id="email" name="username" placeholder="Enter email">
-                <span class="error" id="emailError">Enter valid email address</span>
+                <input type="email"
+                       id="email"
+                       name="username"
+                       placeholder="Enter email">
+                <span class="error" id="emailError">
+                    Enter valid email address
+                </span>
             </div>
+
             <div class="form-group">
                 <label>Roles</label>
                 <div id="roleList">
-                    <c:forEach var="role" items="${roles}">
-                        <div class="role-item">
-                            <label>
-                                <input type="checkbox"
-                                       name="roles"
-                                       value="${role.identifier}" />
-                                ${role.identifier}
-                            </label>
-                        </div>
-                    </c:forEach>
+
+                    <div class="role-item">
+                        <label>
+                            <input type="checkbox"
+                                   name="roles"
+                                   value="Admin">
+                            Admin
+                        </label>
+                    </div>
+
+                    <div class="role-item">
+                        <label>
+                            <input type="checkbox"
+                                   name="roles"
+                                   value="User">
+                            User
+                        </label>
+                    </div>
+
+                    <div class="role-item">
+                        <label>
+                            <input type="checkbox"
+                                   name="roles"
+                                   value="Manager">
+                            Manager
+                        </label>
+                    </div>
+
                 </div>
+
                 <span class="error" id="roleError">
                     Select at least one role
                 </span>
@@ -220,23 +249,39 @@
 
             <div class="form-group">
                 <label>Phone Number</label>
-                <input type="tel" id="phone" name="phoneNo" placeholder="Enter 10 digit number">
-                <span class="error" id="phoneError">Phone number must contain 10 digits</span>
+                <input type="tel"
+                       id="phone"
+                       name="phoneNo"
+                       placeholder="Enter 10 digit number">
+                <span class="error" id="phoneError">
+                    Phone number must contain 10 digits
+                </span>
             </div>
 
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter password">
-                <span class="error" id="passwordError">Password must contain minimum 6 characters</span>
+                <input type="password"
+                       id="password"
+                       name="password"
+                       placeholder="Enter password">
+                <span class="error" id="passwordError">
+                    Password must contain minimum 6 characters
+                </span>
             </div>
 
             <div class="form-group">
                 <label>Confirm Password</label>
-                <input type="password" id="confirmPassword" placeholder="Confirm password">
-                <span class="error" id="confirmPasswordError">Passwords do not match</span>
+                <input type="password"
+                       id="confirmPassword"
+                       placeholder="Confirm password">
+                <span class="error" id="confirmPasswordError">
+                    Passwords do not match
+                </span>
             </div>
 
-            <input type="submit" value="Register" class="btn-submit">
+            <input type="submit"
+                   value="Register"
+                   class="btn-submit">
 
         </form>
 
@@ -324,4 +369,5 @@
     </script>
 
 </body>
+
 </html>

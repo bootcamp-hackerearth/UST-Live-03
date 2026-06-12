@@ -96,28 +96,22 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Assign Shelves</label>
-
-                            <select name="shelfs"
+                            <label class="form-label">Assign Shelf</label>
+                            <select name="shelfIdentifier"
                                     class="form-select"
-                                    multiple
                                     required>
+                                <option value="" disabled selected>Select Shelf</option>
 
                                 <c:forEach items="${shelves}" var="shelf">
                                     <option value="${shelf.identifier}">
                                         ${shelf.identifier}
                                     </option>
                                 </c:forEach>
-
                             </select>
 
                             <div class="invalid-feedback">
-                                Please select at least one shelf.
+                                Please select a shelf.
                             </div>
-
-                            <small class="text-muted">
-                                Hold Ctrl (Windows) / Cmd (Mac) to select multiple
-                            </small>
 
                             <c:if test="${empty shelves}">
                                 <small class="text-muted">
@@ -167,11 +161,14 @@
 
     forms.forEach(form => {
         form.addEventListener('submit', event => {
+
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
             }
+
             form.classList.add('was-validated');
+
         }, false);
     });
 })();

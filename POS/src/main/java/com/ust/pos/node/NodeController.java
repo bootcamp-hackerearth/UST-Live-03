@@ -17,10 +17,10 @@ public class NodeController {
     public static final String ROLES = "roles";
 
     @Autowired
-    private NodeService nodeService;
+    public RoleService roleService;
 
     @Autowired
-    public RoleService roleService;
+    private NodeService nodeService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -30,25 +30,26 @@ public class NodeController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute NodeDto nodeDto, Pageable pageable) {
+    public String add(Model model, Pageable pageable, @ModelAttribute NodeDto nodeDto) {
         model.addAttribute("nodes", nodeService.findAll(pageable));
         model.addAttribute(ROLES, roleService.findAll(pageable));
         return "node/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute NodeDto nodeDto, Pageable pageable) {
+    public String addPost(Model model, @ModelAttribute NodeDto nodeDto) {
         NodeDto response = nodeService.save(nodeDto);
+
         if (!response.isSuccess()) {
             model.addAttribute("error", response.getMessage());
-            model.addAttribute(ROLES, roleService.findAll(pageable));
+            model.addAttribute(ROLES, roleService.findAll(null));
             return "node/add";
         }
         return REDIRECT_NODE_LIST;
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier, Pageable pageable) {
+    public String update(Model model, Pageable pageable, @RequestParam String identifier) {
         NodeDto response = nodeService.findByIdentifier(identifier);
         model.addAttribute(ROLES, roleService.findAll(pageable));
         model.addAttribute("node", response);
@@ -58,6 +59,7 @@ public class NodeController {
     @PostMapping("/update")
     public String updatePost(Model model, @ModelAttribute NodeDto nodeDto) {
         NodeDto response = nodeService.update(nodeDto);
+
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
         }
@@ -69,7 +71,4 @@ public class NodeController {
         nodeService.delete(identifier);
         return REDIRECT_NODE_LIST;
     }
-
 }
-
-

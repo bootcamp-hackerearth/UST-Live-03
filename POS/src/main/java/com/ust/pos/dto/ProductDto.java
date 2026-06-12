@@ -11,7 +11,4 @@ public class ProductDto extends CommonDto {
     private String model;
     private String unit;
     private Integer quantity;
-    private String shelf;
-    private String rack;
-
 }

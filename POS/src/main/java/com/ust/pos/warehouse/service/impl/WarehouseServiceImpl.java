@@ -1,6 +1,7 @@
 package com.ust.pos.warehouse.service.impl;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Warehouse;
 import com.ust.pos.modell.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -34,6 +35,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             response.setMessage("Warehouse not found");
             return response;
         }
+
         response = modelMapper.map(warehouse, WarehouseDto.class);
         response.setSuccess(true);
         return response;
@@ -49,6 +51,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
+
         Warehouse warehouse = modelMapper.map(warehouseDto, Warehouse.class);
         warehouseRepository.save(warehouse);
         return warehouseDto;
@@ -64,6 +67,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
+
         modelMapper.map(warehouseDto, existingWarehouse);
         warehouseRepository.save(existingWarehouse);
         return warehouseDto;
@@ -75,12 +79,17 @@ public class WarehouseServiceImpl implements WarehouseService {
         warehouseRepository.deleteByIdentifier(identifier);
     }
 
-    @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
+    public WsDto<WarehouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
         Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+        WsDto<WarehouseDto> warehouseWsDto = new WsDto<>();
+        warehouseWsDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
+        warehouseWsDto.setTotalRecords(warehousePage.getTotalElements());
+        warehouseWsDto.setTotalPage(warehousePage.getTotalPages());
+        warehouseWsDto.setSizePerPage(pageable.getPageSize());
+        warehouseWsDto.setPage(pageable.getPageNumber());
+        return warehouseWsDto;
     }
 
     @Override
@@ -90,6 +99,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         if (warehouse == null) {
             throw new IllegalArgumentException("Warehouse not found: " + identifier);
         }
+
         Boolean currentStatus = warehouse.getStatus();
         warehouse.setStatus(currentStatus == null || !currentStatus);
         warehouseRepository.save(warehouse);

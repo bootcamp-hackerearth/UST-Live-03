@@ -1,9 +1,9 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Node;
 import com.ust.pos.modell.NodeRepository;
-import com.ust.pos.modell.User;
 import com.ust.pos.modell.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class NodeServiceImpl implements NodeService {
@@ -33,20 +35,40 @@ public class NodeServiceImpl implements NodeService {
     private ModelMapper modelMapper;
 
     public List<NodeDto> getNodesForRoles() {
+        List<NodeDto> nodeDtos = new ArrayList<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null) {
             org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+            if (principalObject != null) findNodes(principalObject, nodeDtos);
+        }
+        return nodeDtos;
+    }
 
-            if (principalObject != null) {
-                User currentUser = userRepository.findByUsername(principalObject.getUsername());
-                List<Node> nodes = nodeRepository.findByRoles(currentUser.getRoles());
-                Type listType = new TypeToken<List<NodeDto>>() {
-                }.getType();
-                return modelMapper.map(nodes, listType);
+    private void findNodes(
+            org.springframework.security.core.userdetails.User principalObject,
+            List<NodeDto> nodeDtos
+    ) {
+        com.ust.pos.modell.User currentUser = userRepository.findByUsername(principalObject.getUsername());
+        Set<String> nodesStr = new HashSet<>();
+        List<Node> nodes = nodeRepository.findAll();
+
+        for (String role : currentUser.getRoles()) {
+            for (Node node : nodes) {
+                if (node.getRoles() != null && node.getRoles().contains(role)) {
+                    nodesStr.add(node.getIdentifier());
+                }
             }
         }
-        return new ArrayList<>();
+
+        for (String nodeStr : nodesStr) {
+            nodeDtos.add(
+                    modelMapper.map(
+                            nodeRepository.findByIdentifier(nodeStr),
+                            NodeDto.class
+                    )
+            );
+        }
     }
 
     @Override
@@ -55,22 +77,20 @@ public class NodeServiceImpl implements NodeService {
         );
     }
 
+    @Override
     public NodeDto save(NodeDto nodeDto) {
-        NodeDto response = new NodeDto();
+        String identifier = nodeDto.getIdentifier();
+        Node existingNode = nodeRepository.findByIdentifier(identifier);
 
-        if (nodeRepository.existsByIdentifier(nodeDto.getIdentifier())) {
-            response.setSuccess(false);
-            response.setMessage("Node already exists");
-            return response;
+        if (existingNode != null) {
+            nodeDto.setMessage("Role with identifier - " + identifier + " already exists");
+            nodeDto.setSuccess(false);
+            return nodeDto;
         }
 
-        Node node = new Node();
-        node.setIdentifier(nodeDto.getIdentifier());
-        node.setPath(nodeDto.getPath());
-        node.setRoles(nodeDto.getRoles());
+        Node node = modelMapper.map(nodeDto, Node.class);
         nodeRepository.save(node);
-        response.setSuccess(true);
-        return response;
+        return nodeDto;
     }
 
     @Override
@@ -79,10 +99,12 @@ public class NodeServiceImpl implements NodeService {
         Node existingNode = nodeRepository.findByIdentifier(identifier);
 
         if (existingNode == null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " not found");
+            nodeDto.setMessage(
+                    "Node with identifier - " + identifier + " not found");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
+
         modelMapper.map(nodeDto, existingNode);
         nodeRepository.save(existingNode);
         return nodeDto;
@@ -95,10 +117,16 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+        WsDto<NodeDto> nodeWsDto = new WsDto<>();
+        nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        nodeWsDto.setTotalRecords(nodePage.getTotalElements());
+        nodeWsDto.setTotalPage(nodePage.getTotalPages());
+        nodeWsDto.setSizePerPage(pageable.getPageSize());
+        nodeWsDto.setPage(pageable.getPageNumber());
+        return nodeWsDto;
     }
 }

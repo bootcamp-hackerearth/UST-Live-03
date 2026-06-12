@@ -10,6 +10,9 @@
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
 
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+
     <style>
         body {
             background-color: #f5f6f7;
@@ -67,18 +70,14 @@
                                modelAttribute="price">
 
                         <div class="mb-3">
-                            <label class="form-label">Identifier</label>
-                            <form:input path="identifier"
-                                        id="identifier"
-                                        cssClass="form-control readonly-field"
-                                        readonly="true"
-                                        placeholder="Auto-generated"/>
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label">Product</label>
-                            <form:select path="product" cssClass="form-select" id="product">
+                            <form:select path="product"
+                                         cssClass="form-select"
+                                         id="product"
+                                         required="true">
+
                                 <form:option value="">-- Select Product --</form:option>
+
                                 <form:options items="${products}"
                                               itemValue="identifier"
                                               itemLabel="identifier"/>
@@ -86,20 +85,27 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label"> PriceAmount</label>
-                            <form:input path="priceAmount"
-                                        cssClass="form-control"
-                                        type="number"
-                                        step="0.01"/>
+                            <label class="form-label">Price Type</label>
+                            <form:select path="type"
+                                         cssClass="form-select"
+                                         id="type"
+                                         required="true">
+
+                                <form:option value="">-- Select --</form:option>
+                                <form:option value="MRP">MRP</form:option>
+                                <form:option value="SELLING">SELLING</form:option>
+                                <form:option value="COSTPRICE">SELLING</form:option>
+
+                            </form:select>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Price Type</label>
-                            <form:select path="type" cssClass="form-select" id="type">
-                                <form:option value="">-- Select --</form:option>
-                                <form:option value="MRP">MRP</form:option>
-                                <form:option value="SELLING">Selling</form:option>
-                            </form:select>
+                            <label class="form-label">Price</label>
+                            <form:input path="price"
+                                        cssClass="form-control"
+                                        type="number"
+                                        step="0.01"
+                                        required="true"/>
                         </div>
 
                         <button type="submit" class="btn btn-success w-100">
@@ -120,22 +126,7 @@
     </div>
 </div>
 
-<script>
-    function generateIdentifier() {
-        const product = document.getElementById("product").value;
-        const type = document.getElementById("type").value;
-
-        if (product && type) {
-            const identifier = product + "-" + type;
-            document.getElementById("identifier").value = identifier;
-        } else {
-            document.getElementById("identifier").value = "";
-        }
-    }
-
-    document.getElementById("product").addEventListener("change", generateIdentifier);
-    document.getElementById("type").addEventListener("change", generateIdentifier);
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

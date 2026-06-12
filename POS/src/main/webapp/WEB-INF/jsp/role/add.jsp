@@ -93,7 +93,7 @@
                     Add Role
                 </button>
 
-                <a href="${pageContext.request.contextPath}/role/list"
+                <a href="${pageContext.request.contextPath}/user/list"
                    class="btn btn-secondary">
                     Cancel
                 </a>

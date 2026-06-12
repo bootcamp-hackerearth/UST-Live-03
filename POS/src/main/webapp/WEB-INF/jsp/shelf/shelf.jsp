@@ -67,7 +67,7 @@
                 <label class="form-label">Status</label>
                 <form:select path="status" cssClass="form-select">
                     <form:option value="true">Active</form:option>
-                    <form:option value="false">Inactive</form:option>
+                    <form:option value="false">Deactive</form:option>
                 </form:select>
             </div>
 

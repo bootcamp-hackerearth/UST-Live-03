@@ -73,12 +73,6 @@
         .footer-text {
             font-size: 13px;
         }
-
-        .role-text {
-            margin:2px 6px;
-            color:#495057;
-        }
-        }
     </style>
 </head>
 
@@ -127,8 +121,10 @@
                                 <td>${user.name}</td>
                                 <td>${user.phoneNo}</td>
 
-                                <td class="role-text">
-                                    ${user.roles}
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        ${user.roles}
+                                    </span>
                                 </td>
 
                                 <td class="action-icons">
@@ -165,6 +161,9 @@
                     <i class="bi bi-house-door"></i> Home
                 </a>
 
+                <a href="${pageContext.request.contextPath}/register" class="btn btn-success">
+                    <i class="bi bi-person-plus"></i> Register
+                </a>
             </div>
 
             <div class="text-muted mt-2 footer-text">

@@ -65,7 +65,7 @@ public class CategoryController {
     @GetMapping("/delete")
     public String delete(Model model, Pageable pageable, @RequestParam String identifier) {
         try {
-            categoryService.deleteByIdentifier(identifier);
+            categoryService.delete(identifier);
         } catch (IllegalStateException ex) {
             model.addAttribute(MESSAGE, ex.getMessage());
             model.addAttribute(CATEGORIES,

@@ -82,6 +82,7 @@
 
 <div class="container mt-4">
 
+    <!-- Header -->
     <div class="page-header d-flex justify-content-between align-items-center">
         <h3>Price Management</h3>
 
@@ -98,6 +99,7 @@
         </div>
     </div>
 
+    <!-- Table -->
     <div class="card shadow">
         <div class="card-body p-0">
 
@@ -107,21 +109,25 @@
                     <th>ID</th>
                     <th>Identifier</th>
                     <th>Product</th>
-                    <th>PriceAmount</th>
+                    <th>Price</th>
                     <th>Price Type</th>
                     <th class="text-center" style="width:120px;">Actions</th>
                 </tr>
                 </thead>
 
                 <tbody>
+
                 <c:forEach items="${prices}" var="p">
                     <tr>
                         <td>${p.id}</td>
 
-                        <td class="fw-semibold">
-                            ${p.identifier}  </td>
+                        <td class="fw-semibold text-primary">
+                            ${p.identifier}
+                        </td>
+
                         <td>${p.product}</td>
-                        <td>₹ ${p.priceAmount}</td>
+
+                        <td>₹ ${p.price}</td>
 
                         <td>
                             <span class="badge bg-info text-dark">
@@ -147,7 +153,6 @@
                         </td>
                     </tr>
                 </c:forEach>
-
                 <c:if test="${empty prices}">
                     <tr>
                         <td colspan="6" class="text-center text-muted py-4">

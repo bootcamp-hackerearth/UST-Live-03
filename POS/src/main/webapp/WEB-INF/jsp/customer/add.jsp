@@ -111,8 +111,8 @@
 
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label>Party Type *</label>
-                    <form:select path="partyType" class="form-select" required="true">
+                    <label>Party Type</label>
+                    <form:select path="partyType" class="form-select">
                         <form:option value="">--Select--</form:option>
                         <form:option value="CUSTOMER">Customer</form:option>
                         <form:option value="WHOLESALER">Wholesaler</form:option>
@@ -121,18 +121,18 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label>Credit Type *</label>
-                    <form:input path="creditType" class="form-control" required="true"/>
+                    <label>Credit Type</label>
+                    <form:input path="creditType" class="form-control"/>
                 </div>
 
                 <div class="col-md-3">
-                    <label>Credit *</label>
-                    <form:input path="credit" class="form-control" required="true"/>
+                    <label>Credit</label>
+                    <form:input path="credit" class="form-control"/>
                 </div>
 
                 <div class="col-md-3">
-                    <label>Credit Limit *</label>
-                    <form:input path="creditLimit" class="form-control" required="true"/>
+                    <label>Credit Limit</label>
+                    <form:input path="creditLimit" class="form-control"/>
                 </div>
             </div>
 
@@ -140,30 +140,30 @@
 
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label>Address *</label>
-                    <form:input path="billingAddress.addressLine" id="bill_address" class="form-control" required="true"/>
+                    <label>Address</label>
+                    <form:input path="billingAddress.addressLine" id="bill_address" class="form-control"/>
                 </div>
 
                 <div class="col-md-3">
-                    <label>City *</label>
-                    <form:input path="billingAddress.city" id="bill_city" class="form-control" required="true"/>
+                    <label>City</label>
+                    <form:input path="billingAddress.city" id="bill_city" class="form-control"/>
                 </div>
 
                 <div class="col-md-3">
-                    <label>State *</label>
-                    <form:input path="billingAddress.state" id="bill_state" class="form-control" required="true"/>
+                    <label>State</label>
+                    <form:input path="billingAddress.state" id="bill_state" class="form-control"/>
                 </div>
             </div>
 
             <div class="row g-3 mt-2">
                 <div class="col-md-3">
-                    <label>Zip *</label>
-                    <form:input path="billingAddress.zipCode" id="bill_zip" class="form-control" required="true"/>
+                    <label>Zip</label>
+                    <form:input path="billingAddress.zipCode" id="bill_zip" class="form-control"/>
                 </div>
 
                 <div class="col-md-3">
-                    <label>Country *</label>
-                    <form:input path="billingAddress.country" id="bill_country" class="form-control" required="true"/>
+                    <label>Country</label>
+                    <form:input path="billingAddress.country" id="bill_country" class="form-control"/>
                 </div>
             </div>
 
@@ -171,37 +171,37 @@
                 Shipping Address
 
                 <div class="checkbox-inline">
-                    <input type="checkbox" id="sameAddress">
+                    <input type="checkbox" id="sameAddress"/>
                     <label for="sameAddress">Same as Billing</label>
                 </div>
             </div>
 
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label>Address *</label>
-                    <form:input path="shippingAddress.addressLine" id="ship_address" class="form-control" required="true"/>
+                    <label>Address</label>
+                    <form:input path="shippingAddress.addressLine" id="ship_address" class="form-control"/>
                 </div>
 
                 <div class="col-md-3">
-                    <label>City *</label>
-                    <form:input path="shippingAddress.city" id="ship_city" class="form-control" required="true"/>
+                    <label>City</label>
+                    <form:input path="shippingAddress.city" id="ship_city" class="form-control"/>
                 </div>
 
                 <div class="col-md-3">
-                    <label>State *</label>
-                    <form:input path="shippingAddress.state" id="ship_state" class="form-control" required="true"/>
+                    <label>State</label>
+                    <form:input path="shippingAddress.state" id="ship_state" class="form-control"/>
                 </div>
             </div>
 
             <div class="row g-3 mt-2">
                 <div class="col-md-3">
-                    <label>Zip *</label>
-                    <form:input path="shippingAddress.zipCode" id="ship_zip" class="form-control" required="true"/>
+                    <label>Zip</label>
+                    <form:input path="shippingAddress.zipCode" id="ship_zip" class="form-control"/>
                 </div>
 
                 <div class="col-md-3">
-                    <label>Country *</label>
-                    <form:input path="shippingAddress.country" id="ship_country" class="form-control" required="true"/>
+                    <label>Country</label>
+                    <form:input path="shippingAddress.country" id="ship_country" class="form-control"/>
                 </div>
             </div>
 

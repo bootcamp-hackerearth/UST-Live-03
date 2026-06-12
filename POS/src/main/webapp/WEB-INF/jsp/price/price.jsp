@@ -32,33 +32,18 @@
             text-align: center;
             font-weight: 600;
             padding: 16px;
-            font-size: 17px;
         }
 
         .card-body {
             padding: 25px;
         }
 
-        label {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .form-control,
-        .form-select {
+        .form-control, .form-select {
             border-radius: 8px;
-            padding: 10px;
         }
 
         .readonly-field {
             background-color: #e9ecef;
-            cursor: not-allowed;
-        }
-
-        .btn-primary,
-        .btn-outline-secondary {
-            border-radius: 8px;
         }
     </style>
 </head>
@@ -76,57 +61,43 @@
         <form:form method="post"
                    action="${pageContext.request.contextPath}/price/update"
                    modelAttribute="price">
-
             <form:hidden path="id"/>
             <form:hidden path="identifier"/>
-
-            <div class="mb-3">
-                <label>Identifier</label>
-                <input type="text"
-                       class="form-control readonly-field"
-                       value="${price.identifier}"
-                       readonly>
-            </div>
+            <form:hidden path="product"/>
 
             <div class="mb-3">
                 <label>Product</label>
-
-                <form:select path="product" cssClass="form-select" disabled="true">
-                    <form:option value="">-- Select Product --</form:option>
-                    <form:options items="${products}"
-                                  itemValue="identifier"
-                                  itemLabel="identifier"/>
-                </form:select>
-            </div>
-
-            <div class="mb-3">
-                <label>PriceAmount</label>
-                <form:input path="priceAmount"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            cssClass="form-control"
-                            placeholder="Enter cost price"
-                            required="required"/>
+                <input type="text"
+                       id="product"
+                       class="form-control readonly-field"
+                       value="${price.product}"
+                       readonly/>
             </div>
 
             <div class="mb-3">
                 <label>Price Type</label>
-                <form:select path="type"
-                             cssClass="form-select"
-                             disabled="true" >
+                <form:select path="type" cssClass="form-select" id="type">
                     <form:option value="MRP">MRP</form:option>
-                    <form:option value="SELLING">Selling Price</form:option>
+                    <form:option value="SELLING">Selling</form:option>
+                    <form:option value="COSTPRICE">costPrice</form:option>
                 </form:select>
             </div>
 
-            <div class="d-grid gap-2 mt-4">
+            <div class="mb-3">
+                <label>Price</label>
+                <form:input path="price"
+                            cssClass="form-control"
+                            type="number"
+                            step="0.01"
+                            required="true"/>
+            </div>
+            <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-success">
-                    <i class="bi bi-save me-1"></i> Update Price
+                    Update Price
                 </button>
 
                 <a href="${pageContext.request.contextPath}/price/list"
-                   class="btn btn-outline-secondary">
+                   class="btn btn-secondary">
                     Cancel
                 </a>
             </div>

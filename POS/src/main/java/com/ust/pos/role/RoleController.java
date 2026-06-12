@@ -24,15 +24,15 @@ public class RoleController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, Pageable pageable, @ModelAttribute RoleDto roleDto) {
+    public String add(Model model, Pageable pageable, @ModelAttribute RoleDto userDto) {
         model.addAttribute("nodes", roleService.findAll(pageable));
         model.addAttribute(ROLES, roleService.findAll(pageable));
         return "role/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, Pageable pageable, @ModelAttribute RoleDto roleDto) {
-        RoleDto response = roleService.save(roleDto);
+    public String addPost(Model model, Pageable pageable, @ModelAttribute RoleDto userDto) {
+        RoleDto response = roleService.save(userDto);
 
         if (!response.isSuccess()) {
             model.addAttribute("error", response.getMessage());
@@ -50,8 +50,8 @@ public class RoleController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute RoleDto roleDto) {
-        RoleDto response = roleService.update(roleDto);
+    public String updatePost(Model model, @ModelAttribute RoleDto userDto) {
+        RoleDto response = roleService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
         }
@@ -61,6 +61,12 @@ public class RoleController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         roleService.delete(identifier);
+        return REDIRECT_ROLE_LIST;
+    }
+
+    @GetMapping("/toggle")
+    public String toggle(@RequestParam String identifier) {
+        roleService.toggleStatus(identifier);
         return REDIRECT_ROLE_LIST;
     }
 }

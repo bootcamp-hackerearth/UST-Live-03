@@ -46,7 +46,6 @@ public class ShelfController {
             model.addAttribute(MESSAGE, response.getMessage());
             return "shelf/add";
         }
-
         return REDIRECT_LIST;
     }
 
@@ -65,7 +64,6 @@ public class ShelfController {
             model.addAttribute(MESSAGE, response.getMessage());
             return "shelf/shelf";
         }
-
         return REDIRECT_LIST;
     }
 

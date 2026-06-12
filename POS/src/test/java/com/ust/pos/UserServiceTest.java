@@ -1,20 +1,23 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.User;
 import com.ust.pos.modell.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import java.util.ArrayList;
+
+import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,7 +58,9 @@ class UserServiceTest {
     void testFindByUserName_UserNotFound() {
         when(userRepository.findByUsername("test")).thenReturn(null);
         UserDto result = userService.findByUserName("test");
-        assertNull(result);
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertEquals("User not found", result.getMessage());
     }
 
     @Test
@@ -142,19 +147,28 @@ class UserServiceTest {
         verify(userRepository, times(1)).deleteByUsername("testUser");
     }
 
-    @Test
-    void findAllTest() {
-        User user = new User();
-        user.setIdentifier("Admin");
-        UserDto userDto = new UserDto();
-        userDto.setIdentifier("Admin");
-        List<User> users = List.of(user);
-        List<UserDto> userDtos = List.of(userDto);
-        Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 2), users.size());
-        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
-        Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(java.lang.reflect.Type.class))).thenReturn(userDtos);
-        List<UserDto> response = userService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        @Test
+        void testFindAll_withTypeTokenMapping() {
+            Pageable pageable = PageRequest.of(0, 2);
+            User user = new User();
+            user.setId(1L);
+            user.setName("Test User");
+            List<User> userList = List.of(user);
+            Page<User> userPage = new PageImpl<>(userList, pageable, 1);
+            UserDto userDto = new UserDto();
+            userDto.setName("Test User");
+            List<UserDto> dtoList = List.of(userDto);
+            when(userRepository.findAll(pageable)).thenReturn(userPage);
+            when(modelMapper.map(eq(userList), any(Type.class))).thenReturn(dtoList);
+            WsDto<UserDto> result = userService.findAll(pageable);
+            assertNotNull(result);
+            assertEquals(1, result.getDtoList().size());
+            assertEquals("Test User", result.getDtoList().get(0).getName());
+            assertEquals(1, result.getTotalRecords());
+            assertEquals(1, result.getTotalPage());
+            assertEquals(2, result.getSizePerPage());
+            assertEquals(0, result.getPage());
+            verify(userRepository, times(1)).findAll(pageable);
+            verify(modelMapper, times(1)).map(eq(userList), any(Type.class));
+        }
     }
-}

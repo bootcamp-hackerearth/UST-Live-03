@@ -4,6 +4,7 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Customer;
 import com.ust.pos.modell.CustomerRepository;
 import org.modelmapper.ModelMapper;
@@ -61,15 +62,14 @@ public class CustomerServiceImpl implements CustomerService {
             customerDto.setSuccess(false);
             return customerDto;
         }
+
         Customer customer = modelMapper.map(customerDto, Customer.class);
         customerRepository.save(customer);
-
         AddressDto billingAddress = modelMapper.map(customerDto.getBillingAddress(), AddressDto.class);
         billingAddress.setIdentifier(customerDto.getIdentifier() + "_" + "Billing");
         billingAddress.setAddressType("Billing");
         billingAddress.setPhoneNo(customerDto.getPhoneNo());
         addressService.save(billingAddress);
-
         AddressDto shippingAddress = modelMapper.map(customerDto.getShippingAddress(), AddressDto.class);
         shippingAddress.setIdentifier(customerDto.getIdentifier() + "_" + "Shipping");
         shippingAddress.setAddressType("Shipping");
@@ -88,6 +88,7 @@ public class CustomerServiceImpl implements CustomerService {
             customerDto.setSuccess(false);
             return customerDto;
         }
+
         modelMapper.map(customerDto, existingCustomer);
         customerRepository.save(existingCustomer);
         List<AddressDto> addresses = addressService.findAllByPhoneNo(customerDto.getPhoneNo());
@@ -108,11 +109,17 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        WsDto<CustomerDto> customerWsDto = new WsDto<>();
+        customerWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        customerWsDto.setTotalRecords(customerPage.getTotalElements());
+        customerWsDto.setTotalPage(customerPage.getTotalPages());
+        customerWsDto.setSizePerPage(pageable.getPageSize());
+        customerWsDto.setPage(pageable.getPageNumber());
+        return customerWsDto;
     }
 
     @Override

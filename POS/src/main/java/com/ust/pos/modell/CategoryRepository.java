@@ -13,6 +13,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findBySuperCategoryIsNotNull();
 
     boolean existsBySuperCategory(String superCategory);
+
+    List<Category> findByStatusTrue();
 }
 
 

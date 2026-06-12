@@ -26,7 +26,6 @@ public class UserDto extends CommonDto {
     private List<String> roles;
     private String password;
     private String token;
-
     public UserDto(String token) {
         this.token = token;
     }

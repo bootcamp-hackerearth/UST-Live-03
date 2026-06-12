@@ -1,6 +1,7 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Price;
 import com.ust.pos.modell.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -26,38 +27,59 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-        return modelMapper.map(priceRepository.findByIdentifier(identifier), PriceDto.class
-        );
+        Price price = priceRepository.findByIdentifier(identifier);
+        return price != null ? modelMapper.map(price, PriceDto.class) : null;
     }
 
     @Override
     public PriceDto save(PriceDto priceDto) {
-        String identifier = priceDto.getIdentifier();
+        String identifier = priceDto.getProduct() + "-" + priceDto.getType();
+        priceDto.setIdentifier(identifier);
         Price existingPrice = priceRepository.findByIdentifier(identifier);
 
         if (existingPrice != null) {
-            priceDto.setMessage("Shelf with identifier - " + identifier + " already exists");
+            priceDto.setMessage("Price already exists for product and type");
             priceDto.setSuccess(false);
             return priceDto;
         }
+
         Price price = modelMapper.map(priceDto, Price.class);
-        priceRepository.save(price);
-        return priceDto;
+        price.setIdentifier(identifier);
+        Price saved = priceRepository.save(price);
+        PriceDto response = modelMapper.map(saved, PriceDto.class);
+        response.setSuccess(true);
+        response.setMessage("Price saved successfully");
+        return response;
     }
 
     @Override
     public PriceDto update(PriceDto priceDto) {
-        String identifier = priceDto.getIdentifier();
-        Price existingPrice = priceRepository.findByIdentifier(identifier);
+        Price existingPrice = priceRepository.findByIdentifier(priceDto.getIdentifier());
 
         if (existingPrice == null) {
-            priceDto.setMessage("Shelf with identifier - " + identifier + " not found");
+            priceDto.setMessage("Price not found");
             priceDto.setSuccess(false);
             return priceDto;
         }
-        modelMapper.map(priceDto, existingPrice);
-        priceRepository.save(existingPrice);
-        return priceDto;
+
+        String newIdentifier = priceDto.getProduct() + "-" + priceDto.getType();
+        Price duplicate = priceRepository.findByIdentifier(newIdentifier);
+
+        if (duplicate != null && !duplicate.getId().equals(existingPrice.getId())) {
+            priceDto.setMessage("Price already exists for this product and type");
+            priceDto.setSuccess(false);
+            return priceDto;
+        }
+
+        existingPrice.setProduct(priceDto.getProduct());
+        existingPrice.setPriceAmount(priceDto.getPriceAmount());
+        existingPrice.setType(priceDto.getType());
+        existingPrice.setIdentifier(newIdentifier);
+        Price updated = priceRepository.save(existingPrice);
+        PriceDto response = modelMapper.map(updated, PriceDto.class);
+        response.setSuccess(true);
+        response.setMessage("Price updated successfully");
+        return response;
     }
 
     @Override
@@ -67,10 +89,15 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<PriceDto>>() {
-        }.getType();
+    public WsDto<PriceDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<PriceDto>>() {}.getType();
         Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+        WsDto<PriceDto> priceWsDto = new WsDto<>();
+        priceWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+        priceWsDto.setTotalRecords(pricePage.getTotalElements());
+        priceWsDto.setTotalPage(pricePage.getTotalPages());
+        priceWsDto.setSizePerPage(pageable.getPageSize());
+        priceWsDto.setPage(pageable.getPageNumber());
+        return priceWsDto;
     }
 }
