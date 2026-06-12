@@ -46,7 +46,7 @@ public class ProductController {
     }
 
     @GetMapping("/add")
-    public String add(Model model,@ModelAttribute ProductDto productDto) {
+    public String add(Model model, @ModelAttribute ProductDto productDto) {
         model.addAttribute(CATEGORIES, categoryService.findBySuperCategoryNotNull());
         model.addAttribute(BRAND, brandService.findIfTrue());
         model.addAttribute("unit", unitService.findIfTrue());

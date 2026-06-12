@@ -3,6 +3,7 @@ package com.ust.pos.api.warehouse;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WareHouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WareHouseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ public class WareHouseApiController extends BaseController {
     private WareHouseService wareHouseService;
 
     @PostMapping("/list")
-    public List<WareHouseDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<WareHouseDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return wareHouseService.findAll(pageable);
@@ -51,13 +52,11 @@ public class WareHouseApiController extends BaseController {
 
     @PostMapping("/toggle-status")
     public WareHouseDto toggle(@RequestParam String identifier) {
-
         return wareHouseService.toggleStatus(identifier);
     }
 
     @GetMapping("/findByStatus")
     public List<WareHouseDto> findByStatus() {
-
         return wareHouseService.findIfTrue();
     }
 }

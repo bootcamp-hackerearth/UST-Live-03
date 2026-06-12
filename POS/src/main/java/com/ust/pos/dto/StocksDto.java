@@ -11,5 +11,5 @@ public class StocksDto extends CommonDto {
     private Long incomingStock;
     private String productStatus;
     private String wareHouse;
-    private Long skuCode;
+    private String name;
 }

@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/unit")
 public class UnitApiController extends BaseController {
+
     @Autowired
     private UnitService unitService;
 
@@ -56,7 +57,6 @@ public class UnitApiController extends BaseController {
 
     @GetMapping("/findByStatus")
     public List<UnitDto> findByStatus() {
-
         return unitService.findIfTrue();
     }
 }

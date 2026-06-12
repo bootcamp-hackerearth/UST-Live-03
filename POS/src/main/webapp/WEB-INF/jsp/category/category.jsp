@@ -104,9 +104,11 @@
 
         <form:hidden path="id"/>
 
+        <!-- Category Name (readonly) -->
         <label>Category Name</label>
         <form:input path="identifier" readonly="true"/>
 
+        <!-- Super Category dropdown (same size as inputs, optional) -->
         <label>Super Category</label>
         <form:select path="superCategory">
             <form:option value="">-- Select Super Category --</form:option>

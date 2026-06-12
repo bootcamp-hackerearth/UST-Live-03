@@ -46,7 +46,7 @@ public class UserController {
     }
 
     @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String username,Pageable pageable) {
+    public String delete(Model model, @RequestParam String username, Pageable pageable) {
         UserDto userDto = userService.delete(username);
         if (!userDto.isSuccess()) {
             model.addAttribute("message", userDto.getMessage());

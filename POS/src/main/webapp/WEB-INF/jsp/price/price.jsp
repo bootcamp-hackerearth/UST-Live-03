@@ -62,8 +62,8 @@
 
         <form:hidden path="id"/>
 
-        <label>Product Name</label>
-        <form:select path="identifier" required="true">
+        <label>Sku Code</label>
+        <form:select path="identifier" disabled="true">
             <form:option value="">-- Select Product --</form:option>
 
             <c:forEach items="${products}" var="product">
@@ -80,6 +80,9 @@
         <label>Selling Price</label>
         <form:input path="sellingPrice" type="number" step="0.01"/>
 
+        <label>Cost Price</label>
+                <form:input path="costPrice" type="number" step="0.01"/>
+
         <label>Effective From</label>
         <form:input path="effectiveFrom" type="date"/>
 
@@ -90,3 +93,4 @@
 
 </body>
 </html>
+``

@@ -16,6 +16,7 @@
             color: #1f2937;
         }
 
+        /* ===== POS TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -42,6 +43,7 @@
             font-weight: 600;
         }
 
+        /* ===== PAGE ===== */
         .page-wrapper {
             display: flex;
             justify-content: center;
@@ -112,6 +114,7 @@
 
 <body>
 
+<!--  TOP BAR -->
 <div class="topbar">
     <div class="top-title">POS Application</div>
 

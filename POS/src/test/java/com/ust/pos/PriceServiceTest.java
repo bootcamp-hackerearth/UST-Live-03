@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class PriceServiceTest {
+
     @Mock
     private PriceRepository priceRepository;
 
@@ -140,9 +142,11 @@ class PriceServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(priceDtos);
 
-        List<PriceDto> response = priceService.findAll(pageable);
+        WsDto<PriceDto> response = priceService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 
     @Test

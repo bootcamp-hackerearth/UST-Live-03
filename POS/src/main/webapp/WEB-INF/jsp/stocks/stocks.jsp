@@ -14,6 +14,7 @@
             background-color: #f6f7f9;
         }
 
+        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -62,6 +63,7 @@
             cursor: pointer;
         }
 
+        /* ===== CARD ===== */
         .card {
             width: 420px;
             margin: 60px auto;
@@ -134,6 +136,7 @@
 
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
     <div class="topbar-left">
         <div class="top-title">POS Application</div>
@@ -147,6 +150,7 @@
 
 <div class="card">
 
+    <!-- BACK BUTTON -->
     <a href="${pageContext.request.contextPath}/stocks/list" class="back-btn">Back</a>
 
     <h2>Edit Stock</h2>
@@ -161,7 +165,7 @@
 
         <form:hidden path="id"/>
 
-        <label>Product Name</label>
+        <label>Sku Code</label>
 
         <form:select path="identifier" disabled="true">
             <c:forEach var="product" items="${products}">

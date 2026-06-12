@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
+
     @Mock
     private CategoryRepository categoryRepository;
 
@@ -140,9 +142,11 @@ class CategoryServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(categoryDtos);
 
-        List<CategoryDto> response = categoryService.findAll(pageable);
+        WsDto<CategoryDto> response = categoryService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 
     @Test

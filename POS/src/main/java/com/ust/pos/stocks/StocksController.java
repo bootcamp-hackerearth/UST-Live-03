@@ -38,7 +38,7 @@ public class StocksController {
     }
 
     @GetMapping("/add")
-    public String add(Model model,@ModelAttribute StocksDto stocksDto) {
+    public String add(Model model, @ModelAttribute StocksDto stocksDto) {
         model.addAttribute(PRODUCTS, productService.findIfTrue());
         model.addAttribute(WAREHOUSE, warehouseService.findIfTrue());
         return "stocks/add";

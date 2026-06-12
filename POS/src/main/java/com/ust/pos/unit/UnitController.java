@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/unit")
-public class UnitController{
+public class UnitController {
 
     public static final String REDIRECT_UNIT_LIST = "redirect:/unit/list";
 
@@ -64,7 +64,7 @@ public class UnitController{
 
     @PostMapping("/toggle-status")
     @ResponseBody
-    public void toggle( @RequestParam String identifier) {
+    public void toggle(@RequestParam String identifier) {
         unitService.toggleStatus(identifier);
     }
 }

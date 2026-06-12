@@ -70,10 +70,11 @@
             font-weight: 600;
         }
 
+        /* uniform styling for input & select */
         input,
         select {
             width: 100%;
-            height: 38px;
+            height: 38px;                 /* same height as other fields */
             padding: 9px 11px;
             margin-top: 6px;
             border-radius: 6px;

@@ -21,6 +21,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerServiceTest {
+
     @Mock
     private CustomerRepository customerRepository;
 
@@ -147,7 +148,6 @@ class CustomerServiceTest {
         Mockito.doNothing().when(customerRepository)
                 .deleteByIdentifier("Admin");
         addressService.delete("Admin");
-
 
         boolean response = customerService.delete("Admin");
 

@@ -14,6 +14,7 @@
             margin: 0;
         }
 
+        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -38,6 +39,7 @@
             cursor: pointer;
         }
 
+        /* ===== CARD ===== */
         .card {
             width: 420px;
             margin: 60px auto;
@@ -71,6 +73,7 @@
             font-weight: 600;
         }
 
+        /* Base styling for inputs & selects */
         input,
         select {
             width: 100%;
@@ -84,6 +87,7 @@
             box-sizing: border-box;
         }
 
+        /* multi-select must be taller */
         select[multiple] {
             height: 110px;
             padding: 6px;
@@ -117,6 +121,7 @@
 
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
     <div class="top-title">POS Application</div>
     <form action="${pageContext.request.contextPath}/logout" method="post" style="margin:0;">
@@ -126,6 +131,7 @@
 
 <div class="card">
 
+    <!-- BACK BUTTON -->
     <a href="${pageContext.request.contextPath}/product/list" class="back-btn">Back</a>
 
     <h2>Add Product</h2>
@@ -139,10 +145,11 @@
         method="post"
         modelAttribute="productDto">
 
-
-        <label>Product Name</label>
+        <!-- SKU CODE -->
+        <label>SKU Code</label>
         <form:input path="identifier" required="true"/>
 
+        <!-- Category Multi-Select -->
         <label>Category</label>
         <form:select path="category" multiple="true">
             <c:forEach var="cat" items="${categories}">
@@ -165,6 +172,7 @@
                 </c:forEach>
             </form:select>
 
+
          <label>Unit</label>
             <form:select path="unit" required="true">
             <form:option value="">-- Select Unit --</form:option>
@@ -175,20 +183,26 @@
                 </c:forEach>
             </form:select>
 
-                    <label>Model</label>
-         <form:select path="model" required="true">
-         <form:option value="">-- Select Model --</form:option>
-             <c:forEach var="mode" items="${model}">
-               <form:option value="${mode.identifier}">
-                   ${mode.identifier}
-               </form:option>
-             </c:forEach>
-         </form:select>
 
-        <label>SKU Code</label>
-        <form:input path="skuCode" type="number" required="true"/>
+                    <label>Model</label>
+                                                 <form:select path="model" required="true">
+                                                 <form:option value="">-- Select Model --</form:option>
+                                                     <c:forEach var="mode" items="${model}">
+                                                       <form:option value="${mode.identifier}">
+                                                           ${mode.identifier}
+                                                       </form:option>
+                                                     </c:forEach>
+                                                 </form:select>
+
+
+        <!-- Product Name -->
+        <label>Product Name</label>
+        <form:input path="name" type="text" required="true"/>
+
         <button type="submit">Add Product</button>
+
     </form:form>
+
 </div>
 
 </body>

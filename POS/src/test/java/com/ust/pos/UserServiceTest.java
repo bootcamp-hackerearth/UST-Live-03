@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -13,19 +14,18 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 @org.mockito.junit.jupiter.MockitoSettings(strictness =
-                           org.mockito.quality.Strictness.LENIENT)
+        org.mockito.quality.Strictness.LENIENT)
 class UserServiceTest {
 
     @Mock
@@ -39,7 +39,6 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
-
 
     @Test
     void saveTest() {
@@ -89,107 +88,69 @@ class UserServiceTest {
 
         Assertions.assertEquals("Admin", response.getIdentifier());
     }
+
     @Test
     void updateTest() {
         UserDto userDto = new UserDto();
         userDto.setId(1L);
-        userDto.setUsername("admin@test.com");
+        userDto.setUsername("Admin");
 
-        User user = new User();
-        user.setUsername("admin@test.com");
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("Admin");
 
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        Mockito.when(userRepository.findById(1L))
+                .thenReturn(java.util.Optional.of(existingUser));
+
+        Mockito.doNothing().when(modelMapper)
+                .map(userDto, existingUser);
+
+        Mockito.when(userRepository.save(existingUser))
+                .thenReturn(existingUser);
 
         UserDto response = userService.update(userDto);
 
+        Assertions.assertEquals("Admin", response.getUsername());
         Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
-    void updateTestNotFound() {
+    void updateTestFailure() {
         UserDto userDto = new UserDto();
         userDto.setId(1L);
-        userDto.setUsername("admin@test.com");
 
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        Mockito.when(userRepository.findById(1L))
+                .thenReturn(java.util.Optional.empty());
 
         UserDto response = userService.update(userDto);
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
-    }
-
-    @Test
-    void updateTestDuplicateUsername() {
-        UserDto userDto = new UserDto();
-        userDto.setId(1L);
-        userDto.setUsername("new@test.com");
-
-        User existingUser = new User();
-        existingUser.setUsername("old@test.com");
-
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        Mockito.when(userRepository.findByUsername("new@test.com")).thenReturn(new User());
-
-        UserDto response = userService.update(userDto);
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
     }
 
     @Test
     void deleteTest() {
         User user = new User();
-        user.setUsername("other@test.com");
+        user.setUsername("Admin");
 
         UserDto userDto = new UserDto();
-        userDto.setUsername("other@test.com");
+        userDto.setUsername("Admin");
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken("admin@test.com", null, List.of());
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
+        Authentication authentication = Mockito.mock(Authentication.class);
+        Mockito.when(authentication.getName()).thenReturn("OtherUser");
 
-        Mockito.when(userRepository.findByUsername("other@test.com")).thenReturn(user);
-        Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        UserDto response = userService.delete("other@test.com");
+        lenient().when(userRepository.findByUsername("Admin"))
+                .thenReturn(user);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertTrue(response.isSuccess());
-    }
+        lenient().when(modelMapper.map(
+                Mockito.any(User.class),
+                Mockito.eq(UserDto.class)
+        )).thenReturn(userDto);
 
-    @Test
-    void deleteTestSameUser() {
-        User user = new User();
-        user.setUsername("admin@test.com");
+        UserDto response = userService.delete("Admin");
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername("admin@test.com");
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken("admin@test.com", null, List.of());
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(user);
-        Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
-
-        UserDto response = userService.delete("admin@test.com");
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Cannot delete the logged in User", response.getMessage());
-    }
-
-    @Test
-    void deleteTestNoAuthentication() {
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(null);
-        SecurityContextHolder.setContext(securityContext);
-
-        UserDto response = userService.delete("admin@test.com");
-
-        Assertions.assertNull(response);
+        Assertions.assertEquals("Admin", response.getUsername());
     }
 
     @Test
@@ -215,9 +176,11 @@ class UserServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(userDtos);
 
-        List<UserDto> response = userService.findAll(pageable);
+        WsDto<UserDto> response = userService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 
     @Test

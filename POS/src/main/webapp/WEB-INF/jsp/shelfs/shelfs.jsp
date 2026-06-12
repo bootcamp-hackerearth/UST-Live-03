@@ -112,6 +112,7 @@
 
 <body>
 
+<!--TOP BAR -->
 <div class="topbar">
     <div class="top-title">POS Application</div>
     <form action="${pageContext.request.contextPath}/logout" method="post">
@@ -129,6 +130,7 @@
         <div class="error-message">${message}</div>
     </c:if>
 
+    <!-- PROPER FORM OPEN -->
     <form:form
         action="${pageContext.request.contextPath}/shelfs/update"
         method="post"

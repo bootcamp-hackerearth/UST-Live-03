@@ -15,6 +15,7 @@
             overflow-x: hidden;
         }
 
+        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -54,6 +55,7 @@
             letter-spacing: 0.4px;
         }
 
+        /* ===== LOGOUT ===== */
         .logout-btn {
             background: #dc2626;
             border: none;
@@ -69,6 +71,7 @@
             background: #b91c1c;
         }
 
+        /* ===== SIDEBAR ===== */
         .sidebar {
             position: fixed;
             top: 56px;
@@ -80,10 +83,12 @@
             transition: left 0.3s ease;
             z-index: 999;
 
+            /* ENABLE SCROLL */
             overflow-y: auto;
             overflow-x: hidden;
         }
 
+        /* Custom scrollbar (optional but nice) */
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
@@ -115,6 +120,7 @@
             border-left: 3px solid #2563eb;
         }
 
+        /* ===== CONTENT ===== */
         .content {
             margin-top: 56px;
             padding: 48px;
@@ -163,6 +169,7 @@
     </form>
 </div>
 
+<!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
     <c:forEach var="node" items="${nodes}">
         <a href="${pageContext.request.contextPath}${node.path}">
@@ -171,6 +178,7 @@
     </c:forEach>
 </div>
 
+<!-- CONTENT -->
 <div class="content" id="content">
     <div class="welcome">
         Welcome to the POS Application

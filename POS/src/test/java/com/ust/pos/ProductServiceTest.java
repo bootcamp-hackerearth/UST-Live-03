@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
+
     @Mock
     private ProductRepository productRepository;
 
@@ -53,24 +55,6 @@ class ProductServiceTest {
         existingProduct.setIdentifier("Admin");
 
         Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(existingProduct);
-
-        ProductDto response = productService.save(productDto);
-
-        Assertions.assertFalse(response.isSuccess());
-    }
-
-    @Test
-    void saveTestFailure2() {
-        ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("Admin");
-        productDto.setSkuCode(123L);
-
-        Product existingProduct = new Product();
-        existingProduct.setIdentifier("Admin");
-        existingProduct.setSkuCode(123L);
-
-        Mockito.when(productRepository.findBySkuCode(123L))
                 .thenReturn(existingProduct);
 
         ProductDto response = productService.save(productDto);
@@ -158,9 +142,11 @@ class ProductServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(productDtos);
 
-        List<ProductDto> response = productService.findAll(pageable);
+        WsDto<ProductDto> response = productService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 
     @Test

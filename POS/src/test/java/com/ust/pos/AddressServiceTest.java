@@ -19,6 +19,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class AddressServiceTest {
+
     @Mock
     private AddressRepository addressRepository;
 

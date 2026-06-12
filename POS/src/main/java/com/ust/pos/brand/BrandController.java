@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/brand")
-public class BrandController{
+public class BrandController {
 
     public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
 

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WareHouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.WareHouse;
 import com.ust.pos.model.WareHouseRepository;
 import com.ust.pos.warehouse.service.impl.WareHouseServiceImpl;
@@ -141,9 +142,11 @@ class WarehouseServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(wareHouseDtos);
 
-        List<WareHouseDto> response = wareHouseService.findAll(pageable);
+        WsDto<WareHouseDto> response = wareHouseService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 
     @Test

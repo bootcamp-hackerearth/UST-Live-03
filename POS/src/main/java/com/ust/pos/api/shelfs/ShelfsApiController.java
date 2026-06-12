@@ -13,13 +13,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/shelfs")
 public class ShelfsApiController extends BaseController {
+
     @Autowired
     private ShelfsService shelfsService;
 
     @PostMapping("/list")
     public List<ShelfsDto> home(PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(),paginationDto.getSortDirection(),
+                paginationDto.getSizePerPage(), paginationDto.getSortDirection(),
                 paginationDto.getSortField());
         return shelfsService.findAll(pageable);
     }
@@ -56,7 +57,6 @@ public class ShelfsApiController extends BaseController {
 
     @GetMapping("/findByStatus")
     public List<ShelfsDto> findByStatus() {
-
         return shelfsService.findIfTrue();
     }
 }

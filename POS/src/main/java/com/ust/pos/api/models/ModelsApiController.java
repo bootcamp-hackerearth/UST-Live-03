@@ -13,13 +13,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/models")
 public class ModelsApiController extends BaseController {
+
     @Autowired
     private ModelsService modelsService;
 
     @PostMapping("/list")
     public List<ModelsDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(),paginationDto.getSortDirection(),
+                paginationDto.getSizePerPage(), paginationDto.getSortDirection(),
                 paginationDto.getSortField());
         return modelsService.findAll(pageable);
     }

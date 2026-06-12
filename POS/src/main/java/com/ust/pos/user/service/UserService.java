@@ -1,6 +1,7 @@
 package com.ust.pos.user.service;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Transactional
 public interface UserService {
+
     UserDto findByUserName(String username);
 
     UserDto save(UserDto userDto);
@@ -16,10 +18,12 @@ public interface UserService {
 
     UserDto delete(String username);
 
-    List<UserDto> findAll(Pageable pageable);
+    WsDto<UserDto> findAll(Pageable pageable);
 
     List<UserDto> findIfTrue();
 
     UserDto toggleStatus(String identifier);
+
+    UserDto getUserDetails(String username);
 
 }

@@ -15,6 +15,7 @@
             color: #111827;
         }
 
+        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -59,6 +60,7 @@
             cursor: pointer;
         }
 
+        /* ===== PAGE ===== */
         .page-title {
             text-align: center;
             padding: 22px 0 14px;
@@ -77,6 +79,7 @@
             padding: 26px;
         }
 
+        /* ===== ACTION BAR ===== */
         .list-actions {
             display: flex;
             justify-content: flex-end;
@@ -97,6 +100,7 @@
             background-color: #1d4ed8;
         }
 
+        /* ===== TABLE ===== */
         table {
             width: 100%;
             border-collapse: separate;
@@ -175,6 +179,7 @@
 
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
     <div class="topbar-left">
         <div class="top-title">POS Application</div>
@@ -190,6 +195,7 @@
 
 <div class="container">
 
+    <!-- ADD NODE -->
     <div class="list-actions">
         <a class="add-btn" href="${pageContext.request.contextPath}/node/add">
             Add Node

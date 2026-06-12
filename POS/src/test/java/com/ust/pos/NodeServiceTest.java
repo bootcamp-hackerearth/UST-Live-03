@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class NodeServiceTest {
+
     @Mock
     UserRepository userRepository;
 
@@ -104,7 +106,7 @@ class NodeServiceTest {
         Node node = new Node();
         node.setIdentifier("dashboard");
         node.setRoles(List.of("ADMIN"));
-        Mockito.when(nodeRepository.findAll()).thenReturn(List.of(node));
+        Mockito.when(nodeRepository.findByStatusIsTrue()).thenReturn(List.of(node));
 
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("dashboard");
@@ -193,9 +195,11 @@ class NodeServiceTest {
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(nodeDtos);
 
-        List<NodeDto> response = nodeService.findAll(pageable);
+        WsDto<NodeDto> response = nodeService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 
     @Test

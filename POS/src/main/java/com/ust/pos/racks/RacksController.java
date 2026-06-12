@@ -30,7 +30,7 @@ public class RacksController {
     }
 
     @GetMapping("/add")
-    public String add(Model model,@ModelAttribute RacksDto racksDto) {
+    public String add(Model model, @ModelAttribute RacksDto racksDto) {
         model.addAttribute(SHELVES, shelfsService.findIfTrue());
         return "racks/add";
     }

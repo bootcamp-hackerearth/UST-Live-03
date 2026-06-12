@@ -19,6 +19,7 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class ShelfsServiceTest {
+
     @Mock
     private ShelfsRepository shelfsRepository;
 

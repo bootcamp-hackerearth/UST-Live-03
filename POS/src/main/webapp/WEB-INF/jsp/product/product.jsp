@@ -47,6 +47,7 @@
             font-weight: 600;
         }
 
+        /* Base styling for inputs & selects */
         input,
         select {
             width: 100%;
@@ -60,6 +61,7 @@
             box-sizing: border-box;
         }
 
+        /*  multi-select must be taller */
         select[multiple] {
             height: 110px;
             padding: 6px;
@@ -99,6 +101,7 @@
 
 <div class="card">
 
+    <!-- Back Button -->
     <a href="${pageContext.request.contextPath}/product/list" class="back-btn">Back</a>
 
     <h2>Edit Product</h2>
@@ -114,21 +117,23 @@
 
         <form:hidden path="id"/>
 
-<label>Product Name</label>
-<form:input path="identifier" readonly="true"/>
+        <!-- Sku Code -->
+        <label>Sku Code</label>
+        <form:input path="identifier" readonly="true"/>
 
-<label>Category</label>
-<form:select path="category" multiple="true">
-    <c:forEach var="cat" items="${categories}">
-        <form:option value="${cat.identifier}">
-            ${cat.identifier}
-        </form:option>
-    </c:forEach>
-</form:select>
-<div class="hint">
-    Hold <b>Ctrl</b> (Windows) or <b>Cmd</b> (Mac) to select multiple categories
-</div>
-<label>Brand</label>
+        <!-- Category Multi-Select -->
+        <label>Category</label>
+        <form:select path="category" multiple="true">
+            <c:forEach var="cat" items="${categories}">
+                <form:option value="${cat.identifier}">
+                    ${cat.identifier}
+                </form:option>
+            </c:forEach>
+        </form:select>
+        <div class="hint">
+            Hold <b>Ctrl</b> (Windows) or <b>Cmd</b> (Mac) to select multiple categories
+        </div>
+        <label>Brand</label>
 <form:select path="brand" required="true">
 <form:option value="">-- Select Brand --</form:option>
 <c:forEach var="bran" items="${brand}">
@@ -160,8 +165,9 @@ ${bran.identifier}
                          </c:forEach>
                      </form:select>
 
-        <label>SKU Code</label>
-        <form:input path="skuCode" readonly="true"/>
+        <!-- Product Name -->
+        <label>Product Name</label>
+        <form:input path="name" required="true"/>
 
         <button type="submit">Update Product</button>
 

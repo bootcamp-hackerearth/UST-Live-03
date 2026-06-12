@@ -9,6 +9,7 @@
     <style>
         body { margin:0; font-family:"Segoe UI", Roboto, Arial, sans-serif; background:#f6f7f9; }
 
+        /* TOP BAR */
         .topbar {
             height:56px; background:#020617; display:flex;
             justify-content:space-between; align-items:center;
@@ -26,6 +27,7 @@
             cursor: pointer;
         }
 
+        /* PAGE */
         .container {
             width:95%; max-width:1100px; margin:28px auto;
             background:#fff; padding:26px; border-radius:12px;
@@ -54,6 +56,7 @@
 
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
     <div class="topbar-left">
         <div class="top-title">POS Application</div>
@@ -79,9 +82,10 @@
     <c:if test="${not empty prices}">
         <table>
             <tr>
-                <th>Product Name</th>
+                <th>Sku Code</th>
                 <th>MRP</th>
                 <th>Selling Price</th>
+                <th>Cost Price</th>
                 <th>Effective From</th>
                 <th>Action</th>
             </tr>
@@ -91,6 +95,7 @@
     <td>${price.identifier}</td>
     <td>${price.mrp}</td>
     <td>${price.sellingPrice}</td>
+    <td>${price.costPrice}</td>
     <td>${price.effectiveFrom}</td>
     <td>
         <a href="${pageContext.request.contextPath}/price/get?identifier=${price.identifier}"

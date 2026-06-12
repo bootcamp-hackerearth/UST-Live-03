@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 public class ShelfsServiceImpl implements ShelfsService {
+
     @Autowired
     private ShelfsRepository shelfsRepository;
 

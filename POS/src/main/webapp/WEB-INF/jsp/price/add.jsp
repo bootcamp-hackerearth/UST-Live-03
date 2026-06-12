@@ -73,9 +73,9 @@
                method="post"
                modelAttribute="priceDto">
 
-        <label>Product Name</label>
+        <label>Sku Code</label>
         <form:select path="identifier" required="true">
-            <form:option value="">-- Select Product --</form:option>
+            <form:option value="">-- Select SkuCode--</form:option>
 
             <c:forEach items="${products}" var="product">
                 <form:option value="${product.identifier}">
@@ -90,6 +90,9 @@
 
         <label>Selling Price</label>
         <form:input path="sellingPrice" type="number" step="0.01" required="true"/>
+
+        <label>Cost Price</label>
+                <form:input path="costPrice" type="number" step="0.01" required="true"/>
 
         <label>Effective From</label>
         <form:input path="effectiveFrom" type="date" required="true"/>

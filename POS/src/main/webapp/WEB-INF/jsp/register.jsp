@@ -98,24 +98,28 @@
 
 <div class="container">
 
+    <!--  Back Button -->
     <a href="${pageContext.request.contextPath}/login" class="back-btn">
         Back
     </a>
 
     <h2>User Registration</h2>
 
+    <!--  ERROR MESSAGE -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}
         </div>
     </c:if>
 
+    <!--  REGISTRATION FORM -->
     <form:form action="${pageContext.request.contextPath}/register"
                method="post"
                modelAttribute="userDto">
 
         <label>Name</label>
         <form:input path="name" required="true"/>
+
 
 <label>Email</label>
 <form:input
@@ -124,6 +128,7 @@
         required="true"
         placeholder="example@mail.com"
 />
+
 
         <label>Roles</label>
         <form:select path="roles" multiple="true" required="true">

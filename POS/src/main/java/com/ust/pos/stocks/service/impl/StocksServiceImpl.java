@@ -18,6 +18,7 @@ import java.util.List;
 
 @Service
 public class StocksServiceImpl implements StocksService {
+
     @Autowired
     private StocksRepository stocksRepository;
 
@@ -44,7 +45,7 @@ public class StocksServiceImpl implements StocksService {
         }
         Stocks stocks = modelMapper.map(stocksDto, Stocks.class);
         ProductDto productDto = productService.findByIdentifier(stocksDto.getIdentifier());
-        stocks.setSkuCode(productDto.getSkuCode());
+        stocks.setName(productDto.getName());
         stocksRepository.save(stocks);
         return stocksDto;
     }

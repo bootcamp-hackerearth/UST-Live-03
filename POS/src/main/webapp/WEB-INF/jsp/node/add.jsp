@@ -15,6 +15,7 @@
             color: #1f2937;
         }
 
+        /* ===== POS TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -59,6 +60,7 @@
             cursor: pointer;
         }
 
+        /* ===== PAGE ===== */
         .page-wrapper {
             display: flex;
             justify-content: center;
@@ -157,16 +159,19 @@
 <div class="page-wrapper">
     <div class="card">
 
+        <!-- BACK BUTTON -->
         <a href="${pageContext.request.contextPath}/node/list" class="back-btn">Back</a>
 
         <h2>Add Node</h2>
 
+        <!-- ERROR MESSAGE -->
         <c:if test="${not empty message}">
             <div class="error-message">
                 ${message}
             </div>
         </c:if>
 
+        <!-- ADD FORM  -->
         <form action="${pageContext.request.contextPath}/node/add" method="post">
 
             <label>Identifier</label>

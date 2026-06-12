@@ -15,6 +15,7 @@
             color: #1f2937;
         }
 
+        /* ===== POS TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -63,6 +64,7 @@
             cursor: pointer;
         }
 
+        /* ===== PAGE ===== */
         .page-wrapper {
             display: flex;
             justify-content: center;
@@ -78,6 +80,7 @@
             position: relative;
         }
 
+        /* BACK BUTTON */
         .back-btn {
             position: absolute;
             top: 18px;
@@ -146,6 +149,7 @@
 
 <body>
 
+<!-- POS TOP BAR -->
 <div class="topbar">
     <div class="topbar-left">
         <div class="top-title">POS Application</div>
@@ -160,10 +164,12 @@
 <div class="page-wrapper">
     <div class="card">
 
+        <!-- BACK BUTTON -->
         <a href="${pageContext.request.contextPath}/node/list" class="back-btn">Back</a>
 
         <h2>Edit Node</h2>
 
+        <!-- UPDATE FORM  -->
         <form action="${pageContext.request.contextPath}/node/update" method="post">
 
             <input type="hidden" name="id" value="${node.id}" />

@@ -26,7 +26,7 @@ public class CategoryController {
     }
 
     @GetMapping("/add")
-    public String add(Model model,@ModelAttribute CategoryDto categoryDto) {
+    public String add(Model model, @ModelAttribute CategoryDto categoryDto) {
         model.addAttribute(CATEGORIES, categoryService.findIfTrue());
         return "category/add";
     }

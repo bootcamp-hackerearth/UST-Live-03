@@ -13,6 +13,7 @@
             background-color: #f6f7f9;
         }
 
+        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -61,6 +62,7 @@
             cursor: pointer;
         }
 
+        /* ===== PAGE ===== */
         .container {
             width: 95%;
             max-width: 1100px;
@@ -139,6 +141,7 @@
 
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
     <div class="topbar-left">
         <div class="top-title">POS Application</div>
@@ -150,10 +153,12 @@
     </form>
 </div>
 
+<!-- PAGE CONTENT -->
 <div class="container">
 
     <h2>Stock Management</h2>
 
+    <!-- ADD STOCK BUTTON -->
     <div class="list-actions">
         <a href="${pageContext.request.contextPath}/stocks/add" class="add-btn">
             Add Stock
@@ -168,8 +173,8 @@
         <table>
             <thead>
             <tr>
+                <th>Sku Code</th>
                 <th>Product Name</th>
-                <th>SKU Code</th>
                 <th>Available</th>
                 <th>Incoming</th>
                 <th>Outgoing</th>
@@ -183,7 +188,7 @@
             <c:forEach var="stock" items="${stocks}">
                 <tr>
 <td>${stock.identifier}</td>
-<td>${stock.skuCode}</td>
+<td>${stock.name}</td>
 <td>${stock.availableStock}</td>
 <td>${stock.incomingStock}</td>
 <td>${stock.outgoingStock}</td>

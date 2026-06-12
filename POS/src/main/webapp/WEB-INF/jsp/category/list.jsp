@@ -109,6 +109,7 @@
             margin-left: 8px;
         }
 
+        /* ===== STATUS TOGGLE ===== */
         .status-btn {
             border: none;
             padding: 6px 16px;
@@ -131,6 +132,7 @@
 
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
     <div class="topbar-left">
         <div class="top-title">POS Application</div>
@@ -169,6 +171,7 @@
         <td>${cat.identifier}</td>
         <td>${cat.superCategory}</td>
 
+        <!-- STATUS TOGGLE -->
         <td>
             <button
                 class="status-btn ${cat.status ? 'active' : 'inactive'}"
@@ -177,6 +180,7 @@
             </button>
         </td>
 
+        <!-- ACTIONS -->
         <td>
             <a href="${pageContext.request.contextPath}/category/get?identifier=${cat.identifier}"
                class="action-link edit">

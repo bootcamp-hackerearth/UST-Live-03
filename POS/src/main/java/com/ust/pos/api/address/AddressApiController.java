@@ -20,7 +20,7 @@ public class AddressApiController extends BaseController {
     @PostMapping("/list")
     public List<AddressDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(),paginationDto.getSortDirection(),
+                paginationDto.getSizePerPage(), paginationDto.getSortDirection(),
                 paginationDto.getSortField());
         return addressService.findAll(pageable);
     }

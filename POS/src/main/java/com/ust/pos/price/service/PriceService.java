@@ -1,6 +1,7 @@
 package com.ust.pos.price.service;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +15,7 @@ public interface PriceService {
 
     boolean delete(String identifier);
 
-    List<PriceDto> findAll(Pageable pageable);
+    WsDto<PriceDto> findAll(Pageable pageable);
 
     PriceDto findByIdentifier(String identifier);
 

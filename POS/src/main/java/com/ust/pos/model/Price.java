@@ -14,6 +14,8 @@ import java.time.LocalDate;
 public class Price extends CommonFields {
     private BigDecimal mrp;
     private BigDecimal sellingPrice;
+    private BigDecimal costPrice;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate effectiveFrom;
+
 }

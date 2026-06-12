@@ -15,6 +15,7 @@
             color: #111827;
         }
 
+        /* ===== TOP BAR ===== */
         .topbar {
             height: 56px;
             background-color: #020617;
@@ -58,6 +59,7 @@
             font-weight: 600;
         }
 
+        /* ===== PAGE ===== */
         .page-title {
             text-align: center;
             padding: 22px 0 14px;
@@ -92,6 +94,7 @@
             font-weight: 600;
         }
 
+        /* ===== TABLE ===== */
         table {
             width: 100%;
             border-collapse: separate;
@@ -125,6 +128,7 @@
             background-color: #f1f5f9;
         }
 
+        /* ===== STATUS TOGGLE ===== */
         .status-toggle {
             padding: 6px 14px;
             border-radius: 999px;
@@ -138,7 +142,7 @@
         .status-true { background-color: #16a34a; }
         .status-false { background-color: #dc2626; }
 
-
+        /* ===== ACTION BUTTONS ===== */
         .action-link {
             padding: 7px 16px;
             border-radius: 6px;
@@ -195,16 +199,17 @@
                 <td>${r.id}</td>
                 <td>${r.identifier}</td>
 
-        <td>
-    <c:choose>
-        <c:when test="${not empty r.shelfs}">
-            <c:forEach var="sh" items="${r.shelfs}" varStatus="st">
-                ${sh}<c:if test="${!st.last}">, </c:if>
-            </c:forEach>
-        </c:when>
-        <c:otherwise>—</c:otherwise>
-    </c:choose>
-        </td>
+                <!-- SHELFS DISPLAY -->
+                <td>
+                    <c:choose>
+                        <c:when test="${not empty r.shelfs}">
+                            <c:forEach var="sh" items="${r.shelfs}" varStatus="st">
+                                ${sh}<c:if test="${!st.last}">, </c:if>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise>—</c:otherwise>
+                    </c:choose>
+                </td>
 
     <td>
         <button class="status-toggle ${r.status ? 'status-true' : 'status-false'}"
