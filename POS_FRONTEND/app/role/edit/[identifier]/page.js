@@ -8,7 +8,6 @@ export default function RoleEditPage() {
     <CommonEditPage
       title="Edit Role"
  
-      // ✅ Fetch existing role
       fetchApi={async (identifier) => {
         const res = await api.get("/api/role/get", {
           params: { identifier },
@@ -17,7 +16,6 @@ export default function RoleEditPage() {
         return res;
       }}
  
-      // ✅ Update role
       updateApi={async (data) => {
         return await api.post("/api/role/update", data);
       }}

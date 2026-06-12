@@ -1,9 +1,8 @@
 "use client";
- 
+
 import CommonAddPage from "@/app/components/CommonAddPage";
 import api from "@/app/services/api";
- 
-// ✅ dropdown helper
+
 const dropdown = (label, name, apiUrl, extra = {}) => ({
   label,
   name,
@@ -20,44 +19,51 @@ const dropdown = (label, name, apiUrl, extra = {}) => ({
   placeholder: `Select ${label}`,
   ...extra,
 });
- 
+
 export default function PriceAddPage() {
   return (
     <CommonAddPage
       title="Add Price"
- 
-      submitApi={(data) => api.post("/api/price/add", data)}
- 
+
+      submitApi={(data) =>
+        api.post("/api/price/add", {
+          ...data,
+
+          identifier: undefined, 
+        })
+      }
+
       redirectRoute="/price/list"
- 
+
       initialValues={{
-        identifier: "",
+        identifier: "", 
         product: "",
-        price: "",
+        priceAmount: "",
         type: "",
         status: true,
       }}
- 
+
       fields={[
-        { label: "Identifier", name: "identifier", type: "text" },
- 
+        
         dropdown("Product", "product", "/api/product/list"),
- 
+
         {
           label: "Price",
           name: "priceAmount",
           type: "number",
         },
- 
+
         {
-          label: "Type",
+          label: "Price Type",
           name: "type",
           type: "dropdown",
           options: [
-            { label: "MRP", value: "MRP" },
-            { label: "SALE", value: "SALE" },
-            { label: "COST", value: "COST" },
+            { identifier: "MRP" },
+            { identifier: "SELLING" },
           ],
+          optionLabel: "identifier",
+          optionValue: "identifier",
+          placeholder: "Select Price Type",
         },
       ]}
     />

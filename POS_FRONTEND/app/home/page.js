@@ -12,6 +12,7 @@ const Home = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    console.log("TOKEN:", token);
     const storedUsername = localStorage.getItem("username");
 
     if (!token || !storedUsername) {
@@ -36,10 +37,10 @@ const Home = () => {
           </div>
         ) : (
           <>
-            {/* ✅ HERO SECTION (MATCHES THEME) */}
+            {/*  HERO SECTION (MATCHES THEME) */}
             <div className="rounded-2xl p-8 text-white bg-gradient-to-r from-[#0a1f66] via-[#1e3a8a] to-[#2563eb] shadow-md">
               <h1 className="text-3xl font-bold">
-                Welcome, {username} 👋
+                Welcome, {username} 
               </h1>
 
               <p className="text-blue-100 mt-2">
@@ -47,10 +48,6 @@ const Home = () => {
               </p>
             </div>
 
-            {/* ✅ DASHBOARD CARDS */}
-          
-
-           
           </>
         )}
       </div>

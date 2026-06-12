@@ -21,19 +21,25 @@ export default function CommonAddPage({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  /* ✅ HANDLE CHANGE */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    let parsedValue = value;
+
+    if (value === "true") parsedValue = true;
+    if (value === "false") parsedValue = false;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: parsedValue,
     }));
 
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
-  /* ✅ VALIDATION */
   const validate = () => {
     const newErrors = {};
 
@@ -41,13 +47,17 @@ export default function CommonAddPage({
       const val = formData[f.name];
 
       if (f.type === "dropdown" && f.multiple) {
-        if (!val || val.length === 0) {
+        if (!Array.isArray(val) || val.length === 0) {
           newErrors[f.name] = "Required";
         }
         return;
       }
 
-      if (!val && !f.readOnly) {
+      if (
+        val === "" ||
+        val === null ||
+        val === undefined
+      ) {
         newErrors[f.name] = "Required";
       }
     });
@@ -56,7 +66,6 @@ export default function CommonAddPage({
     return Object.keys(newErrors).length === 0;
   };
 
-  /* ✅ SUBMIT */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -64,19 +73,29 @@ export default function CommonAddPage({
     try {
       setLoading(true);
 
-      if (typeof submitApi === "function") {
-        await submitApi(formData);
-      } else {
-        await api.post(submitApi, formData);
-      }
+      const response =
+        typeof submitApi === "function"
+          ? await submitApi(formData)
+          : await api.post(submitApi, formData);
+
+      console.log(" SUCCESS:", response?.data);
 
       if (redirectRoute) router.push(redirectRoute);
+    } catch (err) {
+      console.error(
+        " SUBMIT ERROR:",
+        err.response?.data || err.message
+      );
+
+      alert(
+        err.response?.data?.message ||
+          "Failed to save."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  /* ✅ FIELD RENDERERS (NO DUPLICATION) */
 
   const renderInput = (f, val) => (
     <input
@@ -130,18 +149,19 @@ export default function CommonAddPage({
   };
 
   const renderField = (f) => {
-    const val = formData[f.name] ?? (f.multiple ? [] : "");
+    const val =
+      formData[f.name] ??
+      (f.multiple ? [] : ""); 
+
     const renderer = fieldRenderers[f.type];
     return renderer ? renderer(f, val) : null;
   };
 
-  /* ✅ UI */
   return (
     <Layout>
       <div className="flex justify-center py-6">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border border-blue-50">
 
-          {/* HEADER */}
           <div className="px-6 py-5 border-b border-blue-50 flex justify-between items-center">
             <h2 className="text-xl font-bold text-blue-900">
               {title}
@@ -155,11 +175,9 @@ export default function CommonAddPage({
             </button>
           </div>
 
-          {/* FORM */}
           <form onSubmit={handleSubmit} className="p-6">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
               {fields.map((f) => (
                 <div key={f.name}>
                   <label className="text-sm font-medium text-gray-700">
@@ -175,10 +193,8 @@ export default function CommonAddPage({
                   )}
                 </div>
               ))}
-
             </div>
 
-            {/* ACTIONS */}
             <div className="flex justify-end gap-3 mt-6">
               <button
                 type="button"
@@ -204,10 +220,12 @@ export default function CommonAddPage({
   );
 }
 
-/* ✅ PROP TYPES */
 CommonAddPage.propTypes = {
   title: PropTypes.string,
-  submitApi: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+  submitApi: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.func,
+  ]),
   redirectRoute: PropTypes.string,
   fields: PropTypes.array,
   initialValues: PropTypes.object,

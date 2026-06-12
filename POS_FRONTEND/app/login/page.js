@@ -59,10 +59,10 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
 
-      {/* LEFT SIDE */}
+      
       <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#020617] via-[#020c2f] to-[#0a1f66] text-white flex-col justify-center px-16">
         <h1 className="text-4xl font-bold">
-          Welcome Back 🚀
+          Welcome Back 
         </h1>
 
         <p className="mt-4 text-blue-200 text-lg">
@@ -76,13 +76,11 @@ export default function Login() {
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
+    
       <div className="w-full md:w-1/2 flex items-center justify-center bg-white px-6">
 
-        {/* LOGIN BOX */}
         <div className="w-full max-w-md bg-gradient-to-br from-[#0a1f66] via-[#0f2a8a] to-[#1e3a8a] border border-white/10 shadow-2xl rounded-2xl text-white">
 
-          {/* HEADER */}
           <div className="text-center p-6 border-b border-white/10">
             <h2 className="text-2xl font-bold">
               Sign In
@@ -92,10 +90,8 @@ export default function Login() {
             </p>
           </div>
 
-          {/* FORM */}
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
 
-            {/* EMAIL */}
             <Input
               id="username"
               label="Email Address"
@@ -106,7 +102,6 @@ export default function Login() {
               onChange={handleChange}
             />
 
-            {/* PASSWORD */}
             <div>
               <label
                 htmlFor="password"
@@ -137,14 +132,12 @@ export default function Login() {
               </div>
             </div>
 
-            {/* ERROR */}
             {error && (
               <div className="bg-red-400/20 text-red-200 text-sm p-2 rounded">
                 {error}
               </div>
             )}
 
-            {/* LOGIN BUTTON */}
             <button
               type="submit"
               disabled={loading}
@@ -153,7 +146,6 @@ export default function Login() {
               {loading ? "Signing in..." : "Login"}
             </button>
 
-            {/* OPTIONS */}
             <div className="flex justify-between text-xs text-blue-200">
               <button
                 type="button"
@@ -179,7 +171,6 @@ export default function Login() {
   );
 }
 
-/* ✅ INPUT COMPONENT */
 function Input({ label, id, ...props }) {
   return (
     <div>
@@ -200,7 +191,6 @@ function Input({ label, id, ...props }) {
   );
 }
 
-/* ✅ PROP TYPES */
 Input.propTypes = {
   label: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,

@@ -7,7 +7,6 @@ import api from "../services/api";
 import CommonDropDown from "./CommonDropDown";
 import Layout from "./Layout";
 
-/* ✅ PropTypes */
 
 CommonEditPage.propTypes = {
   title: PropTypes.string,
@@ -34,13 +33,14 @@ export default function CommonEditPage({
 }) {
   const router = useRouter();
   const params = useParams();
+console.log("PARAM:", params.username);
+
 
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [pageLoading, setPageLoading] = useState(true);
 
-  /* ✅ Normalize Dropdown */
   const normalizeDropdownValue = (field, val) => {
     const key = field.optionValue || "identifier";
 
@@ -58,7 +58,6 @@ export default function CommonEditPage({
     return val;
   };
 
-  /* ✅ Load Data */
   const loadData = async (identifier) => {
     try {
       setPageLoading(true);
@@ -84,7 +83,6 @@ export default function CommonEditPage({
     }
   };
 
-  /* ✅ Initial Load */
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -96,7 +94,6 @@ export default function CommonEditPage({
     if (identifier) loadData(identifier);
   }, [params, initialData]);
 
-  /* ✅ Handle Change (FIXED) */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -111,7 +108,6 @@ export default function CommonEditPage({
     }));
   };
 
-  /* ✅ Validation */
   const validate = () => {
     const newErrors = {};
 
@@ -134,7 +130,6 @@ export default function CommonEditPage({
     return Object.keys(newErrors).length === 0;
   };
 
-  /* ✅ Submit */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -155,7 +150,6 @@ export default function CommonEditPage({
     }
   };
 
-  /* ✅ FIELD RENDERER (FIX FOR SONAR) */
   const renderFormField = (f, val) => {
     if (f.type === "dropdown") {
       return (
@@ -207,7 +201,6 @@ export default function CommonEditPage({
     );
   };
 
-  /* ✅ Loading UI */
   if (pageLoading || !formData) {
     return (
       <Layout>
@@ -220,13 +213,11 @@ export default function CommonEditPage({
     );
   }
 
-  /* ✅ UI */
   return (
     <Layout>
       <div className="flex justify-center py-6">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border border-blue-50">
 
-          {/* HEADER */}
           <div className="px-6 py-5 border-b border-blue-50 flex justify-between">
             <h2 className="text-xl font-bold text-blue-900">{title}</h2>
             <button
@@ -241,7 +232,6 @@ export default function CommonEditPage({
             </button>
           </div>
 
-          {/* FORM */}
           <form onSubmit={handleSubmit} className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
@@ -268,7 +258,6 @@ export default function CommonEditPage({
 
             </div>
 
-            {/* ACTIONS */}
             <div className="flex justify-end gap-3 mt-6">
               <button
                 type="button"

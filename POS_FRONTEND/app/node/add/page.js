@@ -3,7 +3,6 @@
 import CommonAddPage from "@/app/components/CommonAddPage";
 import api from "@/app/services/api";
  
-// ✅ dropdown helper
 const dropdown = (label, name, apiUrl, extra = {}) => ({
   label,
   name,
@@ -26,12 +25,10 @@ export default function NodeAddPage() {
     <CommonAddPage
       title="Add Node"
  
-      // ✅ ADD API
       submitApi={(data) => api.post("/api/node/add", data)}
  
       redirectRoute="/node/list"
  
-      // ✅ INITIAL VALUES (important for form binding)
       initialValues={{
         identifier: "",
         path: "",
@@ -40,10 +37,9 @@ export default function NodeAddPage() {
       }}
  
       fields={[
-        // ✅ IDENTIFIER
+      
         { label: "Identifier", name: "identifier", type: "text" },
  
-        // ✅ PATH
         {
           label: "Path",
           name: "path",
@@ -51,9 +47,8 @@ export default function NodeAddPage() {
           placeholder: "Enter node path",
         },
  
-        // ✅ ROLES (multi-select)
         dropdown("Roles", "roles", "/api/role/list", {
-          multiple: true, // ✅ List<String>
+          multiple: true, 
         }),
       ]}
     />

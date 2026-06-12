@@ -7,14 +7,12 @@ export default function NodePage() {
     <CommonList
       title="Node Management"
  
-      // ✅ API URLs
       apiUrl="/api/node/list"
       method="POST"
  
       deleteApi="/api/node/delete"
       deleteParam="identifier"
  
-      // ✅ ROUTES
       editRoute="/node/edit/:identifier"
       addRoute="/node/add"
      
@@ -23,11 +21,10 @@ export default function NodePage() {
         { header: "Identifier", field: "identifier" },
         { header: "Path", field: "path" },
  
-        // ✅ Roles (List<String>)
         {
           header: "Roles",
           field: "roles",
-          render: (row) => row.roles?.join(", ") || "-", // ✅ display array
+          render: (row) => row.roles?.join(", ") || "-", 
         },
       ]}
     />

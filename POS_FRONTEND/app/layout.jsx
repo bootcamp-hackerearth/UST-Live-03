@@ -9,7 +9,6 @@ export default function RootLayout({ children }) {
   );
 }
 
-/* ✅ FIX */
 RootLayout.propTypes = {
   children: PropTypes.node.isRequired,
 };

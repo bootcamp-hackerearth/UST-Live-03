@@ -25,7 +25,6 @@ export default function NodeEditPage() {
     <CommonEditPage
       title="Edit Node"
  
-      // ✅ FETCH EXISTING NODE
       fetchApi={async (identifier) => {
         const res = await api.get("/api/node/get", {
           params: { identifier },
@@ -33,19 +32,16 @@ export default function NodeEditPage() {
         return res;
       }}
  
-      // ✅ UPDATE NODE
       updateApi={async (data) => {
         return await api.post("/api/node/update", data);
       }}
  
-      // ✅ REDIRECTION
       redirectRoute="/node/list"
  
-      // ✅ PARAM NAME
       identifierParam="identifier"
  
       fields={[
-        // ✅ IDENTIFIER
+        
         {
           label: "Identifier",
           name: "identifier",
@@ -53,7 +49,6 @@ export default function NodeEditPage() {
           readOnly: true,
         },
  
-        // ✅ PATH FIELD
         {
           label: "Path",
           name: "path",
@@ -61,7 +56,6 @@ export default function NodeEditPage() {
           placeholder: "Enter node path",
         },
  
-        // ✅ ROLES MULTISELECT
         {
           label: "Roles",
           name: "roles",

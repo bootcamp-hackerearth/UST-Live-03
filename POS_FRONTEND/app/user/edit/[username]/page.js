@@ -1,8 +1,8 @@
 "use client";
- 
+
 import CommonEditPage from "@/app/components/CommonEditPage";
 import api from "@/app/services/api";
- 
+
 const dropdown = (label, name, apiUrl, extra = {}) => ({
   label,
   name,
@@ -19,33 +19,43 @@ const dropdown = (label, name, apiUrl, extra = {}) => ({
   placeholder: `Select ${label}`,
   ...extra,
 });
- 
+
 export default function UserEditPage() {
   return (
     <CommonEditPage
       title="Edit User"
- 
-      // ✅ FETCH USER
-      fetchApi={(username) =>
-        api.get("/api/user/get", {
+
+      fetchApi={async (username) => {
+        if (!username || username === ":username") {
+          throw new Error("Invalid username in URL");
+        }
+
+        const res = await api.get("/api/user/get", {
           params: {
             username: decodeURIComponent(username),
           },
-        })
-      }
- 
-      // ✅ ✅ ✅ FIXED UPDATE
-      updateApi={(data) =>
-        api.post("/api/user/update", data, {
-          params: {
-            oldUsername: data.username, // ✅ REQUIRED
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        })
-      }
- 
+        });
+
+        return res; 
+      }}
+
+      updateApi={async (data) => {
+        return await api.post("/api/user/update", data, {
+          params: {
+            oldUsername: data.username,
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+      }}
+
       redirectRoute="/user/list"
       identifierParam="username"
- 
+
       fields={[
         {
           label: "Username",
@@ -63,7 +73,6 @@ export default function UserEditPage() {
           name: "phoneNo",
           type: "text",
         },
- 
         dropdown("Roles", "roles", "/api/role/list", {
           multiple: true,
         }),

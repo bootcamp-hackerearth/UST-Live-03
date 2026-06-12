@@ -3,7 +3,6 @@
 import CommonAddPage from "@/app/components/CommonAddPage";
 import api from "@/app/services/api";
  
-// ✅ reusable dropdown
 const dropdown = (label, name, apiUrl, extra = {}) => ({
   label,
   name,
@@ -26,16 +25,18 @@ export default function CategoryAddPage() {
     <CommonAddPage
       title="Add Category"
  
-      // ✅ API
-      submitApi={(data) => api.post("/api/category/add", data)}
+      submitApi={(data) =>
+        api.post("/api/category/add", {
+          ...data,
+          status: data.status === true || data.status === "true",
+        })
+      }
  
       redirectRoute="/category/list"
  
-      // ✅ INITIAL VALUES
       initialValues={{
         identifier: "",
         superCategory: "",
-        status: true,
       }}
  
       fields={[
@@ -45,19 +46,14 @@ export default function CategoryAddPage() {
           type: "text",
         },
  
-        // ✅ SUPER CATEGORY (self reference)
-        dropdown("Super Category", "superCategory", "/api/category/list"),
- 
-        {
-          label: "Status",
-          name: "status",
-          type: "radio",
-          options: [
-            { label: "Active", value: true },
-            { label: "Inactive", value: false },
-          ],
-        },
+        dropdown(
+          "Super Category",
+          "superCategory",
+          "/api/category/list",
+          { includeNoneOption: true }
+        ),
       ]}
     />
   );
 }
+ 

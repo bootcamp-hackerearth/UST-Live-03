@@ -7,14 +7,12 @@ export default function ProductPage() {
     <CommonList
       title="Product Management"
  
-      // ✅ API URLs (backend)
       apiUrl="/api/product/list"
       method="POST"
  
       deleteApi="/api/product/delete"
       deleteParam="identifier"
  
-      // ✅ ✅ FIXED ROUTE (frontend route)
       editRoute="/product/edit/:identifier"
  
       addRoute="/product/add"

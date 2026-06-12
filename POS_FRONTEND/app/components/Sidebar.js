@@ -19,7 +19,6 @@ const Sidebar = ({ sidebarOpen }) => {
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Icon mapping
   const iconMap = {
     dashboard: <LayoutDashboard size={20} />,
     users: <Users size={20} />,
@@ -27,7 +26,6 @@ const Sidebar = ({ sidebarOpen }) => {
     settings: <Settings size={20} />,
   };
 
-  // ✅ Fetch sidebar menu
   const fetchNodes = async () => {
     try {
       setLoading(true);
@@ -35,9 +33,10 @@ const Sidebar = ({ sidebarOpen }) => {
       setMenu(response.data || []);
     } catch (error) {
       console.error(
-        "❌ Sidebar load error:",
+        " Sidebar load error:",
         error.response?.data || error.message
       );
+      router.replace("/login");
     } finally {
       setLoading(false);
     }
@@ -47,7 +46,6 @@ const Sidebar = ({ sidebarOpen }) => {
     fetchNodes();
   }, []);
 
-  // ✅ Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
@@ -81,12 +79,10 @@ const Sidebar = ({ sidebarOpen }) => {
               : "bg-white/5 text-blue-100 hover:bg-white/20 hover:text-white"
           }`}
         >
-          {/* Icon */}
           {iconMap[item.identifier?.toLowerCase()] || (
             <LayoutDashboard size={20} />
           )}
 
-          {/* Label */}
           {sidebarOpen && (
             <span className="text-sm font-medium capitalize">
               {item.identifier?.replaceAll("_", " ")}
@@ -104,7 +100,6 @@ const Sidebar = ({ sidebarOpen }) => {
         sidebarOpen ? "w-[260px]" : "w-[80px]"
       }`}
     >
-      {/* HEADER */}
       <div className="h-[75px] flex items-center justify-center border-b border-white/10 shrink-0">
         {sidebarOpen ? (
           <h1 className="text-xl font-bold tracking-wide">
@@ -115,12 +110,10 @@ const Sidebar = ({ sidebarOpen }) => {
         )}
       </div>
 
-      {/* MENU */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {menuContent}
       </div>
 
-      {/* LOGOUT */}
       <div className="p-4 border-t border-white/10 shrink-0">
         <button
           onClick={handleLogout}

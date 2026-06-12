@@ -12,15 +12,15 @@ export default function AddRolePage() {
     {
       name: "description",
       label: "Description",
-      type: "text", // ✅ use text (since textarea not supported yet)
+      type: "text", 
     },
   ];
 
   return (
     <AddForm
       title="Add Role"
-      submitApi="/api/role/add"   // ✅ use API directly
-      redirectRoute="/role/list"      // ✅ where to go after save
+      submitApi="/api/role/add"  
+      redirectRoute="/role/list"      
       fields={fields}
       initialValues={{
         identifier: "",

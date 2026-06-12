@@ -3,7 +3,6 @@
 import CommonEditPage from "@/app/components/CommonEditPage";
 import api from "@/app/services/api";
  
-// ✅ reusable dropdown
 const dropdown = (label, name, apiUrl, extra = {}) => ({
   label,
   name,
@@ -26,14 +25,12 @@ export default function CategoryEditPage() {
     <CommonEditPage
       title="Edit Category"
  
-      // ✅ FETCH
       fetchApi={(identifier) =>
         api.get("/api/category/get", {
           params: { identifier },
         })
       }
  
-      // ✅ UPDATE
       updateApi={(data) =>
         api.post("/api/category/update", data)
       }
@@ -49,18 +46,8 @@ export default function CategoryEditPage() {
           readOnly: true,
         },
  
-        // ✅ SUPER CATEGORY
         dropdown("Super Category", "superCategory", "/api/category/list"),
  
-        {
-          label: "Status",
-          name: "status",
-          type: "radio",
-          options: [
-            { label: "Active", value: true },
-            { label: "Inactive", value: false },
-          ],
-        },
       ]}
     />
   );

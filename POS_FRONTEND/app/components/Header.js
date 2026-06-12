@@ -17,7 +17,6 @@ const Header = ({ sidebarOpen, setSidebarOpen, username }) => {
     router.replace("/login");
   };
 
-  /* ✅ Close dropdown on outside click */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
@@ -32,7 +31,6 @@ const Header = ({ sidebarOpen, setSidebarOpen, username }) => {
   return (
     <header className="h-[75px] bg-white border-b border-blue-100 flex items-center justify-between px-6 shadow-sm">
 
-      {/* ✅ LEFT: MENU BUTTON */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="
@@ -48,19 +46,16 @@ const Header = ({ sidebarOpen, setSidebarOpen, username }) => {
         <Menu size={20} />
       </button>
 
-      {/* ✅ RIGHT: PROFILE DROPDOWN */}
       <div ref={ref} className="relative">
 
         <button
           onClick={() => setOpen(!open)}
           className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 transition"
         >
-          {/* Avatar */}
           <div className="w-9 h-9 bg-gradient-to-br from-blue-700 to-blue-900 text-white rounded-full flex items-center justify-center font-semibold">
             {username?.charAt(0)?.toUpperCase() || "G"}
           </div>
 
-          {/* Name */}
           <div className="text-left">
             <div className="text-sm font-semibold text-blue-900">
               {username || "Guest"}
@@ -73,11 +68,9 @@ const Header = ({ sidebarOpen, setSidebarOpen, username }) => {
           <ChevronDown size={16} className="text-gray-500" />
         </button>
 
-        {/* ✅ DROPDOWN MENU */}
         {open && (
           <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
 
-            {/* Profile */}
             <button
               onClick={() => router.push("/profile")}
               className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
@@ -85,10 +78,8 @@ const Header = ({ sidebarOpen, setSidebarOpen, username }) => {
               <User size={16} /> Profile
             </button>
 
-            {/* Divider */}
             <div className="border-t border-gray-100"></div>
 
-            {/* Logout */}
             <button
               onClick={handleLogout}
               className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-red-500 hover:bg-red-50"
@@ -104,7 +95,6 @@ const Header = ({ sidebarOpen, setSidebarOpen, username }) => {
   );
 };
 
-/* ✅ PROP TYPES */
 Header.propTypes = {
   sidebarOpen: PropTypes.bool.isRequired,
   setSidebarOpen: PropTypes.func.isRequired,

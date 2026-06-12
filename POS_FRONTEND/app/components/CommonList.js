@@ -76,7 +76,17 @@ function CommonList({
         },
       });
 
-      setData(res.data?.dtoList || []);
+      const list = res.data?.dtoList || [];
+
+      const normalizedList = list.map((item) => ({
+        ...item,
+        status:
+          item.status === true ||
+          item.status === "ACTIVE" ||
+          item.status === 1,
+      }));
+
+      setData(normalizedList);
       setTotalRecords(res.data?.totalRecords || 0);
       setTotalPages(res.data?.totalPage || 0);
 
@@ -117,26 +127,29 @@ function CommonList({
   };
 
   const handleEdit = (row) => {
-    const value = row[deleteParam] ?? row.identifier;
-    let route = editRoute;
+  let route = editRoute;
 
-    if (route.includes(":identifier")) {
-      route = route.replace(":identifier", encodeURIComponent(value));
-    }
+  const value = row[deleteParam]; 
 
-    router.push(route);
-  };
+  if (!value) {
+    console.error("Edit value missing for:", deleteParam);
+    return;
+  }
+
+  route = route.replace(/:\w+/, encodeURIComponent(value));
+
+  router.push(route);
+};
 
   const handleToggle = async (row) => {
     const id = row[deleteParam];
 
+    const newValue = !row[toggleField];
+
     setData((prev) =>
       prev.map((item) =>
         item[deleteParam] === id
-          ? {
-              ...item,
-              [toggleField]: !item[toggleField],
-            }
+          ? { ...item, [toggleField]: newValue }
           : item
       )
     );
@@ -149,7 +162,8 @@ function CommonList({
       });
 
       triggerToast("Status updated");
-    } catch {
+    } catch (err) {
+      console.log(err);
       triggerToast("Toggle failed");
       fetchData();
     }
@@ -161,35 +175,28 @@ function CommonList({
     <Layout>
       <div className="space-y-6">
 
-        {/* ✅ TOAST */}
         {toast.visible && (
           <div className="fixed top-4 right-4 bg-gradient-to-r from-blue-800 to-blue-600 text-white px-4 py-2 rounded-lg shadow-md text-sm">
             {toast.message}
           </div>
         )}
 
-        {/* ✅ HEADER */}
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-blue-900">
-              {title}
-            </h2>
-            <p className="text-sm text-gray-500">
-              Manage your records
-            </p>
+            <h2 className="text-2xl font-bold text-blue-900">{title}</h2>
+            <p className="text-sm text-gray-500">Manage your records</p>
           </div>
 
           {addRoute && (
             <button
               onClick={() => router.push(addRoute)}
-              className="bg-gradient-to-r from-blue-700 to-blue-900 hover:from-blue-800 hover:to-blue-950 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow"
+              className="bg-gradient-to-r from-blue-700 to-blue-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow"
             >
               <Plus size={16} /> Add
             </button>
           )}
         </div>
 
-        {/* ✅ SEARCH */}
         <div className="bg-white border border-blue-50 p-4 rounded-xl shadow-sm flex justify-between items-center">
           <input
             className="border border-blue-100 rounded-lg px-3 py-2 text-sm w-full max-w-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -202,7 +209,6 @@ function CommonList({
           </span>
         </div>
 
-        {/* ✅ TABLE */}
         <div className="bg-white rounded-2xl shadow-sm border border-blue-50 overflow-hidden">
 
           {loading && (
@@ -229,43 +235,43 @@ function CommonList({
                   row[deleteParam] ?? row.identifier ?? JSON.stringify(row);
 
                 return (
-                  <tr
-                    key={rowKey}
-                    className="border-t hover:bg-blue-50 transition"
-                  >
-                    {columns.map((c) => (
-                      <td key={`${rowKey}-${c.field}`} className="p-3">
+                  <tr key={rowKey} className="border-t hover:bg-blue-50">
 
-                        {c.field === toggleField && showStatus ? (
-                          <button
-                            onClick={() => handleToggle(row)}
-                            className={`w-11 h-6 flex items-center rounded-full p-1 ${
-                              row[toggleField]
-                                ? "bg-green-500"
-                                : "bg-gray-300"
-                            }`}
-                          >
-                            <span
-                              className={`w-4 h-4 bg-white rounded-full shadow transform ${
-                                row[toggleField]
-                                  ? "translate-x-5"
-                                  : ""
+                    {columns.map((c) => {
+                      const value = row[c.field];
+
+                      const isActive = value === true;
+
+                      return (
+                        <td key={`${rowKey}-${c.field}`} className="p-3">
+
+                          {c.field === toggleField && showStatus ? (
+                            <button
+                              onClick={() => handleToggle(row)}
+                              className={`w-11 h-6 flex items-center rounded-full p-1 ${
+                                isActive ? "bg-green-500" : "bg-gray-300"
                               }`}
-                            />
-                          </button>
-                        ) : (
-                          row[c.field]
-                        )}
+                            >
+                              <span
+                                className={`w-4 h-4 bg-white rounded-full shadow transform ${
+                                  isActive ? "translate-x-5" : ""
+                                }`}
+                              />
+                            </button>
+                          ) : (
+                            value
+                          )}
 
-                      </td>
-                    ))}
+                        </td>
+                      );
+                    })}
 
                     <td className="p-3 text-center flex justify-center gap-3">
-                      <button className="text-blue-700 hover:text-blue-900" onClick={() => handleEdit(row)}>
+                      <button onClick={() => handleEdit(row)}>
                         <Pencil size={16} />
                       </button>
 
-                      <button className="text-red-500 hover:text-red-700" onClick={() => handleDelete(row)}>
+                      <button onClick={() => handleDelete(row)}>
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -277,10 +283,8 @@ function CommonList({
           </table>
         </div>
 
-        {/* ✅ PAGINATION */}
         {totalPages > 0 && search.trim() === "" && (
           <div className="bg-white border border-blue-50 rounded-xl p-4 flex justify-between items-center shadow-sm">
-
             <div className="text-sm text-gray-600">
               Page <b>{pagination.page + 1}</b> of <b>{totalPages}</b>
             </div>
@@ -302,7 +306,6 @@ function CommonList({
                 </button>
               ))}
             </div>
-
           </div>
         )}
       </div>
@@ -315,7 +318,14 @@ CommonList.propTypes = {
   apiUrl: PropTypes.string.isRequired,
   method: PropTypes.string,
   payload: PropTypes.object,
-  columns: PropTypes.array.isRequired,
+
+  columns: PropTypes.arrayOf(
+    PropTypes.shape({
+      header: PropTypes.string,
+      field: PropTypes.string.isRequired,
+      render: PropTypes.func,
+    })
+  ).isRequired,
 
   deleteApi: PropTypes.string,
   deleteParam: PropTypes.string,
@@ -324,7 +334,6 @@ CommonList.propTypes = {
   addRoute: PropTypes.string,
 
   showStatus: PropTypes.bool,
-
   toggleApi: PropTypes.string,
   toggleParam: PropTypes.string,
   toggleField: PropTypes.string,
@@ -332,8 +341,8 @@ CommonList.propTypes = {
 
   sortField: PropTypes.string,
   sortOrder: PropTypes.string,
-
   itemsPerPage: PropTypes.number,
 };
+
 
 export default CommonList;

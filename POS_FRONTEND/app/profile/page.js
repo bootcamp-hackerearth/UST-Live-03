@@ -1,52 +1,52 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import PropTypes from "prop-types";
+import { useRouter } from "next/navigation";
 
 export default function Profile() {
   const router = useRouter();
 
-  const [user, setUser] = useState({
-    id: "",
+  const [roles, setRoles] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+
+  const [formData, setFormData] = useState({
     name: "",
     username: "",
     phoneNo: "",
     roles: [],
   });
 
-  const [originalUser, setOriginalUser] = useState(null);
-  const [allRoles, setAllRoles] = useState([]);
-
-  const [editMode, setEditMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [originalData, setOriginalData] = useState(null);
 
   const [token, setToken] = useState(null);
   const [loggedUsername, setLoggedUsername] = useState(null);
 
-  /* ✅ LOAD TOKEN */
   useEffect(() => {
     const t = localStorage.getItem("token");
     const u = localStorage.getItem("username");
 
-    if (t && u) {
-      setToken(t);
-      setLoggedUsername(u);
-    } else {
+    if (!t || !u) {
       router.push("/login");
+      return;
     }
+
+    setToken(t);
+    setLoggedUsername(u);
   }, []);
 
-  /* ✅ LOAD DATA */
   useEffect(() => {
     if (token && loggedUsername) {
       fetchProfile();
-      fetchRoles();
     }
   }, [token, loggedUsername]);
 
-  /* ✅ FETCH PROFILE */
+  useEffect(() => {
+    if (editMode) {
+      fetchRoles();
+    }
+  }, [editMode]);
+
   const fetchProfile = async () => {
     try {
       const res = await axios.get(
@@ -59,69 +59,52 @@ export default function Profile() {
 
       const data = res.data;
 
-      const normalizedRoles =
+      const roleList =
         data.roles?.map((r) =>
-          typeof r === "string" ? r : r?.identifier
-        ).filter(Boolean) || [];
+          typeof r === "string" ? r : r.identifier
+        ) || [];
 
-      const normalized = {
-        ...data,
-        roles: normalizedRoles,
-      };
+      const normalized = { ...data, roles: roleList };
 
-      setUser(normalized);
-      setOriginalUser(normalized);
+      setFormData(normalized);
+      setOriginalData(normalized);
     } catch (err) {
-      handleAuthError(err);
+      console.log(err);
     }
   };
 
-  /* ✅ FETCH ROLES */
   const fetchRoles = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:8080/api/role/findallactive",
+      const res = await axios.post(
+        "http://localhost:8080/api/role/list",
         {
-          headers: { Authorization: `Bearer ${token}` },
+          page: 0,
+          sizePerPage: 50,
+          sortDirection: "ASC",
+          sortField: "identifier",
         }
       );
 
-      // ✅ normalize role response
-      const roles =
-        res.data?.map((r) => ({
-          identifier: r.identifier || r.name || r,
-        })) || [];
-
-      setAllRoles(roles);
+      setRoles(res.data?.dtoList || []);
     } catch (err) {
-      handleAuthError(err);
+      console.log(err);
+      setRoles([]);
     }
   };
 
-  const handleAuthError = (err) => {
-    if (err.response?.status === 403) {
-      alert("Session expired ❌");
-      localStorage.clear();
-      router.push("/login");
-    } else {
-      setError("Something went wrong");
-    }
-  };
-
-  /* ✅ INPUT CHANGE */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser((prev) => ({
+
+    setFormData((prev) => ({
       ...prev,
-      value,
+      [name]: value,
     }));
   };
 
-  /* ✅ ROLE CHANGE */
   const handleRoleChange = (e) => {
     const { value, checked } = e.target;
 
-    setUser((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       roles: checked
         ? [...prev.roles, value]
@@ -129,127 +112,128 @@ export default function Profile() {
     }));
   };
 
-  /* ✅ UPDATE */
   const handleUpdate = async () => {
     try {
-      setLoading(true);
-
       await axios.post(
         "http://localhost:8080/api/user/update",
-        user,
+        formData,
         {
-          params: { oldUsername: originalUser.username },
+          params: { oldUsername: originalData.username },
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      alert("Profile updated ✅");
-      localStorage.setItem("username", user.username);
-
-      setEditMode(false);
-      router.push("/home");
+      alert("Profile updated ");
+      router.push("/home"); 
     } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
+      console.log(err);
     }
   };
 
-  /* ✅ CANCEL */
   const handleCancel = () => {
-    setUser(originalUser);
+    setFormData(originalData);
     setEditMode(false);
   };
 
-  /* ✅ LOGOUT */
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/login");
-  };
-
   return (
-    <div className="p-6">
-      <div className="max-w-xl mx-auto bg-white rounded-2xl shadow border">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-6">
 
-        {/* HEADER */}
-        <div className="p-6 border-b flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-blue-700 text-white flex items-center justify-center text-lg font-bold">
-            {user.name?.charAt(0)?.toUpperCase()}
-          </div>
+      <div className="w-full max-w-md bg-gradient-to-br from-[#020617] via-[#020c2f] to-[#0a1f66] border border-white/10 shadow-2xl rounded-2xl text-white">
 
-          <div>
-            <h2 className="text-lg font-semibold">{user.name}</h2>
-            <p className="text-gray-500 text-sm">{user.username}</p>
-          </div>
+        <div className="text-center p-6 border-b border-white/10">
+          <h2 className="text-2xl font-bold">Profile</h2>
+          <p className="text-blue-100 text-sm mt-1">
+            View / Edit your details
+          </p>
         </div>
 
-        {/* CONTENT */}
         <div className="p-6 space-y-4">
 
-          {error && <p className="text-red-500">{error}</p>}
+          <input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            disabled={!editMode}
+            placeholder="Full Name"
+            className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+          />
 
-          {/* ✅ VERTICAL INPUTS */}
-          <Input label="Name" name="name" value={user.name} onChange={handleChange} disabled={!editMode} />
-          <Input label="Email" name="username" value={user.username} onChange={handleChange} disabled={!editMode} />
-          <Input label="Phone" name="phoneNo" value={user.phoneNo} onChange={handleChange} disabled={!editMode} />
+          <input
+            name="username"
+            value={formData.username}
+            disabled
+            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/20 text-gray-300 cursor-not-allowed"
+          />
 
-          {/* ✅ ROLES */}
+          <input
+            name="phoneNo"
+            value={formData.phoneNo}
+            onChange={handleChange}
+            disabled={!editMode}
+            placeholder="Phone Number"
+            className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+          />
+
           <div>
-            <p className="text-sm font-medium mb-2">Roles</p>
+            <p className="text-xs text-blue-200 mb-2 uppercase">
+              Roles
+            </p>
 
             {editMode ? (
-              <div className="flex flex-col gap-2">
-                {allRoles.length === 0 && (
-                  <p className="text-gray-400 text-sm">No roles available</p>
-                )}
-
-                {allRoles.map((role) => {
-                  const identifier = role.identifier;
-                  const isActive = user.roles.includes(identifier);
+              <div className="flex flex-wrap gap-2">
+                {roles.map((role) => {
+                  const active = formData.roles.includes(role.identifier);
 
                   return (
                     <label
-                      key={identifier}
-                      className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer
-                        ${isActive ? "bg-blue-600 text-white" : "bg-gray-100"}`}
+                      key={role.identifier}
+                      className={`px-3 py-1.5 text-sm rounded-lg cursor-pointer border
+                        ${
+                          active
+                            ? "bg-white text-blue-900 border-white"
+                            : "bg-white/10 text-blue-100 border-white/20"
+                        }`}
                     >
                       <input
                         type="checkbox"
-                        value={identifier}
-                        checked={isActive}
+                        value={role.identifier}
+                        checked={active}
                         onChange={handleRoleChange}
+                        className="hidden"
                       />
-                      {identifier}
+                      {role.identifier}
                     </label>
                   );
                 })}
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
-                {user.roles.map((r) => (
-                  <span key={r} className="bg-blue-50 px-3 py-1 rounded">
-                    {r}
+              <div className="flex flex-wrap gap-2">
+                {formData.roles.map((role) => (
+                  <span
+                    key={role}
+                    className="px-3 py-1 text-sm rounded-lg bg-white text-blue-900"
+                  >
+                    {role}
                   </span>
                 ))}
               </div>
             )}
           </div>
 
-          {/* ✅ ACTIONS */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col gap-2 pt-3">
+
             {editMode ? (
               <>
                 <button
                   onClick={handleUpdate}
-                  disabled={loading}
-                  className="bg-blue-700 text-white px-4 py-2 rounded"
+                  className="w-full py-2.5 rounded-lg bg-white text-blue-900 font-semibold"
                 >
-                  {loading ? "Saving..." : "Save"}
+                  Save
                 </button>
 
                 <button
                   onClick={handleCancel}
-                  className="border px-4 py-2 rounded"
+                  className="w-full border border-white/20 py-2.5 rounded-lg text-blue-100"
                 >
                   Cancel
                 </button>
@@ -257,46 +241,26 @@ export default function Profile() {
             ) : (
               <button
                 onClick={() => setEditMode(true)}
-                className="bg-blue-700 text-white px-4 py-2 rounded"
+                className="w-full py-2.5 rounded-lg bg-white text-blue-900 font-semibold"
               >
                 Edit Profile
               </button>
             )}
 
             <button
-              onClick={handleLogout}
-              className="border px-4 py-2 rounded"
+              onClick={() => {
+                localStorage.clear();
+                router.push("/login");
+              }}
+              className="w-full border border-white/20 py-2.5 rounded-lg text-red-300"
             >
               Logout
             </button>
+
           </div>
+
         </div>
       </div>
     </div>
   );
 }
-
-/* ✅ INPUT */
-function Input({ label, name, value, onChange, disabled }) {
-  return (
-    <div>
-      <label className="text-sm text-gray-600">{label}</label>
-
-      <input
-        name={name}
-        value={value || ""}
-        onChange={onChange}
-        disabled={disabled}
-        className="w-full mt-1 px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600"
-      />
-    </div>
-  );
-}
-
-Input.propTypes = {
-  label: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  value: PropTypes.any,
-  onChange: PropTypes.func.isRequired,
-  disabled: PropTypes.bool,
-};
