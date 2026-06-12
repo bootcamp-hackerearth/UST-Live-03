@@ -1,5 +1,4 @@
 package com.ust.pos.warehouse;
-
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WareHouseDto;
@@ -67,5 +66,5 @@ public class WareHouseController extends BaseController {
         wareHouseService.toggleStatus(identifier);
         return REDIRECT_WAREHOUSE_LIST;
     }
-
+    
 }

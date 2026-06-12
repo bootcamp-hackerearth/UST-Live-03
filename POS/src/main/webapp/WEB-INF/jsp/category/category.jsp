@@ -130,7 +130,7 @@
             <label>Super Category</label>
             <form:select path="supercategory" required="true">
                 <form:option value="">-- Select Super Category --</form:option>
-                <form:options items="${category}"
+                <form:options items="${categories}"
                               itemValue="identifier"
                               itemLabel="identifier"/>
             </form:select>

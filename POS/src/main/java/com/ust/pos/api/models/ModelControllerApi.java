@@ -1,7 +1,7 @@
 package com.ust.pos.api.models;
-
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.models.service.ModelService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("api/model")
 public class ModelControllerApi extends BaseController {
@@ -17,8 +18,8 @@ public class ModelControllerApi extends BaseController {
     private ModelService modelService;
 
     @PostMapping("/list")
-    public List<ModelDto> model(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+    public PageDto<ModelDto> model(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
         return modelService.findAll(pageable);
     }
 
@@ -28,7 +29,7 @@ public class ModelControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
-    public ModelDto addPost(@RequestBody ModelDto modelDto) {
+    public ModelDto addPost(@RequestBody  ModelDto modelDto) {
         return modelService.save(modelDto);
 
     }
@@ -43,7 +44,8 @@ public class ModelControllerApi extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.delete(identifier);
-        } catch (Exception e) {
+        }
+        catch(Exception e){
             return false;
         }
         return true;
@@ -53,5 +55,10 @@ public class ModelControllerApi extends BaseController {
     @GetMapping("/toggleStatus")
     public void toggleStatus(@RequestParam String identifier) {
         modelService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/findByStatus")
+    public List<ModelDto> findByStatus() {
+        return modelService.findActiveModels();
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/category")
 public class CategoryController extends BaseController {
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
+    public static final String CATEGORIES = "categories";
     public static final String CATEGORY = "category";
     @Autowired
     private CategoryService categoryService;
@@ -27,8 +28,6 @@ public class CategoryController extends BaseController {
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute CategoryDto categoryDto) {
-        PaginationDto paginationDto = new PaginationDto();
-        model.addAttribute(CATEGORY, categoryService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "category/add";
     }
 

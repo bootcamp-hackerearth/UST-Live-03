@@ -112,38 +112,45 @@
         </div>
 
          <div class="form-group">
-           <label for="productname">Product Name</label>
-           <form:select path="productname" id="productname" required="true">
-           <form:option value="" label="-- Select productname --"/>
-            <c:forEach var="wh" items="${products}">
-            <form:option value="${wh.name}">
-             ${wh.name}
-             </form:option>
-             </c:forEach>
-             </form:select>
-           </div>
+                           <label for="productname">Product Name</label>
+                           <form:select path="productname" id="productname" required="true">
+                               <form:option value="" label="-- Select productname --"/>
 
-          <div class="form-group">
+                               <c:forEach var="wh" items="${products}">
+                                   <form:option value="${wh.productname}">
+                                       ${wh.productname}
+                                   </form:option>
+                               </c:forEach>
+
+                           </form:select>
+                       </div>
+
+ <div class="form-group">
             <label for="warehouse">Warehouse</label>
             <form:select path="warehouse" id="warehouse" required="true">
                 <form:option value="" label="-- Select Warehouse --"/>
+
                 <c:forEach var="wh" items="${warehouses}">
                     <form:option value="${wh.identifier}">
                         ${wh.identifier}
                     </form:option>
                 </c:forEach>
+
             </form:select>
         </div>
 
         <div class="form-group">
             <label for="quantity">Quantity</label>
-            <form:input path="quantity" id="quantity"  type="number" min="1" required="true"/>
+            <form:input path="quantity" id="quantity"
+                        type="number" min="1" required="true"/>
         </div>
 
         <div class="form-group">
             <label for="price">Price</label>
-            <form:input path="price" id="price" type="number" step="0.01" min="0.01" required="true"/>
+            <form:input path="price" id="price"
+                        type="number" step="0.01" min="0.01" required="true"/>
         </div>
+
 
     <div class="form-group">
     <label for="status">Status</label>
@@ -152,9 +159,10 @@
         <form:option value="true">Available</form:option>
         <form:option value="false">Out of Stock</form:option>
     </form:select>
-    </div>
+</div>
 
-     <div class="btn-group">
+
+        <div class="btn-group">
             <button type="submit" class="btn save-btn">Save</button>
             <a href="${pageContext.request.contextPath}/stock/list"
                class="btn cancel-btn">Cancel</a>

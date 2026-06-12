@@ -207,17 +207,17 @@
                         <td>${s.quantity}</td>
                         <td class="price">${s.price}</td>
                                <td>
-                                <form method="get"
-                                 action="${pageContext.request.contextPath}/stock/toggleStatus">
-                                 <input type="hidden" name="identifier" value="${s.identifier}"/>
+                                        <form method="get"
+                                              action="${pageContext.request.contextPath}/stock/toggleStatus">
+                                            <input type="hidden" name="identifier" value="${s.identifier}"/>
 
-                                  <label class="toggle-switch">
-                                  <input type="checkbox"
-                                   name="status"
-                                   onchange="this.form.submit()"
-                                    <c:if test="${s.status}">checked</c:if>>
-                                    <span class="slider"></span>
-                                     </label>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox"
+                                                       name="status"
+                                                       onchange="this.form.submit()"
+                                                       <c:if test="${s.status}">checked</c:if>>
+                                                <span class="slider"></span>
+                                            </label>
                                         </form>
                                     </td>
                         <td>

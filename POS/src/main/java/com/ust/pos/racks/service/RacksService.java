@@ -1,20 +1,19 @@
 package com.ust.pos.racks.service;
-
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.RacksDto;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 
 public interface RacksService {
-    RacksDto save(RacksDto racksDto);
+   RacksDto save(RacksDto racksDto);
 
-    RacksDto update(RacksDto racksDto);
+   RacksDto update(RacksDto racksDto);
 
-    boolean delete(String identifier);
+   boolean delete(String identifier);
 
-    List<RacksDto> findAll(Pageable pageable);
+   PageDto<RacksDto> findAll(Pageable pageable);
 
-    RacksDto findByIdentifier(String identifier);
+   RacksDto findByIdentifier(String identifier);
 
     void toggleStatus(String identifier);
 }

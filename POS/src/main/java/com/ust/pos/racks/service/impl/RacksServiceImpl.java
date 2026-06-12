@@ -1,5 +1,5 @@
 package com.ust.pos.racks.service.impl;
-
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
@@ -10,11 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Type;
 import java.util.List;
-
 @Service
 public class RacksServiceImpl implements RacksService {
     @Autowired
@@ -50,7 +48,6 @@ public class RacksServiceImpl implements RacksService {
         return racksDto;
     }
 
-    @Transactional
     @Override
     public boolean delete(String identifier) {
         racksRepository.deleteByIdentifier(identifier);
@@ -58,11 +55,17 @@ public class RacksServiceImpl implements RacksService {
     }
 
     @Override
-    public List<RacksDto> findAll(Pageable pageable) {
+    public PageDto<RacksDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
         Page<Racks> racksPage = racksRepository.findAll(pageable);
-        return modelMapper.map(racksPage.getContent(), listType);
+        PageDto<RacksDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(racksPage.getContent(), listType));
+        pageDto.setTotalRecords(racksPage.getTotalElements());
+        pageDto.setTotalPages(racksPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        return pageDto;
     }
 
     @Override

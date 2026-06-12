@@ -23,8 +23,7 @@ import javax.sql.DataSource;
                 @Server(url = "/", description = "Default Server URL")
         }
 )
-@ComponentScan({"com.ust.pos.api", "com.ust.pos.web.controller", "com.ust.pos"})
-public class PosApplication {
+@ComponentScan({"com.ust.pos.api", "com.ust.pos.web.controller", "com.ust.pos"})public class PosApplication {
     @Autowired
     Environment environment;
 
@@ -56,7 +55,6 @@ public class PosApplication {
         ds.setDriverClassName(environment.getProperty("spring.datasource.driver-class-name"));
         return ds;
     }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

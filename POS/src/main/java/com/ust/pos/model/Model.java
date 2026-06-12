@@ -7,5 +7,5 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Model extends CommonFields {
+public class Model extends CommonFields{
 }

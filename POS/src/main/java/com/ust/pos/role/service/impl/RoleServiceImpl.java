@@ -1,5 +1,6 @@
 package com.ust.pos.role.service.impl;
 
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
@@ -40,6 +41,12 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public List<RoleDto> findActiveRoles() {
+        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+        return modelMapper.map(roleRepository.findByStatusTrue(),listType);
+    }
+
+    @Override
     public RoleDto save(RoleDto roleDto) {
         String identifier = roleDto.getIdentifier();
         Role existingRole = roleRepository.findByIdentifier(identifier);
@@ -74,10 +81,16 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleDto> findAll(Pageable pageable) {
+    public PageDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         Page<Role> rolePage = roleRepository.findAll(pageable);
-        return modelMapper.map(rolePage.getContent(), listType);
+        PageDto<RoleDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+        pageDto.setTotalRecords(rolePage.getTotalElements());
+        pageDto.setTotalPages(rolePage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        return pageDto;
     }
 }

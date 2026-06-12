@@ -1,6 +1,6 @@
 package com.ust.pos.api.stock;
-
 import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("api/stock")
@@ -25,11 +24,10 @@ public class StockControllerApi extends BaseController {
     private ProductService productService;
 
     @PostMapping("/list")
-    public List<StockDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+    public PageDto<StockDto> home(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
         return stockService.findAll(pageable);
     }
-
 
     @PostMapping("/add")
     public StockDto addPost(@RequestBody StockDto stockDto) {
@@ -44,7 +42,7 @@ public class StockControllerApi extends BaseController {
 
     @PostMapping("/update")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
-        return stockService.update(stockDto);
+         return stockService.update(stockDto);
 
     }
 
@@ -52,7 +50,8 @@ public class StockControllerApi extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             stockService.delete(identifier);
-        } catch (Exception e) {
+        }
+        catch(Exception e){
             return false;
         }
         return true;

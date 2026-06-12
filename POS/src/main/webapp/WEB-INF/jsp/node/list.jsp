@@ -143,6 +143,7 @@
 <div class="container">
     <div class="card p-4">
 
+        <!-- Header -->
         <div class="header">
             <h2>Node Management</h2>
 

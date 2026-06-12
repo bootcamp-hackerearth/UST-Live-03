@@ -1,20 +1,26 @@
 package com.ust.pos.category.service;
 
 import com.ust.pos.dto.CategoryDto;
+
+import com.ust.pos.dto.PageDto;
 import org.springframework.data.domain.Pageable;
+
 
 import java.util.List;
 
 public interface CategoryService {
-    CategoryDto save(CategoryDto categoryDto);
+   CategoryDto save(CategoryDto  categoryDto);
 
-    CategoryDto update(CategoryDto categoryDto);
+   CategoryDto update(CategoryDto  categoryDto);
 
     boolean delete(String identifier);
 
-    List<CategoryDto> findAll(Pageable pageable);
+    PageDto<CategoryDto> findAll(Pageable pageable);
 
-    CategoryDto findByIdentifier(String identifier);
+   CategoryDto findByIdentifier(String identifier);
 
-    List<CategoryDto> findBySubCategory();
+   List<CategoryDto> findBySubCategory();
+
+    void toggleStatus(String identifier);
+    List<CategoryDto> findActiveCategories();
 }

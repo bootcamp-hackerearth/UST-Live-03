@@ -1,5 +1,4 @@
 package com.ust.pos.api;
-
 import com.ust.pos.config.JWTUtility;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.UserRepository;

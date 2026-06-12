@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -14,14 +15,12 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
-
 @Service
 public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
     private ModelMapper modelMapper;
-
     @Override
     public ProductDto save(ProductDto productDto) {
         String identifier = productDto.getIdentifier();
@@ -38,11 +37,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto update(ProductDto productDto) {
-        String identifier = productDto.getIdentifier();
+        String identifier =productDto.getIdentifier();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct == null) {
-            productDto.setMessage("Product with identifier - " + identifier + " not found");
-            productDto.setSuccess(false);
+           productDto.setMessage("Product with identifier - " + identifier + " not found");
+           productDto.setSuccess(false);
             return productDto;
         }
         modelMapper.map(productDto, existingProduct);
@@ -58,11 +57,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
+    public PageDto<ProductDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
         Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listType);
+        PageDto<ProductDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
+        pageDto.setTotalRecords(productPage.getTotalElements());
+        pageDto.setTotalPages(productPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        return pageDto;
     }
 
     @Override
@@ -79,5 +84,11 @@ public class ProductServiceImpl implements ProductService {
 
             productRepository.save(product);
         }
+    }
+
+    @Override
+    public List<ProductDto> findActiveProducts() {
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+        return modelMapper.map(productRepository.findByStatusTrue(),listType);
     }
 }

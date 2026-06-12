@@ -1,10 +1,9 @@
 package com.ust.pos.node.service.impl;
 
+
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.dto.PageDto;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -14,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -33,35 +31,60 @@ public class NodeServiceImpl implements NodeService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Override
     public List<NodeDto> getNodesForRoles() {
-        List<NodeDto> nodeDtos = new ArrayList<>();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            if (principalObject != null) findNodes(principalObject, nodeDtos);
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ArrayList<>();
         }
-        return nodeDtos;
-    }
+        Object principalObject = authentication.getPrincipal();
 
-    private void findNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
-        User currentUser = userRepository.findByUsername(principalObject.getUsername());
-        Set<String> nodesStr = new HashSet<>();
+        if (!(principalObject instanceof org.springframework.security.core.userdetails.User)) {
+            return new ArrayList<>();
+        }
+        org.springframework.security.core.userdetails.User principal =
+                (org.springframework.security.core.userdetails.User) principalObject;
+
+        User currentUser =
+                userRepository.findByUsername(principal.getUsername());
+        Set<Node> allowedNodes = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
-                if (node.getRoles() != null && node.getRoles().contains(role)) {
-                    nodesStr.add(node.getIdentifier());
+                if (node.getRoles().contains(role)) {
+                    allowedNodes.add(node);
                 }
             }
         }
-        for (String nodeStr : nodesStr) {
-            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
+
+        List<NodeDto> nodeDtos = new ArrayList<>();
+        for (Node node : allowedNodes) {
+            nodeDtos.add(modelMapper.map(node, NodeDto.class));
+        }
+
+        return nodeDtos;
+    }
+    @Override
+    public NodeDto findByIdentifier(String identifier) {
+        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+    }
+
+    @Override
+    public void toggleStatus(String identifier) {
+        Node node= nodeRepository.findByIdentifier(identifier);
+        if (node != null) {
+            boolean currentStatus = Boolean.TRUE.equals(node.getStatus());
+            node.setStatus(!currentStatus);
+
+            nodeRepository.save(node);
         }
     }
 
     @Override
-    public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+    public List<NodeDto> findActiveNodes() {
+        Type listType = new TypeToken<List<NodeDto>>() {}.getType();
+        return modelMapper.map(nodeRepository.findByStatusTrue(),listType);
     }
 
     @Override
@@ -92,7 +115,6 @@ public class NodeServiceImpl implements NodeService {
         return nodeDto;
     }
 
-    @Transactional
     @Override
     public boolean delete(String identifier) {
         nodeRepository.deleteByIdentifier(identifier);
@@ -100,10 +122,16 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public PageDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+        PageDto<NodeDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        pageDto.setTotalRecords(nodePage.getTotalElements());
+        pageDto.setTotalPages(nodePage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        return pageDto;
     }
 }

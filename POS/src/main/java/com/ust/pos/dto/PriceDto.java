@@ -3,9 +3,12 @@ package com.ust.pos.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 public class PriceDto extends CommonDto {
-    private int costprice;
-    private int sellingprice;
+    private BigDecimal costprice;
+    private BigDecimal sellingprice;
+    private BigDecimal mrpprice;
 }

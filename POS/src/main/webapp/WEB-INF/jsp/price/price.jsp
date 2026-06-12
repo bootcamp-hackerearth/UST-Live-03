@@ -38,7 +38,7 @@
             display: block;
         }
 
-        input, select {
+        input {
             width: 100%;
             padding: 10px;
             margin-top: 6px;
@@ -60,11 +60,6 @@
             font-weight: 600;
             border-radius: 25px;
             font-size: 1rem;
-            cursor: pointer;
-        }
-
-        button:hover {
-            opacity: 0.95;
         }
 
         .back-link {
@@ -92,20 +87,15 @@
 
     <form action="${pageContext.request.contextPath}/price/update" method="post">
 
-        <label> Identifier</label>
-        <select name="identifier" required>
-            <option value="">-- Select --</option>
-
-            <c:forEach var="product" items="${products}">
-                <option value="${product.identifier}"
-                    ${product.identifier == price.identifier ? 'selected' : ''}>
-                    ${product.identifier}
-                </option>
-            </c:forEach>
-        </select>
+        <label>Identifier</label>
+        <input type="text"
+               name="identifier"
+               value="${price.identifier}"
+               readonly />
 
         <label>Cost Price (₹)</label>
         <input type="number"
+               step="0.01"
                name="costprice"
                value="${price.costprice}"
                min="0"
@@ -113,8 +103,17 @@
 
         <label>Selling Price (₹)</label>
         <input type="number"
+               step="0.01"
                name="sellingprice"
                value="${price.sellingprice}"
+               min="0"
+               required />
+
+        <label>MRP Price (₹)</label>
+        <input type="number"
+               step="0.01"
+               name="mrpprice"
+               value="${price.mrpprice}"
                min="0"
                required />
 

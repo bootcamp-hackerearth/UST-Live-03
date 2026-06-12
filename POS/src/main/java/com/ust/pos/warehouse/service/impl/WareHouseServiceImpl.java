@@ -1,5 +1,6 @@
 package com.ust.pos.warehouse.service.impl;
 
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
-
 @Service
 public class WareHouseServiceImpl implements WareHouseService {
     @Autowired
@@ -59,11 +59,17 @@ public class WareHouseServiceImpl implements WareHouseService {
     }
 
     @Override
-    public List<WareHouseDto> findAll(Pageable pageable) {
+    public PageDto<WareHouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WareHouseDto>>() {
         }.getType();
         Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+        PageDto<WareHouseDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
+        pageDto.setTotalRecords(warehousePage.getTotalElements());
+        pageDto.setTotalPages(warehousePage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        return pageDto;
     }
 
     @Override

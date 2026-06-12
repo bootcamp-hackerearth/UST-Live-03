@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -166,19 +168,32 @@ class RacksServiceTest {
         racksDto.setIdentifier("Rack1");
 
         Pageable pageable = PageRequest.of(0, 10);
+
         Page<Racks> racksPage =
                 new PageImpl<>(List.of(racks), pageable, 1);
 
         Mockito.when(racksRepository.findAll(pageable))
                 .thenReturn(racksPage);
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(racksPage.getContent()),
-                Mockito.any(Type.class)
-        )).thenReturn(List.of(racksDto));
+        Type listType = new TypeToken<List<RacksDto>>() {
+        }.getType();
 
-        List<RacksDto> response = racksService.findAll(pageable);
+        Mockito.when(modelMapper.map(Mockito.eq(racksPage.getContent()), Mockito.eq(listType))).thenReturn(List.of(racksDto));
 
-        Assertions.assertEquals(1, response.size());
+        PageDto<RacksDto> response = racksService.findAll(pageable);
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(1, response.getDtoList().size());
+
+        Assertions.assertEquals("Rack1", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+
+        Assertions.assertEquals(1, response.getTotalPages());
+
+        Assertions.assertEquals(10, response.getSizePerPage());
+
+        Assertions.assertEquals(0, response.getPage());
     }
 }

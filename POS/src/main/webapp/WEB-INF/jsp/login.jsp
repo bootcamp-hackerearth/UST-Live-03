@@ -1,17 +1,16 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
+
     <style>
         body {
             margin: 0;
             height: 100vh;
             font-family: 'Segoe UI', sans-serif;
 
+            /* DARK BACKGROUND */
             background: linear-gradient(135deg, #232526, #414345);
 
             display: flex;
@@ -74,6 +73,7 @@
             box-shadow: 0 0 5px #4facfe;
         }
 
+        /* 🔵 UPDATED SIGN IN BUTTON */
         button {
             width: 100%;
             padding: 12px;
@@ -94,6 +94,7 @@
             opacity: 0.9;
         }
 
+        /* 🔗 UPDATED LINK COLOR */
         .register-link {
             text-align: center;
             margin-top: 15px;
@@ -118,34 +119,12 @@
         }
     </style>
 </head>
+
 <body>
 
-<form action="${pageContext.request.contextPath}/login" method="post">
+<form th:action="@{/login}" method="post">
     <h2>Sign in</h2>
-        <c:if test="${param.error != null}">
-            <div style="
-                margin-top:15px;
-                padding:10px;
-                background:#ffe5e0;
-                color:#b91c1c;
-                border-radius:8px;
-                text-align:center;
-                font-size:14px;">
-                Invalid username or password
-            </div>
-        </c:if>
-        <c:if test="${param.logout != null}">
-            <div style="
-                margin-top:15px;
-                padding:10px;
-                background:#e6fffa;
-                color:#065f46;
-                border-radius:8px;
-                text-align:center;
-                font-size:14px;">
-                Logged out successfully
-            </div>
-        </c:if>
+
     <div>
         <label>Username</label>
         <input type="text" name="username" required />
@@ -160,11 +139,10 @@
 
     <div class="register-link">
         <p>New to the site?</p>
-        <a href="${pageContext.request.contextPath}/register">
-            Create your account
-        </a>
+        <a href="${pageContext.request.contextPath}/register">Create your account</a>
     </div>
 
 </form>
+
 </body>
 </html>

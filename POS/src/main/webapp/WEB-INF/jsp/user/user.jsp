@@ -125,12 +125,19 @@
 
         <div class="mb-3">
             <label>Email</label>
-            <form:input path="username"  type="email" cssClass="form-control" required="true"/>
+            <form:input path="username"
+                        type="email"
+                        cssClass="form-control"
+                        required="true"/>
         </div>
 
         <div class="mb-3">
             <label>Phone Number</label>
-            <form:input path="phoneNo" cssClass="form-control" pattern="[0-9]{10}" title="Enter 10 digit phone number" required="true"/>
+            <form:input path="phoneNo"
+                        cssClass="form-control"
+                        pattern="[0-9]{10}"
+                        title="Enter 10 digit phone number"
+                        required="true"/>
         </div>
 
         <div class="mb-3">

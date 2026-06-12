@@ -121,6 +121,7 @@
                         <th>Identifier</th>
                         <th>Cost Price</th>
                         <th>Selling Price</th>
+                        <th>MRP Price</th>
                         <th style="width: 160px;">Actions</th>
                     </tr>
                     </thead>
@@ -131,6 +132,7 @@
                             <td>${price.identifier}</td>
                             <td class="cost-price">₹ ${price.costprice}</td>
                             <td class="selling-price">₹ ${price.sellingprice}</td>
+                             <td class="mrp-price">₹ ${price.mrpprice}</td>
                             <td>
                                 <a href="${pageContext.request.contextPath}/price/get?identifier=${price.identifier}"
                                    class="btn btn-sm btn-warning">

@@ -34,15 +34,9 @@
             width: 100%;
             padding: 10px 14px;
             margin-top: 6px;
-            margin-bottom: 12px;
             border-radius: 10px;
             border: 1px solid #ddd;
             font-size: 0.9rem;
-        }
-
-        label {
-            font-weight: 600;
-            margin-top: 5px;
         }
     </style>
 </head>
@@ -62,72 +56,71 @@
 
         <form action="${pageContext.request.contextPath}/product/add" method="post">
 
-            <!-- Identifier -->
             <label>Identifier</label>
             <input type="text"
                    name="identifier"
                    value="${product.identifier}"
                    required>
 
-            <!-- Product Name -->
             <label>Product Name</label>
             <input type="text"
-                   name="name"
-                   value="${product.name}"
+                   name="productname"
+                   value="${product.productname}"
                    required>
 
-            <!-- Category -->
             <label>Category</label>
             <select name="category" required>
                 <option value="">-- Select Category --</option>
-                <c:forEach var="cat" items="${categories}">
-                    <option value="${cat.identifier}">
-                        ${cat.identifier}
+              <c:forEach var="cat" items="${categories}">
+             <option value="${cat.identifier}">
+             ${cat.identifier}
+        </option>
+    </c:forEach>
+
+            </select>
+                       <label>Brand</label>
+                        <select name="brand" required>
+                            <option value="">-- Select Brand --</option>
+                          <c:forEach var="brand" items="${brands}">
+                         <option value="${brand.identifier}">
+                         ${brand.identifier}
                     </option>
                 </c:forEach>
-            </select>
 
-            <!-- Brand -->
-            <label>Brand</label>
-            <select name="brand" required>
-                <option value="">-- Select Brand --</option>
-                <c:forEach var="brand" items="${brands}">
-                    <option value="${brand.identifier}">
-                        ${brand.identifier}
-                    </option>
-                </c:forEach>
-            </select>
+              </select>
 
-            <!-- Model -->
-            <label>Model</label>
-            <select name="model" required>
-                <option value="">-- Select Model --</option>
-                <c:forEach var="model" items="${models}">
-                    <option value="${model.identifier}">
+                   </select>
+                    <label>Model</label>
+                     <select name="model" required>
+                     <option value="">-- Select Model --</option>
+                      <c:forEach var="model" items="${models}">
+                      <option value="${model.identifier}">
                         ${model.identifier}
-                    </option>
-                </c:forEach>
-            </select>
+                        </option>
+                        </c:forEach>
+                      </select>
 
-            <!-- Unit -->
-            <label>Unit</label>
-            <select name="unit" required>
-                <option value="">-- Select Unit --</option>
-                <c:forEach var="unit" items="${units}">
-                    <option value="${unit.identifier}">
-                        ${unit.identifier}
-                    </option>
-                </c:forEach>
-            </select>
+                          </select>
+                           <label>Unit</label>
+                           <select name="unit" required>
+                            <option value="">-- Select Unit --</option>
+                             <c:forEach var="unit" items="${units}">
+                             <option value="${unit.identifier}">
+                               ${unit.identifier}
+                                 </option>
+                                 </c:forEach>
+                                 </select>
 
-            <button type="submit" class="btn btn-primary mt-3 w-100">
+
+
+
+            <button class="btn btn-primary mt-4 w-100">
                 Save Product
             </button>
-
         </form>
 
         <a href="${pageContext.request.contextPath}/product/list"
-           class="text-center d-block mt-3 text-decoration-none">
+           class="text-center d-block mt-3">
             ← Back to Product List
         </a>
 

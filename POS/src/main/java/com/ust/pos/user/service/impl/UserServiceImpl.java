@@ -1,5 +1,6 @@
 package com.ust.pos.user.service.impl;
 
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
@@ -60,11 +61,11 @@ public class UserServiceImpl implements UserService {
             return userDto;
         } else {
             User existingUser = userOptional.get();
-            if (!username.equalsIgnoreCase(existingUser.getUsername()) && userRepository.findByUsername(username) != null) {
-                userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
-                userDto.setSuccess(false);
-                return userDto;
-            }
+            if (!username.equalsIgnoreCase(existingUser.getUsername())  && userRepository.findByUsername(username) != null) {
+                    userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
+                    userDto.setSuccess(false);
+                    return userDto;
+                }
 
             modelMapper.map(userDto, existingUser);
             userRepository.save(existingUser);
@@ -79,10 +80,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
+    public PageDto<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listType);
+        PageDto<UserDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        pageDto.setTotalRecords(userPage.getTotalElements());
+        pageDto.setTotalPages(userPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        return pageDto;
     }
 }

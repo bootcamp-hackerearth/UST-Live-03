@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -35,34 +37,37 @@ class UnitServiceTest {
     @Test
     void saveTest() {
         UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("Unit1");
+        unitDto.setIdentifier("UNIT001");
+        unitDto.setSuccess(true);
+
+        Mockito.when(unitRepository.findByIdentifier("UNIT001"))
+                .thenReturn(null);
 
         Unit unit = new Unit();
 
-        Mockito.when(unitRepository.findByIdentifier("Unit1"))
-                .thenReturn(null);
         Mockito.when(modelMapper.map(unitDto, Unit.class))
                 .thenReturn(unit);
+
         Mockito.when(unitRepository.save(unit))
                 .thenReturn(unit);
 
         UnitDto response = unitService.save(unitDto);
 
-        Assertions.assertEquals("Unit1", response.getIdentifier());
+        Assertions.assertEquals("UNIT001", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
     void saveTestFailure() {
         UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("Unit1");
+        unitDto.setIdentifier("UNIT001");
 
-        Mockito.when(unitRepository.findByIdentifier("Unit1"))
+        Mockito.when(unitRepository.findByIdentifier("UNIT001"))
                 .thenReturn(new Unit());
 
         UnitDto response = unitService.save(unitDto);
 
-        Assertions.assertEquals("Unit1", response.getIdentifier());
+        Assertions.assertEquals("UNIT001", response.getIdentifier());
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
     }
@@ -70,31 +75,34 @@ class UnitServiceTest {
     @Test
     void findByIdentifierTest() {
         Unit unit = new Unit();
-        unit.setIdentifier("Unit1");
+        unit.setIdentifier("UNIT001");
 
         UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("Unit1");
+        unitDto.setIdentifier("UNIT001");
 
-        Mockito.when(unitRepository.findByIdentifier("Unit1"))
+        Mockito.when(unitRepository.findByIdentifier("UNIT001"))
                 .thenReturn(unit);
+
         Mockito.when(modelMapper.map(unit, UnitDto.class))
                 .thenReturn(unitDto);
 
-        UnitDto response = unitService.findByIdentifier("Unit1");
+        UnitDto response = unitService.findByIdentifier("UNIT001");
 
-        Assertions.assertEquals("Unit1", response.getIdentifier());
+        Assertions.assertEquals("UNIT001", response.getIdentifier());
     }
 
     @Test
     void updateTest() {
         UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("Unit1");
+        unitDto.setIdentifier("UNIT001");
+        unitDto.setSuccess(true);
 
         Unit existingUnit = new Unit();
-        existingUnit.setIdentifier("Unit1");
+        existingUnit.setIdentifier("UNIT001");
 
-        Mockito.when(unitRepository.findByIdentifier("Unit1"))
+        Mockito.when(unitRepository.findByIdentifier("UNIT001"))
                 .thenReturn(existingUnit);
+
         Mockito.when(unitRepository.save(existingUnit))
                 .thenReturn(existingUnit);
 
@@ -106,9 +114,9 @@ class UnitServiceTest {
     @Test
     void updateTestFailure() {
         UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("Unit1");
+        unitDto.setIdentifier("UNIT001");
 
-        Mockito.when(unitRepository.findByIdentifier("Unit1"))
+        Mockito.when(unitRepository.findByIdentifier("UNIT001"))
                 .thenReturn(null);
 
         UnitDto response = unitService.update(unitDto);
@@ -120,65 +128,117 @@ class UnitServiceTest {
     void deleteTest() {
         Mockito.doNothing()
                 .when(unitRepository)
-                .deleteByIdentifier("Unit1");
+                .deleteByIdentifier("UNIT001");
 
-        unitService.delete("Unit1");
+        unitService.delete("UNIT001");
 
         Mockito.verify(unitRepository)
-                .deleteByIdentifier("Unit1");
+                .deleteByIdentifier("UNIT001");
     }
 
     @Test
     void toggleStatusTest() {
         Unit unit = new Unit();
-        unit.setIdentifier("Unit1");
+        unit.setIdentifier("UNIT001");
         unit.setStatus(true);
 
-        Mockito.when(unitRepository.findByIdentifier("Unit1"))
+        Mockito.when(unitRepository.findByIdentifier("UNIT001"))
                 .thenReturn(unit);
+
         Mockito.when(unitRepository.save(unit))
                 .thenReturn(unit);
 
-        unitService.toggleStatus("Unit1");
+        unitService.toggleStatus("UNIT001");
 
         Assertions.assertFalse(unit.getStatus());
+
         Mockito.verify(unitRepository).save(unit);
     }
 
     @Test
     void toggleStatusTestFailure() {
-        Mockito.when(unitRepository.findByIdentifier("Unit1"))
+        Mockito.when(unitRepository.findByIdentifier("UNIT001"))
                 .thenReturn(null);
 
-        unitService.toggleStatus("Unit1");
+        unitService.toggleStatus("UNIT001");
 
         Mockito.verify(unitRepository, Mockito.never())
                 .save(Mockito.any());
     }
 
     @Test
+    void findActiveUnitsTest() {
+        Unit unit = new Unit();
+        unit.setIdentifier("UNIT001");
+        unit.setStatus(true);
+
+        UnitDto unitDto = new UnitDto();
+        unitDto.setIdentifier("UNIT001");
+
+        List<Unit> unitList = List.of(unit);
+
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
+
+        Mockito.when(unitRepository.findByStatusTrue())
+                .thenReturn(unitList);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(unitList),
+                        Mockito.eq(listType)
+                )
+        ).thenReturn(List.of(unitDto));
+
+        List<UnitDto> response = unitService.findActiveUnits();
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(
+                "UNIT001",
+                response.get(0).getIdentifier()
+        );
+    }
+
+    @Test
     void findAllPaginationTest() {
 
         Unit unit = new Unit();
-        unit.setIdentifier("Unit1");
+        unit.setIdentifier("UNIT001");
 
         UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("Unit1");
+        unitDto.setIdentifier("UNIT001");
 
         Pageable pageable = PageRequest.of(0, 10);
+
         Page<Unit> unitPage =
                 new PageImpl<>(List.of(unit), pageable, 1);
 
         Mockito.when(unitRepository.findAll(pageable))
                 .thenReturn(unitPage);
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(unitPage.getContent()),
-                Mockito.any(Type.class)
-        )).thenReturn(List.of(unitDto));
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
 
-        List<UnitDto> response = unitService.findAll(pageable);
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(unitPage.getContent()),
+                        Mockito.eq(listType)
+                )
+        ).thenReturn(List.of(unitDto));
 
-        Assertions.assertEquals(1, response.size());
+        PageDto<UnitDto> response =
+                unitService.findAll(pageable);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(
+                "UNIT001",
+                response.getDtoList().get(0).getIdentifier()
+        );
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

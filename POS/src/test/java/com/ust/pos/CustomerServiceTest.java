@@ -112,7 +112,6 @@ class CustomerServiceImplTest {
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertNotNull(result.getMessage());
     }
-
     @Test
     void save_success_whenBillingAndShippingAreNull() {
         CustomerDto dto = new CustomerDto();
@@ -296,8 +295,7 @@ class CustomerServiceImplTest {
         Mockito.when(customerRepository.findAll(pageable))
                 .thenReturn(page);
 
-        Type listType = new TypeToken<List<CustomerDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
         Mockito.when(modelMapper.map(page.getContent(), listType))
                 .thenReturn(List.of(dto));
 

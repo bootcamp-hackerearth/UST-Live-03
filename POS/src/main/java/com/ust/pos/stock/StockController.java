@@ -36,7 +36,7 @@ public class StockController extends BaseController {
     public String add(Model model, @ModelAttribute StockDto stockDto) {
         PaginationDto paginationDto = new PaginationDto();
         model.addAttribute(WAREHOUSES, wareHouseService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
-        model.addAttribute(PRODUCTS, productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
+        model.addAttribute(PRODUCTS,productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
 
         return "stock/add";
     }
@@ -49,7 +49,7 @@ public class StockController extends BaseController {
             model.addAttribute("stockDto", stockDto);
             PaginationDto paginationDto = new PaginationDto();
             model.addAttribute(WAREHOUSES, wareHouseService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
-            model.addAttribute(PRODUCTS, productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));                                                            // retain form values
+            model.addAttribute(PRODUCTS,productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));                                                            // retain form values
             return "stock/add";
 
         }
@@ -62,7 +62,7 @@ public class StockController extends BaseController {
         model.addAttribute("stock", response);
         PaginationDto paginationDto = new PaginationDto();
         model.addAttribute(WAREHOUSES, wareHouseService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
-        model.addAttribute(PRODUCTS, productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
+        model.addAttribute(PRODUCTS,productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
 
         return "stock/stock";
     }
@@ -81,7 +81,6 @@ public class StockController extends BaseController {
         stockService.delete(identifier);
         return REDIRECT_STOCK_LIST;
     }
-
     @GetMapping("/toggleStatus")
     public String toggleStatus(@RequestParam String identifier) {
         stockService.toggleStatus(identifier);

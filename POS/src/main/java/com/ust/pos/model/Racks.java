@@ -7,6 +7,6 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Racks extends CommonFields {
+public class Racks extends  CommonFields{
     private String shelfs;
 }

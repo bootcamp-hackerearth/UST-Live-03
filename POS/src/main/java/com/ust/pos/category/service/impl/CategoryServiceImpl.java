@@ -1,9 +1,8 @@
 package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
-import com.ust.pos.dto.CategoryDto;
-import com.ust.pos.model.Category;
-import com.ust.pos.model.CategoryRepository;
+import com.ust.pos.dto.*;
+import com.ust.pos.model.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
-
 @Service
 public class CategoryServiceImpl implements CategoryService {
     @Autowired
@@ -24,16 +22,16 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto save(CategoryDto categoryDto) {
-        String identifier = categoryDto.getIdentifier();
-        Category existingProduct = categoryRepository.findByIdentifier(identifier);
+        String identifier =categoryDto .getIdentifier();
+        Category existingProduct =categoryRepository.findByIdentifier(identifier);
         if (existingProduct != null) {
-            categoryDto.setMessage("Product with identifier - " + identifier + " already exists");
-            categoryDto.setSuccess(false);
-            return categoryDto;
+           categoryDto .setMessage("Product with identifier - " + identifier + " already exists");
+           categoryDto .setSuccess(false);
+            return categoryDto ;
         }
-        Category category = modelMapper.map(categoryDto, Category.class);
-        categoryRepository.save(category);
-        return categoryDto;
+        Category category= modelMapper.map(categoryDto, Category.class);
+       categoryRepository.save(category);
+        return categoryDto ;
     }
 
     @Override
@@ -58,11 +56,17 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public PageDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+        PageDto<CategoryDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        pageDto.setTotalRecords(categoryPage.getTotalElements());
+        pageDto.setTotalPages(categoryPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        return pageDto;
     }
 
     @Override
@@ -75,5 +79,21 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findBySupercategoryIsNot("").stream()
                 .map(cat -> modelMapper.map(cat, CategoryDto.class))
                 .toList();
+    }
+
+    @Override
+    public void toggleStatus(String identifier) {
+        Category category = categoryRepository.findByIdentifier(identifier);
+        if (category != null) {
+            boolean currentStatus = Boolean.TRUE.equals(category.getStatus());
+            category.setStatus(!currentStatus);
+            categoryRepository.save(category);
+        }
+    }
+
+    @Override
+    public List<CategoryDto> findActiveCategories() {
+        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+        return modelMapper.map(categoryRepository.findByStatusTrue(),listType);
     }
 }

@@ -7,6 +7,6 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Brand extends CommonFields {
+public class Brand extends CommonFields{
 
 }

@@ -122,8 +122,8 @@
                                 <form:option value="" label="-- Select productname --"/>
 
                                 <c:forEach var="wh" items="${products}">
-                                    <form:option value="${wh.name}">
-                                        ${wh.name}
+                                    <form:option value="${wh.productname}">
+                                        ${wh.productname}
                                     </form:option>
                                 </c:forEach>
 

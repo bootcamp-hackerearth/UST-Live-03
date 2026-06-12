@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -166,19 +168,30 @@ class StockServiceTest {
         stockDto.setIdentifier("Stock1");
 
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Stock> stockPage =
-                new PageImpl<>(List.of(stock), pageable, 1);
 
-        Mockito.when(stockRepository.findAll(pageable))
-                .thenReturn(stockPage);
+        Page<Stock> stockPage = new PageImpl<>(List.of(stock), pageable, 1);
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(stockPage.getContent()),
-                Mockito.any(Type.class)
-        )).thenReturn(List.of(stockDto));
+        Mockito.when(stockRepository.findAll(pageable)).thenReturn(stockPage);
 
-        List<StockDto> response = stockService.findAll(pageable);
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
 
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(modelMapper.map(Mockito.eq(stockPage.getContent()), Mockito.eq(listType))).thenReturn(List.of(stockDto));
+
+        PageDto<StockDto> response = stockService.findAll(pageable);
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(1, response.getDtoList().size());
+
+        Assertions.assertEquals("Stock1", response.getDtoList().get(0).getIdentifier());
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+
+        Assertions.assertEquals(1, response.getTotalPages());
+
+        Assertions.assertEquals(10, response.getSizePerPage());
+
+        Assertions.assertEquals(0, response.getPage());
     }
 }

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class PriceController extends BaseController {
 
     public static final String REDIRECT_PRICE_LIST = "redirect:/price/list";
-    public static final String PRODUCTS = "products";
 
     @Autowired
     private PriceService priceService;
@@ -33,7 +32,7 @@ public class PriceController extends BaseController {
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute PriceDto priceDto) {
         PaginationDto paginationDto = new PaginationDto();
-        model.addAttribute(PRODUCTS, productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
+        model.addAttribute("products", productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "price/add";
     }
 
@@ -45,8 +44,7 @@ public class PriceController extends BaseController {
             model.addAttribute("message", response.getMessage());
             model.addAttribute("priceDto", priceDto);
             PaginationDto paginationDto = new PaginationDto();
-            model.addAttribute(PRODUCTS, productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
-
+            model.addAttribute("products", productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
             return "price/add";
         }
         return REDIRECT_PRICE_LIST;
@@ -56,8 +54,6 @@ public class PriceController extends BaseController {
     public String update(Model model, @RequestParam String identifier) {
         PriceDto response = priceService.findByIdentifier(identifier);
         model.addAttribute("price", response);
-        PaginationDto paginationDto = new PaginationDto();
-        model.addAttribute(PRODUCTS, productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         return "price/price";
     }
 
@@ -67,8 +63,6 @@ public class PriceController extends BaseController {
 
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            PaginationDto paginationDto = new PaginationDto();
-            model.addAttribute(PRODUCTS, productService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         }
         return REDIRECT_PRICE_LIST;
     }

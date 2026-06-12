@@ -225,7 +225,6 @@
 </head>
 <body>
 
-<!-- BACKGROUND BLOBS -->
 <div class="blob blob1"></div>
 <div class="blob blob2"></div>
 

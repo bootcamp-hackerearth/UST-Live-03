@@ -7,7 +7,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Customer extends CommonFields {
+public class Customer extends CommonFields{
     private String name;
     private String email;
     private String phoneNo;

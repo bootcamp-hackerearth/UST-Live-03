@@ -62,7 +62,6 @@ public class RoleController extends BaseController {
         roleService.delete(identifier);
         return REDIRECT_ROLE_LIST;
     }
-
     @GetMapping("/toggleStatus")
     public String toggleStatus(@RequestParam String identifier) {
         roleService.toggleStatus(identifier);

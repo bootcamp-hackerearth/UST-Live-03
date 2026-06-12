@@ -1,5 +1,6 @@
 package com.ust.pos.shelfs.service;
 
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.ShelfsDto;
 import org.springframework.data.domain.Pageable;
 
@@ -12,7 +13,7 @@ public interface ShelfsService {
 
     boolean delete(String identifier);
 
-    List<ShelfsDto> findAll(Pageable pageable);
+    PageDto<ShelfsDto> findAll(Pageable pageable);
 
     ShelfsDto findByIdentifier(String identifier);
 

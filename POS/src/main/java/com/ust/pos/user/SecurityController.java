@@ -40,6 +40,6 @@ public class SecurityController extends BaseController {
             model.addAttribute("message", response.getMessage());
             return "register";
         }
-        return "login";
+        return "home";
     }
 }

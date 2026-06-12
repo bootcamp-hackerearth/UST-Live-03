@@ -1,5 +1,4 @@
 package com.ust.pos.product;
-
 import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.category.service.CategoryService;
@@ -44,7 +43,7 @@ public class ProductController extends BaseController {
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ProductDto productDto) {
-        model.addAttribute(CATEGORIES, categoryService.findBySubCategory());
+        model.addAttribute(CATEGORIES,categoryService.findBySubCategory());
         PaginationDto paginationDto = new PaginationDto();
         model.addAttribute("brands", brandService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         model.addAttribute("models", modelService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
@@ -70,7 +69,7 @@ public class ProductController extends BaseController {
     public String update(Model model, @RequestParam String identifier) {
         ProductDto response = productService.findByIdentifier(identifier);
         model.addAttribute("product", response);
-        model.addAttribute(CATEGORIES, categoryService.findBySubCategory());
+        model.addAttribute(CATEGORIES,categoryService.findBySubCategory());
         PaginationDto paginationDto = new PaginationDto();
         model.addAttribute("brands", brandService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
         model.addAttribute("models", modelService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));
@@ -92,7 +91,6 @@ public class ProductController extends BaseController {
         productService.delete(identifier);
         return REDIRECT_PRODUCT_LIST;
     }
-
     @GetMapping("/toggleStatus")
     public String toggleStatus(@RequestParam String identifier) {
         productService.toggleStatus(identifier);

@@ -127,15 +127,10 @@
                         required="true"/>
         </div>
 
-
         <div class="form-group">
-            <label>Super Category</label>
-            <form:select path="supercategory" required="true">
-                <form:option value="">-- Select Super Category --</form:option>
-                <form:options items="${category}"
-                              itemValue="identifier"
-                              itemLabel="identifier"/>
-            </form:select>
+            <label for="description">Description</label>
+            <form:textarea path="description"
+                           id="description"/>
         </div>
 
         <div class="form-group">
@@ -145,7 +140,7 @@
        <form:option value="">-- Select Status --</form:option>
        <form:option value="true">Active</form:option>
        <form:option value="false">Deactive</form:option>
-</form:select>
+       </form:select>
 
         </div>
 
