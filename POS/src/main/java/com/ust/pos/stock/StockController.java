@@ -59,6 +59,7 @@ public class StockController {
         StockDto response = stockService.update(stockDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
+
         }
         return REDIRECT_STOCK_LIST;
     }

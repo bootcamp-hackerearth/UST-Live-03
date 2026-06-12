@@ -48,6 +48,7 @@ public class WarehouseController {
         WarehouseDto response = warehouseService.update(warehouseDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
+
         }
         return REDIRECT_WAREHOUSE_LIST;
     }

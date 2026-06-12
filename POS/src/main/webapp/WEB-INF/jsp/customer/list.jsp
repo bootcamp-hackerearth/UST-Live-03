@@ -21,15 +21,18 @@
             align-items: center;
             font-family: 'Segoe UI', sans-serif;
         }
+
         .container {
             max-width: 1100px;
         }
+
         .card {
             border-radius: 15px;
             border: 1px solid #e5e7eb;
             background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
+
         .card-header {
             background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
             border-top-left-radius: 15px;
@@ -37,17 +40,21 @@
             color: #111827;
             font-weight: 600;
         }
+
         table thead th {
             background: #e5e7eb;
             font-weight: 600;
         }
+
         table td {
             background: #f9fafb;
             vertical-align: middle;
         }
+
         .table-hover tbody tr:hover {
             background-color: #eef2ff;
         }
+
         .icon-btn {
             width: 38px;
             height: 38px;
@@ -58,20 +65,24 @@
             color: #fff;
             text-decoration: none;
         }
+
         .edit-btn { background: #3b82f6; }
         .delete-btn { background: #ef4444; }
 
+        /* TOGGLE SWITCH */
         .switch {
             position: relative;
             display: inline-block;
             width: 46px;
             height: 24px;
         }
+
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
+
         .slider {
             position: absolute;
             cursor: pointer;
@@ -80,6 +91,7 @@
             border-radius: 24px;
             transition: 0.4s;
         }
+
         .slider:before {
             position: absolute;
             content: "";
@@ -91,12 +103,15 @@
             border-radius: 50%;
             transition: 0.4s;
         }
+
         input:checked + .slider {
             background-color: #22c55e;
         }
+
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+
     </style>
 </head>
 
@@ -109,15 +124,19 @@
                 <div class="card-header text-center">
                     <h4 class="mb-0">Customer List</h4>
                 </div>
+
                 <div class="card-body">
+
                     <c:if test="${empty customer}">
                         <div class="alert alert-warning text-center mb-0">
                             No customers found
                         </div>
                     </c:if>
+
                     <c:if test="${not empty customer}">
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover text-center align-middle">
+
                                 <thead>
                                 <tr>
                                     <th>ID</th>
@@ -137,6 +156,7 @@
                                 <c:forEach var="cat" items="${customer}">
 
                                     <tr>
+
                                         <td>${cat.id}</td>
                                         <td>${cat.name}</td>
                                         <td>${cat.identifier}</td>
@@ -152,6 +172,7 @@
                                                 <span class="slider"></span>
                                             </label>
                                         </td>
+
                                         <td>
                                             <a href="/customer/get?identifier=${cat.identifier}"
                                                class="icon-btn edit-btn"
@@ -159,6 +180,7 @@
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                         </td>
+
                                         <td>
                                             <a href="/customer/delete?identifier=${cat.identifier}"
                                                class="icon-btn delete-btn"

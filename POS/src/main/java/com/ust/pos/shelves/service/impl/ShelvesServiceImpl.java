@@ -1,6 +1,7 @@
 package com.ust.pos.shelves.service.impl;
 
 import com.ust.pos.dto.ShelvesDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelves;
 import com.ust.pos.model.ShelvesRepository;
 import com.ust.pos.shelves.service.ShelvesService;
@@ -61,16 +62,33 @@ public class ShelvesServiceImpl implements ShelvesService {
     }
 
     @Override
-    public List<ShelvesDto> findAll(Pageable pageable) {
+    public WsDto<ShelvesDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<ShelvesDto>>() {
         }.getType();
+
         Page<Shelves> shelvesPage = shelvesRepository.findAll(pageable);
-        return modelMapper.map(shelvesPage.getContent(), listType);
+
+        List<ShelvesDto> shelvesDtos = modelMapper.map(
+                shelvesPage.getContent(),
+                listType
+        );
+
+        WsDto<ShelvesDto> wsDto =
+                new WsDto<>();
+
+        wsDto.setContent(shelvesDtos);
+        wsDto.setPage(shelvesPage.getNumber());
+        wsDto.setSizePerPage(shelvesPage.getSize());
+        wsDto.setTotalPages(shelvesPage.getTotalPages());
+        wsDto.setTotalRecords(shelvesPage.getTotalElements());
+
+        return wsDto;
     }
 
     @Override
     public List<Shelves> findActiveShelves() {
-        return shelvesRepository.findByStatus(true);
+        return shelvesRepository.findByStatus("Active");
     }
 
     @Override

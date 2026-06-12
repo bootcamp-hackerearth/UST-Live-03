@@ -3,12 +3,14 @@ package com.ust.pos.api.price;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.price.service.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/price")
@@ -18,7 +20,7 @@ public class PriceApiController extends BaseController {
     private PriceService priceService;
 
     @PostMapping("/list")
-    public List<PriceDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<PriceDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -32,8 +34,8 @@ public class PriceApiController extends BaseController {
 
     }
 
-    @GetMapping("/get")
-    public PriceDto update(@RequestParam String identifier) {
+    @PostMapping("/get")
+    public PriceDto update(@RequestBody String identifier) {
         return priceService.findByIdentifier(identifier);
     }
 
@@ -43,8 +45,8 @@ public class PriceApiController extends BaseController {
 
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody String identifier) {
         try {
             priceService.delete(identifier);
         } catch (Exception e) {

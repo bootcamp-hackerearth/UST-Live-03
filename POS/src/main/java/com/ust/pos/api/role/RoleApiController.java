@@ -3,12 +3,14 @@ package com.ust.pos.api.role;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/role")
@@ -18,7 +20,7 @@ public class RoleApiController extends BaseController {
     private RoleService roleService;
 
     @PostMapping("/list")
-    public List<RoleDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -29,10 +31,11 @@ public class RoleApiController extends BaseController {
     @PostMapping("/add")
     public RoleDto addPost(@RequestBody RoleDto roleDto) {
         return roleService.save(roleDto);
+
     }
 
-    @GetMapping("/get")
-    public RoleDto update(@RequestParam String identifier) {
+    @PostMapping("/get")
+    public RoleDto update(@RequestBody String identifier) {
         return roleService.findByIdentifier(identifier);
     }
 
@@ -41,8 +44,8 @@ public class RoleApiController extends BaseController {
         return roleService.update(roleDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody String identifier) {
         try {
             roleService.delete(identifier);
         } catch (Exception e) {

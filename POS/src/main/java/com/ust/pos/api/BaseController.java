@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+
 public class BaseController {
     protected Pageable getPageable(int pageNumber, int pageSize,
                                    String sortDirection, String... sort) {
@@ -19,5 +20,6 @@ public class BaseController {
             orders.add(order);
         });
         return PageRequest.of(pageNumber, pageSize, Sort.by(orders));
+
     }
 }

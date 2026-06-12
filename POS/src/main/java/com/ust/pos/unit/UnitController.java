@@ -48,6 +48,7 @@ public class UnitController {
         UnitDto response = unitService.update(unitDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
+
         }
         return REDIRECT_UNIT_LIST;
     }

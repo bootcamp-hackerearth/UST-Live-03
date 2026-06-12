@@ -19,23 +19,29 @@
             min-height: 100vh;
             font-family: 'Segoe UI', sans-serif;
         }
+
         .card {
             border-radius: 14px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
         }
+
         .card-header {
             background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
         }
+
         .form-control, .form-select {
             border-radius: 8px;
         }
+
         .btn-primary {
             background: #3b82f6;
             border: none;
         }
+
         .btn-primary:hover {
             background: #2563eb;
         }
+
         .error-message {
             color: #dc2626;
             text-align: center;
@@ -67,6 +73,7 @@
                     <div class="d-grid">
                         <button class="btn btn-primary">Update Model</button>
                     </div>
+
                     <div class="text-center pb-3 mt-2">
                         <a href="${pageContext.request.contextPath}/models/list">
                             ← Back to List

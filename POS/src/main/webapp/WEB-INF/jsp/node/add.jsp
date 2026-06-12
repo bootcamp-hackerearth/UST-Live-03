@@ -5,6 +5,7 @@
 <html>
 <head>
     <title>Add Node</title>
+
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -13,6 +14,7 @@
 
             background: linear-gradient(135deg, #f3f4f6, #e5e7eb, #f9fafb);
         }
+
         .container {
             width: 420px;
             margin: 80px auto;
@@ -25,6 +27,7 @@
 
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
         }
+
         h2 {
             text-align: center;
             margin-bottom: 24px;
@@ -34,6 +37,7 @@
 
             color: #111827;
         }
+
         label {
             margin-top: 16px;
             display: block;
@@ -43,6 +47,7 @@
 
             color: #374151;
         }
+
         input, select {
             width: 100%;
             margin-top: 6px;
@@ -56,6 +61,7 @@
             background: #f9fafb;
             transition: 0.2s ease;
         }
+
         input:focus, select:focus {
             outline: none;
             border-color: #3b82f6;
@@ -63,9 +69,11 @@
             background: #ffffff;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
+
         select[multiple] {
             height: 110px;
         }
+
         button {
             margin-top: 26px;
             width: 100%;
@@ -82,10 +90,12 @@
 
             transition: 0.2s ease;
         }
+
         button:hover {
             background: #1d4ed8;
             transform: translateY(-1px);
         }
+
         a {
             display: block;
             text-align: center;
@@ -97,10 +107,12 @@
             text-decoration: none;
             font-size: 13px;
         }
+
         a:hover {
             color: #1d4ed8;
             text-decoration: underline;
         }
+
         .error-message {
             margin-bottom: 15px;
             text-align: center;
@@ -110,6 +122,7 @@
         }
     </style>
 </head>
+
 <body>
 <div class="container">
 
@@ -120,6 +133,7 @@
             ${message}
         </div>
     </c:if>
+
     <form action="${pageContext.request.contextPath}/node/add" method="post">
 
         <label>Identifier</label>
@@ -136,8 +150,10 @@
                 </option>
             </c:forEach>
         </select>
+
         <button type="submit">Save</button>
     </form>
+
     <div class="back">
         <a href="${pageContext.request.contextPath}/node/list">← Back to List</a>
     </div>

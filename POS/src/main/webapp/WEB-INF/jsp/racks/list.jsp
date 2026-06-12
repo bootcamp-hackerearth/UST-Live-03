@@ -17,15 +17,18 @@
             background: linear-gradient(135deg, #f3f4f6, #e5e7eb, #f9fafb);
             font-family: 'Segoe UI', sans-serif;
         }
+
         .card {
             border-radius: 16px;
             background: rgba(255, 255, 255, 0.85);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
+
         .card-header {
             background: linear-gradient(135deg, #d1d5db, #f3f4f6);
             font-weight: 700;
         }
+
         table th { background: #e5e7eb; }
         table td { background: #f9fafb; }
 
@@ -35,6 +38,7 @@
             border-radius: 8px;
             color: white;
         }
+
         .edit-btn { background: #3b82f6; }
         .delete-btn { background: #ef4444; }
 
@@ -44,11 +48,13 @@
             width: 46px;
             height: 24px;
         }
+
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
+
         .slider {
             position: absolute;
             cursor: pointer;
@@ -57,6 +63,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             transition: 0.4s;
         }
+
         .slider:before {
             content: "";
             position: absolute;
@@ -68,12 +75,15 @@
             border-radius: 50%;
             transition: 0.4s;
         }
+
         input:checked + .slider {
             background-color: #22c55e;
         }
+
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+
         .toggle-container {
             cursor: pointer;
         }
@@ -86,15 +96,19 @@
     <div class="col-md-10 mx-auto">
 
         <div class="card shadow-lg">
+
             <div class="card-header text-center">
                 <h4>List of Racks</h4>
             </div>
+
             <div class="card-body">
+
                 <c:if test="${empty racks}">
                     <div class="alert alert-warning text-center">
                         No racks found
                     </div>
                 </c:if>
+
                 <c:if test="${not empty racks}">
                     <table class="table table-bordered text-center align-middle">
 
@@ -115,6 +129,7 @@
                                 <td>${rack.id}</td>
                                 <td>${rack.identifier}</td>
                                 <td>${rack.shelves}</td>
+
                                 <td>
                                     <div class="toggle-container"
                                          onclick="window.location.href='${pageContext.request.contextPath}/racks/toggle?identifier=${rack.identifier}'">
@@ -127,12 +142,14 @@
                                         </label>
                                     </div>
                                 </td>
+
                                 <td>
                                     <a href="${pageContext.request.contextPath}/racks/get?identifier=${rack.identifier}"
                                        class="icon-btn edit-btn">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                 </td>
+
                                 <td>
                                     <a href="${pageContext.request.contextPath}/racks/delete?identifier=${rack.identifier}"
                                        class="icon-btn delete-btn"
@@ -146,6 +163,7 @@
                     </table>
                 </c:if>
             </div>
+
             <div class="card-footer text-center">
                 <a href="${pageContext.request.contextPath}/" class="btn btn-secondary">Home</a>
                 <a href="${pageContext.request.contextPath}/racks/add" class="btn btn-primary">+ Add Rack</a>

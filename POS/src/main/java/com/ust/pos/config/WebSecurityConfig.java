@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -45,18 +46,22 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) {
 
         http
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
-                        .requestMatchers("/login", "/register", "/api/authenticate", "/api/validateToken", "/swagger-ui/**", "/v3/**").permitAll()
+
+                        .requestMatchers("/login", "/api/user/get", "/api/user/register", "/api/role/list", "/api/authenticate", "/api/validateToken", "/swagger-ui/**", "/v3/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .logout(org.springframework.security.config.annotation.web.configurers.LogoutConfigurer::permitAll);
+
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(
@@ -73,12 +78,12 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Allow the specific origin
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000")); // Allow the specific origin
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true); // Allow credentials if needed
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply CORS settings to all paths
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 

@@ -3,10 +3,14 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -18,7 +22,7 @@ public class NodeApiController extends BaseController {
     private NodeService nodeService;
 
     @PostMapping("/list")
-    public List<NodeDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -32,24 +36,28 @@ public class NodeApiController extends BaseController {
 
     }
 
-    @GetMapping("/get")
-    public NodeDto update(@RequestParam String identifier) {
+    @PostMapping("/get")
+    public NodeDto update(@RequestBody String identifier) {
         return nodeService.findByIdentifier(identifier);
     }
 
     @PostMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
         return nodeService.update(nodeDto);
-
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody String identifier) {
         try {
             nodeService.delete(identifier);
         } catch (Exception e) {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/getnodesforroles")
+    public List<NodeDto> getNodesForRoles() {
+        return nodeService.getNodesForRoles();
     }
 }

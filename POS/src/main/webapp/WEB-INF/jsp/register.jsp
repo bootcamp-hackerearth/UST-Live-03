@@ -124,7 +124,7 @@
         <div class="error-box">${message}</div>
     </c:if>
 
-<form:form action="/register"
+<form:form action="${pageContext.request.contextPath}/register"
            method="post"
            modelAttribute="userDto">
 
@@ -138,7 +138,9 @@
             <label>Email *</label>
             <form:input path="username"
                         type="email"
-                        required="true"/>
+                        required="true"
+                        pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
+                        title="Email must be a valid @gmail.com address"/>
             <form:errors path="username" cssClass="field-error"/>
         </div>
 
@@ -156,27 +158,21 @@
             <label>Phone Number *</label>
             <form:input path="phoneNo"
                         required="true"
+                        pattern="^[0-9]{10}$"
                         maxlength="10"
-                        pattern="[0-9]{10}"
-                        inputmode="numeric"
-                        oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+                        title="Phone number must be exactly 10 digits"/>
             <form:errors path="phoneNo" cssClass="field-error"/>
         </div>
 
         <div class="form-group">
             <label>Password *</label>
-            <form:password path="password"
-                required="true"
-                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}"/>
+            <form:password path="password" required="true"/>
             <form:errors path="password" cssClass="field-error"/>
         </div>
 
         <button type="submit" class="btn-submit">Register</button>
 
-        <a href="${pageContext.request.contextPath}/user/list">
-            ← Back
-        </a>
-</form:form>
+    </form:form>
 
 </div>
 </body>

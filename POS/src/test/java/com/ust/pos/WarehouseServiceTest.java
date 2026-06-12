@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
@@ -32,7 +33,7 @@ class WarehouseServiceTest {
     @Mock
     private WarehouseRepository warehouseRepository;
 
-    @Mock(lenient = true)
+    @Mock
     private ModelMapper modelMapper;
 
     @Test
@@ -150,10 +151,10 @@ class WarehouseServiceTest {
                 any(java.lang.reflect.Type.class)
         )).thenReturn(dtoList);
 
-        List<WarehouseDto> result = warehouseService.findAll(pageable);
+        WsDto<WarehouseDto> result = warehouseService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(2, result.getContent().size());
 
         verify(warehouseRepository).findAll(pageable);
     }

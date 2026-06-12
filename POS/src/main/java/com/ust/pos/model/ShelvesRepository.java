@@ -11,5 +11,5 @@ public interface ShelvesRepository extends JpaRepository<Shelves, Long> {
 
     void deleteByIdentifier(String identifier);
 
-    List<Shelves> findByStatus(boolean status);
+    List<Shelves> findByStatus(String status);
 }

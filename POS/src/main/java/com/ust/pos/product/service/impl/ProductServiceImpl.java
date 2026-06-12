@@ -1,18 +1,17 @@
 package com.ust.pos.product.service.impl;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -62,10 +61,22 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ProductDto>>() {
-        }.getType();
+    public WsDto<ProductDto> findAll(Pageable pageable) {
+
         Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listType);
+        WsDto<ProductDto> wsDto = new WsDto<>();
+
+        List<ProductDto> productDtos = productPage.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, ProductDto.class))
+                .toList();
+
+        wsDto.setContent(productDtos);
+        wsDto.setPage(productPage.getNumber());
+        wsDto.setSizePerPage(productPage.getSize());
+        wsDto.setTotalPages(productPage.getTotalPages());
+        wsDto.setTotalRecords(productPage.getTotalElements());
+
+        return wsDto;
     }
 }

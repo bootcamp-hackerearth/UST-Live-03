@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -10,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -19,9 +19,8 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,105 +32,107 @@ class BrandServiceTest {
     @Mock
     private BrandRepository brandRepository;
 
-    @Mock(lenient = true)
-    private ModelMapper modelMapper;
+    @Mock
+    private org.modelmapper.ModelMapper modelMapper;
+
+    @Test
+    void findByIdentifierTest() {
+
+        Brand brand = new Brand();
+        brand.setIdentifier("BR001");
+
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("BR001");
+
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(brand);
+        when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
+
+        BrandDto result = brandService.findByIdentifier("BR001");
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("BR001", result.getIdentifier());
+    }
 
     @Test
     void saveSuccessTest() {
+
         BrandDto dto = new BrandDto();
-        dto.setIdentifier("BR01");
+        dto.setIdentifier("BR001");
 
         Brand brand = new Brand();
-        brand.setIdentifier("BR01");
+        brand.setIdentifier("BR001");
 
-        when(brandRepository.findByIdentifier("BR01")).thenReturn(null);
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(null);
         when(modelMapper.map(dto, Brand.class)).thenReturn(brand);
+        when(brandRepository.save(brand)).thenReturn(brand);
 
-        BrandDto response = brandService.save(dto);
+        BrandDto result = brandService.save(dto);
 
-        assertEquals("BR01", response.getIdentifier());
-        Assertions.assertNull(response.getMessage());
+        Assertions.assertEquals("BR001", result.getIdentifier());
+        Assertions.assertTrue(result.isSuccess());
         verify(brandRepository).save(brand);
     }
 
     @Test
     void saveFailureTest() {
+
+        Brand existing = new Brand();
+        existing.setIdentifier("BR001");
+
         BrandDto dto = new BrandDto();
-        dto.setIdentifier("BR01");
+        dto.setIdentifier("BR001");
 
-        Brand brand = new Brand();
-        brand.setIdentifier("BR01");
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(existing);
 
-        when(brandRepository.findByIdentifier("BR01")).thenReturn(brand);
+        BrandDto result = brandService.save(dto);
 
-        BrandDto response = brandService.save(dto);
-
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
         verify(brandRepository, never()).save(any());
     }
 
     @Test
     void updateSuccessTest() {
+
+        Brand existing = new Brand();
+        existing.setIdentifier("BR001");
+
         BrandDto dto = new BrandDto();
-        dto.setIdentifier("BR01");
+        dto.setIdentifier("BR001");
 
-        Brand brand = new Brand();
-        brand.setIdentifier("BR01");
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(existing);
+        when(brandRepository.save(existing)).thenReturn(existing);
 
-        when(brandRepository.findByIdentifier("BR01")).thenReturn(brand);
+        BrandDto result = brandService.update(dto);
 
-        BrandDto response = brandService.update(dto);
-
-        assertEquals("BR01", response.getIdentifier());
-        verify(modelMapper).map(dto, brand);
-        verify(brandRepository).save(brand);
+        Assertions.assertEquals("BR001", result.getIdentifier());
+        verify(modelMapper).map(dto, existing);
+        verify(brandRepository).save(existing);
     }
 
     @Test
     void updateFailureTest() {
+
         BrandDto dto = new BrandDto();
-        dto.setIdentifier("BR01");
+        dto.setIdentifier("BR001");
 
-        when(brandRepository.findByIdentifier("BR01")).thenReturn(null);
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(null);
 
-        BrandDto response = brandService.update(dto);
+        BrandDto result = brandService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
         verify(brandRepository, never()).save(any());
     }
 
     @Test
     void deleteTest() {
-        brandService.delete("BR01");
-        verify(brandRepository).deleteByIdentifier("BR01");
-    }
 
-    @Test
-    void findByIdentifierSuccessTest() {
-        Brand brand = new Brand();
-        brand.setIdentifier("BR01");
+        doNothing().when(brandRepository).deleteByIdentifier("BR001");
 
-        BrandDto dto = new BrandDto();
-        dto.setIdentifier("BR01");
+        brandService.delete("BR001");
 
-        when(brandRepository.findByIdentifier("BR01")).thenReturn(brand);
-        when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
-
-        BrandDto response = brandService.findByIdentifier("BR01");
-
-        assertNotNull(response);
-        assertEquals("BR01", response.getIdentifier());
-    }
-
-    @Test
-    void findByIdentifierFailureTest() {
-        when(brandRepository.findByIdentifier("BR01")).thenReturn(null);
-
-        BrandDto response = brandService.findByIdentifier("BR01");
-
-        Assertions.assertNull(response);
+        verify(brandRepository).deleteByIdentifier("BR001");
     }
 
     @Test
@@ -140,43 +141,43 @@ class BrandServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         List<Brand> brands = List.of(new Brand(), new Brand());
-        Page<Brand> page = new PageImpl<>(brands);
+        Page<Brand> page = new PageImpl<>(brands, pageable, 2);
 
         List<BrandDto> dtoList = List.of(new BrandDto(), new BrandDto());
 
         when(brandRepository.findAll(pageable)).thenReturn(page);
+        when(modelMapper.map(eq(brands), any(Type.class))).thenReturn(dtoList);
 
-        when(modelMapper.map(
-                eq(brands),
-                any(Type.class)
-        )).thenReturn(dtoList);
+        WsDto<BrandDto> result = brandService.findAll(pageable);
 
-        List<BrandDto> result = brandService.findAll(pageable);
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-
-        verify(brandRepository).findAll(pageable);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(2, result.getContent().size());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(2, result.getTotalRecords());
     }
 
     @Test
-    void toggleStatusSuccessTest() {
+    void toggleStatusTest() {
+
         Brand brand = new Brand();
         brand.setStatus(true);
 
-        when(brandRepository.findByIdentifier("BR01")).thenReturn(brand);
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(brand);
 
-        brandService.toggleStatus("BR01");
+        brandService.toggleStatus("BR001");
 
         Assertions.assertFalse(brand.isStatus());
         verify(brandRepository).save(brand);
     }
 
     @Test
-    void toggleStatusFailureTest() {
-        when(brandRepository.findByIdentifier("BR01")).thenReturn(null);
+    void toggleStatusNotFoundTest() {
 
-        brandService.toggleStatus("BR01");
+        when(brandRepository.findByIdentifier("BR001")).thenReturn(null);
+
+        brandService.toggleStatus("BR001");
 
         verify(brandRepository, never()).save(any());
     }

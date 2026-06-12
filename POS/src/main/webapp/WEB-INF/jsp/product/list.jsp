@@ -21,16 +21,19 @@
             align-items: center;
             font-family: 'Segoe UI', sans-serif;
         }
+
         .card {
             width: 900px;
             border-radius: 15px;
             background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
+
         .card-header {
             background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
             font-weight: 600;
         }
+
         table th { background: #e5e7eb; }
         table td { background: #f9fafb; }
 
@@ -41,6 +44,7 @@
             color: white;
             text-decoration: none;
         }
+
         .edit-btn { background: #3b82f6; }
         .delete-btn { background: #ef4444; }
     </style>
@@ -61,6 +65,7 @@
                 No products available
             </div>
         </c:if>
+
         <c:if test="${not empty products}">
             <table class="table table-bordered table-hover text-center align-middle">
 
@@ -78,10 +83,10 @@
                     <th>Delete</th>
                 </tr>
                 </thead>
-
                 <tbody>
                 <c:forEach var="product" items="${products}" varStatus="loop">
                     <tr>
+
                         <td>${loop.index + 1}</td>
                         <td>${product.identifier}</td>
                         <td>${product.name}</td>
@@ -96,6 +101,7 @@
                                 <i class="bi bi-pencil-square"></i>
                             </a>
                         </td>
+
                         <td>
                             <a href="${pageContext.request.contextPath}/product/delete?identifier=${product.identifier}"
                                class="icon-btn delete-btn"
@@ -103,6 +109,7 @@
                                 <i class="bi bi-trash"></i>
                             </a>
                         </td>
+
                     </tr>
                 </c:forEach>
                 </tbody>
@@ -110,10 +117,12 @@
         </c:if>
     </div>
     <div class="card-footer text-center d-flex justify-content-center gap-3">
+
         <a href="${pageContext.request.contextPath}/"
            class="btn btn-secondary">
             Home
         </a>
+
         <a href="${pageContext.request.contextPath}/product/add"
            class="btn btn-primary">
             + Add Product

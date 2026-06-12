@@ -24,8 +24,10 @@ public class CategoryController {
 
     @GetMapping("/add")
     public String add(Model model, Pageable pageable) {
+
         model.addAttribute("category", new CategoryDto());
         model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+
         return "category/add";
     }
 
@@ -53,6 +55,7 @@ public class CategoryController {
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+
         }
         return REDIRECT_CATEGORY_LIST;
     }

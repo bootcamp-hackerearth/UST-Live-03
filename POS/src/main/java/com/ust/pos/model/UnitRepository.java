@@ -8,4 +8,5 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     Unit findByIdentifier(String identifier);
 
     void deleteByIdentifier(String identifier);
+
 }

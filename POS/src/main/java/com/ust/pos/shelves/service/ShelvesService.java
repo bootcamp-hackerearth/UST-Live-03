@@ -1,6 +1,7 @@
 package com.ust.pos.shelves.service;
 
 import com.ust.pos.dto.ShelvesDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelves;
 import org.springframework.data.domain.Pageable;
 
@@ -13,7 +14,7 @@ public interface ShelvesService {
 
     void delete(String identifier);
 
-    List<ShelvesDto> findAll(Pageable pageable);
+    WsDto<ShelvesDto> findAll(Pageable pageable);
 
     ShelvesDto findByIdentifier(String identifier);
 

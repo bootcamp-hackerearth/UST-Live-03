@@ -9,6 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Add Category</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
@@ -18,27 +19,33 @@
             min-height: 100vh;
             font-family: 'Segoe UI', sans-serif;
         }
+
         .card {
             border-radius: 14px;
             border: 1px solid #e5e7eb;
             background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
+
         .card-header {
             background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
             border-radius: 14px 14px 0 0;
         }
+
         .form-control, .form-select {
             border-radius: 8px;
             border: 1px solid #d1d5db;
         }
+
         .btn-primary {
             background: #3b82f6;
             border: none;
         }
+
         .btn-primary:hover {
             background: #2563eb;
         }
+
         .error-message {
             color: #dc2626;
             text-align: center;
@@ -71,6 +78,7 @@
                                     placeholder="Enter category name"
                                     required="true"/>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Super Category</label>
                         <form:select path="superCategory" cssClass="form-select">
@@ -82,6 +90,7 @@
                             </c:forEach>
                         </form:select>
                     </div>
+
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">
                             Save Category
@@ -89,9 +98,11 @@
                     </div>
                 </form:form>
             </div>
+
             <div class="card-footer text-center small">
                 POS Management System
             </div>
+
             <div class="text-center pb-3">
                 <a href="${pageContext.request.contextPath}/category/list">
                     ← Back to List

@@ -74,26 +74,29 @@
                     </c:choose>
                 </h4>
             </div>
+
             <div class="card-body">
                     <form:form method="post"
            action="${racks.id == null ? '/racks/add' : '/racks/update'}"
            modelAttribute="racks">
+
     <form:hidden path="id"/>
+
     <div class="mb-3">
         <label>Rack Name</label>
         <form:input path="identifier" cssClass="form-control"
-                    readonly="${racks.id != null}"
-                    required="true"/>
+                    readonly="${racks.id != null}"/>
     </div>
+
     <c:forEach var="s" items="${shelves}">
         <div class="form-check">
             <form:checkbox path="shelves"
                            value="${s.identifier}"
-                           cssClass="form-check-input"
-                           />
+                           cssClass="form-check-input"/>
             <label class="form-check-label">${s.identifier}</label>
         </div>
     </c:forEach>
+
     <div class="d-grid mt-3">
         <button type="submit" class="btn btn-primary btn-lg">
             ${racks.id == null ? 'Add Rack' : 'Update Rack'}
@@ -108,6 +111,7 @@
             <div class="text-center pb-3">
                 <a href="/racks/list">← Back to List</a>
             </div>
+
         </div>
     </div>
 </div>

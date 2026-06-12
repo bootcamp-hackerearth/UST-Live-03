@@ -1,6 +1,7 @@
 package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -32,6 +33,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findByUserName(String username) {
+
         User user = userRepository.findByUsername(username);
         if (user == null) {
             return null;
@@ -56,22 +58,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto update(UserDto userDto) {
+
         String username = userDto.getUsername();
         Optional<User> userOptional = userRepository.findById(userDto.getId());
+
         if (userOptional.isEmpty()) {
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + username + " not found");
             userDto.setSuccess(false);
             return userDto;
         }
+
         User existingUser = userOptional.get();
+
         if (!username.equalsIgnoreCase(existingUser.getUsername())
                 && userRepository.findByUsername(username) != null) {
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + username + " already exists");
             userDto.setSuccess(false);
             return userDto;
         }
+
         modelMapper.map(userDto, existingUser);
         userRepository.save(existingUser);
+
         return userDto;
     }
 
@@ -82,10 +90,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
+    public WsDto<UserDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
+
         Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listType);
+
+        List<UserDto> userDtos = modelMapper.map(
+                userPage.getContent(),
+                listType
+        );
+
+        WsDto<UserDto> wsDto =
+                new WsDto<>();
+
+        wsDto.setContent(userDtos);
+        wsDto.setPage(userPage.getNumber());
+        wsDto.setSizePerPage(userPage.getSize());
+        wsDto.setTotalPages(userPage.getTotalPages());
+        wsDto.setTotalRecords(userPage.getTotalElements());
+
+        return wsDto;
     }
 }

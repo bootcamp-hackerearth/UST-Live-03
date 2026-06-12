@@ -1,6 +1,7 @@
 package com.ust.pos.racks.service.impl;
 
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.RacksService;
@@ -62,11 +63,28 @@ public class RacksServiceImpl implements RacksService {
     }
 
     @Override
-    public List<RacksDto> findAll(Pageable pageable) {
+    public WsDto<RacksDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
+
         Page<Racks> racksPage = racksRepository.findAll(pageable);
-        return modelMapper.map(racksPage.getContent(), listType);
+
+        List<RacksDto> racksDtos = modelMapper.map(
+                racksPage.getContent(),
+                listType
+        );
+
+        WsDto<RacksDto> wsDto =
+                new WsDto<>();
+
+        wsDto.setContent(racksDtos);
+        wsDto.setPage(racksPage.getNumber());
+        wsDto.setSizePerPage(racksPage.getSize());
+        wsDto.setTotalPages(racksPage.getTotalPages());
+        wsDto.setTotalRecords(racksPage.getTotalElements());
+
+        return wsDto;
     }
 
     @Override

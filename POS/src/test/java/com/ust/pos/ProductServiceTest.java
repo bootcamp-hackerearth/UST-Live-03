@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -16,12 +17,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,105 +30,128 @@ class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
 
-    @Mock(lenient = true)
+    @Mock
     private ModelMapper modelMapper;
 
     @Test
-    void saveSuccessTest() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("PRD01");
+    void findByIdentifier_Found() {
 
         Product product = new Product();
-        product.setIdentifier("PRD01");
+        product.setIdentifier("PROD001");
 
-        when(productRepository.findByIdentifier("PRD01")).thenReturn(null);
-        when(modelMapper.map(dto, Product.class)).thenReturn(product);
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("PROD001");
 
-        ProductDto response = productService.save(dto);
+        when(productRepository.findByIdentifier("PROD001"))
+                .thenReturn(product);
 
-        assertEquals("PRD01", response.getIdentifier());
-        Assertions.assertNull(response.getMessage());
+        when(modelMapper.map(product, ProductDto.class))
+                .thenReturn(dto);
+
+        ProductDto result =
+                productService.findByIdentifier("PROD001");
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("PROD001",
+                result.getIdentifier());
+    }
+
+    @Test
+    void save_NewProduct() {
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("PROD001");
+
+        Product product = new Product();
+
+        when(productRepository.findByIdentifier("PROD001"))
+                .thenReturn(null);
+
+        when(modelMapper.map(dto, Product.class))
+                .thenReturn(product);
+
+        when(productRepository.save(product))
+                .thenReturn(product);
+
+        ProductDto result = productService.save(dto);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("PROD001",
+                result.getIdentifier());
+
         verify(productRepository).save(product);
     }
 
     @Test
-    void saveFailureTest() {
-        Product product = new Product();
-        product.setIdentifier("PRD01");
+    void save_ProductAlreadyExists() {
+
+        Product existing = new Product();
 
         ProductDto dto = new ProductDto();
-        dto.setIdentifier("PRD01");
+        dto.setIdentifier("PROD001");
 
-        when(productRepository.findByIdentifier("PRD01")).thenReturn(product);
+        when(productRepository.findByIdentifier("PROD001"))
+                .thenReturn(existing);
 
-        ProductDto response = productService.save(dto);
+        ProductDto result = productService.save(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+
         verify(productRepository, never()).save(any());
     }
 
     @Test
-    void updateSuccessTest() {
-        Product product = new Product();
-        product.setIdentifier("PRD01");
+    void update_ProductExists() {
+
+        Product existing = new Product();
 
         ProductDto dto = new ProductDto();
-        dto.setIdentifier("PRD01");
+        dto.setIdentifier("PROD001");
 
-        when(productRepository.findByIdentifier("PRD01")).thenReturn(product);
+        when(productRepository.findByIdentifier("PROD001"))
+                .thenReturn(existing);
 
-        ProductDto response = productService.update(dto);
+        when(productRepository.save(existing))
+                .thenReturn(existing);
 
-        assertEquals("PRD01", response.getIdentifier());
-        verify(modelMapper).map(dto, product);
-        verify(productRepository).save(product);
+        ProductDto result = productService.update(dto);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("PROD001",
+                result.getIdentifier());
+
+        verify(modelMapper).map(dto, existing);
+        verify(productRepository).save(existing);
     }
 
     @Test
-    void updateFailureTest() {
+    void update_ProductNotFound() {
+
         ProductDto dto = new ProductDto();
-        dto.setIdentifier("PRD01");
+        dto.setIdentifier("PROD001");
 
-        when(productRepository.findByIdentifier("PRD01")).thenReturn(null);
+        when(productRepository.findByIdentifier("PROD001"))
+                .thenReturn(null);
 
-        ProductDto response = productService.update(dto);
+        ProductDto result = productService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+
         verify(productRepository, never()).save(any());
     }
 
     @Test
     void deleteTest() {
-        productService.delete("PRD01");
-        verify(productRepository).deleteByIdentifier("PRD01");
-    }
 
-    @Test
-    void findByIdentifierSuccessTest() {
-        Product product = new Product();
-        product.setIdentifier("PRD01");
+        doNothing().when(productRepository)
+                .deleteByIdentifier("PROD001");
 
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("PRD01");
+        productService.delete("PROD001");
 
-        when(productRepository.findByIdentifier("PRD01")).thenReturn(product);
-        when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
-
-        ProductDto response = productService.findByIdentifier("PRD01");
-
-        assertNotNull(response);
-        assertEquals("PRD01", response.getIdentifier());
-    }
-
-    @Test
-    void findByIdentifierFailureTest() {
-        when(productRepository.findByIdentifier("PRD01")).thenReturn(null);
-
-        ProductDto response = productService.findByIdentifier("PRD01");
-
-        Assertions.assertNull(response);
+        verify(productRepository)
+                .deleteByIdentifier("PROD001");
     }
 
     @Test
@@ -139,23 +159,96 @@ class ProductServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Product> products = List.of(new Product(), new Product());
-        Page<Product> page = new PageImpl<>(products);
+        Product product1 = new Product();
+        Product product2 = new Product();
 
-        List<ProductDto> dtoList = List.of(new ProductDto(), new ProductDto());
+        Page<Product> page = new PageImpl<>(
+                List.of(product1, product2),
+                pageable,
+                2
+        );
 
-        when(productRepository.findAll(pageable)).thenReturn(page);
+        ProductDto dto1 = new ProductDto();
+        ProductDto dto2 = new ProductDto();
 
-        when(modelMapper.map(
-                eq(products),
-                any(Type.class)
-        )).thenReturn(dtoList);
+        when(productRepository.findAll(pageable))
+                .thenReturn(page);
 
-        List<ProductDto> result = productService.findAll(pageable);
+        when(modelMapper.map(product1, ProductDto.class))
+                .thenReturn(dto1);
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
+        when(modelMapper.map(product2, ProductDto.class))
+                .thenReturn(dto2);
 
-        verify(productRepository).findAll(pageable);
+        WsDto<ProductDto> result =
+                productService.findAll(pageable);
+
+        Assertions.assertNotNull(result);
+
+        Assertions.assertEquals(
+                2,
+                result.getContent().size());
+
+        Assertions.assertEquals(
+                dto1,
+                result.getContent().get(0));
+
+        Assertions.assertEquals(
+                dto2,
+                result.getContent().get(1));
+
+        Assertions.assertEquals(
+                0,
+                result.getPage());
+
+        Assertions.assertEquals(
+                10,
+                result.getSizePerPage());
+
+        Assertions.assertEquals(
+                1,
+                result.getTotalPages());
+
+        Assertions.assertEquals(
+                2,
+                result.getTotalRecords());
+
+        verify(productRepository)
+                .findAll(pageable);
+
+        verify(modelMapper)
+                .map(product1, ProductDto.class);
+
+        verify(modelMapper)
+                .map(product2, ProductDto.class);
+    }
+
+    @Test
+    void findAllEmptyTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Product> page =
+                new PageImpl<>(List.of());
+
+        when(productRepository.findAll(pageable))
+                .thenReturn(page);
+
+        WsDto<ProductDto> result =
+                productService.findAll(pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertTrue(
+                result.getContent().isEmpty());
+
+        Assertions.assertEquals(0,
+                result.getTotalRecords());
+
+        verify(productRepository)
+                .findAll(pageable);
+
+        verify(modelMapper, never())
+                .map(any(Product.class),
+                        eq(ProductDto.class));
     }
 }

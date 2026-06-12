@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -17,12 +18,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,153 +37,218 @@ class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @Mock(lenient = true)
+    @Mock
     private ModelMapper modelMapper;
 
     @Test
-    void saveSuccessTest() {
-        UserDto dto = new UserDto();
-        dto.setUsername("user1");
-        dto.setPassword("pass");
+    void findByUserName_Found() {
 
         User user = new User();
-        user.setUsername("user1");
-
-        when(userRepository.findByUsername("user1")).thenReturn(null);
-        when(modelMapper.map(dto, User.class)).thenReturn(user);
-        when(passwordEncoder.encode("pass")).thenReturn("encoded");
-
-        UserDto response = userService.save(dto);
-
-        assertEquals("user1", response.getUsername());
-        Assertions.assertNull(response.getMessage());
-        verify(userRepository).save(user);
-    }
-
-    @Test
-    void saveFailureTest() {
-        User existing = new User();
-        existing.setUsername("user1");
+        user.setUsername("admin");
 
         UserDto dto = new UserDto();
-        dto.setUsername("user1");
+        dto.setUsername("admin");
 
-        when(userRepository.findByUsername("user1")).thenReturn(existing);
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(user);
 
-        UserDto response = userService.save(dto);
+        when(modelMapper.map(user, UserDto.class))
+                .thenReturn(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
-        verify(userRepository, never()).save(any());
+        UserDto result = userService.findByUserName("admin");
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("admin",
+                result.getUsername());
     }
 
     @Test
-    void updateSuccessTest_WhenUsernameSame() {
+    void findByUserName_NotFound() {
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(null);
+
+        UserDto result = userService.findByUserName("admin");
+
+        Assertions.assertNull(result);
+    }
+
+    @Test
+    void save_NewUser() {
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+        dto.setPassword("password");
+
+        User user = new User();
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(null);
+
+        when(modelMapper.map(dto, User.class))
+                .thenReturn(user);
+
+        when(passwordEncoder.encode("password"))
+                .thenReturn("encodedPassword");
+
+        when(userRepository.save(user))
+                .thenReturn(user);
+
+        UserDto result = userService.save(dto);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("admin",
+                result.getUsername());
+
+        verify(passwordEncoder)
+                .encode("password");
+
+        Assertions.assertEquals(
+                "encodedPassword",
+                user.getPassword());
+
+        verify(userRepository)
+                .save(user);
+    }
+
+    @Test
+    void save_UserAlreadyExists() {
+
         User existing = new User();
-        existing.setId(1L);
-        existing.setUsername("user1");
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(existing);
+
+        UserDto result = userService.save(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+
+        verify(userRepository, never())
+                .save(any());
+
+        verify(passwordEncoder, never())
+                .encode(anyString());
+    }
+
+    @Test
+    void update_UserNotFound() {
 
         UserDto dto = new UserDto();
         dto.setId(1L);
-        dto.setUsername("user1");
+        dto.setUsername("admin");
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.empty());
 
-        UserDto response = userService.update(dto);
+        UserDto result = userService.update(dto);
 
-        assertEquals("user1", response.getUsername());
-        verify(modelMapper).map(dto, existing);
-        verify(userRepository).save(existing);
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+
+        verify(userRepository, never())
+                .save(any());
     }
 
     @Test
-    void updateSuccessTest_WhenUsernameChangedAndNotExists() {
-        User existing = new User();
-        existing.setId(1L);
-        existing.setUsername("oldName");
+    void update_UsernameAlreadyExists() {
+
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("admin");
+
+        User anotherUser = new User();
+        anotherUser.setUsername("manager");
 
         UserDto dto = new UserDto();
         dto.setId(1L);
-        dto.setUsername("newName");
+        dto.setUsername("manager");
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
-        when(userRepository.findByUsername("newName")).thenReturn(null);
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(existingUser));
 
-        UserDto response = userService.update(dto);
+        when(userRepository.findByUsername("manager"))
+                .thenReturn(anotherUser);
 
-        assertEquals("newName", response.getUsername());
-        verify(modelMapper).map(dto, existing);
-        verify(userRepository).save(existing);
+        UserDto result = userService.update(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+
+        verify(userRepository, never())
+                .save(any());
     }
 
     @Test
-    void updateFailureUserNotFoundTest() {
+    void update_SameUsername() {
+
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("admin");
+
         UserDto dto = new UserDto();
         dto.setId(1L);
-        dto.setUsername("user1");
+        dto.setUsername("admin");
 
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(existingUser));
 
-        UserDto response = userService.update(dto);
+        UserDto result = userService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
-        verify(userRepository, never()).save(any());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("admin",
+                result.getUsername());
+
+        verify(modelMapper)
+                .map(dto, existingUser);
+
+        verify(userRepository)
+                .save(existingUser);
     }
 
     @Test
-    void updateFailureUsernameExistsTest() {
-        User existing = new User();
-        existing.setId(1L);
-        existing.setUsername("old");
+    void update_NewUniqueUsername() {
 
-        User another = new User();
-        another.setUsername("new");
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("admin");
 
         UserDto dto = new UserDto();
         dto.setId(1L);
-        dto.setUsername("new");
+        dto.setUsername("manager");
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
-        when(userRepository.findByUsername("new")).thenReturn(another);
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(existingUser));
 
-        UserDto response = userService.update(dto);
+        when(userRepository.findByUsername("manager"))
+                .thenReturn(null);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
-        verify(userRepository, never()).save(any());
+        UserDto result = userService.update(dto);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("manager",
+                result.getUsername());
+
+        verify(modelMapper)
+                .map(dto, existingUser);
+
+        verify(userRepository)
+                .save(existingUser);
     }
 
     @Test
     void deleteTest() {
-        userService.delete("user1");
-        verify(userRepository).deleteByUsername("user1");
-    }
 
-    @Test
-    void findByUserNameSuccessTest() {
-        User user = new User();
-        user.setUsername("user1");
+        doNothing().when(userRepository)
+                .deleteByUsername("admin");
 
-        UserDto dto = new UserDto();
-        dto.setUsername("user1");
+        userService.delete("admin");
 
-        when(userRepository.findByUsername("user1")).thenReturn(user);
-        when(modelMapper.map(user, UserDto.class)).thenReturn(dto);
-
-        UserDto response = userService.findByUserName("user1");
-
-        assertNotNull(response);
-        assertEquals("user1", response.getUsername());
-    }
-
-    @Test
-    void findByUserNameFailureTest() {
-        when(userRepository.findByUsername("user1")).thenReturn(null);
-
-        UserDto response = userService.findByUserName("user1");
-
-        Assertions.assertNull(response);
+        verify(userRepository)
+                .deleteByUsername("admin");
     }
 
     @Test
@@ -191,23 +256,85 @@ class UserServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<User> users = List.of(new User(), new User());
-        Page<User> page = new PageImpl<>(users);
+        List<User> users =
+                List.of(new User(), new User());
 
-        List<UserDto> dtoList = List.of(new UserDto(), new UserDto());
+        Page<User> page =
+                new PageImpl<>(
+                        users,
+                        pageable,
+                        2
+                );
 
-        when(userRepository.findAll(pageable)).thenReturn(page);
+        List<UserDto> dtoList =
+                List.of(new UserDto(), new UserDto());
 
-        when(modelMapper.map(
-                eq(users),
-                any(java.lang.reflect.Type.class)
-        )).thenReturn(dtoList);
+        when(userRepository.findAll(pageable))
+                .thenReturn(page);
 
-        List<UserDto> result = userService.findAll(pageable);
+        when(modelMapper.map(eq(users), any(Type.class)))
+                .thenReturn(dtoList);
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
+        WsDto<UserDto> result =
+                userService.findAll(pageable);
 
-        verify(userRepository).findAll(pageable);
+        Assertions.assertNotNull(result);
+
+        Assertions.assertEquals(
+                2,
+                result.getContent().size());
+
+        Assertions.assertEquals(
+                0,
+                result.getPage());
+
+        Assertions.assertEquals(
+                10,
+                result.getSizePerPage());
+
+        Assertions.assertEquals(
+                1,
+                result.getTotalPages());
+
+        Assertions.assertEquals(
+                2,
+                result.getTotalRecords());
+
+        verify(userRepository)
+                .findAll(pageable);
+
+        verify(modelMapper)
+                .map(eq(users), any(Type.class));
+    }
+
+    @Test
+    void findAllEmptyTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<User> emptyList = List.of();
+
+        Page<User> page =
+                new PageImpl<>(emptyList);
+
+        when(userRepository.findAll(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(emptyList), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<UserDto> result =
+                userService.findAll(pageable);
+
+        Assertions.assertNotNull(result);
+
+        Assertions.assertTrue(
+                result.getContent().isEmpty());
+
+        Assertions.assertEquals(0,
+                result.getTotalRecords());
+
+        verify(userRepository)
+                .findAll(pageable);
     }
 }

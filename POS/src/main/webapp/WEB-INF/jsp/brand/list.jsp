@@ -20,6 +20,7 @@
             align-items: center;
             font-family: 'Segoe UI', sans-serif;
         }
+
         .card {
             width: 900px;
             border-radius: 15px;
@@ -27,10 +28,12 @@
             background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
+
         .card-header {
             background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
             font-weight: 600;
         }
+
         table th { background: #e5e7eb; }
         table td { background: #f9fafb; }
 
@@ -45,6 +48,7 @@
         .edit-btn { background: #3b82f6; }
         .delete-btn { background: #ef4444; }
 
+        /* Toggle Switch */
         .switch {
             position: relative;
             display: inline-block;
@@ -69,6 +73,7 @@
             bottom: 0;
             transition: 0.4s;
         }
+
         .slider:before {
             content: "";
             position: absolute;
@@ -80,6 +85,7 @@
             border-radius: 50%;
             transition: 0.4s;
         }
+
         input:checked + .slider {
             background-color: #22c55e;
         }
@@ -95,14 +101,18 @@
     <div class="card-header text-center">
         <h4 class="mb-0">Brand List</h4>
     </div>
+
     <div class="card-body">
+
         <c:if test="${empty brands}">
             <div class="alert alert-warning text-center">
                 No brands available
             </div>
         </c:if>
+
         <c:if test="${not empty brands}">
             <table class="table table-bordered table-hover text-center align-middle">
+
                 <thead>
                 <tr>
                     <th>ID</th>
@@ -113,6 +123,7 @@
                     <th>Delete</th>
                 </tr>
                 </thead>
+
                 <tbody>
                 <c:forEach var="brand" items="${brands}" varStatus="loop">
                     <tr>
@@ -130,14 +141,14 @@
                         <td>
                             <a href="${pageContext.request.contextPath}/brand/get?identifier=${brand.identifier}"
                                class="icon-btn edit-btn">
-                               <i class="bi bi-pencil-square"></i>
+                                <i class="bi bi-pencil-square"></i>
                             </a>
                         </td>
                         <td>
                             <a href="${pageContext.request.contextPath}/brand/delete?identifier=${brand.identifier}"
                                class="icon-btn delete-btn"
                                onclick="return confirm('Are you sure you want to delete this brand?');">
-                               <i class="bi bi-trash"></i>
+                                <i class="bi bi-trash"></i>
                             </a>
                         </td>
                     </tr>

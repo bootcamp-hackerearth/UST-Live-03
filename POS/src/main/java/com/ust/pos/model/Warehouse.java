@@ -13,4 +13,5 @@ public class Warehouse extends CommonFields {
     private String location;
     private String contactName;
     private String contactNumber;
+
 }

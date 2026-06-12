@@ -58,7 +58,9 @@
             <div class="card-header text-center">
                 <h4 class="mb-0">Add Product</h4>
             </div>
+
             <div class="card-body">
+
                 <form:form
                         action="${pageContext.request.contextPath}/product/add"
                         method="post"
@@ -68,23 +70,28 @@
                         <label class="form-label fw-semibold">Product ID</label>
                         <form:input path="identifier" cssClass="form-control" required="true"/>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Product Name</label>
                         <form:input path="name" cssClass="form-control" required="true"/>
                     </div>
-                    <div class="mb-3">
+
+                   <div class="mb-3">
                        <label class="form-label fw-semibold">Unit</label>
                        <form:select path="unit" cssClass="form-select" required="true">
                            <form:option value="" label="Select Unit"/>
+
                            <form:options items="${units}"
                                          itemValue="identifier"
                                          itemLabel="identifier"/>
                        </form:select>
                    </div>
+
                     <div class="mb-3">
                      <label class="form-label fw-semibold">Price</label>
                     <form:input path="price" type="number" step="0.01" cssClass="form-control" required="true"/>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Category</label>
                         <form:select path="category" cssClass="form-select" required="true">
@@ -94,6 +101,7 @@
                                           itemLabel="identifier"/>
                         </form:select>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Brand</label>
                         <form:select path="brand" cssClass="form-select" required="true">
@@ -103,6 +111,7 @@
                                           itemLabel="identifier"/>
                         </form:select>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Model</label>
                         <form:select path="models" cssClass="form-select" required="true">
@@ -112,6 +121,7 @@
                                           itemLabel="identifier"/>
                         </form:select>
                     </div>
+
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">
                             Save Product

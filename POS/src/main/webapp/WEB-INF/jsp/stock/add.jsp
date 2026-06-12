@@ -19,20 +19,24 @@ body {
     min-height: 100vh;
     font-family: 'Segoe UI', sans-serif;
 }
+
 .card {
     border-radius: 14px;
     border: 1px solid #e5e7eb;
     background: rgba(255,255,255,0.9);
     box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
+
 .card-header {
     background: linear-gradient(135deg,#e5e7eb,#f3f4f6) !important;
     color:#111827 !important;
 }
+
 .form-control,.form-select {
     border-radius: 8px;
     border: 1px solid #d1d5db;
 }
+
 .btn-primary {
     background:#3b82f6;
     border:none;
@@ -66,19 +70,23 @@ body {
 <form:form method="post"
            action="${pageContext.request.contextPath}/stock/add"
            modelAttribute="stockDto">
+
     <form:hidden path="identifier"/>
+
 
     <div class="mb-3">
         <label>Product</label>
         <form:select path="product" cssClass="form-select">
             <form:option value="" label="-- Select Product --"/>
-            <form:options items="${products}" itemValue="name" itemLabel="name" required="true"/>
+            <form:options items="${products}" itemValue="name" itemLabel="name"/>
         </form:select>
     </div>
+
     <div class="mb-3">
         <label>Quantity</label>
-        <form:input path="quantity" cssClass="form-control" type="number" required="true"/>
+        <form:input path="quantity" cssClass="form-control" type="number"/>
     </div>
+
     <div class="mb-3">
         <label>Status</label>
         <form:select path="status" cssClass="form-select">
@@ -88,21 +96,23 @@ body {
             <form:option value="DAMAGED" label="Damaged"/>
         </form:select>
     </div>
+
     <div class="mb-3">
         <label>Warehouse</label>
         <form:select path="warehouse" cssClass="form-select">
             <form:option value="" label="-- Select Warehouse --"/>
-           <form:options items="${warehouses}" itemValue="identifier" itemLabel="identifier" required="true"/>
+           <form:options items="${warehouses}" itemValue="identifier" itemLabel="identifier"/>
         </form:select>
     </div>
     <button class="btn btn-primary w-100">Save Stock</button>
      <div class="back text-center pb-3">
                     <a href="${pageContext.request.contextPath}/stock/list">← Back to List</a>
                 </div>
-          </form:form>
-     </div>
-     </div>
+
+</form:form>
 </div>
-     </div>
+</div>
+</div>
+</div>
 </body>
- </html>
+</html>

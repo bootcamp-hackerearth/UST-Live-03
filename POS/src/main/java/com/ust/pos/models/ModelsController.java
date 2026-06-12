@@ -48,6 +48,7 @@ public class ModelsController {
         ModelsDto response = modelsService.update(modelsDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
+
         }
         return REDIRECT_MODELS_LIST;
     }

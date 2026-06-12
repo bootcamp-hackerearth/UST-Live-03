@@ -27,6 +27,7 @@ public class ProductController {
     @Autowired
     private UnitService unitService;
 
+
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
         model.addAttribute("products", productService.findAll(pageable));

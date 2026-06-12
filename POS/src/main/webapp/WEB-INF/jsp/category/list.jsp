@@ -21,6 +21,7 @@
             align-items: center;
             font-family: 'Segoe UI', sans-serif;
         }
+
         .card {
             width: 800px;
             border-radius: 15px;
@@ -28,6 +29,7 @@
             background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
+
         .card-header {
             background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
             border-top-left-radius: 15px;
@@ -35,14 +37,17 @@
             color: #111827;
             font-weight: 600;
         }
+
         table th {
             background: #e5e7eb;
             color: #111827;
         }
+
         table td {
             background: #f9fafb;
             color: #111827;
         }
+
         .icon-btn {
             border: none;
             padding: 6px 10px;
@@ -52,26 +57,33 @@
             color: white;
             text-decoration: none;
         }
+
         .icon-btn:hover {
             transform: scale(1.1);
         }
+
         .edit-btn {
             background: #3b82f6;
         }
+
         .delete-btn {
             background: #ef4444;
         }
+
         .btn-primary {
             background: #3b82f6;
             border: none;
         }
+
         .btn-primary:hover {
             background: #2563eb;
         }
+
         .btn-secondary {
             background: #6b7280;
             border: none;
         }
+
         .btn-secondary:hover {
             background: #4b5563;
         }
@@ -79,15 +91,19 @@
 </head>
 <body>
 <div class="card shadow-lg">
+
     <div class="card-header text-center">
         <h4 class="mb-0">Category List</h4>
     </div>
+
     <div class="card-body">
+
         <c:if test="${empty categories}">
             <div class="alert alert-warning text-center">
                 No categories available
             </div>
         </c:if>
+
         <c:if test="${not empty categories}">
             <table class="table table-bordered table-hover text-center align-middle">
 
@@ -101,6 +117,7 @@
                 </tr>
                 </thead>
                 <tbody>
+
                 <c:forEach var="cat" items="${categories}">
                     <tr>
                         <td>${loop.index + 1}</td>
@@ -112,6 +129,7 @@
                                 <i class="bi bi-pencil-square"></i>
                             </a>
                         </td>
+
                         <td>
                             <a href="${pageContext.request.contextPath}/category/delete?identifier=${cat.identifier}"
                                class="icon-btn delete-btn"
@@ -119,21 +137,26 @@
                                 <i class="bi bi-trash"></i>
                             </a>
                         </td>
+
                     </tr>
                 </c:forEach>
                 </tbody>
             </table>
         </c:if>
     </div>
+
     <div class="card-footer text-center d-flex justify-content-center gap-3">
+
         <a href="${pageContext.request.contextPath}/"
            class="btn btn-secondary">
             Home
         </a>
+
         <a href="${pageContext.request.contextPath}/category/add"
            class="btn btn-primary">
             + Add Category
         </a>
+
     </div>
 </div>
 </body>

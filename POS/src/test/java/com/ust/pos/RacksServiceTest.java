@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.impl.RacksServiceImpl;
@@ -19,9 +20,8 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,105 +33,131 @@ class RacksServiceTest {
     @Mock
     private RacksRepository racksRepository;
 
-    @Mock(lenient = true)
+    @Mock
     private ModelMapper modelMapper;
 
     @Test
-    void saveSuccessTest() {
-        RacksDto dto = new RacksDto();
-        dto.setIdentifier("RACK01");
+    void findByIdentifier_Found() {
 
         Racks racks = new Racks();
-        racks.setIdentifier("RACK01");
+        racks.setIdentifier("RACK001");
 
-        when(racksRepository.findByIdentifier("RACK01")).thenReturn(null);
-        when(modelMapper.map(dto, Racks.class)).thenReturn(racks);
+        RacksDto dto = new RacksDto();
+        dto.setIdentifier("RACK001");
 
-        RacksDto response = racksService.save(dto);
+        when(racksRepository.findByIdentifier("RACK001"))
+                .thenReturn(racks);
 
-        assertEquals("RACK01", response.getIdentifier());
-        Assertions.assertNull(response.getMessage());
+        when(modelMapper.map(racks, RacksDto.class))
+                .thenReturn(dto);
+
+        RacksDto result =
+                racksService.findByIdentifier("RACK001");
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(
+                "RACK001",
+                result.getIdentifier());
+    }
+
+    @Test
+    void save_NewRacks() {
+
+        RacksDto dto = new RacksDto();
+        dto.setIdentifier("RACK001");
+
+        Racks racks = new Racks();
+
+        when(racksRepository.findByIdentifier("RACK001"))
+                .thenReturn(null);
+
+        when(modelMapper.map(dto, Racks.class))
+                .thenReturn(racks);
+
+        when(racksRepository.save(racks))
+                .thenReturn(racks);
+
+        RacksDto result = racksService.save(dto);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(
+                "RACK001",
+                result.getIdentifier());
+
         verify(racksRepository).save(racks);
     }
 
     @Test
-    void saveFailureTest() {
-        Racks racks = new Racks();
-        racks.setIdentifier("RACK01");
+    void save_RacksAlreadyExists() {
+
+        Racks existing = new Racks();
 
         RacksDto dto = new RacksDto();
-        dto.setIdentifier("RACK01");
+        dto.setIdentifier("RACK001");
 
-        when(racksRepository.findByIdentifier("RACK01")).thenReturn(racks);
+        when(racksRepository.findByIdentifier("RACK001"))
+                .thenReturn(existing);
 
-        RacksDto response = racksService.save(dto);
+        RacksDto result = racksService.save(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+
         verify(racksRepository, never()).save(any());
     }
 
     @Test
-    void updateSuccessTest() {
-        Racks racks = new Racks();
-        racks.setIdentifier("RACK01");
+    void update_RacksExists() {
+
+        Racks existing = new Racks();
 
         RacksDto dto = new RacksDto();
-        dto.setIdentifier("RACK01");
+        dto.setIdentifier("RACK001");
 
-        when(racksRepository.findByIdentifier("RACK01")).thenReturn(racks);
+        when(racksRepository.findByIdentifier("RACK001"))
+                .thenReturn(existing);
 
-        RacksDto response = racksService.update(dto);
+        when(racksRepository.save(existing))
+                .thenReturn(existing);
 
-        assertEquals("RACK01", response.getIdentifier());
-        verify(modelMapper).map(dto, racks);
-        verify(racksRepository).save(racks);
+        RacksDto result = racksService.update(dto);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(
+                "RACK001",
+                result.getIdentifier());
+
+        verify(modelMapper).map(dto, existing);
+        verify(racksRepository).save(existing);
     }
 
     @Test
-    void updateFailureTest() {
+    void update_RacksNotFound() {
+
         RacksDto dto = new RacksDto();
-        dto.setIdentifier("RACK01");
+        dto.setIdentifier("RACK001");
 
-        when(racksRepository.findByIdentifier("RACK01")).thenReturn(null);
+        when(racksRepository.findByIdentifier("RACK001"))
+                .thenReturn(null);
 
-        RacksDto response = racksService.update(dto);
+        RacksDto result = racksService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+
         verify(racksRepository, never()).save(any());
     }
 
     @Test
     void deleteTest() {
-        racksService.delete("RACK01");
-        verify(racksRepository).deleteByIdentifier("RACK01");
-    }
 
-    @Test
-    void findByIdentifierSuccessTest() {
-        Racks racks = new Racks();
-        racks.setIdentifier("RACK01");
+        doNothing().when(racksRepository)
+                .deleteByIdentifier("RACK001");
 
-        RacksDto dto = new RacksDto();
-        dto.setIdentifier("RACK01");
+        racksService.delete("RACK001");
 
-        when(racksRepository.findByIdentifier("RACK01")).thenReturn(racks);
-        when(modelMapper.map(racks, RacksDto.class)).thenReturn(dto);
-
-        RacksDto response = racksService.findByIdentifier("RACK01");
-
-        assertNotNull(response);
-        assertEquals("RACK01", response.getIdentifier());
-    }
-
-    @Test
-    void findByIdentifierFailureTest() {
-        when(racksRepository.findByIdentifier("RACK01")).thenReturn(null);
-
-        RacksDto response = racksService.findByIdentifier("RACK01");
-
-        Assertions.assertNull(response);
+        verify(racksRepository)
+                .deleteByIdentifier("RACK001");
     }
 
     @Test
@@ -139,46 +165,109 @@ class RacksServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Racks> racksList = List.of(new Racks(), new Racks());
-        Page<Racks> page = new PageImpl<>(racksList);
+        List<Racks> racksList =
+                List.of(new Racks(), new Racks());
 
-        List<RacksDto> dtoList = List.of(new RacksDto(), new RacksDto());
+        Page<Racks> page =
+                new PageImpl<>(
+                        racksList,
+                        pageable,
+                        2
+                );
 
-        when(racksRepository.findAll(pageable)).thenReturn(page);
+        List<RacksDto> dtoList =
+                List.of(new RacksDto(), new RacksDto());
 
-        when(modelMapper.map(
-                eq(racksList),
-                any(Type.class)
-        )).thenReturn(dtoList);
+        when(racksRepository.findAll(pageable))
+                .thenReturn(page);
 
-        List<RacksDto> result = racksService.findAll(pageable);
+        when(modelMapper.map(eq(racksList), any(Type.class)))
+                .thenReturn(dtoList);
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
+        WsDto<RacksDto> result =
+                racksService.findAll(pageable);
 
-        verify(racksRepository).findAll(pageable);
+        Assertions.assertNotNull(result);
+
+        Assertions.assertEquals(
+                2,
+                result.getContent().size());
+
+        Assertions.assertEquals(
+                0,
+                result.getPage());
+
+        Assertions.assertEquals(
+                10,
+                result.getSizePerPage());
+
+        Assertions.assertEquals(
+                1,
+                result.getTotalPages());
+
+        Assertions.assertEquals(
+                2,
+                result.getTotalRecords());
     }
 
     @Test
-    void toggleStatusSuccessTest() {
+    void findAllEmptyTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<Racks> emptyList = List.of();
+
+        Page<Racks> page =
+                new PageImpl<>(emptyList);
+
+        when(racksRepository.findAll(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(emptyList), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<RacksDto> result =
+                racksService.findAll(pageable);
+
+        Assertions.assertNotNull(result);
+
+        Assertions.assertTrue(
+                result.getContent().isEmpty());
+
+        Assertions.assertEquals(
+                0,
+                result.getTotalRecords());
+
+        verify(racksRepository)
+                .findAll(pageable);
+    }
+
+    @Test
+    void toggleStatus_RacksFound() {
+
         Racks racks = new Racks();
-        racks.setIdentifier("RACK01");
         racks.setStatus(true);
 
-        when(racksRepository.findByIdentifier("RACK01")).thenReturn(racks);
+        when(racksRepository.findByIdentifier("RACK001"))
+                .thenReturn(racks);
 
-        racksService.toggleStatus("RACK01");
+        racksService.toggleStatus("RACK001");
 
         Assertions.assertFalse(racks.isStatus());
-        verify(racksRepository).save(racks);
+
+        verify(racksRepository)
+                .save(racks);
     }
 
     @Test
-    void toggleStatusFailureTest() {
-        when(racksRepository.findByIdentifier("RACK01")).thenReturn(null);
+    void toggleStatus_RacksNotFound() {
 
-        racksService.toggleStatus("RACK01");
+        when(racksRepository.findByIdentifier("RACK001"))
+                .thenReturn(null);
 
-        verify(racksRepository, never()).save(any());
+        racksService.toggleStatus("RACK001");
+
+        verify(racksRepository, never())
+                .save(any());
     }
 }

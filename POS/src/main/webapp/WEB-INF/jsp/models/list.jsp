@@ -21,6 +21,7 @@
             align-items: center;
             font-family: 'Segoe UI', sans-serif;
         }
+
         .card {
             width: 800px;
             border-radius: 15px;
@@ -28,10 +29,12 @@
             background: rgba(255,255,255,0.9);
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
         }
+
         .card-header {
             background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
             font-weight: 600;
         }
+
         table th { background: #e5e7eb; }
         table td { background: #f9fafb; }
 
@@ -42,6 +45,7 @@
             color: white;
             text-decoration: none;
         }
+
         .edit-btn { background: #3b82f6; }
         .delete-btn { background: #ef4444; }
 
@@ -51,11 +55,13 @@
             width: 46px;
             height: 24px;
         }
+
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
+
         .slider {
             position: absolute;
             cursor: pointer;
@@ -64,6 +70,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             transition: 0.4s;
         }
+
         .slider:before {
             content: "";
             position: absolute;
@@ -75,12 +82,15 @@
             border-radius: 50%;
             transition: 0.4s;
         }
+
         input:checked + .slider {
             background-color: #22c55e;
         }
+
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+
         .toggle-container {
             cursor: pointer;
         }
@@ -97,6 +107,7 @@
                 No models available
             </div>
         </c:if>
+
         <c:if test="${not empty models}">
             <table class="table table-bordered table-hover text-center align-middle">
 
@@ -151,6 +162,7 @@
            href="${pageContext.request.contextPath}/">
             Home
         </a>
+
         <a class="btn btn-primary"
            href="${pageContext.request.contextPath}/models/add">
             + Add Model

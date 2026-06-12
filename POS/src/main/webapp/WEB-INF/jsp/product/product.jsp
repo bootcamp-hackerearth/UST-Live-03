@@ -51,22 +51,27 @@
         <c:if test="${not empty message}">
             <div class="error-message">${message}</div>
         </c:if>
+
         <c:if test="${not empty product}">
+
             <form:form action="${pageContext.request.contextPath}/product/update"
                        method="post"
                        modelAttribute="product">
+
                 <div class="mb-3">
                     <label class="form-label">Product ID</label>
                     <form:input path="identifier"
                                 cssClass="form-control"
                                 readonly="true"/>
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label">Product Name</label>
                     <form:input path="name"
                                 cssClass="form-control"
                                 required="true"/>
                 </div>
+
                 <div class="mb-3">
                      <label class="form-label fw-semibold">Unit</label>
                      <form:select path="unit" cssClass="form-select" required="true">
@@ -76,10 +81,12 @@
                                    itemLabel="identifier"/>
                                     </form:select>
                 </div>
+
                 <div class="mb-3">
                       <label class="form-label fw-semibold">Price</label>
                       <form:input path="price" type="number" step="0.01" cssClass="form-control" required="true"/>
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label">Category</label>
                     <form:select path="category"
@@ -91,6 +98,7 @@
                                       itemLabel="identifier"/>
                     </form:select>
                 </div>
+
                  <div class="mb-3">
                      <label class="form-label fw-semibold">Brand</label>
                      <form:select path="brand" cssClass="form-select" required="true">
@@ -100,6 +108,7 @@
                                    itemLabel="identifier"/>
                      </form:select>
                  </div>
+
                   <div class="mb-3">
                        <label class="form-label fw-semibold">Model</label>
                        <form:select path="models" cssClass="form-select" required="true">
@@ -109,6 +118,7 @@
                                      itemLabel="identifier"/>
                         </form:select>
                   </div>
+
                 <button type="submit" class="btn btn-primary w-100">
                     Update Product
                 </button>
