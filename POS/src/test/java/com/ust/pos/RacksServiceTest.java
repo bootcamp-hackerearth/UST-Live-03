@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.impl.RacksServiceImpl;
@@ -128,22 +129,43 @@ class RacksServiceTest {
 
     @Test
     void findAllTest() {
+
         Pageable pageable = mock(Pageable.class);
         Page<Racks> page = mock(Page.class);
 
-        List<Racks> racksList = List.of(new Racks(), new Racks());
-        List<RacksDto> dtoList = List.of(new RacksDto(), new RacksDto());
+        List<Racks> racksList = List.of(
+                new Racks(),
+                new Racks()
+        );
+
+        List<RacksDto> dtoList = List.of(
+                new RacksDto(),
+                new RacksDto()
+        );
 
         when(racksRepository.findAll(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(racksList);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(racksList), any(Type.class))).thenReturn(dtoList);
 
-        List<RacksDto> result = racksService.findAll(pageable);
+        WsDto<RacksDto> result = racksService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(dtoList, result.getDtoList());
+        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
 
         verify(racksRepository).findAll(pageable);
         verify(page).getContent();
+        verify(page).getTotalElements();
+        verify(page).getTotalPages();
+        verify(pageable).getPageSize();
+        verify(pageable).getPageNumber();
         verify(modelMapper).map(eq(racksList), any(Type.class));
     }
 

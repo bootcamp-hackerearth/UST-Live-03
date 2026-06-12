@@ -5,12 +5,15 @@ import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/customer")
@@ -20,10 +23,13 @@ public class CustomerApiController extends BaseController {
     private CustomerService customerService;
 
     @Autowired
+    private ProductService productService;
+
+    @Autowired
     private AddressService addressService;
 
     @PostMapping("/list")
-    public List<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -35,8 +41,8 @@ public class CustomerApiController extends BaseController {
         return customerService.save(customerDto);
     }
 
-    @GetMapping("/get")
-    public CustomerDto update(Model model, @RequestParam String identifier) {
+    @PostMapping("/get")
+    public CustomerDto update(Model model, @RequestBody String identifier) {
 
         CustomerDto response = customerService.findByIdentifier(identifier);
         response.setBillingAddress(addressService.
@@ -52,8 +58,8 @@ public class CustomerApiController extends BaseController {
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody String identifier) {
         try {
             customerService.delete(identifier);
         } catch (Exception e) {

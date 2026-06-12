@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -129,22 +130,43 @@ class CategoryServiceTest {
 
     @Test
     void findAllTest() {
+
         Pageable pageable = mock(Pageable.class);
         Page<Category> page = mock(Page.class);
 
-        List<Category> categories = List.of(new Category(), new Category());
-        List<CategoryDto> dtoList = List.of(new CategoryDto(), new CategoryDto());
+        List<Category> categories = List.of(
+                new Category(),
+                new Category()
+        );
+
+        List<CategoryDto> dtoList = List.of(
+                new CategoryDto(),
+                new CategoryDto()
+        );
 
         when(categoryRepository.findAll(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(categories);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(categories), any(Type.class))).thenReturn(dtoList);
 
-        List<CategoryDto> result = categoryService.findAll(pageable);
+        WsDto<CategoryDto> result = categoryService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(dtoList, result.getDtoList());
+        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
 
         verify(categoryRepository).findAll(pageable);
         verify(page).getContent();
+        verify(page).getTotalElements();
+        verify(page).getTotalPages();
+        verify(pageable).getPageSize();
+        verify(pageable).getPageNumber();
         verify(modelMapper).map(eq(categories), any(Type.class));
     }
 

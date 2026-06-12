@@ -161,7 +161,7 @@
                     <c:forEach var="price" items="${prices}">
                         <tr>
                             <td>${price.product}</td>
-                            <td>₹${price.priceAmount}</td>
+                            <td>₹${price.price}</td>
                             <td>${price.priceType}</td>
                             <td>
                                 <a href="/price/get?identifier=${price.identifier}" class="edit-link">Edit</a>

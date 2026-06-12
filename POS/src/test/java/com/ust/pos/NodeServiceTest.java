@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -195,22 +196,43 @@ class NodeServiceTest {
 
     @Test
     void findAllTest() {
+
         Pageable pageable = mock(Pageable.class);
         Page<Node> page = mock(Page.class);
 
-        List<Node> nodes = List.of(new Node(), new Node());
-        List<NodeDto> dtoList = List.of(new NodeDto(), new NodeDto());
+        List<Node> nodes = List.of(
+                new Node(),
+                new Node()
+        );
+
+        List<NodeDto> dtoList = List.of(
+                new NodeDto(),
+                new NodeDto()
+        );
 
         when(nodeRepository.findAll(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(nodes);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(nodes), any(Type.class))).thenReturn(dtoList);
 
-        List<NodeDto> result = nodeService.findAll(pageable);
+        WsDto<NodeDto> result = nodeService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(dtoList, result.getDtoList());
+        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
 
         verify(nodeRepository).findAll(pageable);
         verify(page).getContent();
+        verify(page).getTotalElements();
+        verify(page).getTotalPages();
+        verify(pageable).getPageSize();
+        verify(pageable).getPageNumber();
         verify(modelMapper).map(eq(nodes), any(Type.class));
     }
 }

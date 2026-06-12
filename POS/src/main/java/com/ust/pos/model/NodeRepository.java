@@ -7,5 +7,7 @@ import org.springframework.stereotype.Repository;
 public interface NodeRepository extends JpaRepository<Node, Long> {
     Node findByIdentifier(String identifier);
 
+    Node findByPath(String path);
+
     void deleteByIdentifier(String identifier);
 }

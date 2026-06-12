@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/models")
 public class ModelsController {
-
     public static final String REDIRECT_MODELS_LIST = "redirect:/models/list";
-
     @Autowired
     private ModelsService modelsService;
 
@@ -50,6 +48,7 @@ public class ModelsController {
         ModelsDto response = modelsService.update(modelsDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
+
         }
         return REDIRECT_MODELS_LIST;
     }

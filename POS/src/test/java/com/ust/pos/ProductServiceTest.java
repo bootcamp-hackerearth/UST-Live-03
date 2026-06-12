@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -128,22 +129,43 @@ class ProductServiceTest {
 
     @Test
     void findAllTest() {
+
         Pageable pageable = mock(Pageable.class);
         Page<Product> page = mock(Page.class);
 
-        List<Product> products = List.of(new Product(), new Product());
-        List<ProductDto> dtoList = List.of(new ProductDto(), new ProductDto());
+        List<Product> products = List.of(
+                new Product(),
+                new Product()
+        );
+
+        List<ProductDto> dtoList = List.of(
+                new ProductDto(),
+                new ProductDto()
+        );
 
         when(productRepository.findAll(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(products);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(products), any(Type.class))).thenReturn(dtoList);
 
-        List<ProductDto> result = productService.findAll(pageable);
+        WsDto<ProductDto> result = productService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(dtoList, result.getDtoList());
+        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
 
         verify(productRepository).findAll(pageable);
         verify(page).getContent();
+        verify(page).getTotalElements();
+        verify(page).getTotalPages();
+        verify(pageable).getPageSize();
+        verify(pageable).getPageNumber();
         verify(modelMapper).map(eq(products), any(Type.class));
     }
 }

@@ -178,7 +178,7 @@
         </form:form>
 
         <div class="footer-links">
-            Already have an account? <a href="/user/list">Go Back</a>
+            Already have an account? <a href="/login">Login</a>
         </div>
 
     </div>

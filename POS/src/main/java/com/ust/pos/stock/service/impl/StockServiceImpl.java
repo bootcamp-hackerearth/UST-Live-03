@@ -1,6 +1,7 @@
 package com.ust.pos.stock.service.impl;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -28,6 +29,7 @@ public class StockServiceImpl implements StockService {
     @Override
     public StockDto findByIdentifier(String identifier) {
         Stock stock = stockRepository.findByIdentifier(identifier);
+
         if (stock == null) {
             return null;
         }
@@ -66,15 +68,23 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public void delete(String identifier) {
+
         stockRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<StockDto> findAll(Pageable pageable) {
+    public WsDto<StockDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
         Page<Stock> stockPage = stockRepository.findAll(pageable);
-        return modelMapper.map(stockPage.getContent(), listType);
+        WsDto<StockDto> stockWsDto = new WsDto<>();
+        stockWsDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
+        stockWsDto.setTotalRecords(stockPage.getTotalElements());
+        stockWsDto.setTotalPages(stockPage.getTotalPages());
+        stockWsDto.setSizePerPage(pageable.getPageSize());
+        stockWsDto.setPage(pageable.getPageNumber());
+
+        return stockWsDto;
     }
 
     @Override

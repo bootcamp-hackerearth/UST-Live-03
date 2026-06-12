@@ -3,6 +3,7 @@ package com.ust.pos.customer;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -19,6 +20,9 @@ public class CustomerController {
     private CustomerService customerService;
 
     @Autowired
+    private ProductService productService;
+
+    @Autowired
     private AddressService addressService;
 
     @GetMapping("/list")
@@ -29,6 +33,7 @@ public class CustomerController {
 
     @GetMapping("/add")
     public String add(Model model, Pageable pageable) {
+
         model.addAttribute("customers", customerService.findAll(pageable));
         model.addAttribute("customerDto", new CustomerDto());
         return "customer/add";
@@ -46,14 +51,19 @@ public class CustomerController {
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
+
         CustomerDto response = customerService.findByIdentifier(identifier);
+
         response.setBillingAddress(
                 addressService.findByPhoneNoAndAddressType(response.getPhoneNo(), "billingAddress")
         );
+
         response.setShippingAddress(
                 addressService.findByPhoneNoAndAddressType(response.getPhoneNo(), "shippingAddress")
         );
+
         model.addAttribute("customerDto", response);
+
         return "customer/customer";
     }
 

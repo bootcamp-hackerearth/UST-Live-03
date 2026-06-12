@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -131,22 +132,43 @@ class PriceServiceTest {
 
     @Test
     void findAllTest() {
+
         Pageable pageable = mock(Pageable.class);
         Page<Price> page = mock(Page.class);
 
-        List<Price> prices = List.of(new Price(), new Price());
-        List<PriceDto> dtoList = List.of(new PriceDto(), new PriceDto());
+        List<Price> prices = List.of(
+                new Price(),
+                new Price()
+        );
+
+        List<PriceDto> dtoList = List.of(
+                new PriceDto(),
+                new PriceDto()
+        );
 
         when(priceRepository.findAll(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(prices);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(prices), any(Type.class))).thenReturn(dtoList);
 
-        List<PriceDto> result = priceService.findAll(pageable);
+        WsDto<PriceDto> result = priceService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(dtoList, result.getDtoList());
+        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
 
         verify(priceRepository).findAll(pageable);
         verify(page).getContent();
+        verify(page).getTotalElements();
+        verify(page).getTotalPages();
+        verify(pageable).getPageSize();
+        verify(pageable).getPageNumber();
         verify(modelMapper).map(eq(prices), any(Type.class));
     }
 }

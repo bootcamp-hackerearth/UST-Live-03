@@ -24,14 +24,18 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto findByPhoneNoAndAddressType(Long phoneNo, String addressType) {
+
         AddressDto dto = new AddressDto();
+
         Address address = addressRepository
                 .findByPhoneNoAndAddressType(phoneNo, addressType);
+
         if (address == null) {
             dto.setMessage(ADDRESS_WITH_IDENTIFIER + addressType + " not found");
             dto.setSuccess(false);
             return dto;
         }
+
         dto = modelMapper.map(address, AddressDto.class);
         dto.setSuccess(true);
         return dto;
@@ -39,14 +43,17 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto save(AddressDto addressDto) {
+
         Address existingAddress = addressRepository.
                 findByPhoneNoAndAddressType(addressDto.getPhoneNo(),
                         addressDto.getAddressType());
+
         if (existingAddress != null) {
             addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + addressDto.getAddressType() + " already exists");
             addressDto.setSuccess(false);
             return addressDto;
         }
+
         Address address = modelMapper.map(addressDto, Address.class);
         addressRepository.save(address);
         return addressDto;
@@ -54,16 +61,20 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto update(AddressDto addressDto) {
+
         Address existingAddress = addressRepository.
                 findByPhoneNoAndAddressType(addressDto.getPhoneNo(),
                         addressDto.getAddressType());
+
         if (existingAddress == null) {
             addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + addressDto.getAddressType() + " not found");
             addressDto.setSuccess(false);
             return addressDto;
         }
+
         modelMapper.map(addressDto, existingAddress);
         addressRepository.save(existingAddress);
+
         return addressDto;
     }
 

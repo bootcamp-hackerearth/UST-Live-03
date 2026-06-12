@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import static org.bson.assertions.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +46,7 @@ class BrandServiceTest {
 
         BrandDto result = brandService.save(dto);
 
-        Assertions.assertEquals("B1", result.getIdentifier());
+        assertEquals("B1", result.getIdentifier());
         verify(brandRepository).save(brand);
     }
 
@@ -75,7 +78,7 @@ class BrandServiceTest {
 
         BrandDto result = brandService.update(dto);
 
-        Assertions.assertEquals("B1", result.getIdentifier());
+        assertEquals("B1", result.getIdentifier());
         verify(modelMapper).map(dto, brand);
         verify(brandRepository).save(brand);
     }
@@ -114,7 +117,7 @@ class BrandServiceTest {
         BrandDto result = brandService.findByIdentifier("B1");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("B1", result.getIdentifier());
+        assertEquals("B1", result.getIdentifier());
     }
 
     @Test
@@ -128,22 +131,43 @@ class BrandServiceTest {
 
     @Test
     void findAllTest() {
+
         Pageable pageable = mock(Pageable.class);
-        Page<Brand> page = mock(Page.class);
+        Page<Brand> brandPage = mock(Page.class);
 
-        List<Brand> brands = List.of(new Brand(), new Brand());
-        List<BrandDto> dtoList = List.of(new BrandDto(), new BrandDto());
+        List<Brand> brands = List.of(
+                new Brand(),
+                new Brand()
+        );
 
-        when(brandRepository.findAll(pageable)).thenReturn(page);
-        when(page.getContent()).thenReturn(brands);
-        when(modelMapper.map(eq(brands), any(Type.class))).thenReturn(dtoList);
+        List<BrandDto> brandDtos = List.of(
+                new BrandDto(),
+                new BrandDto()
+        );
 
-        List<BrandDto> result = brandService.findAll(pageable);
+        when(brandRepository.findAll(pageable)).thenReturn(brandPage);
+        when(brandPage.getContent()).thenReturn(brands);
+        when(brandPage.getTotalElements()).thenReturn(2L);
+        when(brandPage.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(modelMapper.map(eq(brands), any(Type.class))).thenReturn(brandDtos);
 
-        Assertions.assertEquals(2, result.size());
+        WsDto<BrandDto> result = brandService.findAll(pageable);
+
+        assertNotNull(result);
+        assertEquals(brandDtos, result.getDtoList());
+        assertEquals(2L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(brandRepository).findAll(pageable);
-        verify(page).getContent();
+        verify(brandPage).getContent();
+        verify(brandPage).getTotalElements();
+        verify(brandPage).getTotalPages();
+        verify(pageable).getPageSize();
+        verify(pageable).getPageNumber();
         verify(modelMapper).map(eq(brands), any(Type.class));
     }
 

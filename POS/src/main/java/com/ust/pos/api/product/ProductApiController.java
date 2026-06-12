@@ -3,12 +3,14 @@ package com.ust.pos.api.product;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/product")
@@ -18,7 +20,7 @@ public class ProductApiController extends BaseController {
     private ProductService productService;
 
     @PostMapping("/list")
-    public List<ProductDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -30,8 +32,8 @@ public class ProductApiController extends BaseController {
         return productService.save(productDto);
     }
 
-    @GetMapping("/get")
-    public ProductDto update(@RequestParam String identifier) {
+    @PostMapping("/get")
+    public ProductDto update(@RequestBody String identifier) {
         return productService.findByIdentifier(identifier);
     }
 
@@ -40,8 +42,8 @@ public class ProductApiController extends BaseController {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody String identifier) {
         try {
             productService.delete(identifier);
         } catch (Exception e) {

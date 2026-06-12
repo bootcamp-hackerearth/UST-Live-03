@@ -174,7 +174,7 @@
                 </form:select>
 
                 <label>Price</label>
-                <form:input path="priceAmount" type="number" step="0.01"/>
+                <form:input path="price" type="number" step="0.01"/>
 
                 <label>Price Type</label>
                 <form:select path="priceType">

@@ -26,7 +26,7 @@ public class CategoryController {
 
     @GetMapping("/add")
     public String add(Model model, Pageable pageable, @ModelAttribute CategoryDto categoryDto) {
-        model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+        model.addAttribute("CATEGORIES", categoryService.findAll(pageable));
         return "category/add";
     }
 
@@ -43,7 +43,7 @@ public class CategoryController {
     @GetMapping("/get")
     public String update(Model model, Pageable pageable, @RequestParam String identifier) {
         CategoryDto response = categoryService.findByIdentifier(identifier);
-        model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+        model.addAttribute("CATEGORIES", categoryService.findAll(pageable));
         model.addAttribute("categoryDto", response);
         return "category/category";
     }

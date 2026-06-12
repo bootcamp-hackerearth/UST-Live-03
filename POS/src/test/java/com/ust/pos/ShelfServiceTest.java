@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -138,21 +139,43 @@ class ShelfServiceTest {
 
     @Test
     void findAllTest() {
+
         Pageable pageable = mock(Pageable.class);
         Page<Shelf> page = mock(Page.class);
 
-        List<Shelf> shelves = List.of(new Shelf(), new Shelf());
-        List<ShelfDto> dtoList = List.of(new ShelfDto(), new ShelfDto());
+        List<Shelf> shelves = List.of(
+                new Shelf(),
+                new Shelf()
+        );
+
+        List<ShelfDto> dtoList = List.of(
+                new ShelfDto(),
+                new ShelfDto()
+        );
 
         when(shelfRepository.findAll(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(shelves);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(shelves), any(Type.class))).thenReturn(dtoList);
 
-        List<ShelfDto> result = shelfService.findAll(pageable);
+        WsDto<ShelfDto> result = shelfService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(dtoList, result.getDtoList());
+        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+
         verify(shelfRepository).findAll(pageable);
         verify(page).getContent();
+        verify(page).getTotalElements();
+        verify(page).getTotalPages();
+        verify(pageable).getPageSize();
+        verify(pageable).getPageNumber();
         verify(modelMapper).map(eq(shelves), any(Type.class));
     }
 

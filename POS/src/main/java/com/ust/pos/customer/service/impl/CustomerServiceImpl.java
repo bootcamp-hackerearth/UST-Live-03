@@ -4,6 +4,7 @@ import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
@@ -31,18 +32,25 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto findByIdentifier(String identifier) {
+
         Customer customer = customerRepository.findByIdentifier(identifier);
+
         if (customer == null) {
+
             return null;
         }
+
         return modelMapper.map(customer, CustomerDto.class);
     }
 
     @Override
     public CustomerDto save(CustomerDto customerDto) {
+
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
+
         if (existingCustomer != null) {
+
             customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
             customerDto.setSuccess(false);
             return customerDto;
@@ -65,9 +73,12 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto update(CustomerDto customerDto) {
+
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
+
         if (existingCustomer == null) {
+
             customerDto.setMessage("Customer with identifier - " + identifier + " not found");
             customerDto.setSuccess(false);
             return customerDto;
@@ -95,20 +106,30 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public void delete(String identifier) {
+
         customerRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        WsDto<CustomerDto> customerWsDto = new WsDto<>();
+        customerWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        customerWsDto.setTotalRecords(customerPage.getTotalElements());
+        customerWsDto.setTotalPages(customerPage.getTotalPages());
+        customerWsDto.setSizePerPage(pageable.getPageSize());
+        customerWsDto.setPage(pageable.getPageNumber());
+
+        return customerWsDto;
     }
 
     @Override
     public String buildAddressIdentifier(AddressDto address) {
+
         if (address == null) return null;
+
         return address.getAddressline().trim().toUpperCase()
                 + "-" + address.getZipcode()
                 + "-" + address.getAddressType().toUpperCase();

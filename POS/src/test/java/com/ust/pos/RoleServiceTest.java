@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -129,23 +130,43 @@ class RoleServiceTest {
 
     @Test
     void findAllTest() {
+
         Pageable pageable = mock(Pageable.class);
         Page<Role> page = mock(Page.class);
 
-        List<Role> roles = List.of(new Role(), new Role());
-        List<RoleDto> dtoList = List.of(new RoleDto(), new RoleDto());
+        List<Role> roles = List.of(
+                new Role(),
+                new Role()
+        );
+
+        List<RoleDto> dtoList = List.of(
+                new RoleDto(),
+                new RoleDto()
+        );
 
         when(roleRepository.findAll(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(roles);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(roles), any(Type.class))).thenReturn(dtoList);
 
-        List<RoleDto> result = roleService.findAll(pageable);
+        WsDto<RoleDto> result = roleService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(dtoList, result.getDtoList());
+        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
 
         verify(roleRepository).findAll(pageable);
         verify(page).getContent();
+        verify(page).getTotalElements();
+        verify(page).getTotalPages();
+        verify(pageable).getPageSize();
+        verify(pageable).getPageNumber();
         verify(modelMapper).map(eq(roles), any(Type.class));
     }
 }
