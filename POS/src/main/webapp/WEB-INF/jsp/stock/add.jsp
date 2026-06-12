@@ -33,6 +33,7 @@
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         }
 
+        /* ✅ Back Button */
         .back-icon {
             position: absolute;
             top: 16px;
@@ -103,6 +104,7 @@
 
 <div class="card-container">
 
+    <!-- ✅ TOP LEFT BACK BUTTON -->
     <a href="${pageContext.request.contextPath}/stock/list" class="back-icon">←</a>
 
     <h2>Add Stock</h2>
@@ -117,6 +119,7 @@
                action="${pageContext.request.contextPath}/stock/add"
                modelAttribute="stockDto">
 
+        <!-- ✅ Stock Identifier -->
         <div class="form-group">
             <label>Stock</label>
             <form:input path="identifier"
@@ -124,6 +127,7 @@
                         placeholder="Enter stock name"/>
         </div>
 
+        <!-- ✅ Product Name Dropdown -->
         <div class="form-group">
             <label>Product</label>
             <form:select path="productName" cssClass="form-control">
@@ -136,6 +140,7 @@
             </form:select>
         </div>
 
+        <!-- ✅ Warehouse Name Dropdown -->
         <div class="form-group">
             <label>Warehouse</label>
             <form:select path="warehouseName" cssClass="form-control">
@@ -148,6 +153,7 @@
             </form:select>
         </div>
 
+        <!-- ✅ Quantity -->
         <div class="form-group">
             <label>Quantity</label>
             <form:input path="noOfProducts"
@@ -156,6 +162,7 @@
                         placeholder="Enter quantity"/>
         </div>
 
+        <!-- ✅ Status -->
         <div class="form-group">
             <label>Status</label>
             <form:select path="stockStatus" cssClass="form-control">

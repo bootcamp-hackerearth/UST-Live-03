@@ -29,6 +29,7 @@
             box-shadow: 0 25px 50px rgba(0,0,0,.25);
         }
 
+        /* ✅ Back Button */
         .back-icon {
             position: absolute;
             top: 16px;
@@ -117,10 +118,12 @@
 
 <div class="card-container">
 
+    <!-- ✅ TOP LEFT BACK BUTTON -->
     <a href="${pageContext.request.contextPath}/stock/list" class="back-icon">←</a>
 
     <h2>Edit Stock</h2>
 
+    <!-- ✅ Error Message -->
     <c:if test="${not empty message}">
         <div class="error-message">${message}</div>
     </c:if>
@@ -128,13 +131,16 @@
     <form method="post"
           action="${pageContext.request.contextPath}/stock/update">
 
+        <!-- ✅ Hidden Identifier -->
         <input type="hidden" name="identifier" value="${stock.identifier}" />
 
+        <!-- ✅ Stock Name -->
         <div class="form-group">
             <label>Stock</label>
             <input type="text" value="${stock.identifier}" readonly />
         </div>
 
+        <!-- ✅ Product Name Dropdown -->
         <div class="form-group">
             <label>Product</label>
             <select name="productName" required>
@@ -148,6 +154,7 @@
             </select>
         </div>
 
+        <!-- ✅ Warehouse Name Dropdown -->
         <div class="form-group">
             <label>Warehouse</label>
             <select name="warehouseName" required>
@@ -161,6 +168,7 @@
             </select>
         </div>
 
+        <!-- ✅ Quantity -->
         <div class="form-group">
             <label>Quantity</label>
             <input type="number"
@@ -169,6 +177,7 @@
                    required />
         </div>
 
+        <!-- ✅ Status -->
         <div class="form-group">
             <label>Status</label>
             <select name="status" required>
@@ -183,6 +192,7 @@
             </select>
         </div>
 
+        <!-- ✅ Save Button -->
         <div class="btn-group">
             <button type="submit" class="btn btn-save">Update</button>
         </div>

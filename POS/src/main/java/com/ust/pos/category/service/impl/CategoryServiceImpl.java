@@ -65,11 +65,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
-        Type listtype = new TypeToken<List<CategoryDto>>() {
-        }.getType();
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listtype);
+    public Page<CategoryDto> findAll(Pageable pageable , String search) {
+        Page<Category> categories;
+        if(search!= null && !search.trim().isEmpty()){
+            categories = categoryRepository.findByIdentifierContainingIgnoreCase(search , pageable);
+        }
+        else {
+            categories = categoryRepository.findAll(pageable);
+        }
+        return categories.map(category -> modelMapper.map(category , CategoryDto.class));
     }
 
     @Override
@@ -78,9 +82,11 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findBySuperCategoryNotNull() {
-        Type listType = new TypeToken<List<CategoryDto>>() {
+    public List<CategoryDto> findAllWithoutNull() {
+        Type listOfType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        return modelMapper.map(categoryRepository.findBySuperCategoryIsNot(""), listType);
+        List<CategoryDto> categoryDtos = modelMapper.map(categoryRepository.findAll(), listOfType);
+        return categoryDtos.stream().filter(c -> c.getSuperCategory() != null)
+                .toList();
     }
 }

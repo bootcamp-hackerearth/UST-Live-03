@@ -191,6 +191,7 @@
                 <tr>
                     <td>${category.identifier}</td>
 
+                    <!-- ✅ Super Category: show '-' if empty -->
                     <td>
                         <c:choose>
                             <c:when test="${empty category.superCategory}">

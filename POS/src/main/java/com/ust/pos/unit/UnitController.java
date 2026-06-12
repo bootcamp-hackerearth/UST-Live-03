@@ -64,12 +64,6 @@ public class UnitController {
         unitService.delete(identifier);
         return REDIRECT_UNIT_LIST;
     }
-
-    @PostMapping("/toggleStatus")
-    public String toggleStatus(@RequestParam String identifier) {
-        unitService.toggleStatus(identifier);
-        return REDIRECT_UNIT_LIST;
-    }
 }
 
 

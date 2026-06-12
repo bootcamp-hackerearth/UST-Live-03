@@ -106,6 +106,7 @@
                action="/product/add"
                modelAttribute="productDto">
 
+        <!-- Product Name -->
         <div class="form-group">
             <label>Product Name</label>
             <form:input path="identifier"
@@ -113,6 +114,7 @@
                         placeholder="Enter product name"/>
         </div>
 
+        <!-- Category Dropdown -->
         <div class="form-group">
             <label>Category</label>
             <form:select path="category"
@@ -124,6 +126,7 @@
             </form:select>
         </div>
 
+        <!-- Supplier ID -->
         <div class="form-group">
             <label>Supplier ID</label>
             <form:input path="supplierId"

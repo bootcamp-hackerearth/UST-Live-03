@@ -119,11 +119,13 @@
                action="${pageContext.request.contextPath}/racks/add"
                modelAttribute="racksDto">
 
+        <!-- Rack Name -->
         <div class="form-group">
             <label>Rack Name</label>
             <form:input path="identifier" placeholder="Enter Rack Name"/>
         </div>
 
+        <!-- Shelf Multi Select -->
         <div class="form-group">
             <label>Shelf Name (Multi‑Select)</label>
             <form:select path="shelfs" multiple="true">

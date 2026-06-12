@@ -126,6 +126,8 @@
     <c:if test="${not empty message}">
         <div class="error-message">${message}</div>
     </c:if>
+
+    <!-- IMPORTANT: multipart for image upload -->
     <form:form method="post"
                action="/brand/add"
                modelAttribute="brandDto"
@@ -134,6 +136,11 @@
         <div class="form-group">
             <label>Brand Name</label>
             <form:input path="identifier" placeholder="Enter brand name"/>
+        </div>
+
+        <div class="form-group">
+            <label>Brand Icon</label>
+            <input type="file" name="iconFile"/>
         </div>
 
         <div class="form-group">

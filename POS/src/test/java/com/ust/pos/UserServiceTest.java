@@ -161,18 +161,30 @@ class UserServiceTest {
     @Test
     void findAll_WithPagination_ShouldReturnUserDtos() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<User> users = List.of(new User());
-        Page<User> page = new PageImpl<>(users);
-        List<UserDto> userDtos = List.of(new UserDto());
-        Type listType = new TypeToken<List<UserDto>>() {}.getType();
+        User user = new User();
+        UserDto userDto = new UserDto();
+        Page<User> page = new PageImpl<>(List.of(user));
         Mockito.when(userRepository.findAll(pageable))
                 .thenReturn(page);
-        Mockito.when(modelMapper.map(users, listType))
-                .thenReturn(userDtos);
-        List<UserDto> response = userService.findAll(pageable);
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(userRepository.findByUsernameContainingIgnoreCase(
+                        Mockito.anyString(),
+                        Mockito.anyString(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(user, UserDto.class))
+                .thenReturn(userDto);
+        Page<UserDto> response1 =
+                userService.findAll(pageable, null);
+        Assertions.assertEquals(1, response1.getContent().size());
+        Page<UserDto> response2 =
+                userService.findAll(pageable, "abc");
+        Assertions.assertEquals(1, response2.getContent().size());
         Mockito.verify(userRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(users, listType);
+        Mockito.verify(userRepository).findByUsernameContainingIgnoreCase(
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.eq(pageable));
+        Mockito.verify(modelMapper, Mockito.atLeastOnce())
+                .map(user, UserDto.class);
     }
 }

@@ -178,6 +178,7 @@
             </form:select>
         </div>
 
+        <!-- ✅ Billing Address -->
         <details>
             <summary>Billing Address</summary>
             <input type="hidden" name="billing.id" value="${customerDto.billing.id}" />

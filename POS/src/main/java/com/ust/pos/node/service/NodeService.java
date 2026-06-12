@@ -1,7 +1,9 @@
 package com.ust.pos.node.service;
 
 import com.ust.pos.dto.NodeDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 public interface NodeService {
@@ -15,7 +17,7 @@ public interface NodeService {
 
     List<NodeDto> findAll();
 
-    List<NodeDto> findAll(Pageable pageable);
+    Page<NodeDto> findAll(Pageable pageable, String search);
 
     NodeDto findByIdentifier(String identifier);
 }

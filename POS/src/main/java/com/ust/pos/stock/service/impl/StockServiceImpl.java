@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -81,9 +82,7 @@ public class StockServiceImpl implements StockService {
     @Override
     public void toggleStatus(String identifier) {
         Stock stock = stockRepository.findByIdentifier(identifier);
-        if (stock != null){
-            stock.setStatus(!stock.isStatus());
-            stockRepository.save(stock);
-        }
+        stock.setStatus(!stock.isStatus());
+        stockRepository.save(stock);
     }
 }

@@ -31,7 +31,7 @@ class UnitServiceTest {
     @Mock
     private UnitRepository unitRepository;
 
-    @Mock
+    @Mock   
     private ModelMapper modelMapper;
 
     @Test

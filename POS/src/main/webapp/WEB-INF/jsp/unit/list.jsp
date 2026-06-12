@@ -6,8 +6,7 @@
 <head>
     <title>Unit List</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -48,8 +47,105 @@
             font-size: 20px;
             color: #4b6cb7;
             text-decoration: none;
-            background: rgba(75,108,183,0.08);
+            font-weight: 600;
+            background: rgba(75, 108, 183, 0.08);
             border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            transition: all 0.25s ease;
+        }
+
+        .back-icon:hover {
+            background: #4b6cb7;
+            color: #ffffff;
+            transform: translateX(-4px) scale(1.05);
+            box-shadow: 0 8px 18px rgba(75, 108, 183, 0.35);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            background: #4b6cb7;
+            color: white;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #333;
+            word-break: break-word;
+        }
+
+        tr:hover {
+            background: #f7f9ff;
+        }
+
+        .action-icon {
+            font-size: 18px;
+            margin: 0 6px;
+            text-decoration: none;
+            color: #4b6cb7;
+            transition: 0.2s ease;
+        }
+
+        .action-icon:hover {
+            color: #182848;
+            transform: scale(1.2);
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .footer-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-block;
+            transition: 0.25s ease;
+        }
+
+        .btn-home {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-home:hover {
+            background: #555;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #4b6cb7, #182848);
+            color: white;
+        }
+
+        .btn-add:hover {
+            transform: scale(1.05);
         }
 
         .home-link {
@@ -62,93 +158,17 @@
             text-decoration: none;
             padding: 8px 14px;
             border-radius: 8px;
-            background: rgba(75,108,183,0.08);
+            background: rgba(75, 108, 183, 0.08);
+            transition: all 0.25s ease;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th {
+        .home-link:hover {
             background: #4b6cb7;
-            color: #fff;
-            padding: 12px;
-            font-size: 14px;
+            color: #ffffff;
+            box-shadow: 0 8px 18px rgba(75, 108, 183, 0.35);
+            transform: translateY(-2px);
         }
 
-        td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-
-        tr:hover {
-            background: #f7f9ff;
-        }
-
-        .action-icon {
-            font-size: 18px;
-            margin: 0 6px;
-            text-decoration: none;
-            color: #4b6cb7;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 52px;
-            height: 26px;
-            display: inline-block;
-        }
-
-        .toggle-switch input {
-            display: none;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            inset: 0;
-            background-color: #e74c3c;
-            border-radius: 30px;
-            transition: .3s;
-            cursor: pointer;
-        }
-
-        .toggle-slider:before {
-            content: "";
-            position: absolute;
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            border-radius: 50%;
-            transition: .3s;
-        }
-
-        .toggle-switch input:checked + .toggle-slider {
-            background-color: #2ecc71;
-        }
-
-        .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(26px);
-        }
-
-        .footer-actions {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .btn-add {
-            padding: 12px 18px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            background: linear-gradient(135deg, #4b6cb7, #182848);
-            color: #fff;
-        }
     </style>
 </head>
 
@@ -156,13 +176,15 @@
 
 <div class="card-container">
 
-    <a href="${pageContext.request.contextPath}/" class="back-icon">←</a>
-    <a href="${pageContext.request.contextPath}/" class="home-link">Home</a>
+    <a href="/" class="back-icon">←</a>
+    <a href="/" class="home-link">Home</a>
 
     <h2>List of Units</h2>
 
     <c:if test="${empty units}">
-        <p style="text-align:center;">No Unit found</p>
+        <div class="alert alert-warning">
+            No Model found
+        </div>
     </c:if>
 
     <c:if test="${not empty units}">
@@ -181,29 +203,22 @@
                 <tr>
                     <td>${unit.id}</td>
                     <td>${unit.identifier}</td>
-
-                    <td>
-                        <form action="${pageContext.request.contextPath}/unit/toggleStatus"
-                              method="post" style="margin:0;">
-                            <input type="hidden" name="identifier"
-                                   value="${unit.identifier}"/>
-
-                            <label class="toggle-switch">
-                                <input type="checkbox"
-                                       ${unit.status ? "checked" : ""}
-                                       onchange="this.form.submit()"/>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </form>
+                    <td><span class="status-badge ${unit.status ? 'status-active' : 'status-inactive'}">
+                                ${unit.status ? 'Active' : 'Inactive'}
+                            </span>
                     </td>
 
                     <td>
-                        <a href="${pageContext.request.contextPath}/unit/get?identifier=${unit.identifier}"
-                           class="action-icon">✏️</a>
-
-                        <a href="${pageContext.request.contextPath}/unit/delete?identifier=${unit.identifier}"
+                        <a href="/unit/get?identifier=${unit.identifier}"
                            class="action-icon"
-                           onclick="return confirm('Delete this unit?');">🗑</a>
+                           title="Edit">✏️</a>
+
+                        <a href="/unit/delete?identifier=${unit.identifier}"
+                           class="action-icon"
+                           title="Delete"
+                           onclick="return confirm('Are you sure you want to delete this unit?');">
+                            🗑
+                        </a>
                     </td>
                 </tr>
             </c:forEach>
@@ -212,9 +227,7 @@
     </c:if>
 
     <div class="footer-actions">
-        <a href="${pageContext.request.contextPath}/unit/add" class="btn-add">
-            + Add New Unit
-        </a>
+        <a href="/unit/add" class="btn btn-add">+ Add New Unit</a>
     </div>
 
 </div>

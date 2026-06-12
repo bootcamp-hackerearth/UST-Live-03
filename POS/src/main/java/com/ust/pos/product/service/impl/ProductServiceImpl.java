@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -65,15 +66,28 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
-        Type listtype = new TypeToken<List<ProductDto>>() {
-        }.getType();
-        Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listtype);
+    public Page<ProductDto> findAll(Pageable pageable , String search) {
+        Page<Product> productPage;
+        if(search!= null && !search.trim().isEmpty()){
+            productPage = productRepository.findByIdentifierContainingIgnoreCase(search , pageable);
+        }
+        else {
+            productPage = productRepository.findAll(pageable);
+        }
+        return productPage.map(product -> modelMapper.map(product , ProductDto.class));
     }
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
         return modelMapper.map(productRepository.findByIdentifier(identifier.trim()), ProductDto.class);
+    }
+
+    @Override
+    public void toggleStatus(String identifier) {
+        Product products = productRepository.findByIdentifier(identifier);
+        if (products != null) {
+            products.setStatus(!products.isStatus());
+            productRepository.save(products);
+        }
     }
 }

@@ -139,18 +139,39 @@ class PriceServiceTest {
     @Test
     void findAll_WithPagination_ShouldReturnPriceDtos() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Price> prices = List.of(new Price());
-        Page<Price> page = new PageImpl<>(prices);
-        List<PriceDto> priceDtos = List.of(new PriceDto());
-        Type listType = new TypeToken<List<PriceDto>>() {}.getType();
+        Price price = new Price();
+        price.setIdentifier("PRICE1");
+        PriceDto priceDto = new PriceDto();
+        priceDto.setIdentifier("PRICE1");
+        Page<Price> page = new PageImpl<>(List.of(price));
         Mockito.when(priceRepository.findAll(pageable))
                 .thenReturn(page);
-        Mockito.when(modelMapper.map(prices, listType))
-                .thenReturn(priceDtos);
-        List<PriceDto> response = priceService.findAll(pageable);
+        Mockito.when(modelMapper.map(price, PriceDto.class))
+                .thenReturn(priceDto);
+        Page<PriceDto> response = priceService.findAll(pageable, null);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getContent().size());
+        Assertions.assertEquals("PRICE1",
+                response.getContent().get(0).getIdentifier());
         Mockito.verify(priceRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(prices, listType);
+        Mockito.verify(modelMapper).map(price, PriceDto.class);
+    }
+
+    @Test
+    void findAll_WithSearch_ShouldReturnPriceDtos() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Price price = new Price();
+        PriceDto dto = new PriceDto();
+        Page<Price> page = new PageImpl<>(List.of(price));
+        Mockito.when(priceRepository.findByIdentifierContainingIgnoreCase(
+                                "ABC", pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(price, PriceDto.class))
+                .thenReturn(dto);
+        Page<PriceDto> response =
+                priceService.findAll(pageable, "ABC");
+        Assertions.assertEquals(1, response.getContent().size());
+        Mockito.verify(priceRepository)
+                .findByIdentifierContainingIgnoreCase("ABC", pageable);
     }
 }

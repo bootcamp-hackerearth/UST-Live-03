@@ -86,19 +86,23 @@
 
         <h4>Edit Price</h4>
 
+        <!-- ✅ When Price not found -->
         <c:if test="${empty price}">
             <div class="alert alert-danger">
                 Price record not found
             </div>
         </c:if>
 
+        <!-- ✅ Edit Price Form -->
         <c:if test="${not empty price}">
             <form:form action="/price/update"
                        method="post"
                        modelAttribute="price">
 
+                <!-- ✅ Hidden ID -->
                 <form:hidden path="id" />
 
+                <!-- ✅ Identifier (not editable) -->
                 <div class="mb-4">
                     <label class="form-label">Product Identifier</label>
                     <form:input path="identifier"
@@ -106,6 +110,7 @@
                                 readonly="true" />
                 </div>
 
+                <!-- ✅ Cost Price -->
                 <div class="mb-4">
                     <label class="form-label">Cost Price</label>
                     <form:input path="costPrice"
@@ -114,6 +119,7 @@
                                 required="true" />
                 </div>
 
+                <!-- ✅ Selling Price -->
                 <div class="mb-4">
                     <label class="form-label">Selling Price</label>
                     <form:input path="sellingPrice"
@@ -121,6 +127,8 @@
                                 cssClass="form-control"
                                 required="true" />
                 </div>
+
+                <!-- ✅ No Difference field shown (backend-only calculation) -->
 
                 <div class="d-flex justify-content-between">
                     <a href="/price/list" class="btn btn-outline-secondary">

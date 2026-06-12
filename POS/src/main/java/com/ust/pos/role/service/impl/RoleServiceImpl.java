@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -70,10 +71,14 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleDto> findAll(Pageable pageable) {
-        Type listtype = new TypeToken<List<RoleDto>>() {
-        }.getType();
-        Page<Role> rolePage = roleRepository.findAll(pageable);
-        return modelMapper.map(rolePage.getContent(), listtype);
+    public Page<RoleDto> findAll(Pageable pageable , String search) {
+        Page<Role> rolePage;
+        if(search!= null && !search.trim().isEmpty()){
+            rolePage = roleRepository.findByIdentifierContainingIgnoreCase(search , pageable);
+        }
+        else {
+            rolePage = roleRepository.findAll(pageable);
+        }
+        return rolePage.map(role -> modelMapper.map(role , RoleDto.class));
     }
 }

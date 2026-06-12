@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -67,11 +68,15 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
-        Type listtype = new TypeToken<List<PriceDto>>() {
-        }.getType();
-        Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listtype);
+    public Page<PriceDto> findAll(Pageable pageable , String search) {
+        Page<Price> pricePage;
+        if(search!= null && !search.trim().isEmpty()){
+            pricePage = priceRepository.findByIdentifierContainingIgnoreCase(search , pageable);
+        }
+        else {
+            pricePage = priceRepository.findAll(pageable);
+        }
+        return pricePage.map(price -> modelMapper.map(price , PriceDto.class));
     }
 
     @Override

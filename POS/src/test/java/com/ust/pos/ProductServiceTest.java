@@ -133,18 +133,17 @@ class ProductServiceTest {
     @Test
     void findAll_WithPagination_ShouldReturnProductDtos() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Product> products = List.of(new Product());
-        Page<Product> page = new PageImpl<>(products);
-        List<ProductDto> productDtos = List.of(new ProductDto());
-        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+        Product product = new Product();
+        ProductDto productDto = new ProductDto();
+        Page<Product> page = new PageImpl<>(List.of(product));
         Mockito.when(productRepository.findAll(pageable))
                 .thenReturn(page);
-        Mockito.when(modelMapper.map(products, listType))
-                .thenReturn(productDtos);
-        List<ProductDto> response = productService.findAll(pageable);
+        Mockito.when(modelMapper.map(product, ProductDto.class))
+                .thenReturn(productDto);
+        Page<ProductDto> response = productService.findAll(pageable, null);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getContent().size());
         Mockito.verify(productRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(products, listType);
+        Mockito.verify(modelMapper).map(product, ProductDto.class);
     }
 }

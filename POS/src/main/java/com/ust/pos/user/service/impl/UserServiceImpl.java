@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +21,7 @@ import java.util.Optional;
 @Transactional
 public class UserServiceImpl implements UserService {
 
-    public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
+    public static final String USER_WITH_USERNAME_EMAIL = "User with username - ";
     @Autowired
     private UserRepository userRepository;
 
@@ -86,10 +87,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
-        Type listtype = new TypeToken<List<UserDto>>() {
-        }.getType();
-        Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listtype);
+    public Page<UserDto> findAll(Pageable pageable, String search) {
+        Page<User> users;
+        if (search != null && !search.trim().isEmpty()) {
+            users = userRepository.findByUsernameContainingIgnoreCase(search, search, pageable);
+        } else {users = userRepository.findAll(pageable);
+        }
+        return users.map(user -> modelMapper.map(user, UserDto.class)
+        );
     }
 }

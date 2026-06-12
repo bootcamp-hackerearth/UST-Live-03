@@ -150,6 +150,7 @@
         </div>
     </c:if>
 
+     <!-- ✅ Error / Info Message -->
         <c:if test="${not empty message}">
             <div class="error-message">
                 ${message}

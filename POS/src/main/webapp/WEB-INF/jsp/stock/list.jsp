@@ -71,6 +71,52 @@
             color: #856404;
         }
 
+        /* ===== Toggle Switch ===== */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #2ecc71;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
         .footer-actions {
             margin-top: 20px;
             display: flex;
@@ -94,47 +140,6 @@
         .btn-add {
             background: linear-gradient(135deg, #4b6cb7, #182848);
             color: white;
-        }
-
-        /* Toggle Switch */
-        .toggle-switch {
-            position: relative;
-            width: 52px;
-            height: 26px;
-            display: inline-block;
-        }
-
-        .toggle-switch input {
-            display: none;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            inset: 0;
-            background-color: #e74c3c;
-            border-radius: 30px;
-            transition: .3s;
-            cursor: pointer;
-        }
-
-        .toggle-slider:before {
-            content: "";
-            position: absolute;
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            border-radius: 50%;
-            transition: .3s;
-        }
-
-        .toggle-switch input:checked + .toggle-slider {
-            background-color: #2ecc71;
-        }
-
-        .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(26px);
         }
     </style>
 </head>
@@ -170,25 +175,23 @@
                     <td>${stock.warehouseName}</td>
                     <td>${stock.noOfProducts}</td>
 
+                    <!-- ✅ STATUS TOGGLE -->
                     <td>
                         <form action="${pageContext.request.contextPath}/stock/toggleStatus"
-                              method="post"
-                              style="margin:0;">
-
-                            <input type="hidden"
-                                   name="identifier"
-                                   value="${stock.identifier}" />
+                              method="post" style="margin:0;">
+                            <input type="hidden" name="identifier"
+                                   value="${stock.identifier}"/>
 
                             <label class="toggle-switch">
                                 <input type="checkbox"
                                        ${stock.status ? "checked" : ""}
-                                       onchange="this.form.submit()" />
+                                       onchange="this.form.submit()"/>
                                 <span class="toggle-slider"></span>
                             </label>
-
                         </form>
                     </td>
 
+                    <!-- ✅ ACTIONS -->
                     <td>
                         <a class="action-icon"
                            title="Edit"
@@ -210,13 +213,8 @@
     </c:if>
 
     <div class="footer-actions">
-        <a href="${pageContext.request.contextPath}/" class="btn btn-home">
-            Home
-        </a>
-
-        <a href="${pageContext.request.contextPath}/stock/add" class="btn btn-add">
-            + Add Stock
-        </a>
+        <a href="${pageContext.request.contextPath}/" class="btn btn-home">Home</a>
+        <a href="${pageContext.request.contextPath}/stock/add" class="btn btn-add">+ Add Stock</a>
     </div>
 
 </div>

@@ -12,13 +12,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.lang.reflect.Type;
 import java.util.List;
 
 
@@ -122,18 +119,26 @@ class RoleServiceTest {
     @Test
     void findAll_WithPagination_ShouldReturnRoleDtos() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Role> roles = List.of(new Role());
-        Page<Role> page = new PageImpl<>(roles);
-        List<RoleDto> roleDtos = List.of(new RoleDto());
-        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+        Role role = new Role();
+        RoleDto roleDto = new RoleDto();
+        Page<Role> page = new PageImpl<>(List.of(role));
         Mockito.when(roleRepository.findAll(pageable))
                 .thenReturn(page);
-        Mockito.when(modelMapper.map(roles, listType))
-                .thenReturn(roleDtos);
-        List<RoleDto> response = roleService.findAll(pageable);
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(roleRepository
+                        .findByIdentifierContainingIgnoreCase("ABC", pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(role, RoleDto.class))
+                .thenReturn(roleDto);
+        Page<RoleDto> response1 =
+                roleService.findAll(pageable, null);
+        Assertions.assertEquals(1, response1.getContent().size());
+        Page<RoleDto> response2 =
+                roleService.findAll(pageable, "ABC");
+        Assertions.assertEquals(1, response2.getContent().size());
         Mockito.verify(roleRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(roles, listType);
+        Mockito.verify(roleRepository)
+                .findByIdentifierContainingIgnoreCase("ABC", pageable);
+        Mockito.verify(modelMapper, Mockito.atLeastOnce())
+                .map(role, RoleDto.class);
     }
 }

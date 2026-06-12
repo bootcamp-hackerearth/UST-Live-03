@@ -107,16 +107,24 @@
     <a href="/category/list" class="back-icon">←</a>
 
     <h2>Add Category</h2>
+
+    <!-- Error Message -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}
         </div>
     </c:if>
+
+    <!-- Form -->
     <form:form method="post" action="/category/add" modelAttribute="categoryDto">
+
+        <!-- Category Name -->
         <div class="form-group">
             <label>Category</label>
             <form:input path="identifier" placeholder="Enter category" />
         </div>
+
+        <!-- Super Category Dropdown -->
         <div class="form-group">
             <label>Super Category</label>
             <form:select path="superCategory">

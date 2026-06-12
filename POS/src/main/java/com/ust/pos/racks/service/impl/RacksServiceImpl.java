@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -39,7 +40,10 @@ public class RacksServiceImpl implements RacksService {
 
     @Override
     public RacksDto update(RacksDto racksDto) {
-        Racks existingRacks = racksRepository.findByIdentifier(racksDto.getIdentifier());
+
+        Racks existingRacks =
+                racksRepository.findByIdentifier(racksDto.getIdentifier());
+
         if (existingRacks == null) {
             racksDto.setSuccess(false);
             racksDto.setMessage("Racks not found");
@@ -83,8 +87,10 @@ public class RacksServiceImpl implements RacksService {
     public void toggleStatus(String identifier) {
         Racks racks = racksRepository.findByIdentifier(identifier);
         if (racks != null) {
+            // ✅ toggle status
             racks.setStatus(!racks.isStatus());
             racksRepository.save(racks);
         }
+
     }
 }
