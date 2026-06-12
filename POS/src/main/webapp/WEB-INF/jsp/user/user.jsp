@@ -8,7 +8,8 @@
     <meta charset="UTF-8">
     <title>Update User</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
     <style>
         body {
@@ -79,17 +80,17 @@
                                 type="email"/>
                 </div>
 
-               <div class="mb-3">
-                   <label class="form-label fw-semibold">Phone</label>
-                   <form:input path="phoneNo"
-                               cssClass="form-control"
-                               placeholder="Enter phone number"
-                               required="required"
-                               type="text"
-                               maxlength="10"
-                               pattern="[0-9]{10}"/>
-                   <small class="text-muted">Must be exactly 10 digits</small>
-               </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Phone</label>
+                    <form:input path="phoneNo"
+                                cssClass="form-control"
+                                placeholder="Enter phone number"
+                                required="required"
+                                type="number"
+                                maxlength="10"
+                                pattern="^[0-9]{10}$"/>
+                    <small class="text-muted">Must be exactly 10 digits/numbers</small>
+                </div>
 
                 <div class="mb-4">
                     <label class="form-label fw-semibold">Roles</label>

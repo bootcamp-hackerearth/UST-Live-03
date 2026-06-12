@@ -2,6 +2,8 @@ package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
@@ -25,11 +27,27 @@ public class CategoryServiceImpl implements CategoryService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public WsDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+
+        WsDto<CategoryDto> categoryWsDto = new WsDto<>();
+        categoryWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        categoryWsDto.setTotalRecords(categoryPage.getTotalElements());
+        categoryWsDto.setTotalPages(categoryPage.getTotalPages());
+        categoryWsDto.setSizePerPage(pageable.getPageSize());
+        categoryWsDto.setPage(pageable.getPageNumber());
+
+        return categoryWsDto;
+    }
+
+    @Override
+    public List<CategoryDto> findAllcontroller(Pageable pageable) {
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Category> page = categoryRepository.findAll(pageable);
+        return modelMapper.map(page.getContent(), listType);
     }
 
     @Override
@@ -71,6 +89,7 @@ public class CategoryServiceImpl implements CategoryService {
         for (Category category : categoryList) {
             if (category.getSuperCategoryIdentifier() != null
                     && !category.getSuperCategoryIdentifier().isEmpty()) {
+
                 childList.add(modelMapper.map(category, CategoryDto.class));
             }
         }
@@ -90,33 +109,38 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto save(CategoryDto categoryDto) {
+    public CategoryDto save(CategoryDto dto) {
         CategoryDto response = new CategoryDto();
-        if (categoryRepository.existsByIdentifier(categoryDto.getIdentifier())) {
+        if (categoryRepository.existsByIdentifier(dto.getIdentifier().trim())) {
             response.setSuccess(false);
             response.setMessage("Identifier already exists");
             return response;
         }
         Category category = new Category();
-        category.setIdentifier(categoryDto.getIdentifier());
-        category.setName(categoryDto.getName());
-        category.setSuperCategoryIdentifier(categoryDto.getSuperCategoryIdentifier());
+        category.setIdentifier(dto.getIdentifier());
+        category.setName(dto.getName());
+        category.setSuperCategoryIdentifier(dto.getSuperCategoryIdentifier());
         categoryRepository.save(category);
         response.setSuccess(true);
         return response;
     }
 
     @Override
-    public CategoryDto update(CategoryDto categoryDto) {
+    public CategoryDto update(CategoryDto dto) {
         CategoryDto response = new CategoryDto();
-        Category category = categoryRepository.findByIdentifier(categoryDto.getIdentifier()).orElse(null);
+        Category category = categoryRepository.findByIdentifier(dto.getIdentifier()).orElse(null);
         if (category == null) {
             response.setSuccess(false);
             response.setMessage("Category not found");
             return response;
         }
-        category.setName(categoryDto.getName());
-        category.setSuperCategoryIdentifier(categoryDto.getSuperCategoryIdentifier());
+        category.setName(dto.getName());
+
+        String superCat = dto.getSuperCategoryIdentifier();
+        category.setSuperCategoryIdentifier(
+                (superCat == null || superCat.trim().isEmpty()) ? null : superCat
+        );
+
         categoryRepository.save(category);
         response.setSuccess(true);
         return response;

@@ -1,6 +1,8 @@
 package com.ust.pos.product.service.impl;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.PriceRepository;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -26,6 +28,9 @@ public class ProductServiceImpl implements ProductService {
     private ProductRepository productRepository;
 
     @Autowired
+    private PriceRepository priceRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Override
@@ -41,11 +46,6 @@ public class ProductServiceImpl implements ProductService {
             productDto.setMessage("Product already exists");
             return productDto;
         }
-        if (productDto.getCategories() == null || productDto.getCategories().isEmpty()) {
-            productDto.setSuccess(false);
-            productDto.setMessage("Please select at least one category");
-            return productDto;
-        }
         Product saveProduct = modelMapper.map(productDto, Product.class);
         Product savedProduct = productRepository.save(saveProduct);
         ProductDto savedProductDto = modelMapper.map(savedProduct, ProductDto.class);
@@ -57,11 +57,6 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto update(ProductDto productDto) {
         Product product = productRepository.findByIdentifier(productDto.getIdentifier());
-        if (productDto.getCategories() == null || productDto.getCategories().isEmpty()) {
-            productDto.setSuccess(false);
-            productDto.setMessage("Please select at least one category");
-            return productDto;
-        }
         if (product == null) {
             productDto.setSuccess(false);
             productDto.setMessage(PRODUCT_NOT_FOUND);
@@ -90,15 +85,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
+    public WsDto<ProductDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
         Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listType);
+
+        WsDto<ProductDto> productWsDto = new WsDto<>();
+        productWsDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
+        productWsDto.setTotalRecords(productPage.getTotalElements());
+        productWsDto.setTotalPages(productPage.getTotalPages());
+        productWsDto.setSizePerPage(pageable.getPageSize());
+        productWsDto.setPage(pageable.getPageNumber());
+
+        return productWsDto;
     }
 
     @Override
     public void delete(String identifier) {
+        priceRepository.deleteByProductId(identifier);
         productRepository.deleteByIdentifier(identifier);
     }
 

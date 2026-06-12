@@ -1,6 +1,7 @@
 package com.ust.pos.shelf.service.impl;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
@@ -41,7 +42,7 @@ public class ShelfServiceImpl implements ShelfService {
             return shelfDto;
         }
         Shelf shelf = modelMapper.map(shelfDto, Shelf.class);
-        shelf.setIdentifier(shelfDto.getName()); // using name as identifier
+        shelf.setIdentifier(shelfDto.getName());
         shelfRepository.save(shelf);
         ShelfDto response = modelMapper.map(shelf, ShelfDto.class);
         response.setSuccess(true);
@@ -72,20 +73,28 @@ public class ShelfServiceImpl implements ShelfService {
     public ShelfDto findByIdentifier(String identifier) {
         Shelf shelf = shelfRepository.findByIdentifier(identifier);
         if (shelf == null) {
-            ShelfDto shelfDto = new ShelfDto();
-            shelfDto.setSuccess(false);
-            shelfDto.setMessage(SHELF_NOT_FOUND);
-            return shelfDto;
+            ShelfDto dto = new ShelfDto();
+            dto.setSuccess(false);
+            dto.setMessage(SHELF_NOT_FOUND);
+            return dto;
         }
         return modelMapper.map(shelf, ShelfDto.class);
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
+    public WsDto<ShelfDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
-        return modelMapper.map(shelfPage.getContent(), listType);
+        Page<Shelf> userPage = shelfRepository.findAll(pageable);
+
+        WsDto<ShelfDto> shelfWsDto = new WsDto<>();
+        shelfWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        shelfWsDto.setTotalRecords(userPage.getTotalElements());
+        shelfWsDto.setTotalPages(userPage.getTotalPages());
+        shelfWsDto.setSizePerPage(pageable.getPageSize());
+        shelfWsDto.setPage(pageable.getPageNumber());
+
+        return shelfWsDto;
     }
 
     @Override
@@ -105,10 +114,10 @@ public class ShelfServiceImpl implements ShelfService {
     public ShelfDto toggleStatus(String identifier) {
         Shelf shelf = shelfRepository.findByIdentifier(identifier);
         if (shelf == null) {
-            ShelfDto shelfDto= new ShelfDto();
-            shelfDto.setSuccess(false);
-            shelfDto.setMessage(SHELF_NOT_FOUND);
-            return shelfDto;
+            ShelfDto dto = new ShelfDto();
+            dto.setSuccess(false);
+            dto.setMessage(SHELF_NOT_FOUND);
+            return dto;
         }
         shelf.setStatus(!Boolean.TRUE.equals(shelf.getStatus()));
         Shelf saved = shelfRepository.save(shelf);

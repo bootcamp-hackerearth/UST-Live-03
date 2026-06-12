@@ -1,6 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -45,7 +46,12 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public NodeDto save(NodeDto nodeDto) {
-        String identifier = nodeDto.getIdentifier();
+        String identifier = nodeDto.getIdentifier().trim();
+        if (identifier == null || identifier.trim().isEmpty()) {
+            nodeDto.setSuccess(false);
+            nodeDto.setMessage("Identifier required");
+            return nodeDto;
+        }
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode != null) {
             nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
@@ -78,11 +84,19 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+        Page<Node> userPage = nodeRepository.findAll(pageable);
+
+        WsDto<NodeDto> nodeWsDto = new WsDto<>();
+        nodeWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        nodeWsDto.setTotalRecords(userPage.getTotalElements());
+        nodeWsDto.setTotalPages(userPage.getTotalPages());
+        nodeWsDto.setSizePerPage(pageable.getPageSize());
+        nodeWsDto.setPage(pageable.getPageNumber());
+
+        return nodeWsDto;
     }
 
     public List<NodeDto> getNodesForRoles() {

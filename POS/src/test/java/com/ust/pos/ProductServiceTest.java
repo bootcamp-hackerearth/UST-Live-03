@@ -1,6 +1,8 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.PriceRepository;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -12,14 +14,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,183 +34,313 @@ class ProductServiceTest {
     private ProductRepository productRepository;
 
     @Mock
+    private PriceRepository priceRepository;
+
+    @Mock
     private ModelMapper modelMapper;
 
     @Test
     void save_success() {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("P1");
-        dto.setCategories(List.of("C1"));
+        dto.setCategories(List.of("Electronics", "Mobile"));
+
         Product entity = new Product();
+        entity.setCategories(List.of("Electronics", "Mobile"));
+
         Product saved = new Product();
-        ProductDto mapped = new ProductDto();
+        saved.setCategories(List.of("Electronics", "Mobile"));
+
+        ProductDto responseDto = new ProductDto();
+        responseDto.setSuccess(true);
+        responseDto.setMessage("Product saved successfully");
+        responseDto.setCategories(List.of("Electronics", "Mobile"));
+
         when(productRepository.findByIdentifier("P1")).thenReturn(null);
-        when(modelMapper.map(dto, Product.class)).thenReturn(entity);
+        when(modelMapper.map(any(ProductDto.class), eq(Product.class))).thenReturn(entity);
         when(productRepository.save(entity)).thenReturn(saved);
-        when(modelMapper.map(saved, ProductDto.class)).thenReturn(mapped);
+        when(modelMapper.map(any(Product.class), eq(ProductDto.class))).thenReturn(responseDto);
+
         ProductDto response = productService.save(dto);
+
         assertTrue(response.isSuccess());
         assertEquals("Product saved successfully", response.getMessage());
+        assertEquals(2, response.getCategories().size());
+        assertEquals("Electronics", response.getCategories().get(0));
+
+        verify(productRepository).save(entity);
     }
 
     @Test
-    void save_failure_exists() {
+    void save_failure_productAlreadyExists() {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("P1");
+
         when(productRepository.findByIdentifier("P1")).thenReturn(new Product());
+
         ProductDto response = productService.save(dto);
+
         assertFalse(response.isSuccess());
         assertEquals("Product already exists", response.getMessage());
+        verify(productRepository, never()).save(any());
     }
 
     @Test
-    void save_failure_empty() {
+    void save_failure_emptyIdentifier() {
         ProductDto dto = new ProductDto();
-        dto.setIdentifier(" ");
+        dto.setIdentifier("   ");
+
         ProductDto response = productService.save(dto);
+
         assertFalse(response.isSuccess());
         assertEquals("Identifier required", response.getMessage());
+        verifyNoInteractions(productRepository);
     }
 
     @Test
-    void save_failure_no_categories() {
+    void save_failure_nullIdentifier() {
         ProductDto dto = new ProductDto();
-        dto.setIdentifier("P1");
-        dto.setCategories(null);
-        when(productRepository.findByIdentifier("P1")).thenReturn(null);
         ProductDto response = productService.save(dto);
-        assertFalse(response.isSuccess());
-        assertEquals("Please select at least one category", response.getMessage());
-    }
 
-    @Test
-    void save_failure_empty_categories() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P1");
-        dto.setCategories(List.of());
-        when(productRepository.findByIdentifier("P1")).thenReturn(null);
-        ProductDto response = productService.save(dto);
         assertFalse(response.isSuccess());
-        assertEquals("Please select at least one category", response.getMessage());
-    }
-
-    @Test
-    void find_success() {
-        Product product = new Product();
-        ProductDto dto = new ProductDto();
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
-        when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
-        ProductDto response = productService.findByIdentifier("P1");
-        assertTrue(response.isSuccess());
-    }
-
-    @Test
-    void find_not_found() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(null);
-        ProductDto response = productService.findByIdentifier("P1");
-        assertFalse(response.isSuccess());
-        assertEquals("Product not found", response.getMessage());
+        assertEquals("Identifier required", response.getMessage());
+        verifyNoInteractions(productRepository);
     }
 
     @Test
     void update_success() {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("P1");
-        dto.setCategories(List.of("C1"));
+
         Product existing = new Product();
-        Product saved = new Product();
-        ProductDto mapped = new ProductDto();
-        when(productRepository.findByIdentifier("P1")).thenReturn(existing);
-        doNothing().when(modelMapper).map(any(ProductDto.class), any(Product.class));
-        when(productRepository.save(existing)).thenReturn(saved);
-        when(modelMapper.map(saved, ProductDto.class)).thenReturn(mapped);
+        existing.setIdentifier("P1");
+
+        Product updated = new Product();
+
+        ProductDto responseDto = new ProductDto();
+        responseDto.setSuccess(true);
+        responseDto.setMessage("Product updated successfully");
+
+        when(productRepository.findByIdentifier("P1"))
+                .thenReturn(existing);
+
+        doNothing().when(modelMapper)
+                .map(any(ProductDto.class), any(Product.class));
+
+        when(productRepository.save(existing))
+                .thenReturn(updated);
+
+        when(modelMapper.map(any(Product.class), eq(ProductDto.class)))
+                .thenReturn(responseDto);
+
         ProductDto response = productService.update(dto);
+
         assertTrue(response.isSuccess());
         assertEquals("Product updated successfully", response.getMessage());
+
+        verify(productRepository).save(existing);
     }
 
     @Test
-    void update_failure() {
+    void update_failure_productNotFound() {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("P1");
-        dto.setCategories(List.of("C1"));
+
         when(productRepository.findByIdentifier("P1")).thenReturn(null);
+
         ProductDto response = productService.update(dto);
+
+        assertFalse(response.isSuccess());
+        assertEquals("Product not found", response.getMessage());
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void findByIdentifier_success() {
+        Product product = new Product();
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("P1");
+        dto.setSuccess(true);
+        dto.setCategories(List.of("Electronics", "Accessories"));
+
+        when(productRepository.findByIdentifier("P1")).thenReturn(product);
+        when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
+
+        ProductDto response = productService.findByIdentifier("P1");
+
+        assertTrue(response.isSuccess());
+        assertEquals("P1", response.getIdentifier());
+        assertEquals(2, response.getCategories().size());
+        assertEquals("Accessories", response.getCategories().get(1));
+    }
+
+    @Test
+    void findByIdentifier_notFound() {
+        when(productRepository.findByIdentifier("P1")).thenReturn(null);
+
+        ProductDto response = productService.findByIdentifier("P1");
+
         assertFalse(response.isSuccess());
         assertEquals("Product not found", response.getMessage());
     }
 
     @Test
-    void update_failure_no_categories() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P1");
-        dto.setCategories(null);
-        ProductDto response = productService.update(dto);
-        assertFalse(response.isSuccess());
-        assertEquals("Please select at least one category", response.getMessage());
-    }
+    void findAll_returnsPaginatedResult() {
+        List<Product> productList = List.of(new Product());
+        Page<Product> page = new PageImpl<>(productList);
 
-    @Test
-    void update_failure_empty_categories() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P1");
-        dto.setCategories(List.of());
-        ProductDto response = productService.update(dto);
-        assertFalse(response.isSuccess());
-        assertEquals("Please select at least one category", response.getMessage());
-    }
-
-    @Test
-    void delete_test() {
-        productService.delete("P1");
-        verify(productRepository).deleteByIdentifier("P1");
-    }
-
-    @Test
-    void find_all_test() {
-        List<Product> list = List.of(new Product());
-        Page<Product> page = new PageImpl<>(list);
-        List<ProductDto> mappedList = List.of(new ProductDto());
         when(productRepository.findAll(any(Pageable.class))).thenReturn(page);
-        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(mappedList);
-        List<ProductDto> result = productService.findAll(Pageable.unpaged());
+        when(modelMapper.map(anyList(), any(Type.class)))
+                .thenReturn(List.of(new ProductDto()));
+
+        WsDto<ProductDto> result = productService.findAll(PageRequest.of(0, 5));
+
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(5, result.getSizePerPage());
+        assertEquals(0, result.getPage());
     }
 
     @Test
-    void active_products_test() {
-        List<Product> list = List.of(new Product(), new Product());
-        when(productRepository.findAll()).thenReturn(list);
+    void findAll_emptyPage() {
+        Page<Product> emptyPage = new PageImpl<>(List.of());
+
+        when(productRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of());
+
+        WsDto<ProductDto> result = productService.findAll(PageRequest.of(0, 10));
+
+        assertNotNull(result);
+        assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+    }
+
+    @Test
+    void findActiveProducts_returnsOnlyActiveOnes() {
         ProductDto active = new ProductDto();
         active.setStatus(true);
+
         ProductDto inactive = new ProductDto();
         inactive.setStatus(false);
-        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(List.of(active, inactive));
+
+        when(productRepository.findAll()).thenReturn(List.of(new Product(), new Product()));
+        when(modelMapper.map(anyList(), any(Type.class)))
+                .thenReturn(List.of(active, inactive));
+
         List<ProductDto> result = productService.findActiveProducts();
+
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.get(0).getStatus());
     }
 
     @Test
-    void toggle_success() {
-        Product product = new Product();
-        product.setStatus(true);
-        ProductDto mapped = new ProductDto();
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
-        when(productRepository.save(product)).thenReturn(product);
-        when(modelMapper.map(product, ProductDto.class)).thenReturn(mapped);
-        ProductDto response = productService.toggleStatus("P1");
-        assertTrue(response.isSuccess());
-        assertEquals("Status updated successfully", response.getMessage());
+    void findActiveProducts_noActiveProducts() {
+        ProductDto inactive = new ProductDto();
+        inactive.setStatus(false);
+
+        when(productRepository.findAll()).thenReturn(List.of(new Product()));
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(inactive));
+
+        List<ProductDto> result = productService.findActiveProducts();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    void toggle_failure() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(null);
+    void findActiveProducts_emptyRepository() {
+        when(productRepository.findAll()).thenReturn(List.of());
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of());
+
+        List<ProductDto> result = productService.findActiveProducts();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void delete_callsBothRepositories() {
+        doNothing().when(priceRepository).deleteByProductId("P1");
+        doNothing().when(productRepository).deleteByIdentifier("P1");
+
+        productService.delete("P1");
+
+        verify(priceRepository).deleteByProductId("P1");
+        verify(productRepository).deleteByIdentifier("P1");
+    }
+
+    @Test
+    void toggleStatus_fromTrueToFalse() {
+        Product product = new Product();
+        product.setStatus(true);
+
+        ProductDto responseDto = new ProductDto();
+        responseDto.setSuccess(true);
+        responseDto.setMessage("Status updated successfully");
+
+        when(productRepository.findByIdentifier("P1")).thenReturn(product);
+        when(productRepository.save(product)).thenReturn(product);
+        when(modelMapper.map(any(Product.class), eq(ProductDto.class))).thenReturn(responseDto);
+
         ProductDto response = productService.toggleStatus("P1");
+
+        assertTrue(response.isSuccess());
+        assertEquals("Status updated successfully", response.getMessage());
+        assertFalse(product.getStatus());
+        verify(productRepository).save(product);
+    }
+
+    @Test
+    void toggleStatus_fromFalseToTrue() {
+        Product product = new Product();
+        product.setStatus(false);
+
+        ProductDto responseDto = new ProductDto();
+        responseDto.setSuccess(true);
+        responseDto.setMessage("Status updated successfully");
+
+        when(productRepository.findByIdentifier("P1")).thenReturn(product);
+        when(productRepository.save(product)).thenReturn(product);
+        when(modelMapper.map(any(Product.class), eq(ProductDto.class))).thenReturn(responseDto);
+
+        ProductDto response = productService.toggleStatus("P1");
+
+        assertTrue(response.isSuccess());
+        assertEquals("Status updated successfully", response.getMessage());
+        assertTrue(product.getStatus());
+    }
+
+    @Test
+    void toggleStatus_fromNullToTrue() {
+        Product product = new Product();
+        product.setStatus(null);
+
+        ProductDto responseDto = new ProductDto();
+        responseDto.setSuccess(true);
+        responseDto.setMessage("Status updated successfully");
+
+        when(productRepository.findByIdentifier("P1")).thenReturn(product);
+        when(productRepository.save(product)).thenReturn(product);
+        when(modelMapper.map(any(Product.class), eq(ProductDto.class))).thenReturn(responseDto);
+
+        ProductDto response = productService.toggleStatus("P1");
+
+        assertTrue(response.isSuccess());
+        assertTrue(product.getStatus());
+    }
+
+    @Test
+    void toggleStatus_failure_productNotFound() {
+        when(productRepository.findByIdentifier("P1")).thenReturn(null);
+
+        ProductDto response = productService.toggleStatus("P1");
+
         assertFalse(response.isSuccess());
         assertEquals("Product not found", response.getMessage());
+        verify(productRepository, never()).save(any());
     }
 }

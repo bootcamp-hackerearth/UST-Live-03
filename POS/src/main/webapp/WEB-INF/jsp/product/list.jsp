@@ -110,16 +110,27 @@
                                 </a>
                             </td>
 
-                            <td>${p.productName}</td>
-                            <td>${p.brand}</td>
-                            <td>${p.model}</td>
+                            <td>
+                                ${p.productName}
+                            </td>
+
+                            <td>
+                                ${p.brand}
+                            </td>
+
+                            <td>
+                                ${p.model}
+                            </td>
+
                             <td>
                                 <c:choose>
+
                                     <c:when test="${empty p.categories}">
                                         <span class="text-muted">
                                             -
                                         </span>
                                     </c:when>
+
                                     <c:otherwise>
                                         <c:forEach items="${p.categories}" var="cat">
                                             <span class="badge bg-primary">
@@ -131,7 +142,9 @@
                                 </c:choose>
                             </td>
 
-                            <td>${p.unit}</td>
+                            <td>
+                                ${p.unit}
+                            </td>
 
                             <td>
                                 <div class="form-check form-switch d-flex justify-content-center">

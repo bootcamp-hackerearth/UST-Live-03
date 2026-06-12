@@ -54,13 +54,13 @@
             <table class="table table-hover table-striped mb-0">
 
                 <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Identifier</th>
-                        <th>Name</th>
-                        <th>Super Category</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
+                <tr>
+                    <th>ID</th>
+                    <th>Identifier</th>
+                    <th>Name</th>
+                    <th>Super Category</th>
+                    <th class="text-center">Actions</th>
+                </tr>
                 </thead>
 
                 <tbody>

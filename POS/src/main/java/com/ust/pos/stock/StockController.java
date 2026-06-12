@@ -43,11 +43,11 @@ public class StockController {
     }
 
     @PostMapping("/add")
-    public String save(@ModelAttribute StockDto stockDto, Model model, Pageable pageable) {
-        StockDto res = stockService.save(stockDto);
+    public String save(@ModelAttribute StockDto dto, Model model, Pageable pageable) {
+        StockDto res = stockService.save(dto);
         if (!res.isSuccess()) {
             model.addAttribute(MESSAGE, res.getMessage());
-            model.addAttribute(STOCK_DTO, stockDto);
+            model.addAttribute(STOCK_DTO, dto);
             model.addAttribute(WAREHOUSE, warehouseService.findAll(pageable));
             model.addAttribute(PRODUCT, productService.findActiveProducts());
             return "stock/add";
@@ -69,11 +69,11 @@ public class StockController {
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute StockDto stockDto, Model model, Pageable pageable) {
-        StockDto res = stockService.update(stockDto);
+    public String update(@ModelAttribute StockDto dto, Model model, Pageable pageable) {
+        StockDto res = stockService.update(dto);
         if (!res.isSuccess()) {
             model.addAttribute(MESSAGE, res.getMessage());
-            model.addAttribute(STOCK_DTO, stockDto);
+            model.addAttribute(STOCK_DTO, dto);
             model.addAttribute(WAREHOUSE, warehouseService.findAll(pageable));
             model.addAttribute(PRODUCT, productService.findActiveProducts());
             return "stock/stock";

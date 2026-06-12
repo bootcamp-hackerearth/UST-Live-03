@@ -3,12 +3,11 @@ package com.ust.pos.api.warehouse;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouse")
@@ -20,7 +19,7 @@ public class WarehouseControllerApi extends BaseController {
     private WarehouseService warehouseService;
 
     @PostMapping("/list")
-    public List<WarehouseDto> list(@RequestBody PaginationDto pagination) {
+    public WsDto<WarehouseDto> list(@RequestBody PaginationDto pagination) {
         Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
                 pagination.getSortDirection(), pagination.getSortfield());
         return warehouseService.findAll(pageable);
@@ -41,10 +40,10 @@ public class WarehouseControllerApi extends BaseController {
         return warehouseService.update(warehouseDto);
     }
 
-    @GetMapping("/delete")
-    public Boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public Boolean delete(@RequestBody WarehouseDto warehouseDto) {
         try {
-            warehouseService.delete(identifier);
+            warehouseService.delete(warehouseDto.getIdentifier());
         } catch (Exception e) {
             return false;
         }

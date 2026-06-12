@@ -1,6 +1,7 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -71,22 +72,30 @@ public class PriceServiceImpl implements PriceService {
     public PriceDto findByIdentifier(String identifier) {
         Price price = priceRepository.findByIdentifier(identifier);
         if (price == null) {
-            PriceDto priceDto = new PriceDto();
-            priceDto.setSuccess(false);
-            priceDto.setMessage("Price not found");
-            return priceDto;
+            PriceDto dto = new PriceDto();
+            dto.setSuccess(false);
+            dto.setMessage("Price not found");
+            return dto;
         }
-        PriceDto priceDto = modelMapper.map(price, PriceDto.class);
-        priceDto.setSuccess(true);
-        return priceDto;
+        PriceDto dto = modelMapper.map(price, PriceDto.class);
+        dto.setSuccess(true);
+        return dto;
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public WsDto<PriceDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
         Page<Price> pricePage = priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+
+        WsDto<PriceDto> priceWsDto = new WsDto<>();
+        priceWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+        priceWsDto.setTotalRecords(pricePage.getTotalElements());
+        priceWsDto.setTotalPages(pricePage.getTotalPages());
+        priceWsDto.setSizePerPage(pageable.getPageSize());
+        priceWsDto.setPage(pageable.getPageNumber());
+
+        return priceWsDto;
     }
 
     @Override

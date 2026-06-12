@@ -39,14 +39,14 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public StockDto save(StockDto stockDto) {
-        stockDto.setIdentifier(stockDto.getProductIdentifier() + "_" + stockDto.getWarehouseIdentifier());
-        if (stockRepository.findByIdentifier(stockDto.getIdentifier()) != null) {
-            stockDto.setSuccess(false);
-            stockDto.setMessage("Product already exists in this warehouse");
-            return stockDto;
+    public StockDto save(StockDto dto) {
+        dto.setIdentifier(dto.getProductIdentifier() + "_" + dto.getWarehouseIdentifier());
+        if (stockRepository.findByIdentifier(dto.getIdentifier()) != null) {
+            dto.setSuccess(false);
+            dto.setMessage("Product already exists in this warehouse");
+            return dto;
         }
-        Stock stock = modelMapper.map(stockDto, Stock.class);
+        Stock stock = modelMapper.map(dto, Stock.class);
         if (stock.getStatus() == null) {
             stock.setStatus(true);
         }
@@ -59,17 +59,17 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public StockDto update(StockDto stockDto) {
-        stockDto.setIdentifier(stockDto.getProductIdentifier() + "_" + stockDto.getWarehouseIdentifier());
-        Stock existing = stockRepository.findByIdentifier(stockDto.getIdentifier());
+    public StockDto update(StockDto dto) {
+        dto.setIdentifier(dto.getProductIdentifier() + "_" + dto.getWarehouseIdentifier());
+        Stock existing = stockRepository.findByIdentifier(dto.getIdentifier());
         if (existing == null) {
-            stockDto.setSuccess(false);
-            stockDto.setMessage(STOCK_NOT_FOUND);
-            return stockDto;
+            dto.setSuccess(false);
+            dto.setMessage(STOCK_NOT_FOUND);
+            return dto;
         }
-        existing.setAvailableQuantity(stockDto.getAvailableQuantity());
-        existing.setReorderLevel(stockDto.getReorderLevel());
-        existing.setStatus(stockDto.getStatus());
+        existing.setAvailableQuantity(dto.getAvailableQuantity());
+        existing.setReorderLevel(dto.getReorderLevel());
+        existing.setStatus(dto.getStatus());
         Stock saved = stockRepository.save(existing);
         StockDto response = modelMapper.map(saved, StockDto.class);
         response.setStockState(calculateState(saved));
@@ -82,15 +82,15 @@ public class StockServiceImpl implements StockService {
     public StockDto findByIdentifier(String identifier) {
         Stock stock = stockRepository.findByIdentifier(identifier);
         if (stock == null) {
-            StockDto stockDto = new StockDto();
-            stockDto.setSuccess(false);
-            stockDto.setMessage(STOCK_NOT_FOUND);
-            return stockDto;
+            StockDto dto = new StockDto();
+            dto.setSuccess(false);
+            dto.setMessage(STOCK_NOT_FOUND);
+            return dto;
         }
-        StockDto stockDto = modelMapper.map(stock, StockDto.class);
-        stockDto.setStockState(calculateState(stock));
-        stockDto.setSuccess(true);
-        return stockDto;
+        StockDto dto = modelMapper.map(stock, StockDto.class);
+        dto.setStockState(calculateState(stock));
+        dto.setSuccess(true);
+        return dto;
     }
 
     @Override
@@ -114,17 +114,17 @@ public class StockServiceImpl implements StockService {
     public StockDto toggleStatus(String identifier) {
         Stock stock = stockRepository.findByIdentifier(identifier);
         if (stock == null) {
-            StockDto stockDto = new StockDto();
-            stockDto.setSuccess(false);
-            stockDto.setMessage(STOCK_NOT_FOUND);
-            return stockDto;
+            StockDto dto = new StockDto();
+            dto.setSuccess(false);
+            dto.setMessage(STOCK_NOT_FOUND);
+            return dto;
         }
         stock.setStatus(!Boolean.TRUE.equals(stock.getStatus()));
         Stock saved = stockRepository.save(stock);
-        StockDto stockDto = modelMapper.map(saved, StockDto.class);
-        stockDto.setStockState(calculateState(saved));
-        stockDto.setSuccess(true);
-        stockDto.setMessage("Stock status updated successfully");
-        return stockDto;
+        StockDto dto = modelMapper.map(saved, StockDto.class);
+        dto.setStockState(calculateState(saved));
+        dto.setSuccess(true);
+        dto.setMessage("Stock status updated successfully");
+        return dto;
     }
 }

@@ -46,10 +46,12 @@ public class CustomerServiceImpl implements CustomerService {
             return null;
         }
         CustomerDto dto = modelMapper.map(customer, CustomerDto.class);
-        dto.setBillingAddress(addressService.
-                findByPhoneNoAndAddressType(customer.getPhoneNo(), "billing"));
-        dto.setShippingAddress(addressService.
-                findByPhoneNoAndAddressType(customer.getPhoneNo(), "shipping"));
+        dto.setBillingAddress(
+                addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), "billing")
+        );
+        dto.setShippingAddress(
+                addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), "shipping")
+        );
         return dto;
     }
 

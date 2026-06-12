@@ -43,12 +43,6 @@ public class RackServiceImpl implements RackService {
             dto.setMessage("Rack already exists");
             return dto;
         }
-        if (rackDto.getShelfIdentifiers() == null || rackDto.getShelfIdentifiers().isEmpty()) {
-            RackDto dto = new RackDto();
-            dto.setSuccess(false);
-            dto.setMessage("Please select at least one shelf");
-            return dto;
-        }
         Rack rack = modelMapper.map(rackDto, Rack.class);
         Rack saved = rackRepository.save(rack);
         RackDto response = modelMapper.map(saved, RackDto.class);
@@ -63,12 +57,6 @@ public class RackServiceImpl implements RackService {
             RackDto dto = new RackDto();
             dto.setSuccess(false);
             dto.setMessage("Identifier required");
-            return dto;
-        }
-        if (rackDto.getShelfIdentifiers() == null || rackDto.getShelfIdentifiers().isEmpty()) {
-            RackDto dto = new RackDto();
-            dto.setSuccess(false);
-            dto.setMessage("Please select at least one shelf");
             return dto;
         }
         Rack rack = rackRepository.findByIdentifier(rackDto.getIdentifier());
@@ -119,9 +107,9 @@ public class RackServiceImpl implements RackService {
     @Override
     public List<RackDto> getActiveRacks() {
         List<RackDto> active = new ArrayList<>();
-        for (RackDto rack : findAll(null)) {
-            if (Boolean.TRUE.equals(rack.getStatus())) {
-                active.add(rack);
+        for (RackDto r : findAll(null)) {
+            if (Boolean.TRUE.equals(r.getStatus())) {
+                active.add(r);
             }
         }
         return active;
@@ -136,16 +124,16 @@ public class RackServiceImpl implements RackService {
     public RackDto toggleStatus(String identifier) {
         Rack rack = rackRepository.findByIdentifier(identifier);
         if (rack == null) {
-            RackDto rackDto = new RackDto();
-            rackDto.setSuccess(false);
-            rackDto.setMessage(RACK_NOT_FOUND);
-            return rackDto;
+            RackDto dto = new RackDto();
+            dto.setSuccess(false);
+            dto.setMessage(RACK_NOT_FOUND);
+            return dto;
         }
         rack.setStatus(!Boolean.TRUE.equals(rack.getStatus()));
         Rack saved = rackRepository.save(rack);
-        RackDto rackDto = modelMapper.map(saved, RackDto.class);
-        rackDto.setSuccess(true);
-        rackDto.setMessage("Status updated successfully");
-        return rackDto;
+        RackDto dto = modelMapper.map(saved, RackDto.class);
+        dto.setSuccess(true);
+        dto.setMessage("Status updated successfully");
+        return dto;
     }
 }

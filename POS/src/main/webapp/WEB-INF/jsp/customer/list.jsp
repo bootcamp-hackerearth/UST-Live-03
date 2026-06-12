@@ -112,6 +112,7 @@
                         </td>
 
                         <td class="text-center">
+
                             <a href="/customer/get?identifier=${customer.identifier}"
                                class="btn btn-sm btn-outline-primary me-2">
                                 Update
@@ -122,6 +123,7 @@
                                onclick="return confirm('Delete this customer?');">
                                 Delete
                             </a>
+
                         </td>
 
                     </tr>

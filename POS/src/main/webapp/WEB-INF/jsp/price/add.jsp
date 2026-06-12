@@ -190,12 +190,16 @@
 
                 <button type="submit"
                         class="btn btn-primary w-100">
+
                     Save Price
+
                 </button>
 
                 <a href="${pageContext.request.contextPath}/price/list"
                    class="btn btn-outline-secondary w-100">
+
                     Cancel
+
                 </a>
 
             </div>

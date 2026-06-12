@@ -1,6 +1,7 @@
 package com.ust.pos.warehouse.service.impl;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -26,13 +27,13 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public WarehouseDto save(WarehouseDto warehouseDto) {
-        if (warehouseDto.getIdentifier() == null || warehouseDto.getIdentifier().isEmpty()) {
+        if (warehouseDto.getIdentifier() == null || warehouseDto.getIdentifier().isBlank()) {
             WarehouseDto dto = new WarehouseDto();
             dto.setSuccess(false);
             dto.setMessage("Identifier required");
             return dto;
         }
-        Warehouse existing = warehouseRepository.findByIdentifier(warehouseDto.getIdentifier());
+        Warehouse existing = warehouseRepository.findByIdentifier(warehouseDto.getIdentifier().trim());
         if (existing != null) {
             WarehouseDto dto = new WarehouseDto();
             dto.setSuccess(false);
@@ -68,22 +69,30 @@ public class WarehouseServiceImpl implements WarehouseService {
     public WarehouseDto findByIdentifier(String identifier) {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
         if (warehouse == null) {
-            WarehouseDto warehouseDto = new WarehouseDto();
-            warehouseDto.setSuccess(false);
-            warehouseDto.setMessage("Warehouse not found");
-            return warehouseDto;
+            WarehouseDto dto = new WarehouseDto();
+            dto.setSuccess(false);
+            dto.setMessage("Warehouse not found");
+            return dto;
         }
-        WarehouseDto warehouseDto = modelMapper.map(warehouse, WarehouseDto.class);
-        warehouseDto.setSuccess(true);
-        return warehouseDto;
+        WarehouseDto dto = modelMapper.map(warehouse, WarehouseDto.class);
+        dto.setSuccess(true);
+        return dto;
     }
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<Warehouse>>() {
+    public WsDto<WarehouseDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
         Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+
+        WsDto<WarehouseDto> warehouseWsDto = new WsDto<>();
+        warehouseWsDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
+        warehouseWsDto.setTotalRecords(warehousePage.getTotalElements());
+        warehouseWsDto.setTotalPages(warehousePage.getTotalPages());
+        warehouseWsDto.setSizePerPage(pageable.getPageSize());
+        warehouseWsDto.setPage(pageable.getPageNumber());
+
+        return warehouseWsDto;
     }
 
     @Override

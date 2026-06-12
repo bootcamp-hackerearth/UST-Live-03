@@ -1,6 +1,7 @@
 package com.ust.pos.models.service.impl;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
@@ -63,11 +64,19 @@ public class ModelsServiceImpl implements ModelsService {
     }
 
     @Override
-    public List<ModelsDto> findAll(Pageable pageable) {
+    public WsDto<ModelsDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
         Page<Models> modelsPage = modelsRepository.findAll(pageable);
-        return modelMapper.map(modelsPage.getContent(), listType);
+
+        WsDto<ModelsDto> modelsWsDto = new WsDto<>();
+        modelsWsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
+        modelsWsDto.setTotalRecords(modelsPage.getTotalElements());
+        modelsWsDto.setTotalPages(modelsPage.getTotalPages());
+        modelsWsDto.setSizePerPage(pageable.getPageSize());
+        modelsWsDto.setPage(pageable.getPageNumber());
+
+        return modelsWsDto;
     }
 
     @Override
@@ -88,21 +97,21 @@ public class ModelsServiceImpl implements ModelsService {
 
     @Override
     public ModelsDto toggleStatus(String identifier) {
-        ModelsDto modelDto = new ModelsDto();
+        ModelsDto response = new ModelsDto();
         Models model = modelsRepository.findByIdentifier(identifier);
         if (model == null) {
-            modelDto.setSuccess(false);
-            modelDto.setMessage("Model not found");
-            return modelDto;
+            response.setSuccess(false);
+            response.setMessage("Model not found");
+            return response;
         }
         model.setStatus(!Boolean.TRUE.equals(model.getStatus()));
         Models saved = modelsRepository.save(model);
-        modelDto.setIdentifier(saved.getIdentifier());
-        modelDto.setModelName(saved.getModelName());
-        modelDto.setStatus(saved.getStatus());
-        modelDto.setSuccess(true);
-        modelDto.setMessage("Status updated successfully");
-        return modelDto;
+        response.setIdentifier(saved.getIdentifier());
+        response.setModelName(saved.getModelName());
+        response.setStatus(saved.getStatus());
+        response.setSuccess(true);
+        response.setMessage("Status updated successfully");
+        return response;
     }
 
     @Override
@@ -111,11 +120,11 @@ public class ModelsServiceImpl implements ModelsService {
         List<ModelsDto> result = new ArrayList<>();
         for (Models model : list) {
             if (model.getStatus() != null && model.getStatus()) {
-                ModelsDto modelsDto = new ModelsDto();
-                modelsDto.setIdentifier(model.getIdentifier());
-                modelsDto.setModelName(model.getModelName());
-                modelsDto.setStatus(model.getStatus());
-                result.add(modelsDto);
+                ModelsDto dto = new ModelsDto();
+                dto.setIdentifier(model.getIdentifier());
+                dto.setModelName(model.getModelName());
+                dto.setStatus(model.getStatus());
+                result.add(dto);
             }
         }
         return result;

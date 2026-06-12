@@ -181,7 +181,10 @@
                     <span class="text-danger">*</span>
                 </label>
 
-                <form:select path="unit" cssClass="form-select" required="true">
+                <form:select path="unit"
+                             cssClass="form-select"
+                             required="true">
+
                     <form:option value="">
                         -- Select Unit --
                     </form:option>

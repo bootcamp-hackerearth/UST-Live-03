@@ -74,7 +74,7 @@
                     <form:option value="" label="Select Product"/>
                     <c:forEach var="p" items="${product}">
                         <form:option value="${p.identifier}">
-                            ${p.productName}(${p.identifier})
+                            ${p.productName}
                         </form:option>
                     </c:forEach>
                 </form:select>
@@ -93,7 +93,7 @@
                     <form:option value="" label="Select Warehouse"/>
                     <c:forEach var="w" items="${warehouse}">
                         <form:option value="${w.identifier}">
-                            ${w.warehouseName}(${w.identifier})
+                            ${w.warehouseName}
                         </form:option>
                     </c:forEach>
                 </form:select>

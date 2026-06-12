@@ -23,19 +23,25 @@ public class JWTUtility implements Serializable {
 
     @Value("${jwt.secret}")
     private String secretKey;
+
     private Key key;
 
     @PostConstruct
     public void init() {
         key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
+
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
+
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
-    public <T> T getClaimFromToken(String token,Function<Claims, T> claimsResolver) {
+
+    public <T> T getClaimFromToken(
+            String token,
+            Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }

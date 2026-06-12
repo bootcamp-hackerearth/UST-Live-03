@@ -147,6 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
     checks.forEach(c => { c.addEventListener("change", validateRoles); });
 
     document.querySelector("form").addEventListener("submit", function (e) {
+
         let selected = false;
         checks.forEach(c => { if (c.checked) selected = true; });
         if (!selected) {

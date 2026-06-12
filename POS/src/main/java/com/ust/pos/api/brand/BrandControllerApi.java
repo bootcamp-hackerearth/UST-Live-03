@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class BrandControllerApi extends BaseController {
     private BrandService brandService;
 
     @PostMapping("/list")
-    public List<BrandDto> list(@RequestBody PaginationDto pagination) {
+    public WsDto<BrandDto> list(@RequestBody PaginationDto pagination) {
         Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
                 pagination.getSortDirection(), pagination.getSortfield());
         return brandService.findAll(pageable);
@@ -53,7 +54,7 @@ public class BrandControllerApi extends BaseController {
         return response;
     }
 
-    @PostMapping("/toggle-status")
+    @PostMapping("/toggle")
     public BrandDto toggleStatus(@RequestBody BrandDto brandDto) {
         return brandService.toggleStatus(brandDto.getIdentifier());
     }

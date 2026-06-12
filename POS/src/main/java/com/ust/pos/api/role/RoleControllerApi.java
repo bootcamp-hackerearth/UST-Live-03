@@ -3,23 +3,23 @@ package com.ust.pos.api.role;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/role")
+@CrossOrigin(origins = "http://localhost:5173")
+//here its disable if it is as enable then in the role contrller API no need of @CrossOrigin(origins = "http://localhost:5173")
 public class RoleControllerApi extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
     @Autowired
     private RoleService roleService;
 
     @PostMapping("/list")
-    public List<RoleDto> list(@RequestBody PaginationDto pagination) {
+    public WsDto<RoleDto> list(@RequestBody PaginationDto pagination) {
         Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
                 pagination.getSortDirection(), pagination.getSortfield());
         return roleService.findAll(pageable);

@@ -8,7 +8,7 @@
     <title>Home</title>
 
     <link rel="stylesheet"
-                href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
+          href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
           rel="stylesheet">
@@ -39,7 +39,6 @@
             letter-spacing: 1px;
         }
 
-        /* Scrollable navigation */
         .nav-links {
             flex: 1;
             overflow-y: auto;
@@ -69,7 +68,6 @@
             padding-left: 35px;
         }
 
-        /* Logout fixed at bottom */
         .logout-btn {
             padding: 20px;
         }

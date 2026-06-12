@@ -50,7 +50,7 @@ public class CategoryController {
     public String update(Model model, @RequestParam String identifier, Pageable pageable) {
         CategoryDto response = categoryService.findByIdentifier(identifier);
         model.addAttribute(CATEGORY, response);
-        List<CategoryDto> cd = categoryService.findAll(pageable);
+        List<CategoryDto> cd = categoryService.findAllcontroller(null);
         model.addAttribute(CATEGORIES,
                 cd.stream().filter(c -> !c.getIdentifier().equals(identifier)).toList());
         return "category/category";

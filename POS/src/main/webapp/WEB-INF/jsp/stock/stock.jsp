@@ -70,29 +70,40 @@
                     Product
                 </label>
 
-                <input type="hidden"
-                       name="productIdentifier"
-                       value="${stockDto.productIdentifier}" />
-
-                <input type="text"
-                       class="form-control"
-                       value="<c:forEach var='p' items='${product}'><c:if test='${p.identifier == stockDto.productIdentifier}'>${p.productName}</c:if></c:forEach>"
-                       readonly />
+                <select name="productIdentifier"
+                        class="form-select"
+                        required>
+                    <c:forEach var="p"
+                               items="${product}">
+                        <option value="${p.identifier}"
+                            <c:if test="${p.identifier == stockDto.productIdentifier}">
+                                selected
+                            </c:if>>
+                            ${p.productName}
+                        </option>
+                    </c:forEach>
+                </select>
             </div>
             <div class="mb-3">
+
                 <label class="form-label fw-semibold">
                     Warehouse
                 </label>
-
-                <input type="hidden"
-                       name="warehouseIdentifier"
-                       value="${stockDto.warehouseIdentifier}" />
-
-                <input type="text"
-                       class="form-control"
-                       value="<c:forEach var='w' items='${warehouse}'><c:if test='${w.identifier == stockDto.warehouseIdentifier}'>${w.warehouseName}</c:if></c:forEach>"
-                       readonly />
+                <select name="warehouseIdentifier"
+                        class="form-select"
+                        required>
+                    <c:forEach var="w"
+                               items="${warehouse}">
+                        <option value="${w.identifier}"
+                            <c:if test="${w.identifier == stockDto.warehouseIdentifier}">
+                                selected
+                            </c:if>>
+                            ${w.warehouseName}
+                        </option>
+                    </c:forEach>
+                </select>
             </div>
+
             <div class="mb-3">
                 <label class="form-label fw-semibold">
                     Available Quantity
@@ -108,7 +119,7 @@
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">
-                    Reorder at this quantity
+                    Reorder Level
                 </label>
 
                 <input type="number"

@@ -3,6 +3,7 @@ package com.ust.pos.user.service.impl;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,10 +18,20 @@ public class PosUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserDto userDto = userService.findByUserName(username);
+
         if (userDto == null) {
             throw new UsernameNotFoundException("User not found: " + username);
         }
-        return org.springframework.security.core.userdetails.User.withUsername(userDto.getUsername())
-                .password(userDto.getPassword()).build();
+
+        return org.springframework.security.core.userdetails.User
+                .withUsername(userDto.getUsername())
+                .password(userDto.getPassword())
+                .authorities(
+                        userDto.getRoles().stream()
+                                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                                .map(SimpleGrantedAuthority::new)
+                                .toList()
+                )
+                .build();
     }
 }

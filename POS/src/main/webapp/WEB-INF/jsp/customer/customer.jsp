@@ -138,14 +138,14 @@
                 </label>
                 <select name="balanceType"
                         class="form-select">
-                    <option value="CREDIT"
-                        <c:if test="${customerDto.balanceType == 'CREDIT'}">
+                    <option value="CR"
+                        <c:if test="${customerDto.balanceType == 'CR'}">
                             selected
                         </c:if>>
                         Credit
                     </option>
-                    <option value="DEBIT"
-                        <c:if test="${customerDto.balanceType == 'DUE'}">
+                    <option value="DR"
+                        <c:if test="${customerDto.balanceType == 'DR'}">
                             selected
                         </c:if>>
                         Debit
