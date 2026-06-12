@@ -1,8 +1,9 @@
 package com.ust.pos.racks.service.impl;
 
 import com.ust.pos.dto.RacksDto;
-import com.ust.pos.model.RacksRepository;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
+import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.RacksService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -25,11 +26,19 @@ public class RacksServiceImpl implements RacksService {
     RacksRepository racksRepository;
 
     @Override
-    public List<RacksDto> findAll(Pageable pageable) {
+    public WsDto<RacksDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
-        Page<Racks> racksPage=racksRepository.findAll(pageable);
-        return modelMapper.map(racksPage.getContent(), listType);
+        Page<Racks> userPage = racksRepository.findAll(pageable);
+
+        WsDto<RacksDto> userWsDto = new WsDto<>();
+        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+
+        return userWsDto;
     }
 
     @Override
@@ -74,5 +83,15 @@ public class RacksServiceImpl implements RacksService {
             racksRepository.save(rack);
         }
         return modelMapper.map(rack, RacksDto.class);
+    }
+
+    @Override
+    public List<RacksDto> findActiveStatus() {
+        List<Racks> allRacks = racksRepository.findAll();
+        List<Racks> activeRacks = allRacks.stream().filter(Racks::isStatus).toList();
+
+        Type listType = new TypeToken<List<RacksDto>>() {
+        }.getType();
+        return modelMapper.map(activeRacks, listType);
     }
 }

@@ -1,6 +1,7 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -17,19 +18,25 @@ import java.util.List;
 
 @Service
 public class PriceServiceImpl implements PriceService {
-
     @Autowired
     ModelMapper modelMapper;
-
     @Autowired
     PriceRepository priceRepository;
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public WsDto<PriceDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
-        Page<Price> pricePage=priceRepository.findAll(pageable);
-        return modelMapper.map(pricePage.getContent(), listType);
+        Page<Price> userPage = priceRepository.findAll(pageable);
+
+        WsDto<PriceDto> userWsDto = new WsDto<>();
+        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+
+        return userWsDto;
     }
 
     @Override
@@ -74,5 +81,15 @@ public class PriceServiceImpl implements PriceService {
             priceRepository.save(price);
         }
         return modelMapper.map(price, PriceDto.class);
+    }
+
+    @Override
+    public List<PriceDto> findActiveStatus() {
+        List<Price> allPrices = priceRepository.findAll();
+        List<Price> activePrices = allPrices.stream().filter(Price::isStatus).toList();
+
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        return modelMapper.map(activePrices, listType);
     }
 }

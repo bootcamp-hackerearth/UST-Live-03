@@ -1,6 +1,7 @@
 package com.ust.pos.stock.service.impl;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -24,11 +25,19 @@ public class StockServiceImpl implements StockService {
     private StockRepository stockRepository;
 
     @Override
-    public List<StockDto> findAll(Pageable pageable) {
+    public WsDto<StockDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
-        Page<Stock> stockPage=stockRepository.findAll(pageable);
-        return modelMapper.map(stockPage.getContent(), listType);
+        Page<Stock> userPage = stockRepository.findAll(pageable);
+
+        WsDto<StockDto> userWsDto = new WsDto<>();
+        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+
+        return userWsDto;
     }
 
     @Override
@@ -59,6 +68,16 @@ public class StockServiceImpl implements StockService {
             stockRepository.save(stock);
         }
         return modelMapper.map(stock, StockDto.class);
+    }
+
+    @Override
+    public List<StockDto> findActiveStatus() {
+        List<Stock> allShelves = stockRepository.findAll();
+        List<Stock> activeShelves = allShelves.stream().filter(Stock::isStatus).toList();
+
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        return modelMapper.map(activeShelves, listType);
     }
 
     @Override

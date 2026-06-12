@@ -68,6 +68,7 @@
                                     <td>${role.id}</td>
                                     <td>${role.identifier}</td>
 
+                                    <!-- ✅ TOGGLE STATUS -->
                                     <td>
                                         <form method="get"
                                               action="${pageContext.request.contextPath}/role/toggle">
@@ -90,6 +91,7 @@
                                         </form>
                                     </td>
 
+                                    <!-- ✅ ACTIONS -->
                                     <td class="d-flex justify-content-center gap-2">
                                         <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
                                            class="btn btn-warning btn-sm">

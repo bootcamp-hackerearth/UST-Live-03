@@ -3,6 +3,7 @@ package com.ust.pos.api.stock;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/stock")
@@ -26,13 +28,13 @@ public class ApiStockController extends BaseController {
     ProductService productService;
 
     @PostMapping("/list")
-    public List<StockDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable= getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return stockService.findAll(pageable);
     }
 
     @PostMapping("/add")
-    public StockDto add(@RequestBody StockDto stockDto) {
+    public StockDto addPost(@RequestBody StockDto stockDto) {
         return stockService.save(stockDto);
     }
 
@@ -60,5 +62,10 @@ public class ApiStockController extends BaseController {
     @PostMapping("/toggle")
     public StockDto toggle(@RequestBody StockDto stockDto) {
         return stockService.changeToggleStatus(stockDto.getIdentifier(), stockDto.isStatus());
+    }
+
+    @PostMapping("/findActiveStatus")
+    public List<StockDto> findActive() {
+        return stockService.findActiveStatus();
     }
 }

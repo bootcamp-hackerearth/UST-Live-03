@@ -19,13 +19,10 @@ public class UserController {
     public static final String USER_USER1 = "user/user";
     public static final String USER_USER = "user/user";
     public static final String REDIRECT_USER_LIST = "redirect:/user/list";
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private RoleService roleService;
-
     @Autowired
     private UserRepository userRepository;
 
@@ -58,13 +55,17 @@ public class UserController {
     @Transactional
     @GetMapping("/delete")
     public String delete(@RequestParam String username) {
+
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
+
             String loggedInUsername = authentication.getName();
+
             if (username.equals(loggedInUsername)) {
                 return "redirect:/user/list?error=loggedInUser";
             }
+
             userRepository.deleteByUsername(username);
             return REDIRECT_USER_LIST;
         }

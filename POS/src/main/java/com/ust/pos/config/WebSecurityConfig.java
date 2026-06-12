@@ -45,21 +45,30 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) {
+
         http
                 .csrf(csrf -> csrf.disable())
 
-                .sessionManagement(session ->
+                .cors(cors -> {})   // ✅ ADD THIS LINE (IMPORTANT!)
 
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
                 .authorizeHttpRequests(auth -> auth
-
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
-
-                        .requestMatchers("/login", "/register", "/api/authenticate", "/api/validateToken", "/swagger-ui/**", "/v3/**").permitAll()
-
+                        .requestMatchers(
+                                "/login",
+                                "/api/user/register",
+                                "/api/authenticate",
+                                "/api/authenticate/**",  // ✅ add this
+                                "/api/validateToken",
+                                "/swagger-ui/**",
+                                "/v3/**",
+                                "/api/role/**",
+                                "/api/node/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
-
                 )
 
                 .logout(org.springframework.security.config.annotation.web.configurers.LogoutConfigurer::permitAll);
@@ -67,8 +76,8 @@ public class WebSecurityConfig {
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-
     }
+
 
 
     @Bean
@@ -94,7 +103,7 @@ public class WebSecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Allow the specific origin
+        configuration.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:3000")); // Allow the specific origin
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 

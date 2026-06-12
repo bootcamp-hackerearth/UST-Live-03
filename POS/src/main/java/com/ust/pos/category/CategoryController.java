@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class CategoryController {
     public static final String CATEGORY = "category";
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
-
     @Autowired
     CategoryService categoryService;
 
@@ -31,12 +30,7 @@ public class CategoryController {
 
     @PostMapping("/add")
     public String addproduct(Model model, @ModelAttribute CategoryDto categoryDto) {
-        CategoryDto response = categoryService.save(categoryDto);
-        if (!response.isSuccess()) {
-            model.addAttribute("categoryDto", response);
-            model.addAttribute("message", response.getMessage());
-            return "category/add";
-        }
+        categoryService.save(categoryDto);
         return REDIRECT_CATEGORY_LIST;
     }
 
@@ -58,6 +52,7 @@ public class CategoryController {
     public String updateCategory(Model model, @ModelAttribute CategoryDto categoryDto) {
         CategoryDto response = categoryService.update(categoryDto);
         model.addAttribute(CATEGORY, response);
+
         if (!response.isSuccess()) {
             model.addAttribute(CATEGORY, response);
             model.addAttribute("message", response.getMessage());

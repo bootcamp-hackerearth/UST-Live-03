@@ -7,9 +7,11 @@
     <meta charset="UTF-8">
     <title>POS | Shelf Management</title>
 
+    <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
+        /* ========= Modern Variables ========= */
         :root {
             --primary-blue: #0d6efd;
             --bg-light: #f4f7f6;
@@ -27,6 +29,7 @@
             padding: 40px 0;
         }
 
+        /* ========= Header Section ========= */
         .page-header {
             background: #ffffff;
             padding: 22px 26px;
@@ -38,6 +41,7 @@
             align-items: center;
         }
 
+        /* ========= Table Card ========= */
         .table-container {
             background: #ffffff;
             border-radius: 14px;
@@ -61,6 +65,7 @@
             border-bottom: 1px solid #f1f4f8;
         }
 
+        /* ========= Data Highlighting ========= */
         .identifier-badge {
             font-size: 0.8rem;
             font-weight: 600;
@@ -71,6 +76,7 @@
             border: 1px dashed rgba(13, 110, 253, 0.3);
         }
 
+        /* ========= Proper Action Buttons (Consistent with Product/Stock) ========= */
         .btn-action {
             padding: 7px 14px;
             font-weight: 700;
@@ -113,6 +119,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
 
+        /* ========= Status Toggle ========= */
         .form-check-input:checked {
             background-color: #10b981 !important;
             border-color: #10b981 !important;
@@ -138,6 +145,7 @@
 
 <div class="container px-5">
 
+    <!-- ✅ HEADER SECTION -->
     <div class="page-header">
         <h3 class="mb-0 fw-bold text-primary">
             <i class="bi bi-grid-3x3-gap me-2"></i>Shelf Management
@@ -152,6 +160,7 @@
         </div>
     </div>
 
+    <!-- ✅ TABLE SECTION -->
     <div class="table-container">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
@@ -190,6 +199,7 @@
                                 </form>
                             </td>
 
+                            <!-- ✅ PROPER ACTIONS COLUMN -->
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-2">
                                     <a href="${pageContext.request.contextPath}/shelfs/get?identifier=${shelf.identifier}"

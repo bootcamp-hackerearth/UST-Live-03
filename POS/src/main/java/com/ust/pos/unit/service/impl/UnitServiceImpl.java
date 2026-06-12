@@ -1,6 +1,7 @@
 package com.ust.pos.unit.service.impl;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
@@ -17,7 +18,6 @@ import java.util.List;
 
 @Service
 public class UnitServiceImpl implements UnitService {
-
     @Autowired
     ModelMapper modelMapper;
 
@@ -51,7 +51,6 @@ public class UnitServiceImpl implements UnitService {
             unitDto.setMessage("Unit not found : " + unitDto.getIdentifier());
             return unitDto;
         }
-
         modelMapper.map(unitDto, existing);
         unitRepository.save(existing);
         return unitDto;
@@ -61,17 +60,23 @@ public class UnitServiceImpl implements UnitService {
     @Transactional
     public void delete(String identifier) {
         unitRepository.deleteByIdentifier(identifier);
-
     }
 
     @Override
-    public List<UnitDto> findAll(Pageable pageable) {
+    public WsDto<UnitDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
-        Page<Unit> unitPage=unitRepository.findAll(pageable);
-        return modelMapper.map(unitPage.getContent(), listType);
-    }
+        Page<Unit> userPage = unitRepository.findAll(pageable);
 
+        WsDto<UnitDto> userWsDto = new WsDto<>();
+        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+
+        return userWsDto;
+    }
     @Override
     public UnitDto changeToggleStatus(String identifier, boolean status) {
         Unit unit = unitRepository.findByIdentifier(identifier);
@@ -86,6 +91,7 @@ public class UnitServiceImpl implements UnitService {
     public List<UnitDto> findActiveStatus() {
         List<Unit> allUnits = unitRepository.findAll();
         List<Unit> activeUnits = allUnits.stream().filter(Unit::isStatus).toList();
+
         Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
         return modelMapper.map(activeUnits, listType);

@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import com.ust.pos.address.service.AddressService;
@@ -41,6 +42,8 @@ class CustomerServiceTest {
 
         Customer customer = new Customer();
         CustomerDto dto = new CustomerDto();
+        Pageable pageable = Mockito.mock(Pageable.class);
+
 
         Page<Customer> page = new PageImpl<>(List.of(customer));
 
@@ -52,10 +55,11 @@ class CustomerServiceTest {
                         Mockito.any(Type.class)))
                 .thenReturn(List.of(dto));
 
-        List<CustomerDto> result =
-                customerService.findAll(Mockito.mock(Pageable.class));
+        WsDto<CustomerDto> result = customerService.findAll(pageable);
 
-        Assertions.assertEquals(1, result.size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 
     @Test
@@ -115,10 +119,9 @@ class CustomerServiceTest {
         Mockito.doNothing()
                 .when(addressService).delete("CUST01");
 
-        customerService.delete("CUST01");
+        boolean result = customerService.delete("CUST01");
 
-        Mockito.verify(customerRepository)
-                .deleteByIdentifier("CUST01");
+        Assertions.assertTrue(result);
 
         Mockito.verify(addressService)
                 .delete("CUST01");

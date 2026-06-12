@@ -41,22 +41,26 @@
 
             <div class="card-body">
 
+                <!-- ✅ Error Message -->
                 <c:if test="${not empty message}">
                     <div class="alert alert-danger text-center">
                         ${message}
                     </div>
                 </c:if>
 
+                <!-- ✅ Success Message -->
                 <c:if test="${not empty success}">
                     <div class="alert alert-success text-center">
                         ${success}
                     </div>
                 </c:if>
 
+                <!-- ✅ Form -->
                 <form:form method="post"
                            action="${pageContext.request.contextPath}/node/add"
                            modelAttribute="nodeDto">
 
+                    <!-- Identifier -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Node Name</label>
                         <form:input path="identifier"
@@ -65,6 +69,7 @@
                                     required="true"/>
                     </div>
 
+                    <!-- Path -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Path</label>
                         <form:input path="path"
@@ -73,6 +78,7 @@
                                     required="true"/>
                     </div>
 
+                    <!-- Roles -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Roles</label>
                         <form:select path="roles"
@@ -87,13 +93,16 @@
                         </form:select>
                     </div>
 
+                    <!-- ✅ BUTTONS -->
                     <div class="d-flex justify-content-between mt-4">
 
+                        <!-- Cancel Button -->
                         <a href="${pageContext.request.contextPath}/node/list"
                            class="btn btn-secondary">
                             Cancel
                         </a>
 
+                        <!-- Submit Button -->
                         <button type="submit" class="btn btn-primary">
                             Add Node
                         </button>

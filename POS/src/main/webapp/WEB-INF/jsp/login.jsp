@@ -81,6 +81,7 @@
 
 <div class="card">
 
+    <!-- ✅ LOGIN FORM -->
     <form action="${pageContext.request.contextPath}/login" method="post">
 
         <h2>Login</h2>
@@ -104,6 +105,7 @@
         <button type="submit">Login</button>
     </form>
 
+    <!-- ✅ SIGNUP FORM (BELOW LOGIN BUTTON) -->
     <form action="${pageContext.request.contextPath}/register" method="get">
         <button type="submit" style="margin-top:10px;">
             Sign Up

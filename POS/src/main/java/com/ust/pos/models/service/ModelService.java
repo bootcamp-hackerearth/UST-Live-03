@@ -2,6 +2,7 @@ package com.ust.pos.models.service;
 
 import java.util.List;
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
 public interface ModelService {
@@ -14,7 +15,7 @@ public interface ModelService {
 
     void delete(String identifier);
 
-    List<ModelDto> findAll(Pageable pageable);
+    WsDto<ModelDto> findAll(Pageable pageable);
 
     ModelDto changeToggleStatus(String identifier, boolean status);
 

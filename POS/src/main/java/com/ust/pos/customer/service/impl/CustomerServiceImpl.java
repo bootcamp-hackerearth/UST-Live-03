@@ -2,9 +2,7 @@ package com.ust.pos.customer.service.impl;
 
 import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
-import com.ust.pos.dto.AddressDto;
-import com.ust.pos.dto.CategoryDto;
-import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.*;
 import com.ust.pos.model.CustomerRepository;
 import com.ust.pos.model.Customer;
 import jakarta.transaction.Transactional;
@@ -33,11 +31,19 @@ public class CustomerServiceImpl implements CustomerService {
     AddressService addressService;
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        Page<Customer> userPage = customerRepository.findAll(pageable);
+
+        WsDto<CustomerDto> userWsDto = new WsDto<>();
+        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+
+        return userWsDto;
     }
 
     @Override
@@ -76,9 +82,10 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public void delete(String identifier) {
+    public boolean delete(String identifier) {
         customerRepository.deleteByIdentifier(identifier);
         addressService.delete(identifier);
+        return true;
     }
 
     @Override
@@ -110,6 +117,7 @@ public class CustomerServiceImpl implements CustomerService {
             customerDto.setMessage("Customer not found : " + customerDto.getIdentifier());
             return customerDto;
         }
+
         modelMapper.map(customerDto, existingCustomer);
         customerRepository.save(existingCustomer);
         List<AddressDto> existingAddresses = addressService.findAllByPhoneNumber(identifier);

@@ -60,6 +60,7 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="page-header">
         <h2 class="mb-0 text-primary">Price List</h2>
 
@@ -74,6 +75,7 @@
         </div>
     </div>
 
+    <!-- TABLE -->
     <div class="table-container">
         <table class="table table-hover align-middle">
             <thead>
@@ -113,6 +115,7 @@
                         <fmt:formatDate value="${parsedDate}" pattern="dd MMM yyyy, hh:mm a"/>
                     </td>
 
+                    <!-- ✅ TOGGLE STATUS -->
                     <td class="text-center">
                         <form method="get"
                               action="${pageContext.request.contextPath}/price/toggle"
@@ -134,6 +137,7 @@
                         </form>
                     </td>
 
+                    <!-- ACTIONS -->
                     <td class="text-center">
                         <a href="${pageContext.request.contextPath}/price/get?identifier=${price.identifier}"
                            class="btn btn-outline-primary btn-sm btn-action me-1">

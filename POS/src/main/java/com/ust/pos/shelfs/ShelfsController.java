@@ -11,10 +11,8 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/shelfs")
 public class ShelfsController {
-
     public static final String SHELVES = "shelves";
     public static final String REDIRECT_SHELFS_LIST = "redirect:/shelfs/list";
-
     @Autowired
     ShelfsService shelfsService;
 
@@ -32,13 +30,8 @@ public class ShelfsController {
 
     @PostMapping("/add")
     public String addshelfs(Model model, @ModelAttribute ShelfsDto shelfsDto) {
-        ShelfsDto response = shelfsService.save(shelfsDto);
-
-        if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
-            model.addAttribute("shelfsDto", response);
-            return "shelfs/add";
-        }
+        shelfsService.save(shelfsDto);
+        model.addAttribute(SHELVES, shelfsDto);
         return REDIRECT_SHELFS_LIST;
     }
 

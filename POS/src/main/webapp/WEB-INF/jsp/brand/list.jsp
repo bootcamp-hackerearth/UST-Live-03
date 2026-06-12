@@ -91,6 +91,7 @@
 
                         <td>${item.description}</td>
 
+                        <!-- ✅ TOGGLE STATUS -->
                         <td class="text-center">
                             <form method="get"
                                   action="${pageContext.request.contextPath}/brand/toggle">
@@ -111,6 +112,7 @@
                             </form>
                         </td>
 
+                        <!-- ACTIONS -->
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
 

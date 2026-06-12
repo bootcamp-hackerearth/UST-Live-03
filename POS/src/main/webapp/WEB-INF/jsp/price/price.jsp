@@ -87,17 +87,17 @@
                         <input type="hidden" name="id" value="${price.id}" />
 
                         <div class="mb-3">
-                            <label class="form-label">Product Name </label>
-                                <select class="form-select" name="identifier" required>
-                                    <option value="" disabled selected>-- Select Product --</option>
-                                        <c:forEach var="p" items="${product}">
-                                            <option value="${p.identifier}">
-                                                ${p.identifier}
-                                            </option>
-                                        </c:forEach>
-                                    </select>
-                                <div class="form-text">Select the product this stock belongs to.</div>
-                        </div>
+                                                    <label class="form-label">Product Name </label>
+                                                    <select class="form-select" name="identifier" required>
+                                                        <option value="" disabled selected>-- Select Product --</option>
+                                                        <c:forEach var="p" items="${product}">
+                                                            <option value="${p.identifier}">
+                                                                ${p.identifier}
+                                                            </option>
+                                                        </c:forEach>
+                                                    </select>
+                                                    <div class="form-text">Select the product this stock belongs to.</div>
+                                                </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">

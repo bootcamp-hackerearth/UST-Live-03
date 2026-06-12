@@ -14,7 +14,6 @@ public class WarehouseController {
 
     public static final String REDIRECT_WAREHOUSE_LIST = "redirect:/warehouse/list";
     public static final String WAREHOUSE = "warehouse";
-
     @Autowired
     WarehouseService warehouseService;
 
@@ -31,12 +30,7 @@ public class WarehouseController {
 
     @PostMapping("/add")
     public String addWarehouse(Model model, @ModelAttribute WarehouseDto warehouseDto) {
-        WarehouseDto response = warehouseService.save(warehouseDto);
-        if (!response.isSuccess()) {
-            model.addAttribute("warehouseDto", response);
-            model.addAttribute("message", response.getMessage());
-            return "warehouse/add";
-        }
+        warehouseService.save(warehouseDto);
         return REDIRECT_WAREHOUSE_LIST;
     }
 

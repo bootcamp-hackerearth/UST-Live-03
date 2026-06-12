@@ -13,6 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
+        /* ========= Modern Variables ========= */
         :root {
             --primary-blue: #0d6efd;
             --bg-light: #f4f7f6;
@@ -30,6 +31,7 @@
             padding: 40px 0;
         }
 
+        /* ========= Header Section ========= */
         .page-header {
             background: #ffffff;
             padding: 22px 26px;
@@ -41,6 +43,7 @@
             align-items: center;
         }
 
+        /* ========= Table Card ========= */
         .table-container {
             background: #ffffff;
             border-radius: 14px;
@@ -63,6 +66,7 @@
             border-bottom: 1px solid #f1f4f8;
         }
 
+        /* ========= Data Styling ========= */
         .customer-name {
             font-weight: 700;
             color: var(--text-dark);
@@ -94,6 +98,7 @@
             border-radius: 20px;
         }
 
+        /* ========= Status Toggle ========= */
         .status-label {
             font-size: 0.85rem;
             font-weight: 700;
@@ -110,6 +115,7 @@
             border-color: #10b981 !important;
         }
 
+        /* ========= Action Buttons ========= */
         .btn-action {
             border-radius: 8px;
             padding: 8px 14px;
@@ -144,6 +150,7 @@
 
 <div class="container-fluid px-5">
 
+    <!-- ✅ HEADER SECTION -->
     <div class="page-header">
         <div>
             <h3 class="mb-0 fw-bold text-primary">
@@ -161,6 +168,7 @@
         </div>
     </div>
 
+    <!-- ✅ ALERT MESSAGES -->
     <c:if test="${not empty message}">
         <div class="alert ${success ? 'alert-success' : 'alert-danger'} alert-dismissible fade show shadow-sm border-0" role="alert">
             <div class="d-flex align-items-center">
@@ -171,6 +179,7 @@
         </div>
     </c:if>
 
+    <!-- ✅ TABLE SECTION -->
     <div class="table-container">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
@@ -236,7 +245,7 @@
                                     </a>
 
                                     <!-- DELETE: Proper POST Form -->
-                                    <form action="${pageContext.request.contextPath}/customer/delete?identifier=${p.identifier}" method="GET"
+                                    <form action="${pageContext.request.contextPath}/customer/delete" method="POST"
                                           onsubmit="return confirm('Delete customer ${p.customerName}? This action cannot be undone.');">
                                         <input type="hidden" name="identifier" value="${p.identifier}">
                                         <button type="submit" class="btn-action btn-delete">

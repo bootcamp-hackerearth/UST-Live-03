@@ -51,7 +51,9 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto findByIdentifier(String identifier) {
+
         Address address = addressRepository.findByIdentifier(identifier);
+
         if (address == null) {
             return null;
         }

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class BrandController{
     public static final String BRANDS = "brands";
     public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
-
     @Autowired
     BrandService brandService;
 
@@ -31,12 +30,8 @@ public class BrandController{
 
     @PostMapping("/add")
     public String addproduct(Model model, @ModelAttribute BrandDto brandDto) {
-        BrandDto response = brandService.save(brandDto);
-        if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
-            model.addAttribute("brandDto", response);
-            return "brand/add";
-        }        return REDIRECT_BRAND_LIST;
+        brandService.save(brandDto);
+        return REDIRECT_BRAND_LIST;
     }
 
     @GetMapping("/delete")
@@ -57,6 +52,7 @@ public class BrandController{
     public String updateCategory(Model model, @ModelAttribute BrandDto brandDto) {
         BrandDto response = brandService.update(brandDto);
         model.addAttribute(BRANDS, response);
+
         if (!response.isSuccess()) {
             model.addAttribute(BRANDS, response);
             model.addAttribute("message", response.getMessage());

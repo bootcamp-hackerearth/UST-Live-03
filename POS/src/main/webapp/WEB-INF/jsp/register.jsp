@@ -88,21 +88,30 @@
 <div class="register-card">
     <h2>User Registration</h2>
 
+    <!-- ❌ Duplicate email message from backend -->
     <c:if test="${not empty message}">
         <div class="error">${message}</div>
     </c:if>
 
+    <!-- ✅ FORM -->
     <form:form action="register" method="post" modelAttribute="userDto">
 
+        <!-- Name -->
         <div class="form-group">
             <label>Name</label>
             <form:input path="name" required="true"/>
         </div>
 
+        <!-- ✅ EMAIL (STRICT VALIDATION) -->
         <div class="form-group">
             <label>Email</label>
 
-               <form:input
+            <!--
+              ✅ THIS BLOCKS `manager@mjbj`
+              ✅ REQUIRES a dot + valid domain
+              ✅ lowercase only
+            -->
+            <form:input
                 path="username"
                 type="text"
                 required="true"
@@ -111,6 +120,7 @@
 
         </div>
 
+        <!-- Roles -->
         <div class="form-group">
             <label>Roles</label>
             <form:select path="roles" multiple="true" required="true">
@@ -120,6 +130,7 @@
             </form:select>
         </div>
 
+        <!-- Phone -->
         <div class="form-group">
             <label>Phone Number</label>
             <form:input
@@ -130,6 +141,7 @@
                 title="Phone number must be exactly 10 digits"/>
         </div>
 
+        <!-- Password -->
         <div class="form-group">
             <label>Password</label>
             <form:password path="password" required="true"/>
@@ -140,6 +152,7 @@
     </form:form>
 </div>
 
+<!-- ✅ FORCE LOWERCASE (JSP‑ONLY, NO BACKEND) -->
 <script>
     const emailInput = document.querySelector('input[name="username"]');
     emailInput.addEventListener('input', function () {

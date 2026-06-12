@@ -1,7 +1,7 @@
 package com.ust.pos.role.service.impl;
 
-import com.ust.pos.dao.RoleDao;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -18,9 +18,6 @@ import java.util.List;
 
 @Service
 public class RoleServiceImpl implements RoleService {
-
-    @Autowired
-    private RoleDao roleDao;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -47,8 +44,8 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public List<RoleDto> findActiveStatus() {
         List<Role> allRoles = roleRepository.findAll();
-
         List<Role> activeRoles = allRoles.stream().filter(Role::isStatus).toList();
+
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         return modelMapper.map(activeRoles, listType);
@@ -89,10 +86,18 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleDto> findAll(Pageable pageable) {
+    public WsDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        Page<Role> rolePage=roleRepository.findAll(pageable);
-        return modelMapper.map(rolePage.getContent(), listType);
+        Page<Role> userPage = roleRepository.findAll(pageable);
+
+        WsDto<RoleDto> userWsDto = new WsDto<>();
+        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+
+        return userWsDto;
     }
 }

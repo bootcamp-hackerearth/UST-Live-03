@@ -112,10 +112,13 @@
 
     <h2>Create / Edit Node</h2>
 
+    <!-- ✅ Node Form -->
     <form action="${pageContext.request.contextPath}/node/update" method="post">
 
+        <!-- ✅ Hidden DB ID -->
         <input type="hidden" name="id" value="${node.id}" />
 
+        <!-- ✅ Identifier (READ-ONLY) -->
         <label for="identifier">Identifier</label>
         <input type="text"
                id="identifier"
@@ -123,6 +126,7 @@
                value="${node.identifier}"
                readonly />
 
+        <!-- ✅ Path (Editable) -->
         <label for="path">Path</label>
         <input type="text"
                id="path"
@@ -131,6 +135,7 @@
                placeholder="/example/path"
                required />
 
+        <!-- ✅ Roles -->
         <label for="roles">Roles</label>
         <select id="roles" name="roles" multiple required>
             <c:forEach var="role" items="${roles}">
@@ -143,6 +148,7 @@
             </c:forEach>
         </select>
 
+        <!-- ✅ Buttons -->
         <div class="btn-group">
             <button type="submit" class="btn-primary">
                 Save

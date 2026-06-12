@@ -30,6 +30,7 @@
                 <div class="card-body p-4 p-md-5">
                     <form action="${pageContext.request.contextPath}/stock/add" method="post">
 
+                        <!-- PRODUCT SELECTION -->
                         <div class="mb-4">
                             <label class="form-label">Product / Item SKU</label>
                             <div class="input-group">
@@ -43,6 +44,7 @@
                             </div>
                         </div>
 
+                        <!-- WAREHOUSE SELECTION -->
                         <div class="mb-4">
                             <label class="form-label">Warehouse Location</label>
                             <div class="input-group">
@@ -56,6 +58,7 @@
                             </div>
                         </div>
 
+                        <!-- QUANTITY & UNIT ROW -->
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label">Quantity</label>
@@ -65,6 +68,7 @@
                                 </div>
                             </div>
 
+                            <!-- ✅ UNIT BLOCK -->
                             <div class="col-md-6">
                                 <label class="form-label">Unit of Measure</label>
                                 <div class="input-group">
@@ -79,6 +83,7 @@
                             </div>
                         </div>
 
+                        <!-- STATUS BLOCK -->
                         <div class="mb-5">
                             <label class="form-label">Inventory Availability</label>
                             <div class="input-group">
@@ -90,6 +95,7 @@
                             </div>
                         </div>
 
+                        <!-- ACTION BUTTONS -->
                         <div class="d-flex gap-3">
                             <a href="${pageContext.request.contextPath}/stock/list" class="btn btn-outline-secondary w-50 py-2 fw-bold">
                                 Cancel

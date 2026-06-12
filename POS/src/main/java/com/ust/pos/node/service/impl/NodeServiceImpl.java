@@ -1,6 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
@@ -36,11 +37,19 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> nodePage=nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+        Page<Node> userPage = nodeRepository.findAll(pageable);
+
+        WsDto<NodeDto> userWsDto = new WsDto<>();
+        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+
+        return userWsDto;
     }
 
     @Override
@@ -111,5 +120,15 @@ public class NodeServiceImpl implements NodeService {
             nodeRepository.save(node);
         }
         return modelMapper.map(node, NodeDto.class);
+    }
+
+    @Override
+    public List<NodeDto> findActiveStatus() {
+        List<Node> allNodes = nodeRepository.findAll();
+        List<Node> activeNodes = allNodes.stream().filter(Node::isStatus).toList();
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        return modelMapper.map(activeNodes, listType);
     }
 }

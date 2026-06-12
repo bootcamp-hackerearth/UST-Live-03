@@ -48,18 +48,21 @@
 
             <h3 class="text-center mb-4">User Management</h3>
 
+            <!-- ✅ DELETE / TOGGLE CURRENT USER ERROR -->
             <c:if test="${param.error == 'loggedInUser'}">
                 <div class="alert alert-danger text-center">
                     Cannot disable or delete the currently logged‑in user
                 </div>
             </c:if>
 
+            <!-- No users -->
             <c:if test="${empty users}">
                 <div class="alert alert-warning text-center">
                     No users found
                 </div>
             </c:if>
 
+            <!-- User table -->
             <c:if test="${not empty users}">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle text-center">
@@ -89,6 +92,7 @@
                                 <td>${user.phoneNo}</td>
                                 <td>${user.roles}</td>
 
+                                <!-- ✅ TOGGLE STATUS -->
                                 <td>
                                     <form method="get"
                                           action="${pageContext.request.contextPath}/user/toggle"
@@ -110,6 +114,7 @@
                                     </form>
                                 </td>
 
+                                <!-- ✅ ACTIONS -->
                                 <td class="d-flex justify-content-center gap-2">
 
                                     <a class="btn btn-primary btn-sm"

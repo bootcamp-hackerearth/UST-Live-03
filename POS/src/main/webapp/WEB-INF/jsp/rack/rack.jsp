@@ -29,6 +29,7 @@
                 </div>
 
                 <div class="card-body p-4">
+                    <%-- Feedback Message --%>
                     <c:if test="${not empty message}">
                         <div class="alert ${racks.success ? 'alert-success' : 'alert-danger'} alert-dismissible fade show" role="alert">
                             ${message}
@@ -38,6 +39,7 @@
 
                     <form:form action="${pageContext.request.contextPath}/rack/update" method="post" modelAttribute="racks">
 
+                        <%-- Hidden ID --%>
                         <form:hidden path="id" />
 
                         <div class="mb-3">

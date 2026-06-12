@@ -3,6 +3,7 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +24,15 @@ public class ApiNodeController extends BaseController {
     private RoleService roleService;
 
     @PostMapping("/list")
-    public List<NodeDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable= getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return nodeService.findAll(pageable);
     }
 
 
     @PostMapping("/add")
-    public NodeDto addPost(@RequestBody NodeDto nodeDto) {
-        return nodeService.save(nodeDto);
+    public NodeDto addPost(@RequestBody NodeDto userDto) {
+        return nodeService.save(userDto);
     }
 
     @GetMapping("/get")
@@ -40,8 +41,8 @@ public class ApiNodeController extends BaseController {
     }
 
     @PostMapping("/update")
-    public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
-        return nodeService.update(nodeDto);
+    public NodeDto updatePost(@RequestBody NodeDto userDto) {
+        return nodeService.update(userDto);
 
     }
 
@@ -58,5 +59,10 @@ public class ApiNodeController extends BaseController {
     @PostMapping("/toggle")
     public NodeDto toggle(@RequestBody NodeDto nodeDto) {
         return nodeService.changeToggleStatus(nodeDto.getIdentifier(), nodeDto.isStatus());
+    }
+
+    @PostMapping("/findActiveStatus")
+    public List<NodeDto> findActive() {
+        return nodeService.findActiveStatus();
     }
 }

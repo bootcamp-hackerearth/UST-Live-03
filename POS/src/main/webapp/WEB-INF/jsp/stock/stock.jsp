@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <title>POS | Edit Stock</title>
 
+    <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
@@ -74,8 +75,10 @@
                 <div class="card-body p-4 p-md-5">
                     <form action="${pageContext.request.contextPath}/stock/update" method="post">
 
+                        <!-- Hidden ID for JPA/Hibernate mapping -->
                         <input type="hidden" name="id" value="${stock.id}" />
 
+                        <!-- IDENTIFIER (Read Only) -->
                         <div class="mb-4">
                             <label class="form-label">Product Identifier</label>
                             <div class="input-group">
@@ -84,6 +87,7 @@
                             </div>
                         </div>
 
+                        <!-- WAREHOUSE SELECTION -->
                         <div class="mb-4">
                             <label class="form-label">Warehouse Location</label>
                             <div class="input-group">
@@ -98,6 +102,7 @@
                             </div>
                         </div>
 
+                        <!-- QUANTITY & UNIT ROW -->
                         <div class="row g-3 mb-4">
                             <!-- QUANTITY -->
                             <div class="col-md-6">
@@ -108,6 +113,7 @@
                                 </div>
                             </div>
 
+                            <!-- ✅ EDIT UNIT BLOCK -->
                             <div class="col-md-6">
                                 <label class="form-label">Unit of Measure</label>
                                 <div class="input-group">
@@ -123,6 +129,7 @@
                             </div>
                         </div>
 
+                        <!-- FORM ACTIONS -->
                         <div class="d-flex gap-3 mt-4">
                             <a href="${pageContext.request.contextPath}/stock/list" class="btn btn-outline-secondary w-50 py-2 fw-bold">
                                 Cancel

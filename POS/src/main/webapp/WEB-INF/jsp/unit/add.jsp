@@ -86,6 +86,7 @@
 <div class="card">
     <h2>Add Unit</h2>
 
+    <!-- ERROR MESSAGE -->
     <c:if test="${not empty message}">
         <div class="error-msg">
             ${message}

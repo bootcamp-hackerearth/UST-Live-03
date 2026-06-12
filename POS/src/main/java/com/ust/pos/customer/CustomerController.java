@@ -18,10 +18,8 @@ public class CustomerController {
     public static final String CUSTOMER = "customer";
     public static final String REDIRECT_CUSTOMER_LIST = "redirect:/customer/list";
     public static final String CUSTOMERS = "customers";
-
     @Autowired
     CustomerService customerService;
-
     @Autowired
     AddressService addressService;
 
@@ -40,15 +38,8 @@ public class CustomerController {
 
     @PostMapping("/add")
     public String addcustomer(Model model, @ModelAttribute CustomerDto customerDto) {
-
-        CustomerDto response = customerService.save(customerDto);
-
-        if (!response.isSuccess()) {
-            model.addAttribute("customerDto", response);
-            model.addAttribute("message", response.getMessage());
-            return "customer/add";
-        }
-
+        customerService.save(customerDto);
+        model.addAttribute(CUSTOMERS, customerDto);
         return REDIRECT_CUSTOMER_LIST;
     }
 

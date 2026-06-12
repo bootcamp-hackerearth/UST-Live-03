@@ -7,6 +7,7 @@
 <head>
     <title>Edit Role</title>
 
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
@@ -42,18 +43,22 @@
 
         <h4 class="text-center mb-4 text-primary">Edit Role</h4>
 
+        <!-- ✅ Error Message -->
         <c:if test="${not empty error}">
             <div class="alert alert-danger text-center">
                 ${error}
             </div>
         </c:if>
 
+        <!-- ✅ Edit Role Form -->
         <form:form method="post"
                    action="${pageContext.request.contextPath}/role/update"
                    modelAttribute="roles">
 
+            <!-- ✅ Hidden Role ID -->
             <form:hidden path="id"/>
 
+            <!-- ✅ Role Name -->
             <div class="mb-4">
                 <label class="form-label" for="identifier">Role Identifier</label>
                 <form:input
@@ -63,11 +68,13 @@
                         required="true"
                         readOnly="true"/>
 
+                <!-- ✅ Description -->
                 <div class="note-text mt-1">
                     Note: Role identifier cannot be changed once created.
                 </div>
             </div>
 
+            <!-- ✅ Action Buttons -->
             <div class="d-flex justify-content-between">
                 <a href="${pageContext.request.contextPath}/role/list"
                    class="btn btn-outline-secondary">

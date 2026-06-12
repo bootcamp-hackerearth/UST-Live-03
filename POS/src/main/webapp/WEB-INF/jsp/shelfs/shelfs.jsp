@@ -8,6 +8,7 @@
     <meta charset="UTF-8">
     <title>Shelf Management | Edit Shelf</title>
 
+    <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
@@ -85,6 +86,7 @@
 
                 <div class="card-body p-4">
 
+                    <!-- ✅ Success/Error Alerts -->
                     <c:if test="${not empty message}">
                         <div class="alert ${success ? 'alert-success' : 'alert-danger'} alert-dismissible fade show text-center" role="alert">
                             <i class="bi ${success ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2"></i>
@@ -93,22 +95,27 @@
                         </div>
                     </c:if>
 
+                    <!-- ✅ Spring Form -->
                     <form:form action="${pageContext.request.contextPath}/shelfs/update"
                                method="post"
                                modelAttribute="shelves">
 
+                        <!-- CRITICAL: Database Primary Key -->
                         <form:hidden path="id" />
 
+                        <!-- Shelf Identifier (Read Only Display) -->
                         <div class="mb-4 text-center">
                             <label class="form-label d-block text-start">Shelf Identifier</label>
                             <div class="input-group">
                                 <i class="bi bi-tag-fill me-2"></i>
                                 <c:out value="${shelves.identifier}" />
                             </div>
+                            <!-- Hidden identifier to ensure it's sent back to the service -->
                             <form:hidden path="identifier" />
                             <div class="form-text text-start mt-1">Unique identifier used for tracking.</div>
                         </div>
 
+                        <!-- Status Toggle -->
                         <div class="mb-4">
                             <label class="form-label">Shelf Availability Status</label>
                             <div class="input-group">
@@ -120,6 +127,7 @@
                             </div>
                         </div>
 
+                        <!-- Action Buttons -->
                         <div class="d-flex justify-content-between align-items-center pt-2">
                             <a href="${pageContext.request.contextPath}/shelfs/list" class="btn btn-outline-secondary">
                                 <i class="bi bi-x-circle"></i> Cancel
