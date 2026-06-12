@@ -172,16 +172,14 @@
                         <form:options items="${products}" itemValue="identifier" itemLabel="identifier"/>
                     </form:select>
 
-            <label class="form-label">Price</label>
-            <form:input path="priceAmount" placeholder="Enter Price" required="true"/>
+            <label class="form-label">Cost Price</label>
+            <form:input path="costPrice" placeholder="Enter Cost Price" required="true"/>
 
-            <label class="form-label">Price Type</label>
-            <form:select path="priceType">
-                <form:option value="" label="Select Price Type"/>
-                <form:option value="COST_PRICE" label="Cost Price"/>
-                <form:option value="SELLING_PRICE" label="Selling Price"/>
-                <form:option value="DISCOUNT" label="Discount"/>
-            </form:select>
+            <label class="form-label">Selling Price</label>
+            <form:input path="sellingPrice" placeholder="Enter Selling Price" required="true"/>
+
+            <label class="form-label">Discount</label>
+            <form:input path="discount" placeholder="Enter Discount Percent" required="true"/>
 
         </div>
 

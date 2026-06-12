@@ -3,7 +3,6 @@ package com.ust.pos.stock;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
-import com.ust.pos.warehouse.service.WarehouseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -22,9 +21,6 @@ public class StockController {
     @Autowired
     private ProductService productService;
 
-    @Autowired
-    private WarehouseService warehouseService;
-
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
         model.addAttribute("stocks", stockService.findAll(pageable));
@@ -34,7 +30,6 @@ public class StockController {
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute StockDto stockDto, Pageable pageable) {
         model.addAttribute("products", productService.findAll(pageable));
-        model.addAttribute("warehouses", warehouseService.findAll(pageable));
         return ROLE_ADD;
     }
 
@@ -49,10 +44,8 @@ public class StockController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier, Pageable pageable) {
+    public String update(Model model, @RequestParam String identifier) {
         StockDto response = stockService.findByIdentifier(identifier);
-        model.addAttribute("products", productService.findAll(pageable));
-        model.addAttribute("warehouses", warehouseService.findAll(pageable));
         model.addAttribute("stockDto", response);
         return "stock/stock";
     }

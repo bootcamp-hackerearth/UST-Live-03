@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -139,10 +140,10 @@ class RoleServiceTest {
         when(page.getContent()).thenReturn(roles);
         when(modelMapper.map(eq(roles), any(Type.class))).thenReturn(dtoList);
 
-        List<RoleDto> result = roleService.findAll(pageable);
+        WsDto<RoleDto> result = roleService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(roleRepository).findAll(pageable);
         verify(page).getContent();

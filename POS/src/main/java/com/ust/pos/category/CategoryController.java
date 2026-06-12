@@ -19,7 +19,7 @@ public class CategoryController {
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
-        model.addAttribute("category", categoryService.findAll(pageable));
+        model.addAttribute("categorys", categoryService.findAll(pageable));
         model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
         return "category/list";
     }

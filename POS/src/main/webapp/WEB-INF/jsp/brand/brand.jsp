@@ -127,8 +127,8 @@
 
         <label>Status</label>
         <form:select path="status">
-            <form:option value="true" label="Active"/>
-            <form:option value="false" label="Inactive"/>
+            <form:option value="ACTIVE" label="Active"/>
+            <form:option value="INACTIVE" label="Inactive"/>
         </form:select>
 
         <button type="submit" class="btn-primary">

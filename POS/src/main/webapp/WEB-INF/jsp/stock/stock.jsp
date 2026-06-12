@@ -146,21 +146,15 @@
 
             <form:hidden path="id"/>
 
-            <div class="mb-3">
-                    <form:select path="product" required="true">
-                        <form:option value="">-- Select Product --</form:option>
-                        <form:options items="${products}" itemValue="identifier" itemLabel="identifier"/>
-                    </form:select>
+            <div class="form-group">
+                <label>Product Name</label>
+                <form:input path="identifier" readonly="true"/>
+            </div>
 
-
-                    <form:select path="warehouse">
-                        <form:option value="" label="Select Warehouse"/>
-                        <form:options items="${warehouses}" itemValue="identifier" itemLabel="identifier"/>
-                    </form:select>
-
-
-                        <label class="form-label" style="margin-top:12px;">Product Quantity</label>
-                        <form:input path="quantity" placeholder="Enter Product Quantity" required="true"/>
+            <div class="form-group">
+                <label>Product Quantity</label>
+                <form:input path="quantity" placeholder="Enter Product quantity"/>
+            </div>
 
 
 

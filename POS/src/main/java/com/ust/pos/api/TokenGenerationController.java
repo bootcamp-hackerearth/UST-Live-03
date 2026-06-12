@@ -2,6 +2,8 @@ package com.ust.pos.api;
 
 import com.ust.pos.config.JWTUtility;
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.model.UserRepository;
+import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,21 +19,28 @@ public class TokenGenerationController {
 
     @Autowired
     UserDetailsService userDetailsService;
-
     @Autowired
     private AuthenticationProvider authenticationProvider;
-
     @Autowired
     private JWTUtility jwtUtility;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/api/authenticate")
     @ResponseBody
     public UserDto authenticate(@RequestBody UserDto userDto) {
         try {
-            authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userDto.getUsername());
+            authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(
+                    userDto.getUsername(),
+                    userDto.getPassword()));
+            UserDetails userDetails = userDetailsService.loadUserByUsername(
+                    userDto.getUsername());
             final String token = jwtUtility.generateToken(userDetails);
-            return new UserDto(token);
+            UserDto response = userService.findByUserName(userDto.getUsername());
+            response.setToken(token);
+            return response;
         } catch (Exception e) {
             return new UserDto("Error");
         }

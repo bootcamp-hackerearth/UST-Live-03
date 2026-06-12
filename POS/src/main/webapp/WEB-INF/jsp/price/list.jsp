@@ -43,7 +43,6 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
         }
 
         th {
@@ -52,14 +51,15 @@
             padding: 12px 14px;
             font-size: 14px;
             text-align: left;
+            backdrop-filter: blur(10px);
         }
 
         td {
             padding: 12px 14px;
             border-bottom: 1px solid rgba(255,255,255,0.15);
+            text-align: left;
             color: #f1f1f1;
             font-size: 14px;
-            word-break: break-word;
         }
 
         tr:hover {
@@ -77,7 +77,6 @@
             background: transparent;
             cursor: pointer;
             font-size: 15px;
-            text-decoration: none;
         }
 
         .edit-icon {
@@ -118,6 +117,16 @@
             margin-top: 20px;
             text-align: center;
         }
+        td {
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            max-width: 200px;
+        }
+
+        table {
+            table-layout: fixed;
+        }
     </style>
 </head>
 
@@ -127,7 +136,7 @@
 
     <div class="card">
 
-        <h4>Price List</h4>
+        <h4>List of Prices</h4>
 
         <c:if test="${empty prices}">
             <div class="empty">
@@ -137,35 +146,28 @@
 
         <c:if test="${not empty prices}">
             <table>
-
                 <thead>
                 <tr>
                     <th>ID</th>
                     <th>Product</th>
-                    <th>Price</th>
-                    <th>Price Type</th>
+                    <th>Cost Price</th>
+                    <th>Selling Price</th>
+                    <th>Discount</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
 
                 <tbody>
-
                 <c:forEach var="price" items="${prices}">
                     <tr>
-
                         <td>${price.id}</td>
-
-                        <td>${price.product}</td>
-
-                        <td>${price.priceAmount}</td>
-
-                        <td>${price.priceType}</td>
-
+                        <td>${price.identifier}</td>
+                        <td>${price.costPrice}</td>
+                        <td>${price.sellingPrice}</td>
+                        <td>${price.discount}</td>
                         <td>
                             <div class="actions">
-
-                                <a href="/price/get?identifier=${price.identifier}"
-                                   class="icon-btn edit-icon">
+                                <a href="/price/get?identifier=${price.identifier}" class="icon-btn edit-icon">
                                     <i class="fas fa-pen"></i>
                                 </a>
 
@@ -174,30 +176,23 @@
                                    onclick="return confirm('Delete this price?');">
                                     <i class="fas fa-trash"></i>
                                 </a>
-
                             </div>
                         </td>
-
                     </tr>
                 </c:forEach>
-
                 </tbody>
-
             </table>
         </c:if>
 
     </div>
 
     <div class="footer">
+        <a href="/" class="btn-secondary">Home</a>
+        <a href="/price/add" class="btn-success">+ Add New Price</a>
 
-        <a href="/" class="btn-secondary">
-            Home
-        </a>
-
-        <a href="/price/add" class="btn-success">
-            + Add New Price
-        </a>
-
+        <div style="margin-top:10px; font-size:12px; color:#ddd;">
+            POS Management System
+        </div>
     </div>
 
 </div>

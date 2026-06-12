@@ -42,6 +42,7 @@ class AddressServiceTest {
 
         Mockito.when(addressRepository.findByPhoneNoAndAddressType(123L, "HOME"))
                 .thenReturn(address);
+
         Mockito.when(modelMapper.map(address, AddressDto.class))
                 .thenReturn(dto);
 
@@ -49,14 +50,18 @@ class AddressServiceTest {
                 addressService.findByPhoneNoAndAddressType(123L, "HOME");
 
         Assertions.assertNotNull(result);
+
         Assertions.assertEquals("HOME", result.getAddressType());
+
         Assertions.assertTrue(result.isSuccess());
     }
 
     @Test
     void findByPhoneNoAndAddressTypeFailureTest() {
+
         Mockito.when(addressRepository.findByPhoneNoAndAddressType(123L, "HOME"))
                 .thenReturn(null);
+
         AddressDto result =
                 addressService.findByPhoneNoAndAddressType(123L, "HOME");
 
@@ -74,11 +79,14 @@ class AddressServiceTest {
 
         Mockito.when(addressRepository.findByPhoneNoAndAddressType(123L, "HOME"))
                 .thenReturn(null);
+
         Mockito.when(modelMapper.map(dto, Address.class))
                 .thenReturn(address);
 
         AddressDto result = addressService.save(dto);
+
         Assertions.assertEquals("HOME", result.getAddressType());
+
         verify(addressRepository).save(address);
     }
 
@@ -95,8 +103,11 @@ class AddressServiceTest {
                 .thenReturn(address);
 
         AddressDto result = addressService.save(dto);
+
         Assertions.assertFalse(result.isSuccess());
+
         Assertions.assertNotNull(result.getMessage());
+
         Mockito.verify(addressRepository, Mockito.never())
                 .save(Mockito.any());
     }
@@ -116,7 +127,9 @@ class AddressServiceTest {
         AddressDto result = addressService.update(dto);
 
         Assertions.assertEquals("HOME", result.getAddressType());
+
         verify(modelMapper).map(dto, address);
+
         verify(addressRepository).save(address);
     }
 
@@ -133,27 +146,34 @@ class AddressServiceTest {
         AddressDto result = addressService.update(dto);
 
         Assertions.assertFalse(result.isSuccess());
+
         Assertions.assertNotNull(result.getMessage());
+
         Mockito.verify(addressRepository, Mockito.never())
                 .save(Mockito.any());
     }
 
     @Test
     void findAllTest() {
+
         List<Address> addresses =
                 List.of(new Address(), new Address());
+
         List<AddressDto> dtoList =
                 List.of(new AddressDto(), new AddressDto());
 
         Mockito.when(addressRepository.findAll())
                 .thenReturn(addresses);
+
         Mockito.when(modelMapper.map(
                 Mockito.eq(addresses),
                 Mockito.any(Type.class)
         )).thenReturn(dtoList);
 
         List<AddressDto> result = addressService.findAll();
+
         Assertions.assertEquals(2, result.size());
+
         verify(addressRepository).findAll();
     }
 }

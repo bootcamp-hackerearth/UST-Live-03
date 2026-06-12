@@ -192,15 +192,15 @@
 
                             <td>${b.description}</td>
 
-                           <td>
-                               <label class="switch">
-                                   <input type="checkbox"
-                                          ${b.status ? 'checked' : ''}
-                                          onchange="toggleStatus('${b.identifier}')">
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox"
+                                           ${b.status ? 'checked' : ''}
+                                           onchange="toggleStatus('${b.identifier}')">
 
-                                   <span class="slider"></span>
-                               </label>
-                           </td>
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
 
                             <td>
                                 <a href="${pageContext.request.contextPath}/brand/get?identifier=${b.identifier}"

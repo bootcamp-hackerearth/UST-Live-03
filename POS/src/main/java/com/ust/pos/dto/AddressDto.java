@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AddressDto extends CommonDto {
+
     private String addressline;
     private String city;
     private String state;

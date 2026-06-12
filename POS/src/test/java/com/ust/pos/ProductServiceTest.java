@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -138,9 +139,9 @@ class ProductServiceTest {
         when(page.getContent()).thenReturn(products);
         when(modelMapper.map(eq(products), any(Type.class))).thenReturn(dtoList);
 
-        List<ProductDto> result = productService.findAll(pageable);
+        WsDto<ProductDto> result = productService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(productRepository).findAll(pageable);
         verify(page).getContent();

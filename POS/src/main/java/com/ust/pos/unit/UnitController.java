@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 public class UnitController {
 
     public static final String REDIRECT_UNIT_LIST = "redirect:/unit/list";
-
     @Autowired
     private UnitService unitService;
 
@@ -65,7 +64,9 @@ public class UnitController {
     @PostMapping("/toggle")
     @ResponseBody
     public String toggle(@RequestParam String identifier) {
+
         unitService.toggleStatus(identifier);
+
         return "success";
     }
 }

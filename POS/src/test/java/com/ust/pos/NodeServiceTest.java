@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -205,9 +206,9 @@ class NodeServiceTest {
         when(page.getContent()).thenReturn(nodes);
         when(modelMapper.map(eq(nodes), any(Type.class))).thenReturn(dtoList);
 
-        List<NodeDto> result = nodeService.findAll(pageable);
+        WsDto<NodeDto> result = nodeService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(nodeRepository).findAll(pageable);
         verify(page).getContent();

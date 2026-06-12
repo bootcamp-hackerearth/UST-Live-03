@@ -150,17 +150,10 @@
     <form:form method="post" action="/stock/add" modelAttribute="stockDto">
 
         <div class="mb-3">
-        <form:select path="product" required="true">
+        <form:select path="identifier" required="true">
             <form:option value="">-- Select Product --</form:option>
             <form:options items="${products}" itemValue="identifier" itemLabel="identifier"/>
         </form:select>
-
-
-        <form:select path="warehouse">
-            <form:option value="" label="Select Warehouse"/>
-            <form:options items="${warehouses}" itemValue="identifier" itemLabel="identifier"/>
-        </form:select>
-
 
             <label class="form-label" style="margin-top:12px;">Product Quantity</label>
             <form:input path="quantity" placeholder="Enter Product Quantity" required="true"/>

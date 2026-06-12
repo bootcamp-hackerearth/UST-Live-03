@@ -35,7 +35,9 @@ public class JWTUtility implements Serializable {
     }
 
     private Claims getAllClaimsFromToken(String token) {
+
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -54,7 +56,9 @@ public class JWTUtility implements Serializable {
     }
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
+
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)

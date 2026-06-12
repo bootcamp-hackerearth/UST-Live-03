@@ -2,6 +2,7 @@ package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.modelmapper.ModelMapper;
@@ -65,15 +66,23 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public void delete(String identifier) {
+
         brandRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
+    public WsDto<BrandDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
         Page<Brand> brandPage = brandRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+        WsDto<BrandDto> brandWsDto = new WsDto<>();
+        brandWsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));
+        brandWsDto.setTotalRecords(brandPage.getTotalElements());
+        brandWsDto.setTotalPages(brandPage.getTotalPages());
+        brandWsDto.setSizePerPage(pageable.getPageSize());
+        brandWsDto.setPage(pageable.getPageNumber());
+
+        return brandWsDto;
     }
 
     @Override

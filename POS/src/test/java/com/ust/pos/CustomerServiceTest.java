@@ -4,6 +4,7 @@ import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Assertions;
@@ -175,9 +176,9 @@ class CustomerServiceTest {
         when(page.getContent()).thenReturn(customers);
         when(modelMapper.map(eq(customers), any(Type.class))).thenReturn(dtos);
 
-        List<CustomerDto> result = customerService.findAll(pageable);
+        WsDto<CustomerDto> result = customerService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(customerRepository).findAll(pageable);
         verify(page).getContent();

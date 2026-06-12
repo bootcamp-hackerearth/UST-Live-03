@@ -8,5 +8,6 @@ import lombok.Setter;
 public class ProductDto extends CommonDto {
     private String name;
     private String unit;
-    private double price;
+    private String category;
+    private String brand;
 }

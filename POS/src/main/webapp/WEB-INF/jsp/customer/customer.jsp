@@ -106,24 +106,6 @@
             padding: 8px;
             border-radius: 10px;
         }
-
-        .back-btn {
-            display: block;
-            width: 100%;
-            text-align: center;
-            margin-top: 12px;
-            padding: 12px;
-            border-radius: 20px;
-            text-decoration: none;
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-
-        .back-btn:hover {
-            background: rgba(255,255,255,0.25);
-        }
     </style>
 </head>
 
@@ -193,11 +175,6 @@
             <button class="btn-submit">Update</button>
 
         </form:form>
-
-        <a href="${pageContext.request.contextPath}/customer/list"
-           class="back-btn">
-            Back to Customer List
-        </a>
 
         <c:if test="${not empty message}">
             <div class="alert-error">

@@ -27,8 +27,8 @@ public class ModelsController {
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute ModelsDto modelsDto) {
-        ModelsDto response = modelsService.save(modelsDto);
+    public String addPost(Model model, @ModelAttribute ModelsDto userDto) {
+        ModelsDto response = modelsService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "models/add";
@@ -48,6 +48,7 @@ public class ModelsController {
         ModelsDto response = modelsService.update(modelsDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
+
         }
         return REDIRECT_MODELS_LIST;
     }

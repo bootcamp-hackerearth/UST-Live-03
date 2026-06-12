@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -142,9 +143,9 @@ class UnitServiceTest {
         when(page.getContent()).thenReturn(units);
         when(modelMapper.map(eq(units), any(Type.class))).thenReturn(dtoList);
 
-        List<UnitDto> result = unitService.findAll(pageable);
+        WsDto<UnitDto> result = unitService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(unitRepository).findAll(pageable);
         verify(page).getContent();
@@ -162,6 +163,7 @@ class UnitServiceTest {
         unitService.toggleStatus("Admin");
 
         Assertions.assertFalse(unit.getStatus());
+
         verify(unitRepository).save(unit);
     }
 
@@ -176,6 +178,7 @@ class UnitServiceTest {
         unitService.toggleStatus("Admin");
 
         Assertions.assertTrue(unit.getStatus());
+
         verify(unitRepository).save(unit);
     }
 }

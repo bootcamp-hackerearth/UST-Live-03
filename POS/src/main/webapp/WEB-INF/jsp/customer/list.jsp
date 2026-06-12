@@ -147,20 +147,6 @@
             color: #ffb3b3;
             margin-top: 15px;
         }
-        .home-btn {
-            padding: 10px 16px;
-            border-radius: 20px;
-            border: none;
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            text-decoration: none;
-            font-size: 13px;
-            margin-right: 10px;
-        }
-
-        .home-btn:hover {
-            background: rgba(255,255,255,0.25);
-        }
     </style>
 </head>
 
@@ -170,21 +156,11 @@
     <div class="card">
 
         <div class="header">
-
             <h5>Customer List</h5>
 
-            <div style="display:flex; gap:10px;">
-
-                <a href="/" class="home-btn">
-                    Home
-                </a>
-
-                <a href="/customer/add" class="add-btn">
-                    + Add Customer
-                </a>
-
-            </div>
-
+            <a href="/customer/add" class="add-btn">
+                + Add Customer
+            </a>
         </div>
 
         <c:if test="${empty customer}">

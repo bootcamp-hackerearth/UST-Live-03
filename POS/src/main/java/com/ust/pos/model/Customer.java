@@ -14,4 +14,5 @@ public class Customer extends CommonFields {
     private Double balance;
     private Double creditLimit;
     private boolean status;
+
 }

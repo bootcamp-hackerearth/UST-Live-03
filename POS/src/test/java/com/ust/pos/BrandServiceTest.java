@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -138,9 +139,9 @@ class BrandServiceTest {
         when(page.getContent()).thenReturn(brands);
         when(modelMapper.map(eq(brands), any(Type.class))).thenReturn(dtoList);
 
-        List<BrandDto> result = brandService.findAll(pageable);
+        WsDto<BrandDto> result = brandService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(brandRepository).findAll(pageable);
         verify(page).getContent();

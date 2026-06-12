@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -139,9 +140,9 @@ class CategoryServiceTest {
         when(page.getContent()).thenReturn(categories);
         when(modelMapper.map(eq(categories), any(Type.class))).thenReturn(dtoList);
 
-        List<CategoryDto> result = categoryService.findAll(pageable);
+        WsDto<CategoryDto> result = categoryService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(categoryRepository).findAll(pageable);
         verify(page).getContent();

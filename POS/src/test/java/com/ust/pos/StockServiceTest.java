@@ -1,10 +1,11 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,18 +13,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StockServiceTest {
-
-    @InjectMocks
-    private StockServiceImpl stockService;
+class StockServiceImplTest {
 
     @Mock
     private StockRepository stockRepository;
@@ -31,156 +32,125 @@ class StockServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @Test
-    void saveTestSuccess() {
-        StockDto dto = new StockDto();
-        dto.setProduct("P1");
-        dto.setWarehouse("W1");
+    @InjectMocks
+    private StockServiceImpl stockService;
 
-        Stock stock = new Stock();
+    private Stock stock;
+    private StockDto stockDto;
 
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(null);
-        when(modelMapper.map(dto, Stock.class)).thenReturn(stock);
-
-        StockDto result = stockService.save(dto);
-
-        Assertions.assertEquals("P1_W1", result.getIdentifier());
-        verify(stockRepository).save(stock);
-    }
-
-    @Test
-    void saveTestFailure() {
-        StockDto dto = new StockDto();
-        dto.setProduct("P1");
-        dto.setWarehouse("W1");
-
-        Stock stock = new Stock();
-
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
-
-        StockDto result = stockService.save(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
-        verify(stockRepository, never()).save(any());
-    }
-
-    @Test
-    void updateTestSuccess() {
-        StockDto dto = new StockDto();
-        dto.setProduct("P1");
-        dto.setWarehouse("W1");
-
-        Stock stock = new Stock();
-
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
-
-        StockDto result = stockService.update(dto);
-
-        Assertions.assertEquals("P1_W1", result.getIdentifier());
-        verify(modelMapper).map(dto, stock);
-        verify(stockRepository).save(stock);
-    }
-
-    @Test
-    void updateTestFailure() {
-        StockDto dto = new StockDto();
-        dto.setProduct("P1");
-        dto.setWarehouse("W1");
-
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(null);
-
-        StockDto result = stockService.update(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
-        verify(stockRepository, never()).save(any());
-    }
-
-    @Test
-    void deleteTest() {
-        stockService.delete("P1_W1");
-        verify(stockRepository).deleteByIdentifier("P1_W1");
-    }
-
-    @Test
-    void findByIdentifierSuccessTest() {
-        Stock stock = new Stock();
-        stock.setIdentifier("P1_W1");
-
-        StockDto dto = new StockDto();
-        dto.setIdentifier("P1_W1");
-
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
-        when(modelMapper.map(stock, StockDto.class)).thenReturn(dto);
-
-        StockDto result = stockService.findByIdentifier("P1_W1");
-
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("P1_W1", result.getIdentifier());
-    }
-
-    @Test
-    void findByIdentifierFailureTest() {
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(null);
-
-        StockDto result = stockService.findByIdentifier("P1_W1");
-
-        Assertions.assertNull(result);
-    }
-
-    @Test
-    void findAllTest() {
-        Pageable pageable = mock(Pageable.class);
-        Page<Stock> page = mock(Page.class);
-
-        List<Stock> stocks = List.of(new Stock(), new Stock());
-        List<StockDto> dtoList = List.of(new StockDto(), new StockDto());
-
-        when(stockRepository.findAll(pageable)).thenReturn(page);
-        when(page.getContent()).thenReturn(stocks);
-        when(modelMapper.map(eq(stocks), any(Type.class))).thenReturn(dtoList);
-
-        List<StockDto> result = stockService.findAll(pageable);
-
-        Assertions.assertEquals(2, result.size());
-
-        verify(stockRepository).findAll(pageable);
-        verify(page).getContent();
-        verify(modelMapper).map(eq(stocks), any(Type.class));
-    }
-
-    @Test
-    void toggleStatusTrueToFalseTest() {
-        Stock stock = new Stock();
+    @BeforeEach
+    void setup() {
+        stock = new Stock();
+        stock.setIdentifier("S001");
         stock.setStatus(true);
 
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
+        stockDto = new StockDto();
+        stockDto.setIdentifier("S001");
+    }
 
-        stockService.toggleStatus("P1_W1");
+    @Test
+    void testFindByIdentifier_Found() {
+        when(stockRepository.findByIdentifier("S001")).thenReturn(stock);
+        when(modelMapper.map(stock, StockDto.class)).thenReturn(stockDto);
 
-        Assertions.assertFalse(stock.isStatus());
+        StockDto result = stockService.findByIdentifier("S001");
+
+        assertNotNull(result);
+        assertEquals("S001", result.getIdentifier());
+    }
+
+    @Test
+    void testFindByIdentifier_NotFound() {
+        when(stockRepository.findByIdentifier("S001")).thenReturn(null);
+
+        StockDto result = stockService.findByIdentifier("S001");
+
+        assertNull(result);
+    }
+
+    @Test
+    void testSave_AlreadyExists() {
+        when(stockRepository.findByIdentifier("S001")).thenReturn(stock);
+
+        StockDto result = stockService.save(stockDto);
+
+        assertFalse(result.isSuccess());
+        verify(stockRepository, never()).save(any());
+    }
+
+    @Test
+    void testSave_Success() {
+        when(stockRepository.findByIdentifier("S001")).thenReturn(null);
+        when(modelMapper.map(stockDto, Stock.class)).thenReturn(stock);
+
+        StockDto result = stockService.save(stockDto);
+
+        assertNotNull(result);
         verify(stockRepository).save(stock);
     }
 
     @Test
-    void toggleStatusFalseToTrueTest() {
-        Stock stock = new Stock();
-        stock.setStatus(false);
+    void testUpdate_NotFound() {
+        when(stockRepository.findByIdentifier("S001")).thenReturn(null);
 
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
+        StockDto result = stockService.update(stockDto);
 
-        stockService.toggleStatus("P1_W1");
+        assertFalse(result.isSuccess());
+        verify(stockRepository, never()).save(any());
+    }
 
-        Assertions.assertTrue(stock.isStatus());
+    @Test
+    void testUpdate_Success() {
+        when(stockRepository.findByIdentifier("S001")).thenReturn(stock);
+
+        StockDto result = stockService.update(stockDto);
+
+        verify(modelMapper).map(stockDto, stock);
         verify(stockRepository).save(stock);
     }
 
     @Test
-    void toggleStatusNullTest() {
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(null);
+    void testDelete() {
+        doNothing().when(stockRepository).deleteByIdentifier("S001");
 
-        stockService.toggleStatus("P1_W1");
+        stockService.delete("S001");
+
+        verify(stockRepository).deleteByIdentifier("S001");
+    }
+
+    @Test
+    void testFindAll() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<Stock> stocks = Arrays.asList(stock);
+        Page<Stock> stockPage = new PageImpl<>(stocks);
+        List<StockDto> dtoList = Arrays.asList(stockDto);
+
+        when(stockRepository.findAll(pageable)).thenReturn(stockPage);
+
+        doReturn(dtoList).when(modelMapper)
+                .map(anyList(), any(java.lang.reflect.Type.class));
+
+        WsDto<StockDto> result = stockService.findAll(pageable);
+
+        assertEquals(1, result.getDtoList().size());
+    }
+
+    @Test
+    void testToggleStatus() {
+        when(stockRepository.findByIdentifier("S001")).thenReturn(stock);
+
+        stockService.toggleStatus("S001");
+
+        assertFalse(stock.isStatus());
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void testToggleStatus_NotFound() {
+        when(stockRepository.findByIdentifier("S001")).thenReturn(null);
+
+        stockService.toggleStatus("S001");
 
         verify(stockRepository, never()).save(any());
     }

@@ -3,12 +3,14 @@ package com.ust.pos.api.unit;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/unit")
@@ -20,7 +22,7 @@ public class UnitRestController extends BaseController {
     private UnitService unitService;
 
     @PostMapping("/list")
-    public List<UnitDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<UnitDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -32,8 +34,8 @@ public class UnitRestController extends BaseController {
         return unitService.save(unitDto);
     }
 
-    @GetMapping("/get")
-    public UnitDto update(@RequestParam String identifier) {
+    @PostMapping("/get")
+    public UnitDto update(@RequestBody String identifier) {
         return unitService.findByIdentifier(identifier);
     }
 
@@ -42,8 +44,8 @@ public class UnitRestController extends BaseController {
         return unitService.update(unitDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody String identifier) {
         try {
             unitService.delete(identifier);
         } catch (Exception e) {

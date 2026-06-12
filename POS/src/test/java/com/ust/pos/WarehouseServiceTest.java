@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
@@ -138,9 +139,9 @@ class WarehouseServiceTest {
         when(page.getContent()).thenReturn(warehouses);
         when(modelMapper.map(eq(warehouses), any(Type.class))).thenReturn(dtoList);
 
-        List<WarehouseDto> result = warehouseService.findAll(pageable);
+        WsDto<WarehouseDto> result = warehouseService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(warehouseRepository).findAll(pageable);
         verify(page).getContent();

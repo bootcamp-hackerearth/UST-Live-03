@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.impl.RacksServiceImpl;
@@ -138,9 +139,9 @@ class RacksServiceTest {
         when(page.getContent()).thenReturn(racksList);
         when(modelMapper.map(eq(racksList), any(Type.class))).thenReturn(dtoList);
 
-        List<RacksDto> result = racksService.findAll(pageable);
+        WsDto<RacksDto> result = racksService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(racksRepository).findAll(pageable);
         verify(page).getContent();

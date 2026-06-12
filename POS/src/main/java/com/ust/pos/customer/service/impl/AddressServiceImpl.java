@@ -23,21 +23,26 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto findByPhoneNoAndAddressType(Long phoneNo, String addressType) {
+
         Address address = addressRepository.
                 findByPhoneNoAndAddressType(phoneNo, addressType);
+
         return modelMapper.map(address, AddressDto.class);
     }
 
     @Override
     public AddressDto save(AddressDto addressDto) {
+
         Address existingAddress = addressRepository.
                 findByPhoneNoAndAddressType(addressDto.getPhoneNo(),
                         addressDto.getAddressType());
+
         if (existingAddress != null) {
             addressDto.setMessage("Address with identifier - " + addressDto.getAddressType() + " already exists");
             addressDto.setSuccess(false);
             return addressDto;
         }
+
         Address address = modelMapper.map(addressDto, Address.class);
         addressRepository.save(address);
         return addressDto;
@@ -45,16 +50,20 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto update(AddressDto addressDto) {
+
         Address existingAddress = addressRepository.
                 findByPhoneNoAndAddressType(addressDto.getPhoneNo(),
                         addressDto.getAddressType());
+
         if (existingAddress == null) {
             addressDto.setMessage("Address with identifier - " + addressDto.getAddressType() + " not found");
             addressDto.setSuccess(false);
             return addressDto;
         }
+
         modelMapper.map(addressDto, existingAddress);
         addressRepository.save(existingAddress);
+
         return addressDto;
     }
 

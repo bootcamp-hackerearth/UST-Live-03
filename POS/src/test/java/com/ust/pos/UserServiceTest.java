@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -170,9 +171,9 @@ class UserServiceTest {
         when(page.getContent()).thenReturn(users);
         when(modelMapper.map(eq(users), any(Type.class))).thenReturn(dtoList);
 
-        List<UserDto> result = userService.findAll(pageable);
+        WsDto<UserDto> result = userService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(2, result.getDtoList().size());
 
         verify(userRepository).findAll(pageable);
         verify(page).getContent();

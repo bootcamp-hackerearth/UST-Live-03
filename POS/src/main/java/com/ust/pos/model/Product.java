@@ -10,5 +10,6 @@ import lombok.Setter;
 public class Product extends CommonFields {
     private String name;
     private String unit;
-    private double price;
+    private String category;
+    private String brand;
 }
