@@ -3,6 +3,7 @@ package com.ust.pos.api.models;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +21,15 @@ public class ModelsController extends BaseController {
     private ModelsService modelsService;
 
     @PostMapping("/list")
-    public ResponseEntity<List<ModelsDto>> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ModelsDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        List<ModelsDto> models = modelsService.findAll(pageable);
-        return ResponseEntity.ok(models);
+        return modelsService.findAll(pageable);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<ModelsDto>> getActiveModels() {
+        List<ModelsDto> activeModels = modelsService.findIfTrue();
+        return ResponseEntity.ok(activeModels);
     }
 
     @GetMapping("/{identifier}")

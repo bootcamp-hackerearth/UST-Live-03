@@ -2,10 +2,7 @@ package com.ust.pos.api.product;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
-import com.ust.pos.dto.CategoryDto;
-import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.dto.PriceDto;
-import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.*;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +27,13 @@ public class ProductController extends BaseController {
     private CategoryService categoryService;
 
     @PostMapping("/list")
-    public ResponseEntity<List<ProductDto>> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        List<ProductDto> products = productService.findAll(pageable);
-        return ResponseEntity.ok(products);
+    public WsDto<ProductDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField());
+        return productService.findAll(pageable);
     }
 
     @GetMapping("/{identifier}")
@@ -87,14 +87,12 @@ public class ProductController extends BaseController {
     }
 
     @GetMapping("/prices")
-    public ResponseEntity<List<PriceDto>> getPrices() {
-        List<PriceDto> prices = priceService.findAll(null);
-        return ResponseEntity.ok(prices);
+    public ResponseEntity<WsDto<PriceDto>> getPrices() {
+        return ResponseEntity.ok(priceService.findAll(Pageable.unpaged()));
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<List<CategoryDto>> getCategories() {
-        List<CategoryDto> categories = categoryService.findAll(null);
-        return ResponseEntity.ok(categories);
+    public ResponseEntity<WsDto<CategoryDto>> getCategories() {
+        return ResponseEntity.ok(categoryService.findAll(Pageable.unpaged()));
     }
 }

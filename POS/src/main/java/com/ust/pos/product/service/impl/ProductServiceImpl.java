@@ -2,6 +2,7 @@ package com.ust.pos.product.service.impl;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.model.Product;
@@ -78,9 +79,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
+    public WsDto<ProductDto> findAll(Pageable pageable) {
         Page<Product> productPage = productRepository.findAll(pageable);
-        return productPage.getContent().stream().map(product -> {
+        List<ProductDto> productDtos = productPage.getContent().stream().map(product -> {
             ProductDto productDto = modelMapper.map(product, ProductDto.class);
             Price price = priceRepository.findByProductId(product.getId());
             if (price != null) {
@@ -88,6 +89,13 @@ public class ProductServiceImpl implements ProductService {
             }
             return productDto;
         }).toList();
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(productDtos);
+        wsDto.setTotalRecords(productPage.getTotalElements());
+        wsDto.setTotalPages(productPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override

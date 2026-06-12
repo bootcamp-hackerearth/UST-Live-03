@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -20,6 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -45,9 +48,8 @@ class UserServiceTest {
         UserDto userDto = new UserDto();
         userDto.setUsername("john");
 
-        Mockito.when(userRepository.findByUsername("john")).thenReturn(user);
-
-        Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
+        when(userRepository.findByUsername("john")).thenReturn(user);
+        when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
 
         UserDto response = userService.findByUserName("john");
 
@@ -55,7 +57,7 @@ class UserServiceTest {
     }
 
     @Test
-    void saveTest() {
+    void saveSuccessTest() {
 
         UserDto userDto = new UserDto();
         userDto.setUsername("john");
@@ -63,87 +65,107 @@ class UserServiceTest {
 
         User user = new User();
 
-        Mockito.when(userRepository.findByUsername("john")).thenReturn(null);
-
-        Mockito.when(modelMapper.map(userDto, User.class)).thenReturn(user);
-
-        Mockito.when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
+        when(userRepository.findByUsername("john")).thenReturn(null);
+        when(modelMapper.map(userDto, User.class)).thenReturn(user);
+        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
 
         UserDto response = userService.save(userDto);
 
         Assertions.assertEquals("john", response.getUsername());
-
         Assertions.assertEquals("encodedPassword", user.getPassword());
-
-        Mockito.verify(userRepository).save(user);
+        verify(userRepository).save(user);
     }
 
     @Test
-    void saveTestFailure() {
+    void saveFailureUserExistsTest() {
 
         UserDto userDto = new UserDto();
         userDto.setUsername("john");
 
         User existingUser = new User();
 
-        Mockito.when(userRepository.findByUsername("john")).thenReturn(existingUser);
+        when(userRepository.findByUsername("john")).thenReturn(existingUser);
 
         UserDto response = userService.save(userDto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john already exists", response.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void updateTest() {
+    void updateSuccessSameUsernameTest() {
 
         UserDto userDto = new UserDto();
         userDto.setId(1L);
         userDto.setUsername("john");
+        userDto.setName("John");
 
         User existingUser = new User();
         existingUser.setId(1L);
         existingUser.setUsername("john");
 
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
 
-        Mockito.doAnswer(invocation -> {
-
+        doAnswer(invocation -> {
             UserDto source = invocation.getArgument(0);
             User target = invocation.getArgument(1);
-
             target.setUsername(source.getUsername());
-
+            target.setName(source.getName());
             return null;
-
-        }).when(modelMapper).map(Mockito.any(UserDto.class), Mockito.any(User.class));
+        }).when(modelMapper).map(any(UserDto.class), any(User.class));
 
         UserDto response = userService.update(userDto);
 
         Assertions.assertEquals("john", response.getUsername());
-
-        Mockito.verify(userRepository).save(existingUser);
+        verify(userRepository).save(existingUser);
     }
 
     @Test
-    void updateTestFailureUserNotFound() {
+    void updateSuccessDifferentUsernameAvailableTest() {
+
+        UserDto userDto = new UserDto();
+        userDto.setId(1L);
+        userDto.setUsername("newuser");
+
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("olduser");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUsername("newuser")).thenReturn(null);
+
+        doAnswer(invocation -> {
+            UserDto source = invocation.getArgument(0);
+            User target = invocation.getArgument(1);
+            target.setUsername(source.getUsername());
+            return null;
+        }).when(modelMapper).map(any(UserDto.class), any(User.class));
+
+        UserDto response = userService.update(userDto);
+
+        Assertions.assertEquals("newuser", response.getUsername());
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    void updateFailureUserNotFoundTest() {
 
         UserDto userDto = new UserDto();
         userDto.setId(1L);
         userDto.setUsername("john");
 
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         UserDto response = userService.update(userDto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john not found", response.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void updateTestFailureUsernameExists() {
+    void updateFailureUsernameAlreadyExistsTest() {
 
         UserDto userDto = new UserDto();
         userDto.setId(1L);
@@ -155,27 +177,25 @@ class UserServiceTest {
 
         User duplicateUser = new User();
 
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-
-        Mockito.when(userRepository.findByUsername("john")).thenReturn(duplicateUser);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUsername("john")).thenReturn(duplicateUser);
 
         UserDto response = userService.update(userDto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john already exists", response.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void deleteTest() {
 
-        Mockito.doNothing().when(userRepository).deleteByUsername("john");
+        doNothing().when(userRepository).deleteByUsername("john");
 
         boolean result = userService.delete("john");
 
         Assertions.assertTrue(result);
-
-        Mockito.verify(userRepository).deleteByUsername("john");
+        verify(userRepository).deleteByUsername("john");
     }
 
     @Test
@@ -192,14 +212,59 @@ class UserServiceTest {
 
         Page<User> userPage = new PageImpl<>(users);
 
-        Mockito.when(userRepository.findAll(Mockito.any(PageRequest.class))).thenReturn(userPage);
+        when(userRepository.findAll(any(PageRequest.class))).thenReturn(userPage);
+        when(modelMapper.map(eq(users), any(Type.class))).thenReturn(userDtos);
 
-        Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(userDtos);
+        WsDto<UserDto> response = userService.findAll(PageRequest.of(0, 10));
 
-        List<UserDto> response = userService.findAll(PageRequest.of(0, 10));
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("john", response.getDtoList().get(0).getUsername());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+    }
 
-        Assertions.assertEquals(1, response.size());
+    @Test
+    void findAllEmptyTest() {
 
-        Assertions.assertEquals("john", response.get(0).getUsername());
+        List<User> users = List.of();
+        List<UserDto> userDtos = List.of();
+
+        Page<User> userPage = new PageImpl<>(users);
+
+        when(userRepository.findAll(any(PageRequest.class))).thenReturn(userPage);
+        when(modelMapper.map(eq(users), any(Type.class))).thenReturn(userDtos);
+
+        WsDto<UserDto> response = userService.findAll(PageRequest.of(0, 10));
+
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0L, response.getTotalRecords());
+    }
+
+    @Test
+    void userDtoNoArgsConstructorGetterSetterTest() {
+
+        UserDto dto = new UserDto();
+        dto.setName("John");
+        dto.setUsername("john123");
+        dto.setPhoneNo("9999999999");
+        dto.setRoles(List.of("ADMIN"));
+        dto.setPassword("password");
+        dto.setToken("token");
+
+        Assertions.assertEquals("John", dto.getName());
+        Assertions.assertEquals("john123", dto.getUsername());
+        Assertions.assertEquals("9999999999", dto.getPhoneNo());
+        Assertions.assertEquals(List.of("ADMIN"), dto.getRoles());
+        Assertions.assertEquals("password", dto.getPassword());
+        Assertions.assertEquals("token", dto.getToken());
+    }
+
+    @Test
+    void userDtoTokenConstructorTest() {
+
+        UserDto dto = new UserDto("jwt-token");
+
+        Assertions.assertEquals("jwt-token", dto.getToken());
     }
 }

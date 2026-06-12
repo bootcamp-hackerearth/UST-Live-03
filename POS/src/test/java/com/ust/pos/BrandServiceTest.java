@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -42,7 +43,6 @@ class BrandServiceTest {
         dto.setIdentifier("APPLE");
 
         Mockito.when(brandRepository.findByIdentifier("APPLE")).thenReturn(brand);
-
         Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
 
         BrandDto response = brandService.findByIdentifier("APPLE");
@@ -61,15 +61,12 @@ class BrandServiceTest {
         dto.setIdentifier("APPLE");
 
         Mockito.when(brandRepository.findByIdentifier("APPLE")).thenReturn(brand);
-
         Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
 
         BrandDto response = brandService.toggleStatus("APPLE");
 
         Assertions.assertEquals("APPLE", response.getIdentifier());
-
         Assertions.assertFalse(brand.isStatus());
-
         Mockito.verify(brandRepository).save(brand);
     }
 
@@ -84,15 +81,12 @@ class BrandServiceTest {
         dto.setIdentifier("APPLE");
 
         Mockito.when(brandRepository.findByIdentifier("APPLE")).thenReturn(brand);
-
         Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
 
         BrandDto response = brandService.toggleStatus("APPLE");
 
         Assertions.assertEquals("APPLE", response.getIdentifier());
-
         Assertions.assertTrue(brand.isStatus());
-
         Mockito.verify(brandRepository).save(brand);
     }
 
@@ -105,13 +99,11 @@ class BrandServiceTest {
         Brand brand = new Brand();
 
         Mockito.when(brandRepository.findByIdentifier("APPLE")).thenReturn(null);
-
         Mockito.when(modelMapper.map(dto, Brand.class)).thenReturn(brand);
 
         BrandDto response = brandService.save(dto);
 
         Assertions.assertEquals("APPLE", response.getIdentifier());
-
         Mockito.verify(brandRepository).save(brand);
     }
 
@@ -128,7 +120,6 @@ class BrandServiceTest {
         BrandDto response = brandService.save(dto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals("Brand with identifier - APPLE already exists", response.getMessage());
     }
 
@@ -144,20 +135,15 @@ class BrandServiceTest {
         Mockito.when(brandRepository.findByIdentifier("APPLE")).thenReturn(existing);
 
         Mockito.doAnswer(invocation -> {
-
             BrandDto source = invocation.getArgument(0);
             Brand target = invocation.getArgument(1);
-
             target.setIdentifier(source.getIdentifier());
-
             return null;
-
         }).when(modelMapper).map(Mockito.any(BrandDto.class), Mockito.any(Brand.class));
 
         BrandDto response = brandService.update(dto);
 
         Assertions.assertEquals("APPLE", response.getIdentifier());
-
         Mockito.verify(brandRepository).save(existing);
     }
 
@@ -172,7 +158,6 @@ class BrandServiceTest {
         BrandDto response = brandService.update(dto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals("Brand with identifier - APPLE not found", response.getMessage());
     }
 
@@ -184,7 +169,6 @@ class BrandServiceTest {
         boolean result = brandService.delete("APPLE");
 
         Assertions.assertTrue(result);
-
         Mockito.verify(brandRepository).deleteByIdentifier("APPLE");
     }
 
@@ -205,14 +189,15 @@ class BrandServiceTest {
         Page<Brand> brandPage = new PageImpl<>(brands);
 
         Mockito.when(brandRepository.findAll(pageable)).thenReturn(brandPage);
-
         Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(Type.class))).thenReturn(dtos);
 
-        List<BrandDto> response = brandService.findAll(pageable);
+        WsDto<BrandDto> response = brandService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-
-        Assertions.assertEquals("APPLE", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("APPLE", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -229,13 +214,11 @@ class BrandServiceTest {
         List<BrandDto> dtos = List.of(dto);
 
         Mockito.when(brandRepository.findByStatusIsTrue()).thenReturn(brands);
-
         Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(Type.class))).thenReturn(dtos);
 
         List<BrandDto> response = brandService.findIfTrue();
 
         Assertions.assertEquals(1, response.size());
-
         Assertions.assertEquals("APPLE", response.get(0).getIdentifier());
     }
 }

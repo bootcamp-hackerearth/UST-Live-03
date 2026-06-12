@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.model.Product;
@@ -19,7 +20,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -52,21 +52,16 @@ class ProductServiceTest {
         dto.setIdentifier("SKU001");
 
         Price price = new Price();
-
         PriceDto priceDto = new PriceDto();
 
         when(productRepository.findByIdentifier("SKU001")).thenReturn(product);
-
         when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
-
         when(priceRepository.findByProductId(1L)).thenReturn(price);
-
         when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
 
         ProductDto response = productService.findByIdentifier("SKU001");
 
         Assertions.assertEquals("SKU001", response.getIdentifier());
-
         Assertions.assertNotNull(response.getPrice());
     }
 
@@ -79,15 +74,12 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
 
         when(productRepository.findByIdentifier("SKU001")).thenReturn(product);
-
         when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
-
         when(priceRepository.findByProductId(1L)).thenReturn(null);
 
         ProductDto response = productService.findByIdentifier("SKU001");
 
         Assertions.assertNotNull(response);
-
         Assertions.assertNull(response.getPrice());
     }
 
@@ -111,13 +103,11 @@ class ProductServiceTest {
         Product product = new Product();
 
         when(productRepository.findByIdentifier("SKU001")).thenReturn(null);
-
         when(modelMapper.map(dto, Product.class)).thenReturn(product);
 
         ProductDto response = productService.save(dto);
 
         Assertions.assertEquals("SKU001", response.getIdentifier());
-
         verify(productRepository).save(product);
     }
 
@@ -134,9 +124,7 @@ class ProductServiceTest {
         ProductDto response = productService.save(dto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals("Product with skuCode - SKU001 already exists", response.getMessage());
-
         verify(productRepository, never()).save(any(Product.class));
     }
 
@@ -153,21 +141,16 @@ class ProductServiceTest {
         when(productRepository.findByIdentifier("SKU001")).thenReturn(existingProduct);
 
         doAnswer(invocation -> {
-
             ProductDto source = invocation.getArgument(0);
             Product target = invocation.getArgument(1);
-
             target.setIdentifier(source.getIdentifier());
             target.setProductName(source.getProductName());
-
             return null;
-
         }).when(modelMapper).map(any(ProductDto.class), any(Product.class));
 
         ProductDto response = productService.update(dto);
 
         Assertions.assertEquals(" SKU001 ", response.getIdentifier());
-
         verify(productRepository).save(existingProduct);
     }
 
@@ -182,9 +165,7 @@ class ProductServiceTest {
         ProductDto response = productService.update(dto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals("Product with skuCode - SKU001 not found", response.getMessage());
-
         verify(productRepository, never()).save(any(Product.class));
     }
 
@@ -196,7 +177,6 @@ class ProductServiceTest {
         boolean response = productService.delete("SKU001");
 
         Assertions.assertTrue(response);
-
         verify(productRepository).deleteByIdentifier("SKU001");
     }
 
@@ -209,26 +189,23 @@ class ProductServiceTest {
         product.setId(1L);
 
         ProductDto dto = new ProductDto();
-
         Price price = new Price();
-
         PriceDto priceDto = new PriceDto();
 
         Page<Product> productPage = new PageImpl<>(List.of(product));
 
         when(productRepository.findAll(pageable)).thenReturn(productPage);
-
         when(modelMapper.map(any(Product.class), eq(ProductDto.class))).thenReturn(dto);
-
         when(priceRepository.findByProductId(1L)).thenReturn(price);
-
         when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
 
-        List<ProductDto> response = productService.findAll(pageable);
+        WsDto<ProductDto> response = productService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-
-        Assertions.assertNotNull(response.get(0).getPrice());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertNotNull(response.getDtoList().get(0).getPrice());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -244,16 +221,13 @@ class ProductServiceTest {
         Page<Product> productPage = new PageImpl<>(List.of(product));
 
         when(productRepository.findAll(pageable)).thenReturn(productPage);
-
         when(modelMapper.map(any(Product.class), eq(ProductDto.class))).thenReturn(dto);
-
         when(priceRepository.findByProductId(1L)).thenReturn(null);
 
-        List<ProductDto> response = productService.findAll(pageable);
+        WsDto<ProductDto> response = productService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-
-        Assertions.assertNull(response.get(0).getPrice());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertNull(response.getDtoList().get(0).getPrice());
     }
 
     @Test
@@ -263,9 +237,10 @@ class ProductServiceTest {
 
         when(productRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of()));
 
-        List<ProductDto> response = productService.findAll(pageable);
+        WsDto<ProductDto> response = productService.findAll(pageable);
 
-        Assertions.assertTrue(response.isEmpty());
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0L, response.getTotalRecords());
     }
 
     @Test
@@ -278,15 +253,12 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
 
         when(productRepository.findByIdentifier("SKU001")).thenReturn(product);
-
         when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
 
         ProductDto response = productService.toggleStatus("SKU001");
 
         Assertions.assertNotNull(response);
-
         Assertions.assertFalse(product.isStatus());
-
         verify(productRepository).save(product);
     }
 
@@ -300,15 +272,12 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
 
         when(productRepository.findByIdentifier("SKU001")).thenReturn(product);
-
         when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
 
         ProductDto response = productService.toggleStatus("SKU001");
 
         Assertions.assertNotNull(response);
-
         Assertions.assertTrue(product.isStatus());
-
         verify(productRepository).save(product);
     }
 
@@ -324,16 +293,12 @@ class ProductServiceTest {
 
         List<Product> products = List.of(product);
 
-        List<ProductDto> dtos = List.of(dto);
-
         when(productRepository.findByStatusIsTrue()).thenReturn(products);
-
-        when(modelMapper.map(eq(products), any(Type.class))).thenReturn(dtos);
+        when(modelMapper.map(eq(products), any(java.lang.reflect.Type.class))).thenReturn(List.of(dto));
 
         List<ProductDto> response = productService.findIfTrue();
 
         Assertions.assertEquals(1, response.size());
-
         Assertions.assertEquals("SKU001", response.get(0).getIdentifier());
     }
 
@@ -341,8 +306,7 @@ class ProductServiceTest {
     void findIfTrueEmptyTest() {
 
         when(productRepository.findByStatusIsTrue()).thenReturn(List.of());
-
-        when(modelMapper.map(eq(List.of()), any(Type.class))).thenReturn(List.of());
+        when(modelMapper.map(eq(List.of()), any(java.lang.reflect.Type.class))).thenReturn(List.of());
 
         List<ProductDto> response = productService.findIfTrue();
 

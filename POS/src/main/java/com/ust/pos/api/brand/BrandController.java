@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -20,10 +21,15 @@ public class BrandController extends BaseController {
     private BrandService brandService;
 
     @PostMapping("/list")
-    public ResponseEntity<List<BrandDto>> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        List<BrandDto> brands = brandService.findAll(pageable);
-        return ResponseEntity.ok(brands);
+        return brandService.findAll(pageable);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<BrandDto>> getActiveBrands() {
+        List<BrandDto> activeBrands = brandService.findIfTrue();
+        return ResponseEntity.ok(activeBrands);
     }
 
     @GetMapping("/{identifier}")
@@ -65,11 +71,5 @@ public class BrandController extends BaseController {
     public ResponseEntity<BrandDto> toggleStatus(@PathVariable String identifier) {
         BrandDto response = brandService.toggleStatus(identifier);
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/active")
-    public ResponseEntity<List<BrandDto>> getActiveBrands() {
-        List<BrandDto> activeBrands = brandService.findIfTrue();
-        return ResponseEntity.ok(activeBrands);
     }
 }

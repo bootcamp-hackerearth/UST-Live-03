@@ -1,6 +1,7 @@
 package com.ust.pos.brand.service;
 
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,5 +21,5 @@ public interface BrandService {
 
     List<BrandDto> findIfTrue();
 
-    List<BrandDto> findAll(Pageable pageable);
+    WsDto<BrandDto> findAll(Pageable pageable);
 }

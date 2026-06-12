@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.impl.ModelsServiceImpl;
@@ -42,7 +43,6 @@ class ModelsServiceTest {
         dto.setIdentifier("IPHONE");
 
         Mockito.when(modelsRepository.findByIdentifier("IPHONE")).thenReturn(models);
-
         Mockito.when(modelMapper.map(models, ModelsDto.class)).thenReturn(dto);
 
         ModelsDto response = modelsService.findByIdentifier("IPHONE");
@@ -61,15 +61,12 @@ class ModelsServiceTest {
         dto.setIdentifier("IPHONE");
 
         Mockito.when(modelsRepository.findByIdentifier("IPHONE")).thenReturn(models);
-
         Mockito.when(modelMapper.map(models, ModelsDto.class)).thenReturn(dto);
 
         ModelsDto response = modelsService.toggleStatus("IPHONE");
 
         Assertions.assertEquals("IPHONE", response.getIdentifier());
-
         Assertions.assertFalse(models.isStatus());
-
         Mockito.verify(modelsRepository).save(models);
     }
 
@@ -84,15 +81,12 @@ class ModelsServiceTest {
         dto.setIdentifier("IPHONE");
 
         Mockito.when(modelsRepository.findByIdentifier("IPHONE")).thenReturn(models);
-
         Mockito.when(modelMapper.map(models, ModelsDto.class)).thenReturn(dto);
 
         ModelsDto response = modelsService.toggleStatus("IPHONE");
 
         Assertions.assertEquals("IPHONE", response.getIdentifier());
-
         Assertions.assertTrue(models.isStatus());
-
         Mockito.verify(modelsRepository).save(models);
     }
 
@@ -105,13 +99,11 @@ class ModelsServiceTest {
         Models models = new Models();
 
         Mockito.when(modelsRepository.findByIdentifier("IPHONE")).thenReturn(null);
-
         Mockito.when(modelMapper.map(dto, Models.class)).thenReturn(models);
 
         ModelsDto response = modelsService.save(dto);
 
         Assertions.assertEquals("IPHONE", response.getIdentifier());
-
         Mockito.verify(modelsRepository).save(models);
     }
 
@@ -128,7 +120,6 @@ class ModelsServiceTest {
         ModelsDto response = modelsService.save(dto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals("Models with identifier - IPHONE already exists", response.getMessage());
     }
 
@@ -144,20 +135,15 @@ class ModelsServiceTest {
         Mockito.when(modelsRepository.findByIdentifier("IPHONE")).thenReturn(existing);
 
         Mockito.doAnswer(invocation -> {
-
             ModelsDto source = invocation.getArgument(0);
             Models target = invocation.getArgument(1);
-
             target.setIdentifier(source.getIdentifier());
-
             return null;
-
         }).when(modelMapper).map(Mockito.any(ModelsDto.class), Mockito.any(Models.class));
 
         ModelsDto response = modelsService.update(dto);
 
         Assertions.assertEquals("IPHONE", response.getIdentifier());
-
         Mockito.verify(modelsRepository).save(existing);
     }
 
@@ -172,7 +158,6 @@ class ModelsServiceTest {
         ModelsDto response = modelsService.update(dto);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals("Models with identifier - IPHONE not found", response.getMessage());
     }
 
@@ -184,7 +169,6 @@ class ModelsServiceTest {
         boolean result = modelsService.delete("IPHONE");
 
         Assertions.assertTrue(result);
-
         Mockito.verify(modelsRepository).deleteByIdentifier("IPHONE");
     }
 
@@ -205,14 +189,15 @@ class ModelsServiceTest {
         Page<Models> modelsPage = new PageImpl<>(modelsList);
 
         Mockito.when(modelsRepository.findAll(pageable)).thenReturn(modelsPage);
-
         Mockito.when(modelMapper.map(Mockito.eq(modelsList), Mockito.any(Type.class))).thenReturn(dtos);
 
-        List<ModelsDto> response = modelsService.findAll(pageable);
+        WsDto<ModelsDto> response = modelsService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-
-        Assertions.assertEquals("IPHONE", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("IPHONE", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -229,13 +214,11 @@ class ModelsServiceTest {
         List<ModelsDto> dtos = List.of(dto);
 
         Mockito.when(modelsRepository.findByStatusIsTrue()).thenReturn(modelsList);
-
         Mockito.when(modelMapper.map(Mockito.eq(modelsList), Mockito.any(Type.class))).thenReturn(dtos);
 
         List<ModelsDto> response = modelsService.findIfTrue();
 
         Assertions.assertEquals(1, response.size());
-
         Assertions.assertEquals("IPHONE", response.get(0).getIdentifier());
     }
 }

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -37,12 +38,10 @@ class UnitServiceTest {
     private UnitServiceImpl unitService;
 
     private Unit unit;
-
     private UnitDto unitDto;
 
     @BeforeEach
     void setUp() {
-
         unit = new Unit();
         unit.setIdentifier("UNIT1");
         unit.setStatus(true);
@@ -56,17 +55,13 @@ class UnitServiceTest {
     void findByIdentifierTest() {
 
         when(unitRepository.findByIdentifier("UNIT1")).thenReturn(unit);
-
         when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);
 
         UnitDto result = unitService.findByIdentifier("UNIT1");
 
         assertNotNull(result);
-
         assertEquals("UNIT1", result.getIdentifier());
-
         verify(unitRepository).findByIdentifier("UNIT1");
-
         verify(modelMapper).map(unit, UnitDto.class);
     }
 
@@ -74,7 +69,6 @@ class UnitServiceTest {
     void findByIdentifierNullTest() {
 
         when(unitRepository.findByIdentifier("UNIT1")).thenReturn(null);
-
         when(modelMapper.map(null, UnitDto.class)).thenReturn(null);
 
         UnitDto result = unitService.findByIdentifier("UNIT1");
@@ -88,15 +82,12 @@ class UnitServiceTest {
         unit.setStatus(true);
 
         when(unitRepository.findByIdentifier("UNIT1")).thenReturn(unit);
-
         when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);
 
         UnitDto result = unitService.toggleStatus("UNIT1");
 
         assertNotNull(result);
-
         assertFalse(unit.isStatus());
-
         verify(unitRepository).save(unit);
     }
 
@@ -106,15 +97,12 @@ class UnitServiceTest {
         unit.setStatus(false);
 
         when(unitRepository.findByIdentifier("UNIT1")).thenReturn(unit);
-
         when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);
 
         UnitDto result = unitService.toggleStatus("UNIT1");
 
         assertNotNull(result);
-
         assertTrue(unit.isStatus());
-
         verify(unitRepository).save(unit);
     }
 
@@ -122,15 +110,12 @@ class UnitServiceTest {
     void saveSuccessTest() {
 
         when(unitRepository.findByIdentifier("UNIT1")).thenReturn(null);
-
         when(modelMapper.map(unitDto, Unit.class)).thenReturn(unit);
 
         UnitDto result = unitService.save(unitDto);
 
         assertNotNull(result);
-
         assertEquals("UNIT1", result.getIdentifier());
-
         verify(unitRepository).save(unit);
     }
 
@@ -142,9 +127,7 @@ class UnitServiceTest {
         UnitDto result = unitService.save(unitDto);
 
         assertFalse(result.isSuccess());
-
         assertEquals("Unit with identifier - UNIT1 already exists", result.getMessage());
-
         verify(unitRepository, never()).save(any());
     }
 
@@ -152,15 +135,12 @@ class UnitServiceTest {
     void updateSuccessTest() {
 
         when(unitRepository.findByIdentifier("UNIT1")).thenReturn(unit);
-
         doNothing().when(modelMapper).map(unitDto, unit);
 
         UnitDto result = unitService.update(unitDto);
 
         assertNotNull(result);
-
         verify(modelMapper).map(unitDto, unit);
-
         verify(unitRepository).save(unit);
     }
 
@@ -172,9 +152,7 @@ class UnitServiceTest {
         UnitDto result = unitService.update(unitDto);
 
         assertFalse(result.isSuccess());
-
         assertEquals("Unit with identifier - UNIT1 not found", result.getMessage());
-
         verify(unitRepository, never()).save(any());
     }
 
@@ -186,7 +164,6 @@ class UnitServiceTest {
         boolean result = unitService.delete("UNIT1");
 
         assertTrue(result);
-
         verify(unitRepository).deleteByIdentifier("UNIT1");
     }
 
@@ -194,23 +171,20 @@ class UnitServiceTest {
     void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
-
         List<Unit> unitList = List.of(unit);
-
         Page<Unit> unitPage = new PageImpl<>(unitList);
-
         List<UnitDto> dtoList = List.of(unitDto);
 
         when(unitRepository.findAll(pageable)).thenReturn(unitPage);
-
         when(modelMapper.map(eq(unitPage.getContent()), any(Type.class))).thenReturn(dtoList);
 
-        List<UnitDto> result = unitService.findAll(pageable);
+        WsDto<UnitDto> result = unitService.findAll(pageable);
 
         assertNotNull(result);
-
-        assertEquals(1, result.size());
-
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
         verify(unitRepository).findAll(pageable);
     }
 
@@ -218,35 +192,30 @@ class UnitServiceTest {
     void findAllEmptyTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
-
         Page<Unit> unitPage = new PageImpl<>(List.of());
 
         when(unitRepository.findAll(pageable)).thenReturn(unitPage);
-
         when(modelMapper.map(eq(List.of()), any(Type.class))).thenReturn(List.of());
 
-        List<UnitDto> result = unitService.findAll(pageable);
+        WsDto<UnitDto> result = unitService.findAll(pageable);
 
-        assertTrue(result.isEmpty());
+        assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
     }
 
     @Test
     void findIfTrueTest() {
 
         List<Unit> unitList = List.of(unit);
-
         List<UnitDto> dtoList = List.of(unitDto);
 
         when(unitRepository.findByStatusIsTrue()).thenReturn(unitList);
-
         when(modelMapper.map(eq(unitList), any(Type.class))).thenReturn(dtoList);
 
         List<UnitDto> result = unitService.findIfTrue();
 
         assertNotNull(result);
-
         assertEquals(1, result.size());
-
         verify(unitRepository).findByStatusIsTrue();
     }
 
@@ -254,7 +223,6 @@ class UnitServiceTest {
     void findIfTrueEmptyTest() {
 
         when(unitRepository.findByStatusIsTrue()).thenReturn(List.of());
-
         when(modelMapper.map(eq(List.of()), any(Type.class))).thenReturn(List.of());
 
         List<UnitDto> result = unitService.findIfTrue();

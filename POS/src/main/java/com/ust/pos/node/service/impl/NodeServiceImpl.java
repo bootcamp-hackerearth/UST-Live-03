@@ -1,6 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -61,7 +62,11 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+        Node node = nodeRepository.findByIdentifier(identifier);
+        if (node == null) {
+            return null;
+        }
+        return modelMapper.map(node, NodeDto.class);
     }
 
     @Override
@@ -104,10 +109,16 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+        WsDto<NodeDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        wsDto.setTotalRecords(nodePage.getTotalElements());
+        wsDto.setTotalPages(nodePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 }

@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -20,10 +21,9 @@ public class CategoryController extends BaseController {
     private CategoryService categoryService;
 
     @PostMapping("/list")
-    public ResponseEntity<List<CategoryDto>> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        List<CategoryDto> categories = categoryService.findAll(pageable);
-        return ResponseEntity.ok(categories);
+        return categoryService.findAll(pageable);
     }
 
     @GetMapping("/{identifier}")

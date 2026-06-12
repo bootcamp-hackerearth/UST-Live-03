@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.model.Product;
@@ -56,16 +57,13 @@ class PriceServiceTest {
         Price price = new Price();
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-
         when(priceRepository.existsByProductId(1L)).thenReturn(false);
-
         when(modelMapper.map(dto, Price.class)).thenReturn(price);
 
         PriceDto response = priceService.createPrice(dto);
 
         Assertions.assertEquals("Samsung", response.getProductName());
         Assertions.assertEquals("SKU001", response.getIdentifier());
-
         verify(priceRepository).save(price);
     }
 
@@ -77,10 +75,10 @@ class PriceServiceTest {
 
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> priceService.createPrice(dto));
+        ResponseStatusException exception = Assertions.assertThrows(
+                ResponseStatusException.class, () -> priceService.createPrice(dto));
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-
         Assertions.assertEquals("404 NOT_FOUND \"Product not found\"", exception.getMessage());
     }
 
@@ -91,13 +89,12 @@ class PriceServiceTest {
         dto.setProductId(1L);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(new Product()));
-
         when(priceRepository.existsByProductId(1L)).thenReturn(true);
 
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> priceService.createPrice(dto));
+        ResponseStatusException exception = Assertions.assertThrows(
+                ResponseStatusException.class, () -> priceService.createPrice(dto));
 
         Assertions.assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
-
         Assertions.assertEquals("409 CONFLICT \"Price already exists for this product\"", exception.getMessage());
     }
 
@@ -118,36 +115,26 @@ class PriceServiceTest {
         product.setIdentifier("SKU001");
 
         when(priceRepository.findById(1L)).thenReturn(Optional.of(price));
-
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         doAnswer(invocation -> {
-
             Price source = invocation.getArgument(0);
             PriceDto target = invocation.getArgument(1);
-
             target.setId(source.getId());
             target.setSellingPrice(source.getSellingPrice());
             target.setCostPrice(source.getCostPrice());
             target.setProductName(source.getProductName());
             target.setIdentifier(source.getIdentifier());
-
             return null;
-
         }).when(modelMapper).map(any(Price.class), any(PriceDto.class));
 
         PriceDto response = priceService.updatePrice(dto);
 
         Assertions.assertEquals(1L, response.getId());
-
         Assertions.assertEquals(BigDecimal.valueOf(500), response.getSellingPrice());
-
         Assertions.assertEquals(BigDecimal.valueOf(300), response.getCostPrice());
-
         Assertions.assertEquals("Samsung", response.getProductName());
-
         Assertions.assertEquals("SKU001", response.getIdentifier());
-
         verify(priceRepository).save(price);
     }
 
@@ -164,16 +151,13 @@ class PriceServiceTest {
         price.setProductId(1L);
 
         when(priceRepository.findById(1L)).thenReturn(Optional.of(price));
-
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
-
         doNothing().when(modelMapper).map(any(Price.class), any(PriceDto.class));
 
         PriceDto response = priceService.updatePrice(dto);
 
         Assertions.assertNull(response.getProductName());
         Assertions.assertNull(response.getIdentifier());
-
         verify(priceRepository).save(price);
     }
 
@@ -185,7 +169,8 @@ class PriceServiceTest {
 
         when(priceRepository.findById(1L)).thenReturn(Optional.empty());
 
-        RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> priceService.updatePrice(dto));
+        RuntimeException exception = Assertions.assertThrows(
+                RuntimeException.class, () -> priceService.updatePrice(dto));
 
         Assertions.assertEquals("Price record not found", exception.getMessage());
     }
@@ -207,18 +192,17 @@ class PriceServiceTest {
         Page<Price> page = new PageImpl<>(List.of(price));
 
         when(priceRepository.findAll(pageable)).thenReturn(page);
-
         when(modelMapper.map(any(Price.class), eq(PriceDto.class))).thenReturn(dto);
-
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
-        List<PriceDto> response = priceService.findAll(pageable);
+        WsDto<PriceDto> response = priceService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-
-        Assertions.assertEquals("Samsung", response.get(0).getProductName());
-
-        Assertions.assertEquals("SKU001", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Samsung", response.getDtoList().get(0).getProductName());
+        Assertions.assertEquals("SKU001", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -234,16 +218,13 @@ class PriceServiceTest {
         Page<Price> page = new PageImpl<>(List.of(price));
 
         when(priceRepository.findAll(pageable)).thenReturn(page);
-
         when(modelMapper.map(any(Price.class), eq(PriceDto.class))).thenReturn(dto);
-
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
-        List<PriceDto> response = priceService.findAll(pageable);
+        WsDto<PriceDto> response = priceService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-
-        Assertions.assertNull(response.get(0).getProductName());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertNull(response.getDtoList().get(0).getProductName());
     }
 
     @Test
@@ -254,7 +235,6 @@ class PriceServiceTest {
         boolean response = priceService.deletePrice(1L);
 
         Assertions.assertTrue(response);
-
         verify(priceRepository).deleteById(1L);
     }
 
@@ -266,7 +246,6 @@ class PriceServiceTest {
         boolean response = priceService.deletePrice(1L);
 
         Assertions.assertFalse(response);
-
         verify(priceRepository, never()).deleteById(anyLong());
     }
 
@@ -281,26 +260,19 @@ class PriceServiceTest {
         product.setIdentifier("SKU001");
 
         when(priceRepository.findById(1L)).thenReturn(Optional.of(price));
-
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         doAnswer(invocation -> {
-
             Price source = invocation.getArgument(0);
             PriceDto target = invocation.getArgument(1);
-
             target.setProductId(source.getProductId());
-
             return null;
-
         }).when(modelMapper).map(any(Price.class), any(PriceDto.class));
 
         PriceDto response = priceService.getPriceById(1L);
 
         Assertions.assertTrue(response.isSuccess());
-
         Assertions.assertEquals("Samsung", response.getProductName());
-
         Assertions.assertEquals("SKU001", response.getIdentifier());
     }
 
@@ -311,15 +283,12 @@ class PriceServiceTest {
         price.setProductId(1L);
 
         when(priceRepository.findById(1L)).thenReturn(Optional.of(price));
-
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
-
         doNothing().when(modelMapper).map(any(Price.class), any(PriceDto.class));
 
         PriceDto response = priceService.getPriceById(1L);
 
         Assertions.assertTrue(response.isSuccess());
-
         Assertions.assertNull(response.getProductName());
         Assertions.assertNull(response.getIdentifier());
     }
@@ -332,7 +301,6 @@ class PriceServiceTest {
         PriceDto response = priceService.getPriceById(1L);
 
         Assertions.assertFalse(response.isSuccess());
-
         Assertions.assertEquals("Price not found", response.getMessage());
     }
 }

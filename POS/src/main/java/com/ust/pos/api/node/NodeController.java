@@ -3,6 +3,7 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,14 @@ public class NodeController extends BaseController {
     private RoleService roleService;
 
     @PostMapping("/list")
-    public ResponseEntity<List<NodeDto>> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        List<NodeDto> nodes = nodeService.findAll(pageable);
-        return ResponseEntity.ok(nodes);
+        return nodeService.findAll(pageable);
+    }
+
+    @GetMapping("/getNodesForRoles")
+    public ResponseEntity<List<NodeDto>> myNodes() {
+        return ResponseEntity.ok(nodeService.getNodesForRoles());
     }
 
     @GetMapping("/{identifier}")
