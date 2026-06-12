@@ -1,6 +1,7 @@
 package com.ust.pos.modelmodule.service.impl;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.modelmodule.service.ModelService;
@@ -26,7 +27,7 @@ public class ModelServiceImpl implements ModelService {
 
     @Override
     public ModelDto save(ModelDto modelDto) {
-        Model existingModel = modelRepository.findByIdentifier(modelDto.getIdentifier());
+        Model existingModel = modelRepository.findByIdentifier(modelDto.getIdentifier().trim());
         if (existingModel != null) {
             modelDto.setMessage("Model with identifier - " + modelDto.getIdentifier() + " already exists");
             modelDto.setSuccess(false);
@@ -38,14 +39,25 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
-    public List<ModelDto> findAll(Pageable pageable) {
+    public WsDto<ModelDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(modelRepository.findAll(), listType);
+            List<ModelDto> modelDtoList = modelMapper.map(modelRepository.findAll(), listType);
+            WsDto<ModelDto> response = new WsDto<>();
+            response.setDtoList(modelDtoList);
+            response.setTotalRecords(modelDtoList.size());
+            return response;
         }
         Page<Model> modelPage = modelRepository.findAll(pageable);
-        return modelMapper.map(modelPage.getContent(), listType);
+        List<ModelDto> modelDtoList = modelMapper.map(modelPage.getContent(), listType);
+        WsDto<ModelDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelDtoList);
+        wsDto.setPage(modelPage.getNumber());
+        wsDto.setSizePerPage(modelPage.getSize());
+        wsDto.setTotalPages(modelPage.getTotalPages());
+        wsDto.setTotalRecords(modelPage.getTotalElements());
+        return wsDto;
     }
 
     @Override

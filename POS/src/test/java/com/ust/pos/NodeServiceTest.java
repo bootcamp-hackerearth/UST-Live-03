@@ -1,10 +1,8 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.impl.NodeServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,28 +43,32 @@ public class NodeServiceTest {
         nodeDto.setIdentifier("Admin");
 
         Mockito.when(nodeRepository.findByIdentifier("Admin")).thenReturn(null);
+
         Node node = new Node();
+
         Mockito.when(modelMapper.map(nodeDto, Node.class)).thenReturn(node);
         Mockito.when(nodeRepository.save(node)).thenReturn(node);
+
         NodeDto response = nodeService.save(nodeDto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertEquals(true, response.isSuccess());
+        Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
     void saveTestFailure() {
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("Admin");
+
         Node node = new Node();
 
         Mockito.when(nodeRepository.findByIdentifier("Admin")).thenReturn(node);
+
         NodeDto response = nodeService.save(nodeDto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertNotNull(response.getMessage(), "Message cannot be null");
-
-        Assertions.assertEquals(false, response.isSuccess());
+        Assertions.assertFalse(response.isSuccess());
     }
 
     @Test
@@ -93,10 +95,8 @@ public class NodeServiceTest {
         Node existingNode = new Node();
         existingNode.setIdentifier("Admin");
 
-        Mockito.when(nodeRepository.findByIdentifier("Admin"))
-                .thenReturn(existingNode);
-        Mockito.when(nodeRepository.save(existingNode))
-                .thenReturn(existingNode);
+        Mockito.when(nodeRepository.findByIdentifier("Admin")).thenReturn(existingNode);
+        Mockito.when(nodeRepository.save(existingNode)).thenReturn(existingNode);
 
         NodeDto response = nodeService.update(nodeDto);
 
@@ -108,8 +108,7 @@ public class NodeServiceTest {
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("Admin");
 
-        Mockito.when(nodeRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
+        Mockito.when(nodeRepository.findByIdentifier("Admin")).thenReturn(null);
 
         NodeDto response = nodeService.update(nodeDto);
 
@@ -118,8 +117,7 @@ public class NodeServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(nodeRepository)
-                .deleteByIdentifier("Admin");
+        Mockito.doNothing().when(nodeRepository).deleteByIdentifier("Admin");
 
         nodeService.delete("Admin");
 
@@ -140,17 +138,13 @@ public class NodeServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Node> nodePage = new PageImpl<>(nodes);
 
-        Mockito.when(nodeRepository.findAll(pageable))
-                .thenReturn(nodePage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(nodes),
-                Mockito.any(Type.class)
-        )).thenReturn(dtos);
+        Mockito.when(nodeRepository.findAll(pageable)).thenReturn(nodePage);
+        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(Type.class))).thenReturn(dtos);
 
-        List<NodeDto> response = nodeService.findAll(pageable);
+        WsDto<NodeDto> response = nodeService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -158,22 +152,19 @@ public class NodeServiceTest {
         Node node = new Node();
         node.setIdentifier("Admin");
 
-        NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("Admin");
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("Admin");
 
         List<Node> nodes = List.of(node);
-        List<NodeDto> dtos = List.of(nodeDto);
+        List<NodeDto> dtos = List.of(dto);
 
-        Mockito.when(nodeRepository.findAll())
-                .thenReturn(nodes);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(nodes),
-                Mockito.any(Type.class)
-        )).thenReturn(dtos);
+        Mockito.when(nodeRepository.findAll()).thenReturn(nodes);
+        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(Type.class))).thenReturn(dtos);
 
-        List<NodeDto> response = nodeService.findAll(null);
+        WsDto<NodeDto> response = nodeService.findAll(null);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test

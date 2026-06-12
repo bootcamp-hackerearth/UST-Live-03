@@ -30,11 +30,15 @@ class AddressServiceTest {
         addressDto.setPhoneNo("1234567890");
 
         Address address = new Address();
+
         Mockito.when(modelMapper.map(addressDto, Address.class)).thenReturn(address);
         Mockito.when(addressRepository.save(address)).thenReturn(address);
+
         AddressDto response = addressService.save(addressDto);
+
         Assertions.assertNotNull(response);
         Assertions.assertEquals("1234567890", response.getPhoneNo());
+
         Mockito.verify(addressRepository).save(address);
     }
 
@@ -45,9 +49,11 @@ class AddressServiceTest {
         addressDto.setAddressType("billing");
 
         Address existingAddress = new Address();
+
         Mockito.when(addressRepository.findByPhoneNoAndAddressType("1234567890", "billing")).thenReturn(existingAddress);
         Mockito.doNothing().when(modelMapper).map(addressDto, existingAddress);
         Mockito.when(addressRepository.save(existingAddress)).thenReturn(existingAddress);
+
         addressService.update(addressDto);
 
         Mockito.verify(addressRepository).findByPhoneNoAndAddressType("1234567890", "billing");
@@ -71,7 +77,9 @@ class AddressServiceTest {
         Mockito.when(addressRepository.findByPhoneNoAndAddressType("1234567890", "billing"))
                 .thenReturn(address);
         Mockito.when(modelMapper.map(address, AddressDto.class)).thenReturn(addressDto);
+
         AddressDto response = addressService.findByPhoneAndAddressType("1234567890", "billing");
+
         Assertions.assertNotNull(response);
     }
 
@@ -79,7 +87,9 @@ class AddressServiceTest {
     void findByPhoneAndAddressTypeNotFoundTest() {
         Mockito.when(addressRepository.findByPhoneNoAndAddressType("1234567890", "billing"))
                 .thenReturn(null);
+
         AddressDto response = addressService.findByPhoneAndAddressType("1234567890", "billing");
+
         Assertions.assertNull(response);
     }
 

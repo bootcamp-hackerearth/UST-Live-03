@@ -216,46 +216,6 @@
             ></textarea>
         </div>
 
-        <div class="form-group">
-            <label>Shelf</label>
-
-            <div class="checkbox-group">
-                <c:forEach items="${shelfs}" var="s">
-                    <div class="checkbox-item">
-                        <input
-                            type="checkbox"
-                            id="shelf_${s.name}"
-                            name="shelf"
-                            value="${s.name}"
-                        />
-                        <label for="shelf_${s.name}">
-                            ${s.name}
-                        </label>
-                    </div>
-                </c:forEach>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Rack</label>
-
-            <div class="checkbox-group">
-                <c:forEach items="${racks}" var="r">
-                    <div class="checkbox-item">
-                        <input
-                            type="checkbox"
-                            id="rack_${r.name}"
-                            name="rack"
-                            value="${r.name}"
-                        />
-                        <label for="rack_${r.name}">
-                            ${r.name}
-                        </label>
-                    </div>
-                </c:forEach>
-            </div>
-        </div>
-
         <button type="submit" class="btn-submit">
             Save Product
         </button>

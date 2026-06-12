@@ -174,7 +174,7 @@
             </div>
         </c:forEach>
 
-               <input type="hidden" name="status" value="${rack.status}" />
+                <input type="hidden" name="status" value="${rack.status}" />
 
         <div class="btn-group">
             <button type="submit" class="btn">Update Rack</button>

@@ -1,6 +1,7 @@
 package com.ust.pos.rack.service.impl;
 
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -26,7 +27,7 @@ public class RackServiceImpl implements RackService {
 
     @Override
     public RackDto save(RackDto rackDto) {
-        Rack existingRack = rackRepository.findByIdentifier(rackDto.getIdentifier());
+        Rack existingRack = rackRepository.findByIdentifier(rackDto.getIdentifier().trim());
         if (existingRack != null) {
             rackDto.setMessage("Rack with identifier - " + rackDto.getIdentifier() + " already exists");
             rackDto.setSuccess(false);
@@ -38,14 +39,25 @@ public class RackServiceImpl implements RackService {
     }
 
     @Override
-    public List<RackDto> findAll(Pageable pageable) {
+    public WsDto<RackDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(rackRepository.findAll(), listType);
+            List<RackDto> rackDtoList = modelMapper.map(rackRepository.findAll(), listType);
+            WsDto<RackDto> response = new WsDto<>();
+            response.setDtoList(rackDtoList);
+            response.setTotalRecords(rackDtoList.size());
+            return response;
         }
         Page<Rack> rackPage = rackRepository.findAll(pageable);
-        return modelMapper.map(rackPage.getContent(), listType);
+        List<RackDto> rackDtoList = modelMapper.map(rackPage.getContent(), listType);
+        WsDto<RackDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(rackDtoList);
+        wsDto.setPage(rackPage.getNumber());
+        wsDto.setSizePerPage(rackPage.getSize());
+        wsDto.setTotalPages(rackPage.getTotalPages());
+        wsDto.setTotalRecords(rackPage.getTotalElements());
+        return wsDto;
     }
 
     @Override
@@ -90,10 +102,7 @@ public class RackServiceImpl implements RackService {
     public List<RackDto> findActiveRacks() {
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
-        return modelMapper.map(
-                rackRepository.findByStatusTrue(),
-                listType
-        );
+        return modelMapper.map(rackRepository.findByStatusTrue(), listType);
     }
 
 }

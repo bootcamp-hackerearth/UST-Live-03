@@ -1,6 +1,7 @@
 package com.ust.pos.product.service.impl;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -25,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto save(ProductDto productDto) {
-        Product existingProduct = productRepository.findByIdentifier(productDto.getIdentifier());
+        Product existingProduct = productRepository.findByIdentifier(productDto.getIdentifier().trim());
         if (existingProduct != null) {
             productDto.setMessage("Stock with identifier - " + productDto.getIdentifier() + " already exists");
             productDto.setSuccess(false);
@@ -37,14 +38,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
+    public WsDto<ProductDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(productRepository.findAll(), listType);
+            List<ProductDto> productDtoList = modelMapper.map(productRepository.findAll(), listType);
+            WsDto<ProductDto> response = new WsDto<>();
+            response.setDtoList(productDtoList);
+            response.setTotalRecords(productDtoList.size());
+            return response;
         }
         Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listType);
+        List<ProductDto> productDtoList = modelMapper.map(productPage.getContent(), listType);
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(productDtoList);
+        wsDto.setPage(productPage.getNumber());
+        wsDto.setSizePerPage(productPage.getSize());
+        wsDto.setTotalPages(productPage.getTotalPages());
+        wsDto.setTotalRecords(productPage.getTotalElements());
+        return wsDto;
     }
 
     @Override

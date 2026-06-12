@@ -1,6 +1,7 @@
 package com.ust.pos.warehouse.service.impl;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -26,7 +27,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public WarehouseDto save(WarehouseDto warehouseDto) {
-        Warehouse existingWarehouse = warehouseRepository.findByIdentifier(warehouseDto.getIdentifier());
+        Warehouse existingWarehouse = warehouseRepository.findByIdentifier(warehouseDto.getIdentifier().trim());
         if (existingWarehouse != null) {
             warehouseDto.setMessage("Warehouse with identifier - " + warehouseDto.getIdentifier() + " already exists");
             warehouseDto.setSuccess(false);
@@ -38,14 +39,25 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
+    public WsDto<WarehouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(warehouseRepository.findAll(), listType);
+            List<WarehouseDto> warehouseDtoList = modelMapper.map(warehouseRepository.findAll(), listType);
+            WsDto<WarehouseDto> response = new WsDto<>();
+            response.setDtoList(warehouseDtoList);
+            response.setTotalRecords(warehouseDtoList.size());
+            return response;
         }
         Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+        List<WarehouseDto> warehouseDtoList = modelMapper.map(warehousePage.getContent(), listType);
+        WsDto<WarehouseDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(warehouseDtoList);
+        wsDto.setPage(warehousePage.getNumber());
+        wsDto.setSizePerPage(warehousePage.getSize());
+        wsDto.setTotalPages(warehousePage.getTotalPages());
+        wsDto.setTotalRecords(warehousePage.getTotalElements());
+        return wsDto;
     }
 
     @Override

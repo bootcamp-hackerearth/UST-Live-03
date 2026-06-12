@@ -1,6 +1,9 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Model;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.modelmodule.service.impl.ModelServiceImpl;
@@ -37,6 +40,7 @@ public class ModelServiceTest {
         modelDto.setIdentifier("Jordan");
 
         Model model = new Model();
+
         Mockito.when(modelMapper.map(modelDto, Model.class)).thenReturn(model);
         Mockito.when(modelRepository.save(model)).thenReturn(model);
 
@@ -47,6 +51,7 @@ public class ModelServiceTest {
 
     @Test
     void findAllWithPageableTest() {
+
         Model model = new Model();
         model.setIdentifier("Jordan");
 
@@ -59,18 +64,13 @@ public class ModelServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Model> modelPage = new PageImpl<>(models);
 
-        Mockito.when(modelRepository.findAll(pageable))
-                .thenReturn(modelPage);
+        Mockito.when(modelRepository.findAll(pageable)).thenReturn(modelPage);
+        Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(Type.class))).thenReturn(dtos);
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(models),
-                Mockito.any(Type.class)
-        )).thenReturn(dtos);
+        WsDto<ModelDto> response = modelService.findAll(pageable);
 
-        List<ModelDto> response = modelService.findAll(pageable);
-
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Jordan", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Jordan", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -84,17 +84,13 @@ public class ModelServiceTest {
         List<Model> models = List.of(model);
         List<ModelDto> dtos = List.of(dto);
 
-        Mockito.when(modelRepository.findAll())
-                .thenReturn(models);
+        Mockito.when(modelRepository.findAll()).thenReturn(models);
+        Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(Type.class))).thenReturn(dtos);
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(models),
-                Mockito.any(Type.class)
-        )).thenReturn(dtos);
+        WsDto<ModelDto> response = modelService.findAll(null);
 
-        List<ModelDto> response = modelService.findAll(null);
-
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Jordan", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -122,7 +118,9 @@ public class ModelServiceTest {
         model.setIdentifier("Jordan");
 
         Mockito.when(modelRepository.findByIdentifier(modelDto.getIdentifier())).thenReturn(null);
+
         ModelDto response = modelService.update(modelDto);
+
         Assertions.assertFalse(response.isSuccess());
     }
 
@@ -138,6 +136,7 @@ public class ModelServiceTest {
         Mockito.when(modelMapper.map(model, ModelDto.class)).thenReturn(modelDto);
 
         ModelDto response = modelService.findByIdentifier("Jordan");
+
         Assertions.assertEquals("Jordan", response.getIdentifier());
     }
 
@@ -154,22 +153,19 @@ public class ModelServiceTest {
         model.setIdentifier("Jordan");
         model.setStatus(false);
 
-        Mockito.when(modelRepository.findByIdentifier("Jordan"))
-                .thenReturn(model);
+        Mockito.when(modelRepository.findByIdentifier("Jordan")).thenReturn(model);
 
         ModelDto response = modelService.toggleStatus("Jordan", true);
 
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("Status updated successfully", response.getMessage());
 
-        Mockito.verify(modelRepository, Mockito.never())
-                .save(Mockito.any());
+        Mockito.verify(modelRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
     void toggleStatusFailureTest() {
-        Mockito.when(modelRepository.findByIdentifier("Jordan"))
-                .thenReturn(null);
+        Mockito.when(modelRepository.findByIdentifier("Jordan")).thenReturn(null);
 
         ModelDto response = modelService.toggleStatus("Jordan", true);
 

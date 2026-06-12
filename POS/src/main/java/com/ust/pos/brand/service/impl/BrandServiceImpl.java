@@ -2,6 +2,7 @@ package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import jakarta.transaction.Transactional;
@@ -26,7 +27,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public BrandDto save(BrandDto brandDto) {
-        Brand existingBrand = brandRepository.findByIdentifier(brandDto.getIdentifier());
+        Brand existingBrand = brandRepository.findByIdentifier(brandDto.getIdentifier().trim());
         if (existingBrand != null) {
             brandDto.setMessage("Brand with identifier - " + brandDto.getIdentifier() + " already exists");
             brandDto.setSuccess(false);
@@ -38,14 +39,25 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
+    public WsDto<BrandDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(brandRepository.findAll(), listType);
+            List<BrandDto> brandDtoList = modelMapper.map(brandRepository.findAll(), listType);
+            WsDto<BrandDto> response = new WsDto<>();
+            response.setDtoList(brandDtoList);
+            response.setTotalRecords(brandDtoList.size());
+            return response;
         }
         Page<Brand> brandPage = brandRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+        List<BrandDto> brandDtoList = modelMapper.map(brandPage.getContent(), listType);
+        WsDto<BrandDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(brandDtoList);
+        wsDto.setPage(brandPage.getNumber());
+        wsDto.setSizePerPage(brandPage.getSize());
+        wsDto.setTotalPages(brandPage.getTotalPages());
+        wsDto.setTotalRecords(brandPage.getTotalElements());
+        return wsDto;
     }
 
     @Override
@@ -86,15 +98,6 @@ public class BrandServiceImpl implements BrandService {
         response.setSuccess(true);
         response.setMessage("Status updated successfully");
         return response;
-    }
-
-    public List<BrandDto> findActiveBrands() {
-        Type listType = new TypeToken<List<BrandDto>>() {
-        }.getType();
-        return modelMapper.map(
-                brandRepository.findByStatusTrue(),
-                listType
-        );
     }
 
 }

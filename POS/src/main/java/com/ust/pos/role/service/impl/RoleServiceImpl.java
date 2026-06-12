@@ -1,6 +1,7 @@
 package com.ust.pos.role.service.impl;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -44,7 +45,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleDto save(RoleDto roleDto) {
-        String identifier = roleDto.getIdentifier();
+        String identifier = roleDto.getIdentifier().trim();
         Role existingRole = roleRepository.findByIdentifier(identifier);
         if (existingRole != null) {
             roleDto.setMessage("Role with identifier - " + identifier + " already exists");
@@ -63,14 +64,25 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleDto> findAll(Pageable pageable) {
+    public WsDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(roleRepository.findAll(), listType);
+            List<RoleDto> roleDtoList = modelMapper.map(roleRepository.findAll(), listType);
+            WsDto<RoleDto> response = new WsDto<>();
+            response.setDtoList(roleDtoList);
+            response.setTotalRecords(roleDtoList.size());
+            return response;
         }
         Page<Role> rolePage = roleRepository.findAll(pageable);
-        return modelMapper.map(rolePage.getContent(), listType);
+        List<RoleDto> roleDtoList = modelMapper.map(rolePage.getContent(), listType);
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(roleDtoList);
+        wsDto.setPage(rolePage.getNumber());
+        wsDto.setSizePerPage(rolePage.getSize());
+        wsDto.setTotalPages(rolePage.getTotalPages());
+        wsDto.setTotalRecords(rolePage.getTotalElements());
+        return wsDto;
     }
 
 }

@@ -2,6 +2,7 @@ package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import io.micrometer.common.util.StringUtils;
@@ -29,7 +30,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (StringUtils.isEmpty(categoryDto.getSuperCategory())) {
             categoryDto.setSuperCategory(null);
         }
-        Category existingCategory = categoryRepository.findByIdentifier(categoryDto.getIdentifier());
+        Category existingCategory = categoryRepository.findByIdentifier(categoryDto.getIdentifier().trim());
         if (existingCategory != null) {
             categoryDto.setMessage("Category with identifier - " + categoryDto.getIdentifier() + " already exists");
             categoryDto.setSuccess(false);
@@ -41,14 +42,25 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public WsDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(categoryRepository.findAll(), listType);
+            List<CategoryDto> categoryDtoList = modelMapper.map(categoryRepository.findAll(), listType);
+            WsDto<CategoryDto> response = new WsDto<>();
+            response.setDtoList(categoryDtoList);
+            response.setTotalRecords(categoryDtoList.size());
+            return response;
         }
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+        List<CategoryDto> categoryDtoList = modelMapper.map(categoryPage.getContent(), listType);
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(categoryDtoList);
+        wsDto.setPage(categoryPage.getNumber());
+        wsDto.setSizePerPage(categoryPage.getSize());
+        wsDto.setTotalPages(categoryPage.getTotalPages());
+        wsDto.setTotalRecords(categoryPage.getTotalElements());
+        return wsDto;
     }
 
     @Override

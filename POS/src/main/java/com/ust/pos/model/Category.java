@@ -8,6 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Category extends CommonFields {
+
     private String name;
     private String superCategory;
+
 }

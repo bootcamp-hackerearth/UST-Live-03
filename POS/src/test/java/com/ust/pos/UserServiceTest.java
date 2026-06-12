@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -59,6 +60,7 @@ public class UserServiceTest {
         User user = new User();
 
         Mockito.when(userRepository.findByUsername("lekhya@gmail.com")).thenReturn(user);
+
         UserDto response = userService.save(userDto);
 
         Assertions.assertFalse(response.isSuccess());
@@ -91,10 +93,8 @@ public class UserServiceTest {
         existingUser.setId(1L);
         existingUser.setUsername("logeshust@gmail.com");
 
-        Mockito.when(userRepository.findById(1L))
-                .thenReturn(Optional.of(existingUser));
-        Mockito.when(userRepository.save(existingUser))
-                .thenReturn(existingUser);
+        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        Mockito.when(userRepository.save(existingUser)).thenReturn(existingUser);
 
         UserDto response = userService.update(userDto);
 
@@ -107,8 +107,7 @@ public class UserServiceTest {
         userDto.setId(1L);
         userDto.setUsername("logeshust@gmail.com");
 
-        Mockito.when(userRepository.findById(1L))
-                .thenReturn(Optional.empty());
+        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         UserDto response = userService.update(userDto);
 
@@ -117,12 +116,11 @@ public class UserServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(userRepository)
-                .deleteByUsername("lekhya@gmail.com");
+        Mockito.doNothing().when(userRepository).deleteByIdentifier("lekhya@gmail.com");
 
         userService.delete("lekhya@gmail.com");
 
-        Mockito.verify(userRepository).deleteByUsername("lekhya@gmail.com");
+        Mockito.verify(userRepository).deleteByIdentifier("lekhya@gmail.com");
     }
 
     @Test
@@ -139,17 +137,13 @@ public class UserServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<User> userPage = new PageImpl<>(users);
 
-        Mockito.when(userRepository.findAll(pageable))
-                .thenReturn(userPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(users),
-                Mockito.any(Type.class)
-        )).thenReturn(dtos);
+        Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
+        Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(dtos);
 
-        List<UserDto> response = userService.findAll(pageable);
+        WsDto<UserDto> response = userService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("lekhya@gmail.com", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("lekhya@gmail.com", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -163,16 +157,13 @@ public class UserServiceTest {
         List<User> users = List.of(user);
         List<UserDto> dtos = List.of(dto);
 
-        Mockito.when(userRepository.findAll())
-                .thenReturn(users);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(users),
-                Mockito.any(Type.class)
-        )).thenReturn(dtos);
+        Mockito.when(userRepository.findAll()).thenReturn(users);
+        Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(dtos);
 
-        List<UserDto> response = userService.findAll(null);
+        WsDto<UserDto> response = userService.findAll(null);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("lekhya@gmail.com", response.getDtoList().get(0).getIdentifier());
     }
 
 }

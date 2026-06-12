@@ -1,14 +1,14 @@
 package com.ust.pos.modelmodule.service;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface ModelService {
+
     ModelDto save(ModelDto modelDto);
 
-    List<ModelDto> findAll(Pageable pageable);
+    WsDto<ModelDto> findAll(Pageable pageable);
 
     ModelDto findByIdentifier(String identifier);
 
@@ -17,4 +17,5 @@ public interface ModelService {
     ModelDto update(ModelDto modelDto);
 
     ModelDto toggleStatus(String identifier, boolean status);
+
 }

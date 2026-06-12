@@ -142,6 +142,8 @@
             <th>Quantity</th>
             <th>Status</th>
             <th>Expiry Date</th>
+            <th>Shelfs</th>
+            <th>Racks</th>
             <th>Action</th>
         </tr>
 
@@ -152,6 +154,8 @@
                 <td>${stock.product}</td>
                 <td>${stock.warehouse}</td>
                 <td>${stock.quantity}</td>
+                <td>${stock.shelf}</td>
+                <td>${stock.rack}</td>
 
                 <td class="text-center">
                     <div class="form-check form-switch">

@@ -58,6 +58,7 @@ public class NodeController extends BaseController {
     @PostMapping("/update")
     public String updatePost(Model model, @ModelAttribute NodeDto nodeDto) {
         nodeService.update(nodeDto);
+
         return REDIRECT_NODE_LIST;
     }
 

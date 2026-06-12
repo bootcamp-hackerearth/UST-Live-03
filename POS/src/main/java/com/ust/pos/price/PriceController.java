@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class PriceController extends BaseController {
 
     public static final String REDIRECT_PRICE_LIST = "redirect:/price/list";
+    public static final String PRODUCTS = "products";
 
     @Autowired
     PriceService priceService;
@@ -24,7 +25,7 @@ public class PriceController extends BaseController {
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute PriceDto priceDto) {
-        model.addAttribute("products", productService.findAll(null));
+        model.addAttribute(PRODUCTS, productService.findAll(null));
         return "price/add";
     }
 
@@ -33,6 +34,7 @@ public class PriceController extends BaseController {
         PriceDto response = priceService.save(priceDto);
         if (!response.isSuccess()) {
             model.addAttribute("prices", priceService.findAll(null));
+            model.addAttribute(PRODUCTS, productService.findAll(null));
             model.addAttribute("message", response.getMessage());
             return "price/add";
         }
@@ -50,7 +52,7 @@ public class PriceController extends BaseController {
     public String update(Model model, @RequestParam String identifier) {
         PriceDto response = priceService.findByIdentifier(identifier);
         model.addAttribute("price", response);
-        model.addAttribute("products", productService.findAll(null));
+        model.addAttribute(PRODUCTS, productService.findAll(null));
         return "price/price";
     }
 

@@ -118,7 +118,6 @@
     </c:if>
 
     <form method="post" action="${pageContext.request.contextPath}/unit/add">
-
         <input
             type="hidden"
             name="id"

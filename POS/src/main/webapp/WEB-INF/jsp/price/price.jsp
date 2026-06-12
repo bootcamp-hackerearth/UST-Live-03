@@ -131,8 +131,8 @@
                 <option value="">-- Select Product --</option>
 
                 <c:forEach items="${products}" var="prod">
-                    <option value="${prod.name}"
-                        <c:if test="${prod.name eq price.product}">
+                    <option value="${prod.identifier}"
+                        <c:if test="${prod.identifier eq price.product}">
                             selected
                         </c:if>
                     >
@@ -157,10 +157,6 @@
                         <option value="MRP"
                             ${price.type == 'MRP' ? 'selected' : ''}>
                             MRP
-                        </option>
-                        <option value="DISCOUNT"
-                            ${price.type == 'DISCOUNT' ? 'selected' : ''}>
-                            Discount
                         </option>
                     </select>
                 </div>

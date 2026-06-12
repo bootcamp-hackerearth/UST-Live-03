@@ -6,8 +6,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.product.service.ProductService;
-import com.ust.pos.rack.service.RackService;
-import com.ust.pos.shelf.service.ShelfService;
 import com.ust.pos.unit.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -20,8 +18,6 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController extends BaseController {
 
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
-    public static final String SHELFS = "shelfs";
-    public static final String RACKS = "racks";
 
     @Autowired
     ProductService productService;
@@ -30,19 +26,13 @@ public class ProductController extends BaseController {
     @Autowired
     BrandService brandService;
     @Autowired
-    RackService rackService;
-    @Autowired
-    ShelfService shelfService;
-    @Autowired
     UnitService unitService;
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ProductDto productDto) {
         model.addAttribute("categories", categoryService.findSubCategories());
-        model.addAttribute("brands", brandService.findActiveBrands());
-        model.addAttribute(SHELFS, shelfService.findActiveShelves());
-        model.addAttribute(RACKS, rackService.findActiveRacks());
-        model.addAttribute("units", unitService.findActiveUnits());
+        model.addAttribute("brands", brandService.findAll(null));
+        model.addAttribute("units", unitService.findAll(null));
         return "product/add";
     }
 
@@ -61,8 +51,6 @@ public class ProductController extends BaseController {
     public String home(Model model, @ModelAttribute PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         model.addAttribute("products", productService.findAll(pageable));
-        model.addAttribute(SHELFS, shelfService.findActiveShelves());
-        model.addAttribute(RACKS, rackService.findActiveRacks());
         return "product/list";
     }
 
@@ -71,10 +59,8 @@ public class ProductController extends BaseController {
         ProductDto response = productService.findByIdentifier(identifier);
         model.addAttribute("categories", categoryService.findSubCategories());
         model.addAttribute("product", response);
-        model.addAttribute("brands", brandService.findActiveBrands());
-        model.addAttribute(SHELFS, shelfService.findActiveShelves());
-        model.addAttribute(RACKS, rackService.findActiveRacks());
-        model.addAttribute("units", unitService.findActiveUnits());
+        model.addAttribute("brands", brandService.findAll(null));
+        model.addAttribute("units", unitService.findAll(null));
         return "product/product";
     }
 

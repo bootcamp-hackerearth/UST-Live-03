@@ -1,6 +1,9 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Product;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -46,7 +49,7 @@ public class ProductServiceTest {
         ProductDto response = productService.save(productDto);
 
         Assertions.assertEquals("Lays Chili", response.getIdentifier());
-        Assertions.assertEquals(true, response.isSuccess());
+        Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
@@ -56,12 +59,12 @@ public class ProductServiceTest {
         Product product = new Product();
 
         Mockito.when(productRepository.findByIdentifier("Lays Chili")).thenReturn(product);
+
         ProductDto response = productService.save(productDto);
 
         Assertions.assertEquals("Lays Chili", response.getIdentifier());
         Assertions.assertNotNull(response.getMessage(), "Message cannot be null");
-
-        Assertions.assertEquals(false, response.isSuccess());
+        Assertions.assertFalse(response.isSuccess());
     }
 
     @Test
@@ -88,10 +91,8 @@ public class ProductServiceTest {
         Product existingProduct = new Product();
         existingProduct.setIdentifier("Lays Chili");
 
-        Mockito.when(productRepository.findByIdentifier("Lays Chili"))
-                .thenReturn(existingProduct);
-        Mockito.when(productRepository.save(existingProduct))
-                .thenReturn(existingProduct);
+        Mockito.when(productRepository.findByIdentifier("Lays Chili")).thenReturn(existingProduct);
+        Mockito.when(productRepository.save(existingProduct)).thenReturn(existingProduct);
 
         ProductDto response = productService.update(productDto);
 
@@ -103,8 +104,7 @@ public class ProductServiceTest {
         ProductDto productDto = new ProductDto();
         productDto.setIdentifier("Lays Chili");
 
-        Mockito.when(productRepository.findByIdentifier("Lays Chili"))
-                .thenReturn(null);
+        Mockito.when(productRepository.findByIdentifier("Lays Chili")).thenReturn(null);
 
         ProductDto response = productService.update(productDto);
 
@@ -113,8 +113,7 @@ public class ProductServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(productRepository)
-                .deleteByIdentifier("Lays Chili");
+        Mockito.doNothing().when(productRepository).deleteByIdentifier("Lays Chili");
 
         productService.deleteByIdentifier("Lays Chili");
 
@@ -126,26 +125,23 @@ public class ProductServiceTest {
         Product product = new Product();
         product.setIdentifier("Lays Chili");
 
-        ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("Lays Chili");
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("Lays Chili");
 
         List<Product> products = List.of(product);
-        List<ProductDto> productDtos = List.of(productDto);
+        List<ProductDto> dtos = List.of(dto);
 
         Pageable pageable = PageRequest.of(0, 5);
         Page<Product> productPage = new PageImpl<>(products);
 
-        Mockito.when(productRepository.findAll(pageable))
-                .thenReturn(productPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(products),
-                Mockito.any(Type.class)
-        )).thenReturn(productDtos);
+        Mockito.when(productRepository.findAll(pageable)).thenReturn(productPage);
 
-        List<ProductDto> response = productService.findAll(pageable);
+        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(Type.class))).thenReturn(dtos);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Lays Chili", response.get(0).getIdentifier());
+        WsDto<ProductDto> response = productService.findAll(pageable);
+
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Lays Chili", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -153,22 +149,21 @@ public class ProductServiceTest {
         Product product = new Product();
         product.setIdentifier("Lays Chili");
 
-        ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("Lays Chili");
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("Lays Chili");
 
         List<Product> products = List.of(product);
-        List<ProductDto> productDtos = List.of(productDto);
+        List<ProductDto> dtos = List.of(dto);
 
-        Mockito.when(productRepository.findAll())
-                .thenReturn(products);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(products),
-                Mockito.any(Type.class)
-        )).thenReturn(productDtos);
+        Mockito.when(productRepository.findAll()).thenReturn(products);
 
-        List<ProductDto> response = productService.findAll(null);
+        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(Type.class))).thenReturn(dtos);
 
-        Assertions.assertEquals(1, response.size());
+        WsDto<ProductDto> response = productService.findAll(null);
+
+        Assertions.assertEquals(1, response.getDtoList().size());
+
+        Assertions.assertEquals("Lays Chili", response.getDtoList().get(0).getIdentifier());
     }
 
 }

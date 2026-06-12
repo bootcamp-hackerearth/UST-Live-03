@@ -185,6 +185,53 @@
                 required
             />
         </div>
+        <div class="form-group">
+                    <label>Shelf</label>
+
+                    <div class="checkbox-group">
+                        <c:forEach items="${shelfs}" var="s">
+                            <div class="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    id="shelf_${s.name}"
+                                    name="shelf"
+                                    value="${s.name}"
+                                    <c:if test="${fn:contains(stock.shelf, s.name)}">
+                                        checked
+                                    </c:if>
+                                />
+
+                                <label for="shelf_${s.name}">
+                                    ${s.name}
+                                </label>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Rack</label>
+
+                    <div class="checkbox-group">
+                        <c:forEach items="${racks}" var="r">
+                            <div class="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    id="rack_${r.name}"
+                                    name="rack"
+                                    value="${r.name}"
+                                    <c:if test="${fn:contains(stock.rack, r.name)}">
+                                        checked
+                                    </c:if>
+                                />
+
+                                <label for="rack_${r.name}">
+                                    ${r.name}
+                                </label>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
 
         <div class="form-group">
             <label>Expiry Date</label>
@@ -195,12 +242,11 @@
                 required
             />
         </div>
-
-                <input
-                    type="hidden"
-                    name="status"
-                    value="${stock.status}"
-                />
+            <input
+                type="hidden"
+                name="status"
+                value="${stock.status}"
+            />
 
         <div class="btn-group">
             <button type="submit" class="btn">

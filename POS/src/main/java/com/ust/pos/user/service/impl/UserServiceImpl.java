@@ -1,6 +1,7 @@
 package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -46,11 +47,13 @@ public class UserServiceImpl implements UserService {
         }
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setIdentifier(userDto.getUsername());
         userRepository.save(user);
         return userDto;
     }
 
     @Override
+
     public UserDto update(UserDto userDto) {
         String username = userDto.getUsername();
         Optional<User> userOptional = userRepository.findById(userDto.getId());
@@ -61,7 +64,6 @@ public class UserServiceImpl implements UserService {
         } else {
             User existingUser = userOptional.get();
             if (!username.equalsIgnoreCase(existingUser.getUsername()) && userRepository.findByUsername(username) != null) {
-
                 userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
                 userDto.setSuccess(false);
                 return userDto;
@@ -73,19 +75,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(String username) {
-        userRepository.deleteByUsername(username);
+    public void delete(String identifier) {
+        userRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
+    public WsDto<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(userRepository.findAll(), listType);
+            List<UserDto> userDtoList = modelMapper.map(userRepository.findAll(), listType);
+            WsDto<UserDto> response = new WsDto<>();
+            response.setDtoList(userDtoList);
+            response.setTotalRecords(userDtoList.size());
+            return response;
         }
         Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listType);
+        List<UserDto> userDtoList = modelMapper.map(userPage.getContent(), listType);
+        WsDto<UserDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(userDtoList);
+        wsDto.setPage(userPage.getNumber());
+        wsDto.setSizePerPage(userPage.getSize());
+        wsDto.setTotalPages(userPage.getTotalPages());
+        wsDto.setTotalRecords(userPage.getTotalElements());
+        return wsDto;
     }
 
 }

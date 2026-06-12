@@ -4,6 +4,7 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import jakarta.transaction.Transactional;
@@ -94,11 +95,25 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
+        if (pageable == null) {
+            List<CustomerDto> customerDtoList = modelMapper.map(customerRepository.findAll(), listType);
+            WsDto<CustomerDto> response = new WsDto<>();
+            response.setDtoList(customerDtoList);
+            response.setTotalRecords(customerDtoList.size());
+            return response;
+        }
         Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        List<CustomerDto> customerDtoList = modelMapper.map(customerPage.getContent(), listType);
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(customerDtoList);
+        wsDto.setPage(customerPage.getNumber());
+        wsDto.setSizePerPage(customerPage.getSize());
+        wsDto.setTotalPages(customerPage.getTotalPages());
+        wsDto.setTotalRecords(customerPage.getTotalElements());
+        return wsDto;
     }
 
     @Override

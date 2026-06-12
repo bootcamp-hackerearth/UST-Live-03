@@ -1,10 +1,8 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -61,7 +59,7 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public NodeDto save(NodeDto nodeDto) {
-        String identifier = nodeDto.getIdentifier();
+        String identifier = nodeDto.getIdentifier().trim();
         Node existingRole = nodeRepository.findByIdentifier(identifier);
         if (existingRole != null) {
             nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
@@ -99,14 +97,25 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
+    public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(nodeRepository.findAll(), listType);
+            List<NodeDto> nodeDtoList = modelMapper.map(nodeRepository.findAll(), listType);
+            WsDto<NodeDto> response = new WsDto<>();
+            response.setDtoList(nodeDtoList);
+            response.setTotalRecords(nodeDtoList.size());
+            return response;
         }
         Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listType);
+        List<NodeDto> nodeDtoList = modelMapper.map(nodePage.getContent(), listType);
+        WsDto<NodeDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(nodeDtoList);
+        wsDto.setPage(nodePage.getNumber());
+        wsDto.setSizePerPage(nodePage.getSize());
+        wsDto.setTotalPages(nodePage.getTotalPages());
+        wsDto.setTotalRecords(nodePage.getTotalElements());
+        return wsDto;
     }
 
 }

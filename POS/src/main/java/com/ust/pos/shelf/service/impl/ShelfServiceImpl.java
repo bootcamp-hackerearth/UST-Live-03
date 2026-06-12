@@ -1,6 +1,7 @@
 package com.ust.pos.shelf.service.impl;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
@@ -26,7 +27,7 @@ public class ShelfServiceImpl implements ShelfService {
 
     @Override
     public ShelfDto save(ShelfDto shelfDto) {
-        Shelf existingShelf = shelfRepository.findByIdentifier(shelfDto.getIdentifier());
+        Shelf existingShelf = shelfRepository.findByIdentifier(shelfDto.getIdentifier().trim());
         if (existingShelf != null) {
             shelfDto.setMessage("Shelf with identifier - " + shelfDto.getIdentifier() + " already exists");
             shelfDto.setSuccess(false);
@@ -38,14 +39,25 @@ public class ShelfServiceImpl implements ShelfService {
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
+    public WsDto<ShelfDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(shelfRepository.findAll(), listType);
+            List<ShelfDto> shelfDtoList = modelMapper.map(shelfRepository.findAll(), listType);
+            WsDto<ShelfDto> response = new WsDto<>();
+            response.setDtoList(shelfDtoList);
+            response.setTotalRecords(shelfDtoList.size());
+            return response;
         }
         Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
-        return modelMapper.map(shelfPage.getContent(), listType);
+        List<ShelfDto> shelfDtoList = modelMapper.map(shelfPage.getContent(), listType);
+        WsDto<ShelfDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(shelfDtoList);
+        wsDto.setPage(shelfPage.getNumber());
+        wsDto.setSizePerPage(shelfPage.getSize());
+        wsDto.setTotalPages(shelfPage.getTotalPages());
+        wsDto.setTotalRecords(shelfPage.getTotalElements());
+        return wsDto;
     }
 
     @Override
@@ -90,10 +102,7 @@ public class ShelfServiceImpl implements ShelfService {
     public List<ShelfDto> findActiveShelves() {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        return modelMapper.map(
-                shelfRepository.findByStatusTrue(),
-                listType
-        );
+        return modelMapper.map(shelfRepository.findByStatusTrue(), listType);
     }
 
 }

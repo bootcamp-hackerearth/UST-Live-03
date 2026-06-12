@@ -1,6 +1,9 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Unit;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -46,7 +49,7 @@ public class UnitServiceTest {
         UnitDto response = unitService.save(unitDto);
 
         Assertions.assertEquals("kg", response.getIdentifier());
-        Assertions.assertEquals(true, response.isSuccess());
+        Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
@@ -62,7 +65,7 @@ public class UnitServiceTest {
 
         Assertions.assertEquals("kg", response.getIdentifier());
         Assertions.assertNotNull(response.getMessage(), "Message cannot be null");
-        Assertions.assertEquals(false, response.isSuccess());
+        Assertions.assertFalse(response.isSuccess());
     }
 
     @Test
@@ -74,22 +77,18 @@ public class UnitServiceTest {
         dto.setIdentifier("kg");
 
         List<Unit> units = List.of(unit);
-        List<UnitDto> unitDtos = List.of(dto);
+        List<UnitDto> dtos = List.of(dto);
 
         Pageable pageable = PageRequest.of(0, 5);
         Page<Unit> unitPage = new PageImpl<>(units);
 
-        Mockito.when(unitRepository.findAll(pageable))
-                .thenReturn(unitPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(units),
-                Mockito.any(Type.class)
-        )).thenReturn(unitDtos);
+        Mockito.when(unitRepository.findAll(pageable)).thenReturn(unitPage);
+        Mockito.when(modelMapper.map(Mockito.eq(units), Mockito.any(Type.class))).thenReturn(dtos);
 
-        List<UnitDto> response = unitService.findAll(pageable);
+        WsDto<UnitDto> response = unitService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("kg", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("kg", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -97,23 +96,19 @@ public class UnitServiceTest {
         Unit unit = new Unit();
         unit.setIdentifier("kg");
 
-        UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("kg");
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("kg");
 
         List<Unit> units = List.of(unit);
-        List<UnitDto> unitDtos = List.of(unitDto);
+        List<UnitDto> dtos = List.of(dto);
 
-        Mockito.when(unitRepository.findAll())
-                .thenReturn(units);
+        Mockito.when(unitRepository.findAll()).thenReturn(units);
+        Mockito.when(modelMapper.map(Mockito.eq(units), Mockito.any(Type.class))).thenReturn(dtos);
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(units),
-                Mockito.any(Type.class)
-        )).thenReturn(unitDtos);
+        WsDto<UnitDto> response = unitService.findAll(null);
 
-        List<UnitDto> response = unitService.findAll(null);
-
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("kg", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
@@ -176,23 +171,19 @@ public class UnitServiceTest {
         unit.setIdentifier("kg");
         unit.setStatus(false);
 
-        Mockito.when(unitRepository.findByIdentifier("kg"))
-                .thenReturn(unit);
+        Mockito.when(unitRepository.findByIdentifier("kg")).thenReturn(unit);
 
         UnitDto response = unitService.toggleStatus("kg", true);
 
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("Status updated successfully", response.getMessage());
 
-        Mockito.verify(unitRepository, Mockito.never())
-                .save(Mockito.any());
+        Mockito.verify(unitRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
     void toggleStatusFailureTest() {
-
-        Mockito.when(unitRepository.findByIdentifier("kg"))
-                .thenReturn(null);
+        Mockito.when(unitRepository.findByIdentifier("kg")).thenReturn(null);
 
         UnitDto response = unitService.toggleStatus("kg", true);
 

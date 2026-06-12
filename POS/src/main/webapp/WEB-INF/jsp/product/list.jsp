@@ -125,8 +125,6 @@
             <th>Brand</th>
             <th>Category</th>
             <th>Description</th>
-            <th>Shelfs</th>
-            <th>Racks</th>
             <th>Action</th>
         </tr>
 
@@ -139,8 +137,6 @@
                 <td>${product.brand}</td>
                 <td>${product.category}</td>
                 <td>${product.description}</td>
-                <td>${product.shelf}</td>
-                <td>${product.rack}</td>
 
                 <td class="action-cell">
                     <a href="${pageContext.request.contextPath}/product/get?identifier=${product.identifier}"
