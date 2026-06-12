@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
@@ -143,10 +144,18 @@ class RoleServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(roleDtos);
 
-        List<RoleDto> response = roleService.findAll(pageable);
+        PaginationResponseDto<RoleDto> response =
+                roleService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Admin",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -169,9 +178,18 @@ class RoleServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(roleDtos);
 
-        List<RoleDto> response = roleService.findAll(null);
+        PaginationResponseDto<RoleDto> response =
+                roleService.findAll(null);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Admin",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test

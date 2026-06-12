@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
@@ -55,10 +56,14 @@ class UnitServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(unitDtos);
 
-        List<UnitDto> response = unitService.findAll(pageable);
+        PaginationResponseDto<UnitDto> response =
+                unitService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("U1", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(
+                "U1",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -81,9 +86,14 @@ class UnitServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(unitDtos);
 
-        List<UnitDto> response = unitService.findAll(null);
+        PaginationResponseDto<UnitDto> response =
+                unitService.findAll(null);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(
+                "U1",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -140,18 +150,16 @@ class UnitServiceTest {
         UnitDto dto = new UnitDto();
         dto.setIdentifier("U1");
 
-        Unit existingUnit = new Unit();
+        Unit unit = new Unit();
 
-        Mockito.when(unitRepository.findByIdentifier("U1"))
-                .thenReturn(existingUnit);
+        Mockito.when(unitRepository.findByIdentifier("U1")).thenReturn(unit);
 
-        Mockito.when(unitRepository.save(existingUnit))
-                .thenReturn(existingUnit);
+        Mockito.doNothing().when(modelMapper).map(dto, unit);
 
         UnitDto response = unitService.update(dto);
 
-        Mockito.verify(modelMapper).map(dto, existingUnit);
-        Mockito.verify(unitRepository).save(existingUnit);
+        Mockito.verify(unitRepository).save(unit);
+        Mockito.verify(modelMapper).map(dto, unit);
 
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("Unit updated successfully", response.getMessage());

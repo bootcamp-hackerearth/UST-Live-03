@@ -222,10 +222,9 @@
             transform: translateX(-50%) translateY(20px);
             transition: all 0.4s ease;
         }
+
     </style>
-
 </head>
-
 <body>
 <div class="blob blob1"></div>
 <div class="blob blob2"></div>
@@ -248,6 +247,7 @@
 
             <div class="container-fluid p-0">
 
+                <!-- ROW 1 -->
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="name" class="form-label fw-semibold">Customer Name</label>
@@ -265,6 +265,7 @@
                     </div>
                 </div>
 
+                <!-- ROW 2 -->
                 <div class="row g-3 mt-1">
                     <div class="col-md-6">
                         <label for="partyType" class="form-label fw-semibold">Party Type</label>
@@ -290,6 +291,7 @@
                     </div>
                 </div>
 
+                <!-- ROW 3 -->
                 <div class="row g-3 mt-1">
                     <div class="col-md-6">
                         <label for="email" class="form-label fw-semibold">Email</label>
@@ -307,9 +309,11 @@
                     </div>
                 </div>
 
+                <!-- BILLING ADDRESS -->
                 <div class="mt-4">
                     <h6 class="fw-bold text-danger mb-3">– Billing Address</h6>
 
+                    <!-- ROW 1 -->
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="billingAddressLine" class="form-label">Address Line 1</label>
@@ -326,6 +330,7 @@
                         </div>
                     </div>
 
+                    <!-- ROW 2 -->
                     <div class="row g-3 mt-1">
                         <div class="col-md-6">
                             <label for="billingState" class="form-label">State</label>
@@ -342,6 +347,7 @@
                         </div>
                     </div>
 
+                    <!-- ROW 3 -->
                     <div class="row g-3 mt-1">
                         <div class="col-md-6">
                             <label for="billingCountry" class="form-label">Country</label>
@@ -352,9 +358,11 @@
                     </div>
                 </div>
 
+                <!-- SHIPPING ADDRESS -->
                 <div class="mt-4">
                     <h6 class="fw-bold text-danger mb-3">– Shipping Address</h6>
 
+                    <!-- ROW 1 -->
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="shippingAddressLine" class="form-label">Address Line 1</label>
@@ -371,6 +379,7 @@
                         </div>
                     </div>
 
+                    <!-- ROW 2 -->
                     <div class="row g-3 mt-1">
                         <div class="col-md-6">
                             <label for="shippingState" class="form-label">State</label>
@@ -387,6 +396,7 @@
                         </div>
                     </div>
 
+                    <!-- ROW 3 -->
                     <div class="row g-3 mt-1">
                         <div class="col-md-6">
                             <label for="shippingCountry" class="form-label">Country</label>
@@ -397,6 +407,7 @@
                     </div>
                 </div>
 
+                <!-- SUBMIT -->
                 <div class="mt-4">
                     <button type="submit" class="btn-primary-custom">
                         Add Customer

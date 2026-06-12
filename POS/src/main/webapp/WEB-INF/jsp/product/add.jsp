@@ -267,6 +267,7 @@
 </head>
 <body>
 
+<!-- BACKGROUND BLOBS -->
 <div class="blob blob1"></div>
 <div class="blob blob2"></div>
 
@@ -288,6 +289,7 @@
 
             <div class="form-grid">
 
+            <!-- IDENTIFIER -->
             <div class="mb-3">
                 <label for="identifier" class="form-label fw-semibold">
                     Product Identifier

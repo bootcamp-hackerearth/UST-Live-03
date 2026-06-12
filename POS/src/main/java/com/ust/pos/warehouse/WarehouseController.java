@@ -20,7 +20,6 @@ public class WarehouseController extends BaseController {
     private static final String WAREHOUSE_VIEW = "warehouse/warehouse";
     private static final String REDIRECT_WAREHOUSE_ADD = "redirect:/warehouse/add";
     private static final String REDIRECT_WAREHOUSE_LIST = "redirect:/warehouse/list";
-
     @Autowired
     private WarehouseService warehouseService;
 

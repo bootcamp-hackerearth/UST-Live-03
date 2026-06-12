@@ -3,10 +3,7 @@ package com.ust.pos.user;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/user")
 public class UserController {
-
-    private static final String USER_LIST = "user/list";
-    private static final String USER_VIEW = "user/user";
-    private static final String REDIRECT_USER_LIST = "redirect:/user/list";
-    private static final String REDIRECT_USER_LOGIN = "redirect:/login";
 
     @Autowired
     private UserService userService;
@@ -29,7 +21,7 @@ public class UserController {
     @GetMapping("/list")
     public String home(Model model) {
         model.addAttribute("users", userService.findAll(null));
-        return USER_LIST;
+        return "user/list";
     }
 
     @GetMapping("/get")
@@ -37,7 +29,7 @@ public class UserController {
         UserDto response = userService.findByUserName(username);
         model.addAttribute("userDto", response);
         model.addAttribute("roles", roleService.findAll(null));
-        return USER_VIEW;
+        return "user/user";
     }
 
     @PostMapping("/update")
@@ -46,20 +38,12 @@ public class UserController {
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
         }
-        return REDIRECT_USER_LIST;
+        return "redirect:/user/list";
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String username) {
-        @Nullable Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            String loggedInUser = authentication.getName();
-            userService.delete(username);
-            if (loggedInUser.equals(username)) {
-                SecurityContextHolder.clearContext();
-                return REDIRECT_USER_LOGIN;
-            }
-        }
-        return REDIRECT_USER_LIST;
+    public String delete(@ModelAttribute UserDto userDto, Model model, @RequestParam String username) {
+        userService.delete(username);
+        return "redirect:/user/list";
     }
 }

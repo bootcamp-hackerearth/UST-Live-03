@@ -268,6 +268,7 @@
                     <form:option value="" label="-- Select Price Type --"/>
                     <form:option value="Mrp" label="MRP"/>
                     <form:option value="Selling" label="Selling Price"/>
+                    <form:option value="Discount" label="Discount Price"/>
                 </form:select>
             </div>
 

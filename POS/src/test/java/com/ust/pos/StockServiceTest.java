@@ -1,7 +1,6 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
-import com.ust.pos.model.ProductRepository;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -20,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class StockServiceTest {
@@ -30,9 +28,6 @@ class StockServiceTest {
 
     @Mock
     private StockRepository stockRepository;
-
-    @Mock
-    private ProductRepository productRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -93,18 +88,12 @@ class StockServiceTest {
     @Test
     void save_success() {
         StockDto request = new StockDto();
-        request.setProduct("P1");
-        request.setWarehouse("W1");
+        request.setIdentifier("STK1");
 
         Stock stock = new Stock();
         Stock savedStock = new Stock();
+
         StockDto mappedResponse = new StockDto();
-
-        Mockito.when(productRepository.existsByIdentifier(Mockito.any()))
-                .thenReturn(true);
-
-        Mockito.when(stockRepository.findByIdentifier(Mockito.any()))
-                .thenReturn(null);
 
         Mockito.when(modelMapper.map(request, Stock.class))
                 .thenReturn(stock);
@@ -118,30 +107,40 @@ class StockServiceTest {
         StockDto response = stockService.save(request);
 
         Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Successfully added the stock", response.getMessage());
+
+        Mockito.verify(stockRepository).save(stock);
+        Mockito.verify(modelMapper).map(request, Stock.class);
+        Mockito.verify(modelMapper).map(savedStock, StockDto.class);
     }
 
     @Test
     void update_success() {
         StockDto dto = new StockDto();
         dto.setId(1L);
-        dto.setIdentifier("STK1");
 
         Stock existingStock = new Stock();
-        existingStock.setIdentifier("OLD");
+        existingStock.setId(1L);
+
+        Stock updatedStock = new Stock();
 
         Mockito.when(stockRepository.findById(1L))
-                .thenReturn(Optional.of(existingStock));
+                .thenReturn(java.util.Optional.of(existingStock));
 
-        Mockito.when(productRepository.findByIdentifier("STK1"))
-                .thenReturn(null);
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(dto, existingStock);
+
+        Mockito.when(stockRepository.save(existingStock))
+                .thenReturn(updatedStock);
+
+        Mockito.when(modelMapper.map(updatedStock, StockDto.class))
+                .thenReturn(new StockDto());
 
         StockDto response = stockService.update(dto);
 
-        Mockito.verify(modelMapper).map(dto, existingStock);
-        Mockito.verify(stockRepository).save(existingStock);
-
         Assertions.assertTrue(response.isSuccess());
-        Assertions.assertEquals("Stock successfully edited", response.getMessage());
+        Assertions.assertEquals("Stock updated successfully", response.getMessage());
     }
 
     @Test
@@ -150,7 +149,7 @@ class StockServiceTest {
         StockDto dto = new StockDto();
 
         Mockito.when(stockRepository.findById(1L))
-                .thenReturn(Optional.of(stock));
+                .thenReturn(java.util.Optional.of(stock));
 
         Mockito.when(modelMapper.map(stock, StockDto.class))
                 .thenReturn(dto);
@@ -164,11 +163,11 @@ class StockServiceTest {
     void delete_success() {
         Mockito.doNothing()
                 .when(stockRepository)
-                .deleteByIdentifier("STK1");
+                .deleteById(1L);
 
-        stockService.delete("STK1");
+        stockService.delete(1L);
 
         Mockito.verify(stockRepository)
-                .deleteByIdentifier("STK1");
+                .deleteById(1L);
     }
 }

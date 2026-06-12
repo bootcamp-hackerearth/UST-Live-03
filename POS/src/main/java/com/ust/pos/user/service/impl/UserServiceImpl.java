@@ -1,5 +1,6 @@
 package com.ust.pos.user.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
@@ -36,6 +37,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto save(UserDto userDto) {
         String username = userDto.getUsername();
+        userDto.setIdentifier(username);
         User existingUser = userRepository.findByUsername(username);
         if (existingUser != null) {
             userDto.setMessage("Email " + userDto.getUsername() + " already exists");
@@ -82,13 +84,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> findAll(Pageable pageable) {
+    public PaginationResponseDto<UserDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
+
         if (pageable == null) {
-            return modelMapper.map(userRepository.findAll(), listType);
+
+            List<UserDto> userDtoList =
+                    modelMapper.map(
+                            userRepository.findAll(),
+                            listType
+                    );
+
+            PaginationResponseDto<UserDto> response =
+                    new PaginationResponseDto<>();
+
+            response.setDtoList(userDtoList);
+            response.setTotalRecords(userDtoList.size());
+
+            return response;
         }
+
         Page<User> userPage = userRepository.findAll(pageable);
-        return modelMapper.map(userPage.getContent(), listType);
+
+        List<UserDto> userDtoList =
+                modelMapper.map(
+                        userPage.getContent(),
+                        listType
+                );
+
+        PaginationResponseDto<UserDto> paginationResponseDto =
+                new PaginationResponseDto<>();
+
+        paginationResponseDto.setDtoList(userDtoList);
+        paginationResponseDto.setPage(userPage.getNumber());
+        paginationResponseDto.setSizePerPage(userPage.getSize());
+        paginationResponseDto.setTotalPages(userPage.getTotalPages());
+        paginationResponseDto.setTotalRecords(userPage.getTotalElements());
+
+        return paginationResponseDto;
     }
 }

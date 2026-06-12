@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.impl.ModelServiceImpl;
@@ -61,11 +62,15 @@ class ModelServiceTest {
                 any(Type.class)
         )).thenReturn(modelDtos);
 
-        List<ModelDto> result = modelService.findAll(pageable);
+        PaginationResponseDto<ModelDto> result =
+                modelService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("MODEL1", result.get(0).getIdentifier());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(
+                "MODEL1",
+                result.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -88,11 +93,15 @@ class ModelServiceTest {
                 any(Type.class)
         )).thenReturn(modelDtos);
 
-        List<ModelDto> result = modelService.findAll(null);
+        PaginationResponseDto<ModelDto> result =
+                modelService.findAll(null);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("CUST1", result.get(0).getIdentifier());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(
+                "CUST1",
+                result.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -160,18 +169,22 @@ class ModelServiceTest {
         ModelDto dto = new ModelDto();
         dto.setIdentifier("M1");
 
-        Model existingModel = new Model();
+        Model model = new Model();
 
         Mockito.when(modelRepository.findByIdentifier("M1"))
-                .thenReturn(existingModel);
+                .thenReturn(model);
 
-        Mockito.when(modelRepository.save(existingModel))
-                .thenReturn(existingModel);
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(dto, model);
+
+        Mockito.when(modelRepository.save(model))
+                .thenReturn(model);
 
         ModelDto result = modelService.update(dto);
 
-        Mockito.verify(modelMapper).map(dto, existingModel);
-        Mockito.verify(modelRepository).save(existingModel);
+        Mockito.verify(modelMapper).map(dto, model);
+        Mockito.verify(modelRepository).save(model);
 
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertEquals("Model updated successfully", result.getMessage());

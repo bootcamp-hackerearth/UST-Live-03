@@ -197,6 +197,7 @@
                             <td>${rack.id}</td>
                             <td>${rack.identifier}</td>
                             <td class="text-center">
+                            <td>
                                 <div class="form-check form-switch">
                                     <input
                                         class="form-check-input rack-toggle"

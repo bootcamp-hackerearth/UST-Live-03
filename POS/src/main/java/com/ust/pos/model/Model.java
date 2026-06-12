@@ -8,4 +8,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Model extends CommonFields {
+    private String name;
 }

@@ -202,11 +202,11 @@
                             <td>${price.priceType}</td>
                             <td>${price.value}</td>
                             <td class="d-flex justify-content-center gap-2">
-                                <a href="/price/get?identifier=${price.identifier}"
+                                <a href="/price/get?id=${price.id}"
                                    class="btn btn-primary btn-sm">
                                     Edit
                                 </a>
-                                <a href="/price/delete?identifier=${price.identifier}"
+                                <a href="/price/delete?id=${price.id}"
                                    class="btn btn-danger btn-sm"
                                    onclick="return confirm('Are you sure you want to delete this price?');">
                                     Delete

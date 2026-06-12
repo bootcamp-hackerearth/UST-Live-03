@@ -254,6 +254,22 @@
                             placeholder="Enter identifier" />
             </div>
 
+            <div class="rack-group">
+                    <span class="rack-label">SELECT RACK</span>
+
+                    <form:select path="rack" cssClass="form-control">
+
+                        <form:option value="" label="-- Select Rack --"/>
+
+                        <c:forEach var="rack" items="${racks}">
+                            <form:option value="${rack.identifier}">
+                                ${rack.identifier}
+                            </form:option>
+                        </c:forEach>
+
+                    </form:select>
+            </div>
+
             <button type="submit" class="btn-primary-custom">
                 Add Shelf
             </button>

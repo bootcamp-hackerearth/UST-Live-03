@@ -1,6 +1,7 @@
 package com.ust.pos.models.service.impl;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.ModelService;
@@ -25,14 +26,36 @@ public class ModelServiceImpl implements ModelService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<ModelDto> findAll(Pageable pageable) {
+    public PaginationResponseDto<ModelDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
         if (pageable == null) {
-            return modelMapper.map(modelRepository.findAll(), listType);
+
+            List<ModelDto> modelDtoList =
+                    modelMapper.map(
+                            modelRepository.findAll(),
+                            listType
+                    );
+
+            PaginationResponseDto<ModelDto> response =
+                    new PaginationResponseDto<>();
+
+            response.setDtoList(modelDtoList);
+            response.setTotalRecords(modelDtoList.size());
+
+            return response;
         }
         Page<Model> modelPage = modelRepository.findAll(pageable);
-        return modelMapper.map(modelPage.getContent(), listType);
+        List<ModelDto> modelDtoList = modelMapper.map(modelPage.getContent(), listType);
+
+        PaginationResponseDto<ModelDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelDtoList);
+        paginationResponseDto.setPage(modelPage.getNumber());
+        paginationResponseDto.setSizePerPage(modelPage.getSize());
+        paginationResponseDto.setTotalPages(modelPage.getTotalPages());
+        paginationResponseDto.setTotalRecords(modelPage.getTotalElements());
+
+        return paginationResponseDto;
     }
 
     @Override
@@ -49,7 +72,7 @@ public class ModelServiceImpl implements ModelService {
 
     @Override
     public ModelDto save(ModelDto modelDto) {
-        String identifier = modelDto.getIdentifier();
+        String identifier = modelDto.getIdentifier().trim();
         Model model = modelRepository.findByIdentifier(identifier);
         if (model == null) {
             modelRepository.save(modelMapper.map(modelDto, Model.class));

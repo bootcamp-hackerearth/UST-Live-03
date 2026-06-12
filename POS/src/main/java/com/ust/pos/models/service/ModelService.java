@@ -1,12 +1,13 @@
 package com.ust.pos.models.service;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface ModelService {
-    List<ModelDto> findAll(Pageable pageable);
+    PaginationResponseDto<ModelDto> findAll(Pageable pageable);
 
     List<ModelDto> findByStatusTrue();
 

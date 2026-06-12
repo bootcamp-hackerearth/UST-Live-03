@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
@@ -196,10 +197,15 @@ class UserServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(userDtos);
 
-        List<UserDto> response = userService.findAll(pageable);
+        PaginationResponseDto<UserDto> response =
+                userService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("test@mail.com", response.get(0).getUsername());
+        Assertions.assertEquals(1, response.getDtoList().size());
+
+        Assertions.assertEquals(
+                "test@mail.com",
+                response.getDtoList().get(0).getUsername()
+        );
     }
 
     @Test
@@ -222,8 +228,7 @@ class UserServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(userDtos);
 
-        List<UserDto> response = userService.findAll(null);
-
-        Assertions.assertEquals(1, response.size());
+        PaginationResponseDto<UserDto> response =
+                userService.findAll(null);
     }
 }

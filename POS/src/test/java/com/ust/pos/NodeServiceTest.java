@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -78,21 +79,19 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        Node existingNode = new Node();
+        Node node = new Node();
 
-        when(nodeRepository.findByIdentifier("N1"))
-                .thenReturn(existingNode);
+        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
 
-        when(nodeRepository.save(existingNode))
-                .thenReturn(existingNode);
+        doNothing().when(modelMapper).map(dto, node);
+
+        when(nodeRepository.save(node)).thenReturn(node);
 
         NodeDto response = nodeService.update(dto);
 
-        verify(modelMapper).map(dto, existingNode);
-        verify(nodeRepository).save(existingNode);
-
         assertTrue(response.isSuccess());
-        assertEquals("Node updated successfully", response.getMessage());
+        assertEquals("Node updated successfully.", response.getMessage());
+        verify(nodeRepository).save(node);
     }
 
     @Test
@@ -105,7 +104,7 @@ class NodeServiceTest {
         NodeDto response = nodeService.update(dto);
 
         assertFalse(response.isSuccess());
-        assertEquals("Node not found", response.getMessage());
+        assertEquals("Node not found.", response.getMessage());
         verify(nodeRepository, never()).save(any());
     }
 
@@ -154,11 +153,15 @@ class NodeServiceTest {
                 any(Type.class)
         )).thenReturn(nodeDtos);
 
-        List<NodeDto> result = nodeService.findAll(pageable);
+        PaginationResponseDto<NodeDto> result =
+                nodeService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("CUST1", result.get(0).getIdentifier());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(
+                "CUST1",
+                result.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -181,26 +184,36 @@ class NodeServiceTest {
                 any(Type.class)
         )).thenReturn(nodeDtos);
 
-        List<NodeDto> result = nodeService.findAll(null);
+        PaginationResponseDto<NodeDto> result =
+                nodeService.findAll(null);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("CUST1", result.get(0).getIdentifier());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(
+                "CUST1",
+                result.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
     void findAllWithPageable_emptyResult() {
+
         Pageable pageable = PageRequest.of(0, 5);
         Page<Node> emptyPage = Page.empty();
 
-        when(nodeRepository.findAll(pageable)).thenReturn(emptyPage);
-        when(modelMapper.map(eq(List.of()), any(Type.class)))
-                .thenReturn(List.of());
+        when(nodeRepository.findAll(pageable))
+                .thenReturn(emptyPage);
 
-        List<NodeDto> result = nodeService.findAll(pageable);
+        when(modelMapper.map(
+                eq(List.of()),
+                any(Type.class)
+        )).thenReturn(List.of());
+
+        PaginationResponseDto<NodeDto> result =
+                nodeService.findAll(pageable);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertTrue(result.getDtoList().isEmpty());
     }
 
     @Test

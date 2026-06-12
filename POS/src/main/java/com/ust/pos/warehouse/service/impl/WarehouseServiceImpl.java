@@ -1,6 +1,7 @@
 package com.ust.pos.warehouse.service.impl;
 
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -26,14 +27,49 @@ public class WarehouseServiceImpl implements WarehouseService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
+    public PaginationResponseDto<WarehouseDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
+
         if (pageable == null) {
-            return modelMapper.map(warehouseRepository.findAll(), listType);
+
+            List<WarehouseDto> warehouseDtoList =
+                    modelMapper.map(
+                            warehouseRepository.findAll(),
+                            listType
+                    );
+
+            PaginationResponseDto<WarehouseDto> response =
+                    new PaginationResponseDto<>();
+
+            response.setDtoList(warehouseDtoList);
+            response.setTotalRecords(warehouseDtoList.size());
+
+            return response;
         }
-        Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+
+        Page<Warehouse> warehousePage =
+                warehouseRepository.findAll(pageable);
+
+        List<WarehouseDto> warehouseDtoList =
+                modelMapper.map(
+                        warehousePage.getContent(),
+                        listType
+                );
+
+        PaginationResponseDto<WarehouseDto> paginationResponseDto =
+                new PaginationResponseDto<>();
+
+        paginationResponseDto.setDtoList(warehouseDtoList);
+        paginationResponseDto.setPage(warehousePage.getNumber());
+        paginationResponseDto.setSizePerPage(warehousePage.getSize());
+        paginationResponseDto.setTotalPages(warehousePage.getTotalPages());
+        paginationResponseDto.setTotalRecords(
+                warehousePage.getTotalElements()
+        );
+
+        return paginationResponseDto;
     }
 
     @Override
@@ -66,15 +102,15 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     public WarehouseDto update(WarehouseDto warehouseDto) {
         String identifier = warehouseDto.getIdentifier();
-        Warehouse exisitngWarehouse = warehouseRepository.findByIdentifier(identifier);
-        if (exisitngWarehouse == null) {
+        Warehouse existingWarehouse = warehouseRepository.findByIdentifier(identifier);
+        if (existingWarehouse == null) {
             warehouseDto.setMessage("Warehouse not found");
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
 
-        modelMapper.map(warehouseDto, exisitngWarehouse);
-        warehouseRepository.save(exisitngWarehouse);
+        modelMapper.map(warehouseDto, existingWarehouse);
+        warehouseRepository.save(existingWarehouse);
         warehouseDto.setMessage("Warehouse updated successfully");
         warehouseDto.setSuccess(true);
 

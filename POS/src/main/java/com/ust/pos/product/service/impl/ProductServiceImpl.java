@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -26,14 +27,49 @@ public class ProductServiceImpl implements ProductService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<ProductDto> findAll(Pageable pageable) {
+    public PaginationResponseDto<ProductDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
+
         if (pageable == null) {
-            return modelMapper.map(productRepository.findAll(), listType);
+
+            List<ProductDto> productDtoList =
+                    modelMapper.map(
+                            productRepository.findAll(),
+                            listType
+                    );
+
+            PaginationResponseDto<ProductDto> response =
+                    new PaginationResponseDto<>();
+
+            response.setDtoList(productDtoList);
+            response.setTotalRecords(productDtoList.size());
+
+            return response;
         }
-        Page<Product> productPage = productRepository.findAll(pageable);
-        return modelMapper.map(productPage.getContent(), listType);
+
+        Page<Product> productPage =
+                productRepository.findAll(pageable);
+
+        List<ProductDto> productDtoList =
+                modelMapper.map(
+                        productPage.getContent(),
+                        listType
+                );
+
+        PaginationResponseDto<ProductDto> paginationResponseDto =
+                new PaginationResponseDto<>();
+
+        paginationResponseDto.setDtoList(productDtoList);
+        paginationResponseDto.setPage(productPage.getNumber());
+        paginationResponseDto.setSizePerPage(productPage.getSize());
+        paginationResponseDto.setTotalPages(productPage.getTotalPages());
+        paginationResponseDto.setTotalRecords(
+                productPage.getTotalElements()
+        );
+
+        return paginationResponseDto;
     }
 
     @Override
@@ -75,12 +111,12 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product existingProduct = productOptional.get();
-        String productName = productDto.getIdentifier();
+        String productname = productDto.getIdentifier();
 
-        boolean isProductNameChanged = !productName.equalsIgnoreCase(existingProduct.getIdentifier());
+        boolean isProductnameChanged = !productname.equalsIgnoreCase(existingProduct.getIdentifier());
 
-        if (isProductNameChanged && productRepository.findByIdentifier(productName) != null) {
-            productDto.setMessage("Product " + productName + " already exists");
+        if (isProductnameChanged && productRepository.findByIdentifier(productname) != null) {
+            productDto.setMessage("Product " + productname + " already exists");
             productDto.setSuccess(false);
             return productDto;
         }

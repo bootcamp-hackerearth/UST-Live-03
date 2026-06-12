@@ -7,6 +7,7 @@ import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class CustomerApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    public CustomerDto update(@RequestParam String identifier) {
+    public CustomerDto update(@RequestParam String identifier, Model model) {
         return customerService.findByIdentifier(identifier);
     }
 

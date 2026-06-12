@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
@@ -106,10 +107,18 @@ class ShelfServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(shelfDtos);
 
-        List<ShelfDto> response = shelfService.findAll(pageable);
+        PaginationResponseDto<ShelfDto> response =
+                shelfService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Shelf1", response.get(0).getIdentifier());
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Shelf1",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -132,9 +141,18 @@ class ShelfServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(shelfDtos);
 
-        List<ShelfDto> response = shelfService.findAll(null);
+        PaginationResponseDto<ShelfDto> response =
+                shelfService.findAll(null);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Shelf1",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -159,18 +177,22 @@ class ShelfServiceTest {
         ShelfDto shelfDto = new ShelfDto();
         shelfDto.setIdentifier("Shelf1");
 
-        Shelf existingShelf = new Shelf();
+        Shelf shelf = new Shelf();
 
         Mockito.when(shelfRepository.findByIdentifier("Shelf1"))
-                .thenReturn(existingShelf);
+                .thenReturn(shelf);
 
-        Mockito.when(shelfRepository.save(existingShelf))
-                .thenReturn(existingShelf);
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(shelfDto, shelf);
+
+        Mockito.when(shelfRepository.save(shelf))
+                .thenReturn(shelf);
 
         ShelfDto response = shelfService.update(shelfDto);
 
-        Mockito.verify(modelMapper).map(shelfDto, existingShelf);
-        Mockito.verify(shelfRepository).save(existingShelf);
+        Mockito.verify(modelMapper).map(shelfDto, shelf);
+        Mockito.verify(shelfRepository).save(shelf);
 
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("Shelf updated successfully", response.getMessage());

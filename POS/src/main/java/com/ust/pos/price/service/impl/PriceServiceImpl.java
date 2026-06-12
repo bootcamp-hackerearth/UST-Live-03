@@ -1,20 +1,22 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
-import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PriceServiceImpl implements PriceService {
@@ -29,31 +31,49 @@ public class PriceServiceImpl implements PriceService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
+    public PaginationResponseDto<PriceDto> findAll(Pageable pageable) {
 
-        List<Price> priceList;
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
 
         if (pageable == null) {
-            priceList = priceRepository.findAll();
-        } else {
-            Page<Price> pricePage = priceRepository.findAll(pageable);
-            priceList = pricePage.getContent();
+
+            List<PriceDto> priceDtoList =
+                    modelMapper.map(
+                            priceRepository.findAll(),
+                            listType
+                    );
+
+            PaginationResponseDto<PriceDto> response =
+                    new PaginationResponseDto<>();
+
+            response.setDtoList(priceDtoList);
+            response.setTotalRecords(priceDtoList.size());
+
+            return response;
         }
 
-        List<PriceDto> priceDtoList = new ArrayList<>();
+        Page<Price> pricePage =
+                priceRepository.findAll(pageable);
 
-        for (Price price : priceList) {
-            PriceDto priceDto = modelMapper.map(price, PriceDto.class);
+        List<PriceDto> priceDtoList =
+                modelMapper.map(
+                        pricePage.getContent(),
+                        listType
+                );
 
-            if (productRepository.existsByIdentifier(price.getProduct())) {
-                Product product = productRepository.findByIdentifier(price.getProduct());
-                priceDto.setProduct(product.getName());
-            }
+        PaginationResponseDto<PriceDto> paginationResponseDto =
+                new PaginationResponseDto<>();
 
-            priceDtoList.add(priceDto);
-        }
+        paginationResponseDto.setDtoList(priceDtoList);
+        paginationResponseDto.setPage(pricePage.getNumber());
+        paginationResponseDto.setSizePerPage(pricePage.getSize());
+        paginationResponseDto.setTotalPages(pricePage.getTotalPages());
+        paginationResponseDto.setTotalRecords(
+                pricePage.getTotalElements()
+        );
 
-        return priceDtoList;
+        return paginationResponseDto;
     }
 
     @Override
@@ -87,26 +107,39 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
+    public PriceDto findById(long id) {
+        Price price = priceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Price not found"));
+        return modelMapper.map(price, PriceDto.class);
+    }
+
+    @Override
     public PriceDto findByIdentifier(String identifier) {
         Price price = priceRepository.findByIdentifier(identifier);
+
+        if (price == null) {
+            return null;
+        }
         return modelMapper.map(price, PriceDto.class);
+
     }
 
     @Transactional
     @Override
     public PriceDto update(PriceDto priceDto) {
+        Optional<Price> priceOptional = priceRepository.findById(priceDto.getId());
 
-        String identifier = priceDto.getIdentifier();
-        Price exisingPrice = priceRepository.findByIdentifier(identifier);
-        if (exisingPrice == null) {
-            priceDto.setMessage("Price not found");
+        if (priceOptional.isEmpty()) {
+            priceDto.setMessage("Price - " + priceDto.getIdentifier() + " not found");
             priceDto.setSuccess(false);
             return priceDto;
         }
 
-        modelMapper.map(priceDto, exisingPrice);
-        priceRepository.save(exisingPrice);
-        priceDto.setMessage("Price updated successfully");
+        Price existingPrice = priceOptional.get();
+
+        modelMapper.map(priceDto, existingPrice);
+        priceRepository.save(existingPrice);
+        priceDto.setMessage("Successfully updated price");
         priceDto.setSuccess(true);
 
         return priceDto;

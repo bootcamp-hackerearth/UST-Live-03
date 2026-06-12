@@ -223,9 +223,9 @@
             transform: translateX(-50%) translateY(20px);
             transition: all 0.4s ease;
         }
+
     </style>
 </head>
-
 <body>
 <div class="blob blob1"></div>
 <div class="blob blob2"></div>

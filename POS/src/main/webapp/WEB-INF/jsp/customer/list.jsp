@@ -237,6 +237,7 @@
 
                                         <div class="modal-body">
 
+                                            <!-- BILLING ADDRESS -->
                                             <div class="mt-2">
                                                 <h6 class="fw-bold text-danger mb-3">– Billing Address</h6>
 
@@ -247,6 +248,7 @@
                                                 <p><strong>Country:</strong> ${customer.billingAddress.country}</p>
                                             </div>
 
+                                            <!-- SHIPPING ADDRESS -->
                                             <div class="mt-4">
                                                 <h6 class="fw-bold text-danger mb-3">– Shipping Address</h6>
 

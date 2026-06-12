@@ -170,6 +170,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
 
+            <!-- Page Title -->
             <h4 class="text-center mb-4">List of Units</h4>
 
             <c:if test="${not empty message}">
@@ -179,12 +180,14 @@
                 <c:remove var="message" scope="session"/>
             </c:if>
 
+            <!-- Empty State -->
             <c:if test="${empty units}">
                 <div class="alert alert-warning text-center">
                     No units found
                 </div>
             </c:if>
 
+            <!-- Units Table -->
             <c:if test="${not empty units}">
                 <div class="table-wrapper">
                     <table class="table align-middle">

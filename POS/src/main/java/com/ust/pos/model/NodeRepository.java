@@ -9,6 +9,8 @@ import java.util.List;
 public interface NodeRepository extends JpaRepository<Node, Long> {
     Node findByIdentifier(String identifier);
 
+    Node findByPath(String path);
+
     List<Node> findByStatusTrue();
 
     void deleteByIdentifier(String identifier);

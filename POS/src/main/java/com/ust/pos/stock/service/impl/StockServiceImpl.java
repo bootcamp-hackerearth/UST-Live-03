@@ -39,23 +39,6 @@ public class StockServiceImpl implements StockService {
     }
 
     public StockDto save(StockDto stockDto) {
-        boolean exists = productRepository.existsByIdentifier(stockDto.getProduct());
-
-        if (!exists) {
-            StockDto response = new StockDto();
-            response.setMessage("Product not found");
-            response.setSuccess(false);
-            return response;
-        }
-
-        stockDto.setIdentifier(stockDto.getProduct() + stockDto.getWarehouse());
-        Stock existingStock = stockRepository.findByIdentifier(stockDto.getIdentifier());
-        if (existingStock != null) {
-            StockDto response = new StockDto();
-            response.setMessage("Already exists");
-            response.setSuccess(false);
-            return response;
-        }
 
         Stock stock = modelMapper.map(stockDto, Stock.class);
         Stock savedStock = stockRepository.save(stock);
@@ -68,29 +51,20 @@ public class StockServiceImpl implements StockService {
     }
 
     public StockDto update(StockDto stockDto) {
-        Stock existingStock = stockRepository.findById(stockDto.getId()).orElse(null);
 
-        if (existingStock == null) {
-            stockDto.setMessage("Stock - " + stockDto.getIdentifier() + " not found");
-            stockDto.setSuccess(false);
-            return stockDto;
-        }
+        Stock existingStock = stockRepository.findById(stockDto.getId())
+                .orElseThrow(() ->
+                        new RuntimeException("Stock not found with id: " + stockDto.getId()));
 
-        String stockName = stockDto.getIdentifier();
-        boolean isStockNameChanged = !stockName.equalsIgnoreCase(existingStock.getIdentifier());
-
-        if (isStockNameChanged && productRepository.findByIdentifier(stockName) != null) {
-            stockDto.setMessage("Product " + stockName + " already exists");
-            stockDto.setSuccess(false);
-            return stockDto;
-        }
-
-        stockDto.setMessage("Stock successfully edited");
-        stockDto.setSuccess(true);
         modelMapper.map(stockDto, existingStock);
-        stockRepository.save(existingStock);
 
-        return stockDto;
+        Stock updatedStock = stockRepository.save(existingStock);
+
+        StockDto response = modelMapper.map(updatedStock, StockDto.class);
+        response.setMessage("Stock updated successfully");
+        response.setSuccess(true);
+
+        return response;
     }
 
     public StockDto findById(long id) {
@@ -100,12 +74,8 @@ public class StockServiceImpl implements StockService {
         return modelMapper.map(stock, StockDto.class);
     }
 
-    public StockDto findByIdentifier(String identifier) {
-        return modelMapper.map(stockRepository.findByIdentifier(identifier), StockDto.class);
-    }
-
     @Override
-    public void delete(String identifier) {
-        stockRepository.deleteByIdentifier(identifier);
+    public void delete(long id) {
+        stockRepository.deleteById(id);
     }
 }

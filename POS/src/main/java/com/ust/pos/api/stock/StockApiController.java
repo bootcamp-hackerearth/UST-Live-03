@@ -38,19 +38,19 @@ public class StockApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    public StockDto update(@RequestParam String identifier) {
-        return stockService.findByIdentifier(identifier);
+    public StockDto update(@RequestParam long id) {
+        return stockService.findById(id);
     }
 
     @PostMapping("/update")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
-        return stockService.update(stockDto);
+        return stockService.save(stockDto);
     }
 
     @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    public boolean delete(@RequestParam long id) {
         try {
-            stockService.delete(identifier);
+            stockService.delete(id);
         } catch (Exception e) {
             return false;
         }

@@ -8,153 +8,154 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
+
     <style>
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #dbeafe, #93c5fd);
-            font-family: 'Poppins', sans-serif;
-        }
+    body {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #dbeafe, #93c5fd);
+        font-family: 'Poppins', sans-serif;
+    }
 
-        .table-wrapper {
-            background: rgba(255, 255, 255, 0.92);
-            padding: 20px;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
-        }
+    .table-wrapper {
+        background: rgba(255, 255, 255, 0.92);
+        padding: 20px;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+    }
 
-        h4 {
-            color: white;
-            font-weight: 700;
-        }
+    h4 {
+        color: white;
+        font-weight: 700;
+    }
 
-        .table {
-            margin-bottom: 0;
-            background: transparent;
-        }
+    .table {
+        margin-bottom: 0;
+        background: transparent;
+    }
 
-        .table thead th {
-            background: transparent;
-            border-bottom: 1.5px solid rgb(217 217 217 / 60%) !important;
-            font-weight: 600;
-            color: #111;
-        }
+    .table thead th {
+        background: transparent;
+        border-bottom: 1.5px solid rgb(217 217 217 / 60%) !important;
+        font-weight: 600;
+        color: #111;
+    }
 
-        .table tbody tr {
-            transition: 0.2s ease;
-        }
+    .table tbody tr {
+        transition: 0.2s ease;
+    }
 
-        .table tbody tr:hover {
-            background: rgba(147, 197, 253, 0.15);
-            transform: scale(1.01);
-        }
+    .table tbody tr:hover {
+        background: rgba(147, 197, 253, 0.15);
+        transform: scale(1.01);
+    }
 
-        .table td, .table th {
-            border: none !important;
-        }
+    .table td, .table th {
+        border: none !important;
+    }
 
-        .btn-primary {
-            background: #3b82f6;
-            border: none;
-        }
+    .btn-primary {
+        background: #3b82f6;
+        border: none;
+    }
 
-        .btn-primary:hover {
-            background: #2563eb;
-        }
+    .btn-primary:hover {
+        background: #2563eb;
+    }
 
-        .btn-danger {
-            background: #ef4444;
-            border: none;
-        }
+    .btn-danger {
+        background: #ef4444;
+        border: none;
+    }
 
-        .btn-danger:hover {
-            background: #dc2626;
-        }
+    .btn-danger:hover {
+        background: #dc2626;
+    }
 
-        .btn-success {
-            background: #3b82f6;
-            border: none;
-        }
+    .btn-success {
+        background: #3b82f6;
+        border: none;
+    }
 
-        .btn-success:hover {
-            background: #2563eb;
-        }
+    .btn-success:hover {
+        background: #2563eb;
+    }
 
-        .btn-secondary {
-            background: #94a3b8;
-            border: none;
-        }
+    .btn-secondary {
+        background: #94a3b8;
+        border: none;
+    }
 
-        .btn-secondary:hover {
-            background: #64748b;
-        }
+    .btn-secondary:hover {
+        background: #64748b;
+    }
 
-        .custom-toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
+    .custom-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
 
-            min-width: 260px;
-            max-width: 80%;
+        min-width: 260px;
+        max-width: 80%;
 
-            padding: 14px 18px;
-            border-radius: 14px;
+        padding: 14px 18px;
+        border-radius: 14px;
 
-            text-align: center;
+        text-align: center;
 
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(31, 59, 59, 0.9);
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(31, 59, 59, 0.9);
 
-            background: rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(18px) saturate(180%);
-            -webkit-backdrop-filter: blur(18px) saturate(180%);
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(18px) saturate(180%);
+        -webkit-backdrop-filter: blur(18px) saturate(180%);
 
-            background-image: linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.25),
-                rgba(255, 255, 255, 0.08)
-            );
+        background-image: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.25),
+            rgba(255, 255, 255, 0.08)
+        );
 
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            box-shadow:
-                0 12px 30px rgba(0, 0, 0, 0.12),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        box-shadow:
+            0 12px 30px rgba(0, 0, 0, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
 
-            z-index: 9999;
-            opacity: 0;
-            animation: toastIn 0.4s ease forwards;
-        }
+        z-index: 9999;
+        opacity: 0;
+        animation: toastIn 0.4s ease forwards;
+    }
 
-        .custom-toast::before {
-            content: "";
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: radial-gradient(
-                circle at center,
-                rgba(74, 166, 163, 0.25),
-                transparent 70%
-            );
-            z-index: -1;
-            filter: blur(12px);
-        }
+    .custom-toast::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        background: radial-gradient(
+            circle at center,
+            rgba(74, 166, 163, 0.25),
+            transparent 70%
+        );
+        z-index: -1;
+        filter: blur(12px);
+    }
 
-        @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-
-        .custom-toast.hide {
+    @keyframes toastIn {
+        from {
             opacity: 0;
             transform: translateX(-50%) translateY(20px);
-            transition: all 0.4s ease;
         }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+
+    .custom-toast.hide {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+        transition: all 0.4s ease;
+    }
     </style>
 </head>
 

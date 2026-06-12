@@ -45,8 +45,8 @@ public class NodeController {
 
     @PostMapping("/toggle")
     @ResponseBody
-    public NodeDto toggleStatus(@RequestBody NodeDto dto) {
-        return nodeService.updateStatus(dto.getIdentifier(), dto.isStatus());
+    public NodeDto toggleStatus(@RequestBody NodeDto nodeDto) {
+        return nodeService.updateStatus(nodeDto.getIdentifier(), nodeDto.isStatus());
     }
 
     @GetMapping("/get")

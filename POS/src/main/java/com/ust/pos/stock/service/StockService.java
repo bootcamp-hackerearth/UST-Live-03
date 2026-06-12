@@ -14,7 +14,5 @@ public interface StockService {
 
     StockDto findById(long id);
 
-    StockDto findByIdentifier(String identifier);
-
-    void delete(String identifier);
+    void delete(long id);
 }

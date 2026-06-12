@@ -53,9 +53,9 @@ public class PriceController extends BaseController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier) {
+    public String update(Model model, @RequestParam long id) {
         model.addAttribute("products", productService.findAll(null));
-        model.addAttribute("priceDto", priceService.findByIdentifier(identifier));
+        model.addAttribute("priceDto", priceService.findById(id));
         return PRICE_VIEW;
     }
 

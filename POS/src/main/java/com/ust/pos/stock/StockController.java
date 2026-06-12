@@ -77,8 +77,8 @@ public class StockController extends BaseController {
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String identifier) {
-        stockService.delete(identifier);
+    public String delete(@RequestParam long id) {
+        stockService.delete(id);
         return REDIRECT_STOCK_LIST;
     }
 }

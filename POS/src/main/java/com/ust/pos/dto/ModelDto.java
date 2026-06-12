@@ -6,4 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ModelDto extends CommonDto {
+    private String name;
 }

@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -89,6 +90,10 @@ class WarehouseServiceTest {
         Mockito.when(warehouseRepository.findByIdentifier("Warehouse1"))
                 .thenReturn(existingWarehouse);
 
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(warehouseDto, existingWarehouse);
+
         Mockito.when(warehouseRepository.save(existingWarehouse))
                 .thenReturn(existingWarehouse);
 
@@ -97,8 +102,8 @@ class WarehouseServiceTest {
         Mockito.verify(modelMapper).map(warehouseDto, existingWarehouse);
         Mockito.verify(warehouseRepository).save(existingWarehouse);
 
-        Assertions.assertNotNull(response.getMessage());
         Assertions.assertTrue(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
     }
 
     @Test
@@ -146,10 +151,15 @@ class WarehouseServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(warehouseDtos);
 
-        List<WarehouseDto> response = warehouseService.findAll(pageable);
+        PaginationResponseDto<WarehouseDto> response =
+                warehouseService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Warehouse1", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+
+        Assertions.assertEquals(
+                "Warehouse1",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -171,9 +181,10 @@ class WarehouseServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(warehouseDtos);
 
-        List<WarehouseDto> response = warehouseService.findAll(null);
+        PaginationResponseDto<WarehouseDto> response =
+                warehouseService.findAll(null);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test

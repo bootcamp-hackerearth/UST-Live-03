@@ -191,20 +191,17 @@
                                 required="true"/>
                 </div>
 
-                <div class="warehouse-group">
-                    <form:select path="warehouse" cssClass="form-control">
-                        <span class="warehouse-label">SELECT WAREHOUSE</span>
+                <form:select path="warehouse" cssClass="form-control">
 
-                        <form:option value="" label="-- Select Warehouse --"/>
+                    <form:option value="" label="-- Select Warehouse --"/>
 
-                        <c:forEach var="warehouse" items="${warehouses}">
-                            <form:option value="${warehouse.identifier}">
-                                ${warehouse.identifier}
-                            </form:option>
-                        </c:forEach>
+                    <c:forEach var="warehouse" items="${warehouses}">
+                        <form:option value="${warehouse.identifier}">
+                            ${warehouse.identifier}
+                        </form:option>
+                    </c:forEach>
 
-                    </form:select>
-                </div>
+                </form:select>
 
                 <div class="rack-group">
                         <span class="rack-label">SELECT RACK</span>

@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -56,10 +57,15 @@ class ProductServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(productDtos);
 
-        List<ProductDto> response = productService.findAll(pageable);
+        PaginationResponseDto<ProductDto> response =
+                productService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("P1", response.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getDtoList().size());
+
+        Assertions.assertEquals(
+                "P1",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -82,9 +88,10 @@ class ProductServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(productDtos);
 
-        List<ProductDto> response = productService.findAll(null);
+        PaginationResponseDto<ProductDto> response =
+                productService.findAll(null);
 
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
