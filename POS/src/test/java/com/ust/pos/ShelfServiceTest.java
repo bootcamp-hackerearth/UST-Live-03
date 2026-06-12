@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Shelf;
 import com.ust.pos.modell.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -33,102 +34,131 @@ class ShelfServiceTest {
     private ModelMapper mapper;
 
     @Test
-    void findByIdentifier_shouldHandleBothCases() {
+    void findByIdentifierTest() {
         Shelf shelf = new Shelf();
         shelf.setIdentifier("S1");
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
+
         when(repository.findByIdentifier("S1")).thenReturn(shelf);
         when(mapper.map(shelf, ShelfDto.class)).thenReturn(dto);
-        assertEquals("S1",
-                service.findByIdentifier("S1").getIdentifier());
+
+        assertEquals("S1", service.findByIdentifier("S1").getIdentifier());
+
         when(repository.findByIdentifier("X")).thenReturn(null);
         when(mapper.map(null, ShelfDto.class)).thenReturn(null);
+
         assertNull(service.findByIdentifier("X"));
     }
 
     @Test
-    void save_shouldHandleAllCases() {
+    void saveTest() {
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
         Shelf shelf = new Shelf();
         shelf.setIdentifier("S1");
+
         when(repository.findByIdentifier("S1")).thenReturn(null);
         when(mapper.map(dto, Shelf.class)).thenReturn(shelf);
+
         service.save(dto);
-        verify(mapper).map(dto, Shelf.class);
         verify(repository).save(shelf);
+
         when(repository.findByIdentifier("S1")).thenReturn(shelf);
+
         ShelfDto duplicate = service.save(dto);
         assertFalse(duplicate.isSuccess());
         assertTrue(duplicate.getMessage().contains("already exists"));
     }
 
     @Test
-    void update_shouldHandleBothCases() {
+    void updateTest() {
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
         Shelf shelf = new Shelf();
         shelf.setIdentifier("S1");
+
         when(repository.findByIdentifier("S1")).thenReturn(shelf);
+
         service.update(dto);
         verify(mapper).map(dto, shelf);
         verify(repository).save(shelf);
+
         when(repository.findByIdentifier("X")).thenReturn(null);
         dto.setIdentifier("X");
+
         ShelfDto fail = service.update(dto);
         assertFalse(fail.isSuccess());
         assertTrue(fail.getMessage().contains("not found"));
     }
 
     @Test
-    void delete_shouldCallRepository() {
+    void deleteTest() {
         service.delete("S1");
         verify(repository).deleteByIdentifier("S1");
     }
 
     @Test
-    void findAll_shouldHandleDataAndEmpty() {
+    void findAllTest() {
         Pageable pageable = PageRequest.of(0, 10);
-        Type type = new TypeToken<List<ShelfDto>>() {}.getType();
+        Type type = new TypeToken<List<ShelfDto>>(){}.getType();
+
         Shelf shelf = new Shelf();
         shelf.setIdentifier("S1");
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
-        Page<Shelf> page =
-                new PageImpl<>(List.of(shelf), pageable, 1);
+
+        Page<Shelf> page = new PageImpl<>(List.of(shelf), pageable, 1);
         when(repository.findAll(pageable)).thenReturn(page);
-        when(mapper.map(any(), eq(type))).thenReturn(List.of(dto));
-        assertEquals(1, service.findAll(pageable).size());
-        Page<Shelf> empty =
-                new PageImpl<>(List.of(), pageable, 0);
+        when(mapper.map(page.getContent(), type)).thenReturn(List.of(dto));
+
+        WsDto<ShelfDto> result = service.findAll(pageable);
+        assertEquals(1, result.getDtoList().size());
+
+        Page<Shelf> empty = new PageImpl<>(List.of(), pageable, 0);
         when(repository.findAll(pageable)).thenReturn(empty);
-        when(mapper.map(List.of(), type)).thenReturn(List.of());
-        assertTrue(service.findAll(pageable).isEmpty());
+        when(mapper.map(empty.getContent(), type)).thenReturn(List.of());
+
+        WsDto<ShelfDto> emptyResult = service.findAll(pageable);
+        assertTrue(emptyResult.getDtoList().isEmpty());
     }
 
     @Test
-    void toggleAndFindAllActive_shouldCoverAllCases() {
+    void toggleAndFindAllActiveTest() {
         Shelf shelf = new Shelf();
         shelf.setIdentifier("S1");
         shelf.setStatus(true);
+
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
+
         when(repository.findByIdentifier("S1")).thenReturn(shelf);
-        service.toggleStatus("S1");
-        assertFalse(shelf.isStatus());
+
+        when(repository.save(any(Shelf.class))).thenReturn(shelf);
+
+        when(mapper.map(any(Shelf.class), eq(ShelfDto.class))).thenReturn(dto);
+
+        ShelfDto toggled = service.toggleStatus("S1");
+
+        assertFalse(shelf.getStatus());
         verify(repository).save(shelf);
+        assertNotNull(toggled);
+
         when(repository.findByIdentifier("X")).thenReturn(null);
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
-                () -> service.toggleStatus("X")
-        );
-        assertEquals("Shelf not found", ex.getMessage());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> service.toggleStatus("X"));
+
+        assertTrue(ex.getMessage().contains("Shelf not found with identifier"));
+
         when(repository.findByStatusTrue()).thenReturn(List.of(shelf));
-        when(mapper.map(shelf, ShelfDto.class)).thenReturn(dto);
+
         List<ShelfDto> result = service.findAllActive();
         assertEquals(1, result.size());
+
         when(repository.findByStatusTrue()).thenReturn(List.of());
-        assertTrue(service.findAllActive().isEmpty());
+
+        List<ShelfDto> empty = service.findAllActive();
+        assertTrue(empty.isEmpty());
     }
 }

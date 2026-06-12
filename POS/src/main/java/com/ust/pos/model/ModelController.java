@@ -52,6 +52,7 @@ public class ModelController {
     @PostMapping("/update")
     public String updatePost(Model model, @ModelAttribute(MODEL) ModelDto modelDto) {
         ModelDto response = modelService.update(modelDto);
+
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "model/model";
@@ -70,5 +71,4 @@ public class ModelController {
         modelService.toggleStatus(identifier);
         return REDIRECT_MODEL_LIST;
     }
-
 }

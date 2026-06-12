@@ -8,13 +8,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/racks")
+@RequestMapping("/rack")
 public class RacksController {
 
-    public static final String SHELFS = "shelfs";
-    public static final String REDIRECT_RACKS_LIST = "redirect:/racks/list";
+    public static final String REDIRECT_LIST = "redirect:/rack/list";
+    public static final String SUCCESS_MESSAGE = "successMessage";
 
     @Autowired
     private RacksService racksService;
@@ -22,65 +23,74 @@ public class RacksController {
     @Autowired
     private ShelfService shelfService;
 
+    @GetMapping("/list")
+    public String list(Model model, Pageable pageable) {
+        model.addAttribute("racks", racksService.findAll(pageable));
+        return "racks/list";
+    }
+
     @GetMapping("/add")
     public String add(Model model) {
         model.addAttribute("rack", new RacksDto());
-        model.addAttribute(SHELFS, shelfService.findAllActive());
+        model.addAttribute("shelves", shelfService.findAllActive());
         return "racks/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model,
-                          @ModelAttribute("rack") RacksDto racksDto) {
+    public String addPost(@ModelAttribute RacksDto racksDto, RedirectAttributes redirectAttributes) {
         RacksDto response = racksService.save(racksDto);
 
         if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
-            model.addAttribute("racks", racksDto);
-            model.addAttribute(SHELFS, shelfService.findAllActive());
-            return "racks/add";
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    response.getMessage()
+            );
+            return "redirect:/rack/add";
         }
-        return REDIRECT_RACKS_LIST;
-    }
 
-    @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
-        model.addAttribute("racks", racksService.findAll(pageable));
-        model.addAttribute(SHELFS, shelfService.findAllActive());
-        return "racks/list";
+        redirectAttributes.addFlashAttribute(
+                SUCCESS_MESSAGE,
+                "Rack added successfully"
+        );
+        return REDIRECT_LIST;
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier) {
-        RacksDto response = racksService.findByIdentifier(identifier);
-        model.addAttribute("rack", response);
-        model.addAttribute(SHELFS, shelfService.findAllActive());
-        return "racks/racks";
+    public String get(Model model, @RequestParam String identifier) {
+        model.addAttribute("rack", racksService.findByIdentifier(identifier));
+        model.addAttribute("shelves", shelfService.findAllActive());
+
+        return "rack/rack";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model,
-                             @ModelAttribute("rack") RacksDto racksDto) {
+    public String update(@ModelAttribute RacksDto racksDto, RedirectAttributes redirectAttributes) {
         RacksDto response = racksService.update(racksDto);
 
         if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
-            model.addAttribute(SHELFS, shelfService.findAllActive());
-            return "racks/racks";
+            redirectAttributes.addFlashAttribute("errorMessage", response.getMessage());
+            return redirectToEdit(racksDto);
         }
-        return REDIRECT_RACKS_LIST;
+
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, getStatusMessage(racksDto));
+        return REDIRECT_LIST;
+    }
+
+    private String redirectToEdit(RacksDto rackDto) {
+        return "redirect:/rack/edit?id=" + rackDto.getId();
+    }
+
+    private String getStatusMessage(RacksDto rackDto) {
+        return Boolean.TRUE.equals(rackDto.getStatus())
+                ? "Rack activated successfully"
+                : "Rack deactivated successfully";
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String identifier) {
+    public String delete(@RequestParam String identifier, RedirectAttributes redirectAttributes) {
         racksService.delete(identifier);
-        return REDIRECT_RACKS_LIST;
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Rack deleted successfully"
+        );
+        return REDIRECT_LIST;
     }
-
-    @GetMapping("/toggle")
-    public String toggle(@RequestParam String identifier) {
-        racksService.toggleStatus(identifier);
-        return REDIRECT_RACKS_LIST;
-    }
-
 }

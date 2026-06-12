@@ -1,7 +1,6 @@
 package com.ust.pos.role.service.impl;
 
-import com.ust.pos.dao.RoleDao;
-import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.*;
 import com.ust.pos.modell.Role;
 import com.ust.pos.modell.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -25,9 +24,6 @@ public class RoleServiceImpl implements RoleService {
     @Autowired
     private ModelMapper modelMapper;
 
-    @Autowired
-    private RoleDao roleDao;
-
     @Override
     public RoleDto findByIdentifier(String identifier) {
         return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
@@ -36,43 +32,71 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public RoleDto save(RoleDto roleDto) {
         String identifier = roleDto.getIdentifier();
-        Role existingRole = roleDao.findByIdentifier(identifier);
-
+        Role existingRole = roleRepository.findByIdentifier(identifier);
         if (existingRole != null) {
             roleDto.setMessage("Role with identifier - " + identifier + " already exists");
             roleDto.setSuccess(false);
             return roleDto;
         }
-        roleDao.save(roleDto);
+        Role role = modelMapper.map(roleDto, Role.class);
+        roleRepository.save(role);
         return roleDto;
     }
 
     @Override
     public RoleDto update(RoleDto roleDto) {
         String identifier = roleDto.getIdentifier();
-        Role existingRole = roleDao.findByIdentifier(identifier);
-
+        Role existingRole = roleRepository.findByIdentifier(identifier);
         if (existingRole == null) {
             roleDto.setMessage("Role with identifier - " + identifier + " not found");
             roleDto.setSuccess(false);
             return roleDto;
         }
-        roleDao.update(roleDto);
+        modelMapper.map(roleDto, existingRole);
+        roleRepository.save(existingRole);
         return roleDto;
     }
 
     @Override
     @Transactional
     public void delete(String identifier) {
-        roleDao.deleteByIdentifier(identifier);
+        roleRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<RoleDto> findAll(Pageable pageable) {
+    public WsDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         Page<Role> rolePage = roleRepository.findAll(pageable);
-        return modelMapper.map(rolePage.getContent(), listType);
+
+        WsDto<RoleDto> roleWsDto = new WsDto<>();
+        roleWsDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+        roleWsDto.setTotalRecords(rolePage.getTotalElements());
+        roleWsDto.setTotalPage(rolePage.getTotalPages());
+        roleWsDto.setSizePerPage(pageable.getPageSize());
+        roleWsDto.setPage(pageable.getPageNumber());
+
+        return roleWsDto;
     }
 
+    @Override
+    public List<RoleDto> findAllActive() {
+        return roleRepository.findByStatusTrue()
+                .stream()
+                .map(role -> modelMapper.map(role, RoleDto.class))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public RoleDto toggleStatus(String identifier) {
+        Role role = roleRepository.findByIdentifier(identifier);
+        if (role == null) {
+            throw new RuntimeException("Product not found with identifier: " + identifier);
+        }
+        Boolean currentStatus = role.getStatus();
+        role.setStatus(currentStatus == null ? Boolean.TRUE : !currentStatus);
+        Role saved = roleRepository.save(role);
+        return modelMapper.map(saved, RoleDto.class);
+    }
 }

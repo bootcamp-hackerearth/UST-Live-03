@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -17,40 +18,50 @@ public class ApiCategoryController extends BaseController {
     @Autowired
     private CategoryService categoryService;
 
+    @PostMapping("/add")
+    public CategoryDto add(@RequestBody CategoryDto categoryDto) {
+        return categoryService.save(categoryDto);
+    }
+
     @PostMapping("/list")
-    public List<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return categoryService.findAll(pageable);
     }
 
-    @PostMapping("/add")
-    public CategoryDto addPost(@RequestBody CategoryDto categoryDto) {
-        return categoryService.save(categoryDto);
-    }
-
     @GetMapping("/get")
-    public CategoryDto update(@RequestParam String identifier) {
+    public CategoryDto get(@RequestParam("identifier") String identifier) {
         return categoryService.findByIdentifier(identifier);
     }
 
     @PostMapping("/update")
-    public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
+    public CategoryDto update(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
     @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    public boolean delete(@RequestParam("identifier") String identifier) {
         try {
-            categoryService.deleteByIdentifier(identifier);
-        } catch (Exception ex) {
+            categoryService.delete(identifier);
+            return true;
+        } catch (Exception e) {
             return false;
         }
-        return true;
     }
 
     @GetMapping("/findChildCategories")
     public List<CategoryDto> findChildCategories() {
         return categoryService.findChildCategories();
+    }
+
+    @PostMapping("/toggle-status")
+    public CategoryDto toggle(@RequestParam String identifier) {
+        return  categoryService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/findallactive")
+    public List<CategoryDto> findAllActive() {
+        return categoryService.findAllActive();
     }
 
 }

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 @Setter
 @NoArgsConstructor
 @ToString
+
 public class PaginationDto {
     private int page;
     private int sizePerPage = 50;

@@ -7,5 +7,4 @@ import lombok.Setter;
 @Getter
 public class RoleDto extends CommonDto {
     private String description;
-    private Boolean status;
 }

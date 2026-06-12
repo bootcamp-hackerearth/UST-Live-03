@@ -1,11 +1,9 @@
 package com.ust.pos.modell;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     Category findByIdentifier(String identifier);
 
@@ -14,6 +12,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findBySuperCategoryIsNotNull();
 
     boolean existsBySuperCategory(String superCategory);
-}
 
+    List<Category> findByStatusTrue();
+}
 

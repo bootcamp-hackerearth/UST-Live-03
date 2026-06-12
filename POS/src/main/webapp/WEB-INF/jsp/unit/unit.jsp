@@ -80,6 +80,7 @@
 
                 <input type="hidden" name="id" value="${unit.id}"/>
 
+                <!-- Unit Name (Read-only) -->
                 <div class="mb-3">
                     <label>Unit Name</label>
                     <input type="text"

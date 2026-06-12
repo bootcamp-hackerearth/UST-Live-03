@@ -12,11 +12,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/role")
 public class RoleController {
 
-    public static final String ROLES = "roles";
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
-    public static final String ROLE_ADD = "role/add";
-    public static final String MESSAGE = "message";
-
+    public static final String ROLES = "roles";
     @Autowired
     private RoleService roleService;
 
@@ -27,26 +24,20 @@ public class RoleController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute RoleDto userDto) {
-        model.addAttribute("roleDto", new RoleDto());
-        return ROLE_ADD;
+    public String add(Model model, Pageable pageable, @ModelAttribute RoleDto userDto) {
+        model.addAttribute("nodes", roleService.findAll(pageable));
+        model.addAttribute(ROLES, roleService.findAll(pageable));
+        return "role/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model,Pageable pageable, @ModelAttribute RoleDto userDto) {
-
-        if (userDto.getIdentifier() == null || userDto.getIdentifier().trim().isEmpty()) {
-            model.addAttribute(MESSAGE, "Role Identifier is mandatory");
-            model.addAttribute(ROLES, roleService.findAll(pageable));
-            return ROLE_ADD;
-        }
-        userDto.setIdentifier(userDto.getIdentifier().trim().toUpperCase());
+    public String addPost(Model model, Pageable pageable, @ModelAttribute RoleDto userDto) {
         RoleDto response = roleService.save(userDto);
 
         if (!response.isSuccess()) {
-            model.addAttribute(MESSAGE, response.getMessage());
+            model.addAttribute("error", response.getMessage());
             model.addAttribute(ROLES, roleService.findAll(pageable));
-            return ROLE_ADD;
+            return "role/add";
         }
         return REDIRECT_ROLE_LIST;
     }
@@ -61,9 +52,8 @@ public class RoleController {
     @PostMapping("/update")
     public String updatePost(Model model, @ModelAttribute RoleDto userDto) {
         RoleDto response = roleService.update(userDto);
-
         if (!response.isSuccess()) {
-            model.addAttribute(MESSAGE, response.getMessage());
+            model.addAttribute("message", response.getMessage());
         }
         return REDIRECT_ROLE_LIST;
     }
@@ -74,4 +64,9 @@ public class RoleController {
         return REDIRECT_ROLE_LIST;
     }
 
+    @GetMapping("/toggle")
+    public String toggle(@RequestParam String identifier) {
+        roleService.toggleStatus(identifier);
+        return REDIRECT_ROLE_LIST;
+    }
 }

@@ -1,11 +1,13 @@
 package com.ust.pos.shelf.service;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface ShelfService {
+
     ShelfDto findByIdentifier(String identifier);
 
     ShelfDto save(ShelfDto shelfDto);
@@ -14,9 +16,10 @@ public interface ShelfService {
 
     void delete(String identifier);
 
-    List<ShelfDto> findAll(Pageable pageable);
-
-    void toggleStatus(String identifier);
+    WsDto<ShelfDto> findAll(Pageable pageable);
 
     List<ShelfDto> findAllActive();
+
+    ShelfDto toggleStatus(String identifier);
+
 }

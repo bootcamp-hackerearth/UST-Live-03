@@ -2,6 +2,7 @@ package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Brand;
 import com.ust.pos.modell.BrandRepository;
 import jakarta.transaction.Transactional;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -42,7 +42,6 @@ public class BrandServiceImpl implements BrandService {
     public BrandDto update(BrandDto brandDto) {
         String identifier = brandDto.getIdentifier();
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
-
         if (existingBrand == null) {
             brandDto.setMessage("Brand with identifier - " + identifier + " not found");
             brandDto.setSuccess(false);
@@ -55,7 +54,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     @Transactional
-    public void deleteByIdentifier(String identifier) {
+    public void delete(String identifier) {
         brandRepository.deleteByIdentifier(identifier);
     }
 
@@ -68,11 +67,18 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<BrandDto>>() {
-        }.getType();
+    public WsDto<BrandDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<BrandDto>>() {}.getType();
         Page<Brand> brandPage = brandRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+        WsDto<BrandDto> brandWsDto = new WsDto<>();
+        brandWsDto.setDtoList(
+                modelMapper.map(brandPage.getContent(), listType)
+        );
+        brandWsDto.setTotalRecords(brandPage.getTotalElements());
+        brandWsDto.setTotalPage(brandPage.getTotalPages());
+        brandWsDto.setSizePerPage(pageable.getPageSize());
+        brandWsDto.setPage(pageable.getPageNumber());
+        return brandWsDto;
     }
 
 }

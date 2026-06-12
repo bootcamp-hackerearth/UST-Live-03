@@ -3,9 +3,10 @@ package com.ust.pos.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class RacksDto extends CommonDto {
-    private boolean status;
-    private String shelfIdentifier;
+    private List<String> shelfs;
 }

@@ -87,6 +87,7 @@
     <div class="card card-custom">
         <div class="card-body p-4">
 
+            <!-- Error Message -->
             <c:if test="${not empty message}">
                 <div class="alert alert-danger text-center">
                     <i class="bi bi-exclamation-triangle me-1"></i>

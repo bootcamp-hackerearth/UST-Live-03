@@ -1,6 +1,7 @@
 package com.ust.pos.model.service.impl;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.service.ModelService;
 import com.ust.pos.modell.Model;
 import com.ust.pos.modell.ModelRepository;
@@ -28,9 +29,7 @@ public class ModelServiceImpl implements ModelService {
 
     @Override
     public ModelDto findByIdentifier(String identifier) {
-        return modelMapper.map(
-                modelRepository.findByIdentifier(identifier),
-                ModelDto.class
+        return modelMapper.map(modelRepository.findByIdentifier(identifier), ModelDto.class
         );
     }
 
@@ -40,7 +39,8 @@ public class ModelServiceImpl implements ModelService {
         Model existingModel = modelRepository.findByIdentifier(identifier);
 
         if (existingModel != null) {
-            modelDto.setMessage("Model with identifier - " + identifier + " already exists");
+            modelDto.setMessage(
+                    "Model with identifier - " + identifier + " already exists");
             modelDto.setSuccess(false);
             return modelDto;
         }
@@ -55,10 +55,12 @@ public class ModelServiceImpl implements ModelService {
         Model existingModel = modelRepository.findByIdentifier(identifier);
 
         if (existingModel == null) {
-            modelDto.setMessage("Model with identifier - " + identifier + " not found");
+            modelDto.setMessage(
+                    "Model with identifier - " + identifier + " not found");
             modelDto.setSuccess(false);
             return modelDto;
         }
+
         modelMapper.map(modelDto, existingModel);
         modelRepository.save(existingModel);
         return modelDto;
@@ -71,21 +73,37 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
-    public List<ModelDto> findAll(Pageable pageable) {
+    public WsDto<ModelDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
         Page<Model> modelPage = modelRepository.findAll(pageable);
-        return modelMapper.map(modelPage.getContent(), listType);
+
+        WsDto<ModelDto> modelWsDto = new WsDto<>();
+        modelWsDto.setDtoList(modelMapper.map(modelPage.getContent(), listType));
+        modelWsDto.setTotalRecords(modelPage.getTotalElements());
+        modelWsDto.setTotalPage(modelPage.getTotalPages());
+        modelWsDto.setSizePerPage(pageable.getPageSize());
+        modelWsDto.setPage(pageable.getPageNumber());
+
+        return modelWsDto;
+    }
+
+    @Override
+    public List<ModelDto> findAllActive() {
+        return modelRepository.findByStatusTrue()
+                .stream()
+                .map(model -> modelMapper.map(model, ModelDto.class))
+                .toList();
     }
 
     @Override
     public void toggleStatus(String identifier) {
         Model model = modelRepository.findByIdentifier(identifier);
+
         if (model == null) {
             throw MODEL_NOT_FOUND;
         }
-        model.setStatus(!model.isStatus());
+        model.setStatus(!model.getStatus());
         modelRepository.save(model);
     }
-
 }

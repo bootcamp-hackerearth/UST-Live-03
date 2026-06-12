@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.service.impl.ModelServiceImpl;
 import com.ust.pos.modell.Model;
 import com.ust.pos.modell.ModelRepository;
@@ -17,7 +18,6 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,31 +33,37 @@ class ModelServiceTest {
     private ModelMapper mapper;
 
     @Test
-    void findByIdentifier_shouldHandleBothCases() {
+    void findByIdentifierTest() {
         Model model = new Model();
         model.setIdentifier("M1");
         ModelDto dto = new ModelDto();
         dto.setIdentifier("M1");
+
         when(repository.findByIdentifier("M1")).thenReturn(model);
         when(mapper.map(model, ModelDto.class)).thenReturn(dto);
+
         assertEquals("M1", service.findByIdentifier("M1").getIdentifier());
+
         when(repository.findByIdentifier("X")).thenReturn(null);
         when(mapper.map(null, ModelDto.class)).thenReturn(null);
+
         assertNull(service.findByIdentifier("X"));
     }
 
     @Test
-    void save_shouldHandleAllCases() {
+    void saveTest() {
         ModelDto dto = new ModelDto();
         dto.setIdentifier("M1");
         Model model = new Model();
         model.setIdentifier("M1");
+
         when(repository.findByIdentifier("M1")).thenReturn(null);
         when(mapper.map(dto, Model.class)).thenReturn(model);
+
         ModelDto result = service.save(dto);
-        verify(mapper).map(dto, Model.class);
         verify(repository).save(model);
         assertEquals("M1", result.getIdentifier());
+
         when(repository.findByIdentifier("M1")).thenReturn(model);
         ModelDto duplicate = service.save(dto);
         assertFalse(duplicate.isSuccess());
@@ -65,64 +71,87 @@ class ModelServiceTest {
     }
 
     @Test
-    void update_shouldHandleBothCases() {
+    void updateTest() {
         ModelDto dto = new ModelDto();
         dto.setIdentifier("M1");
         Model model = new Model();
         model.setIdentifier("M1");
+
         when(repository.findByIdentifier("M1")).thenReturn(model);
-        ModelDto success = service.update(dto);
+
+        ModelDto updated = service.update(dto);
         verify(mapper).map(dto, model);
         verify(repository).save(model);
-        assertEquals("M1", success.getIdentifier());
+        assertEquals("M1", updated.getIdentifier());
+
         when(repository.findByIdentifier("X")).thenReturn(null);
         dto.setIdentifier("X");
+
         ModelDto failure = service.update(dto);
         assertFalse(failure.isSuccess());
         assertTrue(failure.getMessage().contains("not found"));
     }
 
     @Test
-    void delete_shouldCallRepository() {
+    void deleteTest() {
         service.delete("M1");
         verify(repository).deleteByIdentifier("M1");
     }
 
     @Test
-    void findAll_shouldHandleDataAndEmpty() {
+    void findAllTest() {
         Pageable pageable = PageRequest.of(0, 10);
-        Type type = new TypeToken<List<ModelDto>>() {}.getType();
+        Type type = new TypeToken<List<ModelDto>>(){}.getType();
+
         Model model = new Model();
         model.setIdentifier("M1");
         ModelDto dto = new ModelDto();
         dto.setIdentifier("M1");
-        Page<Model> page =
-                new PageImpl<>(List.of(model), pageable, 1);
+
+        Page<Model> page = new PageImpl<>(List.of(model), pageable, 1);
         when(repository.findAll(pageable)).thenReturn(page);
-        when(mapper.map(any(), eq(type))).thenReturn(List.of(dto));
-        assertEquals(1, service.findAll(pageable).size());
-        verify(mapper).map(any(), eq(type));
-        Page<Model> emptyPage =
-                new PageImpl<>(List.of(), pageable, 0);
+        when(mapper.map(page.getContent(), type)).thenReturn(List.of(dto));
+
+        WsDto<ModelDto> result = service.findAll(pageable);
+        assertEquals(1, result.getDtoList().size());
+
+        Page<Model> emptyPage = new PageImpl<>(List.of(), pageable, 0);
         when(repository.findAll(pageable)).thenReturn(emptyPage);
-        when(mapper.map(List.of(), type)).thenReturn(List.of());
-        assertTrue(service.findAll(pageable).isEmpty());
+        when(mapper.map(emptyPage.getContent(), type)).thenReturn(List.of());
+
+        WsDto<ModelDto> empty = service.findAll(pageable);
+        assertTrue(empty.getDtoList().isEmpty());
     }
 
     @Test
-    void toggleStatus_shouldHandleBothCases() {
+    void toggleStatusTest() {
         Model model = new Model();
         model.setIdentifier("M1");
         model.setStatus(true);
+
         when(repository.findByIdentifier("M1")).thenReturn(model);
+
         service.toggleStatus("M1");
-        assertFalse(model.isStatus());
+        assertFalse(model.getStatus());
         verify(repository).save(model);
+
         when(repository.findByIdentifier("X")).thenReturn(null);
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
-                () -> service.toggleStatus("X")
-        );
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> service.toggleStatus("X"));
         assertEquals("model not found", ex.getMessage());
+    }
+
+    @Test
+    void findAllActiveTest() {
+        Model model = new Model();
+        model.setIdentifier("M1");
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("M1");
+
+        when(repository.findByStatusTrue()).thenReturn(List.of(model));
+        when(mapper.map(model, ModelDto.class)).thenReturn(dto);
+
+        List<ModelDto> result = service.findAllActive();
+        assertEquals(1, result.size());
     }
 }

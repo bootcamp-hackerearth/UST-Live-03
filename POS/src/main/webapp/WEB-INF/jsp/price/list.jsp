@@ -6,169 +6,118 @@
 <head>
     <title>Price Management</title>
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
 
     <style>
         body {
-            background-color: #f5f6f7;
-            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #2e2e2e;
+            background-color: #f7f9fc;
         }
 
         .page-header {
-            background-color: #000;
-            padding: 14px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: linear-gradient(to right, #0f766e, #134e4a);
             color: #fff;
-        }
-
-        .page-header h3 {
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .card {
+            padding: 20px;
             border-radius: 10px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .card.shadow {
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
         }
 
         .table thead th {
-            background-color: #f1f3f5;
-            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.03em;
         }
 
         .badge {
-            padding: 6px 10px;
-            font-weight: 600;
             font-size: 12px;
         }
 
-        .action-icon {
-            font-size: 1.1rem;
-            margin: 0 8px;
-            transition: transform 0.15s ease;
-        }
-
-        .action-icon:hover {
-            transform: scale(1.15);
-        }
-
-        .edit-icon {
-            color: #0d6efd;
-        }
-
-        .delete-icon {
-            color: #dc3545;
-        }
-
-        .add-btn {
-            background-color: #198754;
-            border-color: #198754;
-            color: #fff;
+        .action-btns a {
+            margin-right: 6px;
         }
     </style>
 </head>
 
-<body>
+<body class="container py-4">
 
-<div class="container mt-4">
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">
+        <i class="bi bi-currency-rupee me-2"></i> Price Management
+    </h4>
 
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h3>Price Management</h3>
+    <div>
+        <a href="${pageContext.request.contextPath}/"
+           class="btn btn-light btn-sm me-2">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+        </a>
 
-        <div>
-            <a href="${pageContext.request.contextPath}/"
-               class="btn btn-dark me-2">
-                <i class="bi bi-house-door"></i> Home
-            </a>
-
-            <a href="${pageContext.request.contextPath}/price/add"
-               class="btn add-btn">
-                <i class="bi bi-plus-circle"></i> Add Price
-            </a>
-        </div>
+        <a href="${pageContext.request.contextPath}/price/add"
+           class="btn btn-light btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> Add Price
+        </a>
     </div>
-
-    <div class="card shadow">
-        <div class="card-body p-0">
-
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Identifier</th>
-                        <th>Product</th>
-                        <th>Price Amount</th>
-                        <th>Price Type</th>
-                        <th class="text-center" style="width:120px;">Actions</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    <c:forEach items="${prices}" var="p">
-                        <tr>
-                            <td>${p.id}</td>
-
-                            <td class="fw-semibold">
-                                ${p.identifier}
-                            </td>
-
-                            <td>${p.product}</td>
-
-                            <td>₹ ${p.priceAmount}</td>
-
-                            <td>
-                                <span class="badge bg-info text-dark">
-                                    ${p.type}
-                                </span>
-                            </td>
-
-                            <td class="text-center">
-
-                                <a href="${pageContext.request.contextPath}/price/get?identifier=${p.identifier}"
-                                   class="action-icon edit-icon"
-                                   title="Edit">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-
-                                <a href="${pageContext.request.contextPath}/price/delete?identifier=${p.identifier}"
-                                   class="action-icon delete-icon"
-                                   title="Delete"
-                                   onclick="return confirm('Are you sure you want to delete this price?');">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-
-                            </td>
-                        </tr>
-                    </c:forEach>
-
-                    <c:if test="${empty prices}">
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                No prices found.
-                            </td>
-                        </tr>
-                    </c:if>
-
-                </tbody>
-            </table>
-
-        </div>
-    </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Identifier</th>
+                <th>Cost Price</th>
+                <th>Price Type</th>
+                <th class="text-center">Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach items="${prices}" var="p">
+                <tr>
+                    <td class="fw-semibold">${p.id}</td>
+                    <td>${p.identifier}</td>
+                    <td>₹ ${p.costPrice}</td>
+
+                    <td>
+                        <span class="badge bg-info text-dark">
+                            ${p.type}
+                        </span>
+                    </td>
+
+                    <td class="text-center action-btns">
+                        <a href="${pageContext.request.contextPath}/price/get?identifier=${p.identifier}"
+                           class="btn btn-sm btn-outline-primary"
+                           title="Edit">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+
+                        <a href="${pageContext.request.contextPath}/price/delete?identifier=${p.identifier}"
+                           class="btn btn-sm btn-outline-danger"
+                           title="Delete"
+                           onclick="return confirm('Are you sure you want to delete this price?');">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            </c:forEach>
+
+            <c:if test="${empty prices}">
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-info-circle me-1"></i>
+                        No prices found
+                    </td>
+                </tr>
+            </c:if>
+            </tbody>
+        </table>
+
+    </div>
+</div>
 
 </body>
 </html>

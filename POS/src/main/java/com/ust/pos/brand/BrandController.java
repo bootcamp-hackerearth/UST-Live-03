@@ -51,6 +51,7 @@ public class BrandController {
             model.addAttribute(MESSAGE, "Brand not found");
             return REDIRECT_BRAND_LIST;
         }
+
         model.addAttribute(BRAND, brandDto);
         return "brand/brand";
     }
@@ -69,7 +70,7 @@ public class BrandController {
 
     @GetMapping("/delete")
     public String delete(@RequestParam("identifier") String identifier) {
-        brandService.deleteByIdentifier(identifier);
+        brandService.delete(identifier);
         return REDIRECT_BRAND_LIST;
     }
 

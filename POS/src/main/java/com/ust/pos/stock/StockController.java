@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/stock")
 public class StockController {
 
+    public static final String STOCK = "stock";
     public static final String PRODUCTS = "products";
     public static final String WAREHOUSES = "warehouses";
+    public static final String MESSAGE = "message";
+    public static final String STOCKS = "stocks";
     public static final String REDIRECT_STOCK_LIST = "redirect:/stock/list";
 
     @Autowired
@@ -28,52 +31,52 @@ public class StockController {
     private WarehouseService warehouseService;
 
     @GetMapping("/add")
-    public String add(Model model, Pageable pageable) {
-        model.addAttribute("stock", new StockDto());
-        model.addAttribute(PRODUCTS, productService.findAll(pageable));
-        model.addAttribute(WAREHOUSES, warehouseService.findAll(pageable));
+    public String add(Model model) {
+        model.addAttribute(STOCK, new StockDto());
+        model.addAttribute(PRODUCTS, productService.findAllActive());
+        model.addAttribute(WAREHOUSES, warehouseService.findAllActive());
+
         return "stock/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model,
-                          @ModelAttribute("stock") StockDto stockDto, Pageable pageable) {
+    public String addPost(Model model, @ModelAttribute(STOCK) StockDto stockDto) {
         try {
             stockService.save(stockDto);
             return REDIRECT_STOCK_LIST;
+
         } catch (Exception e) {
-            model.addAttribute("message", e.getMessage());
-            model.addAttribute(PRODUCTS, productService.findAll(pageable));
-            model.addAttribute(WAREHOUSES, warehouseService.findAll(pageable));
+            model.addAttribute(MESSAGE, e.getMessage());
+            model.addAttribute(PRODUCTS, productService.findAllActive());
+            model.addAttribute(WAREHOUSES, warehouseService.findAllActive());
             return "stock/add";
         }
     }
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
-        model.addAttribute("stocks", stockService.findAll(pageable));
+        model.addAttribute(STOCKS, stockService.findAll(pageable));
         return "stock/list";
     }
 
     @GetMapping("/get")
-    public String edit(@RequestParam Long id, Model model, Pageable pageable) {
-        StockDto stock = stockService.findById(id);
-        model.addAttribute("stock", stock);
-        model.addAttribute(PRODUCTS, productService.findAll(pageable));
-        model.addAttribute(WAREHOUSES, warehouseService.findAll(pageable));
+    public String edit(@RequestParam Long id, Model model) {
+        model.addAttribute(STOCK, stockService.findById(id));
+        model.addAttribute(PRODUCTS, productService.findAllActive());
+        model.addAttribute(WAREHOUSES, warehouseService.findAllActive());
         return "stock/stock";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model,
-                             @ModelAttribute("stock") StockDto stockDto, Pageable pageable) {
+    public String updatePost(Model model, @ModelAttribute(STOCK) StockDto stockDto) {
         try {
             stockService.update(stockDto);
             return REDIRECT_STOCK_LIST;
+
         } catch (Exception e) {
-            model.addAttribute("message", e.getMessage());
-            model.addAttribute(PRODUCTS, productService.findAll(pageable));
-            model.addAttribute(WAREHOUSES, warehouseService.findAll(pageable));
+            model.addAttribute(MESSAGE, e.getMessage());
+            model.addAttribute(PRODUCTS, productService.findAllActive());
+            model.addAttribute(WAREHOUSES, warehouseService.findAllActive());
             return "stock/stock";
         }
     }
@@ -83,5 +86,4 @@ public class StockController {
         stockService.delete(id);
         return REDIRECT_STOCK_LIST;
     }
-
 }

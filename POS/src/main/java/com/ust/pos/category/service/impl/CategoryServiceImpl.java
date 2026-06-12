@@ -2,6 +2,7 @@ package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Category;
 import com.ust.pos.modell.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -19,6 +20,7 @@ import java.util.Optional;
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
+    public static final WsDto<CategoryDto> CATEGORY_WS_DTO = new WsDto<>();
     @Autowired
     private CategoryRepository categoryRepository;
 
@@ -77,7 +79,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public void deleteByIdentifier(String identifier) {
+    public void delete(String identifier) {
 
         if (categoryRepository.existsBySuperCategory(identifier)) {
             throw new IllegalStateException(
@@ -96,11 +98,17 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public WsDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+
+        CATEGORY_WS_DTO.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        CATEGORY_WS_DTO.setTotalRecords(categoryPage.getTotalElements());
+        CATEGORY_WS_DTO.setTotalPage(categoryPage.getTotalPages());
+        CATEGORY_WS_DTO.setSizePerPage(pageable.getPageSize());
+        CATEGORY_WS_DTO.setPage(pageable.getPageNumber());
+        return CATEGORY_WS_DTO;
     }
 
     @Override
@@ -111,6 +119,27 @@ public class CategoryServiceImpl implements CategoryService {
                 categoryRepository.findBySuperCategoryIsNotNull(),
                 listType
         );
+    }
+
+    @Override
+    @Transactional
+    public CategoryDto toggleStatus(String identifier) {
+        Category category = categoryRepository.findByIdentifier(identifier);
+        if (category == null) {
+            throw new RuntimeException("category not found with identifier: " + identifier);
+        }
+        Boolean currentStatus = category.getStatus();
+        category.setStatus(currentStatus == null ? Boolean.TRUE : !currentStatus);
+        Category saved = categoryRepository.save(category);
+        return modelMapper.map(saved, CategoryDto.class);
+    }
+
+    @Override
+    public List<CategoryDto> findAllActive() {
+        return categoryRepository.findByStatusTrue()
+                .stream()
+                .map(category -> modelMapper.map(category, CategoryDto.class))
+                .toList();
     }
 
 }

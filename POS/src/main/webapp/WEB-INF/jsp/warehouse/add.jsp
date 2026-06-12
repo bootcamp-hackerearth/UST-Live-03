@@ -19,6 +19,7 @@
             color: #1e293b;
         }
 
+        /* Common page header */
         .page-header {
             background: linear-gradient(to right, #0f766e, #134e4a);
             color: #ffffff;
@@ -77,6 +78,7 @@
     <div class="card card-custom">
         <div class="card-body p-4">
 
+            <!-- Error Message -->
             <c:if test="${not empty message}">
                 <div class="alert alert-danger text-center">
                     <i class="bi bi-exclamation-triangle me-1"></i>
@@ -87,6 +89,7 @@
             <form method="post"
                   action="${pageContext.request.contextPath}/warehouse/add">
 
+                <!-- Warehouse Name -->
                 <div class="mb-3">
                     <label>Warehouse Name</label>
                     <input type="text"
@@ -96,6 +99,7 @@
                            required>
                 </div>
 
+                <!-- Location -->
                 <div class="mb-3">
                     <label>Location</label>
                     <input type="text"
@@ -105,6 +109,7 @@
                            required>
                 </div>
 
+                <!-- Capacity -->
                 <div class="mb-3">
                     <label>Capacity</label>
                     <input type="number"
@@ -115,6 +120,7 @@
                            required>
                 </div>
 
+                <!-- Status -->
                 <div class="mb-4">
                     <label>Status</label>
                     <select name="status" class="form-select" required>
@@ -123,6 +129,7 @@
                     </select>
                 </div>
 
+                <!-- Buttons -->
                 <div class="d-flex justify-content-end gap-2 mt-4">
                     <a href="${pageContext.request.contextPath}/warehouse/list"
                        class="btn btn-outline-secondary">

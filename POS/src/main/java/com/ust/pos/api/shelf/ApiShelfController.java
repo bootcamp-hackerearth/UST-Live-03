@@ -3,6 +3,7 @@ package com.ust.pos.api.shelf;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +24,7 @@ public class ApiShelfController extends BaseController {
     }
 
     @PostMapping("/list")
-    public List<ShelfDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ShelfDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return shelfService.findAll(pageable);
     }
@@ -42,21 +43,25 @@ public class ApiShelfController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfService.delete(identifier);
-
         } catch (Exception e) {
             return false;
         }
         return true;
     }
 
-    @GetMapping("/toggle")
-    public boolean toggle(@RequestParam String identifier) {
-        try {
-            shelfService.toggleStatus(identifier);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    @ModelAttribute("shelf")
+    public ShelfDto shelfFallback() {
+        return new ShelfDto();
+    }
+
+    @GetMapping("/findallactive")
+    public List<ShelfDto> findAllActive() {
+        return shelfService.findAllActive();
+    }
+
+    @PostMapping("/toggle-status")
+    public ShelfDto toggle(@RequestParam String identifier) {
+        return shelfService.toggleStatus(identifier);
     }
 
 }

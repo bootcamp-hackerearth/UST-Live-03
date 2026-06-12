@@ -4,6 +4,7 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Customer;
 import com.ust.pos.modell.CustomerRepository;
 import org.modelmapper.ModelMapper;
@@ -30,12 +31,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto findById(String identifier) {
-        return modelMapper.map(customerRepository.findById(identifier), CustomerDto.class);
+        return modelMapper.map(customerRepository.findById(identifier), CustomerDto.class
+        );
     }
 
     @Override
     public CustomerDto findByIdentifierWithAddressDto(String phoneNo) {
-        Customer customer = customerRepository.findFirstByPhoneNo(phoneNo).orElse(null);
+        Customer customer = customerRepository.findByPhoneNo(phoneNo);
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
         List<AddressDto> addressDtoList = addressService.findAllByPhoneNo(phoneNo);
 
@@ -47,6 +49,7 @@ public class CustomerServiceImpl implements CustomerService {
                 customerDto.setShippingAddress(addressDtoList.get(1));
             }
         }
+
         return customerDto;
     }
 
@@ -60,6 +63,7 @@ public class CustomerServiceImpl implements CustomerService {
             customerDto.setSuccess(false);
             return customerDto;
         }
+
         Customer customer = modelMapper.map(customerDto, Customer.class);
         customerRepository.save(customer);
 
@@ -80,16 +84,20 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto update(CustomerDto customerDto) {
-        Customer existingCustomer = customerRepository.findFirstByPhoneNo(customerDto.getPhoneNo()).orElse(null);
+        Customer existingCustomer = customerRepository.findByPhoneNo(customerDto.getPhoneNo());
 
         if (existingCustomer == null) {
-            customerDto.setMessage("Customer with identifier - " + customerDto.getPhoneNo() + " not found");
+            customerDto.setMessage(
+                    "Customer with identifier - " + customerDto.getPhoneNo() + " not found");
             customerDto.setSuccess(false);
             return customerDto;
         }
+
         modelMapper.map(customerDto, existingCustomer);
         customerRepository.save(existingCustomer);
-        List<AddressDto> addresses = addressService.findAllByPhoneNo((customerDto.getPhoneNo()));
+
+        List<AddressDto> addresses = addressService.findAllByPhoneNo(customerDto.getPhoneNo());
+
         AddressDto billingAddress = addresses.get(0);
         billingAddress.setPhoneNo(existingCustomer.getPhoneNo());
         addressService.update(billingAddress);
@@ -109,17 +117,25 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+
+        WsDto<CustomerDto> customerWsDto = new WsDto<>();
+        customerWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        customerWsDto.setTotalRecords(customerPage.getTotalElements());
+        customerWsDto.setTotalPage(customerPage.getTotalPages());
+        customerWsDto.setSizePerPage(pageable.getPageSize());
+        customerWsDto.setPage(pageable.getPageNumber());
+
+        return customerWsDto;
     }
 
     @Override
     public CustomerDto toggleStatus(String identifier) {
         Customer customer = customerRepository.findById(identifier);
-        customer.setStatus(!customer.isStatus());
+        customer.setStatus(!customer.getStatus());
         customerRepository.save(customer);
         return modelMapper.map(customer, CustomerDto.class);
     }
@@ -128,7 +144,9 @@ public class CustomerServiceImpl implements CustomerService {
     public List<CustomerDto> findIfTrue() {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        return modelMapper.map(customerRepository.findByStatusIsTrue(), listType);
+        return modelMapper.map(
+                customerRepository.findByStatusIsTrue(),
+                listType
+        );
     }
-
 }

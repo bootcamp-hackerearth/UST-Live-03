@@ -4,6 +4,7 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Customer;
 import com.ust.pos.modell.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,6 @@ import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -48,10 +48,12 @@ class CustomerServiceTest {
         customer.setIdentifier("C001");
         customer.setPhoneNo("9876543210");
         customer.setStatus(true);
+
         AddressDto billing = new AddressDto();
         billing.setAddressType("Billing");
         AddressDto shipping = new AddressDto();
         shipping.setAddressType("Shipping");
+
         dto = new CustomerDto();
         dto.setIdentifier("C001");
         dto.setPhoneNo("9876543210");
@@ -60,41 +62,45 @@ class CustomerServiceTest {
     }
 
     @Test
-    void findById_shouldHandleBothCases() {
+    void findByIdTest() {
         when(repository.findById("C001")).thenReturn(customer);
         when(mapper.map(customer, CustomerDto.class)).thenReturn(dto);
-        assertNotNull(service.findById("C001"));
+
+        CustomerDto result = service.findById("C001");
+        assertNotNull(result);
+
         when(repository.findById("X")).thenReturn(null);
         when(mapper.map(null, CustomerDto.class)).thenReturn(null);
+
         assertNull(service.findById("X"));
     }
 
     @Test
-    void findWithAddress_shouldSetAddresses() {
-        when(repository.findFirstByPhoneNo("9876543210"))
-                .thenReturn(Optional.of(customer));
+    void findWithAddressTest() {
+        when(repository.findByPhoneNo("9876543210")).thenReturn(customer);
         when(mapper.map(customer, CustomerDto.class)).thenReturn(dto);
         when(addressService.findAllByPhoneNo("9876543210"))
                 .thenReturn(List.of(new AddressDto(), new AddressDto()));
-        CustomerDto result =
-                service.findByIdentifierWithAddressDto("9876543210");
+
+        CustomerDto result = service.findByIdentifierWithAddressDto("9876543210");
         assertNotNull(result);
     }
 
     @Test
-    void save_shouldHandleAllCases() {
+    void saveTest() {
         when(repository.findById("C001")).thenReturn(null);
         when(mapper.map(dto, Customer.class)).thenReturn(customer);
         when(mapper.map(any(AddressDto.class), eq(AddressDto.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
+
         CustomerDto result = service.save(dto);
         verify(repository).save(customer);
         verify(addressService, times(2)).save(any());
         assertEquals("C001", result.getIdentifier());
-        verify(addressService).save(argThat(a ->
-                "C001_Billing".equals(a.getIdentifier())));
-        verify(addressService).save(argThat(a ->
-                "C001_Shipping".equals(a.getIdentifier())));
+
+        verify(addressService).save(argThat(a -> "C001_Billing".equals(a.getIdentifier())));
+        verify(addressService).save(argThat(a -> "C001_Shipping".equals(a.getIdentifier())));
+
         when(repository.findById("C001")).thenReturn(customer);
         CustomerDto duplicate = service.save(dto);
         assertFalse(duplicate.isSuccess());
@@ -102,58 +108,70 @@ class CustomerServiceTest {
     }
 
     @Test
-    void update_shouldHandleBothCases() {
-        when(repository.findFirstByPhoneNo("9876543210"))
-                .thenReturn(Optional.of(customer));
+    void updateTest() {
+        when(repository.findByPhoneNo("9876543210")).thenReturn(customer);
         when(addressService.findAllByPhoneNo("9876543210"))
                 .thenReturn(List.of(new AddressDto(), new AddressDto()));
+
         CustomerDto result = service.update(dto);
         verify(mapper).map(dto, customer);
         verify(repository).save(customer);
         verify(addressService, times(2)).update(any());
         assertEquals("9876543210", result.getPhoneNo());
-        when(repository.findFirstByPhoneNo("000"))
-                .thenReturn(Optional.empty());
+
+        when(repository.findByPhoneNo("000")).thenReturn(null);
         dto.setPhoneNo("000");
+
         CustomerDto failure = service.update(dto);
         assertFalse(failure.isSuccess());
     }
 
     @Test
-    void delete_shouldAlwaysDelete() {
+    void deleteTest() {
         when(addressService.delete(anyString())).thenReturn(true);
+
         boolean result = service.delete("9876543210");
+
         verify(repository).deleteByPhoneNo("9876543210");
         verify(addressService).delete("9876543210");
         assertTrue(result);
     }
 
     @Test
-    void findAll_shouldHandleDataAndEmpty() {
+    void findAllTest() {
         Pageable pageable = PageRequest.of(0, 5);
-        Type type = new TypeToken<List<CustomerDto>>() {}.getType();
-        Page<Customer> page =
-                new PageImpl<>(List.of(customer), pageable, 1);
+        Type type = new TypeToken<List<CustomerDto>>(){}.getType();
+
+        Page<Customer> page = new PageImpl<>(List.of(customer), pageable, 1);
         when(repository.findAll(pageable)).thenReturn(page);
-        when(mapper.map(any(), eq(type))).thenReturn(List.of(dto));
-        assertEquals(1, service.findAll(pageable).size());
-        Page<Customer> emptyPage =
-                new PageImpl<>(List.of(), pageable, 0);
-        when(repository.findAll(pageable)).thenReturn(emptyPage);
-        when(mapper.map(List.of(), type)).thenReturn(List.of());
-        assertTrue(service.findAll(pageable).isEmpty());
+        when(mapper.map(page.getContent(), type)).thenReturn(List.of(dto));
+
+        WsDto<CustomerDto> result = service.findAll(pageable);
+        assertEquals(1, result.getDtoList().size());
+
+        Page<Customer> empty = new PageImpl<>(List.of(), pageable, 0);
+        when(repository.findAll(pageable)).thenReturn(empty);
+        when(mapper.map(empty.getContent(), type)).thenReturn(List.of());
+
+        WsDto<CustomerDto> emptyResult = service.findAll(pageable);
+        assertTrue(emptyResult.getDtoList().isEmpty());
     }
 
     @Test
-    void toggleAndFindIfTrue_shouldWork() {
+    void toggleAndFindIfTrueTest() {
         when(repository.findById("C001")).thenReturn(customer);
         when(mapper.map(customer, CustomerDto.class)).thenReturn(dto);
+
         CustomerDto toggled = service.toggleStatus("C001");
-        assertFalse(customer.isStatus());
+        assertFalse(customer.getStatus());
         verify(repository).save(customer);
         assertNotNull(toggled);
+
+        Type type = new TypeToken<List<CustomerDto>>(){}.getType();
         when(repository.findByStatusIsTrue()).thenReturn(List.of(customer));
-        when(mapper.map(any(), any(Type.class))).thenReturn(List.of(dto));
-        assertEquals(1, service.findIfTrue().size());
+        when(mapper.map(any(), eq(type))).thenReturn(List.of(dto));
+
+        List<CustomerDto> result = service.findIfTrue();
+        assertEquals(1, result.size());
     }
 }

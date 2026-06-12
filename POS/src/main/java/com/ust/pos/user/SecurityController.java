@@ -27,15 +27,15 @@ public class SecurityController {
     }
 
     @GetMapping("/register")
-    public String add(Model model, @ModelAttribute UserDto userDto, Pageable pageable) {
+    public String add(Model model, Pageable pageable, @ModelAttribute UserDto userDto) {
         model.addAttribute("roles", roleService.findAll(pageable));
         return "register";
     }
 
     @PostMapping("/register")
-    public String addPost(Model model, @ModelAttribute UserDto userDto, RedirectAttributes redirectAttributes, Pageable pageable) {
+    public String addPost(Model model, Pageable pageable, @ModelAttribute UserDto userDto, RedirectAttributes redirectAttributes
+    ) {
         UserDto response = userService.save(userDto);
-
         if (!response.isSuccess()) {
             model.addAttribute("roles", roleService.findAll(pageable));
             model.addAttribute("message", response.getMessage());
@@ -44,5 +44,4 @@ public class SecurityController {
         redirectAttributes.addFlashAttribute("message", "Register Success, Please login");
         return "redirect:/login";
     }
-
 }

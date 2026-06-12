@@ -10,13 +10,9 @@ import lombok.Setter;
 @Setter
 public class Product extends CommonFields {
     @Column(nullable = false, unique = true)
-    private String identifier;
     private String category;
     private String brand;
     private String model;
     private String unit;
     private Integer quantity;
-    private String shelf;
-    private String rack;
-    private Boolean status;
 }

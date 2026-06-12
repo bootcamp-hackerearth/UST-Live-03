@@ -12,11 +12,19 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/shelf")
 public class ShelfController {
 
+    public static final String REDIRECT_LIST = "redirect:/shelf/list";
     public static final String SHELF = "shelf";
-    public static final String REDIRECT_SHELF_LIST = "redirect:/shelf/list";
+    public static final String SHELVES = "shelves";
+    public static final String MESSAGE = "message";
 
     @Autowired
     private ShelfService shelfService;
+
+    @GetMapping("/list")
+    public String list(Model model, Pageable pageable) {
+        model.addAttribute(SHELVES, shelfService.findAll(pageable));
+        return "shelf/list";
+    }
 
     @GetMapping("/add")
     public String add(Model model) {
@@ -25,58 +33,53 @@ public class ShelfController {
     }
 
     @PostMapping("/add")
-    public String addPost(Model model,
-                          @ModelAttribute(SHELF) ShelfDto shelfDto) {
+    public String addPost(Model model, @ModelAttribute ShelfDto shelfDto) {
+
+        if (shelfDto.getStatus() == null) {
+            shelfDto.setStatus(true);
+        }
+
         ShelfDto response = shelfService.save(shelfDto);
 
         if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
             model.addAttribute(SHELF, shelfDto);
+            model.addAttribute(MESSAGE, response.getMessage());
             return "shelf/add";
         }
-        return REDIRECT_SHELF_LIST;
-    }
 
-    @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
-        model.addAttribute("shelfs", shelfService.findAll(pageable));
-        return "shelf/list";
+        return REDIRECT_LIST;
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier) {
-        ShelfDto response = shelfService.findByIdentifier(identifier);
-        model.addAttribute(SHELF, response);
+    public String get(Model model, @RequestParam String identifier) {
+
+        model.addAttribute(SHELF, shelfService.findByIdentifier(identifier));
         return "shelf/shelf";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model,
-                             @ModelAttribute(SHELF) ShelfDto shelfDto) {
+    public String update(Model model, @ModelAttribute ShelfDto shelfDto) {
+
         ShelfDto response = shelfService.update(shelfDto);
 
         if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
+            model.addAttribute(SHELF, shelfDto);
+            model.addAttribute(MESSAGE, response.getMessage());
             return "shelf/shelf";
         }
-        return REDIRECT_SHELF_LIST;
+
+        return REDIRECT_LIST;
     }
 
     @GetMapping("/delete")
     public String delete(@RequestParam String identifier) {
         shelfService.delete(identifier);
-        return REDIRECT_SHELF_LIST;
-    }
-
-    @ModelAttribute(SHELF)
-    public ShelfDto shelfFallback() {
-        return new ShelfDto();
+        return REDIRECT_LIST;
     }
 
     @GetMapping("/toggle")
     public String toggle(@RequestParam String identifier) {
         shelfService.toggleStatus(identifier);
-        return REDIRECT_SHELF_LIST;
+        return REDIRECT_LIST;
     }
-
 }

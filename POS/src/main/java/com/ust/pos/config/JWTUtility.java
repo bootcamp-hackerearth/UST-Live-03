@@ -6,7 +6,6 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
 import java.io.Serializable;
 import java.security.Key;
 import java.util.Date;
@@ -34,7 +33,6 @@ public class JWTUtility implements Serializable {
     }
 
     private Claims getAllClaimsFromToken(String token) {
-
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
         return Jwts.parserBuilder()
@@ -55,7 +53,6 @@ public class JWTUtility implements Serializable {
     }
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
-
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
         return Jwts.builder()

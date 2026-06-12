@@ -86,6 +86,7 @@
                     <td>${s.quantity}</td>
                     <td>${s.minimumStock}</td>
 
+                    <!-- STATUS -->
                     <td>
                         <c:choose>
                             <c:when test="${s.quantity == 0}">
@@ -100,6 +101,7 @@
                         </c:choose>
                     </td>
 
+                    <!-- ACTIONS -->
                     <td class="text-center action-btns">
                         <a href="${pageContext.request.contextPath}/stock/get?id=${s.id}"
                            class="btn btn-sm btn-outline-primary"

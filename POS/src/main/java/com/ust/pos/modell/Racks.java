@@ -4,10 +4,11 @@ import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
+@Entity
 @Getter
 @Setter
-@Entity
 public class Racks extends CommonFields {
-    private boolean status;
-    private String shelfIdentifier;
+    private List<String> shelfs;
 }

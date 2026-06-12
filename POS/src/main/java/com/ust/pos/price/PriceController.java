@@ -23,49 +23,51 @@ public class PriceController {
     private ProductService productService;
 
     @GetMapping("/add")
-    public String add(Model model, Pageable pageable) {
+    public String add(Model model) {
         model.addAttribute("price", new PriceDto());
-        model.addAttribute(PRODUCTS, productService.findAll(pageable));
+        model.addAttribute(PRODUCTS, productService.findAllActive());
         return "price/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model,
-                          @ModelAttribute("price") PriceDto priceDto, Pageable pageable) {
+    public String addPost(Model model, @ModelAttribute("price") PriceDto priceDto) {
         PriceDto response = priceService.save(priceDto);
+
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute("product", priceDto);
-            model.addAttribute(PRODUCTS, productService.findAll(pageable));
+            model.addAttribute(PRODUCTS, productService.findAllActive());
             return "price/add";
         }
+
         return REDIRECT_PRICE_LIST;
     }
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
         model.addAttribute("prices", priceService.findAll(pageable));
-        model.addAttribute(PRODUCTS, productService.findAll(pageable));
         return "price/list";
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier, Pageable pageable) {
+    public String update(Model model, @RequestParam String identifier) {
         PriceDto response = priceService.findByIdentifier(identifier);
         model.addAttribute("price", response);
-        model.addAttribute(PRODUCTS, productService.findAll(pageable));
+        model.addAttribute(PRODUCTS, productService.findAllActive());
+
         return "price/price";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model,
-                             @ModelAttribute("price") PriceDto priceDto, Pageable pageable) {
+    public String updatePost(Model model, @ModelAttribute("price") PriceDto priceDto) {
         PriceDto response = priceService.update(priceDto);
+
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute(PRODUCTS, productService.findAll(pageable));
+            model.addAttribute(PRODUCTS, productService.findAllActive());
             return "price/price";
         }
+
         return REDIRECT_PRICE_LIST;
     }
 
@@ -74,5 +76,4 @@ public class PriceController {
         priceService.delete(identifier);
         return REDIRECT_PRICE_LIST;
     }
-
 }

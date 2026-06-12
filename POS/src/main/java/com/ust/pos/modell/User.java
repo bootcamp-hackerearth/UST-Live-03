@@ -1,15 +1,14 @@
 package com.ust.pos.modell;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
-@Entity
 @Getter
 @Setter
-@Inheritance(strategy = InheritanceType.JOINED)
+@Entity
 public class User extends CommonFields {
     private String username;
     private String name;

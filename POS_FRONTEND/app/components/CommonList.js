@@ -1,0 +1,339 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import api from "../services/api";
+import Layout from "./Layout";
+import PropTypes from "prop-types";
+
+function CommonList({
+  title = "List",
+  apiUrl,
+  method = "POST",
+  payload = {},
+  columns = [],
+  deleteApi,
+  deleteParam = "identifier",
+  editRoute,
+  addRoute,
+  showStatus = false,
+  toggleApi,
+  toggleParam = "identifier",
+  toggleField = "status",
+  toggleMethod = "POST",
+  sortField = "id",
+  sortOrder = "ASC",
+  itemsPerPage = 5,
+}) {
+  const router = useRouter();
+
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [ready, setReady] = useState(false);
+
+  const [pagination, setPagination] = useState({
+    page: 0,
+    sizePerPage: itemsPerPage,
+  });
+
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+  });
+
+  const triggerToast = (msg) => {
+    setToast({ visible: true, message: msg });
+    setTimeout(() => {
+      setToast({ visible: false, message: "" });
+    }, 2500);
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) setReady(true);
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+
+      const isSearching = search.trim().length > 0;
+
+      const res = await api({
+        method,
+        url: apiUrl,
+        data: {
+          ...payload,
+          page: isSearching ? 0 : pagination.page,
+          sizePerPage: isSearching ? 1000 : pagination.sizePerPage,
+          sortField,
+          sortDirection: sortOrder,
+        },
+      });
+
+      setData(res.data?.dtoList || []);
+      setTotalRecords(res.data?.totalRecords || 0);
+      setTotalPages(res.data?.totalPage || 0);
+
+    } catch {
+      triggerToast("Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (ready) fetchData();
+  }, [pagination, ready, search]);
+
+  const filteredData = useMemo(() => {
+    return data.filter((item) =>
+      columns.some((col) => {
+        const val = item[col.field];
+        if (!val) return false;
+        return val.toString().toLowerCase().includes(search.toLowerCase());
+      })
+    );
+  }, [data, search, columns]);
+
+  const handleDelete = async (row) => {
+    if (!confirm("Delete this record?")) return;
+
+    try {
+      await api.get(deleteApi, {
+        params: { [deleteParam]: row[deleteParam] },
+      });
+
+      triggerToast("Deleted successfully");
+      fetchData();
+    } catch {
+      triggerToast("Delete failed");
+    }
+  };
+
+  const handleEdit = (row) => {
+    const value = row[deleteParam] ?? row.identifier;
+    let route = editRoute;
+
+    if (route.includes(":identifier")) {
+      route = route.replace(":identifier", encodeURIComponent(value));
+    }
+
+    router.push(route);
+  };
+
+  const handleToggle = async (row) => {
+    const id = row[deleteParam];
+
+    setData((prev) =>
+      prev.map((item) =>
+        item[deleteParam] === id
+          ? {
+              ...item,
+              [toggleField]: !item[toggleField],
+            }
+          : item
+      )
+    );
+
+    try {
+      await api({
+        method: toggleMethod,
+        url: toggleApi,
+        params: { [toggleParam]: id },
+      });
+
+      triggerToast("Status updated");
+    } catch {
+      triggerToast("Toggle failed");
+      fetchData();
+    }
+  };
+
+  const numbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+
+        {/* ✅ TOAST */}
+        {toast.visible && (
+          <div className="fixed top-4 right-4 bg-gradient-to-r from-blue-800 to-blue-600 text-white px-4 py-2 rounded-lg shadow-md text-sm">
+            {toast.message}
+          </div>
+        )}
+
+        {/* ✅ HEADER */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-blue-900">
+              {title}
+            </h2>
+            <p className="text-sm text-gray-500">
+              Manage your records
+            </p>
+          </div>
+
+          {addRoute && (
+            <button
+              onClick={() => router.push(addRoute)}
+              className="bg-gradient-to-r from-blue-700 to-blue-900 hover:from-blue-800 hover:to-blue-950 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow"
+            >
+              <Plus size={16} /> Add
+            </button>
+          )}
+        </div>
+
+        {/* ✅ SEARCH */}
+        <div className="bg-white border border-blue-50 p-4 rounded-xl shadow-sm flex justify-between items-center">
+          <input
+            className="border border-blue-100 rounded-lg px-3 py-2 text-sm w-full max-w-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search..."
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <span className="text-sm text-gray-500 ml-4">
+            {totalRecords} records
+          </span>
+        </div>
+
+        {/* ✅ TABLE */}
+        <div className="bg-white rounded-2xl shadow-sm border border-blue-50 overflow-hidden">
+
+          {loading && (
+            <div className="p-4 text-center text-sm text-gray-500">
+              Loading...
+            </div>
+          )}
+
+          <table className="w-full text-sm">
+            <thead className="bg-gradient-to-r from-[#0a1f66] to-[#1e3a8a] text-white">
+              <tr>
+                {columns.map((c) => (
+                  <th key={c.field} className="p-3 text-left">
+                    {c.header}
+                  </th>
+                ))}
+                <th className="p-3 text-center">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredData.map((row) => {
+                const rowKey =
+                  row[deleteParam] ?? row.identifier ?? JSON.stringify(row);
+
+                return (
+                  <tr
+                    key={rowKey}
+                    className="border-t hover:bg-blue-50 transition"
+                  >
+                    {columns.map((c) => (
+                      <td key={`${rowKey}-${c.field}`} className="p-3">
+
+                        {c.field === toggleField && showStatus ? (
+                          <button
+                            onClick={() => handleToggle(row)}
+                            className={`w-11 h-6 flex items-center rounded-full p-1 ${
+                              row[toggleField]
+                                ? "bg-green-500"
+                                : "bg-gray-300"
+                            }`}
+                          >
+                            <span
+                              className={`w-4 h-4 bg-white rounded-full shadow transform ${
+                                row[toggleField]
+                                  ? "translate-x-5"
+                                  : ""
+                              }`}
+                            />
+                          </button>
+                        ) : (
+                          row[c.field]
+                        )}
+
+                      </td>
+                    ))}
+
+                    <td className="p-3 text-center flex justify-center gap-3">
+                      <button className="text-blue-700 hover:text-blue-900" onClick={() => handleEdit(row)}>
+                        <Pencil size={16} />
+                      </button>
+
+                      <button className="text-red-500 hover:text-red-700" onClick={() => handleDelete(row)}>
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ✅ PAGINATION */}
+        {totalPages > 0 && search.trim() === "" && (
+          <div className="bg-white border border-blue-50 rounded-xl p-4 flex justify-between items-center shadow-sm">
+
+            <div className="text-sm text-gray-600">
+              Page <b>{pagination.page + 1}</b> of <b>{totalPages}</b>
+            </div>
+
+            <div className="flex gap-2">
+              {numbers.map((num) => (
+                <button
+                  key={num}
+                  onClick={() =>
+                    setPagination((p) => ({ ...p, page: num - 1 }))
+                  }
+                  className={`px-3 py-1 rounded-md text-sm ${
+                    pagination.page === num - 1
+                      ? "bg-blue-800 text-white"
+                      : "bg-gray-100 hover:bg-blue-100"
+                  }`}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
+}
+
+CommonList.propTypes = {
+  title: PropTypes.string,
+  apiUrl: PropTypes.string.isRequired,
+  method: PropTypes.string,
+  payload: PropTypes.object,
+  columns: PropTypes.array.isRequired,
+
+  deleteApi: PropTypes.string,
+  deleteParam: PropTypes.string,
+
+  editRoute: PropTypes.string,
+  addRoute: PropTypes.string,
+
+  showStatus: PropTypes.bool,
+
+  toggleApi: PropTypes.string,
+  toggleParam: PropTypes.string,
+  toggleField: PropTypes.string,
+  toggleMethod: PropTypes.string,
+
+  sortField: PropTypes.string,
+  sortOrder: PropTypes.string,
+
+  itemsPerPage: PropTypes.number,
+};
+
+export default CommonList;

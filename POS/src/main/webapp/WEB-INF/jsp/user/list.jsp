@@ -65,6 +65,11 @@
            class="btn btn-light fw-semibold me-2">
             <i class="bi bi-house-door-fill me-1"></i> Home
         </a>
+
+        <a href="${pageContext.request.contextPath}/register"
+           class="btn btn-light fw-semibold">
+            <i class="bi bi-person-plus-fill me-1"></i> Register User
+        </a>
     </div>
 </div>
 

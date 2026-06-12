@@ -1,6 +1,7 @@
 package com.ust.pos.racks.service.impl;
 
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Racks;
 import com.ust.pos.modell.RacksRepository;
 import com.ust.pos.racks.service.RacksService;
@@ -18,29 +19,29 @@ import java.util.List;
 @Service
 public class RacksServiceImpl implements RacksService {
 
-    public static final RuntimeException SHELF_NOT_FOUND = new RuntimeException("Shelf not found");
+    @Autowired
+    private RacksRepository racksRepository;
 
     @Autowired
     private ModelMapper modelMapper;
 
-    @Autowired
-    private RacksRepository racksRepository;
-
     @Override
     public RacksDto findByIdentifier(String identifier) {
-        return modelMapper.map(racksRepository.findByIdentifier(identifier), RacksDto.class);
+        return modelMapper.map(racksRepository.findByIdentifier(identifier), RacksDto.class
+        );
     }
 
     @Override
     public RacksDto save(RacksDto racksDto) {
         String identifier = racksDto.getIdentifier();
-        Racks existingRacks = racksRepository.findByIdentifier(identifier);
+        Racks existingRack = racksRepository.findByIdentifier(identifier);
 
-        if (existingRacks != null) {
-            racksDto.setMessage("Racks with identifier - " + identifier + " already exists");
+        if (existingRack != null) {
+            racksDto.setMessage("Shelf with identifier - " + identifier + " already exists");
             racksDto.setSuccess(false);
             return racksDto;
         }
+
         Racks racks = modelMapper.map(racksDto, Racks.class);
         racksRepository.save(racks);
         return racksDto;
@@ -49,15 +50,16 @@ public class RacksServiceImpl implements RacksService {
     @Override
     public RacksDto update(RacksDto racksDto) {
         String identifier = racksDto.getIdentifier();
-        Racks existingRacks = racksRepository.findByIdentifier(identifier);
+        Racks existingRack = racksRepository.findByIdentifier(identifier);
 
-        if (existingRacks == null) {
-            racksDto.setMessage("Racks with identifier - " + identifier + " not found");
+        if (existingRack == null) {
+            racksDto.setMessage("Shelf with identifier - " + identifier + " not found");
             racksDto.setSuccess(false);
             return racksDto;
         }
-        modelMapper.map(racksDto, existingRacks);
-        racksRepository.save(existingRacks);
+
+        modelMapper.map(racksDto, existingRack);
+        racksRepository.save(existingRack);
         return racksDto;
     }
 
@@ -68,29 +70,26 @@ public class RacksServiceImpl implements RacksService {
     }
 
     @Override
-    public List<RacksDto> findAll(Pageable pageable) {
+    public WsDto<RacksDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
-        Page<Racks> racksPage = racksRepository.findAll(pageable);
-        return modelMapper.map(racksPage.getContent(), listType);
-    }
+        Page<Racks> rackPage = racksRepository.findAll(pageable);
 
-    @Override
-    public void toggleStatus(String identifier) {
-        Racks racks = racksRepository.findByIdentifier(identifier);
-        if (racks == null) {
-            throw SHELF_NOT_FOUND;
-        }
-        racks.setStatus(!racks.isStatus());
-        racksRepository.save(racks);
+        WsDto<RacksDto> rackWsDto = new WsDto<>();
+        rackWsDto.setDtoList(modelMapper.map(rackPage.getContent(), listType));
+        rackWsDto.setTotalRecords(rackPage.getTotalElements());
+        rackWsDto.setTotalPage(rackPage.getTotalPages());
+        rackWsDto.setSizePerPage(pageable.getPageSize());
+        rackWsDto.setPage(pageable.getPageNumber());
+
+        return rackWsDto;
     }
 
     @Override
     public List<RacksDto> findAllActive() {
         return racksRepository.findByStatusTrue()
                 .stream()
-                .map(racks -> modelMapper.map(racks, RacksDto.class))
+                .map(rack -> modelMapper.map(rack, RacksDto.class))
                 .toList();
     }
-
 }

@@ -12,7 +12,12 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@OpenAPIDefinition(servers = {@Server(url = "/", description = "Default Server URL")})
+
+@OpenAPIDefinition(
+        servers = {
+                @Server(url = "/", description = "Default Server URL")
+        }
+)
 @ComponentScan({"com.ust.pos.api", "com.ust.pos.web.controller", "com.ust.pos"})
 public class UserDto extends CommonDto {
     private String name;
@@ -21,6 +26,7 @@ public class UserDto extends CommonDto {
     private List<String> roles;
     private String password;
     private String token;
+
     public UserDto(String token) {
         this.token = token;
     }

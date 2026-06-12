@@ -8,5 +8,4 @@ import lombok.Setter;
 public class WarehouseDto extends CommonDto {
     private String location;
     private Long capacity;
-    private boolean status;
 }

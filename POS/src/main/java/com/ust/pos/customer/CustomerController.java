@@ -69,5 +69,4 @@ public class CustomerController {
     public void toggle(Model model, @RequestParam String identifier) {
         customerService.toggleStatus(identifier);
     }
-
 }

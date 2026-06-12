@@ -62,5 +62,4 @@ public class AddressServiceImpl implements AddressService {
         }.getType();
         return modelMapper.map(addressRepository.findAll(), listType);
     }
-
 }

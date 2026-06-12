@@ -26,13 +26,13 @@ public class CategoryController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute("category") CategoryDto categoryDto, Pageable pageable) {
+    public String add(Model model, Pageable pageable, @ModelAttribute("category") CategoryDto categoryDto) {
         model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
         return "category/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute("category") CategoryDto categoryDto, Pageable pageable) {
+    public String addPost(Model model, Pageable pageable, @ModelAttribute("category") CategoryDto categoryDto) {
         CategoryDto response = categoryService.save(categoryDto);
 
         if (!response.isSuccess()) {
@@ -40,18 +40,20 @@ public class CategoryController {
             model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
             return "category/add";
         }
+
         return REDIRECT_CATEGORY_LIST;
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier, Pageable pageable) {
+    public String update(Model model, Pageable pageable, @RequestParam String identifier) {
         model.addAttribute("category", categoryService.findByIdentifier(identifier));
         model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+
         return "category/category";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute("category") CategoryDto categoryDto, Pageable pageable) {
+    public String updatePost(Model model, Pageable pageable, @ModelAttribute("category") CategoryDto categoryDto) {
         CategoryDto response = categoryService.update(categoryDto);
 
         if (!response.isSuccess()) {
@@ -59,19 +61,21 @@ public class CategoryController {
             model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
             return "category/category";
         }
+
         return REDIRECT_CATEGORY_LIST;
     }
 
     @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String identifier, Pageable pageable) {
+    public String delete(Model model, Pageable pageable, @RequestParam String identifier) {
         try {
-            categoryService.deleteByIdentifier(identifier);
+            categoryService.delete(identifier);
         } catch (IllegalStateException ex) {
             model.addAttribute(MESSAGE, ex.getMessage());
-            model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+            model.addAttribute(CATEGORIES,
+                    categoryService.findAll(pageable));
             return "category/list";
         }
+
         return REDIRECT_CATEGORY_LIST;
     }
-
 }
