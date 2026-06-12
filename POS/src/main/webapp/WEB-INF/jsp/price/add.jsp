@@ -14,102 +14,67 @@
           rel="stylesheet"/>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
-            background: #f5f5f5;
+            background: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .card-container {
-            position: relative;
-            width: 550px;
+            width: 500px;
             background: #fff;
-            padding: 40px;
-            border-radius: 18px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 25px;
-            text-decoration: none;
-            font-size: 32px;
-            color: #4b6cb7;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .back-btn:hover {
-            color: #182848;
+            padding: 35px 40px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         }
 
         h2 {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             color: #4b6cb7;
-            font-size: 34px;
-            font-weight: 600;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 500;
-            font-size: 16px;
         }
 
         .form-control {
             width: 100%;
-            height: 52px;
-            padding: 12px 15px;
-            border-radius: 12px;
-            border: 1px solid #d0d0d0;
-            font-size: 15px;
-            outline: none;
-        }
-
-        .form-control:focus {
-            border-color: #4b6cb7;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
         }
 
         .alert {
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
             text-align: center;
-            background: rgba(220, 53, 69, 0.1);
+            background: rgba(220, 53, 69, 0.12);
             border: 1px solid #dc3545;
             color: #dc3545;
         }
 
         .btn-submit {
             width: 100%;
-            height: 52px;
+            padding: 12px;
+            border-radius: 12px;
             border: none;
-            border-radius: 14px;
             cursor: pointer;
-            font-size: 18px;
             font-weight: 600;
             background: linear-gradient(135deg, #4b6cb7, #182848);
             color: white;
-            margin-top: 10px;
-        }
-
-        .btn-submit:hover {
-            opacity: 0.95;
         }
     </style>
 </head>
@@ -118,11 +83,9 @@
 
 <div class="card-container">
 
-    <!-- Back Button -->
-    <a href="/price/list" class="back-btn">&#8592;</a>
-
     <h2>Add Price</h2>
 
+    <!-- ✅ Error message from backend -->
     <c:if test="${not empty priceDto.message}">
         <div class="alert">
             ${priceDto.message}
@@ -133,6 +96,7 @@
                action="/price/add"
                modelAttribute="priceDto">
 
+        <!-- ✅ Product Identifier Dropdown -->
         <div class="form-group">
             <label>Product Identifier</label>
             <form:select path="identifier" cssClass="form-control">
@@ -145,6 +109,7 @@
             </form:select>
         </div>
 
+        <!-- ✅ Cost Price -->
         <div class="form-group">
             <label>Cost Price</label>
             <form:input path="costPrice"
@@ -153,6 +118,7 @@
                         placeholder="Enter cost price"/>
         </div>
 
+        <!-- ✅ Selling Price -->
         <div class="form-group">
             <label>Selling Price</label>
             <form:input path="sellingPrice"

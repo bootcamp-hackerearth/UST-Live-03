@@ -157,12 +157,14 @@
 
     <h2>Edit Role</h2>
 
+    <!-- ❌ Role not found -->
     <c:if test="${empty role}">
         <div class="alert alert-danger">
             Role not found
         </div>
     </c:if>
 
+    <!-- ✅ Edit Role Form -->
     <c:if test="${not empty role}">
         <form:form action="/role/update"
                    method="post"

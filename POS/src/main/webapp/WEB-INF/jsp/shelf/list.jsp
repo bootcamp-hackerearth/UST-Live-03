@@ -183,6 +183,7 @@
                     <td>${shelf.id}</td>
                     <td>${shelf.identifier}</td>
 
+                    <!-- ✅ Toggle -->
                     <td>
                         <form action="${pageContext.request.contextPath}/shelf/toggleStatus"
                               method="post" style="margin:0;">

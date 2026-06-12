@@ -4,7 +4,9 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +19,25 @@ public class CategoryApiController extends BaseController {
     @Autowired
     private CategoryService categoryService;
 
+    @GetMapping("/list")
+    public List<CategoryDto> list() {
+        return categoryService.findAll();
+    }
+
     @PostMapping("/list")
-    public List<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
-        return categoryService.findAll(pageable);
+    public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField());
+        Page<CategoryDto> category = categoryService.findAll(pageable, paginationDto.getSearch());
+        WsDto<CategoryDto> output = new WsDto<>();
+        output.setContent(category.getContent());
+        output.setPage(category.getNumber());
+        output.setSizePerPage(category.getSize());
+        output.setTotalPages(category.getTotalPages());
+        return output;
     }
 
     @PostMapping("/add")
@@ -43,6 +59,16 @@ public class CategoryApiController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    @PostMapping("/toggleStatus")
+    public boolean toggleStatus(@RequestParam String identifier) {
+        try {
+            categoryService.toggleStatus(identifier);
         } catch (Exception e) {
             return false;
         }

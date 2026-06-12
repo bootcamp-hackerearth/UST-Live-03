@@ -30,7 +30,7 @@ public class ProductController {
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ProductDto productDto) {
         model.addAttribute("products", productService.findAll());
-        model.addAttribute("category", categoryService.findBySuperCategoryNotNull());
+        model.addAttribute("category", categoryService.findAllWithoutNull());
         return "product/add";
     }
 
@@ -46,7 +46,7 @@ public class ProductController {
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
         ProductDto productDto = productService.findByIdentifier(identifier);
-        model.addAttribute("category", categoryService.findBySuperCategoryNotNull());
+        model.addAttribute("category", categoryService.findAllWithoutNull());
         model.addAttribute("product", productDto);
         return "product/product";
     }

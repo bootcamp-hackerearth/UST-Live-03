@@ -17,7 +17,7 @@ public class WarehouseController {
 
     @GetMapping("/list")
     public String home(Model model) {
-        model.addAttribute("warehouses", warehouseService.findAll());
+        model.addAttribute("warehouses", warehouseService.findAll(null));
         return "warehouse/list";
     }
 

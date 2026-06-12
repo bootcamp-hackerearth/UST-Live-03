@@ -146,12 +146,14 @@
 
     <h2>Add New Role</h2>
 
+    <!-- ✅ Success Message -->
     <c:if test="${not empty role}">
         <div class="alert">
             ${role}
         </div>
     </c:if>
 
+    <!-- ✅ Error / Info Message -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}

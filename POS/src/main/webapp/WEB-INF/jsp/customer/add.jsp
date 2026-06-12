@@ -110,8 +110,10 @@
         <div class="error-message">${message}</div>
     </c:if>
 
+    <!-- ✅ ONE form → customerDto -->
     <form:form action="/customer/add" method="post" modelAttribute="customerDto">
 
+        <!-- Customer -->
         <div class="form-group">
             <label>Customer Name</label>
             <form:input path="identifier"/>
@@ -119,20 +121,15 @@
 
         <div class="form-group">
             <label>Phone Number</label>
-            <form:input path="phoneno"
-            cssClass="form-control"
-                                    maxlength="10"
-                                    pattern="[0-9]{10}"
-                                    title="Enter exactly 10 digit phone number"
-                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+            <form:input path="phoneno"/>
         </div>
         <div class="form-group">
             <label>Email</label>
-            <form:input path="email" required="required" type="email"/>
+            <form:input path="email"/>
         </div>
         <div class="form-group">
             <label>Address</label>
-            <form:input path="address" required="required"/>
+            <form:input path="address"/>
         </div>
         <div class="form-group">
             <label>Party Type</label>
@@ -144,31 +141,23 @@
             </form:select>
         </div>
 
+        <!-- ✅ Billing Address -->
         <details>
             <summary>Billing Address</summary>
             <input type="text"   name="billing.addressLine" placeholder="Address Line"/>
             <input type="text"   name="billing.city"        placeholder="City"/>
             <input type="text"   name="billing.state"       placeholder="State"/>
-            <input type="text" name="billing.pincode"
-            placeholder="Pincode"
-            maxlength="6"
-            pattern="[0-9]{6}"
-            required
-            inputmode="numeric"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+            <input type="number" name="billing.pincode"     placeholder="Pincode"/>
             <input type="text"   name="billing.country"     placeholder="Country"/>
         </details>
 
+        <!-- ✅ Shipping Address -->
         <details>
             <summary>Shipping Address</summary>
             <input type="text"   name="shipping.addressLine" placeholder="Address Line"/>
             <input type="text"   name="shipping.city"        placeholder="City"/>
             <input type="text"   name="shipping.state"       placeholder="State"/>
-            <input type="text" name="shipping.pincode"     placeholder="Pincode" maxlength="6"
-            pattern="[0-9]{6}"
-            required
-            inputmode="numeric"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+            <input type="number" name="shipping.pincode"     placeholder="Pincode"/>
             <input type="text"   name="shipping.country"     placeholder="Country"/>
         </details>
 

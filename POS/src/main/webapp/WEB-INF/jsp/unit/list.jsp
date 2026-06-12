@@ -96,6 +96,7 @@
             color: #4b6cb7;
         }
 
+        /* ✅ Toggle switch (same as Shelf) */
         .toggle-switch {
             position: relative;
             width: 52px;
@@ -182,6 +183,7 @@
                     <td>${unit.id}</td>
                     <td>${unit.identifier}</td>
 
+                    <!-- ✅ Toggle Status -->
                     <td>
                         <form action="${pageContext.request.contextPath}/unit/toggleStatus"
                               method="post" style="margin:0;">

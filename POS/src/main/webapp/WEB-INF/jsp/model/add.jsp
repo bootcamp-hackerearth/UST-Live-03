@@ -108,19 +108,23 @@
 
     <h2>Add Model</h2>
 
+    <!-- Error Message -->
     <c:if test="${not empty message}">
         <div class="error-message">
             ${message}
         </div>
     </c:if>
 
+    <!-- Form -->
     <form:form method="post" action="/model/add" modelAttribute="modelProductDto">
 
+        <!-- Model Name -->
         <div class="form-group">
             <label>Model Name</label>
             <form:input path="identifier" placeholder="Enter Model Name" />
         </div>
 
+        <!-- Status Dropdown -->
         <div class="form-group">
             <label>Status</label>
             <form:select path="status">

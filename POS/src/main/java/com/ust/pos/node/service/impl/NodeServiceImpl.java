@@ -1,10 +1,7 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -46,16 +43,16 @@ public class NodeServiceImpl implements NodeService {
 
     private void findEligibleNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
-        Set<String> nodesStr = new HashSet<>();
+        Set<String> nodesString = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
                 if (node.getRoles() != null && node.getRoles().contains(role)) {
-                    nodesStr.add(node.getIdentifier());
+                    nodesString.add(node.getIdentifier());
                 }
             }
         }
-        for (String nodeStr : nodesStr) {
+        for (String nodeStr : nodesString) {
             nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
         }
     }
@@ -106,10 +103,15 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<NodeDto> findAll(Pageable pageable) {
-        Type listtype = new TypeToken<List<NodeDto>>() {
-        }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
-        return modelMapper.map(nodePage.getContent(), listtype);
+    public Page<NodeDto> findAll(Pageable pageable ,String search ) {
+        Page<Node> nodePage;
+        if(search !=null && !search.trim().isEmpty()){
+            nodePage = nodeRepository.findByIdentifierContainingIgnoreCase
+                    (search,pageable);
+        }
+        else {
+            nodePage = nodeRepository.findAll(pageable);
+        }
+        return nodePage.map(node ->modelMapper.map(node , NodeDto.class));
     }
 }

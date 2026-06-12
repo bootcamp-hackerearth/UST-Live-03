@@ -59,7 +59,6 @@ public class UnitServiceImpl implements UnitService {
                 unitDto.setSuccess(true);
             }
             return unitDto;
-
         }
     }
 
@@ -79,6 +78,7 @@ public class UnitServiceImpl implements UnitService {
     public void delete(String identifier) {
         unitRepository.deleteByIdentifier(identifier);
     }
+
 
     @Override
     public void toggleStatus(String identifier) {

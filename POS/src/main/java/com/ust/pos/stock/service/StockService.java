@@ -16,7 +16,7 @@ public interface StockService {
 
     StockDto findByIdentifier(String identifier);
 
-    void toggleStatus(String identifier);
+    StockDto toggleStatus(String identifier);
 
     List<StockDto> findAll(Pageable pageable);
 }

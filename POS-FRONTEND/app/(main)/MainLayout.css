@@ -1,0 +1,164 @@
+
+ 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+ 
+html,
+body {
+  width: 100%;
+  min-height: 100vh;
+}
+ 
+body {
+  overflow-x: hidden;
+  background: #f8fafc;
+  font-family: "Inter", sans-serif;
+}
+ 
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: #f8fafc;
+}
+ 
+.sidebar {
+  width: 260px;
+  background: linear-gradient(180deg, #111827, #1f2937);
+  color: #fff;
+  padding: 24px 18px;
+ 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+ 
+  height: 100vh;
+  overflow-y: auto;
+}
+ 
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+ 
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+ 
+.logoCircle {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+ 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ 
+  font-weight: bold;
+  font-size: 20px;
+}
+ 
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+}
+ 
+.brandSub {
+  font-size: 12px;
+  color: #9ca3af;
+}
+ 
+.menuContainer {
+  flex: 1;
+}
+ 
+.menuLabel {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+ 
+.menuList {
+  list-style: none;
+}
+ 
+.menuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: transparent;
+  border: none;
+  color: #f9fafb;
+
+  padding: 13px 14px;
+  border-radius: 12px;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+
+  margin-bottom: 10px;
+}
+ 
+.menuItem:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+ 
+.menuIcon {
+  font-size: 18px;
+  width: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+ 
+.logoutBtn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #222;
+  cursor: pointer;
+  font-weight: 600;
+}
+ 
+.logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+ 
+ 
+.main {
+  flex: 1;
+  padding: 30px;
+  background: #f8fafc;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+ 
+@media (max-width: 768px) {
+  .wrapper {
+    flex-direction: column;
+  }
+ 
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+ 
+  .main {
+    padding: 20px;
+  }
+}

@@ -23,14 +23,14 @@ public class BrandController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute BrandDto brandDto) {
+    public String add(Model model, @ModelAttribute BrandDto userDto) {
         model.addAttribute("brand", brandService.findAll());
         return "brand/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute BrandDto brandDto) {
-        BrandDto response = brandService.save(brandDto);
+    public String addPost(Model model, @ModelAttribute BrandDto userDto) {
+        BrandDto response = brandService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute("brand", brandService.findAll());

@@ -78,14 +78,18 @@
 
     <form action="/brand/update" method="post">
 
+        <!-- Identifier (hidden) -->
         <input type="hidden" name="identifier" value="${brandDto.identifier}" />
 
+        <!-- Brand Name (non editable) -->
         <label>Brand Name</label>
         <input type="text" value="${brandDto.identifier}" readonly />
 
+        <!-- Description (editable) -->
         <label>Description</label>
         <textarea name="description" rows="4">${brandDto.description}</textarea>
 
+        <!-- Status (editable) -->
         <label>Status</label>
         <select name="status">
             <option value="true" ${brandDto.status ? 'selected' : ''}>Active</option>

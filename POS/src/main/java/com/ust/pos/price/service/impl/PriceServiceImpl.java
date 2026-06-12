@@ -34,7 +34,7 @@ public class PriceServiceImpl implements PriceService {
             priceDto.setSuccess(false);
             return priceDto;
         }
-        priceDto.setDifference(priceDto.getSellingPrice() - priceDto.getCostPrice());
+        priceDto.setDifference(priceDto.getSellingPrice().subtract(priceDto.getCostPrice()));
         Price price = modelMapper.map(priceDto, Price.class);
         priceRepository.save(price);
         return priceDto;
@@ -49,7 +49,7 @@ public class PriceServiceImpl implements PriceService {
             priceDto.setSuccess(false);
             return priceDto;
         }
-        priceDto.setDifference(priceDto.getSellingPrice() - priceDto.getCostPrice());
+        priceDto.setDifference(priceDto.getSellingPrice().subtract(priceDto.getCostPrice()));
         Price price = modelMapper.map(priceDto, Price.class);
         priceRepository.save(price);
         return priceDto;
@@ -69,14 +69,23 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-        return modelMapper.map(priceRepository.findByIdentifier(identifier), PriceDto.class);
+        Price price = priceRepository.findByIdentifier(identifier);
+        if (price == null) {
+            throw new RuntimeException(identifier);
+        }
+        return modelMapper.map(price, PriceDto.class);
     }
 
     @Override
-    public List<PriceDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<PriceDto>>() {
-        }.getType();
-        Page<Price> customerPage = priceRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+    public Page<PriceDto> findAll(Pageable pageable , String search ) {
+        Page<Price> pricePage;
+        if(search !=null && !search.trim().isEmpty()){
+            pricePage = priceRepository.findByIdentifierContainingIgnoreCase
+                    (search,pageable);
+        }
+        else {
+            pricePage = priceRepository.findAll(pageable);
+        }
+        return pricePage.map(node ->modelMapper.map(node , PriceDto.class));
     }
 }

@@ -40,7 +40,7 @@ class CustomerServiceTest {
 
     @Test
     void findAll_WithPagination_ShouldReturnCustomerDtos() {
-
+        // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         List<Customer> customers = List.of(new Customer());
         Page<Customer> customerPage = new PageImpl<>(customers);

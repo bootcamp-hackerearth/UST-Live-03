@@ -107,12 +107,14 @@
 
     <h2>Login</h2>
 
+    <!-- ✅ ERROR MESSAGE -->
     <c:if test="${param.error != null}">
         <div class="error-message">
             Invalid username or password
         </div>
     </c:if>
 
+    <!-- ✅ LOGOUT MESSAGE (optional) -->
     <c:if test="${param.logout != null}">
         <div class="error-message" style="color:#155724; border-color:#28a745;">
             Logged out successfully

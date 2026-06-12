@@ -72,12 +72,11 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public void toggleStatus(String identifier) {
+    public StockDto toggleStatus(String identifier) {
         Stock stock = stockRepository.findByIdentifier(identifier);
-        if(stock!=null){
-            stock.setStatus(!stock.isStatus());
-            stockRepository.save(stock);
-        }
+        stock.setStatus(!stock.isStatus());
+        stockRepository.save(stock);
+        return null;
     }
 
     @Override

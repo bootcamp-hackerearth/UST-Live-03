@@ -4,11 +4,15 @@ import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
 public class Price extends CommonFields {
-    private Long costPrice;
-    private Long sellingPrice;
-    private Long difference;
+    private BigDecimal costPrice;
+    private BigDecimal sellingPrice;
+    private BigDecimal discountPrice;
+    private BigDecimal difference;
+    private BigDecimal discount;
 }

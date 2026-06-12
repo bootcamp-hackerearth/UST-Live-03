@@ -100,4 +100,5 @@ public class ShelfServiceImpl implements ShelfService {
         Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
         return modelMapper.map(shelfPage.getContent(), listType);
     }
+
 }

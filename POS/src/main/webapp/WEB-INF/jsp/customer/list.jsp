@@ -6,165 +6,160 @@
 <head>
     <title>Customer List</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
-          rel="stylesheet">
-
     <style>
-
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
+        body {
+            margin: 0;
+            padding: 32px;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f4f6fb, #eef1f8);
         }
 
-        body{
-            font-family:'Poppins',sans-serif;
-            background:#f5f5f5;
-            min-height:100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            padding:30px;
+        h2 {
+            text-align: center;
+            color: #374a9e;
+            margin-bottom: 25px;
         }
 
-        .container{
-            width:1200px;
-            background:#fff;
-            border-radius:20px;
-            padding:35px 55px;
-            box-shadow:0 20px 45px rgba(0,0,0,0.12);
-            position:relative;
+        .table-wrapper {
+            overflow-x: auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
         }
 
-        /* Back Button */
-
-        .back-btn{
-            position:absolute;
-            top:22px;
-            left:22px;
-            width:48px;
-            height:48px;
-            border-radius:50%;
-            background:#f1f3f8;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            text-decoration:none;
-            color:#4b6cb7;
-            font-size:24px;
-            box-shadow:0 4px 10px rgba(0,0,0,0.1);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
         }
 
-        h2{
-            text-align:center;
-            color:#4b6cb7;
-            font-size:28px;
-            font-weight:600;
-            margin-bottom:30px;
+        th {
+            background: linear-gradient(135deg, #4b6cb7, #182848);
+            color: #ffffff;
+            padding: 14px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        table{
-            width:100%;
-            border-collapse:collapse;
-            table-layout:fixed;
+        td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #edf0f7;
+            font-size: 14px;
+            color: #333;
         }
 
-        thead{
-            background:#5372bc;
-            color:white;
+        tr:last-child td {
+            border-bottom: none;
         }
 
-        th{
-            padding:16px;
-            font-size:14px;
-            font-weight:600;
-            text-align:center;
+        tbody tr {
+            transition: background 0.2s ease;
         }
 
-        td{
-            padding:18px 12px;
-            text-align:center;
-            border-bottom:1px solid #ececec;
-            font-size:14px;
-            word-wrap:break-word;
+        tbody tr:hover {
+            background: #f7f9ff;
         }
 
-        tbody tr:hover{
-            background:#fafafa;
+        .alert {
+            padding: 16px;
+            background: #fff3cd;
+            color: #856404;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            max-width: 600px;
+            margin: 30px auto;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
 
-        .action-btn{
-            text-decoration:none;
-            font-size:18px;
-            margin:0 6px;
+        /* Action buttons */
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            margin: 0 4px;
+            transition: all 0.2s ease;
         }
 
-        .edit{
-            color:#ff7b42;
+        .btn-edit {
+            background: #e8f0ff;
+            color: #2b5fd9;
         }
 
-        .delete{
-            color:#4f6fff;
+        .btn-edit:hover {
+            background: #d6e4ff;
+            transform: scale(1.05);
         }
 
-        .alert{
-            text-align:center;
-            padding:15px;
-            border-radius:10px;
-            background:#fff3cd;
-            color:#856404;
-            margin-bottom:20px;
+        .btn-delete {
+            background: #ffe8ea;
+            color: #d63341;
         }
 
-        .footer-buttons{
-            display:flex;
-            justify-content:center;
-            gap:16px;
-            margin-top:28px;
+        .btn-delete:hover {
+            background: #ffd0d5;
+            transform: scale(1.05);
         }
 
-        .btn{
-            text-decoration:none;
-            padding:12px 24px;
-            border-radius:14px;
-            color:white;
-            font-weight:600;
-            transition:0.3s;
+        /* Footer buttons */
+        .footer-actions {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
         }
 
-        .btn-home{
-            background:#6c757d;
+        .btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .btn-add{
-            background:linear-gradient(135deg,#4b6cb7,#182848);
+        .btn-home {
+            background: #6c757d;
+            color: #fff;
         }
 
-        .btn:hover{
-            transform:translateY(-2px);
+        .btn-home:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
         }
 
+        .btn-add {
+            background: linear-gradient(135deg, #4b6cb7, #182848);
+            color: #fff;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px) scale(1.03);
+        }
     </style>
 </head>
 
 <body>
 
-<div class="container">
+<h2>Customer List</h2>
 
-    <a href="javascript:history.back()" class="back-btn">←</a>
+<c:if test="${empty customers}">
+    <div class="alert">No customers found</div>
+</c:if>
 
-    <h2>List of Customers</h2>
-
-    <c:if test="${empty customers}">
-        <div class="alert">
-            No customers found
-        </div>
-    </c:if>
-
-    <c:if test="${not empty customers}">
-
+<c:if test="${not empty customers}">
+    <div class="table-wrapper">
         <table>
-
             <thead>
             <tr>
                 <th>ID</th>
@@ -176,59 +171,34 @@
                 <th>Action</th>
             </tr>
             </thead>
-
             <tbody>
-
             <c:forEach items="${customers}" var="customer">
-
                 <tr>
-
                     <td>${customer.id}</td>
                     <td>${customer.identifier}</td>
                     <td>${customer.phoneno}</td>
                     <td>${customer.email}</td>
                     <td>${customer.partytype}</td>
                     <td>${customer.address}</td>
-
                     <td>
-
                         <a href="/customer/get?identifier=${customer.identifier}"
-                           class="action-btn edit"
-                           title="Edit">
-                            ✏️
-                        </a>
-
+                           class="btn-action btn-edit"
+                           title="Edit Customer">✏️</a>
                         <a href="/customer/delete?identifier=${customer.identifier}"
-                           class="action-btn delete"
-                           title="Delete"
-                           onclick="return confirm('Are you sure you want to delete this customer?');">
-                            🗑️
-                        </a>
-
+                           class="btn-action btn-delete"
+                           title="Delete Customer"
+                           onclick="return confirm('Are you sure you want to delete this customer?');">🗑</a>
                     </td>
-
                 </tr>
-
             </c:forEach>
-
             </tbody>
-
         </table>
-
-    </c:if>
-
-    <div class="footer-buttons">
-
-        <a href="/" class="btn btn-home">
-            Home
-        </a>
-
-        <a href="/customer/add" class="btn btn-add">
-            + Add Customer
-        </a>
-
     </div>
+</c:if>
 
+<div class="footer-actions">
+    <a href="/" class="btn btn-home">Home</a>
+    <a href="/customer/add" class="btn btn-add">＋ Add Customer</a>
 </div>
 
 </body>

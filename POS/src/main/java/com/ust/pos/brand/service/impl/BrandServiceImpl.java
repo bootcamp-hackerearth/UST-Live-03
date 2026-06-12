@@ -40,16 +40,13 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public BrandDto update(BrandDto brandDto) {
-
         Brand existingBrand =
                 brandRepository.findByIdentifier(brandDto.getIdentifier());
-
         if (existingBrand == null) {
             brandDto.setSuccess(false);
             brandDto.setMessage("Brand not found");
             return brandDto;
         }
-
         existingBrand.setDescription(brandDto.getDescription());
         existingBrand.setStatus(brandDto.isStatus());
         brandRepository.save(existingBrand);

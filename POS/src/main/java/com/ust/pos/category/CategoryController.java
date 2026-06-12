@@ -24,14 +24,14 @@ public class CategoryController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute CategoryDto categoryDto) {
+    public String add(Model model, @ModelAttribute CategoryDto userDto) {
         model.addAttribute(CATEGORIES, categoryService.findAll());
         return "category/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute CategoryDto categoryDto) {
-        CategoryDto response = categoryService.save(categoryDto);
+    public String addPost(Model model, @ModelAttribute CategoryDto userDto) {
+        CategoryDto response = categoryService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(CATEGORIES, categoryService.findAll());

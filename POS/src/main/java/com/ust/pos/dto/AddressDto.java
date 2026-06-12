@@ -1,6 +1,5 @@
 package com.ust.pos.dto;
 
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,5 +13,4 @@ public class AddressDto extends CommonDto {
     private String country;
     private Boolean isShipping;
     private Boolean isBilling;
-
 }

@@ -108,15 +108,18 @@
         <div class="error-message">${message}</div>
     </c:if>
 
+    <!-- ✅ Rack Edit Form -->
     <form:form method="post"
                action="${pageContext.request.contextPath}/racks/update"
                modelAttribute="racksDto">
 
+        <!-- Rack Name (readonly, identifier should not change) -->
         <div class="form-group">
             <label>Rack Name</label>
             <form:input path="identifier" readonly="true"/>
         </div>
 
+        <!-- Shelf Multi Select -->
         <div class="form-group">
             <label>Shelf Name</label>
             <form:select path="shelfs" multiple="true">
