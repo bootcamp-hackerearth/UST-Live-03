@@ -3,6 +3,7 @@ package com.ust.pos.api.product;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +21,8 @@ public class ApiProductController extends BaseController {
     private ProductService productService;
 
     @PostMapping("/list")
-    public List<ProductDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ProductDto> list(@RequestBody PaginationDto paginationDto) {
+
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return productService.findAll(pageable);
@@ -41,9 +43,9 @@ public class ApiProductController extends BaseController {
     }
 
     @PostMapping("/update")
-    public ProductDto updatePost(@RequestBody ProductDto productDto) {
+    public ProductDto updatePost(@RequestBody ProductDto userDto) {
 
-        return productService.update(productDto);
+        return productService.update(userDto);
     }
 
     @GetMapping("/delete")

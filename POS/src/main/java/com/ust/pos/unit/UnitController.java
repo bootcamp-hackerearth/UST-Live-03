@@ -7,18 +7,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/unit")
 public class UnitController {
 
     public static final String REDIRECT_LIST = "redirect:/unit/list";
-    public static final String ERROR_MESSAGE = "errorMessage";
-    public static final String SUCCESS_MESSAGE = "successMessage";
 
     @Autowired
     private UnitService unitService;
+
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
@@ -32,10 +30,9 @@ public class UnitController {
         return "unit/add";
     }
 
+
     @PostMapping("/add")
-    public String addPost(Model model,
-                          @ModelAttribute UnitDto unitDto,
-                          RedirectAttributes redirectAttributes) {
+    public String addPost(Model model, @ModelAttribute UnitDto unitDto) {
 
         UnitDto response = unitService.save(unitDto);
 
@@ -44,10 +41,9 @@ public class UnitController {
             model.addAttribute("message", response.getMessage());
             return "unit/add";
         }
-
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Unit added successfully!");
         return REDIRECT_LIST;
     }
+
 
     @GetMapping("/get")
     public String get(Model model, @RequestParam String identifier) {
@@ -56,9 +52,7 @@ public class UnitController {
     }
 
     @PostMapping("/update")
-    public String update(Model model,
-                         @ModelAttribute UnitDto unitDto,
-                         RedirectAttributes redirectAttributes) {
+    public String update(Model model, @ModelAttribute UnitDto unitDto) {
 
         UnitDto response = unitService.update(unitDto);
 
@@ -67,22 +61,12 @@ public class UnitController {
             model.addAttribute("message", response.getMessage());
             return "unit/edit";
         }
-
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Unit updated successfully!");
         return REDIRECT_LIST;
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String identifier,
-                         RedirectAttributes redirectAttributes) {
-
-        try {
-            unitService.delete(identifier);
-            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Unit deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Failed to delete unit!");
-        }
-
+    public String delete(@RequestParam String identifier) {
+        unitService.delete(identifier);
         return REDIRECT_LIST;
     }
 }

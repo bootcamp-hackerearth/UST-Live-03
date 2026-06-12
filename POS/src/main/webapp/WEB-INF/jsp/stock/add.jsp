@@ -7,7 +7,6 @@
 <head>
     <title>Add Stock</title>
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet"
@@ -24,8 +23,6 @@
             font-family: "Segoe UI", Arial, sans-serif;
             background: linear-gradient(135deg, #f5f7fb, #eef2ff);
         }
-
-
         .back-link {
             text-decoration: none;
             font-weight: 500;
@@ -35,7 +32,6 @@
         .back-link:hover {
             text-decoration: underline;
         }
-
 
         .stock-card {
             max-width: 520px;
@@ -89,7 +85,6 @@
             box-shadow: none;
         }
 
-
         .error-msg {
             background: #fee2e2;
             color: #b91c1c;
@@ -99,7 +94,6 @@
             margin-bottom: 15px;
             font-size: 14px;
         }
-
 
         .btn-submit {
             padding: 12px;
@@ -118,40 +112,29 @@
 
 <body>
 
-    <div class="container mt-5">
+<div class="container mt-5">
+
     <div class="text-center mb-4">
         <a href="${pageContext.request.contextPath}/stock/list" class="back-link">
             <i class="bi bi-arrow-left"></i> Back to Stock List
         </a>
     </div>
 
-
     <div class="card stock-card">
-
-
         <div class="card-header">
             <h4><i class="bi bi-box-seam"></i> Add Stock</h4>
             <small>Assign product inventory to a warehouse</small>
         </div>
 
-
         <div class="card-body">
 
-                 <c:if test="${not empty successMessage}">
-                        <div class="alert alert-success text-center">
-                            ${successMessage}
-                        </div>
-                    </c:if>
-
-                    <c:if test="${not empty errorMessage}">
-                        <div class="alert alert-danger text-center">
-                            ${errorMessage}
-                        </div>
-                    </c:if>
+            <c:if test="${not empty message}">
+                <div class="error-msg">
+                    ${message}
+                </div>
+            </c:if>
 
             <form:form action="add" method="post" modelAttribute="stocks">
-
-
                 <div class="section-title">Product Selection</div>
                 <div class="mb-3">
                     <label class="form-label">Product</label>
@@ -165,7 +148,6 @@
                     </form:select>
                 </div>
 
-
                 <div class="section-title">Warehouse</div>
                 <div class="mb-3">
                     <label class="form-label">Warehouse</label>
@@ -178,8 +160,6 @@
                         </c:forEach>
                     </form:select>
                 </div>
-
-
                 <div class="section-title">Stock Details</div>
                 <div class="mb-3">
                     <label class="form-label">Quantity Available</label>

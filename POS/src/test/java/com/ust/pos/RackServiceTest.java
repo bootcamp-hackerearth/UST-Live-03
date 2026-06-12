@@ -34,10 +34,8 @@ class RackServiceTest {
         RackDto dto = new RackDto();
         dto.setIdentifier("R1");
 
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(null);
-        Mockito.when(modelMapper.map(dto, Rack.class))
-                .thenReturn(new Rack());
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(null);
+        Mockito.when(modelMapper.map(dto, Rack.class)).thenReturn(new Rack());
 
         RackDto response = rackService.save(dto);
 
@@ -49,8 +47,7 @@ class RackServiceTest {
         RackDto dto = new RackDto();
         dto.setIdentifier("R1");
 
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(new Rack());
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(new Rack());
 
         RackDto response = rackService.save(dto);
 
@@ -65,10 +62,8 @@ class RackServiceTest {
         RackDto dto = new RackDto();
         dto.setIdentifier("R1");
 
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(rack);
-        Mockito.when(modelMapper.map(rack, RackDto.class))
-                .thenReturn(dto);
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(rack);
+        Mockito.when(modelMapper.map(rack, RackDto.class)).thenReturn(dto);
 
         RackDto response = rackService.findByIdentifier("R1");
 
@@ -81,8 +76,7 @@ class RackServiceTest {
         RackDto dto = new RackDto();
         dto.setIdentifier("R1");
 
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(new Rack());
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(new Rack());
 
         RackDto response = rackService.update(dto);
 
@@ -94,8 +88,7 @@ class RackServiceTest {
         RackDto dto = new RackDto();
         dto.setIdentifier("R1");
 
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(null);
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(null);
 
         RackDto response = rackService.update(dto);
 
@@ -105,11 +98,9 @@ class RackServiceTest {
 
     @Test
     void delete_success() {
-        Assertions.assertDoesNotThrow(() ->
-                rackService.delete("R1"));
+        Assertions.assertDoesNotThrow(() -> rackService.delete("R1"));
 
-        Mockito.verify(rackRepository)
-                .deleteByIdentifier("R1");
+        Mockito.verify(rackRepository).deleteByIdentifier("R1");
     }
 
     @Test
@@ -130,7 +121,7 @@ class RackServiceTest {
         Mockito.when(rackRepository.findAll(pageable)).thenReturn(rackPage);
         Mockito.when(modelMapper.map(Mockito.eq(racks), Mockito.any(java.lang.reflect.Type.class))).thenReturn(rackDtos);
 
-        List<RackDto> response = rackService.findAll(pageable);
+        List<RackDto> response = rackService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
     }
@@ -144,13 +135,9 @@ class RackServiceTest {
         List<Rack> racks = List.of(rack);
         List<RackDto> dtos = List.of(dto);
 
-        Mockito.when(rackRepository.findByStatusTrue())
-                .thenReturn(racks);
+        Mockito.when(rackRepository.findByStatusTrue()).thenReturn(racks);
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(racks),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(dtos);
+        Mockito.when(modelMapper.map(Mockito.eq(racks), Mockito.any(java.lang.reflect.Type.class))).thenReturn(dtos);
 
         List<RackDto> response = rackService.findIfTrue();
 
@@ -163,8 +150,7 @@ class RackServiceTest {
         Rack rack = new Rack();
         rack.setStatus(true);
 
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(rack);
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(rack);
 
         rackService.toggleStatus("R1");
 
@@ -176,8 +162,7 @@ class RackServiceTest {
         Rack rack = new Rack();
         rack.setStatus(false);
 
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(rack);
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(rack);
 
         rackService.toggleStatus("R1");
 

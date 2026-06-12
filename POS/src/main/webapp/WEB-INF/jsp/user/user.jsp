@@ -28,7 +28,7 @@
             background: #ffffff;
             padding: 30px 35px;
             border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         h3 {
@@ -103,25 +103,22 @@
     <form:form action="/user/update" method="post" modelAttribute="userDto">
 
         <form:hidden path="id" value="${user.id}" />
-
         <div class="mb-3">
             <label>Name</label>
             <form:input path="name"
                         cssClass="form-control"
                         value="${user.name}"
-                        required="true"/>
+                        required="true" />
         </div>
-
         <div class="mb-3">
             <label>Email</label>
             <form:input path="username"
                         type="email"
                         cssClass="form-control"
                         value="${user.username}"
-                        required="true"/>
-            <form:errors path="username" cssClass="text-danger small"/>
+                        required="true" />
+            <form:errors path="username" cssClass="text-danger small" />
         </div>
-
         <div class="mb-3">
             <label>Phone Number</label>
             <form:input path="phoneNo"
@@ -130,12 +127,10 @@
                         maxlength="10"
                         pattern="[0-9]{10}"
                         title="Phone number must be exactly 10 digits"
-                        required="true"/>
+                        required="true" />
         </div>
-
         <div class="mb-3">
             <label>Roles</label>
-
             <div class="mb-2 text-muted">
                 Current:
                 <c:forEach var="r" items="${user.roles}">
@@ -146,21 +141,19 @@
             <form:select path="roles" multiple="true" cssClass="form-control">
                 <form:options items="${roles}"
                               itemValue="identifier"
-                              itemLabel="identifier"/>
+                              itemLabel="identifier" />
             </form:select>
 
             <small class="text-muted">
                 Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple
             </small>
         </div>
-
         <button type="submit" class="btn-update">
             <i class="bi bi-check-circle"></i>
             Update
         </button>
 
     </form:form>
-
     <div class="text-center mt-3">
         <a href="/user/list">
             <i class="bi bi-arrow-left-circle"></i>

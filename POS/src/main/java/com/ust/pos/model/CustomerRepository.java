@@ -7,6 +7,7 @@ import java.util.List;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
+
     Customer findByPhoneNo(String phoneNo);
 
     Customer findById(String identifier);

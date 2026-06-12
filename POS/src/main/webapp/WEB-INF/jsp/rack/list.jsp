@@ -6,10 +6,8 @@
 <head>
     <title>Rack Management</title>
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -35,12 +33,12 @@
             font-size: 12px;
         }
         .status-active {
-            color: #198754; /* Bootstrap success green */
+            color: #198754;
             font-weight: 600;
         }
 
         .status-inactive {
-            color: #dc3545; /* Bootstrap danger red */
+            color: #dc3545;
             font-weight: 600;
         }
     </style>
@@ -52,7 +50,6 @@
     <div class="card card-custom p-4">
 
         <h2 class="text-center mb-4">Rack Management</h2>
-
 
         <div class="text-center mb-4">
             <a href="${pageContext.request.contextPath}/"
@@ -67,13 +64,11 @@
                 Add New Rack
             </a>
         </div>
-
         <c:if test="${not empty successMessage}">
             <div class="alert alert-success text-center fw-semibold mb-4">
                 ${successMessage}
             </div>
         </c:if>
-
 
         <c:if test="${not empty errorMessage}">
             <div class="alert alert-danger text-center fw-semibold mb-4">
@@ -98,12 +93,9 @@
                     <tr>
                         <td class="text-center">${rack.id}</td>
 
-
                         <td class="fw-semibold">
                             ${rack.identifier}
                         </td>
-
-
                         <td>
                             <c:if test="${empty rack.shelfs}">
                                 <span class="text-muted">No shelves</span>
@@ -115,7 +107,6 @@
                                 </span>
                             </c:forEach>
                         </td>
-
 
                       <td class="text-center">
                           <form method="post"
@@ -138,7 +129,6 @@
                               </div>
                           </form>
                       </td>
-
 
                         <td class="text-center">
                             <a href="${pageContext.request.contextPath}/rack/get?identifier=${rack.identifier}"

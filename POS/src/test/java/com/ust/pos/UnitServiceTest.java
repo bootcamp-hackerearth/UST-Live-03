@@ -34,10 +34,8 @@ class UnitServiceTest {
         UnitDto dto = new UnitDto();
         dto.setIdentifier("S1");
 
-        Mockito.when(unitRepository.findByIdentifier("S1"))
-                .thenReturn(null);
-        Mockito.when(modelMapper.map(dto, Unit.class))
-                .thenReturn(new Unit());
+        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(null);
+        Mockito.when(modelMapper.map(dto, Unit.class)).thenReturn(new Unit());
 
         UnitDto response = unitService.save(dto);
 
@@ -50,8 +48,7 @@ class UnitServiceTest {
         UnitDto dto = new UnitDto();
         dto.setIdentifier("S1");
 
-        Mockito.when(unitRepository.findByIdentifier("S1"))
-                .thenReturn(new Unit());
+        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(new Unit());
 
         UnitDto response = unitService.save(dto);
 
@@ -67,10 +64,8 @@ class UnitServiceTest {
         UnitDto dto = new UnitDto();
         dto.setIdentifier("S1");
 
-        Mockito.when(unitRepository.findByIdentifier("S1"))
-                .thenReturn(unit);
-        Mockito.when(modelMapper.map(unit, UnitDto.class))
-                .thenReturn(dto);
+        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(unit);
+        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(dto);
 
         UnitDto response = unitService.findByIdentifier("S1");
 
@@ -85,8 +80,7 @@ class UnitServiceTest {
         Unit unit = new Unit();
         unit.setIdentifier("S1");
 
-        Mockito.when(unitRepository.findByIdentifier("S1"))
-                .thenReturn(unit);
+        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(unit);
 
         UnitDto response = unitService.update(dto);
 
@@ -98,8 +92,7 @@ class UnitServiceTest {
         UnitDto dto = new UnitDto();
         dto.setIdentifier("S1");
 
-        Mockito.when(unitRepository.findByIdentifier("S1"))
-                .thenReturn(null);
+        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(null);
 
         UnitDto response = unitService.update(dto);
 
@@ -108,14 +101,11 @@ class UnitServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(unitRepository)
-                .deleteByIdentifier("S1");
+        Mockito.doNothing().when(unitRepository).deleteByIdentifier("S1");
 
         unitService.delete("S1");
 
-        Mockito.verify(unitRepository)
-                .deleteByIdentifier("S1");
+        Mockito.verify(unitRepository).deleteByIdentifier("S1");
     }
 
     @Test
@@ -136,21 +126,18 @@ class UnitServiceTest {
         Mockito.when(unitRepository.findAll(pageable)).thenReturn(unitPage);
         Mockito.when(modelMapper.map(Mockito.eq(units), Mockito.any(java.lang.reflect.Type.class))).thenReturn(unitDtos);
 
-        List<UnitDto> response = unitService.findAll(pageable);
+        List<UnitDto> response = unitService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
     }
-
 
     @Test
     void toggleActive() {
         Unit unit = new Unit();
         unit.setStatus(true);
 
-        Mockito.when(unitRepository.findByIdentifier("S1"))
-                .thenReturn(unit);
-        Mockito.when(modelMapper.map(unit, UnitDto.class))
-                .thenReturn(new UnitDto());
+        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(unit);
+        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(new UnitDto());
 
         unitService.toggleStatus("S1");
 
@@ -162,10 +149,8 @@ class UnitServiceTest {
         Unit unit = new Unit();
         unit.setStatus(false);
 
-        Mockito.when(unitRepository.findByIdentifier("S1"))
-                .thenReturn(unit);
-        Mockito.when(modelMapper.map(unit, UnitDto.class))
-                .thenReturn(new UnitDto());
+        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(unit);
+        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(new UnitDto());
 
         unitService.toggleStatus("S1");
 
@@ -177,12 +162,8 @@ class UnitServiceTest {
         List<Unit> shelves = List.of(new Unit());
         List<UnitDto> unitDtos = List.of(new UnitDto());
 
-        Mockito.when(unitRepository.findByStatusIsTrue())
-                .thenReturn(shelves);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(shelves),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(unitDtos);
+        Mockito.when(unitRepository.findByStatusIsTrue()).thenReturn(shelves);
+        Mockito.when(modelMapper.map(Mockito.eq(shelves), Mockito.any(java.lang.reflect.Type.class))).thenReturn(unitDtos);
 
         List<UnitDto> response = unitService.findIfTrue();
 

@@ -1,7 +1,7 @@
 package com.ust.pos.role.service.impl;
 
-import com.ust.pos.dao.RoleDao;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -24,9 +24,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private RoleDao roleDao;
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
@@ -69,11 +66,19 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleDto> findAll(Pageable pageable) {
+    public WsDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        Page<Role> customerPage = roleRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        Page<Role> rolePage = roleRepository.findAll(pageable);
+
+        WsDto<RoleDto> roleWsDto = new WsDto<>();
+        roleWsDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+        roleWsDto.setTotalRecords(rolePage.getTotalElements());
+        roleWsDto.setTotalPages(rolePage.getTotalPages());
+        roleWsDto.setSizePerPage(pageable.getPageSize());
+        roleWsDto.setPage(pageable.getPageNumber());
+
+        return roleWsDto;
     }
 
     @Override

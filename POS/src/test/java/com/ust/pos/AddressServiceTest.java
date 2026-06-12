@@ -62,11 +62,9 @@ class AddressServiceTest {
 
     @Test
     void findAllByPhoneNo() {
-        when(addressRepository.findAllByPhoneNo("9876543210"))
-                .thenReturn(List.of(address));
+        when(addressRepository.findAllByPhoneNo("9876543210")).thenReturn(List.of(address));
 
-        when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(List.of(addressDto));
+        when(modelMapper.map(any(), any(Type.class))).thenReturn(List.of(addressDto));
 
         List<AddressDto> result = addressService.findAllByPhoneNo("9876543210");
 
@@ -77,8 +75,7 @@ class AddressServiceTest {
 
     @Test
     void save() {
-        when(modelMapper.map(addressDto, Address.class))
-                .thenReturn(address);
+        when(modelMapper.map(addressDto, Address.class)).thenReturn(address);
 
         AddressDto result = addressService.save(addressDto);
 
@@ -89,9 +86,7 @@ class AddressServiceTest {
 
     @Test
     void update() {
-        when(addressRepository.findByPhoneNoAndAddressType(
-                "9876543210", "HOME"))
-                .thenReturn(address);
+        when(addressRepository.findByPhoneNoAndAddressType("9876543210", "HOME")).thenReturn(address);
 
         AddressDto result = addressService.update(addressDto);
 
@@ -103,8 +98,7 @@ class AddressServiceTest {
 
     @Test
     void delete() {
-        when(addressRepository.findAllByPhoneNo("9876543210"))
-                .thenReturn(List.of(address));
+        when(addressRepository.findAllByPhoneNo("9876543210")).thenReturn(List.of(address));
 
         boolean result = addressService.delete("9876543210");
 
@@ -115,11 +109,9 @@ class AddressServiceTest {
 
     @Test
     void findAllAddresses() {
-        when(addressRepository.findAll())
-                .thenReturn(List.of(address));
+        when(addressRepository.findAll()).thenReturn(List.of(address));
 
-        when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(List.of(addressDto));
+        when(modelMapper.map(any(), any(Type.class))).thenReturn(List.of(addressDto));
 
         List<AddressDto> result = addressService.findAll();
 

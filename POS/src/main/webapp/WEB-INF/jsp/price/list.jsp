@@ -6,6 +6,7 @@
 <head>
     <title>Price Management</title>
 
+
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
@@ -40,17 +41,6 @@
     <div class="card card-custom p-4">
         <h2 class="text-center mb-4">Price Management</h2>
 
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success text-center">
-                ${successMessage}
-            </div>
-        </c:if>
-
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger text-center">
-                ${errorMessage}
-            </div>
-        </c:if>
 
         <div class="text-center mb-4">
             <a href="${pageContext.request.contextPath}/"
@@ -66,11 +56,13 @@
             </a>
         </div>
 
+
         <c:if test="${empty prices}">
             <div class="text-center text-muted p-5">
                 No price available
             </div>
         </c:if>
+
 
         <c:if test="${not empty prices}">
             <table class="table table-hover table-bordered align-middle">
@@ -80,6 +72,7 @@
                     <th>Product Name</th>
                     <th>MRP</th>
                     <th>Selling Price</th>
+                    <th>Cost Price</th>
                     <th>Effective From</th>
                     <th>Actions</th>
                 </tr>
@@ -92,7 +85,9 @@
                         <td>${price.identifier}</td>
                         <td class="text-center">${price.mrp}</td>
                         <td class="text-center">${price.sellingPrice}</td>
+                        <td class="text-center">${price.costPrice}</td>
                         <td class="text-center">${price.effectiveFrom}</td>
+
 
                         <td class="text-center">
                             <a href="${pageContext.request.contextPath}/price/get?identifier=${price.identifier}"
@@ -117,10 +112,6 @@
     </div>
 
 </div>
-<script>
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(e => e.style.display = 'none');
-    }, 3000);
-</script>
+
 </body>
 </html>

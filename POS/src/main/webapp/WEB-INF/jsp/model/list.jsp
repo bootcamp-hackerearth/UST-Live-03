@@ -5,7 +5,6 @@
 <html>
 <head>
     <title>Model Management</title>
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
@@ -44,17 +43,6 @@
 
         <h2 class="text-center mb-4">Model Management</h2>
 
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success text-center">
-                ${successMessage}
-            </div>
-        </c:if>
-
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger text-center">
-                ${errorMessage}
-            </div>
-        </c:if>
 
         <div class="text-center mb-4">
             <a href="${pageContext.request.contextPath}/"
@@ -90,17 +78,16 @@
                 <tbody>
                 <c:forEach var="model" items="${models}">
                     <tr>
-
                         <td class="text-center">${model.id}</td>
-                        <td class="fw-semibold">${model.identifier}</td>
 
+                        <td class="fw-semibold">${model.identifier}</td>
                         <td class="text-center">
                             <form method="post"
                                   action="${pageContext.request.contextPath}/model/update"
                                   class="d-inline">
-
                                 <input type="hidden" name="id" value="${model.id}">
                                 <input type="hidden" name="identifier" value="${model.identifier}">
+
                                 <input type="hidden" name="status" value="${!model.status}">
 
                                 <div class="form-check form-switch d-flex justify-content-center align-items-center">
@@ -139,10 +126,6 @@
 
     </div>
 </div>
-<script>
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(e => e.style.display = 'none');
-    }, 3000);
-</script>
+
 </body>
 </html>

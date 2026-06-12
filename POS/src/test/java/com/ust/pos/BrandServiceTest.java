@@ -35,10 +35,8 @@ class BrandServiceTest {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("BRAND1");
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND1"))
-                .thenReturn(null);
-        Mockito.when(modelMapper.map(brandDto, Brand.class))
-                .thenReturn(new Brand());
+        Mockito.when(brandRepository.findByIdentifier("BRAND1")).thenReturn(null);
+        Mockito.when(modelMapper.map(brandDto, Brand.class)).thenReturn(new Brand());
 
         BrandDto response = brandService.save(brandDto);
 
@@ -50,8 +48,7 @@ class BrandServiceTest {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("BRAND1");
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND1"))
-                .thenReturn(new Brand());
+        Mockito.when(brandRepository.findByIdentifier("BRAND1")).thenReturn(new Brand());
 
         BrandDto response = brandService.save(brandDto);
 
@@ -67,10 +64,8 @@ class BrandServiceTest {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("BRAND1");
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND1"))
-                .thenReturn(brand);
-        Mockito.when(modelMapper.map(brand, BrandDto.class))
-                .thenReturn(brandDto);
+        Mockito.when(brandRepository.findByIdentifier("BRAND1")).thenReturn(brand);
+        Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);
 
         BrandDto response = brandService.findByIdentifier("BRAND1");
 
@@ -83,8 +78,7 @@ class BrandServiceTest {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("BRAND1");
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND1"))
-                .thenReturn(new Brand());
+        Mockito.when(brandRepository.findByIdentifier("BRAND1")).thenReturn(new Brand());
 
         BrandDto response = brandService.update(brandDto);
 
@@ -96,8 +90,7 @@ class BrandServiceTest {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("BRAND1");
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND1"))
-                .thenReturn(null);
+        Mockito.when(brandRepository.findByIdentifier("BRAND1")).thenReturn(null);
 
         BrandDto response = brandService.update(brandDto);
 
@@ -107,11 +100,9 @@ class BrandServiceTest {
 
     @Test
     void delete_success() {
-        Assertions.assertDoesNotThrow(() ->
-                brandService.delete("BRAND1"));
+        Assertions.assertDoesNotThrow(() -> brandService.delete("BRAND1"));
 
-        Mockito.verify(brandRepository)
-                .deleteByIdentifier("BRAND1");
+        Mockito.verify(brandRepository).deleteByIdentifier("BRAND1");
     }
 
 
@@ -133,7 +124,7 @@ class BrandServiceTest {
         Mockito.when(brandRepository.findAll(pageable)).thenReturn(brandPage);
         Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(java.lang.reflect.Type.class))).thenReturn(brandDtos);
 
-        List<BrandDto> response = brandService.findAll(pageable);
+        List<BrandDto> response = brandService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
     }
@@ -147,13 +138,9 @@ class BrandServiceTest {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("BRAND1");
 
-        Mockito.when(brandRepository.findByStatusTrue())
-                .thenReturn(List.of(brand));
+        Mockito.when(brandRepository.findByStatusTrue()).thenReturn(List.of(brand));
 
-        Mockito.when(modelMapper.map(
-                Mockito.any(Brand.class),
-                Mockito.eq(BrandDto.class)
-        )).thenReturn(brandDto);
+        Mockito.when(modelMapper.map(Mockito.any(Brand.class), Mockito.eq(BrandDto.class))).thenReturn(brandDto);
 
         List<BrandDto> response = brandService.findIfTrue();
 
@@ -167,8 +154,7 @@ class BrandServiceTest {
         Brand brand = new Brand();
         brand.setStatus(true);
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND1"))
-                .thenReturn(brand);
+        Mockito.when(brandRepository.findByIdentifier("BRAND1")).thenReturn(brand);
 
         brandService.toggleStatus("BRAND1");
 
@@ -180,8 +166,7 @@ class BrandServiceTest {
         Brand brand = new Brand();
         brand.setStatus(false);
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND1"))
-                .thenReturn(brand);
+        Mockito.when(brandRepository.findByIdentifier("BRAND1")).thenReturn(brand);
 
         brandService.toggleStatus("BRAND1");
 

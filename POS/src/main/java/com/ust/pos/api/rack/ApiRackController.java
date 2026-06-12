@@ -3,6 +3,7 @@ package com.ust.pos.api.rack;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.rack.service.RackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +21,8 @@ public class ApiRackController extends BaseController {
     private RackService rackService;
 
     @PostMapping("/list")
-    public List<RackDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RackDto> list(@RequestBody PaginationDto paginationDto) {
+
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return rackService.findAll(pageable);
@@ -40,9 +42,9 @@ public class ApiRackController extends BaseController {
     }
 
     @PostMapping("/update")
-    public RackDto updatePost(@RequestBody RackDto rackDto) {
+    public RackDto updatePost(@RequestBody RackDto userDto) {
 
-        return rackService.update(rackDto);
+        return rackService.update(userDto);
     }
 
     @GetMapping("/delete")

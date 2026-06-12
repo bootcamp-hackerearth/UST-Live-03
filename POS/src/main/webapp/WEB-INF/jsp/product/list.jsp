@@ -14,21 +14,19 @@
 
     <style>
         .add-product-btn {
-            font-size: 18px;
-            padding: 12px 30px;
-            border-radius: 30px;
-        }
-
-        .back-btn {
-            font-size: 18px;
-            padding: 12px 30px;
-            border-radius: 30px;
-            margin-right: 15px;
+            font-size: 16px;
+            padding: 10px 25px;
+            border-radius: 25px;
         }
 
         .card-custom {
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border-radius: 12px;
+        }
+
+        .badge-category {
+            background-color: #4f46e5;
+            margin-right: 4px;
         }
     </style>
 </head>
@@ -38,31 +36,18 @@
 <div class="container mt-4">
 
     <div class="card card-custom p-4">
+
         <h2 class="text-center mb-4">Product Management</h2>
-
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success text-center">
-                ${successMessage}
-            </div>
-        </c:if>
-
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger text-center">
-                ${errorMessage}
-            </div>
-        </c:if>
 
         <div class="text-center mb-4">
             <a href="${pageContext.request.contextPath}/"
-               class="btn btn-secondary back-btn">
-                <i class="bi bi-arrow-left-circle"></i>
-                Back to Home
+               class="btn btn-secondary me-2">
+                <i class="bi bi-arrow-left-circle"></i> Home
             </a>
 
             <a href="${pageContext.request.contextPath}/product/add"
                class="btn btn-success add-product-btn">
-                <i class="bi bi-plus-circle"></i>
-                Add New Product
+                <i class="bi bi-plus-circle"></i> Add Product
             </a>
         </div>
 
@@ -78,9 +63,12 @@
                 <thead class="table-dark text-center">
                 <tr>
                     <th>ID</th>
-                    <th>Product Name</th>
-                    <th>Category</th>
-                    <th>SKU Code</th>
+                    <th>SKU</th>
+                    <th>Categories</th>
+                    <th>Brand</th>
+                    <th>Unit</th>
+                    <th>Model</th>
+                    <th>Name</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -92,9 +80,27 @@
 
                         <td class="text-center">${product.id}</td>
                         <td>${product.identifier}</td>
-                        <td class="text-center">${product.categories}</td>
-                        <td class="text-center">${product.skucode}</td>
+                        <td class="text-center">
+                            <c:forEach var="cat" items="${product.categories}">
+                                <span class="badge badge-category text-white">
+                                    ${cat}
+                                </span>
+                            </c:forEach>
+                        </td>
 
+                        <td class="text-center">
+                            ${empty product.brand ? '-' : product.brand}
+                        </td>
+
+                        <td class="text-center">
+                            ${empty product.unit ? '-' : product.unit}
+                        </td>
+
+                        <td class="text-center">
+                            ${empty product.model ? '-' : product.model}
+                        </td>
+
+                        <td class="text-center">${product.name}</td>
                         <td class="text-center">
                             <form method="post"
                                   action="${pageContext.request.contextPath}/product/toggle">
@@ -115,20 +121,19 @@
                                 </div>
                             </form>
                         </td>
-
                         <td class="text-center">
+
                             <a href="${pageContext.request.contextPath}/product/get?identifier=${product.identifier}"
                                class="btn btn-sm btn-warning">
                                 <i class="bi bi-pencil-square"></i>
-                                Edit
                             </a>
 
                             <a href="${pageContext.request.contextPath}/product/delete?identifier=${product.identifier}"
                                class="btn btn-sm btn-danger"
-                               onclick="return confirm('Are you sure you want to delete this product?')">
+                               onclick="return confirm('Delete this product?')">
                                 <i class="bi bi-trash"></i>
-                                Delete
                             </a>
+
                         </td>
 
                     </tr>
@@ -141,10 +146,6 @@
     </div>
 
 </div>
-<script>
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(e => e.style.display = 'none');
-    }, 3000);
-</script>
+
 </body>
 </html>

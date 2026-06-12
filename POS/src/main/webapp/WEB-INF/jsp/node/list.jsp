@@ -1,4 +1,4 @@
-<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -45,21 +45,9 @@
 <body>
 
 <div class="container mt-4">
+
     <div class="card card-custom p-4">
-
         <h2 class="text-center mb-4">Node Management</h2>
-
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success text-center">
-                ${successMessage}
-            </div>
-        </c:if>
-
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger text-center">
-                ${errorMessage}
-            </div>
-        </c:if>
 
         <div class="text-center mb-4">
             <a href="${pageContext.request.contextPath}/"
@@ -75,65 +63,53 @@
             </a>
         </div>
 
-        <c:if test="${empty nodes}">
-            <div class="text-center text-muted p-5">
-                No nodes available
-            </div>
-        </c:if>
+        <table class="table table-hover table-bordered align-middle">
+            <thead class="table-dark text-center">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Path</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
 
-        <c:if test="${not empty nodes}">
-            <table class="table table-hover table-bordered align-middle">
-                <thead class="table-dark text-center">
+            <tbody>
+            <c:forEach var="node" items="${nodes}">
                 <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Path</th>
-                    <th>Roles</th>
-                    <th>Actions</th>
+                    <td class="text-center">${node.id}</td>
+
+                    <td>
+                        <span class="node-name">${node.identifier}</span>
+                    </td>
+
+                    <td>
+                        <span class="node-path">${node.path}</span>
+                    </td>
+
+                    <td>${node.roles}</td>
+
+                    <td class="text-center">
+                       <a href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
+                           class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil-square"></i>
+                            Edit
+                        </a>
+
+                        <a href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('Are you sure you want to delete this node?')">
+                            <i class="bi bi-trash"></i>
+                            Delete
+                        </a>
+                    </td>
                 </tr>
-                </thead>
-
-                <tbody>
-                <c:forEach var="node" items="${nodes}">
-                    <tr>
-                        <td class="text-center">${node.id}</td>
-
-                        <td>
-                            <span class="node-name">${node.identifier}</span>
-                        </td>
-
-                        <td>
-                            <span class="node-path">${node.path}</span>
-                        </td>
-
-                        <td>${node.roles}</td>
-
-                        <td class="text-center">
-                            <a href="${pageContext.request.contextPath}/node/get?identifier=${node.identifier}"
-                               class="btn btn-sm btn-warning">
-                                <i class="bi bi-pencil-square"></i>
-                                Edit
-                            </a>
-
-                            <a href="${pageContext.request.contextPath}/node/delete?identifier=${node.identifier}"
-                               class="btn btn-sm btn-danger"
-                               onclick="return confirm('Are you sure you want to delete this node?')">
-                                <i class="bi bi-trash"></i>
-                                Delete
-                            </a>
-                        </td>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-        </c:if>
-
+            </c:forEach>
+            </tbody>
+        </table>
     </div>
+
 </div>
-<script>
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(e => e.style.display = 'none');
-    }, 3000);
-</script>
+
 </body>
 </html>

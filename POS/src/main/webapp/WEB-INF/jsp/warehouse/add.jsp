@@ -14,7 +14,6 @@
             background-color: #f4f7f6;
         }
 
-
         .back-btn {
             position: fixed;
             top: 20px;
@@ -30,7 +29,6 @@
         .back-btn:hover {
             background: #5a6268;
         }
-
 
         .card {
             width: 420px;
@@ -109,31 +107,21 @@
 
     <h2>Add Warehouse</h2>
 
-    <c:if test="${not empty successMessage}">
-               <div class="alert alert-success text-center">
-                   ${successMessage}
-               </div>
-           </c:if>
-
-           <c:if test="${not empty errorMessage}">
-               <div class="alert alert-danger text-center">
-                   ${errorMessage}
-               </div>
-           </c:if>
+    <c:if test="${not empty message}">
+        <div class="error-msg">
+            ${message}
+        </div>
+    </c:if>
 
 
     <form:form action="add" method="post" modelAttribute="warehouses">
 
         <label>Warehouse Name</label>
         <form:input path="identifier" required="true"/>
-
         <label>Location</label>
         <form:input path="location" required="true"/>
-
-
         <label>Manager</label>
         <form:input path="manager" required="true"/>
-
         <input type="submit" value="Add Warehouse" class="btn-submit"/>
 
     </form:form>

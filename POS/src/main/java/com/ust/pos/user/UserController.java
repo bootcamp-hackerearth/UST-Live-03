@@ -36,12 +36,7 @@ public class UserController extends BaseController {
         UserDto userDto = userService.findByUserName(username);
 
         PaginationDto paginationDto = new PaginationDto();
-        Pageable pageable = getPageable(
-                paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(),
-                paginationDto.getSortField()
-        );
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
 
         model.addAttribute("userDto", userDto);
         model.addAttribute("users", userService.findAll(pageable));
@@ -51,9 +46,7 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/update")
-    public String updatePost(@ModelAttribute("userDto") UserDto userDto,
-                             Model model,
-                             RedirectAttributes redirectAttributes) {
+    public String updatePost(@ModelAttribute("userDto") UserDto userDto, Model model, RedirectAttributes redirectAttributes) {
 
         UserDto response = userService.update(userDto);
 
@@ -63,17 +56,12 @@ public class UserController extends BaseController {
             return "user/user";
         }
 
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                "User updated successfully."
-        );
-
+        redirectAttributes.addFlashAttribute("successMessage", "User updated successfully.");
         return "redirect:/user/list";
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String username,
-                         RedirectAttributes redirectAttributes) {
+    public String delete(@RequestParam String username, RedirectAttributes redirectAttributes) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String loggedInUser = auth != null ? auth.getName() : null;
@@ -82,18 +70,10 @@ public class UserController extends BaseController {
 
         if (loggedInUser != null && loggedInUser.equals(username)) {
             SecurityContextHolder.clearContext();
-            redirectAttributes.addFlashAttribute(
-                    "infoMessage",
-                    "Your account was deleted successfully."
-            );
+            redirectAttributes.addFlashAttribute("infoMessage", "Your account was deleted successfully.");
             return "redirect:/login";
         }
-
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                "User deleted successfully."
-        );
-
+        redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully.");
         return "redirect:/user/list";
     }
 }

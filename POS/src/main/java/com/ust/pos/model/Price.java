@@ -3,7 +3,6 @@ package com.ust.pos.model;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,8 +11,10 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class Price extends CommonFields {
+    private String productIdentifier;
     private BigDecimal mrp;
     private BigDecimal sellingPrice;
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private BigDecimal costPrice;
     private LocalDate effectiveFrom;
+
 }

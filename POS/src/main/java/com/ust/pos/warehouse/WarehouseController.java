@@ -31,10 +31,10 @@ public class WarehouseController {
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute WarehouseDto warehouseDto) {
-        WarehouseDto response = warehouseService.save(warehouseDto);
+    public String addPost(Model model, @ModelAttribute WarehouseDto dto) {
+        WarehouseDto response = warehouseService.save(dto);
         if (!response.isSuccess()) {
-            model.addAttribute(WAREHOUSES, warehouseDto);
+            model.addAttribute(WAREHOUSES, dto);
             model.addAttribute("message", response.getMessage());
             return "warehouse/add";
         }
@@ -48,10 +48,10 @@ public class WarehouseController {
     }
 
     @PostMapping("/update")
-    public String update(Model model, @ModelAttribute WarehouseDto warehouseDto) {
-        WarehouseDto response = warehouseService.update(warehouseDto);
+    public String update(Model model, @ModelAttribute WarehouseDto dto) {
+        WarehouseDto response = warehouseService.update(dto);
         if (!response.isSuccess()) {
-            model.addAttribute(WAREHOUSES, warehouseDto);
+            model.addAttribute(WAREHOUSES, dto);
             model.addAttribute("message", response.getMessage());
             return "warehouse/edit";
         }

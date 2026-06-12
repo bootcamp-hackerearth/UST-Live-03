@@ -4,10 +4,8 @@
 <head>
     <title>Role List</title>
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -30,7 +28,6 @@
 <div class="container mt-5">
     <div class="card card-custom p-4">
 
-
         <c:if test="${not empty successMessage}">
             <div class="alert alert-success alert-dismissible fade show">
                 <i class="bi bi-check-circle me-2"></i>
@@ -46,7 +43,6 @@
                 <button class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         </c:if>
-
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="mb-0">Role List</h3>
@@ -79,8 +75,6 @@
                     <td class="text-center">${role.id}</td>
                     <td class="text-center fw-semibold">${role.identifier}</td>
                     <td>${role.description}</td>
-
-
                     <td class="text-center">
 
                         <span class="badge ${role.status ? 'bg-success' : 'bg-secondary'} mb-2">
@@ -98,7 +92,6 @@
                             </button>
                         </form>
                     </td>
-
 
                     <td class="text-center">
                         <a href="${pageContext.request.contextPath}/role/get?identifier=${role.identifier}"
@@ -124,8 +117,6 @@
 
     </div>
 </div>
-
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

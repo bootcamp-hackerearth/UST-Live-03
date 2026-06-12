@@ -6,7 +6,6 @@
 <head>
     <title>Warehouse Management</title>
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
@@ -81,7 +80,6 @@
                         <td>${warehouse.identifier}</td>
                         <td class="text-center">${warehouse.location}</td>
                         <td class="text-center">${warehouse.manager}</td>
-
                         <td class="text-center">
                             <form method="post"
                                   action="${pageContext.request.contextPath}/warehouse/toggle">

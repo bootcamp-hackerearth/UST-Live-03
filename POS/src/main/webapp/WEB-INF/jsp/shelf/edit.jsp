@@ -6,11 +6,8 @@
 <html>
 <head>
     <title>Edit Brand</title>
-
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -51,7 +48,6 @@
 
 <div class="container mt-5">
 
-
     <div class="mb-4 text-center">
         <a href="${pageContext.request.contextPath}/shelf/list"
            class="btn btn-secondary back-btn">
@@ -63,29 +59,25 @@
     <div class="card card-custom p-4">
         <h3 class="text-center mb-4">Edit Shelf</h3>
 
-
         <c:if test="${not empty message}">
             <div class="error-msg">
                 ${message}
             </div>
         </c:if>
 
-
         <form:form action="${pageContext.request.contextPath}/shelf/update"
                    method="post"
                    modelAttribute="shelf">
-            <form:hidden path="id"/>
 
+            <form:hidden path="id"/>
 
             <div class="mb-3">
                 <label class="form-label fw-bold">Shelf Name</label>
                 <form:input path="identifier"
                             class="form-control"
-                            required="true"  readonly="true"/>
+                            required="true"/>
                 <form:errors path="identifier" cssClass="text-danger"/>
             </div>
-
-
 
             <div class="mb-4">
                 <label class="form-label fw-bold">Status</label>
@@ -94,7 +86,6 @@
                     <form:option value="false">Deactive</form:option>
                 </form:select>
             </div>
-
 
             <button type="submit" class="btn btn-success w-100 btn-submit">
                 <i class="bi bi-check-circle"></i>

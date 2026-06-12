@@ -40,20 +40,13 @@ public class RackController {
 
 
     @PostMapping("/add")
-    public String addPost(@ModelAttribute RackDto rackDto,
-                          RedirectAttributes redirectAttributes) {
+    public String addPost(@ModelAttribute RackDto rackDto, RedirectAttributes redirectAttributes) {
         RackDto response = rackService.save(rackDto);
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    response.getMessage()
-            );
+            redirectAttributes.addFlashAttribute("errorMessage", response.getMessage());
             return "redirect:/rack/add";
         }
-        redirectAttributes.addFlashAttribute(
-                MESSAGE,
-                "Rack added successfully."
-        );
+        redirectAttributes.addFlashAttribute(MESSAGE, "Rack added successfully.");
 
         return REDIRECT_LIST;
     }
@@ -68,36 +61,24 @@ public class RackController {
 
 
     @PostMapping("/update")
-    public String update(@ModelAttribute RackDto rackDto,
-                         RedirectAttributes redirectAttributes) {
+    public String update(@ModelAttribute RackDto rackDto, RedirectAttributes redirectAttributes) {
 
         RackDto response = rackService.update(rackDto);
 
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    response.getMessage()
-            );
+            redirectAttributes.addFlashAttribute("errorMessage", response.getMessage());
             return "redirect:/rack/edit";
         }
-        redirectAttributes.addFlashAttribute(
-                MESSAGE,
-                Boolean.TRUE.equals(rackDto.isStatus())
-                        ? "Rack activated successfully"
-                        : "Rack deactivated successfully");
+        redirectAttributes.addFlashAttribute(MESSAGE, Boolean.TRUE.equals(rackDto.isStatus()) ? "Rack activated successfully" : "Rack deactivated successfully");
         return REDIRECT_LIST;
     }
 
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String identifier,
-                         RedirectAttributes redirectAttributes) {
+    public String delete(@RequestParam String identifier, RedirectAttributes redirectAttributes) {
 
         rackService.delete(identifier);
-        redirectAttributes.addFlashAttribute(
-                MESSAGE,
-                "Rack deleted successfully"
-        );
+        redirectAttributes.addFlashAttribute(MESSAGE, "Rack deleted successfully");
         return REDIRECT_LIST;
     }
 
@@ -106,4 +87,5 @@ public class RackController {
         rackService.toggleStatus(identifier);
         return REDIRECT_LIST;
     }
+
 }

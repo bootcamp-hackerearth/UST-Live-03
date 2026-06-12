@@ -1,7 +1,8 @@
-package com.ust.pos.category.service.impl;
+package com.ust.pos.category.impl;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -37,8 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = new Category();
         category.setIdentifier(categoryDto.getIdentifier());
 
-        if (categoryDto.getSuperCategory() == null ||
-                categoryDto.getSuperCategory().trim().isEmpty()) {
+        if (categoryDto.getSuperCategory() == null || categoryDto.getSuperCategory().trim().isEmpty()) {
             category.setSuperCategory(null);
         } else {
             category.setSuperCategory(categoryDto.getSuperCategory());
@@ -51,26 +50,25 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto update(CategoryDto categoryDto) {
 
-        Optional<Category> optional =
-                categoryRepository.findById(categoryDto.getId());
+        Category existing = categoryRepository.findByIdentifier(categoryDto.getIdentifier());
 
-        if (optional.isEmpty()) {
+        if (existing == null) {
             categoryDto.setSuccess(false);
-            categoryDto.setMessage("Category not found");
+            categoryDto.setMessage("Category with identifier - " + categoryDto.getIdentifier() + " not found");
             return categoryDto;
         }
 
-        Category existing = optional.get();
-        if (!existing.getIdentifier().equalsIgnoreCase(categoryDto.getIdentifier()) && (categoryRepository.findByIdentifier(categoryDto.getIdentifier()) != null)) {
+
+        if (!existing.getIdentifier().equalsIgnoreCase(categoryDto.getIdentifier()) &&
+                categoryRepository.findByIdentifier(categoryDto.getIdentifier()) != null) {
             categoryDto.setSuccess(false);
             categoryDto.setMessage("Category already exists");
             return categoryDto;
-
         }
 
         existing.setIdentifier(categoryDto.getIdentifier());
-        if (categoryDto.getSuperCategory() == null ||
-                categoryDto.getSuperCategory().trim().isEmpty()) {
+
+        if (categoryDto.getSuperCategory() == null || categoryDto.getSuperCategory().trim().isEmpty()) {
             existing.setSuperCategory(null);
         } else {
             existing.setSuperCategory(categoryDto.getSuperCategory());
@@ -84,11 +82,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void deleteByIdentifier(String identifier) {
 
-
         if (categoryRepository.existsBySuperCategory(identifier)) {
-            throw new IllegalStateException(
-                    "Cannot delete category. It is used as a super category."
-            );
+            throw new IllegalStateException("Cannot delete category. It is used as a super category.");
         }
 
         categoryRepository.deleteByIdentifier(identifier);
@@ -96,18 +91,24 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-        return modelMapper.map(
-                categoryRepository.findByIdentifier(identifier),
-                CategoryDto.class
-        );
+
+        return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
     }
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public WsDto<CategoryDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return modelMapper.map(categoryPage.getContent(), listType);
+        WsDto<CategoryDto> categoryWsDto = new WsDto<>();
+        categoryWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        categoryWsDto.setTotalRecords(categoryPage.getTotalElements());
+        categoryWsDto.setTotalPages(categoryPage.getTotalPages());
+        categoryWsDto.setSizePerPage(pageable.getPageSize());
+        categoryWsDto.setPage(pageable.getPageNumber());
+
+        return categoryWsDto;
     }
 
     @Override
@@ -116,14 +117,13 @@ public class CategoryServiceImpl implements CategoryService {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
 
-        return modelMapper.map(
-                categoryRepository.findBySuperCategoryIsNotNull(),
-                listType
-        );
+        return modelMapper.map(categoryRepository.findBySuperCategoryIsNotNull(), listType);
+
     }
 
     @Override
     public CategoryDto toggleStatus(String identifier) {
+
         Category category = categoryRepository.findByIdentifier(identifier);
         category.setStatus(!category.isStatus());
         categoryRepository.save(category);
@@ -132,10 +132,17 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDto> findIfTrue() {
-        return categoryRepository.findByStatusTrue()
-                .stream()
-                .map(category -> modelMapper.map(category, CategoryDto.class))
-                .toList();
+
+        return categoryRepository.findByStatusTrue().stream()
+                .map(category -> modelMapper.map(category, CategoryDto.class)).toList();
+    }
+
+    @Override
+    public List<CategoryDto> findBySuperCategoryNotNull() {
+
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        return modelMapper.map(categoryRepository.findByStatusTrueAndSuperCategoryIsNot(""), listType);
     }
 
 }

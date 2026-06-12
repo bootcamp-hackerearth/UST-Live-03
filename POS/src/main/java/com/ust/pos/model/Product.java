@@ -12,5 +12,8 @@ import java.util.List;
 @Setter
 public class Product extends CommonFields {
     private List<String> categories;
-    private long skucode;
+    private String name;
+    private String brand;
+    private String model;
+    private String unit;
 }

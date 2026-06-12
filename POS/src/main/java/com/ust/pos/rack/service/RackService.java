@@ -1,6 +1,7 @@
 package com.ust.pos.rack.service;
 
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -9,13 +10,13 @@ public interface RackService {
 
     RackDto findByIdentifier(String identifier);
 
-    RackDto save(RackDto rackDto);
+    RackDto save(RackDto dto);
 
-    RackDto update(RackDto rackDto);
+    RackDto update(RackDto dto);
 
     void delete(String identifier);
 
-    List<RackDto> findAll(Pageable pageable);
+    WsDto<RackDto> findAll(Pageable pageable);
 
     List<RackDto> findIfTrue();
 

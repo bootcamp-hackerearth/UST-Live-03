@@ -7,6 +7,7 @@ import java.util.List;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
+
     Role findByIdentifier(String identifier);
 
     void deleteByIdentifier(String identifier);

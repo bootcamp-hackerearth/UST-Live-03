@@ -2,6 +2,7 @@ package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import jakarta.transaction.Transactional;
@@ -27,63 +28,64 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public BrandDto findByIdentifier(String identifier) {
-        return modelMapper.map(
-                brandRepository.findByIdentifier(identifier),
-                BrandDto.class
-        );
+        return modelMapper.map(brandRepository.findByIdentifier(identifier), BrandDto.class);
     }
 
     @Override
-    public BrandDto save(BrandDto brandDto) {
+    public BrandDto save(BrandDto dto) {
 
-        Brand existing = brandRepository.findByIdentifier(brandDto.getIdentifier());
+        Brand existing = brandRepository.findByIdentifier(dto.getIdentifier());
         if (existing != null) {
-            brandDto.setSuccess(false);
-            brandDto.setMessage("Brand already exists : " + brandDto.getIdentifier());
-            return brandDto;
+            dto.setSuccess(false);
+            dto.setMessage("Brand already exists : " + dto.getIdentifier());
+            return dto;
         }
 
-        Brand brand = modelMapper.map(brandDto, Brand.class);
+        Brand brand = modelMapper.map(dto, Brand.class);
         brandRepository.save(brand);
-        return brandDto;
+        return dto;
     }
 
     @Override
-    public BrandDto update(BrandDto brandDto) {
+    public BrandDto update(BrandDto dto) {
 
-        Brand existing = brandRepository.findByIdentifier(brandDto.getIdentifier());
+        Brand existing = brandRepository.findByIdentifier(dto.getIdentifier());
         if (existing == null) {
-            brandDto.setSuccess(false);
-            brandDto.setMessage("Brand not found : " + brandDto.getIdentifier());
-            return brandDto;
+            dto.setSuccess(false);
+            dto.setMessage("Brand not found : " + dto.getIdentifier());
+            return dto;
         }
 
-        modelMapper.map(brandDto, existing);
+        modelMapper.map(dto, existing);
         brandRepository.save(existing);
-        return brandDto;
+        return dto;
     }
 
     @Transactional
     @Override
     public void delete(String identifier) {
-
         brandRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
+    public WsDto<BrandDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
-        Page<Brand> customerPage = brandRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        Page<Brand> brandPage = brandRepository.findAll(pageable);
+
+        WsDto<BrandDto> brandWsDto = new WsDto<>();
+        brandWsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));
+        brandWsDto.setTotalRecords(brandPage.getTotalElements());
+        brandWsDto.setTotalPages(brandPage.getTotalPages());
+        brandWsDto.setSizePerPage(pageable.getPageSize());
+        brandWsDto.setPage(pageable.getPageNumber());
+
+        return brandWsDto;
     }
 
     @Override
     public List<BrandDto> findIfTrue() {
-        return brandRepository.findByStatusTrue()
-                .stream()
-                .map(brand -> modelMapper.map(brand, BrandDto.class))
-                .toList();
+        return brandRepository.findByStatusTrue().stream().map(brand -> modelMapper.map(brand, BrandDto.class)).toList();
     }
 
     @Override

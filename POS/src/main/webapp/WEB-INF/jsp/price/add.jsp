@@ -6,8 +6,6 @@
 <html>
 <head>
     <title>Add Price</title>
-
-
     <style>
         :root {
             --primary-color: #4f46e5;
@@ -19,7 +17,6 @@
             font-family: "Segoe UI", Arial, sans-serif;
             background: linear-gradient(135deg, #f5f7fb, #eef2ff);
         }
-
 
         .back-btn {
             position: fixed;
@@ -124,17 +121,11 @@
 
     <div class="card-body">
 
-         <c:if test="${not empty successMessage}">
-                    <div class="alert alert-success text-center">
-                        ${successMessage}
-                    </div>
-                </c:if>
-
-                <c:if test="${not empty errorMessage}">
-                    <div class="alert alert-danger text-center">
-                        ${errorMessage}
-                    </div>
-                </c:if>
+        <c:if test="${not empty message}">
+            <div class="error-msg">
+                ${message}
+            </div>
+        </c:if>
 
         <form:form action="add" method="post" modelAttribute="prices">
 

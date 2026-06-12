@@ -36,23 +36,9 @@
 <body>
 
 <div class="container mt-4">
+
     <div class="card card-custom p-4">
-
         <h2 class="text-center mb-4">Category Management</h2>
-
-
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success text-center">
-                ${successMessage}
-            </div>
-        </c:if>
-
-
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger text-center">
-                ${errorMessage}
-            </div>
-        </c:if>
 
         <div class="text-center mb-4">
             <a href="${pageContext.request.contextPath}/"
@@ -76,6 +62,7 @@
 
         <c:if test="${not empty categories}">
             <table class="table table-bordered table-hover align-middle">
+
                 <thead class="table-dark text-center">
                 <tr>
                     <th>ID</th>
@@ -148,11 +135,8 @@
         </c:if>
 
     </div>
+
 </div>
-<script>
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(e => e.style.display = 'none');
-    }, 3000);
-</script>
+
 </body>
 </html>

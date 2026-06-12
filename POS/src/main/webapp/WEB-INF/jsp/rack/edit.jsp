@@ -90,8 +90,6 @@
 <div class="card">
     <h2>Edit Rack</h2>
 
-
-
     <c:if test="${not empty message}">
         <div class="error-msg">
             ${message}
@@ -102,13 +100,10 @@
                method="post"
                modelAttribute="rack">
 
-
         <form:hidden path="id"/>
-
 
         <label>Rack Name</label>
         <form:input path="identifier" readonly="true"/>
-
 
         <label>Select Shelves</label>
         <form:select path="shelfs" multiple="true">
@@ -118,7 +113,6 @@
                 </form:option>
             </c:forEach>
         </form:select>
-
 
         <label>Status</label>
         <form:select path="status">

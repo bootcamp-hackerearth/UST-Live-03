@@ -1,6 +1,7 @@
 package com.ust.pos.rack.impl;
 
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -26,40 +27,37 @@ public class RackServiceImpl implements RackService {
 
     @Override
     public RackDto findByIdentifier(String identifier) {
-        return modelMapper.map(
-                rackRepository.findByIdentifier(identifier),
-                RackDto.class
-        );
+        return modelMapper.map(rackRepository.findByIdentifier(identifier), RackDto.class);
     }
 
     @Override
-    public RackDto save(RackDto rackDto) {
+    public RackDto save(RackDto dto) {
 
-        Rack existing = rackRepository.findByIdentifier(rackDto.getIdentifier());
+        Rack existing = rackRepository.findByIdentifier(dto.getIdentifier());
         if (existing != null) {
-            rackDto.setSuccess(false);
-            rackDto.setMessage("Rack already exists : " + rackDto.getIdentifier());
-            return rackDto;
+            dto.setSuccess(false);
+            dto.setMessage("Rack already exists : " + dto.getIdentifier());
+            return dto;
         }
 
-        Rack rack = modelMapper.map(rackDto, Rack.class);
+        Rack rack = modelMapper.map(dto, Rack.class);
         rackRepository.save(rack);
-        return rackDto;
+        return dto;
     }
 
     @Override
-    public RackDto update(RackDto rackDto) {
+    public RackDto update(RackDto dto) {
 
-        Rack existing = rackRepository.findByIdentifier(rackDto.getIdentifier());
+        Rack existing = rackRepository.findByIdentifier(dto.getIdentifier());
         if (existing == null) {
-            rackDto.setSuccess(false);
-            rackDto.setMessage("Rack not found : " + rackDto.getIdentifier());
-            return rackDto;
+            dto.setSuccess(false);
+            dto.setMessage("Rack not found : " + dto.getIdentifier());
+            return dto;
         }
 
-        modelMapper.map(rackDto, existing);
+        modelMapper.map(dto, existing);
         rackRepository.save(existing);
-        return rackDto;
+        return dto;
     }
 
     @Transactional
@@ -70,11 +68,19 @@ public class RackServiceImpl implements RackService {
     }
 
     @Override
-    public List<RackDto> findAll(Pageable pageable) {
+    public WsDto<RackDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
-        Page<Rack> customerPage = rackRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        Page<Rack> rackPage = rackRepository.findAll(pageable);
+
+        WsDto<RackDto> rackWsDto = new WsDto<>();
+        rackWsDto.setDtoList(modelMapper.map(rackPage.getContent(), listType));
+        rackWsDto.setTotalRecords(rackPage.getTotalElements());
+        rackWsDto.setTotalPages(rackPage.getTotalPages());
+        rackWsDto.setSizePerPage(pageable.getPageSize());
+        rackWsDto.setPage(pageable.getPageNumber());
+
+        return rackWsDto;
     }
 
     @Override

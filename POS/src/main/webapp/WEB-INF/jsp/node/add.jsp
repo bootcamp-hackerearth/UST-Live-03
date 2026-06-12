@@ -89,17 +89,6 @@
             <i class="bi bi-plus-circle"></i>
             Add Node
         </h2>
-         <c:if test="${not empty successMessage}">
-                    <div class="alert alert-success text-center">
-                        ${successMessage}
-                    </div>
-                </c:if>
-
-                <c:if test="${not empty errorMessage}">
-                    <div class="alert alert-danger text-center">
-                        ${errorMessage}
-                    </div>
-                </c:if>
 
         <p class="text-danger text-center">${message}</p>
 

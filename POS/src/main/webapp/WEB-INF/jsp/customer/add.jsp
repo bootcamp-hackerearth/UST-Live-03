@@ -7,10 +7,8 @@
 <head>
     <title>Add Customer</title>
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -40,24 +38,15 @@
 
         <h2 class="text-center mb-4">Add Customer</h2>
 
-
-       <c:if test="${not empty errorMessage}">
-               <div class="error-msg">
-                   ${errorMessage}
-               </div>
-           </c:if>
-
-           <c:if test="${not empty successMessage}">
-               <div class="alert alert-success text-center">
-                   ${successMessage}
-               </div>
-           </c:if>
-
+        <c:if test="${not empty message}">
+            <div class="alert alert-danger text-center">
+                ${message}
+            </div>
+        </c:if>
 
         <form:form method="post"
                    modelAttribute="customerDto"
                    action="${pageContext.request.contextPath}/customer/add">
-
 
             <div class="section-title">Customer Details</div>
 
@@ -72,7 +61,6 @@
                     <form:input path="phoneNo" class="form-control"/>
                 </div>
             </div>
-
 
             <div class="section-title">Financial Details</div>
 
@@ -131,7 +119,6 @@
                 </div>
             </div>
 
-
             <div class="section-title">Shipping Address</div>
 
             <form:hidden path="shippingAddress.addressType" value="Shipping"/>
@@ -164,7 +151,6 @@
                     <form:input path="shippingAddress.country" class="form-control"/>
                 </div>
             </div>
-
 
             <div class="text-center">
                 <a href="${pageContext.request.contextPath}/customer/list"

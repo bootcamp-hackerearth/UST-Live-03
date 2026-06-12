@@ -7,10 +7,8 @@
 <head>
     <title>Edit Customer</title>
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -40,28 +38,24 @@
 
         <h2 class="text-center mb-4">Edit Customer</h2>
 
-
         <c:if test="${not empty message}">
             <div class="alert alert-danger text-center">
                 ${message}
             </div>
         </c:if>
 
-
         <form:form method="post"
                    modelAttribute="customerDto"
                    action="${pageContext.request.contextPath}/customer/update">
 
-
             <form:hidden path="identifier"/>
-
 
             <div class="section-title">Customer Details</div>
 
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label">Customer Name</label>
-                    <!-- SINGLE FIELD ONLY -->
+
                     <form:input path="customerName"
                                 class="form-control"
                                 readonly="true"/>
@@ -69,13 +63,11 @@
 
                 <div class="col-md-6">
                     <label class="form-label">Phone Number</label>
-                    <!-- SINGLE FIELD ONLY -->
                     <form:input path="phoneNo"
                                 class="form-control"
                                 readonly="true"/>
                 </div>
             </div>
-
 
             <div class="section-title">Financial Details</div>
 
@@ -100,7 +92,6 @@
                     <form:input path="creditLimit" class="form-control"/>
                 </div>
             </div>
-
 
             <div class="section-title">Billing Address</div>
 
@@ -134,8 +125,6 @@
                     <form:input path="billingAddress.country" class="form-control"/>
                 </div>
             </div>
-
-
             <div class="section-title">Shipping Address</div>
 
             <form:hidden path="shippingAddress.addressType" value="Shipping"/>
@@ -168,7 +157,6 @@
                     <form:input path="shippingAddress.country" class="form-control"/>
                 </div>
             </div>
-
 
             <div class="text-center">
                 <a href="${pageContext.request.contextPath}/customer/list"

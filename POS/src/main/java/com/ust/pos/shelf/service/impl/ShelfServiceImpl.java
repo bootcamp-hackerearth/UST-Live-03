@@ -1,6 +1,7 @@
 package com.ust.pos.shelf.service.impl;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
@@ -26,10 +27,7 @@ public class ShelfServiceImpl implements ShelfService {
 
     @Override
     public ShelfDto findByIdentifier(String identifier) {
-        return modelMapper.map(
-                shelfRepository.findByIdentifier(identifier),
-                ShelfDto.class
-        );
+        return modelMapper.map(shelfRepository.findByIdentifier(identifier), ShelfDto.class);
     }
 
     @Override
@@ -65,16 +63,23 @@ public class ShelfServiceImpl implements ShelfService {
     @Transactional
     @Override
     public void delete(String identifier) {
-
         shelfRepository.deleteByIdentifier(identifier);
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
+    public WsDto<ShelfDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        Page<Shelf> customerPage = shelfRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
+
+        WsDto<ShelfDto> shelfWsDto = new WsDto<>();
+        shelfWsDto.setDtoList(modelMapper.map(shelfPage.getContent(), listType));
+        shelfWsDto.setTotalRecords(shelfPage.getTotalElements());
+        shelfWsDto.setTotalPages(shelfPage.getTotalPages());
+        shelfWsDto.setSizePerPage(pageable.getPageSize());
+        shelfWsDto.setPage(pageable.getPageNumber());
+
+        return shelfWsDto;
     }
 
     @Override
@@ -92,6 +97,5 @@ public class ShelfServiceImpl implements ShelfService {
         }.getType();
         return modelMapper.map(shelfRepository.findByStatusIsTrue(), listType);
     }
-
 
 }

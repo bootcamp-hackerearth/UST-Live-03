@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/brand")
@@ -16,11 +15,10 @@ public class BrandController extends BaseController {
 
     public static final String REDIRECT_LIST = "redirect:/brand/list";
     public static final String BRAND = "brand";
-    public static final String ERROR_MESSAGE = "errorMessage";
-    public static final String SUCCESS_MESSAGE = "successMessage";
 
     @Autowired
     private BrandService brandService;
+
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
@@ -35,57 +33,40 @@ public class BrandController extends BaseController {
     }
 
     @PostMapping("/add")
-    public String addPost(@ModelAttribute BrandDto brandDto,
-                          RedirectAttributes redirectAttributes) {
-
-        BrandDto response = brandService.save(brandDto);
+    public String addPost(Model model, @ModelAttribute BrandDto dto) {
+        BrandDto response = brandService.save(dto);
 
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
-            return "redirect:/brand/add";
+            model.addAttribute(BRAND, dto);
+            model.addAttribute("message", response.getMessage());
+            return "brand/add";
         }
 
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Brand added successfully!");
         return REDIRECT_LIST;
     }
 
     @GetMapping("/get")
-    public String get(Model model,
-                      @RequestParam String identifier,
-                      RedirectAttributes redirectAttributes) {
-        try {
-            model.addAttribute(BRAND, brandService.findByIdentifier(identifier));
-            return "brand/edit";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Brand not found!");
-            return REDIRECT_LIST;
-        }
+    public String get(Model model, @RequestParam String identifier) {
+        model.addAttribute(BRAND, brandService.findByIdentifier(identifier));
+        return "brand/edit";
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute BrandDto brandDto,
-                         RedirectAttributes redirectAttributes) {
-
-        BrandDto response = brandService.update(brandDto);
+    public String update(Model model, @ModelAttribute BrandDto dto) {
+        BrandDto response = brandService.update(dto);
 
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
-            return "redirect:/brand/get?identifier=" + brandDto.getIdentifier();
+            model.addAttribute(BRAND, dto);
+            model.addAttribute("message", response.getMessage());
+            return "brand/edit";
         }
 
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Brand updated successfully!");
         return REDIRECT_LIST;
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String identifier,
-                         RedirectAttributes redirectAttributes) {
-        try {
-            brandService.delete(identifier);
-            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Brand deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Failed to delete brand!");
-        }
+    public String delete(@RequestParam String identifier) {
+        brandService.delete(identifier);
         return REDIRECT_LIST;
     }
 }

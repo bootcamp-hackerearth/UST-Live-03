@@ -7,16 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/category")
 public class CategoryController {
 
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
+    public static final String MESSAGE = "message";
     public static final String CATEGORIES = "categories";
-    public static final String SUCCESS_MESSAGE = "successMessage";
-    public static final String ERROR_MESSAGE = "errorMessage";
 
     @Autowired
     private CategoryService categoryService;
@@ -34,68 +32,49 @@ public class CategoryController {
     }
 
     @PostMapping("/add")
-    public String addPost(@ModelAttribute("category") CategoryDto categoryDto,
-                          RedirectAttributes redirectAttributes) {
+    public String addPost(Model model, @ModelAttribute("category") CategoryDto categoryDto, Pageable pageable) {
         CategoryDto response = categoryService.save(categoryDto);
-
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
-            return "redirect:/category/add";
+            model.addAttribute(MESSAGE, response.getMessage());
+            model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+            return "category/add";
         }
-
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Category added successfully!");
         return REDIRECT_CATEGORY_LIST;
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier, Pageable pageable,
-                         RedirectAttributes redirectAttributes) {
-        try {
-            model.addAttribute("category", categoryService.findByIdentifier(identifier));
-            model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
-            return "category/edit";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Category not found!");
-            return REDIRECT_CATEGORY_LIST;
-        }
+    public String update(Model model, @RequestParam String identifier, Pageable pageable) {
+        model.addAttribute("category", categoryService.findByIdentifier(identifier));
+        model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+        return "category/edit";
     }
 
     @PostMapping("/update")
-    public String updatePost(@ModelAttribute("category") CategoryDto categoryDto,
-                             RedirectAttributes redirectAttributes) {
-
+    public String updatePost(Model model, @ModelAttribute("category") CategoryDto categoryDto, Pageable pageable) {
         CategoryDto response = categoryService.update(categoryDto);
-
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
-            return "redirect:/category/get?identifier=" + categoryDto.getIdentifier();
+            model.addAttribute(MESSAGE, response.getMessage());
+            model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+            return "category/edit";
         }
-
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Category updated successfully!");
         return REDIRECT_CATEGORY_LIST;
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam String identifier,
-                         RedirectAttributes redirectAttributes) {
+    public String delete(Model model, @RequestParam String identifier, Pageable pageable) {
         try {
             categoryService.deleteByIdentifier(identifier);
-            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Category deleted successfully!");
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, ex.getMessage());
+        } catch (IllegalStateException ex) {
+            model.addAttribute(MESSAGE, ex.getMessage());
+            model.addAttribute(CATEGORIES, categoryService.findAll(pageable));
+            return "category/list";
         }
         return REDIRECT_CATEGORY_LIST;
     }
 
     @PostMapping("/toggle")
-    public String toggleCategory(@RequestParam String identifier,
-                                 RedirectAttributes redirectAttributes) {
-        try {
-            categoryService.toggleStatus(identifier);
-            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Status updated!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Failed to update status!");
-        }
+    public String toggleCategory(@RequestParam String identifier) {
+        categoryService.toggleStatus(identifier);
         return REDIRECT_CATEGORY_LIST;
     }
 }

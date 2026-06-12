@@ -33,7 +33,7 @@
             padding: 30px 35px;
             border-radius: 12px;
             border: 1px solid #ddd;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
 
         label {
@@ -43,9 +43,7 @@
             font-weight: bold;
         }
 
-        input,
-        textarea,
-        select {
+        input, textarea, select {
             width: 100%;
             margin-top: 6px;
             padding: 10px;
@@ -75,16 +73,6 @@
             color: white;
             border: none;
             border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .btn-submit:hover {
-            background-color: #0056b3;
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -98,15 +86,9 @@
 <div class="card">
     <h2>Add Brand</h2>
 
-    <c:if test="${not empty errorMessage}">
+    <c:if test="${not empty message}">
         <div class="error-msg">
-            ${errorMessage}
-        </div>
-    </c:if>
-
-    <c:if test="${not empty successMessage}">
-        <div class="alert alert-success text-center">
-            ${successMessage}
+            ${message}
         </div>
     </c:if>
 
@@ -131,6 +113,7 @@
         <input type="submit" value="Add Brand" class="btn-submit"/>
 
     </form:form>
+
 </div>
 
 </body>

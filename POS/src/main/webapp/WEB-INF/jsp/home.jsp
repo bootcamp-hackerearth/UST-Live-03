@@ -192,25 +192,25 @@
                     <i class="bi bi-cart-check"></i>
                     <h3>Sales</h3>
                     <p>View daily sales summary</p>
-            </div>
+                </div>
 
-            <div class="card">
-                <i class="bi bi-box-seam"></i>
-                <h3>Inventory</h3>
-                <p>Manage stock levels</p>
-            </div>
+                <div class="card">
+                    <i class="bi bi-box-seam"></i>
+                    <h3>Inventory</h3>
+                    <p>Manage stock levels</p>
+                </div>
 
-            <div class="card">
-                <i class="bi bi-people"></i>
-                <h3>Customers</h3>
-                <p>Customer management</p>
-            </div>
+                <div class="card">
+                    <i class="bi bi-people"></i>
+                    <h3>Customers</h3>
+                    <p>Customer management</p>
+                </div>
 
-            <div class="card">
-                <i class="bi bi-receipt"></i>
-                <h3>Reports</h3>
-                <p>Generate POS reports</p>
-            </div>
+                <div class="card">
+                    <i class="bi bi-receipt"></i>
+                    <h3>Reports</h3>
+                    <p>Generate POS reports</p>
+                </div>
             </div>
 
         </div>

@@ -45,19 +45,17 @@
 
 <body>
 
-
-    <c:if test="${not empty successMessage}">
+<c:if test="${not empty successMessage}">
     <div class="alert alert-success text-center">
-    ${successMessage}
+        ${successMessage}
     </div>
-    </c:if>
+</c:if>
 
-
-    <c:if test="${not empty infoMessage}">
+<c:if test="${not empty infoMessage}">
     <div class="alert alert-info text-center">
-    ${infoMessage}
+        ${infoMessage}
     </div>
-    </c:if>
+</c:if>
 
 <div class="container mt-4">
 

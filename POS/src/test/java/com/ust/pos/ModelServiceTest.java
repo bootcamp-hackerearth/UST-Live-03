@@ -36,10 +36,8 @@ class ModelServiceTest {
 
         Model model = new Model();
 
-        Mockito.when(modelRepository.findByIdentifier("MODEL1"))
-                .thenReturn(null);
-        Mockito.when(modelMapper.map(modelDto, Model.class))
-                .thenReturn(model);
+        Mockito.when(modelRepository.findByIdentifier("MODEL1")).thenReturn(null);
+        Mockito.when(modelMapper.map(modelDto, Model.class)).thenReturn(model);
 
         ModelDto response = modelService.save(modelDto);
 
@@ -51,8 +49,7 @@ class ModelServiceTest {
         ModelDto modelDto = new ModelDto();
         modelDto.setIdentifier("MODEL1");
 
-        Mockito.when(modelRepository.findByIdentifier("MODEL1"))
-                .thenReturn(new Model());
+        Mockito.when(modelRepository.findByIdentifier("MODEL1")).thenReturn(new Model());
 
         ModelDto response = modelService.save(modelDto);
 
@@ -67,10 +64,8 @@ class ModelServiceTest {
         ModelDto modelDto = new ModelDto();
         modelDto.setIdentifier("MODEL1");
 
-        Mockito.when(modelRepository.findByIdentifier("MODEL1"))
-                .thenReturn(model);
-        Mockito.when(modelMapper.map(model, ModelDto.class))
-                .thenReturn(modelDto);
+        Mockito.when(modelRepository.findByIdentifier("MODEL1")).thenReturn(model);
+        Mockito.when(modelMapper.map(model, ModelDto.class)).thenReturn(modelDto);
 
         ModelDto response = modelService.findByIdentifier("MODEL1");
 
@@ -82,8 +77,7 @@ class ModelServiceTest {
         ModelDto modelDto = new ModelDto();
         modelDto.setIdentifier("MODEL1");
 
-        Mockito.when(modelRepository.findByIdentifier("MODEL1"))
-                .thenReturn(new Model());
+        Mockito.when(modelRepository.findByIdentifier("MODEL1")).thenReturn(new Model());
 
         ModelDto response = modelService.update(modelDto);
 
@@ -95,8 +89,7 @@ class ModelServiceTest {
         ModelDto modelDto = new ModelDto();
         modelDto.setIdentifier("MODEL1");
 
-        Mockito.when(modelRepository.findByIdentifier("MODEL1"))
-                .thenReturn(null);
+        Mockito.when(modelRepository.findByIdentifier("MODEL1")).thenReturn(null);
 
         ModelDto response = modelService.update(modelDto);
 
@@ -129,7 +122,7 @@ class ModelServiceTest {
         Mockito.when(modelRepository.findAll(pageable)).thenReturn(modelPage);
         Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(java.lang.reflect.Type.class))).thenReturn(modelDtos);
 
-        List<ModelDto> response = modelService.findAll(pageable);
+        List<ModelDto> response = modelService.findAll(pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
     }
@@ -146,10 +139,7 @@ class ModelServiceTest {
         List<ModelDto> modelDtos = List.of(modelDto);
 
         Mockito.when(modelRepository.findByStatusIsTrue()).thenReturn(models);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(models),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(modelDtos);
+        Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(java.lang.reflect.Type.class))).thenReturn(modelDtos);
 
         List<ModelDto> response = modelService.findIfTrue();
 
@@ -161,8 +151,7 @@ class ModelServiceTest {
         Model model = new Model();
         model.setStatus(true);
 
-        Mockito.when(modelRepository.findByIdentifier("MODEL1"))
-                .thenReturn(model);
+        Mockito.when(modelRepository.findByIdentifier("MODEL1")).thenReturn(model);
 
         modelService.toggleStatus("MODEL1");
 
@@ -174,8 +163,7 @@ class ModelServiceTest {
         Model model = new Model();
         model.setStatus(false);
 
-        Mockito.when(modelRepository.findByIdentifier("MODEL1"))
-                .thenReturn(model);
+        Mockito.when(modelRepository.findByIdentifier("MODEL1")).thenReturn(model);
 
         modelService.toggleStatus("MODEL1");
 

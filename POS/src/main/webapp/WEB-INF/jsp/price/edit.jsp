@@ -2,7 +2,6 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -140,11 +139,18 @@
 
                 <form:hidden path="id"/>
 
-               <div class="mb-3">
-               <label class="form-label">Product</label>
-               <form:input path="identifier"
-                           class="form-control"
-                           readonly="true"/>
+                <div class="mb-3">
+                    <label class="form-label">Product</label>
+                    <form:select path="identifier"
+                                 class="form-select"
+                                 required="true">
+                        <form:option value="">-- Select Product --</form:option>
+                        <c:forEach items="${products}" var="p">
+                            <form:option value="${p.identifier}">
+                                ${p.identifier}
+                            </form:option>
+                        </c:forEach>
+                    </form:select>
                 </div>
 
                 <div class="mb-3">
@@ -165,7 +171,16 @@
                                 required="true"/>
                 </div>
 
-                <div class="mb-4">
+                    <div class="mb-3">
+                        <label class="form-label">Cost Price</label>
+                        <form:input path="costPrice"
+                                type="number"
+                                step="0.01"
+                                class="form-control"
+                                required="true"/>
+                    </div>
+
+                <div class="mb-3">
                     <label class="form-label">Effective From</label>
                     <form:input path="effectiveFrom"
                                 type="date"

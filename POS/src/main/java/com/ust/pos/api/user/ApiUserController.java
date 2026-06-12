@@ -3,11 +3,12 @@ package com.ust.pos.api.user;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,23 +22,30 @@ public class ApiUserController extends BaseController {
     @Autowired
     private RoleService roleService;
 
-    @GetMapping("/list")
-    public List<UserDto> list(@RequestBody PaginationDto paginationDto) {
+    @PostMapping("/list")
+    public WsDto<UserDto> list(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return userService.findAll(pageable);
     }
 
-    @GetMapping("/register")
+    @PostMapping("/add")
     public UserDto add(@RequestBody UserDto userDto) {
 
         return userService.save(userDto);
     }
 
-
     @GetMapping("/get")
-    public UserDto update(@RequestParam String username, @RequestBody UserDto userDto) {
+    public UserDto update(@RequestParam String username) {
+
+        return userService.findByUserName(username);
+    }
+
+    @GetMapping("/profile")
+    public UserDto getProfile(Authentication authentication) {
+
+        String username = authentication.getName();
 
         return userService.findByUserName(username);
     }
@@ -49,9 +57,17 @@ public class ApiUserController extends BaseController {
     }
 
     @GetMapping("/delete")
-    public boolean delete(Model model, @RequestParam String identifier) {
+    public boolean delete(@RequestParam String identifier, Authentication authentication) {
         try {
-            userService.delete(identifier);
+
+            UserDto target = userService.findByIdentifier(identifier);
+            if (target == null) return false;
+
+            if (target.getUsername().equalsIgnoreCase(authentication.getName())) {
+                return false;
+            }
+
+            userService.delete(target.getUsername());
         } catch (Exception e) {
             return false;
         }
@@ -69,5 +85,4 @@ public class ApiUserController extends BaseController {
 
         return userService.findIfTrue();
     }
-
 }

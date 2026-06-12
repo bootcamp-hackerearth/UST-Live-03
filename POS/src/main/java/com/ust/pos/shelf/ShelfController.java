@@ -37,24 +37,14 @@ public class ShelfController {
 
 
     @PostMapping("/add")
-    public String addPost(@ModelAttribute ShelfDto shelfDto,
-                          RedirectAttributes redirectAttributes) {
+    public String addPost(@ModelAttribute ShelfDto shelfDto, RedirectAttributes redirectAttributes) {
 
         ShelfDto response = shelfService.save(shelfDto);
-
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(
-                    ERROR_MESSAGE,
-                    response.getMessage()
-            );
-            return "redirect:/shelf/add";
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
+            return "shelf/add";
         }
-
-        redirectAttributes.addFlashAttribute(
-                SUCCESS_MESSAGE,
-                "Shelf added successfully"
-        );
-
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Shelf added successfully");
         return REDIRECT_LIST;
     }
 
@@ -67,54 +57,32 @@ public class ShelfController {
 
 
     @PostMapping("/update")
-    public String update(@ModelAttribute ShelfDto shelfDto,
-                         RedirectAttributes redirectAttributes) {
+    public String update(@ModelAttribute ShelfDto shelfDto, RedirectAttributes redirectAttributes) {
 
         ShelfDto response = shelfService.update(shelfDto);
-
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(
-                    ERROR_MESSAGE,
-                    response.getMessage()
-            );
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
             return "/shelf/edit";
         }
-
-        redirectAttributes.addFlashAttribute(
-                SUCCESS_MESSAGE,
-                "Shelf updated successfully"
-        );
-
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Shelf updated successfully");
         return REDIRECT_LIST;
     }
 
 
     @PostMapping("/delete")
-    public String delete(@RequestParam String identifier,
-                         RedirectAttributes redirectAttributes) {
+    public String delete(@RequestParam String identifier, RedirectAttributes redirectAttributes) {
 
         shelfService.delete(identifier);
-
-        redirectAttributes.addFlashAttribute(
-                SUCCESS_MESSAGE,
-                "Shelf deleted successfully"
-        );
-
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Shelf deleted successfully");
         return REDIRECT_LIST;
     }
 
 
     @PostMapping("/toggle")
-    public String toggleShelf(@RequestParam String identifier,
-                              RedirectAttributes redirectAttributes) {
+    public String toggleShelf(@RequestParam String identifier, RedirectAttributes redirectAttributes) {
 
         shelfService.toggleStatus(identifier);
-
-        redirectAttributes.addFlashAttribute(
-                SUCCESS_MESSAGE,
-                "Shelf status updated successfully"
-        );
-
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Shelf status updated successfully");
         return REDIRECT_LIST;
     }
 }

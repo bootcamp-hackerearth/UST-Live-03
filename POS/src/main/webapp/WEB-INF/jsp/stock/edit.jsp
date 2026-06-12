@@ -24,7 +24,6 @@
             background: linear-gradient(135deg, #f5f7fb, #eef2ff);
         }
 
-
         .back-link {
             text-decoration: none;
             font-weight: 500;
@@ -34,7 +33,6 @@
         .back-link:hover {
             text-decoration: underline;
         }
-
 
         .stock-card {
             max-width: 520px;
@@ -88,7 +86,6 @@
             box-shadow: none;
         }
 
-
         .error-msg {
             background: #fee2e2;
             color: #b91c1c;
@@ -98,7 +95,6 @@
             margin-bottom: 15px;
             font-size: 14px;
         }
-
 
         .btn-submit {
             padding: 12px;
@@ -119,16 +115,13 @@
 
 <div class="container mt-5">
 
-
     <div class="text-center mb-4">
         <a href="${pageContext.request.contextPath}/stock/list" class="back-link">
             <i class="bi bi-arrow-left"></i> Back to Stock List
         </a>
     </div>
 
-
     <div class="card stock-card">
-
 
         <div class="card-header">
             <h4><i class="bi bi-pencil-square"></i> Edit Stock</h4>
@@ -148,8 +141,6 @@
                        modelAttribute="stocks">
 
                 <form:hidden path="id"/>
-
-
                 <div class="section-title">Product</div>
                 <div class="mb-3">
                     <label class="form-label">Product</label>
@@ -161,8 +152,6 @@
                         </c:forEach>
                     </form:select>
                 </div>
-
-
                 <div class="section-title">Warehouse</div>
                 <div class="mb-3">
                     <label class="form-label">Warehouse</label>
@@ -174,7 +163,6 @@
                         </c:forEach>
                     </form:select>
                 </div>
-
 
                 <div class="section-title">Stock Levels</div>
                 <div class="mb-3">

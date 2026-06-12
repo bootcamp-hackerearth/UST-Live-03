@@ -26,6 +26,7 @@ public class JWTUtility implements Serializable {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
+
     public Date getExpirationDateFromToken(String token) {
 
         return getClaimFromToken(token, Claims::getExpiration);
@@ -54,16 +55,13 @@ public class JWTUtility implements Serializable {
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
-
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
-        return Jwts.builder().setClaims(claims)
-                .setSubject(subject)
+        return Jwts.builder().setClaims(claims).setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
                 .signWith(key).compact();
     }
-
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);

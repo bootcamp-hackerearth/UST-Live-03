@@ -44,18 +44,6 @@
 
         <h2 class="text-center mb-4">Brand Management</h2>
 
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success text-center">
-                ${successMessage}
-            </div>
-        </c:if>
-
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger text-center">
-                ${errorMessage}
-            </div>
-        </c:if>
-
         <div class="text-center mb-4">
             <a href="${pageContext.request.contextPath}/"
                class="btn btn-secondary back-btn">
@@ -93,13 +81,16 @@
                     <tr>
 
                         <td class="text-center">${brand.id}</td>
+
                         <td class="fw-semibold">${brand.identifier}</td>
+
                         <td>${brand.description}</td>
 
                         <td class="text-center">
                             <form method="post"
                                   action="${pageContext.request.contextPath}/brand/update"
                                   class="d-inline">
+
 
                                 <input type="hidden" name="id" value="${brand.id}">
                                 <input type="hidden" name="identifier" value="${brand.identifier}">
@@ -118,6 +109,7 @@
                                 </div>
                             </form>
                         </td>
+
 
                         <td class="text-center">
                             <a href="${pageContext.request.contextPath}/brand/get?identifier=${brand.identifier}"
@@ -142,11 +134,6 @@
 
     </div>
 </div>
-<script>
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(e => e.style.display = 'none');
-    }, 3000);
-</script>
 
 </body>
 </html>

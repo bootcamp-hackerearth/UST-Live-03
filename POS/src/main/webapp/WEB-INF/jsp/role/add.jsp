@@ -1,8 +1,4 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
-<c:url var="addRoleUrl" value="/role/add"/>
-<c:url var="roleListUrl" value="/role/list"/>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,25 +13,17 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-5">
-
-            <p style="color:red;">${errorMessage}</p>
-
+            <p style="color:red;">${message}</p>
             <div class="card shadow p-4 rounded">
                 <h3 class="text-center mb-4">Add Role</h3>
 
-                      <c:if test="${not empty successMessage}">
-                            <div class="alert alert-success text-center">
-                                ${successMessage}
-                            </div>
-                        </c:if>
+                <c:if test="${not empty error}">
+                    <div class="alert alert-danger text-center">
+                        ${error}
+                    </div>
+                </c:if>
 
-                        <c:if test="${not empty errorMessage}">
-                            <div class="alert alert-danger text-center">
-                                ${errorMessage}
-                            </div>
-                        </c:if>
-
-                <form action="${addRoleUrl}" method="post">
+                <form action="${pageContext.request.contextPath}/role/add" method="post">
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Role Name</label>
@@ -45,14 +33,13 @@
                                placeholder="ADMIN"
                                required />
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Description</label>
-                        <input type="text"
-                               name="description"
-                               class="form-control"
-                               placeholder="Enter description"
-                               required />
+                    <label class="form-label fw-semibold">Description</label>
+                    <input type="text"
+                           name="description"
+                           class="form-control"
+                           placeholder="ADMIN"
+                           required />
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
@@ -60,7 +47,8 @@
                             Save
                         </button>
 
-                        <a href="${roleListUrl}" class="btn btn-secondary">
+                        <a href="${pageContext.request.contextPath}/role/list"
+                           class="btn btn-secondary">
                             Cancel
                         </a>
                     </div>

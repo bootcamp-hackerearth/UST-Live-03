@@ -85,27 +85,19 @@
 <div class="card">
     <h2>Add Rack</h2>
 
-          <c:if test="${not empty successMessage}">
-               <div class="alert alert-success text-center">
-                   ${successMessage}
-               </div>
-           </c:if>
-
-           <c:if test="${not empty errorMessage}">
-               <div class="alert alert-danger text-center">
-                   ${errorMessage}
-               </div>
-           </c:if>
+    <c:if test="${not empty message}">
+        <div class="error-msg">
+            ${message}
+        </div>
+    </c:if>
 
     <form:form action="${pageContext.request.contextPath}/rack/add"
                method="post"
                modelAttribute="rack">
 
-
         <label>Rack Name</label>
         <form:input path="identifier" required="true"/>
         <form:errors path="identifier" cssClass="error-msg"/>
-
 
         <label>Select Shelves</label>
         <form:select path="shelfs" multiple="true">
@@ -115,7 +107,6 @@
                 </form:option>
             </c:forEach>
         </form:select>
-
 
         <label>Status</label>
         <form:select path="status">

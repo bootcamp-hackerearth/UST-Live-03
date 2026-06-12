@@ -7,7 +7,6 @@
 <head>
     <title>Add Category</title>
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
@@ -87,31 +86,22 @@
 
 <body>
 
-
 <a href="${pageContext.request.contextPath}/category/list" class="back-btn">
     ← Back
 </a>
 
-    <div class="card">
+<div class="card">
     <h2 class="text-center">Add Category</h2>
 
-        <c:if test="${not empty errorMessage}">
-                <div class="error-msg">
-                    ${errorMessage}
-                </div>
-            </c:if>
-
-            <c:if test="${not empty successMessage}">
-                <div class="alert alert-success text-center">
-                    ${successMessage}
-                </div>
-            </c:if>
-
+    <c:if test="${not empty message}">
+        <div class="error-msg">
+            ${message}
+        </div>
+    </c:if>
 
     <form:form action="${pageContext.request.contextPath}/category/add"
                method="post"
                modelAttribute="category">
-
 
         <label>Category Name</label>
         <form:input path="identifier" required="true"
@@ -119,7 +109,6 @@
         <div class="helper-text">
             This will be used as the category identifier
         </div>
-
 
         <label>Super Category (Optional)</label>
         <form:select path="superCategory">
@@ -133,7 +122,6 @@
         <div class="helper-text">
             Leave empty to create a top-level category
         </div>
-
 
         <input type="submit" value="Add Category" class="btn-submit"/>
 

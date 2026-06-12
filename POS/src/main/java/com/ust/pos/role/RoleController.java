@@ -35,24 +35,14 @@ public class RoleController {
 
 
     @PostMapping("/add")
-    public String addPost(@ModelAttribute RoleDto roleDto,
-                          RedirectAttributes redirectAttributes) {
+    public String addPost(@ModelAttribute RoleDto roleDto, RedirectAttributes redirectAttributes) {
 
         RoleDto response = roleService.save(roleDto);
-
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(
-                    ERROR_MESSAGE,
-                    response.getMessage()
-            );
-            return "redirect:/role/add";
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
+            return "/role/add";
         }
-
-        redirectAttributes.addFlashAttribute(
-                SUCCESS_MESSAGE,
-                "Role added successfully"
-        );
-
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Role added successfully");
         return REDIRECT_LIST;
     }
 
@@ -65,49 +55,29 @@ public class RoleController {
 
 
     @PostMapping("/update")
-    public String update(@ModelAttribute RoleDto roleDto,
-                         RedirectAttributes redirectAttributes) {
+    public String update(@ModelAttribute RoleDto roleDto, RedirectAttributes redirectAttributes) {
 
         RoleDto response = roleService.update(roleDto);
-
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(
-                    ERROR_MESSAGE,
-                    response.getMessage()
-            );
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
         } else {
-            redirectAttributes.addFlashAttribute(
-                    SUCCESS_MESSAGE,
-                    "Role updated successfully"
-            );
+            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Role updated successfully");
         }
         return REDIRECT_LIST;
     }
 
 
     @PostMapping("/delete")
-    public String delete(@RequestParam String identifier,
-                         RedirectAttributes redirectAttributes) {
-
+    public String delete(@RequestParam String identifier, RedirectAttributes redirectAttributes) {
         roleService.delete(identifier);
-
-        redirectAttributes.addFlashAttribute(
-                SUCCESS_MESSAGE,
-                "Role deleted successfully"
-        );
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Role deleted successfully");
         return REDIRECT_LIST;
     }
 
     @PostMapping("/toggle")
-    public String toggle(@RequestParam String identifier,
-                         RedirectAttributes redirectAttributes) {
-
+    public String toggle(@RequestParam String identifier, RedirectAttributes redirectAttributes) {
         roleService.toggleStatus(identifier);
-
-        redirectAttributes.addFlashAttribute(
-                SUCCESS_MESSAGE,
-                "Role status updated successfully"
-        );
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Role status updated successfully");
         return REDIRECT_LIST;
     }
 }

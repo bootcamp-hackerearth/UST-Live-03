@@ -13,5 +13,4 @@ public class Stock extends CommonFields {
     private String productIdentifier;
     private String warehouseIdentifier;
 
-
 }

@@ -36,9 +36,7 @@ public class SecurityController {
     }
 
     @PostMapping("/register")
-    public String registerPost(@ModelAttribute("userDto") UserDto userDto,
-                               Model model,
-                               RedirectAttributes redirectAttributes) {
+    public String registerPost(@ModelAttribute("userDto") UserDto userDto, Model model, RedirectAttributes redirectAttributes) {
 
         UserDto response = userService.save(userDto);
 
@@ -48,11 +46,7 @@ public class SecurityController {
             return "register";
         }
 
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                "User registered successfully! Please login."
-        );
-
+        redirectAttributes.addFlashAttribute("successMessage", "User registered successfully! Please login.");
         return "redirect:/login";
     }
 }

@@ -7,10 +7,8 @@
 <head>
     <title>Edit Category</title>
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -56,7 +54,6 @@
 
 <div class="container mt-5">
 
-
     <div class="mb-4 text-center">
         <a href="${pageContext.request.contextPath}/category/list"
            class="btn btn-secondary back-btn">
@@ -67,7 +64,6 @@
 
     <div class="card card-custom p-4">
         <h3 class="text-center mb-4">Edit Category</h3>
-
 
         <c:if test="${not empty message}">
             <div class="error-msg">
@@ -93,7 +89,6 @@
                 </div>
             </div>
 
-
             <div class="mb-4">
                 <label class="form-label fw-bold">Super Category</label>
                 <form:select path="superCategory" class="form-select">
@@ -110,7 +105,6 @@
                     Only root categories can be selected
                 </div>
             </div>
-
 
             <button type="submit" class="btn btn-success w-100 btn-submit">
                 <i class="bi bi-check-circle"></i>

@@ -44,14 +44,6 @@
 
         <h2 class="text-center mb-4">Unit Management</h2>
 
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success text-center">${successMessage}</div>
-        </c:if>
-
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger text-center">${errorMessage}</div>
-        </c:if>
-
         <div class="text-center mb-4">
             <a href="${pageContext.request.contextPath}/"
                class="btn btn-secondary back-btn">
@@ -87,47 +79,47 @@
                 <c:forEach var="unit" items="${units}">
                     <tr>
 
-                        <td class="text-center">${unit.id}</td>
-                        <td class="fw-semibold">${unit.identifier}</td>
+                <td class="text-center">${unit.id}</td>
+                <td class="fw-semibold">${unit.identifier}</td>
+                <td class="text-center">
+                    <form method="post"
+                          action="${pageContext.request.contextPath}/unit/update"
+                          class="d-inline">
 
-                        <td class="text-center">
-                            <form method="post"
-                                  action="${pageContext.request.contextPath}/unit/update"
-                                  class="d-inline">
+                        <input type="hidden" name="id" value="${unit.id}">
+                        <input type="hidden" name="identifier" value="${unit.identifier}">
 
-                                <input type="hidden" name="id" value="${unit.id}">
-                                <input type="hidden" name="identifier" value="${unit.identifier}">
-                                <input type="hidden" name="status" value="${!unit.status}">
+                        <input type="hidden" name="status" value="${!unit.status}">
 
-                                <div class="form-check form-switch d-flex justify-content-center align-items-center">
-                                    <input class="form-check-input me-2"
-                                           type="checkbox"
-                                           ${unit.status ? "checked" : ""}
-                                           onchange="this.form.submit()">
+                        <div class="form-check form-switch d-flex justify-content-center align-items-center">
+                            <input class="form-check-input me-2"
+                                   type="checkbox"
+                                   ${unit.status ? "checked" : ""}
+                                   onchange="this.form.submit()">
 
-                                    <span class="${unit.status ? 'text-success' : 'text-danger'} fw-semibold">
-                                        ${unit.status ? 'Active' : 'Deactive'}
-                                    </span>
-                                </div>
-                            </form>
-                        </td>
+                            <span class="${unit.status ? 'text-success' : 'text-danger'} fw-semibold">
+                                ${unit.status ? 'Active' : 'Deactive'}
+                            </span>
+                        </div>
+                    </form>
+                </td>
 
-                        <td class="text-center">
-                            <a href="${pageContext.request.contextPath}/unit/get?identifier=${unit.identifier}"
-                               class="btn btn-sm btn-warning">
-                                <i class="bi bi-pencil-square"></i>
-                                Edit
-                            </a>
+                <td class="text-center">
+                    <a href="${pageContext.request.contextPath}/unit/get?identifier=${unit.identifier}"
+                       class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil-square"></i>
+                        Edit
+                    </a>
 
-                            <a href="${pageContext.request.contextPath}/unit/delete?identifier=${unit.identifier}"
-                               class="btn btn-sm btn-danger"
-                               onclick="return confirm('Are you sure you want to delete this unit?');">
-                                <i class="bi bi-trash"></i>
-                                Delete
-                            </a>
-                        </td>
+                    <a href="${pageContext.request.contextPath}/unit/delete?identifier=${unit.identifier}"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('Are you sure you want to delete this unit?');">
+                        <i class="bi bi-trash"></i>
+                        Delete
+                    </a>
+                </td>
 
-                    </tr>
+                </tr>
                 </c:forEach>
                 </tbody>
             </table>
@@ -135,10 +127,6 @@
 
     </div>
 </div>
-<script>
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(e => e.style.display = 'none');
-    }, 3000);
-</script>
+
 </body>
 </html>

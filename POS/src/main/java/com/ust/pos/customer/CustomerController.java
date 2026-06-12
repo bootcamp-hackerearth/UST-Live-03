@@ -2,23 +2,21 @@ package com.ust.pos.customer;
 
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/customer")
 public class CustomerController {
-
     public static final String REDIRECT_CUSTOMER_LIST = "redirect:/customer/list";
-    public static final String ERROR_MESSAGE = "errorMessage";
-    public static final String SUCCESS_MESSAGE = "successMessage";
-
     @Autowired
     private CustomerService customerService;
+    @Autowired
+    private ShelfService shelfService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -27,73 +25,50 @@ public class CustomerController {
     }
 
     @GetMapping("/add")
-    public String add(Model model) {
-        model.addAttribute("customerDto", new CustomerDto());
+    public String add(Model model, @ModelAttribute CustomerDto customerDto) {
         return "customer/add";
     }
 
     @PostMapping("/add")
-    public String addPost(@ModelAttribute CustomerDto customerDto,
-                          RedirectAttributes redirectAttributes) {
-
+    public String addPost(Model model, @ModelAttribute CustomerDto customerDto) {
         CustomerDto response = customerService.save(customerDto);
-
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
-            return "redirect:/customer/add";
+            model.addAttribute("message", response.getMessage());
+            return "customer/add";
         }
-
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Customer added successfully!");
         return REDIRECT_CUSTOMER_LIST;
     }
 
     @GetMapping("/get")
-    public String update(Model model,
-                         @RequestParam String phoneNo,
-                         RedirectAttributes redirectAttributes) {
-
-        try {
-            CustomerDto response = customerService.findByIdentifierWithAddressDto(phoneNo);
-            model.addAttribute("customerDto", response);
-            return "customer/customer";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Customer not found!");
-            return REDIRECT_CUSTOMER_LIST;
-        }
+    public String update(Model model, @RequestParam String phoneNo) {
+        CustomerDto response = customerService.findByIdentifierWithAddressDto(phoneNo);
+        model.addAttribute("customerDto", response);
+        return "customer/customer";
     }
 
     @PostMapping("/update")
-    public String updatePost(@ModelAttribute CustomerDto customerDto,
-                             RedirectAttributes redirectAttributes) {
-
+    public String updatePost(Model model, @ModelAttribute CustomerDto customerDto) {
         CustomerDto response = customerService.update(customerDto);
-
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, response.getMessage());
-            return "redirect:/customer/get?phoneNo=" + customerDto.getPhoneNo();
+            model.addAttribute("customerDto", response);
+            model.addAttribute("message", response.getMessage());
+            return "customer/customer";
         }
-
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Customer updated successfully!");
         return REDIRECT_CUSTOMER_LIST;
     }
 
+
     @GetMapping("/delete")
-    public String delete(@RequestParam String phoneNo,
-                         RedirectAttributes redirectAttributes) {
+    public String delete(Model model, @RequestParam String phoneNo) {
 
-        try {
-            customerService.delete(phoneNo);
-            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Customer deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Failed to delete customer!");
-        }
-
+        customerService.delete(phoneNo);
         return REDIRECT_CUSTOMER_LIST;
     }
 
     @PostMapping("/toggle-status")
     @ResponseBody
-    public void toggle(@RequestParam String identifier) {
+    public void toggle(Model model, @RequestParam String identifier) {
+
         customerService.toggleStatus(identifier);
     }
 }

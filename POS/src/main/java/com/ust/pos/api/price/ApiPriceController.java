@@ -3,6 +3,7 @@ package com.ust.pos.api.price;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.price.service.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +21,9 @@ public class ApiPriceController extends BaseController {
     private PriceService priceService;
 
     @PostMapping("/list")
-    public List<PriceDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
 
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return priceService.findAll(pageable);
     }
 
@@ -41,9 +41,9 @@ public class ApiPriceController extends BaseController {
     }
 
     @PostMapping("/update")
-    public PriceDto updatePost(@RequestBody PriceDto priceDto) {
+    public PriceDto updatePost(@RequestBody PriceDto userDto) {
 
-        return priceService.update(priceDto);
+        return priceService.update(userDto);
     }
 
     @GetMapping("/delete")
@@ -66,6 +66,12 @@ public class ApiPriceController extends BaseController {
     public List<PriceDto> findByStatus() {
 
         return priceService.findIfTrue();
+    }
+
+    @GetMapping("/findByProduct")
+    public PriceDto findByProduct(@RequestParam String productIdentifier) {
+
+        return priceService.findByProductIdentifier(productIdentifier);
     }
 
 }
