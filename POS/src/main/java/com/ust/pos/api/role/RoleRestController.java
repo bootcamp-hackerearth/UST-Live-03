@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/role")
 public class RoleRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
-    public static final String ROLE_ADD = "role/add";
     @Autowired
     private RoleService roleService;
 

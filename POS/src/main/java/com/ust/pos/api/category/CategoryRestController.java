@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/category")
 public class CategoryRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/category/list";
-    public static final String ROLE_ADD = "category/add";
     @Autowired
     private CategoryService categoryService;
 

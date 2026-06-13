@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/stock")
 public class StockRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/stock/list";
-    public static final String ROLE_ADD = "stock/add";
     @Autowired
     private StockService stockService;
 

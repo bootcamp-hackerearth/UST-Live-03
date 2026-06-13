@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/models")
 public class ModelsRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/models/list";
-    public static final String ROLE_ADD = "models/add";
     @Autowired
     private ModelsService modelsService;
 

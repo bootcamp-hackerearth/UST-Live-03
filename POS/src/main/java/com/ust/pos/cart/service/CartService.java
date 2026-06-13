@@ -10,7 +10,7 @@ public interface CartService {
 
     CartDto update(CartDto cartDto);
 
-    void delete(String username);
+    void delete(String identifier);
 
     List<CartDto> findAll(Pageable pageable);
 

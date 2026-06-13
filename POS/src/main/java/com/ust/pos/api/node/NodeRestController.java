@@ -18,8 +18,6 @@ import java.util.List;
 @RequestMapping("/api/node")
 public class NodeRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/node/list";
-    public static final String ROLE_ADD = "node/add";
     @Autowired
     private NodeService nodeService;
 

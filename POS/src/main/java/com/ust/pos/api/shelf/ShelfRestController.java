@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/shelf")
 public class ShelfRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/shelf/list";
-    public static final String ROLE_ADD = "shelf/add";
     @Autowired
     private ShelfService shelfService;
 

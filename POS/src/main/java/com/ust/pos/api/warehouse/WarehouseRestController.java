@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/warehouse")
 public class WarehouseRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/warehouse/list";
-    public static final String ROLE_ADD = "warehouse/add";
     @Autowired
     private WarehouseService warehouseService;
 

@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/racks")
 public class RacksRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/racks/list";
-    public static final String ROLE_ADD = "racks/add";
     @Autowired
     private RacksService racksService;
 

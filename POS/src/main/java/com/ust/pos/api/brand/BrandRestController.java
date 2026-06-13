@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/brand")
 public class BrandRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/brand/list";
-    public static final String ROLE_ADD = "brand/add";
     @Autowired
     private BrandService brandService;
 
@@ -29,7 +27,6 @@ public class BrandRestController extends BaseController {
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return brandService.findAll(pageable);
     }
-
 
     @PostMapping("/add")
     public BrandDto addPost(@RequestBody BrandDto brandDto) {

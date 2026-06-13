@@ -10,7 +10,7 @@ public interface StockService {
 
     StockDto update(StockDto stockDto);
 
-    void delete(String username);
+    void delete(String identifier);
 
     WsDto<StockDto> findAll(Pageable pageable);
 

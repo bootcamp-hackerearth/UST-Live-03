@@ -11,7 +11,7 @@ public interface CategoryService {
 
     CategoryDto update(CategoryDto categoryDto);
 
-    void delete(String username);
+    void delete(String identifier);
 
     WsDto<CategoryDto> findAll(Pageable pageable);
 

@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/price")
 public class PriceRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/price/list";
-    public static final String ROLE_ADD = "price/add";
     @Autowired
     private PriceService priceService;
 

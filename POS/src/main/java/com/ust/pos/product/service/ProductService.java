@@ -9,7 +9,7 @@ public interface ProductService {
 
     ProductDto update(ProductDto productDto);
 
-    void delete(String username);
+    void delete(String identifier);
 
     WsDto<ProductDto> findAll(Pageable pageable);
 

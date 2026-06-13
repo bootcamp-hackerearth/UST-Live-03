@@ -10,7 +10,7 @@ public interface ShelfService {
 
     ShelfDto update(ShelfDto shelfDto);
 
-    void delete(String username);
+    void delete(String identifier);
 
     WsDto<ShelfDto> findAll(Pageable pageable);
 

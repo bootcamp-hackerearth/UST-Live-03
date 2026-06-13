@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/unit")
 public class UnitRestController extends BaseController {
 
-    public static final String REDIRECT_ROLE_LIST = "redirect:/unit/list";
-    public static final String ROLE_ADD = "unit/add";
     @Autowired
     private UnitService unitService;
 
