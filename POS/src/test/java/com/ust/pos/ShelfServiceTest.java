@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.model.CommonFields;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -178,8 +179,7 @@ class ShelfServiceTest {
 
         Assertions.assertTrue(shelf.isStatus());
 
-        verify(shelfRepository).save(argThat(saved ->
-                saved.isStatus()
+        verify(shelfRepository).save(argThat(CommonFields::isStatus
         ));
     }
 

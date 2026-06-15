@@ -10,6 +10,8 @@ public interface CartEntryService {
 
     CartEntryDto save(CartEntryDto cartEntryDto);
 
+    CartEntryDto updateQuantity(CartEntryDto cartEntryDto);
+
     void delete(String identifier);
 
     List<CartEntryDto> findAll(Pageable pageable);

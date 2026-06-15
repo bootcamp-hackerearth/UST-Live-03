@@ -1,9 +1,9 @@
 export const Validation = (data, type) => {
 
-const VALIDATION_MESSAGES = {
-  CREDENTIALS_MESSAGE:
-    "Must be at least 8 characters, include uppercase, lowercase, number and special character",
-};
+  const VALIDATION_MESSAGES = {
+    CREDENTIALS_MESSAGE:
+      "Must be at least 8 characters, include uppercase, lowercase, number and special character",
+  };
 
   let newErrors = {};
 
@@ -18,8 +18,13 @@ const VALIDATION_MESSAGES = {
   }
 
   if (type === "register") {
-    if (!data.name || data.name.length < 3) {
-      newErrors.name = "Name must be at least 3 characters";
+    if (
+      !data.name ||
+      data.name.length < 3 ||
+      !/^[A-Za-z\s]+$/.test(data.name)
+    ) {
+      newErrors.name =
+        "Name must be at least 3 characters and contain only letters";
     }
 
     if (!data.username || !/^[^\s@]+@(ust\.com|gmail\.com)$/i.test(data.username)) {

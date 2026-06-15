@@ -33,8 +33,14 @@ public class CartEntryApiController extends BaseController {
         return cartEntryService.save(cartEntryDto);
     }
 
-    @GetMapping("/get")
-    public CartEntryDto update(@RequestParam String identifier) {
+    @PostMapping("/updatequantity")
+    public CartEntryDto updatePost(@RequestBody CartEntryDto cartEntryDto) {
+
+        return cartEntryService.updateQuantity(cartEntryDto);
+    }
+
+    @PostMapping("/get")
+    public CartEntryDto update(@RequestBody String identifier) {
 
         return cartEntryService.findByIdentifier(identifier);
     }

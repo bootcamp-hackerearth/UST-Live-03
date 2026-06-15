@@ -46,7 +46,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex bg-linear-to-r from-white to-violet-200" style={{ backgroundImage: "url('/pos2.png')" }}>
-      <div className="hidden md:flex w-1/2 text-violet-900 flex-col justify-center items-center p-10"
+      <div className="hidden md:flex w-1/2 text-violet-900 bg-violet-100 flex-col justify-center items-center p-10"
       >
         <h1 className="text-4xl font-bold mb-4">
           POS System

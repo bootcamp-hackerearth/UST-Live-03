@@ -99,6 +99,37 @@ public class CartEntryServiceImpl implements CartEntryService {
         return cartEntryDto;
     }
 
+    @Override
+    public CartEntryDto updateQuantity(CartEntryDto cartEntryDto){
+
+        String product = cartEntryDto.getProduct();
+        String cartId = cartEntryDto.getCartId();
+
+        Price price = priceRepository.
+                findByProductAndPriceType(cartEntryDto.getProduct(), "MRP");
+        BigDecimal mrp = price.getPriceAmount();
+
+        cartEntryDto.setIdentifier(product + "_" + cartId);
+        cartEntryDto.setUnitPrice(getSellingPrice(cartEntryDto.getProduct()));
+
+        String identifier = cartEntryDto.getIdentifier();
+        CartEntry existingCartEntry = cartEntryRepository.findByIdentifier(identifier);
+
+        cartEntryDto.setDiscount(getDiscount(cartEntryDto));
+        cartEntryDto.setOriginalPrice(mrp.multiply(cartEntryDto.getQuantity()));
+        cartEntryDto.setTotalPrice(getSellingPrice(product).
+                multiply(cartEntryDto.getQuantity()));
+
+        if (existingCartEntry != null) {
+            modelMapper.map(cartEntryDto, existingCartEntry);
+            cartEntryRepository.save(existingCartEntry);
+        } else {
+            cartEntryRepository.save(modelMapper.map(cartEntryDto, CartEntry.class));
+        }
+
+        recalculate(cartId);
+        return cartEntryDto;
+    }
 
     @Override
     public void recalculate(String cartId) {

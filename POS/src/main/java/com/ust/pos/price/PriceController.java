@@ -24,14 +24,14 @@ public class PriceController {
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
 
-        model.addAttribute("price", priceService.findAll(pageable));
+        model.addAttribute("price", priceService.findAll(pageable).getContent());
         return "price/list";
     }
 
     @GetMapping("/add")
     public String add(Model model, Pageable pageable) {
 
-        model.addAttribute("products", productService.findAll(pageable));
+        model.addAttribute("products", productService.findAll(pageable).getContent());
         model.addAttribute("priceDto", new PriceDto());
 
         return "price/add";

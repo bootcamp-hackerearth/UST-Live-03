@@ -70,8 +70,8 @@ export default function RegisterForm({ roles }) {
   }
 
   return (
-    <div className="min-h-screen flex scrollbar-none" style={{ backgroundImage: "url('/pos2.png')" }}>
-      <div className="hidden md:flex w-1/2 text-violet-900 flex-col justify-center items-center p-10">
+    <div className="min-h-screen flex scrollbar-none z-100" style={{ backgroundImage: "url(`/pos2.png`)" }}>
+      <div className="hidden md:flex w-1/2 text-violet-900 bg-violet-100 flex-col justify-center items-center p-10">
         <h1 className="text-4xl font-bold mb-4">
           POS System
         </h1>
@@ -100,9 +100,9 @@ export default function RegisterForm({ roles }) {
             placeholder="Enter name"
             onChange={handleChange}
             className="p-2 border-violet-900 border-2 rounded-xl placeholder: text-violet-800" />
-          {errors.name && (
-            <p className="text-red-400 text-sm">{errors.name}</p>
-          )}
+            {errors.name && (
+              <p className="text-red-400 text-sm">{errors.name}</p>
+            )}
 
           <input
             type="email"
@@ -151,7 +151,7 @@ export default function RegisterForm({ roles }) {
             onChange={handleChange}
             className="p-2 border-violet-900 border-2 rounded-xl placeholder: text-violet-800" />
           {errors.passwordMessage && (
-            <p className="text-red-400 text-sm">{errors.password}</p>
+            <p className="text-red-400 text-sm">{errors.passwordMessage}</p>
           )}
 
           <button

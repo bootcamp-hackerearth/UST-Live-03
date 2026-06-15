@@ -51,10 +51,12 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Product</label>
-                         <form:select path="product" cssClass="form-control" required="true" required="true">
-                         <form:options items="${products}"
-                         itemValue="name" itemLabel="name"/>
-                         </form:select>
+                        <form:select path="product" cssClass="form-control" required="true">
+                                                                                 <form:options items="${products}"
+                                                                                               itemValue="name"
+                                                                                               itemLabel="name" />
+                                                                             </form:select>
+
                     </div>
 
 

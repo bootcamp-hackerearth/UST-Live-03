@@ -56,7 +56,7 @@ const FormFields = ({ field, register, errors, dropdownData }) => {
             <option
               key={field.hardCoded ? item : item.id}
               value={field.hardCoded ? item : item.identifier}>
-              {field.hardCoded ? item : item.identifier}
+              {field.hardCoded ? item : (item.identifier || item.name)}
             </option>
           ))}
         </select>
