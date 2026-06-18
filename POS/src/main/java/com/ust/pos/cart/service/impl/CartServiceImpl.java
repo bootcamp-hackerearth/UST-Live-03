@@ -47,7 +47,6 @@ public class CartServiceImpl implements CartService {
         Cart cartModel = cartRepository.findByIdentifier(cart);
         BigDecimal totalPrice = BigDecimal.ZERO;
         BigDecimal totalDiscount = BigDecimal.ZERO;
-
         for(CartEntryDto cartEntryDto: cartEntries){
             totalPrice = totalPrice.add(cartEntryDto.getTotalPrice());
             totalDiscount = totalDiscount.add(cartEntryDto.getDiscount());
@@ -61,7 +60,6 @@ public class CartServiceImpl implements CartService {
         cartDto.setCartEntryDtoList(modelMapper.map(cartEntries, listType));
         return cartDto;
     }
-
     @Override
     public CartDto findByIdentifier(String identifier){
         CartDto cartDto = new CartDto();
@@ -69,6 +67,7 @@ public class CartServiceImpl implements CartService {
         cartDto.setCartEntryDtoList(cartEntryService.findAllEntriesForCart(identifier));
         return cartDto;
     }
+
     @Override
     public void deleteByIdentifier(String identifier) {
         cartRepository.deleteByIdentifier(identifier);

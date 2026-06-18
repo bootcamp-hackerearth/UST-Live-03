@@ -58,8 +58,8 @@ public class CartEntryServiceImpl implements CartEntryService {
         cartEntryDto.setPrice(price.getMrpprice());
         cartEntryDto.setSellingPrice(price.getSellingprice());
         modelMapper.map(cartEntryDto, cartEntry);
-        cartService.recalculate(cartEntry.getCart());
         cartEntryRepository.save(cartEntry);
+        cartService.recalculate(cartEntry.getCart());
         return cartEntryDto;
     }
 

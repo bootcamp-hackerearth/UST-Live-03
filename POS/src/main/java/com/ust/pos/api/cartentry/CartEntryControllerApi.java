@@ -6,8 +6,6 @@ import com.ust.pos.dto.CartEntryDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-
-
 @RestController
 @RequestMapping("/api/cartEntry")
 public class CartEntryControllerApi extends BaseController {
@@ -19,5 +17,4 @@ public class CartEntryControllerApi extends BaseController {
     public CartEntryDto add(@RequestBody CartEntryDto cartEntryDto) {
         return cartEntryService.save(cartEntryDto);
     }
-
 }

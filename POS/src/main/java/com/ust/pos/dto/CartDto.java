@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class CartDto extends CommonDto {
     private BigDecimal totalPrice;
-    private BigDecimal discount;
-    private String coupon;
+    private BigDecimal totalDiscount;
+    private String couponCode;
     List<CartEntryDto> cartEntryDtoList;
 }
