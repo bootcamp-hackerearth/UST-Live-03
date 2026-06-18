@@ -20,6 +20,10 @@ public class CustomerApiController extends BaseController {
 
     @Autowired
     private CustomerService customerService;
+    @GetMapping("/list")
+    public List<CustomerDto> list(){
+        return customerService.findAll();
+    }
 
     @PostMapping("/list")
     public List<CustomerDto> home(@RequestBody PaginationDto paginationDto) {

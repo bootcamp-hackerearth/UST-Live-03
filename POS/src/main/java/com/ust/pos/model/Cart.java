@@ -13,4 +13,5 @@ public class Cart extends CommonFields {
     private BigDecimal totalPrice;
     private BigDecimal discount;
     private String coupon;
+    private String customer;
 }

@@ -5,6 +5,8 @@ import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
+import com.ust.pos.model.CartEntry;
+import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.CartRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
@@ -23,7 +25,7 @@ import java.util.List;
 @Transactional
 public class CartServiceImpl implements CartService {
     @Autowired
-    private CartEntryService cartEntryService;
+    private CartEntryRepository cartEntryRepository;
 
     @Autowired
     private PriceService priceService;
@@ -35,38 +37,92 @@ public class CartServiceImpl implements CartService {
     private ModelMapper modelMapper;
 
     @Override
-    public CartDto save(CartDto cartDto) {
-        Cart cart = modelMapper.map(cartDto, Cart.class);
+    public CartDto save(
+            CartDto cartDto
+    ) {
+
+        Cart cart =
+                cartRepository.findByIdentifier(
+                        cartDto.getIdentifier()
+                );
+
+        if (cart == null) {
+            cart = new Cart();
+        }
+
+        modelMapper.map(
+                cartDto,
+                cart
+        );
+
         cartRepository.save(cart);
-        return cartDto;
+
+        return modelMapper.map(
+                cart,
+                CartDto.class
+        );
     }
 
     @Override
-    public CartDto recalulateCart(String cartId) {
+    public CartDto recalculateCart(String cartId) {
+
         Cart cart = cartRepository.findByIdentifier(cartId);
+
         if (cart == null) {
             cart = new Cart();
             cart.setIdentifier(cartId);
         }
-        List<CartEntryDto> entries = cartEntryService.findByCartId(cartId);
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        BigDecimal discount = cart.getDiscount() != null
-                ? cart.getDiscount() : BigDecimal.ZERO;
-        for (CartEntryDto entry : entries) {
+
+        List<CartEntry> entries =
+                cartEntryRepository.findByCartId(cartId);
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+        BigDecimal totalDiscount = BigDecimal.ZERO;
+
+        for (CartEntry entry : entries) {
+
             if (entry.getTotalPrice() != null) {
-                totalPrice = totalPrice.add(entry.getTotalPrice());
+                subtotal =
+                        subtotal.add(
+                                entry.getTotalPrice()
+                        );
+            }
+
+            if (entry.getDiscount() != null) {
+                totalDiscount =
+                        totalDiscount.add(
+                                entry.getDiscount()
+                        );
             }
         }
-        cart.setTotalPrice(totalPrice.subtract(discount));
+
+        cart.setDiscount(totalDiscount);
+
+        cart.setTotalPrice(
+                subtotal.subtract(totalDiscount)
+        );
 
         cartRepository.save(cart);
-        CartDto cartDto1 = modelMapper.map(cart, CartDto.class);
-        cartDto1.setCartEntries(entries);
-        return cartDto1;
-    }
 
+        Type listType =
+                new TypeToken<List<CartEntryDto>>() {
+                }.getType();
+
+        List<CartEntryDto> entryDtos =
+                modelMapper.map(entries, listType);
+
+        CartDto cartDto =
+                modelMapper.map(
+                        cart,
+                        CartDto.class
+                );
+
+        cartDto.setCartEntries(entryDtos);
+
+        return cartDto;
+    }
     @Override
-    public void deletAll() {
+    public void deleteAll() {
         cartRepository.deleteAll();
     }
 

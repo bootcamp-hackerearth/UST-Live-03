@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 public class Price extends CommonFields {
     private BigDecimal costPrice;
     private BigDecimal sellingPrice;
-    private BigDecimal discountPrice;
+    private BigDecimal mrp;
     private BigDecimal difference;
     private BigDecimal discount = new BigDecimal(0);
 }

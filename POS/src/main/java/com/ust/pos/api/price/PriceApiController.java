@@ -18,6 +18,10 @@ public class PriceApiController extends BaseController {
     private ProductService productService;
     @Autowired
     private PriceService priceService;
+    @GetMapping("/list")
+    public List<PriceDto> findall(){
+        return priceService.findAll();
+    }
 
     @PostMapping("/list")
     public WsDto<PriceDto> home(

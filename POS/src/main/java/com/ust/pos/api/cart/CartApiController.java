@@ -1,15 +1,16 @@
 package com.ust.pos.api.cart;
 
-
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartApiController {
+
     @Autowired
     private CartService cartService;
 
@@ -18,23 +19,37 @@ public class CartApiController {
         return cartService.save(cartDto);
     }
 
+    @GetMapping("/get")
+    public CartDto get(
+            @RequestParam String identifier
+    ) {
+        return cartService.findByIdentifier(identifier);
+    }
+
+    @GetMapping("/list")
+    public List<CartDto> list() {
+        return cartService.findAll();
+    }
+
     @GetMapping("/delete")
-    public boolean delete(Model model, @RequestParam String identifier) {
+    public boolean delete(
+            @RequestParam String identifier
+    ) {
         try {
             cartService.delete(identifier);
+            return true;
         } catch (Exception e) {
             return false;
         }
-        return true;
     }
 
     @GetMapping("/deleteAll")
-    public boolean deleteAll(Model model, @RequestParam String identifier) {
+    public boolean deleteAll() {
         try {
-            cartService.deletAll();
+            cartService.deleteAll();
+            return true;
         } catch (Exception e) {
             return false;
         }
-        return true;
     }
 }

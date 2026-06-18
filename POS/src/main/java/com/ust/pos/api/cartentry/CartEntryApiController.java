@@ -21,7 +21,7 @@ public class CartEntryApiController {
     @PostMapping("/add")
     public CartDto add(@RequestBody CartEntryDto cartEntryDto) {
         cartEntryService.save(cartEntryDto);
-        return cartService.recalulateCart(cartEntryDto.getCartId());
+        return cartService.recalculateCart(cartEntryDto.getCartId());
     }
 
     @PostMapping("/getByCartId")
@@ -38,4 +38,14 @@ public class CartEntryApiController {
         }
         return true;
     }
+    @PostMapping("/update")
+    public CartDto update(
+            @RequestBody CartEntryDto cartEntryDto) {
+
+        cartEntryService.update(cartEntryDto);
+
+        return cartService.recalculateCart(
+                cartEntryDto.getCartId());
+    }
+
 }

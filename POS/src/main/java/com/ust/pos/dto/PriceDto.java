@@ -12,4 +12,6 @@ public class PriceDto extends CommonDto {
     private BigDecimal costPrice = new BigDecimal(0);
     private BigDecimal sellingPrice = new BigDecimal(0);
     private BigDecimal difference = new BigDecimal(0);
+    private BigDecimal discount=new BigDecimal(0);
+    private BigDecimal mrp=new BigDecimal(0);
 }

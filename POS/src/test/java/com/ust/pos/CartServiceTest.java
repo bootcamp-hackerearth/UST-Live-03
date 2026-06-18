@@ -94,7 +94,7 @@ class CartServiceTest {
                 .thenReturn(cartDto);
 
         CartDto response =
-                cartService.recalulateCart("CART1");
+                cartService.recalculateCart("CART1");
 
         Assertions.assertNotNull(response);
 
@@ -124,7 +124,7 @@ class CartServiceTest {
         )).thenReturn(cartDto);
 
         CartDto response =
-                cartService.recalulateCart("CART2");
+                cartService.recalculateCart("CART2");
 
         Assertions.assertNotNull(response);
 
@@ -204,7 +204,7 @@ class CartServiceTest {
                 .when(cartRepository)
                 .deleteAll();
 
-        cartService.deletAll();
+        cartService.deleteAll();
 
         Mockito.verify(cartRepository)
                 .deleteAll();
