@@ -6,8 +6,7 @@ import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.model.CustomerRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -21,12 +20,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
+
 @Service
 @Transactional
 public class CartServiceImpl implements CartService {
 
     @Autowired
-    private UserRepository userRepository;
+    private CustomerRepository customerRepository;
 
     @Autowired
     private CartRepository cartRepository;
@@ -45,8 +45,12 @@ public class CartServiceImpl implements CartService {
         }
         CartDto cartDto = modelMapper.map(cart, CartDto.class);
         List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(identifier);
-        BigDecimal totalPrice = cartEntries.stream().map(CartEntryDto::getTotalPrice).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDiscount = cartEntries.stream().map(CartEntryDto::getDiscount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPrice = cartEntries.stream()
+                .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalDiscount = cartEntries.stream()
+                .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         cartDto.setCartEntries(cartEntries);
         cartDto.setTotalPrice(totalPrice);
         cartDto.setDiscount(totalDiscount);
@@ -55,14 +59,18 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto save(CartDto cartDto) {
-        String identifier = cartDto.getUsername();
+        String identifier = cartDto.getUsername() != null
+                ? cartDto.getUsername()
+                : cartDto.getIdentifier();
         cartDto.setIdentifier(identifier);
-        User user = userRepository.findByUsername(cartDto.getUsername());
-        if (user == null) {
-            cartDto.setMessage("User with username - " + cartDto.getUsername() + " not found");
+        cartDto.setUsername(identifier);
+
+        if (customerRepository.findByIdentifier(identifier) == null) {
+            cartDto.setMessage("Customer with identifier - " + identifier + " not found");
             cartDto.setSuccess(false);
             return cartDto;
         }
+
         Cart existingCart = cartRepository.findByIdentifier(identifier);
         if (existingCart != null) {
             if (cartDto.getCartEntries() != null) {
@@ -72,8 +80,12 @@ public class CartServiceImpl implements CartService {
                 }
             }
             List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(identifier);
-            BigDecimal totalPrice = cartEntries.stream().map(CartEntryDto::getTotalPrice).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal totalDiscount = cartEntries.stream().map(CartEntryDto::getDiscount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalPrice = cartEntries.stream()
+                    .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalDiscount = cartEntries.stream()
+                    .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
             existingCart.setTotalPrice(totalPrice);
             existingCart.setDiscount(totalDiscount);
             if (cartDto.getCoupon() != null) {
@@ -82,22 +94,29 @@ public class CartServiceImpl implements CartService {
             cartRepository.save(existingCart);
             return findByIdentifier(identifier);
         }
+
         Cart cart = new Cart();
         cart.setIdentifier(identifier);
-        cart.setUsername(cartDto.getUsername());
+        cart.setUsername(identifier);
         cart.setCoupon(cartDto.getCoupon());
         cart.setDiscount(BigDecimal.ZERO);
         cart.setTotalPrice(BigDecimal.ZERO);
         cartRepository.save(cart);
+
         if (cartDto.getCartEntries() != null) {
             for (CartEntryDto cartEntryDto : cartDto.getCartEntries()) {
                 cartEntryDto.setCartIdentifier(identifier);
                 cartEntryService.save(cartEntryDto);
             }
         }
+
         List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(identifier);
-        BigDecimal totalPrice = cartEntries.stream().map(CartEntryDto::getTotalPrice).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDiscount = cartEntries.stream().map(CartEntryDto::getDiscount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPrice = cartEntries.stream()
+                .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalDiscount = cartEntries.stream()
+                .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         cart.setTotalPrice(totalPrice);
         cart.setDiscount(totalDiscount);
         cartRepository.save(cart);
@@ -116,6 +135,7 @@ public class CartServiceImpl implements CartService {
         existingCart.setUsername(cartDto.getUsername());
         existingCart.setCoupon(cartDto.getCoupon());
         cartRepository.save(existingCart);
+
         if (cartDto.getCartEntries() != null) {
             for (CartEntryDto cartEntryDto : cartDto.getCartEntries()) {
                 cartEntryDto.setCartIdentifier(identifier);
@@ -126,9 +146,14 @@ public class CartServiceImpl implements CartService {
                 }
             }
         }
+
         List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(identifier);
-        BigDecimal totalPrice = cartEntries.stream().map(CartEntryDto::getTotalPrice).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDiscount = cartEntries.stream().map(CartEntryDto::getDiscount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPrice = cartEntries.stream()
+                .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalDiscount = cartEntries.stream()
+                .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         existingCart.setTotalPrice(totalPrice);
         existingCart.setDiscount(totalDiscount);
         cartRepository.save(existingCart);
@@ -156,13 +181,18 @@ public class CartServiceImpl implements CartService {
         }
         String cartIdentifier = cartEntry.getCartIdentifier();
         cartEntryService.delete(identifier);
+
         Cart cart = cartRepository.findByIdentifier(cartIdentifier);
         if (cart == null) {
             return false;
         }
         List<CartEntryDto> remainingEntries = cartEntryService.findAllByCartIdentifier(cartIdentifier);
-        BigDecimal totalPrice = remainingEntries.stream().map(CartEntryDto::getTotalPrice).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDiscount = remainingEntries.stream().map(CartEntryDto::getDiscount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPrice = remainingEntries.stream()
+                .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalDiscount = remainingEntries.stream()
+                .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         cart.setTotalPrice(totalPrice);
         cart.setDiscount(totalDiscount);
         cartRepository.save(cart);
@@ -177,8 +207,12 @@ public class CartServiceImpl implements CartService {
         List<CartDto> cartDtos = modelMapper.map(cartPage.getContent(), listType);
         cartDtos.forEach(cartDto -> {
             List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(cartDto.getIdentifier());
-            BigDecimal totalPrice = cartEntries.stream().map(CartEntryDto::getTotalPrice).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal totalDiscount = cartEntries.stream().map(CartEntryDto::getDiscount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalPrice = cartEntries.stream()
+                    .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalDiscount = cartEntries.stream()
+                    .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
             cartDto.setCartEntries(cartEntries);
             cartDto.setTotalPrice(totalPrice);
             cartDto.setDiscount(totalDiscount);

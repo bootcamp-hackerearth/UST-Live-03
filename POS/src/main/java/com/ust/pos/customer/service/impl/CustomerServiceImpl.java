@@ -21,9 +21,9 @@ import java.util.List;
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
-
     public static final String SHIPPING = "Shipping";
     public static final String BILLING = "Billing";
+
     @Autowired
     private CustomerRepository customerRepository;
 
@@ -41,18 +41,13 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDto findByIdentifierWithAddressDto(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
-
         if (customer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found: " + identifier);
         }
-
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
-
         List<AddressDto> addressDtoList = addressService.findAllByPhoneNo(identifier);
-
         AddressDto billing = null;
         AddressDto shipping = null;
-
         for (AddressDto address : addressDtoList) {
             if (BILLING.equalsIgnoreCase(address.getAddressType())) {
                 billing = address;
@@ -60,13 +55,10 @@ public class CustomerServiceImpl implements CustomerService {
                 shipping = address;
             }
         }
-
         customerDto.setBillingAddress(billing != null ? billing : new AddressDto());
         customerDto.setShippingAddress(shipping != null ? shipping : new AddressDto());
-
         return customerDto;
     }
-
 
     @Override
     public CustomerDto save(CustomerDto customerDto) {
@@ -77,19 +69,28 @@ public class CustomerServiceImpl implements CustomerService {
             customerDto.setSuccess(false);
             return customerDto;
         }
+
         Customer customer = modelMapper.map(customerDto, Customer.class);
         customerRepository.save(customer);
 
-        AddressDto billingAddress = modelMapper.map(customerDto.getBillingAddress(), AddressDto.class);
-        billingAddress.setIdentifier(customerDto.getIdentifier() + "_" + BILLING);
-        billingAddress.setAddressType(BILLING);
-        addressService.save(billingAddress);
+        if (customerDto.getBillingAddress() != null) {
+            AddressDto billingAddress = modelMapper.map(customerDto.getBillingAddress(), AddressDto.class);
+            billingAddress.setIdentifier(customerDto.getIdentifier() + "_" + BILLING);
+            billingAddress.setPhoneNo(customerDto.getIdentifier());
+            billingAddress.setAddressType(BILLING);
+            addressService.save(billingAddress);
+        }
 
-        AddressDto shippingAddress = modelMapper.map(customerDto.getShippingAddress(), AddressDto.class);
-        shippingAddress.setIdentifier(customerDto.getIdentifier() + "_" + SHIPPING);
-        shippingAddress.setAddressType(SHIPPING);
-        addressService.save(shippingAddress);
+        if (customerDto.getShippingAddress() != null) {
+            AddressDto shippingAddress = modelMapper.map(customerDto.getShippingAddress(), AddressDto.class);
+            shippingAddress.setIdentifier(customerDto.getIdentifier() + "_" + SHIPPING);
+            shippingAddress.setPhoneNo(customerDto.getIdentifier());
+            shippingAddress.setAddressType(SHIPPING);
+            addressService.save(shippingAddress);
+        }
 
+        customerDto.setSuccess(true);
+        customerDto.setMessage("Customer saved successfully");
         return customerDto;
     }
 
@@ -97,32 +98,30 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDto update(CustomerDto customerDto) {
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
-
         if (existingCustomer == null) {
             customerDto.setMessage("Customer with identifier - " + identifier + " not found");
             customerDto.setSuccess(false);
             return customerDto;
         }
-
         modelMapper.map(customerDto, existingCustomer);
         customerRepository.save(existingCustomer);
 
         List<AddressDto> existingAddresses = addressService.findAllByPhoneNo(identifier);
-
         for (AddressDto existing : existingAddresses) {
-            if (BILLING.equalsIgnoreCase(existing.getAddressType())) {
+            if (BILLING.equalsIgnoreCase(existing.getAddressType()) && customerDto.getBillingAddress() != null) {
                 AddressDto billing = customerDto.getBillingAddress();
                 billing.setIdentifier(existing.getIdentifier());
                 addressService.update(billing);
             }
-
-            if (SHIPPING.equalsIgnoreCase(existing.getAddressType())) {
+            if (SHIPPING.equalsIgnoreCase(existing.getAddressType()) && customerDto.getShippingAddress() != null) {
                 AddressDto shipping = customerDto.getShippingAddress();
                 shipping.setIdentifier(existing.getIdentifier());
                 addressService.update(shipping);
             }
         }
 
+        customerDto.setSuccess(true);
+        customerDto.setMessage("Customer updated successfully");
         return customerDto;
     }
 
@@ -135,8 +134,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CustomerDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
         Page<Customer> customerPage = customerRepository.findAll(pageable);
         return modelMapper.map(customerPage.getContent(), listType);
     }

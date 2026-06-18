@@ -21,22 +21,29 @@ public class CustomerController extends BaseController {
 
     @PostMapping("/list")
     public ResponseEntity<List<CustomerDto>> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField()
+        );
         List<CustomerDto> customers = customerService.findAll(pageable);
         return ResponseEntity.ok(customers);
     }
 
     @GetMapping("/{identifier}")
     public ResponseEntity<CustomerDto> getByIdentifier(@PathVariable String identifier) {
-        CustomerDto response = customerService.findByIdentifierWithAddressDto(identifier);
-        if (response == null) {
+        try {
+            CustomerDto response = customerService.findByIdentifierWithAddressDto(identifier);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/save")
     public ResponseEntity<CustomerDto> save(@RequestBody CustomerDto customerDto) {
+        customerDto.setSuccess(true);
         CustomerDto response = customerService.save(customerDto);
         if (!response.isSuccess()) {
             return ResponseEntity.badRequest().body(response);
@@ -45,8 +52,11 @@ public class CustomerController extends BaseController {
     }
 
     @PostMapping("/update/{identifier}")
-    public ResponseEntity<CustomerDto> update(@PathVariable String identifier, @RequestBody CustomerDto customerDto) {
+    public ResponseEntity<CustomerDto> update(
+            @PathVariable String identifier,
+            @RequestBody CustomerDto customerDto) {
         customerDto.setIdentifier(identifier);
+        customerDto.setSuccess(true);
         CustomerDto response = customerService.update(customerDto);
         if (!response.isSuccess()) {
             return ResponseEntity.badRequest().body(response);
