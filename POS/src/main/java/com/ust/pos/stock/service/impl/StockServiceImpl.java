@@ -90,7 +90,7 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public List<StockDto> findAll(Pageable pageable) {
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
+        Page<Stock> stockPage = stockRepository.findByDeletedFalse(pageable);
         return stockPage.getContent().stream().map(stock -> {
             StockDto dto = modelMapper.map(stock, StockDto.class);
             productRepository.findById(stock.getProductId()).ifPresent(product -> {
@@ -104,10 +104,13 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public boolean deleteStock(Long stockId) {
-        if (!stockRepository.existsById(stockId)) {
+        Stock stock = stockRepository.findById(stockId).orElse(null);
+        if (stock == null) {
             return false;
         }
-        stockRepository.deleteById(stockId);
+        softDelete(stock);
+        setAuditFields(stock, false);
+        stockRepository.save(stock);
         return true;
     }
 

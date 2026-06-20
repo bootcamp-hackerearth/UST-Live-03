@@ -19,6 +19,7 @@ public class CommonFields {
     private Long id;
     private String identifier;
     private boolean status = true;
+    private boolean deleted = false;
     private String createdBy;
     private String modifiedBy;
     private LocalDateTime createdAt;

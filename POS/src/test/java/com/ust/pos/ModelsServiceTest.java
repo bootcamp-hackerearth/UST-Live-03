@@ -35,7 +35,6 @@ class ModelsServiceTest {
 
     @Test
     void findByIdentifierTest() {
-
         Models models = new Models();
         models.setIdentifier("IPHONE");
 
@@ -51,8 +50,16 @@ class ModelsServiceTest {
     }
 
     @Test
-    void toggleStatusTrueToFalseTest() {
+    void findByIdentifierNullTest() {
+        Mockito.when(modelsRepository.findByIdentifier("INVALID")).thenReturn(null);
 
+        ModelsDto response = modelsService.findByIdentifier("INVALID");
+
+        Assertions.assertNull(response);
+    }
+
+    @Test
+    void toggleStatusTrueToFalseTest() {
         Models models = new Models();
         models.setIdentifier("IPHONE");
         models.setStatus(true);
@@ -67,12 +74,12 @@ class ModelsServiceTest {
 
         Assertions.assertEquals("IPHONE", response.getIdentifier());
         Assertions.assertFalse(models.isStatus());
+
         Mockito.verify(modelsRepository).save(models);
     }
 
     @Test
     void toggleStatusFalseToTrueTest() {
-
         Models models = new Models();
         models.setIdentifier("IPHONE");
         models.setStatus(false);
@@ -87,12 +94,19 @@ class ModelsServiceTest {
 
         Assertions.assertEquals("IPHONE", response.getIdentifier());
         Assertions.assertTrue(models.isStatus());
+
         Mockito.verify(modelsRepository).save(models);
     }
 
     @Test
-    void saveTest() {
+    void toggleStatusNullTest() {
+        Mockito.when(modelsRepository.findByIdentifier("INVALID")).thenReturn(null);
 
+        Assertions.assertThrows(NullPointerException.class, () -> modelsService.toggleStatus("INVALID"));
+    }
+
+    @Test
+    void saveTest() {
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier(" IPHONE ");
 
@@ -104,12 +118,12 @@ class ModelsServiceTest {
         ModelsDto response = modelsService.save(dto);
 
         Assertions.assertEquals("IPHONE", response.getIdentifier());
+
         Mockito.verify(modelsRepository).save(models);
     }
 
     @Test
     void saveDuplicateTest() {
-
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("IPHONE");
 
@@ -124,8 +138,23 @@ class ModelsServiceTest {
     }
 
     @Test
-    void updateTest() {
+    void saveSoftDeletedTest() {
+        ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("IPHONE");
 
+        Models existing = new Models();
+        existing.setDeleted(true);
+
+        Mockito.when(modelsRepository.findByIdentifier("IPHONE")).thenReturn(existing);
+
+        ModelsDto response = modelsService.save(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Models with identifier - IPHONE has been soft deleted.(Rollback by changing status", response.getMessage());
+    }
+
+    @Test
+    void updateTest() {
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("IPHONE");
 
@@ -144,12 +173,12 @@ class ModelsServiceTest {
         ModelsDto response = modelsService.update(dto);
 
         Assertions.assertEquals("IPHONE", response.getIdentifier());
+
         Mockito.verify(modelsRepository).save(existing);
     }
 
     @Test
     void updateNotFoundTest() {
-
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("IPHONE");
 
@@ -163,18 +192,31 @@ class ModelsServiceTest {
 
     @Test
     void deleteTest() {
+        Models models = new Models();
+        models.setIdentifier("IPHONE");
 
-        Mockito.doNothing().when(modelsRepository).deleteByIdentifier("IPHONE");
+        Mockito.when(modelsRepository.findByIdentifier("IPHONE")).thenReturn(models);
 
         boolean result = modelsService.delete("IPHONE");
 
         Assertions.assertTrue(result);
-        Mockito.verify(modelsRepository).deleteByIdentifier("IPHONE");
+
+        Mockito.verify(modelsRepository).save(models);
+    }
+
+    @Test
+    void deleteNotFoundTest() {
+        Mockito.when(modelsRepository.findByIdentifier("INVALID")).thenReturn(null);
+
+        boolean result = modelsService.delete("INVALID");
+
+        Assertions.assertFalse(result);
+
+        Mockito.verify(modelsRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
     void findAllTest() {
-
         Pageable pageable = PageRequest.of(0, 10);
 
         Models models = new Models();
@@ -186,9 +228,9 @@ class ModelsServiceTest {
         List<Models> modelsList = List.of(models);
         List<ModelsDto> dtos = List.of(dto);
 
-        Page<Models> modelsPage = new PageImpl<>(modelsList);
+        Page<Models> modelsPage = new PageImpl<>(modelsList, pageable, 1);
 
-        Mockito.when(modelsRepository.findAll(pageable)).thenReturn(modelsPage);
+        Mockito.when(modelsRepository.findByDeletedFalse(pageable)).thenReturn(modelsPage);
         Mockito.when(modelMapper.map(Mockito.eq(modelsList), Mockito.any(Type.class))).thenReturn(dtos);
 
         WsDto<ModelsDto> response = modelsService.findAll(pageable);
@@ -201,8 +243,22 @@ class ModelsServiceTest {
     }
 
     @Test
-    void findIfTrueTest() {
+    void findAllEmptyTest() {
+        Pageable pageable = PageRequest.of(0, 10);
 
+        Page<Models> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        Mockito.when(modelsRepository.findByDeletedFalse(pageable)).thenReturn(emptyPage);
+        Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class))).thenReturn(List.of());
+
+        WsDto<ModelsDto> response = modelsService.findAll(pageable);
+
+        Assertions.assertEquals(0, response.getDtoList().size());
+        Assertions.assertEquals(0L, response.getTotalRecords());
+    }
+
+    @Test
+    void findIfTrueTest() {
         Models models = new Models();
         models.setIdentifier("IPHONE");
         models.setStatus(true);
@@ -221,4 +277,15 @@ class ModelsServiceTest {
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("IPHONE", response.get(0).getIdentifier());
     }
+
+    @Test
+    void findIfTrueEmptyTest() {
+        Mockito.when(modelsRepository.findByStatusIsTrue()).thenReturn(List.of());
+        Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class))).thenReturn(List.of());
+
+        List<ModelsDto> response = modelsService.findIfTrue();
+
+        Assertions.assertEquals(0, response.size());
+    }
+
 }

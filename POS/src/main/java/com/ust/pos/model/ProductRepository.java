@@ -17,4 +17,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByStatusIsTrue();
 
     Page<Product> findAll(Pageable pageable);
+
+    Page<Product> findByDeletedFalse(Pageable pageable);
 }

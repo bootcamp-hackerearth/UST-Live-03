@@ -40,6 +40,11 @@ public class UserServiceImpl extends CommonService implements UserService {
         String username = userDto.getUsername();
         User existingUser = userRepository.findByUsername(username);
         if (existingUser != null) {
+            if (existingUser.isDeleted()) {
+                userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " has been soft deleted.(Rollback by changing status");
+                userDto.setSuccess(false);
+                return userDto;
+            }
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
             userDto.setSuccess(false);
             return userDto;
@@ -77,7 +82,13 @@ public class UserServiceImpl extends CommonService implements UserService {
 
     @Override
     public boolean delete(String username) {
-        userRepository.deleteByUsername(username);
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return false;
+        }
+        softDelete(user);
+        setAuditFields(user, false);
+        userRepository.save(user);
         return true;
     }
 
@@ -85,7 +96,7 @@ public class UserServiceImpl extends CommonService implements UserService {
     public WsDto<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        Page<User> userPage = userRepository.findAll(pageable);
+        Page<User> userPage = userRepository.findByDeletedFalse(pageable);
         WsDto<UserDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
         userWsDto.setTotalRecords(userPage.getTotalElements());

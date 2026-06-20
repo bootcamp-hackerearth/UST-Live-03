@@ -79,13 +79,19 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
     public List<ShelfDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
+        Page<Shelf> shelfPage = shelfRepository.findByDeletedFalse(pageable);
         return modelMapper.map(shelfPage.getContent(), listType);
     }
 
     @Override
     public boolean deleteShelf(Long id) {
-        shelfRepository.deleteById(id);
+        Shelf shelf = shelfRepository.findById(id).orElse(null);
+        if (shelf == null) {
+            return false;
+        }
+        softDelete(shelf);
+        setAuditFields(shelf, false);
+        shelfRepository.save(shelf);
         return true;
     }
 

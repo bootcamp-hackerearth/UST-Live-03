@@ -13,4 +13,6 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     void deleteByIdentifier(String identifier);
 
     Page<Cart> findAll(Pageable pageable);
+
+    Page<Cart> findByDeletedFalse(Pageable pageable);
 }

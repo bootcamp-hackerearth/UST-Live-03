@@ -1,6 +1,7 @@
 package com.ust.pos.order.service.impl;
 
 import com.ust.pos.cart.service.CartService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.*;
 import com.ust.pos.model.CustomerRepository;
 import com.ust.pos.model.Orders;
@@ -23,7 +24,7 @@ import java.util.Objects;
 
 @Service
 @Transactional
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl extends CommonService implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderEntryService orderEntryService;
     private final CartService cartService;
@@ -134,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<OrderDto>>() {
         }.getType();
-        Page<Orders> orderPage = orderRepository.findAll(pageable);
+        Page<Orders> orderPage = orderRepository.findByDeletedFalse(pageable);
         List<OrderDto> orderDtos = modelMapper.map(orderPage.getContent(), listType);
         orderDtos.forEach(this::enrichOrderDto);
         return orderDtos;
@@ -157,7 +158,9 @@ public class OrderServiceImpl implements OrderService {
             return false;
         }
         orderEntryService.deleteByOrderIdentifier(identifier);
-        orderRepository.delete(orders);
+        softDelete(orders);
+        setAuditFields(orders, false);
+        orderRepository.save(orders);
         return true;
     }
 

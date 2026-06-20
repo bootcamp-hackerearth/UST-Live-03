@@ -1,6 +1,7 @@
 package com.ust.pos.address.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
@@ -12,7 +13,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl extends CommonService implements AddressService {
     private final AddressRepository addressRepository;
     private final ModelMapper modelMapper;
 
@@ -38,11 +39,17 @@ public class AddressServiceImpl implements AddressService {
         String identifier = addressDto.getIdentifier();
         Address existingAddress = addressRepository.findByIdentifier(identifier);
         if (existingAddress != null) {
+            if (existingAddress.isDeleted()) {
+                addressDto.setMessage("Address with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                addressDto.setSuccess(false);
+                return addressDto;
+            }
             addressDto.setMessage("Address with identifier - " + identifier + " already exists");
             addressDto.setSuccess(false);
             return addressDto;
         }
         Address address = modelMapper.map(addressDto, Address.class);
+        setAuditFields(address, true);
         addressRepository.save(address);
         return addressDto;
     }
@@ -57,14 +64,19 @@ public class AddressServiceImpl implements AddressService {
             return addressDto;
         }
         modelMapper.map(addressDto, existingAddress);
+        setAuditFields(existingAddress, false);
         addressRepository.save(existingAddress);
         return addressDto;
     }
 
     @Override
     public boolean delete(String phoneNo) {
-        List<Address> address = addressRepository.findAllByPhoneNo(phoneNo);
-        addressRepository.deleteAll(address);
+        List<Address> addresses = addressRepository.findAllByPhoneNo(phoneNo);
+        for (Address address : addresses) {
+            softDelete(address);
+            setAuditFields(address, false);
+            addressRepository.save(address);
+        }
         return true;
     }
 

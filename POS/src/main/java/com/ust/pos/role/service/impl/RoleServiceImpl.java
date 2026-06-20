@@ -36,6 +36,11 @@ public class RoleServiceImpl extends CommonService implements RoleService {
         Role existing = roleRepository.findByIdentifier(roleDto.getIdentifier());
 
         if (existing != null) {
+            if (existing.isDeleted()) {
+                roleDto.setSuccess(false);
+                roleDto.setMessage("Role '" + roleDto.getIdentifier() + "' has been soft deleted.(Rollback by changing status");
+                return roleDto;
+            }
             roleDto.setSuccess(false);
             roleDto.setMessage("Role '" + roleDto.getIdentifier() + "' already exists");
             return roleDto;
@@ -68,7 +73,13 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public boolean delete(String identifier) {
-        roleRepository.deleteByIdentifier(identifier);
+        Role role = roleRepository.findByIdentifier(identifier);
+        if (role == null) {
+            return false;
+        }
+        softDelete(role);
+        setAuditFields(role, false);
+        roleRepository.save(role);
         return true;
     }
 
@@ -85,7 +96,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
             wsDto.setSizePerPage(roles.size());
             wsDto.setPage(0);
         } else {
-            Page<Role> rolePage = roleRepository.findAll(pageable);
+            Page<Role> rolePage = roleRepository.findByDeletedFalse(pageable);
             wsDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
             wsDto.setTotalRecords(rolePage.getTotalElements());
             wsDto.setTotalPages(rolePage.getTotalPages());

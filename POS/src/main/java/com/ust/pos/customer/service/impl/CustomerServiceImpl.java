@@ -64,6 +64,11 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
         if (existingCustomer != null) {
+            if (existingCustomer.isDeleted()) {
+                customerDto.setMessage("Customer with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                customerDto.setSuccess(false);
+                return customerDto;
+            }
             customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
             customerDto.setSuccess(false);
             return customerDto;
@@ -128,7 +133,13 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
 
     @Override
     public boolean delete(String identifier) {
-        customerRepository.deleteByIdentifier(identifier);
+        Customer customer = customerRepository.findByIdentifier(identifier);
+        if (customer == null) {
+            return false;
+        }
+        softDelete(customer);
+        setAuditFields(customer, false);
+        customerRepository.save(customer);
         addressService.delete(identifier);
         return true;
     }
@@ -136,7 +147,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
     @Override
     public List<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
+        Page<Customer> customerPage = customerRepository.findByDeletedFalse(pageable);
         return modelMapper.map(customerPage.getContent(), listType);
     }
 

@@ -30,7 +30,13 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
 
         String identifier = dto.getIdentifier().trim();
 
-        if (warehouseRepository.findByIdentifier(identifier) != null) {
+        Warehouse existing = warehouseRepository.findByIdentifier(identifier);
+        if (existing != null) {
+            if (existing.isDeleted()) {
+                dto.setSuccess(false);
+                dto.setMessage("Warehouse with identifier " + identifier + " has been soft deleted.(Rollback by changing status");
+                return dto;
+            }
             dto.setSuccess(false);
             dto.setMessage("Warehouse with identifier " + identifier + " already exists");
             return dto;
@@ -86,7 +92,13 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
     @Override
     @Transactional
     public boolean delete(String identifier) {
-        warehouseRepository.deleteByIdentifier(identifier);
+        Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
+        if (warehouse == null) {
+            return false;
+        }
+        softDelete(warehouse);
+        setAuditFields(warehouse, false);
+        warehouseRepository.save(warehouse);
         return true;
     }
 

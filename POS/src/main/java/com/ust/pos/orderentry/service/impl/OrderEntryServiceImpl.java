@@ -1,5 +1,6 @@
 package com.ust.pos.orderentry.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.OrderEntryDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.OrderEntry;
@@ -18,7 +19,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class OrderEntryServiceImpl implements OrderEntryService {
+public class OrderEntryServiceImpl extends CommonService implements OrderEntryService {
     private final OrderEntryRepository orderEntryRepository;
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
@@ -68,6 +69,11 @@ public class OrderEntryServiceImpl implements OrderEntryService {
 
     @Override
     public void deleteByOrderIdentifier(String orderIdentifier) {
-        orderEntryRepository.deleteByOrderIdentifier(orderIdentifier);
+        List<OrderEntry> entries = orderEntryRepository.findAllByOrderIdentifier(orderIdentifier);
+        for (OrderEntry entry : entries) {
+            softDelete(entry);
+            setAuditFields(entry, false);
+            orderEntryRepository.save(entry);
+        }
     }
 }

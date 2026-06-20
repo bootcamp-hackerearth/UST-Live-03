@@ -3,76 +3,12 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import logger from "@/lib/logger";
-import { BASE } from "@/lib/api";
-import { STORAGE_KEYS, PATHS, ERROR_MESSAGES, HTTP_STATUS } from "@/config/constants";
+import { fetchWithAuth } from "@/lib/api";
+import { STORAGE_KEYS, PATHS, ERROR_MESSAGES } from "@/config/constants";
 
 /**
  * Get token from localStorage safely
  */
-const getToken = () => logger.getStorageItem(STORAGE_KEYS.TOKEN) ?? null;
-
-/**
- * Get authentication headers
- */
-const authHeaders = () => ({
-  Authorization: `Bearer ${getToken()}`,
-  "Content-Type": "application/json",
-});
-
-/**
- * Redirect to login on unauthorized access
- */
-function redirect401() {
-  if (globalThis.window?.location) {
-    logger.warn("Unauthorized access - redirecting to login", "CrudPage");
-    globalThis.window.location.href = PATHS.LOGIN;
-  }
-}
-
-/**
- * Fetch with authentication and error handling
- */
-async function apiFetch(url, options = {}) {
-  try {
-    const fullUrl = `${BASE}${url}`;
-    const method = options.method || "GET";
-    const res = await fetch(fullUrl, {
-      ...options,
-      headers: options.headers
-        ? { ...authHeaders(), ...options.headers }
-        : authHeaders(),
-    });
-    
-    if (res.status === HTTP_STATUS.UNAUTHORIZED) {
-      redirect401();
-      throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
-    }
-    
-    if (!res.ok) {
-      let body;
-      try {
-        body = await res.json();
-      } catch {
-        body = null;
-      }
-      const msg = body?.message || body;
-      logger.apiError(url, method, res.status, msg);
-      throw Object.assign(
-        new Error(typeof msg === "string" && msg ? msg : `HTTP ${res.status}`),
-        { body },
-      );
-    }
-    
-    logger.apiSuccess(url, method, res.status);
-    const ct = res.headers.get("content-type") || "";
-    if (ct.includes("application/json")) return res.json();
-    return null;
-  } catch (error) {
-    logger.error(`API fetch failed: ${options.method || "GET"} ${url}`, error, "apiFetch");
-    throw error;
-  }
-}
-
 function validateField(f, val) {
   if (typeof f.validate === "function") return f.validate(val);
   if (!f.required) return null;
@@ -538,6 +474,7 @@ export default function CrudPage({ config }) {
     updateEndpoint,
     deleteEndpoint,
     toggleEndpoint,
+    toggleField = "active",
     idKey = "identifier",
     fields,
     loadOptions,
@@ -545,7 +482,7 @@ export default function CrudPage({ config }) {
     beforeDelete,
     showToggle,
     homeUrl,
-    pageSize = 10,
+    pageSize = 2,
     onDeleteSelf,
     getCurrentUserId,
     getRecord,
@@ -583,7 +520,7 @@ export default function CrudPage({ config }) {
     setListLoading(true);
     setError("");
     try {
-      const data = await apiFetch(listEndpoint, {
+      const data = await fetchWithAuth(listEndpoint, {
         method: "POST",
         body: JSON.stringify({ page: 0, sizePerPage: 10000 }),
       });
@@ -669,7 +606,7 @@ export default function CrudPage({ config }) {
       const [data, opts] = await Promise.all([
         getRecord
           ? getRecord(record)
-          : apiFetch(getEndpoint(record[idKey])),
+          : fetchWithAuth(getEndpoint(record[idKey])),
         loadOptions?.() ?? Promise.resolve({}),
       ]);
       if (opts) setDynOptions(opts);
@@ -755,14 +692,14 @@ export default function CrudPage({ config }) {
 
     try {
       if (modal === "add") {
-        await apiFetch(saveEndpoint, {
+        await fetchWithAuth(saveEndpoint, {
           method: "POST",
           body: JSON.stringify(payload),
         });
       } else if (customUpdateRecord) {
         await customUpdateRecord(editId, payload);
       } else {
-        await apiFetch(updateEndpoint(editId), {
+        await fetchWithAuth(updateEndpoint(editId), {
           method: "POST",
           body: JSON.stringify(payload),
         });
@@ -788,7 +725,7 @@ export default function CrudPage({ config }) {
     }
     setSaving(true);
     try {
-      await apiFetch(deleteEndpoint(deleteTarget[idKey]), {
+      await fetchWithAuth(deleteEndpoint(deleteTarget[idKey]), {
         method: "POST",
         body: JSON.stringify({}),
       });
@@ -805,11 +742,66 @@ export default function CrudPage({ config }) {
     }
   };
 
+  const extractUpdatedRecord = (response) => {
+    if (response.data && typeof response.data === "object") {
+      return response.data;
+    }
+    if (response[idKey]) {
+      return response;
+    }
+    if (response.id || response.identifier) {
+      return response;
+    }
+    return null;
+  };
+
+  const handleToggleResponse = async (recordId, response) => {
+    const updatedRecord = extractUpdatedRecord(response);
+    
+    if (updatedRecord) {
+      logger.info(`Updating with DTO response`, "handleToggle");
+      setAllRecords((prev) =>
+        prev.map((r) =>
+          r[idKey] === recordId ? updatedRecord : r,
+        ),
+      );
+      return;
+    }
+
+    const isSuccessIndicator = typeof response === "boolean" || response === true || response === null;
+    if (isSuccessIndicator && getEndpoint) {
+      logger.info(`Toggle returned non-DTO response, refetching from server`, "handleToggle");
+      try {
+        const refetchedRecord = await fetchWithAuth(getEndpoint(recordId));
+        if (refetchedRecord) {
+          setAllRecords((prev) =>
+            prev.map((r) =>
+              r[idKey] === recordId ? refetchedRecord : r,
+            ),
+          );
+        } else {
+          logger.warn(`Refetch failed, keeping optimistic update`, "handleToggle");
+        }
+      } catch (refetchError) {
+        logger.error("Refetch failed in handleToggle", refetchError, "handleToggle");
+      }
+    } else if (!isSuccessIndicator) {
+      logger.info(`Keeping optimistic update with response: ${JSON.stringify(response)}`, "handleToggle");
+    }
+  };
+
+  const getToggleFieldName = (record) => {
+    let fieldName = toggleField;
+    if (!record.hasOwnProperty(fieldName)) {
+      fieldName = record.hasOwnProperty('active') ? 'active' : 'status';
+    }
+    return fieldName;
+  };
+
   const handleToggle = async (record) => {
     if (!toggleEndpoint) return;
     
     const recordId = record[idKey];
-    // Prevent concurrent toggles on the same record
     if (togglingRef.current.has(recordId)) {
       logger.warn(`Toggle already in progress for ${recordId}`, "handleToggle");
       return;
@@ -818,74 +810,28 @@ export default function CrudPage({ config }) {
     togglingRef.current.add(recordId);
     const originalRecord = { ...record };
     
-    // Determine which field to toggle (status or active)
-    const toggleField = record.hasOwnProperty('active') ? 'active' : 'status';
-    const currentValue = record[toggleField];
+    // Determine which field to toggle - use config field if it exists, otherwise check 'active' and 'status'
+    const toggleFieldName = getToggleFieldName(record);
+    const currentValue = record[toggleFieldName];
     
-    // Optimistic update
     setAllRecords((prev) =>
       prev.map((r) =>
-        r[idKey] === recordId ? { ...r, [toggleField]: !currentValue } : r,
+        r[idKey] === recordId ? { ...r, [toggleFieldName]: !currentValue } : r,
       ),
     );
     
     try {
-      const response = await apiFetch(toggleEndpoint(recordId), {
+      const response = await fetchWithAuth(toggleEndpoint(recordId), {
         method: "POST",
         body: JSON.stringify({}),
       });
       
       logger.info(`Toggle response for ${recordId}:`, response, "handleToggle");
-      
-      // Update with actual response from backend
       if (response) {
-        let updatedRecord = null;
-        
-        // Check if response is wrapped in a data/result field
-        if (response.data && typeof response.data === "object") {
-          updatedRecord = response.data;
-        }
-        // Check if response is the updated DTO (has idKey property)
-        else if (response[idKey]) {
-          updatedRecord = response;
-        }
-        // Check if response has id or identifier fields
-        else if (response.id || response.identifier) {
-          updatedRecord = response;
-        }
-        
-        if (updatedRecord) {
-          logger.info(`Updating with DTO response`, "handleToggle");
-          setAllRecords((prev) =>
-            prev.map((r) =>
-              r[idKey] === recordId ? updatedRecord : r,
-            ),
-          );
-        } else if (typeof response === "boolean" || response === true || response === null) {
-          // Response is just a success indicator, refetch the record to get actual state
-          logger.info(`Toggle returned non-DTO response, refetching from server`, "handleToggle");
-          if (getEndpoint) {
-            try {
-              const refetchedRecord = await apiFetch(getEndpoint(recordId));
-              if (refetchedRecord) {
-                setAllRecords((prev) =>
-                  prev.map((r) =>
-                    r[idKey] === recordId ? refetchedRecord : r,
-                  ),
-                );
-              }
-              logger.warn(`Refetch failed, keeping optimistic update`, "handleToggle");
-            } catch (refetchError) {
-              logger.error("Refetch failed in handleToggle", refetchError, "handleToggle");
-            }
-          }
-        } else {
-          logger.info(`Keeping optimistic update with response: ${JSON.stringify(response)}`, "handleToggle");
-        }
+        await handleToggleResponse(recordId, response);
       }
     } catch (error) {
       logger.error("Toggle failed", error, "handleToggle");
-      // Revert optimistic update on error
       setAllRecords((prev) =>
         prev.map((r) =>
           r[idKey] === recordId ? originalRecord : r,
@@ -945,7 +891,7 @@ export default function CrudPage({ config }) {
                   <td>
                     {!showToggle || showToggle(record) ? (
                       <Toggle
-                        active={!!( record.status || record.active)}
+                        active={!!record[getToggleFieldName(record)]}
                         onChange={() => handleToggle(record)}
                       />
                     ) : (
@@ -1185,6 +1131,7 @@ CrudPage.propTypes = {
     updateEndpoint: PropTypes.func.isRequired,
     deleteEndpoint: PropTypes.func.isRequired,
     toggleEndpoint: PropTypes.func,
+    toggleField: PropTypes.string,
     idKey: PropTypes.string,
     fields: PropTypes.arrayOf(
       PropTypes.shape({

@@ -13,4 +13,6 @@ public interface RackRepository extends JpaRepository<Rack, Long> {
     boolean existsByIdentifier(String identifier);
 
     Page<Rack> findAll(Pageable pageable);
+
+    Page<Rack> findByDeletedFalse(Pageable pageable);
 }

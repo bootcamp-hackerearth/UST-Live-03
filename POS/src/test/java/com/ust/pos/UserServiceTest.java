@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,6 +74,7 @@ class UserServiceTest {
 
         Assertions.assertEquals("john", response.getUsername());
         Assertions.assertEquals("encodedPassword", user.getPassword());
+
         verify(userRepository).save(user);
     }
 
@@ -89,7 +91,32 @@ class UserServiceTest {
         UserDto response = userService.save(userDto);
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john already exists", response.getMessage());
+        Assertions.assertEquals(
+                UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john already exists",
+                response.getMessage());
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void saveSoftDeletedUserTest() {
+
+        UserDto userDto = new UserDto();
+        userDto.setUsername("john");
+
+        User existingUser = new User();
+        existingUser.setDeleted(true);
+
+        when(userRepository.findByUsername("john")).thenReturn(existingUser);
+
+        UserDto response = userService.save(userDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals(
+                UserServiceImpl.USER_WITH_USERNAME_EMAIL +
+                        "john has been soft deleted.(Rollback by changing status",
+                response.getMessage());
+
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -118,6 +145,7 @@ class UserServiceTest {
         UserDto response = userService.update(userDto);
 
         Assertions.assertEquals("john", response.getUsername());
+
         verify(userRepository).save(existingUser);
     }
 
@@ -145,6 +173,7 @@ class UserServiceTest {
         UserDto response = userService.update(userDto);
 
         Assertions.assertEquals("newuser", response.getUsername());
+
         verify(userRepository).save(existingUser);
     }
 
@@ -160,7 +189,10 @@ class UserServiceTest {
         UserDto response = userService.update(userDto);
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john not found", response.getMessage());
+        Assertions.assertEquals(
+                UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john not found",
+                response.getMessage());
+
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -183,19 +215,38 @@ class UserServiceTest {
         UserDto response = userService.update(userDto);
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john already exists", response.getMessage());
+        Assertions.assertEquals(
+                UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john already exists",
+                response.getMessage());
+
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void deleteTest() {
 
-        doNothing().when(userRepository).deleteByUsername("john");
+        User user = new User();
+        user.setUsername("john");
+
+        when(userRepository.findByUsername("john")).thenReturn(user);
 
         boolean result = userService.delete("john");
 
         Assertions.assertTrue(result);
-        verify(userRepository).deleteByUsername("john");
+
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void deleteUserNotFoundTest() {
+
+        when(userRepository.findByUsername("john")).thenReturn(null);
+
+        boolean result = userService.delete("john");
+
+        Assertions.assertFalse(result);
+
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -212,7 +263,7 @@ class UserServiceTest {
 
         Page<User> userPage = new PageImpl<>(users);
 
-        when(userRepository.findAll(any(PageRequest.class))).thenReturn(userPage);
+        when(userRepository.findByDeletedFalse(any(PageRequest.class))).thenReturn(userPage);
         when(modelMapper.map(eq(users), any(Type.class))).thenReturn(userDtos);
 
         WsDto<UserDto> response = userService.findAll(PageRequest.of(0, 10));
@@ -232,7 +283,7 @@ class UserServiceTest {
 
         Page<User> userPage = new PageImpl<>(users);
 
-        when(userRepository.findAll(any(PageRequest.class))).thenReturn(userPage);
+        when(userRepository.findByDeletedFalse(any(PageRequest.class))).thenReturn(userPage);
         when(modelMapper.map(eq(users), any(Type.class))).thenReturn(userDtos);
 
         WsDto<UserDto> response = userService.findAll(PageRequest.of(0, 10));
@@ -267,4 +318,5 @@ class UserServiceTest {
 
         Assertions.assertEquals("jwt-token", dto.getToken());
     }
+
 }

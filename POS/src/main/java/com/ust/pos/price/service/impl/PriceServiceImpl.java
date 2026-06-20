@@ -70,7 +70,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
     @Override
     public WsDto<PriceDto> findAll(Pageable pageable) {
-        Page<Price> pricePage = priceRepository.findAll(pageable);
+        Page<Price> pricePage = priceRepository.findByDeletedFalse(pageable);
         List<PriceDto> dtoList = pricePage.getContent().stream().map(price -> {
             PriceDto dto = modelMapper.map(price, PriceDto.class);
             productRepository.findById(price.getProductId()).ifPresent(product -> {
@@ -91,11 +91,14 @@ public class PriceServiceImpl extends CommonService implements PriceService {
     @Override
     public boolean deletePrice(Long id) {
 
-        if (!priceRepository.existsById(id)) {
+        Price price = priceRepository.findById(id).orElse(null);
+        if (price == null) {
             return false;
         }
 
-        priceRepository.deleteById(id);
+        softDelete(price);
+        setAuditFields(price, false);
+        priceRepository.save(price);
 
         return true;
     }

@@ -44,6 +44,11 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
         String identifier = modelsDto.getIdentifier();
         Models existingModels = modelsRepository.findByIdentifier(identifier);
         if (existingModels != null) {
+            if (existingModels.isDeleted()) {
+                modelsDto.setMessage("Models with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                modelsDto.setSuccess(false);
+                return modelsDto;
+            }
             modelsDto.setMessage("Models with identifier - " + identifier + " already exists");
             modelsDto.setSuccess(false);
             return modelsDto;
@@ -71,7 +76,13 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
 
     @Override
     public boolean delete(String identifier) {
-        modelsRepository.deleteByIdentifier(identifier);
+        Models models = modelsRepository.findByIdentifier(identifier);
+        if (models == null) {
+            return false;
+        }
+        softDelete(models);
+        setAuditFields(models, false);
+        modelsRepository.save(models);
         return true;
     }
 
@@ -79,7 +90,7 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
     public WsDto<ModelsDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
+        Page<Models> modelsPage = modelsRepository.findByDeletedFalse(pageable);
         WsDto<ModelsDto> wsDto = new WsDto<>();
         wsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
         wsDto.setTotalRecords(modelsPage.getTotalElements());

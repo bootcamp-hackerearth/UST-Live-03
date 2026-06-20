@@ -14,4 +14,6 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
     boolean existsByProductIdAndWarehouseId(Long productId, Long warehouseId);
 
     Page<Stock> findAll(Pageable pageable);
+
+    Page<Stock> findByDeletedFalse(Pageable pageable);
 }

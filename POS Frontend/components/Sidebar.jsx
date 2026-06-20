@@ -49,8 +49,8 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
 
       if (response.status === 401) {
         logger.warn("Unauthorized access - redirecting to login", "Sidebar");
-        if (typeof window !== "undefined") {
-          window.location.href = PATHS.LOGIN;
+        if (globalThis.window !== undefined) {
+          globalThis.window.location.href = PATHS.LOGIN;
         }
         return;
       }
@@ -77,7 +77,7 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (globalThis.window !== undefined) {
       fetchNodes();
     }
   }, [menuOpen, fetchNodes]);
@@ -131,11 +131,13 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
             <div className="sb-sec">Navigation</div>
             {loading ? (
               <div className="sb-loading">Loading menu…</div>
-            ) : nodes.length === 0 ? (
+            ) : null}
+            {nodes.length === 0 && !loading ? (
               <div className="sb-loading">No menu items available</div>
-            ) : (
+            ) : null}
+            {nodes.length > 0 && !loading && (
               nodes.map((node) => {
-                if (!node || !node.path) {
+                if (!node?.path) {
                   logger.warn("Invalid node in navigation", { node }, "Sidebar");
                   return null;
                 }

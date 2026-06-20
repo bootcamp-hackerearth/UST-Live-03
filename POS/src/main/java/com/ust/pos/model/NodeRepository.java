@@ -17,4 +17,6 @@ public interface NodeRepository extends JpaRepository<Node, Long> {
     void deleteByIdentifier(String identifier);
 
     Page<Node> findAll(Pageable pageable);
+
+    Page<Node> findByDeletedFalse(Pageable pageable);
 }

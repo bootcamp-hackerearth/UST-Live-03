@@ -15,4 +15,6 @@ public interface ModelsRepository extends JpaRepository<Models, Long> {
     List<Models> findByStatusIsTrue();
 
     Page<Models> findAll(Pageable pageable);
+
+    Page<Models> findByDeletedFalse(Pageable pageable);
 }

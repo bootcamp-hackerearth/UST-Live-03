@@ -12,4 +12,6 @@ public interface PriceRepository extends JpaRepository<Price, Long> {
     boolean existsByProductId(Long productId);
 
     Page<Price> findAll(Pageable pageable);
+
+    Page<Price> findByDeletedFalse(Pageable pageable);
 }

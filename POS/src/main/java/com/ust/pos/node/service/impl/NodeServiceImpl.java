@@ -24,6 +24,7 @@ import java.util.Set;
 
 @Service
 public class NodeServiceImpl extends CommonService implements NodeService {
+
     private final UserRepository userRepository;
     private final NodeRepository nodeRepository;
     private final ModelMapper modelMapper;
@@ -37,36 +38,53 @@ public class NodeServiceImpl extends CommonService implements NodeService {
     @Override
     public List<NodeDto> getNodesForRoles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         List<NodeDto> nodeDtos = new ArrayList<>();
-        if (authentication != null) {
-            org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            if (principalObject != null) findEligibleNodes(principalObject, nodeDtos);
+
+        if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.User principalObject) {
+
+            findEligibleNodes(principalObject, nodeDtos);
         }
+
         return nodeDtos;
     }
 
     private void findEligibleNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
+
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
-        Set<String> nodesStr = new HashSet<>();
+
+        if (currentUser == null) {
+            return;
+        }
+
+        Set<String> nodeIdentifiers = new HashSet<>();
         List<Node> nodes = nodeRepository.findAll();
+
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
-                if (node.getRoles() != null && node.getRoles().contains(role)) {
-                    nodesStr.add(node.getIdentifier());
+                if (node.getRoles() != null && node.getRoles().contains(role) && !node.isDeleted()) {
+                    nodeIdentifiers.add(node.getIdentifier());
                 }
             }
         }
-        for (String nodeStr : nodesStr) {
-            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
+
+        for (String identifier : nodeIdentifiers) {
+            Node node = nodeRepository.findByIdentifier(identifier);
+
+            if (node != null) {
+                nodeDtos.add(modelMapper.map(node, NodeDto.class));
+            }
         }
     }
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
         Node node = nodeRepository.findByIdentifier(identifier);
+
         if (node == null) {
             return null;
         }
+
         return modelMapper.map(node, NodeDto.class);
     }
 
@@ -76,52 +94,87 @@ public class NodeServiceImpl extends CommonService implements NodeService {
         Node existingNode = nodeRepository.findByIdentifier(nodeDto.getIdentifier());
 
         if (existingNode != null) {
+
+            if (existingNode.isDeleted()) {
+                nodeDto.setSuccess(false);
+                nodeDto.setMessage("Node with identifier '" + nodeDto.getIdentifier() + "' has been soft deleted. Rollback by changing status.");
+                return nodeDto;
+            }
+
             nodeDto.setSuccess(false);
             nodeDto.setMessage("Node with identifier '" + nodeDto.getIdentifier() + "' already exists");
             return nodeDto;
         }
 
         Node node = modelMapper.map(nodeDto, Node.class);
+
         setAuditFields(node, true);
         nodeRepository.save(node);
 
         nodeDto.setSuccess(true);
         nodeDto.setMessage("Node created successfully");
+
         return nodeDto;
     }
 
     @Override
     public NodeDto update(NodeDto nodeDto) {
+
         String identifier = nodeDto.getIdentifier();
+
         Node existingNode = nodeRepository.findByIdentifier(identifier);
+
         if (existingNode == null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " not found");
             nodeDto.setSuccess(false);
+            nodeDto.setMessage("Node with identifier '" + identifier + "' not found");
             return nodeDto;
         }
+
         modelMapper.map(nodeDto, existingNode);
+
         setAuditFields(existingNode, false);
         nodeRepository.save(existingNode);
+
+        nodeDto.setSuccess(true);
+        nodeDto.setMessage("Node updated successfully");
+
         return nodeDto;
     }
 
     @Override
     public boolean delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
+
+        Node node = nodeRepository.findByIdentifier(identifier);
+
+        if (node == null) {
+            return false;
+        }
+
+        softDelete(node);
+        setAuditFields(node, false);
+
+        nodeRepository.save(node);
+
         return true;
     }
 
     @Override
     public WsDto<NodeDto> findAll(Pageable pageable) {
+
+        Page<Node> nodePage = nodeRepository.findByDeletedFalse(pageable);
+
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
+
         WsDto<NodeDto> wsDto = new WsDto<>();
+
         wsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+
         wsDto.setTotalRecords(nodePage.getTotalElements());
         wsDto.setTotalPages(nodePage.getTotalPages());
         wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setPage(pageable.getPageNumber());
+
         return wsDto;
     }
 }

@@ -2,6 +2,7 @@ package com.ust.pos.cart.service.impl;
 
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
@@ -22,7 +23,7 @@ import java.util.Objects;
 
 @Service
 @Transactional
-public class CartServiceImpl implements CartService {
+public class CartServiceImpl extends CommonService implements CartService {
     private final CustomerRepository customerRepository;
     private final CartRepository cartRepository;
     private final CartEntryService cartEntryService;
@@ -161,14 +162,14 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public boolean delete(String identifier) {
-        cartEntryService.deleteByCartIdentifier(identifier);
         Cart cart = cartRepository.findByIdentifier(identifier);
-        if (cart != null) {
-            cart.setTotalPrice(BigDecimal.ZERO);
-            cart.setDiscount(BigDecimal.ZERO);
-            cart.setCoupon(null);
-            cartRepository.save(cart);
+        if (cart == null) {
+            return false;
         }
+        cartEntryService.deleteByCartIdentifier(identifier);
+        softDelete(cart);
+        setAuditFields(cart, false);
+        cartRepository.save(cart);
         return true;
     }
 
@@ -202,7 +203,7 @@ public class CartServiceImpl implements CartService {
     public List<CartDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CartDto>>() {
         }.getType();
-        Page<Cart> cartPage = cartRepository.findAll(pageable);
+        Page<Cart> cartPage = cartRepository.findByDeletedFalse(pageable);
         List<CartDto> cartDtos = modelMapper.map(cartPage.getContent(), listType);
         cartDtos.forEach(cartDto -> {
             List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(cartDto.getIdentifier());

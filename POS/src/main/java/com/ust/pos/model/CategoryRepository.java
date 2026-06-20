@@ -14,6 +14,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     void deleteByIdentifier(String identifier);
 
+    Page<Category> findByDeletedFalse(Pageable pageable);
+
     List<Category> findBySuperCategoryIsNull();
 
     List<Category> findBySuperCategoryIsNotNull();

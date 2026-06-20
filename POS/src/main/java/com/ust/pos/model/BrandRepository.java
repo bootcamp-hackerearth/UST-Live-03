@@ -14,6 +14,8 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
 
     void deleteByIdentifier(String identifier);
 
+    Page<Brand> findByDeletedFalse(Pageable pageable);
+
     List<Brand> findByStatusIsTrue();
 
     Page<Brand> findAll(Pageable pageable);

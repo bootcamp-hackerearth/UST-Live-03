@@ -44,6 +44,11 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         String identifier = brandDto.getIdentifier();
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
         if (existingBrand != null) {
+            if (existingBrand.isDeleted()) {
+                brandDto.setMessage("Brand with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                brandDto.setSuccess(false);
+                return brandDto;
+            }
             brandDto.setMessage("Brand with identifier - " + identifier + " already exists");
             brandDto.setSuccess(false);
             return brandDto;
@@ -71,7 +76,13 @@ public class BrandServiceImpl extends CommonService implements BrandService {
 
     @Override
     public boolean delete(String identifier) {
-        brandRepository.deleteByIdentifier(identifier);
+        Brand brand = brandRepository.findByIdentifier(identifier);
+        if (brand == null) {
+            return false;
+        }
+        softDelete(brand);
+        setAuditFields(brand, false);
+        brandRepository.save(brand);
         return true;
     }
 
@@ -79,7 +90,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
     public WsDto<BrandDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
-        Page<Brand> brandPage = brandRepository.findAll(pageable);
+        Page<Brand> brandPage = brandRepository.findByDeletedFalse(pageable);
         WsDto<BrandDto> wsDto = new WsDto<>();
         wsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));
         wsDto.setTotalRecords(brandPage.getTotalElements());

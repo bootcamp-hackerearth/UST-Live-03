@@ -67,13 +67,19 @@ public class RackServiceImpl extends CommonService implements RackService {
     public List<RackDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
-        Page<Rack> rackPage = rackRepository.findAll(pageable);
+        Page<Rack> rackPage = rackRepository.findByDeletedFalse(pageable);
         return modelMapper.map(rackPage.getContent(), listType);
     }
 
     @Override
     public boolean deleteRack(Long id) {
-        rackRepository.deleteById(id);
+        Rack rack = rackRepository.findById(id).orElse(null);
+        if (rack == null) {
+            return false;
+        }
+        softDelete(rack);
+        setAuditFields(rack, false);
+        rackRepository.save(rack);
         return true;
     }
 }

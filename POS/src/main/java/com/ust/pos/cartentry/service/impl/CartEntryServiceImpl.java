@@ -1,6 +1,7 @@
 package com.ust.pos.cartentry.service.impl;
 
 import com.ust.pos.cartentry.service.CartEntryService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.*;
 import org.modelmapper.ModelMapper;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class CartEntryServiceImpl implements CartEntryService {
+public class CartEntryServiceImpl extends CommonService implements CartEntryService {
     public static final String NOT_FOUND = " not found";
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
@@ -118,19 +119,30 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     @Override
     public boolean delete(String identifier) {
-        cartEntryRepository.deleteByIdentifier(identifier);
+        CartEntry cartEntry = cartEntryRepository.findByIdentifier(identifier);
+        if (cartEntry == null) {
+            return false;
+        }
+        softDelete(cartEntry);
+        setAuditFields(cartEntry, false);
+        cartEntryRepository.save(cartEntry);
         return true;
     }
 
     @Override
     public boolean deleteByCartIdentifier(String cartIdentifier) {
-        cartEntryRepository.deleteByCartIdentifier(cartIdentifier);
+        List<CartEntry> entries = cartEntryRepository.findAllByCartIdentifier(cartIdentifier);
+        for (CartEntry entry : entries) {
+            softDelete(entry);
+            setAuditFields(entry, false);
+            cartEntryRepository.save(entry);
+        }
         return true;
     }
 
     @Override
     public List<CartEntryDto> findAll(Pageable pageable) {
-        Page<CartEntry> cartEntryPage = cartEntryRepository.findAll(pageable);
+        Page<CartEntry> cartEntryPage = cartEntryRepository.findByDeletedFalse(pageable);
         return cartEntryPage.getContent().stream().map(cartEntry -> modelMapper.map(cartEntry, CartEntryDto.class)).toList();
     }
 

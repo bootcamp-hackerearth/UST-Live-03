@@ -50,6 +50,11 @@ public class ProductServiceImpl extends CommonService implements ProductService 
         String identifier = productDto.getIdentifier();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct != null) {
+            if (existingProduct.isDeleted()) {
+                productDto.setMessage("Product with skuCode - " + identifier + " has been soft deleted.(Rollback by changing status");
+                productDto.setSuccess(false);
+                return productDto;
+            }
             productDto.setMessage("Product with skuCode - " + identifier + " already exists");
             productDto.setSuccess(false);
             return productDto;
@@ -77,13 +82,19 @@ public class ProductServiceImpl extends CommonService implements ProductService 
 
     @Override
     public boolean delete(String identifier) {
-        productRepository.deleteByIdentifier(identifier);
+        Product product = productRepository.findByIdentifier(identifier);
+        if (product == null) {
+            return false;
+        }
+        softDelete(product);
+        setAuditFields(product, false);
+        productRepository.save(product);
         return true;
     }
 
     @Override
     public WsDto<ProductDto> findAll(Pageable pageable) {
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<Product> productPage = productRepository.findByDeletedFalse(pageable);
         List<ProductDto> productDtos = productPage.getContent().stream().map(product -> {
             ProductDto productDto = modelMapper.map(product, ProductDto.class);
             Price price = priceRepository.findByProductId(product.getId());
