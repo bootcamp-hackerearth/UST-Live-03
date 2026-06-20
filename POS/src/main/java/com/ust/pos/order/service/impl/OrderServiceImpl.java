@@ -1,7 +1,6 @@
 package com.ust.pos.order.service.impl;
 
 import com.ust.pos.cart.service.CartService;
-import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.*;
 import com.ust.pos.model.CustomerRepository;
 import com.ust.pos.model.Orders;
@@ -11,7 +10,6 @@ import com.ust.pos.orderentry.service.OrderEntryService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,19 +24,20 @@ import java.util.Objects;
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
+    private final OrderRepository orderRepository;
+    private final OrderEntryService orderEntryService;
+    private final CartService cartService;
+    private final CustomerRepository customerRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private OrderRepository orderRepository;
-    @Autowired
-    private OrderEntryService orderEntryService;
-    @Autowired
-    private CartService cartService;
-    @Autowired
-    private CartEntryService cartEntryService;
-    @Autowired
-    private CustomerRepository customerRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    public OrderServiceImpl(OrderRepository orderRepository, OrderEntryService orderEntryService,
+                          CartService cartService, CustomerRepository customerRepository, ModelMapper modelMapper) {
+        this.orderRepository = orderRepository;
+        this.orderEntryService = orderEntryService;
+        this.cartService = cartService;
+        this.customerRepository = customerRepository;
+        this.modelMapper = modelMapper;
+    }
 
     private String generateOrderId() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));

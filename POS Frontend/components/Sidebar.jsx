@@ -1,47 +1,86 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import PropTypes from "prop-types";
+import logger from "@/lib/logger";
+import { BASE } from "@/lib/api";
+import { STORAGE_KEYS, PATHS } from "@/config/constants";
 
 const PATH_MAP = {
-  "/brand/list": "/brands",
-  "/category/list": "/categories",
-  "/models/list": "/models",
-  "/unit/list": "/units",
-  "/price/list": "/prices",
-  "/product/list": "/products",
-  "/node/list": "/nodes",
-  "/role/list": "/roles",
-  "/user/list": "/users",
+  "/brand/list": PATHS.BRANDS,
+  "/category/list": PATHS.CATEGORIES,
+  "/models/list": PATHS.MODELS,
+  "/unit/list": PATHS.UNITS,
+  "/price/list": PATHS.PRICES,
+  "/product/list": PATHS.PRODUCTS,
+  "/node/list": PATHS.NODES,
+  "/role/list": PATHS.ROLES,
+  "/user/list": PATHS.USERS,
 };
 
 export default function Sidebar({ menuOpen, setMenuOpen }) {
   const [nodes, setNodes] = useState([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (menuOpen) {
-      const token = globalThis.window?.localStorage.getItem("token") ?? null;
-      fetch("http://localhost:8080/api/nodes/getNodesForRoles", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((r) => {
-          if (r.status === 401) {
-            globalThis.window.location.href = "/login";
-            return null;
-          }
-          return r.json();
-        })
-        .then((data) => {
-          if (data !== null && data !== undefined) setNodes(data);
-        })
-        .catch(() => {});
+  const handleClose = useCallback(() => {
+    setMenuOpen(false);
+  }, [setMenuOpen]);
+
+  const fetchNodes = useCallback(async () => {
+    if (!menuOpen) return;
+    
+    setLoading(true);
+    try {
+      const token = logger.getStorageItem(STORAGE_KEYS.TOKEN);
+      if (!token) {
+        logger.warn("No token available for fetching nodes", "Sidebar");
+        return;
+      }
+
+      const response = await fetch(`${BASE}/api/nodes/getNodesForRoles`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 401) {
+        logger.warn("Unauthorized access - redirecting to login", "Sidebar");
+        if (typeof window !== "undefined") {
+          window.location.href = PATHS.LOGIN;
+        }
+        return;
+      }
+
+      if (!response.ok) {
+        logger.apiError(
+          "/api/nodes/getNodesForRoles",
+          "GET",
+          response.status,
+          `Failed to fetch nodes: ${response.statusText}`
+        );
+        return;
+      }
+
+      const data = await response.json();
+      if (data && Array.isArray(data)) {
+        setNodes(data);
+      }
+    } catch (error) {
+      logger.error("Failed to fetch navigation nodes", error, "Sidebar.fetchNodes");
+    } finally {
+      setLoading(false);
     }
   }, [menuOpen]);
 
-  const handleClose = () => setMenuOpen(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      fetchNodes();
+    }
+  }, [menuOpen, fetchNodes]);
 
   if (menuOpen) {
     return (
@@ -90,10 +129,16 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
           </div>
           <div className="sb-nav">
             <div className="sb-sec">Navigation</div>
-            {nodes.length === 0 ? (
+            {loading ? (
               <div className="sb-loading">Loading menu…</div>
+            ) : nodes.length === 0 ? (
+              <div className="sb-loading">No menu items available</div>
             ) : (
               nodes.map((node) => {
+                if (!node || !node.path) {
+                  logger.warn("Invalid node in navigation", { node }, "Sidebar");
+                  return null;
+                }
                 const mapped = PATH_MAP[node.path] ?? node.path;
                 const isActive = pathname === mapped;
                 const handleNav = () => {
@@ -102,12 +147,14 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
                 };
                 return (
                   <button
-                    key={node.path}
+                    key={`node-${node.path}`}
                     type="button"
                     className={`sb-item${isActive ? " active" : ""}`}
                     onClick={handleNav}
+                    aria-current={isActive ? "page" : undefined}
+                    aria-label={`Navigate to ${node.identifier}`}
                   >
-                    <span className="sb-item-dot" />
+                    <span className="sb-item-dot" aria-hidden="true" />
                     {node.identifier}
                   </button>
                 );

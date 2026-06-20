@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +14,11 @@ import java.util.List;
 @RestController("shelfApiController")
 @RequestMapping("/api/shelves")
 public class ShelfController extends BaseController {
+    private final ShelfService shelfService;
 
-    @Autowired
-    private ShelfService shelfService;
+    public ShelfController(ShelfService shelfService) {
+        this.shelfService = shelfService;
+    }
 
     @PostMapping("/list")
     public ResponseEntity<List<ShelfDto>> list(@RequestBody PaginationDto paginationDto) {

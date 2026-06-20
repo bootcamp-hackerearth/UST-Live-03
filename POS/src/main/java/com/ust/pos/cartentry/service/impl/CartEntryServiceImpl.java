@@ -4,7 +4,6 @@ import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.*;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,23 +15,22 @@ import java.util.List;
 @Service
 @Transactional
 public class CartEntryServiceImpl implements CartEntryService {
-
     public static final String NOT_FOUND = " not found";
+    private final CartRepository cartRepository;
+    private final ProductRepository productRepository;
+    private final PriceRepository priceRepository;
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private PriceRepository priceRepository;
-
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CartEntryServiceImpl(CartRepository cartRepository, ProductRepository productRepository,
+                              PriceRepository priceRepository, CartEntryRepository cartEntryRepository,
+                              ModelMapper modelMapper) {
+        this.cartRepository = cartRepository;
+        this.productRepository = productRepository;
+        this.priceRepository = priceRepository;
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {

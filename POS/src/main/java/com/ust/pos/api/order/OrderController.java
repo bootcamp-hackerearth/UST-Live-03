@@ -5,7 +5,6 @@ import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PlaceOrderRequestDto;
 import com.ust.pos.order.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +14,11 @@ import java.util.List;
 @RestController("orderApiController")
 @RequestMapping("/api/orders")
 public class OrderController extends BaseController {
+    private final OrderService orderService;
 
-    @Autowired
-    private OrderService orderService;
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     @PostMapping("/place")
     public ResponseEntity<OrderDto> placeOrder(@RequestBody PlaceOrderRequestDto request) {

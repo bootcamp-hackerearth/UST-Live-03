@@ -10,7 +10,6 @@ import com.ust.pos.model.CustomerRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,18 +23,18 @@ import java.util.Objects;
 @Service
 @Transactional
 public class CartServiceImpl implements CartService {
+    private final CustomerRepository customerRepository;
+    private final CartRepository cartRepository;
+    private final CartEntryService cartEntryService;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartEntryService cartEntryService;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CartServiceImpl(CustomerRepository customerRepository, CartRepository cartRepository,
+                         CartEntryService cartEntryService, ModelMapper modelMapper) {
+        this.customerRepository = customerRepository;
+        this.cartRepository = cartRepository;
+        this.cartEntryService = cartEntryService;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartDto findByIdentifier(String identifier) {

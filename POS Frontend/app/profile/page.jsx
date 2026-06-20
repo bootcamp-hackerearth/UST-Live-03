@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { fetchWithAuth } from "../../lib/api";
+import { fetchWithAuth } from "@/lib/api";
+import logger from "@/lib/logger";
+import { PATHS, ERROR_MESSAGES, STORAGE_KEYS } from "@/config/constants";
 
 function validateProfile({ name, phoneNo }) {
   if (!name?.trim()) return "Full name is required.";
@@ -23,30 +25,33 @@ export default function ProfilePage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const username =
-      globalThis.window?.localStorage.getItem("username") ?? null;
+    const username = logger.getStorageItem(STORAGE_KEYS.USERNAME) ?? null;
     if (!username) {
-      router.replace("/login");
+      router.replace(PATHS.LOGIN);
       return;
     }
 
-    fetchWithAuth(`/api/user/${encodeURIComponent(username)}`)
-      .then((data) => {
+    const fetchProfile = async () => {
+      try {
+        const data = await fetchWithAuth(`/api/user/${encodeURIComponent(username)}`);
         setUser(data);
         setForm({
           name: data?.name ?? "",
           phoneNo: data?.phoneNo ?? "",
         });
-      })
-      .catch(() => {
-        setError("Unable to load profile. Please try again.");
-      })
-      .finally(() => {
+      } catch (err) {
+        const errorMsg = err.message || ERROR_MESSAGES.SERVER_ERROR;
+        setError(errorMsg);
+        logger.error("Failed to load profile", err, "ProfilePage");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchProfile();
   }, [router]);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     if (name === "phoneNo") {
       const digits = value.replaceAll(/\D/g, "").slice(0, 10);
@@ -56,9 +61,9 @@ export default function ProfilePage() {
     }
     setError("");
     setMessage("");
-  };
+  }, []);
 
-  const handleSave = async (e) => {
+  const handleSave = useCallback(async (e) => {
     e.preventDefault();
     const validationError = validateProfile(form);
     if (validationError) {
@@ -91,12 +96,15 @@ export default function ProfilePage() {
       });
       setMessage("Profile updated successfully.");
       setEditMode(false);
+      logger.info("Profile updated", { username: user.username });
     } catch (err) {
-      setError(err?.message || "Unable to save profile. Please try again.");
+      const errorMsg = err.message || ERROR_MESSAGES.SERVER_ERROR;
+      setError(errorMsg);
+      logger.error("Failed to update profile", err, "ProfilePage");
     } finally {
       setSaving(false);
     }
-  };
+  }, [form, user]);
 
   if (loading) {
     return (

@@ -5,7 +5,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.*;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +15,15 @@ import java.util.List;
 @RestController("productApiController")
 @RequestMapping("/api/products")
 public class ProductController extends BaseController {
+    private final ProductService productService;
+    private final PriceService priceService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private PriceService priceService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public ProductController(ProductService productService, PriceService priceService, CategoryService categoryService) {
+        this.productService = productService;
+        this.priceService = priceService;
+        this.categoryService = categoryService;
+    }
 
     @PostMapping("/list")
     public WsDto<ProductDto> list(@RequestBody PaginationDto paginationDto) {

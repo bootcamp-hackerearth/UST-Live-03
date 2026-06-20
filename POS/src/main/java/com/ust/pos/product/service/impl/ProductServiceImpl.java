@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
@@ -10,7 +11,6 @@ import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,15 +19,16 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ProductServiceImpl implements ProductService {
-    @Autowired
-    private ProductRepository productRepository;
+public class ProductServiceImpl extends CommonService implements ProductService {
+    private final ProductRepository productRepository;
+    private final ModelMapper modelMapper;
+    private final PriceRepository priceRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private PriceRepository priceRepository;
+    public ProductServiceImpl(ProductRepository productRepository, ModelMapper modelMapper, PriceRepository priceRepository) {
+        this.productRepository = productRepository;
+        this.modelMapper = modelMapper;
+        this.priceRepository = priceRepository;
+    }
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
@@ -54,6 +55,7 @@ public class ProductServiceImpl implements ProductService {
             return productDto;
         }
         Product product = modelMapper.map(productDto, Product.class);
+        setAuditFields(product, true);
         productRepository.save(product);
         return productDto;
     }
@@ -68,6 +70,7 @@ public class ProductServiceImpl implements ProductService {
             return productDto;
         }
         modelMapper.map(productDto, existingProduct);
+        setAuditFields(existingProduct, false);
         productRepository.save(existingProduct);
         return productDto;
     }

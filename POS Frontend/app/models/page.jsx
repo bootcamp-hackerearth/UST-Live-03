@@ -1,5 +1,5 @@
 "use client";
-import CrudPage from "../../components/CrudPage";
+import CrudPage from "@/components/CrudPage";
 
 export default function ModelsPage() {
   return (
@@ -21,6 +21,34 @@ export default function ModelsPage() {
             type: "text",
             required: true,
             readOnlyOnEdit: true,
+          },
+          {
+            key: "createdBy",
+            label: "Created By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "createdAt",
+            label: "Created At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedBy",
+            label: "Modified By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedAt",
+            label: "Modified At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
           },
         ],
       }}

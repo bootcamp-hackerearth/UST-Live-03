@@ -5,7 +5,6 @@ import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +15,11 @@ import java.util.List;
 @RestController("modelsApiController")
 @RequestMapping("/api/models")
 public class ModelsController extends BaseController {
+    private final ModelsService modelsService;
 
-    @Autowired
-    private ModelsService modelsService;
+    public ModelsController(ModelsService modelsService) {
+        this.modelsService = modelsService;
+    }
 
     @PostMapping("/list")
     public WsDto<ModelsDto> list(@RequestBody PaginationDto paginationDto) {

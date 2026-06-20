@@ -1,5 +1,5 @@
 "use client";
-import CrudPage from "../../components/CrudPage";
+import CrudPage from "@/components/CrudPage";
 import { fetchWithAuth } from "../../lib/api";
 
 export default function NodesPage() {
@@ -20,7 +20,7 @@ export default function NodesPage() {
             method: "POST",
             body: JSON.stringify({ page: 0, sizePerPage: 100 }),
           });
-          const list = data?.dtoList ?? data?.content ?? [];
+          const list = Array.isArray(data) ? data : (data?.dtoList ?? []);
           return {
             roles: list.map((r) => ({
               value: r.identifier,
@@ -43,6 +43,34 @@ export default function NodesPage() {
             type: "select",
             multiple: true,
             options: [],
+          },
+          {
+            key: "createdBy",
+            label: "Created By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "createdAt",
+            label: "Created At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedBy",
+            label: "Modified By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedAt",
+            label: "Modified At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
           },
         ],
       }}

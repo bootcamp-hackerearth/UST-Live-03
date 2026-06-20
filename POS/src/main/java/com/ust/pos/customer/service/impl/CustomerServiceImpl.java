@@ -1,6 +1,7 @@
 package com.ust.pos.customer.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
@@ -8,7 +9,6 @@ import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,19 +19,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CustomerServiceImpl implements CustomerService {
-
+public class CustomerServiceImpl extends CommonService implements CustomerService {
     public static final String SHIPPING = "Shipping";
     public static final String BILLING = "Billing";
+    private final CustomerRepository customerRepository;
+    private final ModelMapper modelMapper;
+    private final AddressService addressService;
 
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private AddressService addressService;
+    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, AddressService addressService) {
+        this.customerRepository = customerRepository;
+        this.modelMapper = modelMapper;
+        this.addressService = addressService;
+    }
 
     @Override
     public CustomerDto findByIdentifier(String identifier) {
@@ -71,6 +70,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         Customer customer = modelMapper.map(customerDto, Customer.class);
+        setAuditFields(customer, true);
         customerRepository.save(customer);
 
         if (customerDto.getBillingAddress() != null) {
@@ -104,6 +104,7 @@ public class CustomerServiceImpl implements CustomerService {
             return customerDto;
         }
         modelMapper.map(customerDto, existingCustomer);
+        setAuditFields(existingCustomer, false);
         customerRepository.save(existingCustomer);
 
         List<AddressDto> existingAddresses = addressService.findAllByPhoneNo(identifier);

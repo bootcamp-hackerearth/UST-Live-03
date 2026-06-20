@@ -1,19 +1,10 @@
 "use client";
-import CrudPage from "../../components/CrudPage";
+import CrudPage from "@/components/CrudPage";
 import { fetchWithAuth } from "../../lib/api";
-
-function isValidEmail(val) {
-  const s = String(val ?? "").trim();
-  const at = s.indexOf("@");
-  if (at < 1) return false;
-  const rest = s.slice(at + 1);
-  const dot = rest.lastIndexOf(".");
-  if (dot < 1 || dot === rest.length - 1) return false;
-  return !s.includes(" ");
-}
+import { validators } from "@/lib/security";
 function validateEmail(val) {
   if (!String(val ?? "").trim()) return "Email is required.";
-  if (!isValidEmail(val)) return "Enter a valid email address.";
+  if (!validators.email(val)) return "Enter a valid email address.";
   return null;
 }
 
@@ -23,15 +14,16 @@ function validateName(val) {
 }
 
 function validatePhone(val) {
-  const v = String(val ?? "").trim();
-  if (!v) return "Phone number is required.";
-  if (!/^\d{10}$/.test(v)) return "Phone must be exactly 10 digits.";
+  if (!String(val ?? "").trim()) return "Phone number is required.";
+  if (!validators.phone(val)) return "Phone must be exactly 10 digits.";
   return null;
 }
 
 function validatePassword(val) {
   const v = String(val ?? "");
   if (!v) return "Password is required.";
+  if (!validators.passwordStrength(v))
+    return "Password must be 8+ chars with uppercase, lowercase, digit, and special character.";
   return null;
 }
 
@@ -65,7 +57,7 @@ export default function UsersPage() {
             method: "POST",
             body: JSON.stringify({ page: 0, sizePerPage: 100 }),
           });
-          const list = response?.dtoList ?? response?.content ?? [];
+          const list = Array.isArray(response) ? response : (response?.dtoList ?? []);
           return {
             roles: list.map((role) => ({
               value: role.identifier,
@@ -114,6 +106,34 @@ export default function UsersPage() {
             multiple: true,
             options: [],
             validate: validateRoles,
+          },
+          {
+            key: "createdBy",
+            label: "Created By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "createdAt",
+            label: "Created At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedBy",
+            label: "Modified By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedAt",
+            label: "Modified At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
           },
         ],
       }}

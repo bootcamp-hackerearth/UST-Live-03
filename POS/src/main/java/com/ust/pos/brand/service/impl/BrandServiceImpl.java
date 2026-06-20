@@ -1,13 +1,13 @@
 package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,12 +16,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class BrandServiceImpl implements BrandService {
-    @Autowired
-    private BrandRepository brandRepository;
+public class BrandServiceImpl extends CommonService implements BrandService {
+    private final BrandRepository brandRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public BrandServiceImpl(BrandRepository brandRepository, ModelMapper modelMapper) {
+        this.brandRepository = brandRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public BrandDto findByIdentifier(String identifier) {
@@ -47,6 +49,7 @@ public class BrandServiceImpl implements BrandService {
             return brandDto;
         }
         Brand brand = modelMapper.map(brandDto, Brand.class);
+        setAuditFields(brand, true);
         brandRepository.save(brand);
         return brandDto;
     }
@@ -61,6 +64,7 @@ public class BrandServiceImpl implements BrandService {
             return brandDto;
         }
         modelMapper.map(brandDto, existingBrand);
+        setAuditFields(existingBrand, false);
         brandRepository.save(existingBrand);
         return brandDto;
     }

@@ -1,13 +1,13 @@
 package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl extends CommonService implements CategoryService {
+    private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper) {
+        this.categoryRepository = categoryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
@@ -51,6 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
             category.setSuperCategory(superCategory.trim());
         }
 
+        setAuditFields(category, true);
         categoryRepository.save(category);
 
         CategoryDto response = modelMapper.map(category, CategoryDto.class);
@@ -77,6 +79,7 @@ public class CategoryServiceImpl implements CategoryService {
             category.setSuperCategory(superCategory.trim());
         }
 
+        setAuditFields(category, false);
         categoryRepository.save(category);
 
         CategoryDto response = modelMapper.map(category, CategoryDto.class);

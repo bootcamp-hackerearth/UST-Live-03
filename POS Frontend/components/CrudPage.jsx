@@ -2,46 +2,75 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
+import logger from "@/lib/logger";
+import { BASE } from "@/lib/api";
+import { STORAGE_KEYS, PATHS, ERROR_MESSAGES, HTTP_STATUS } from "@/config/constants";
 
-const API = "http://localhost:8080";
+/**
+ * Get token from localStorage safely
+ */
+const getToken = () => logger.getStorageItem(STORAGE_KEYS.TOKEN) ?? null;
 
-const getToken = () => globalThis.window?.localStorage.getItem("token") ?? null;
+/**
+ * Get authentication headers
+ */
 const authHeaders = () => ({
   Authorization: `Bearer ${getToken()}`,
   "Content-Type": "application/json",
 });
 
+/**
+ * Redirect to login on unauthorized access
+ */
 function redirect401() {
-  if (globalThis.window) globalThis.window.location.href = "/login";
+  if (globalThis.window?.location) {
+    logger.warn("Unauthorized access - redirecting to login", "CrudPage");
+    globalThis.window.location.href = PATHS.LOGIN;
+  }
 }
 
+/**
+ * Fetch with authentication and error handling
+ */
 async function apiFetch(url, options = {}) {
-  const res = await fetch(`${API}${url}`, {
-    ...options,
-    headers: options.headers
-      ? { ...authHeaders(), ...options.headers }
-      : authHeaders(),
-  });
-  if (res.status === 401) {
-    redirect401();
-    throw new Error("Unauthorized");
-  }
-  if (!res.ok) {
-    let body;
-    try {
-      body = await res.json();
-    } catch {
-      body = null;
+  try {
+    const fullUrl = `${BASE}${url}`;
+    const method = options.method || "GET";
+    const res = await fetch(fullUrl, {
+      ...options,
+      headers: options.headers
+        ? { ...authHeaders(), ...options.headers }
+        : authHeaders(),
+    });
+    
+    if (res.status === HTTP_STATUS.UNAUTHORIZED) {
+      redirect401();
+      throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
     }
-    const msg = body?.message || body;
-    throw Object.assign(
-      new Error(typeof msg === "string" && msg ? msg : `HTTP ${res.status}`),
-      { body },
-    );
+    
+    if (!res.ok) {
+      let body;
+      try {
+        body = await res.json();
+      } catch {
+        body = null;
+      }
+      const msg = body?.message || body;
+      logger.apiError(url, method, res.status, msg);
+      throw Object.assign(
+        new Error(typeof msg === "string" && msg ? msg : `HTTP ${res.status}`),
+        { body },
+      );
+    }
+    
+    logger.apiSuccess(url, method, res.status);
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) return res.json();
+    return null;
+  } catch (error) {
+    logger.error(`API fetch failed: ${options.method || "GET"} ${url}`, error, "apiFetch");
+    throw error;
   }
-  const ct = res.headers.get("content-type") || "";
-  if (ct.includes("application/json")) return res.json();
-  return null;
 }
 
 function validateField(f, val) {
@@ -519,6 +548,8 @@ export default function CrudPage({ config }) {
     pageSize = 10,
     onDeleteSelf,
     getCurrentUserId,
+    getRecord,
+    customUpdateRecord,
   } = config;
 
   const [allRecords, setAllRecords] = useState([]);
@@ -534,6 +565,7 @@ export default function CrudPage({ config }) {
   const [dynOptions, setDynOptions] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef(null);
+  const togglingRef = useRef(new Set()); // Track records being toggled to prevent race conditions
 
   useEffect(() => {
     loadOptions?.()
@@ -555,10 +587,12 @@ export default function CrudPage({ config }) {
         method: "POST",
         body: JSON.stringify({ page: 0, sizePerPage: 10000 }),
       });
+      // Handle both direct array responses and wrapped responses
+      const dataList = Array.isArray(data) ? data : (data?.dtoList ?? []);
       const multiKeys = new Set(
         fields.filter((f) => f.multiple).map((f) => f.key),
       );
-      const rows = (data?.dtoList ?? []).map((record) => {
+      const rows = dataList.map((record) => {
         const out = { ...record };
         for (const key of multiKeys) {
           if (typeof out[key] === "string") {
@@ -578,7 +612,7 @@ export default function CrudPage({ config }) {
     } finally {
       setListLoading(false);
     }
-  }, [listEndpoint]);
+  }, [listEndpoint, fields]);
 
   useEffect(() => {
     fetchList();
@@ -633,7 +667,9 @@ export default function CrudPage({ config }) {
     setFieldErrors({});
     try {
       const [data, opts] = await Promise.all([
-        apiFetch(getEndpoint(record[idKey])),
+        getRecord
+          ? getRecord(record)
+          : apiFetch(getEndpoint(record[idKey])),
         loadOptions?.() ?? Promise.resolve({}),
       ]);
       if (opts) setDynOptions(opts);
@@ -723,6 +759,8 @@ export default function CrudPage({ config }) {
           method: "POST",
           body: JSON.stringify(payload),
         });
+      } else if (customUpdateRecord) {
+        await customUpdateRecord(editId, payload);
       } else {
         await apiFetch(updateEndpoint(editId), {
           method: "POST",
@@ -769,22 +807,93 @@ export default function CrudPage({ config }) {
 
   const handleToggle = async (record) => {
     if (!toggleEndpoint) return;
+    
+    const recordId = record[idKey];
+    // Prevent concurrent toggles on the same record
+    if (togglingRef.current.has(recordId)) {
+      logger.warn(`Toggle already in progress for ${recordId}`, "handleToggle");
+      return;
+    }
+    
+    togglingRef.current.add(recordId);
+    const originalRecord = { ...record };
+    
+    // Determine which field to toggle (status or active)
+    const toggleField = record.hasOwnProperty('active') ? 'active' : 'status';
+    const currentValue = record[toggleField];
+    
+    // Optimistic update
     setAllRecords((prev) =>
       prev.map((r) =>
-        r[idKey] === record[idKey] ? { ...r, status: !r.status } : r,
+        r[idKey] === recordId ? { ...r, [toggleField]: !currentValue } : r,
       ),
     );
+    
     try {
-      await apiFetch(toggleEndpoint(record[idKey]), {
+      const response = await apiFetch(toggleEndpoint(recordId), {
         method: "POST",
         body: JSON.stringify({}),
       });
-    } catch {
+      
+      logger.info(`Toggle response for ${recordId}:`, response, "handleToggle");
+      
+      // Update with actual response from backend
+      if (response) {
+        let updatedRecord = null;
+        
+        // Check if response is wrapped in a data/result field
+        if (response.data && typeof response.data === "object") {
+          updatedRecord = response.data;
+        }
+        // Check if response is the updated DTO (has idKey property)
+        else if (response[idKey]) {
+          updatedRecord = response;
+        }
+        // Check if response has id or identifier fields
+        else if (response.id || response.identifier) {
+          updatedRecord = response;
+        }
+        
+        if (updatedRecord) {
+          logger.info(`Updating with DTO response`, "handleToggle");
+          setAllRecords((prev) =>
+            prev.map((r) =>
+              r[idKey] === recordId ? updatedRecord : r,
+            ),
+          );
+        } else if (typeof response === "boolean" || response === true || response === null) {
+          // Response is just a success indicator, refetch the record to get actual state
+          logger.info(`Toggle returned non-DTO response, refetching from server`, "handleToggle");
+          if (getEndpoint) {
+            try {
+              const refetchedRecord = await apiFetch(getEndpoint(recordId));
+              if (refetchedRecord) {
+                setAllRecords((prev) =>
+                  prev.map((r) =>
+                    r[idKey] === recordId ? refetchedRecord : r,
+                  ),
+                );
+              }
+              logger.warn(`Refetch failed, keeping optimistic update`, "handleToggle");
+            } catch (refetchError) {
+              logger.error("Refetch failed in handleToggle", refetchError, "handleToggle");
+            }
+          }
+        } else {
+          logger.info(`Keeping optimistic update with response: ${JSON.stringify(response)}`, "handleToggle");
+        }
+      }
+    } catch (error) {
+      logger.error("Toggle failed", error, "handleToggle");
+      // Revert optimistic update on error
       setAllRecords((prev) =>
         prev.map((r) =>
-          r[idKey] === record[idKey] ? { ...r, status: !r.status } : r,
+          r[idKey] === recordId ? originalRecord : r,
         ),
       );
+      setError(`Failed to toggle ${singularTitle?.toLowerCase() || "record"}: ${error.message}`);
+    } finally {
+      togglingRef.current.delete(recordId);
     }
   };
 
@@ -836,7 +945,7 @@ export default function CrudPage({ config }) {
                   <td>
                     {!showToggle || showToggle(record) ? (
                       <Toggle
-                        active={!!record.status}
+                        active={!!( record.status || record.active)}
                         onChange={() => handleToggle(record)}
                       />
                     ) : (
@@ -986,6 +1095,38 @@ export default function CrudPage({ config }) {
               </div>
             );
           })}
+          {/* Audit Details - Show in Edit Mode */}
+          {modal === "edit" && (
+            <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #e8e8e8" }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 9 }}>Audit Information</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, fontSize: 12, color: "#666" }}>
+                {form.createdBy && (
+                  <div>
+                    <p style={{ fontSize: 9, color: "#aaa", fontWeight: 600, marginBottom: 2 }}>Created By</p>
+                    <p style={{ color: "#333", fontWeight: 500 }}>{form.createdBy}</p>
+                  </div>
+                )}
+                {form.createdAt && (
+                  <div>
+                    <p style={{ fontSize: 9, color: "#aaa", fontWeight: 600, marginBottom: 2 }}>Created At</p>
+                    <p style={{ color: "#333", fontWeight: 500 }}>{new Date(form.createdAt).toLocaleString("en-IN")}</p>
+                  </div>
+                )}
+                {form.modifiedBy && (
+                  <div>
+                    <p style={{ fontSize: 9, color: "#aaa", fontWeight: 600, marginBottom: 2 }}>Modified By</p>
+                    <p style={{ color: "#333", fontWeight: 500 }}>{form.modifiedBy}</p>
+                  </div>
+                )}
+                {form.modifiedAt && (
+                  <div>
+                    <p style={{ fontSize: 9, color: "#aaa", fontWeight: 600, marginBottom: 2 }}>Modified At</p>
+                    <p style={{ color: "#333", fontWeight: 500 }}>{new Date(form.modifiedAt).toLocaleString("en-IN")}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <button type="submit" className="btn-save" disabled={saving}>
             {saveButtonText}
           </button>
@@ -1070,6 +1211,8 @@ CrudPage.propTypes = {
     pageSize: PropTypes.number,
     onDeleteSelf: PropTypes.func,
     getCurrentUserId: PropTypes.func,
+    getRecord: PropTypes.func,
+    customUpdateRecord: PropTypes.func,
   }).isRequired,
 };
 

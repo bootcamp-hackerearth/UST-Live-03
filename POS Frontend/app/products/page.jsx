@@ -1,6 +1,6 @@
 "use client";
-import CrudPage from "../../components/CrudPage";
-import { fetchWithAuth } from "../../lib/api";
+import CrudPage from "@/components/CrudPage";
+import { fetchWithAuth } from "@/lib/api";
 
 export default function ProductsPage() {
   return (
@@ -72,6 +72,34 @@ export default function ProductsPage() {
             type: "select",
             multiple: true,
             options: [],
+          },
+          {
+            key: "createdBy",
+            label: "Created By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "createdAt",
+            label: "Created At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedBy",
+            label: "Modified By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedAt",
+            label: "Modified At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
           },
         ],
       }}

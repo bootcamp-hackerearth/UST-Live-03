@@ -1,12 +1,12 @@
 package com.ust.pos.shelf.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,14 +15,15 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ShelfServiceImpl implements ShelfService {
-
+public class ShelfServiceImpl extends CommonService implements ShelfService {
     public static final String SHELF_NOT_FOUND = "Shelf not found";
-    @Autowired
-    private ShelfRepository shelfRepository;
+    private final ShelfRepository shelfRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ShelfServiceImpl(ShelfRepository shelfRepository, ModelMapper modelMapper) {
+        this.shelfRepository = shelfRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ShelfDto createShelf(ShelfDto shelfDto) {
@@ -34,6 +35,7 @@ public class ShelfServiceImpl implements ShelfService {
         }
 
         Shelf shelf = modelMapper.map(shelfDto, Shelf.class);
+        setAuditFields(shelf, true);
         shelfRepository.save(shelf);
         return shelfDto;
     }
@@ -44,6 +46,7 @@ public class ShelfServiceImpl implements ShelfService {
 
         shelfRepository.findById(shelfDto.getId()).ifPresentOrElse(existing -> {
             existing.setIdentifier(shelfDto.getIdentifier());
+            setAuditFields(existing, false);
             shelfRepository.save(existing);
 
             modelMapper.map(existing, dto);

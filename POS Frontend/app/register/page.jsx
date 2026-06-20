@@ -1,19 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isValidEmail } from "../../lib/validators";
+import logger from "@/lib/logger";
+import { BASE } from "@/lib/api";
+import { validators } from "@/lib/security";
+import { PATHS, ERROR_MESSAGES } from "@/config/constants";
 
-function validate(user) {
+function validate(user, confirmPassword) {
   if (!user.name.trim()) return "Full name is required.";
   if (!user.username.trim()) return "Email is required.";
-  if (!isValidEmail(user.username.trim()))
+  if (!validators.email(user.username.trim()))
     return "Enter a valid email address.";
   if (!user.phoneNo.trim()) return "Phone number is required.";
-  if (!/^\d{10}$/.test(user.phoneNo.trim()))
+  if (!validators.phone(user.phoneNo.trim()))
     return "Phone must be exactly 10 digits.";
   if (!user.password) return "Password is required.";
+  if (!confirmPassword) return "Password confirmation is required.";
+  if (user.password !== confirmPassword) return "Passwords do not match.";
+  return null;
 }
 
 export default function Register() {
@@ -22,6 +28,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [user, setUser] = useState({
     name: "",
     username: "",
@@ -31,39 +38,54 @@ export default function Register() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/role/list", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ page: 0, sizePerPage: 100 }),
-    })
-      .then((r) => r.json())
-      .then((d) => setRoles(d?.dtoList ?? d?.content ?? []))
-      .catch(() => {});
+    const fetchRoles = async () => {
+      try {
+        const res = await fetch(`${BASE}/api/role/list`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 0, sizePerPage: 100 }),
+        });
+        
+        if (!res.ok) {
+          logger.apiError("/api/role/list", "POST", res.status, "Failed to fetch roles");
+          return;
+        }
+        
+        const data = await res.json();
+        const rolesList = Array.isArray(data) ? data : (data?.dtoList ?? []);
+        setRoles(rolesList);
+      } catch (err) {
+        logger.error("Failed to fetch roles", err, "register");
+      }
+    };
+    
+    fetchRoles();
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     setUser((u) => ({ ...u, [e.target.name]: e.target.value }));
     setError("");
-  };
+  }, []);
 
-  const handlePhone = (e) => {
+  const handlePhone = useCallback((e) => {
     const val = e.target.value.replaceAll(/\D/g, "").slice(0, 10);
     setUser((u) => ({ ...u, phoneNo: val }));
     setError("");
-  };
+  }, []);
 
-  const toggleRole = (id) =>
+  const toggleRole = useCallback((id) => {
     setUser((u) => ({
       ...u,
       roles: u.roles.includes(id)
         ? u.roles.filter((r) => r !== id)
         : [...u.roles, id],
     }));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
-    const err = validate(user);
+    const err = validate(user, confirmPassword);
     if (err) {
       setError(err);
       return;
@@ -71,24 +93,32 @@ export default function Register() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:8080/api/security/register", {
+      const res = await fetch(`${BASE}/api/security/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user),
       });
+      
       const data = await res.json().catch(() => ({}));
+      
       if (!res.ok) {
         const msg = data?.message || data;
-        setError(
-          typeof msg === "string" && msg
-            ? msg
-            : "Registration failed. Please try again.",
-        );
+        const errorMsg = typeof msg === "string" && msg
+          ? msg
+          : ERROR_MESSAGES.VALIDATION_ERROR;
+        setError(errorMsg);
+        logger.error("Registration failed", { status: res.status, data }, "register");
         return;
       }
-      router.push("/login");
-    } catch {
-      setError("Unable to connect. Please check your connection.");
+      
+      logger.info("Registration successful", { username: user.username });
+      router.push(PATHS.LOGIN);
+    } catch (err) {
+      const errorMsg = err instanceof TypeError ? 
+        ERROR_MESSAGES.NETWORK_ERROR : 
+        ERROR_MESSAGES.SERVER_ERROR;
+      setError(errorMsg);
+      logger.error("Registration error", err, "register");
     } finally {
       setLoading(false);
     }
@@ -228,6 +258,22 @@ export default function Register() {
                   value={user.password}
                   onChange={handleChange}
                   autoComplete="new-password"
+                  placeholder="Enter a password"
+                />
+              </div>
+              <div className="fg">
+                <label className="lbl" htmlFor="confirmPassword">
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  className={`inp${submitted && confirmPassword !== user.password ? " err" : ""}`}
+                  type="password"
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder="Re-enter password"
                 />
               </div>
               <div className="fg">

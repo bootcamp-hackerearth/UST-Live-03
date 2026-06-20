@@ -1,5 +1,6 @@
 package com.ust.pos.warehouse.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -7,7 +8,6 @@ import com.ust.pos.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class WarehouseServiceImpl implements WarehouseService {
+public class WarehouseServiceImpl extends CommonService implements WarehouseService {
+    private final WarehouseRepository warehouseRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private WarehouseRepository warehouseRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public WarehouseServiceImpl(WarehouseRepository warehouseRepository, ModelMapper modelMapper) {
+        this.warehouseRepository = warehouseRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public WarehouseDto save(WarehouseDto dto) {
@@ -37,6 +38,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         Warehouse warehouse = modelMapper.map(dto, Warehouse.class);
         warehouse.setStatus(true);
+        setAuditFields(warehouse, true);
         warehouseRepository.save(warehouse);
 
         WarehouseDto response = modelMapper.map(warehouse, WarehouseDto.class);
@@ -58,6 +60,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         modelMapper.map(dto, warehouse);
         warehouse.setStatus(currentStatus);
+        setAuditFields(warehouse, false);
         warehouseRepository.save(warehouse);
 
         WarehouseDto response = modelMapper.map(warehouse, WarehouseDto.class);

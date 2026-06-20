@@ -1,6 +1,6 @@
 "use client";
-import CrudPage from "../../components/CrudPage";
-import { fetchWithAuth } from "../../lib/api";
+import CrudPage from "@/components/CrudPage";
+import { fetchWithAuth } from "@/lib/api";
 
 const beforeDelete = async (record) => {
   if (record.superCategory) return null; // sub-categories can always be deleted
@@ -8,7 +8,7 @@ const beforeDelete = async (record) => {
     method: "POST",
     body: JSON.stringify({ page: 0, sizePerPage: 200 }),
   });
-  const list = data?.dtoList ?? data?.content ?? [];
+  const list = Array.isArray(data) ? data : (data?.dtoList ?? []);
   return list.some((c) => c.superCategory === record.identifier)
     ? `Cannot delete "${record.identifier}" — it has sub-categories. Delete or reassign them first.`
     : null;
@@ -52,6 +52,34 @@ export default function CategoriesPage() {
             type: "select",
             placeholder: "-- No Super Category --",
             options: [],
+          },
+          {
+            key: "createdBy",
+            label: "Created By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "createdAt",
+            label: "Created At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedBy",
+            label: "Modified By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedAt",
+            label: "Modified At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
           },
         ],
       }}

@@ -1,12 +1,12 @@
 package com.ust.pos.rack.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,13 +15,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class RackServiceImpl implements RackService {
+public class RackServiceImpl extends CommonService implements RackService {
+    private final RackRepository rackRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private RackRepository rackRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public RackServiceImpl(RackRepository rackRepository, ModelMapper modelMapper) {
+        this.rackRepository = rackRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public RackDto createRack(RackDto rackDto) {
@@ -33,6 +34,7 @@ public class RackServiceImpl implements RackService {
         }
 
         Rack rack = modelMapper.map(rackDto, Rack.class);
+        setAuditFields(rack, true);
         rackRepository.save(rack);
         return rackDto;
     }
@@ -40,6 +42,7 @@ public class RackServiceImpl implements RackService {
     @Override
     public RackDto updateRack(RackDto rackDto) {
         Rack rack = modelMapper.map(rackDto, Rack.class);
+        setAuditFields(rack, false);
         rackRepository.save(rack);
         return rackDto;
     }

@@ -10,7 +10,6 @@ import com.ust.pos.orderentry.service.OrderEntryService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -20,15 +19,16 @@ import java.util.UUID;
 @Service
 @Transactional
 public class OrderEntryServiceImpl implements OrderEntryService {
+    private final OrderEntryRepository orderEntryRepository;
+    private final ProductRepository productRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private OrderEntryRepository orderEntryRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public OrderEntryServiceImpl(OrderEntryRepository orderEntryRepository, ProductRepository productRepository,
+                               ModelMapper modelMapper) {
+        this.orderEntryRepository = orderEntryRepository;
+        this.productRepository = productRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public OrderEntryDto save(OrderEntryDto orderEntryDto) {

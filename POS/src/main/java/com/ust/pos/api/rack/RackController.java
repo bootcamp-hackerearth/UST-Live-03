@@ -6,7 +6,6 @@ import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.rack.service.RackService;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +16,13 @@ import java.util.List;
 @RestController("rackApiController")
 @RequestMapping("/api/racks")
 public class RackController extends BaseController {
+    private final RackService rackService;
+    private final ShelfService shelfService;
 
-    @Autowired
-    private RackService rackService;
-
-    @Autowired
-    private ShelfService shelfService;
+    public RackController(RackService rackService, ShelfService shelfService) {
+        this.rackService = rackService;
+        this.shelfService = shelfService;
+    }
 
     @PostMapping("/list")
     public ResponseEntity<List<RackDto>> list(@RequestBody PaginationDto paginationDto) {

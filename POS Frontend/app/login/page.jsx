@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isValidEmail } from "../../lib/validators";
+import logger from "@/lib/logger";
+import { BASE } from "@/lib/api";
+import { isValidEmail } from "@/lib/validators";
+import { loginRateLimiter, htmlEscape } from "@/lib/security";
+import { STORAGE_KEYS, PATHS, ERROR_MESSAGES } from "@/config/constants";
+
+const LOGIN_TIMEOUT_MS = 10000;
 
 function validate({ username, password }) {
   if (!username.trim()) return "Email is required.";
@@ -12,74 +18,144 @@ function validate({ username, password }) {
   return null;
 }
 
+function getButtonLabel(loading, isRateLimited) {
+  if (loading) return "Signing in…";
+  if (isRateLimited) return "Account Locked";
+  return "Sign In";
+}
+
+function getSubmitErrorMessage(err) {
+  if (err instanceof TypeError) return ERROR_MESSAGES.NETWORK_ERROR;
+  if (err?.name === "AbortError") return "Login request timed out. Please try again.";
+  return ERROR_MESSAGES.SERVER_ERROR;
+}
+
+/**
+ * Calls the authenticate endpoint and returns the parsed body.
+ * Throws on network/timeout failure (handled by the caller).
+ */
+async function callAuthenticate(username, password) {
+  const res = await fetch(`${BASE}/api/authenticate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+    signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
+  });
+  const data = await res.json();
+  return { res, data };
+}
+
+/**
+ * Validates the authenticate response and persists credentials on success.
+ * Returns an error message string, or null on success.
+ */
+function handleAuthFailure(res, data, username) {
+  const msg = data?.message || data;
+  const errorMsg = typeof msg === "string" && msg ? msg : ERROR_MESSAGES.INVALID_CREDENTIALS;
+  logger.error("Login failed", { status: res.status, sanitized: true }, "login");
+
+  const remaining = loginRateLimiter.getRemaining(username);
+  return { errorMsg: htmlEscape(errorMsg), remaining };
+}
+
+function persistSession(token, username) {
+  const stored = logger.setStorageItem(STORAGE_KEYS.TOKEN, token) &&
+    logger.setStorageItem(STORAGE_KEYS.USERNAME, username);
+  return stored;
+}
+
 export default function Login() {
   const router = useRouter();
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [touched, setTouched] = useState({});
+  const [remainingAttempts, setRemainingAttempts] = useState(5);
+  const [isRateLimited, setIsRateLimited] = useState(false);
 
-  const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
     setError("");
-  };
-  const handleBlur = (e) =>
-    setTouched((t) => ({ ...t, [e.target.name]: true }));
 
-  const handleSubmit = async (e) => {
+    if (name === "username") {
+      const remaining = loginRateLimiter.getRemaining(value.trim());
+      setRemainingAttempts(remaining);
+      setIsRateLimited(remaining === 0);
+    }
+  }, []);
+
+  const handleBlur = useCallback((e) => {
+    setTouched((t) => ({ ...t, [e.target.name]: true }));
+  }, []);
+
+  const processSuccessfulLogin = useCallback(async (data, username) => {
+    const token = data?.token;
+    if (!token || typeof token !== "string" || token.trim() === "" || token === "Error") {
+      setError(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      logger.warn("Invalid token received", { hasToken: !!token }, "login");
+      return false;
+    }
+
+    loginRateLimiter.reset(username);
+
+    if (!persistSession(token, username)) {
+      setError(ERROR_MESSAGES.STORAGE_ERROR);
+      logger.error("Failed to store credentials", null, "login");
+      return false;
+    }
+
+    logger.info("Login successful", { username });
+    setForm({ username: "", password: "" });
+    router.replace(PATHS.HOME);
+    return true;
+  }, [router]);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setTouched({ username: true, password: true });
-    const err = validate(form);
-    if (err) {
-      setError(err);
+
+    const username = form.username.trim();
+
+    if (!loginRateLimiter.isAllowed(username)) {
+      setError("Too many login attempts. Please try again in 15 minutes.");
+      setIsRateLimited(true);
+      logger.warn("Login rate limit exceeded", { username });
       return;
     }
+
+    const validationErr = validate(form);
+    if (validationErr) {
+      setError(validationErr);
+      return;
+    }
+
     setLoading(true);
     setError("");
+
     try {
-      const res = await fetch("http://localhost:8080/api/authenticate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: form.username.trim(),
-          password: form.password,
-        }),
-      });
-      const data = await res.json();
+      const { res, data } = await callAuthenticate(username, form.password);
+
       if (!res.ok) {
-        const msg = data?.message || data;
-        setError(
-          typeof msg === "string" && msg
-            ? msg
-            : "Invalid credentials. Please try again.",
-        );
-        return;
-      }
-      const token = data?.token;
-      if (
-        !token ||
-        typeof token !== "string" ||
-        token.trim() === "" ||
-        token === "Error"
-      ) {
-        setError("Invalid email or password.");
+        const { errorMsg, remaining } = handleAuthFailure(res, data, username);
+        setError(errorMsg);
+        setRemainingAttempts(remaining);
+        if (remaining === 0) setIsRateLimited(true);
         return;
       }
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("username", form.username.trim());
-
-      router.replace("/home");
-    } catch {
-      setError("Unable to connect. Please check your connection.");
+      await processSuccessfulLogin(data, username);
+    } catch (err) {
+      setError(getSubmitErrorMessage(err));
+      logger.error("Login error", { errorType: err?.name }, "login");
     } finally {
       setLoading(false);
-      setForm((f) => ({ ...f, password: "" }));
     }
-  };
+  }, [form, processSuccessfulLogin]);
 
   const emailErr = touched.username && !form.username.trim();
   const passErr = touched.password && !form.password;
+  const buttonLabel = getButtonLabel(loading, isRateLimited);
 
   return (
     <>
@@ -145,6 +221,16 @@ export default function Login() {
                 {error}
               </div>
             )}
+            {!error && isRateLimited && remainingAttempts === 0 && (
+              <div className="alert" role="alert">
+                Account temporarily locked. Please try again in 15 minutes.
+              </div>
+            )}
+            {!error && !isRateLimited && remainingAttempts > 0 && remainingAttempts < 5 && form.username && (
+              <div className="alert" role="alert" style={{ background: "#fff8e1", borderColor: "#ffe082", color: "#b45309" }}>
+                ⚠ {remainingAttempts} attempt{remainingAttempts === 1 ? "" : "s"} remaining
+              </div>
+            )}
             <form onSubmit={handleSubmit} noValidate>
               <div className="fg">
                 <label className="lbl" htmlFor="username">
@@ -180,8 +266,8 @@ export default function Login() {
                 />
                 {passErr && <p className="ferr">Password is required.</p>}
               </div>
-              <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Signing in…" : "Sign In"}
+              <button className="btn" type="submit" disabled={loading || isRateLimited}>
+                {buttonLabel}
               </button>
             </form>
             <div className="link-row">

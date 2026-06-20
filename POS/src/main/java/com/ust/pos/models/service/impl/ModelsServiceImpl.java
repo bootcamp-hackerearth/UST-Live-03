@@ -1,5 +1,6 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
@@ -7,7 +8,6 @@ import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ModelsServiceImpl implements ModelsService {
+public class ModelsServiceImpl extends CommonService implements ModelsService {
+    private final ModelsRepository modelsRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelsRepository modelsRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public ModelsServiceImpl(ModelsRepository modelsRepository, ModelMapper modelMapper) {
+        this.modelsRepository = modelsRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
@@ -48,6 +49,7 @@ public class ModelsServiceImpl implements ModelsService {
             return modelsDto;
         }
         Models models = modelMapper.map(modelsDto, Models.class);
+        setAuditFields(models, true);
         modelsRepository.save(models);
         return modelsDto;
     }
@@ -62,6 +64,7 @@ public class ModelsServiceImpl implements ModelsService {
             return modelsDto;
         }
         modelMapper.map(modelsDto, existingModels);
+        setAuditFields(existingModels, false);
         modelsRepository.save(existingModels);
         return modelsDto;
     }

@@ -1,5 +1,6 @@
 package com.ust.pos.stock.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.model.Stock;
@@ -7,7 +8,6 @@ import com.ust.pos.model.StockRepository;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.stock.service.StockService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,19 +16,19 @@ import java.util.List;
 
 
 @Service
-public class StockServiceImpl implements StockService {
+public class StockServiceImpl extends CommonService implements StockService {
+    private final StockRepository stockRepository;
+    private final ProductRepository productRepository;
+    private final WarehouseRepository warehouseRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private StockRepository stockRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private WarehouseRepository warehouseRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public StockServiceImpl(StockRepository stockRepository, ProductRepository productRepository,
+                          WarehouseRepository warehouseRepository, ModelMapper modelMapper) {
+        this.stockRepository = stockRepository;
+        this.productRepository = productRepository;
+        this.warehouseRepository = warehouseRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public StockDto createStock(StockDto stockDto) {
@@ -45,6 +45,7 @@ public class StockServiceImpl implements StockService {
         stockDto.setIdentifier(product.getIdentifier());
         Stock stock = modelMapper.map(stockDto, Stock.class);
         stock.setStatus(true);
+        setAuditFields(stock, true);
         stockRepository.save(stock);
         return stockDto;
     }
@@ -59,6 +60,7 @@ public class StockServiceImpl implements StockService {
                 stock.setIdentifier(product.getIdentifier());
             });
             warehouseRepository.findById(stock.getWarehouseId()).ifPresent(warehouse -> stock.setWarehouseName(warehouse.getName()));
+            setAuditFields(stock, false);
             stockRepository.save(stock);
             modelMapper.map(stock, dto);
         }, () -> {

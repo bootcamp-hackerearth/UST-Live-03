@@ -1,5 +1,6 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
@@ -7,7 +8,6 @@ import com.ust.pos.model.PriceRepository;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,16 +17,16 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @Service
-public class PriceServiceImpl implements PriceService {
+public class PriceServiceImpl extends CommonService implements PriceService {
+    private final PriceRepository priceRepository;
+    private final ProductRepository productRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PriceRepository priceRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public PriceServiceImpl(PriceRepository priceRepository, ProductRepository productRepository, ModelMapper modelMapper) {
+        this.priceRepository = priceRepository;
+        this.productRepository = productRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PriceDto createPrice(PriceDto priceDto) {
@@ -41,7 +41,7 @@ public class PriceServiceImpl implements PriceService {
         priceDto.setIdentifier(product.getIdentifier());
 
         Price price = modelMapper.map(priceDto, Price.class);
-
+        setAuditFields(price, true);
         priceRepository.save(price);
 
         return priceDto;
@@ -60,6 +60,7 @@ public class PriceServiceImpl implements PriceService {
             price.setIdentifier(product.getIdentifier());
         });
 
+        setAuditFields(price, false);
         priceRepository.save(price);
 
         modelMapper.map(price, priceDto);

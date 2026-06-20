@@ -1,5 +1,5 @@
 "use client";
-import CrudPage from "../../components/CrudPage";
+import CrudPage from "@/components/CrudPage";
 
 export default function RolesPage() {
   return (
@@ -23,6 +23,34 @@ export default function RolesPage() {
             readOnlyOnEdit: true,
           },
           { key: "description", label: "Description", type: "textarea" },
+          {
+            key: "createdBy",
+            label: "Created By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "createdAt",
+            label: "Created At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedBy",
+            label: "Modified By",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
+          {
+            key: "modifiedAt",
+            label: "Modified At",
+            type: "text",
+            hideInForm: true,
+            hideInList: true,
+          },
         ],
       }}
     />
