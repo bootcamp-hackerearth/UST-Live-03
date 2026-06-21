@@ -30,10 +30,6 @@ function getSubmitErrorMessage(err) {
   return ERROR_MESSAGES.SERVER_ERROR;
 }
 
-/**
- * Calls the authenticate endpoint and returns the parsed body.
- * Throws on network/timeout failure (handled by the caller).
- */
 async function callAuthenticate(username, password) {
   const res = await fetch(`${BASE}/api/authenticate`, {
     method: "POST",
@@ -44,11 +40,6 @@ async function callAuthenticate(username, password) {
   const data = await res.json();
   return { res, data };
 }
-
-/**
- * Validates the authenticate response and persists credentials on success.
- * Returns an error message string, or null on success.
- */
 function handleAuthFailure(res, data, username) {
   const msg = data?.message || data;
   const errorMsg = typeof msg === "string" && msg ? msg : ERROR_MESSAGES.INVALID_CREDENTIALS;

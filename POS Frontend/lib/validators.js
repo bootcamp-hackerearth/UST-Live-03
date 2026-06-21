@@ -1,4 +1,3 @@
-// Safe email validator that avoids regex backtracking by using linear checks.
 function isValidLocal(local) {
   if (local.length === 0 || local.length > 64) return false;
   const allowed = new Set(

@@ -4,11 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import logger from "@/lib/logger";
 import { fetchWithAuth } from "@/lib/api";
-import { STORAGE_KEYS, PATHS, ERROR_MESSAGES } from "@/config/constants";
 
-/**
- * Get token from localStorage safely
- */
 function validateField(f, val) {
   if (typeof f.validate === "function") return f.validate(val);
   if (!f.required) return null;
@@ -524,7 +520,6 @@ export default function CrudPage({ config }) {
         method: "POST",
         body: JSON.stringify({ page: 0, sizePerPage: 10000 }),
       });
-      // Handle both direct array responses and wrapped responses
       const dataList = Array.isArray(data) ? data : (data?.dtoList ?? []);
       const multiKeys = new Set(
         fields.filter((f) => f.multiple).map((f) => f.key),
@@ -809,8 +804,6 @@ export default function CrudPage({ config }) {
     
     togglingRef.current.add(recordId);
     const originalRecord = { ...record };
-    
-    // Determine which field to toggle - use config field if it exists, otherwise check 'active' and 'status'
     const toggleFieldName = getToggleFieldName(record);
     const currentValue = record[toggleFieldName];
     
