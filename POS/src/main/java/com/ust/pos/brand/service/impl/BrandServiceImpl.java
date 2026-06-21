@@ -17,6 +17,7 @@ import java.util.List;
 
 @Service
 public class BrandServiceImpl extends CommonService implements BrandService {
+    public static final String BRAND_WITH_IDENTIFIER = "Brand with identifier - ";
     private final BrandRepository brandRepository;
     private final ModelMapper modelMapper;
 
@@ -45,11 +46,11 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
         if (existingBrand != null) {
             if (existingBrand.isDeleted()) {
-                brandDto.setMessage("Brand with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " has been soft deleted.(Rollback by changing status");
                 brandDto.setSuccess(false);
                 return brandDto;
             }
-            brandDto.setMessage("Brand with identifier - " + identifier + " already exists");
+            brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " already exists");
             brandDto.setSuccess(false);
             return brandDto;
         }
@@ -64,7 +65,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         String identifier = brandDto.getIdentifier();
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
         if (existingBrand == null) {
-            brandDto.setMessage("Brand with identifier - " + identifier + " not found");
+            brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " not found");
             brandDto.setSuccess(false);
             return brandDto;
         }

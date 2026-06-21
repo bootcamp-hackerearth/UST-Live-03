@@ -17,6 +17,7 @@ import java.util.List;
 
 @Service
 public class ModelsServiceImpl extends CommonService implements ModelsService {
+    public static final String MODELS_WITH_IDENTIFIER = "Models with identifier - ";
     private final ModelsRepository modelsRepository;
     private final ModelMapper modelMapper;
 
@@ -45,11 +46,11 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
         Models existingModels = modelsRepository.findByIdentifier(identifier);
         if (existingModels != null) {
             if (existingModels.isDeleted()) {
-                modelsDto.setMessage("Models with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " has been soft deleted.(Rollback by changing status");
                 modelsDto.setSuccess(false);
                 return modelsDto;
             }
-            modelsDto.setMessage("Models with identifier - " + identifier + " already exists");
+            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " already exists");
             modelsDto.setSuccess(false);
             return modelsDto;
         }
@@ -64,7 +65,7 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
         String identifier = modelsDto.getIdentifier();
         Models existingModels = modelsRepository.findByIdentifier(identifier);
         if (existingModels == null) {
-            modelsDto.setMessage("Models with identifier - " + identifier + " not found");
+            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " not found");
             modelsDto.setSuccess(false);
             return modelsDto;
         }

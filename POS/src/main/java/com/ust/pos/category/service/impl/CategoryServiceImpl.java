@@ -17,6 +17,7 @@ import java.util.List;
 
 @Service
 public class CategoryServiceImpl extends CommonService implements CategoryService {
+    public static final String CATEGORY_WITH_IDENTIFIER = "Category with identifier - ";
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
 
@@ -37,12 +38,12 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         Category existing = categoryRepository.findByIdentifier(dto.getIdentifier());
         if (existing != null) {
             if (existing.isDeleted()) {
-                dto.setMessage("Category with identifier - " + dto.getIdentifier() + " has been soft deleted.(Rollback by changing status");
+                dto.setMessage(CATEGORY_WITH_IDENTIFIER + dto.getIdentifier() + " has been soft deleted.(Rollback by changing status");
                 dto.setSuccess(false);
                 return dto;
             }
             dto.setSuccess(false);
-            dto.setMessage("Category with identifier - " + dto.getIdentifier() + " already exists");
+            dto.setMessage(CATEGORY_WITH_IDENTIFIER + dto.getIdentifier() + " already exists");
             return dto;
         }
 
@@ -73,7 +74,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
         if (category == null) {
             dto.setSuccess(false);
-            dto.setMessage("Category with identifier - " + dto.getIdentifier() + " not found");
+            dto.setMessage(CATEGORY_WITH_IDENTIFIER + dto.getIdentifier() + " not found");
             return dto;
         }
 

@@ -20,6 +20,7 @@ import java.util.List;
 
 @Service
 public class ProductServiceImpl extends CommonService implements ProductService {
+    public static final String PRODUCT_WITH_SKU_CODE = "Product with skuCode - ";
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
     private final PriceRepository priceRepository;
@@ -51,11 +52,11 @@ public class ProductServiceImpl extends CommonService implements ProductService 
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct != null) {
             if (existingProduct.isDeleted()) {
-                productDto.setMessage("Product with skuCode - " + identifier + " has been soft deleted.(Rollback by changing status");
+                productDto.setMessage(PRODUCT_WITH_SKU_CODE + identifier + " has been soft deleted.(Rollback by changing status");
                 productDto.setSuccess(false);
                 return productDto;
             }
-            productDto.setMessage("Product with skuCode - " + identifier + " already exists");
+            productDto.setMessage(PRODUCT_WITH_SKU_CODE + identifier + " already exists");
             productDto.setSuccess(false);
             return productDto;
         }
@@ -70,7 +71,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
         String identifier = productDto.getIdentifier().trim();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct == null) {
-            productDto.setMessage("Product with skuCode - " + identifier + " not found");
+            productDto.setMessage(PRODUCT_WITH_SKU_CODE + identifier + " not found");
             productDto.setSuccess(false);
             return productDto;
         }

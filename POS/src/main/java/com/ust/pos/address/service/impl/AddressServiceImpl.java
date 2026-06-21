@@ -14,6 +14,7 @@ import java.util.List;
 
 @Service
 public class AddressServiceImpl extends CommonService implements AddressService {
+    public static final String ADDRESS_WITH_IDENTIFIER = "Address with identifier - ";
     private final AddressRepository addressRepository;
     private final ModelMapper modelMapper;
 
@@ -40,11 +41,11 @@ public class AddressServiceImpl extends CommonService implements AddressService 
         Address existingAddress = addressRepository.findByIdentifier(identifier);
         if (existingAddress != null) {
             if (existingAddress.isDeleted()) {
-                addressDto.setMessage("Address with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + identifier + " has been soft deleted.(Rollback by changing status");
                 addressDto.setSuccess(false);
                 return addressDto;
             }
-            addressDto.setMessage("Address with identifier - " + identifier + " already exists");
+            addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + identifier + " already exists");
             addressDto.setSuccess(false);
             return addressDto;
         }
@@ -59,7 +60,7 @@ public class AddressServiceImpl extends CommonService implements AddressService 
         String identifier = addressDto.getIdentifier();
         Address existingAddress = addressRepository.findByIdentifier(identifier);
         if (existingAddress == null) {
-            addressDto.setMessage("Address with identifier - " + identifier + " not found");
+            addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + identifier + " not found");
             addressDto.setSuccess(false);
             return addressDto;
         }

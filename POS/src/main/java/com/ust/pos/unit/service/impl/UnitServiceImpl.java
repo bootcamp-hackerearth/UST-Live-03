@@ -17,6 +17,7 @@ import java.util.List;
 
 @Service
 public class UnitServiceImpl extends CommonService implements UnitService {
+    public static final String UNIT_WITH_IDENTIFIER = "Unit with identifier - ";
     private final UnitRepository unitRepository;
     private final ModelMapper modelMapper;
 
@@ -44,11 +45,11 @@ public class UnitServiceImpl extends CommonService implements UnitService {
         Unit existingUnit = unitRepository.findByIdentifier(identifier);
         if (existingUnit != null) {
             if (existingUnit.isDeleted()) {
-                unitDto.setMessage("Unit with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                unitDto.setMessage(UNIT_WITH_IDENTIFIER + identifier + " has been soft deleted.(Rollback by changing status");
                 unitDto.setSuccess(false);
                 return unitDto;
             }
-            unitDto.setMessage("Unit with identifier - " + identifier + " already exists");
+            unitDto.setMessage(UNIT_WITH_IDENTIFIER + identifier + " already exists");
             unitDto.setSuccess(false);
             return unitDto;
         }
@@ -63,7 +64,7 @@ public class UnitServiceImpl extends CommonService implements UnitService {
         String identifier = unitDto.getIdentifier();
         Unit existingUnit = unitRepository.findByIdentifier(identifier);
         if (existingUnit == null) {
-            unitDto.setMessage("Unit with identifier - " + identifier + " not found");
+            unitDto.setMessage(UNIT_WITH_IDENTIFIER + identifier + " not found");
             unitDto.setSuccess(false);
             return unitDto;
         }

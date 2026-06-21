@@ -25,6 +25,7 @@ import java.util.Set;
 @Service
 public class NodeServiceImpl extends CommonService implements NodeService {
 
+    public static final String NODE_WITH_IDENTIFIER = "Node with identifier '";
     private final UserRepository userRepository;
     private final NodeRepository nodeRepository;
     private final ModelMapper modelMapper;
@@ -97,12 +98,12 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
             if (existingNode.isDeleted()) {
                 nodeDto.setSuccess(false);
-                nodeDto.setMessage("Node with identifier '" + nodeDto.getIdentifier() + "' has been soft deleted. Rollback by changing status.");
+                nodeDto.setMessage(NODE_WITH_IDENTIFIER + nodeDto.getIdentifier() + "' has been soft deleted. Rollback by changing status.");
                 return nodeDto;
             }
 
             nodeDto.setSuccess(false);
-            nodeDto.setMessage("Node with identifier '" + nodeDto.getIdentifier() + "' already exists");
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + nodeDto.getIdentifier() + "' already exists");
             return nodeDto;
         }
 
@@ -126,7 +127,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
         if (existingNode == null) {
             nodeDto.setSuccess(false);
-            nodeDto.setMessage("Node with identifier '" + identifier + "' not found");
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + "' not found");
             return nodeDto;
         }
 

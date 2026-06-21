@@ -22,6 +22,7 @@ import java.util.List;
 public class CustomerServiceImpl extends CommonService implements CustomerService {
     public static final String SHIPPING = "Shipping";
     public static final String BILLING = "Billing";
+    public static final String CUSTOMER_WITH_IDENTIFIER = "Customer with identifier - ";
     private final CustomerRepository customerRepository;
     private final ModelMapper modelMapper;
     private final AddressService addressService;
@@ -65,11 +66,11 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
         if (existingCustomer != null) {
             if (existingCustomer.isDeleted()) {
-                customerDto.setMessage("Customer with identifier - " + identifier + " has been soft deleted.(Rollback by changing status");
+                customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier + " has been soft deleted.(Rollback by changing status");
                 customerDto.setSuccess(false);
                 return customerDto;
             }
-            customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
+            customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier + " already exists");
             customerDto.setSuccess(false);
             return customerDto;
         }
@@ -104,7 +105,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
         if (existingCustomer == null) {
-            customerDto.setMessage("Customer with identifier - " + identifier + " not found");
+            customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier + " not found");
             customerDto.setSuccess(false);
             return customerDto;
         }
