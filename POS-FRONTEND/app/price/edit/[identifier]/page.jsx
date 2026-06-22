@@ -11,6 +11,16 @@ const C = {
   error: "#c0392b", errorBg: "#fdf2f2",
 };
 
+function formatDateTime(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  return d.toLocaleString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
 async function fetchPriceData(rawIdentifier) {
   const res = await api.get(`/price/get?identifier=${encodeURIComponent(rawIdentifier)}`);
   return res.data;
@@ -23,6 +33,9 @@ export default function EditPrice() {
 
   const [form, setForm] = useState({ mrp: "", sellingPrice: "", costPrice: "", effectiveFrom: "" });
   const [identifier, setIdentifier] = useState("");
+  const [auditInfo, setAuditInfo] = useState({
+    createdBy: "", createdAt: "", modifiedBy: "", modifiedAt: "",
+  });
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -47,6 +60,12 @@ export default function EditPrice() {
             sellingPrice: data.sellingPrice ?? "",
             costPrice: data.costPrice ?? "",
             effectiveFrom: data.effectiveFrom ?? "",
+          });
+          setAuditInfo({
+            createdBy: data.createdBy,
+            createdAt: data.createdAt,
+            modifiedBy: data.modifiedBy,
+            modifiedAt: data.modifiedAt,
           });
         }
       })
@@ -79,6 +98,7 @@ export default function EditPrice() {
     <EditPriceView
       form={form}
       identifier={identifier}
+      auditInfo={auditInfo}
       fetching={fetching}
       error={error}
       success={success}
@@ -92,12 +112,13 @@ export default function EditPrice() {
   );
 }
 
-function EditPriceView({ form, identifier, fetching, error, success, loading, fieldErrors, isSidebarOpen, router, handleChange, handleSubmit }) {
+function EditPriceView({ form, identifier, auditInfo, fetching, error, success, loading, fieldErrors, isSidebarOpen, router, handleChange, handleSubmit }) {
   const headerSection = renderHeader(router, identifier, fetching);
   const alertsSection = (error || success) ? renderAlerts(error, success) : null;
   const contentSection = fetching
     ? renderLoading()
     : renderForm(identifier, form, fieldErrors, handleChange, handleSubmit, loading, router);
+  const auditSection = fetching ? null : renderAuditFooter(auditInfo);
 
   return (
     <div style={{
@@ -132,6 +153,7 @@ function EditPriceView({ form, identifier, fetching, error, success, loading, fi
         }}>
           {alertsSection}
           {contentSection}
+          {auditSection}
         </div>
       </div>
     </div>
@@ -314,9 +336,79 @@ function renderForm(identifier, form, fieldErrors, handleChange, handleSubmit, l
   );
 }
 
+function AuditCard({ heading, accent, rows }) {
+  return (
+    <div style={{
+      flex: "1 1 200px",
+      background: C.white, border: "1.5px solid #e8eaf0",
+      borderRadius: "8px", padding: "12px 16px",
+    }}>
+      <div style={{
+        fontSize: "11px", fontWeight: "700", color: accent,
+        textTransform: "uppercase", letterSpacing: "0.5px",
+        marginBottom: "8px",
+      }}>
+        {heading}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {rows.map(({ label, value }) => (
+          <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+            <span style={{ fontSize: "12px", color: C.muted }}>{label}</span>
+            <span style={{ fontSize: "13px", fontWeight: "600", color: C.text }}>{value || "—"}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+AuditCard.propTypes = {
+  heading: PropTypes.string.isRequired,
+  accent: PropTypes.string.isRequired,
+  rows: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    value: PropTypes.string,
+  })).isRequired,
+};
+
+function renderAuditFooter(auditInfo) {
+  return (
+    <div style={{
+      margin: "4px 28px 24px", padding: "14px",
+      background: C.offWhite, border: "1.5px solid #e8eaf0",
+      borderRadius: "10px",
+    }}>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+        <AuditCard
+          heading="Created"
+          accent={C.mid}
+          rows={[
+            { label: "By", value: auditInfo.createdBy },
+            { label: "At", value: formatDateTime(auditInfo.createdAt) },
+          ]}
+        />
+        <AuditCard
+          heading="Last Modified"
+          accent={C.navy}
+          rows={[
+            { label: "By", value: auditInfo.modifiedBy },
+            { label: "At", value: formatDateTime(auditInfo.modifiedAt) },
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
 EditPriceView.propTypes = {
   form: PropTypes.object.isRequired,
   identifier: PropTypes.string,
+  auditInfo: PropTypes.shape({
+    createdBy: PropTypes.string,
+    createdAt: PropTypes.string,
+    modifiedBy: PropTypes.string,
+    modifiedAt: PropTypes.string,
+  }).isRequired,
   fetching: PropTypes.bool.isRequired,
   error: PropTypes.string,
   success: PropTypes.string,

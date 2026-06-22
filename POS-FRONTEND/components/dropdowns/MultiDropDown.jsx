@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import { useDropdownPosition, useDropdownOptions, dropdownStyles, DropdownMenu } from "./DropdownShared";
+import { useDropdownPosition, useDropdownOptions, dropdownStyles, DropdownChevron, DropdownMenu } from "./DropdownShared";
 
 const P = "md2";
 
@@ -78,10 +78,11 @@ export default function MultiDropDown({
               ? selectedValues.map((v) => options.find((o) => o.value === v)?.label).filter(Boolean).join(", ")
               : <span style={{ color: "#9ca3af" }}>Select…</span>}
           </span>
-          <DropdownMenu prefix={P} isOpen={isOpen} menuPos={menuPos} label={label}>
-            {optionItems}
-          </DropdownMenu>
+          <DropdownChevron prefix={P} isOpen={isOpen} />
         </button>
+        <DropdownMenu prefix={P} isOpen={isOpen} menuPos={menuPos} label={label}>
+          {optionItems}
+        </DropdownMenu>
       </div>
     </>
   );

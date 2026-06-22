@@ -13,7 +13,8 @@ import {
   Settings, 
   Layers, 
   LogOut,
-  Receipt,
+  IndianRupee,
+  FileBox,
   Truck,
   UserCheck,
   CreditCard,
@@ -25,9 +26,9 @@ import {
   Boxes,
   Scale,     
   Columns4,   
-  Grid,        
-  DollarSign,  
+  Grid,          
   Network,
+  ClipboardList,
 } from 'lucide-react';
 
 export const SIDEBAR_WIDTH = "220px";
@@ -36,16 +37,18 @@ const getIconForNode = (identifier) => {
   const name = identifier?.toLowerCase() || "";
   const iconMap = [
     { match: n => n.includes("home"), icon: Home },
-    { match: n => n.includes("price model"), icon: DollarSign },
+    { match: n => n.includes("model"), icon: FileBox },
+    { match: n => n.includes("price"), icon: IndianRupee },
     { match: n => n.includes("rack"), icon: Columns4 },
     { match: n => n.includes("shelf") || n.includes("shelves"), icon: Grid },
     { match: n => n.includes("unit"), icon: Scale },
+    { match: n => n.includes("order"), icon: ClipboardList },
     { match: n => n.includes("inventory") || n.includes("stock"), icon: Package },
     { match: n => n.includes("product") || n.includes("item"), icon: Boxes },
     { match: n => n.includes("warehouse") || n.includes("store"), icon: Warehouse },
     { match: n => n.includes("category") || n.includes("tag") || n.includes("brand"), icon: Tags },
     { match: n => n.includes("pos") || n.includes("billing") || n.includes("checkout"), icon: ShoppingCart },
-    { match: n => n.includes("sale") || n.includes("order"), icon: Receipt },
+    { match: n => n.includes("sale") || n.includes("order"), icon: ShoppingCart },
     { match: n => n.includes("payment") || n.includes("transaction"), icon: CreditCard },
     { match: n => n.includes("history") || n.includes("log"), icon: History },
     { match: n => n.includes("customer"), icon: Users },

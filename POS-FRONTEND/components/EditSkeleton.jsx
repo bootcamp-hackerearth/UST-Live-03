@@ -21,6 +21,16 @@ function useFieldChange(setData, setFieldErrors) {
   return handleChange;
 }
 
+function formatDateTime(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  return d.toLocaleString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
 export function PageShell({ isSidebarOpen, children }) {
   return (
     <div style={{
@@ -34,7 +44,7 @@ export function PageShell({ isSidebarOpen, children }) {
       {children}
     </div>
   );
-} 
+}
 
 export function PageHeader({ onBack, backLabel = "← Back", title, subtitle }) {
   return (
@@ -91,6 +101,77 @@ function FieldError({ error }) {
   return <span style={errText}>{error}</span>;
 }
 
+function AuditCard({ heading, accent, rows }) {
+  return (
+    <div style={{
+      flex: "1 1 200px",
+      background: C.white, border: "1.5px solid #e8eaf0",
+      borderRadius: "8px", padding: "12px 16px",
+    }}>
+      <div style={{
+        fontSize: "11px", fontWeight: "700", color: accent,
+        textTransform: "uppercase", letterSpacing: "0.5px",
+        marginBottom: "8px",
+      }}>
+        {heading}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {rows.map(({ label, value }) => (
+          <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+            <span style={{ fontSize: "12px", color: C.muted }}>{label}</span>
+            <span style={{ fontSize: "13px", fontWeight: "600", color: C.text }}>{value || "—"}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+AuditCard.propTypes = {
+  heading: PropTypes.string.isRequired,
+  accent: PropTypes.string.isRequired,
+  rows: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    value: PropTypes.string,
+  })).isRequired,
+};
+
+function AuditFooter({ createdBy, createdAt, modifiedBy, modifiedAt }) {
+  return (
+    <div style={{
+      margin: "4px 28px 24px", padding: "14px",
+      background: C.offWhite, border: "1.5px solid #e8eaf0",
+      borderRadius: "10px",
+    }}>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+        <AuditCard
+          heading="Created"
+          accent={C.mid}
+          rows={[
+            { label: "By", value: createdBy },
+            { label: "At", value: formatDateTime(createdAt) },
+          ]}
+        />
+        <AuditCard
+          heading="Last Modified"
+          accent={C.navy}
+          rows={[
+            { label: "By", value: modifiedBy },
+            { label: "At", value: formatDateTime(modifiedAt) },
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
+AuditFooter.propTypes = {
+  createdBy: PropTypes.string,
+  createdAt: PropTypes.string,
+  modifiedBy: PropTypes.string,
+  modifiedAt: PropTypes.string,
+};
+
 PageShell.propTypes = {
   isSidebarOpen: PropTypes.bool.isRequired,
   children: PropTypes.node.isRequired,
@@ -123,6 +204,9 @@ export default function EditFormSkeleton({
   const [identifierDisplay, setIdentifierDisplay] = useState("");
   const [recordId, setRecordId] = useState(null);
   const [extraData, setExtraData] = useState({});
+  const [auditInfo, setAuditInfo] = useState({
+    createdBy: "", createdAt: "", modifiedBy: "", modifiedAt: "",
+  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(true);
@@ -155,6 +239,12 @@ export default function EditFormSkeleton({
         const data = res.data;
         setIdentifierDisplay(data?.[identifierField]);
         setRecordId(data.id);
+        setAuditInfo({
+          createdBy: data.createdBy,
+          createdAt: data.createdAt,
+          modifiedBy: data.modifiedBy,
+          modifiedAt: data.modifiedAt,
+        });
         const prefilled = {};
         extraFields.forEach(field => {
           if (field.type !== "custom" && data[field.key] !== undefined) prefilled[field.key] = data[field.key];
@@ -250,122 +340,131 @@ export default function EditFormSkeleton({
             Loading {title} data…
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ padding: "20px 28px 24px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px 20px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                <label htmlFor="identifier" style={labelStyle}>Identifier</label>
-                <input
-                  style={{ ...inputStyle, background: C.offWhite, color: "#9ca3af", cursor: "not-allowed" }}
-                  id="identifier" type="text" value={identifierDisplay} disabled
-                />
+          <>
+            <form onSubmit={handleSubmit} style={{ padding: "20px 28px 24px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px 20px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                  <label htmlFor="identifier" style={labelStyle}>Identifier</label>
+                  <input
+                    style={{ ...inputStyle, background: C.offWhite, color: "#9ca3af", cursor: "not-allowed" }}
+                    id="identifier" type="text" value={identifierDisplay} disabled
+                  />
+                </div>
+
+                {extraFields.map(field => {
+                  let fieldElement = null;
+                  if (field.type === "custom") {
+                    fieldElement = (<>{field.component}<FieldError error={fieldErrors[field.key]} /></>);
+                  } else if (field.type === "select") {
+                    fieldElement = (
+                      <>
+                        <select
+                          id={field.key}
+                          style={{ ...inputStyle, ...(fieldErrors[field.key] ? inputErrorStyle : {}) }}
+                          value={extraData[field.key] ?? ""}
+                          onChange={e => handleExtraChange(field.key, e.target.value)}
+                        >
+                          <option value="">Select {field.label}</option>
+                          {field.options?.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                        <FieldError error={fieldErrors[field.key]} />
+                      </>
+                    );
+                  } else if (field.type === "multiselect") {
+                    fieldElement = (
+                      <>
+                        <div style={{
+                          display: "flex", flexWrap: "wrap", gap: "6px", padding: "8px",
+                          border: `1.5px solid ${fieldErrors[field.key] ? C.error : C.gray}`,
+                          borderRadius: "7px", background: "#fafafa", minHeight: "42px",
+                        }}>
+                          {field.options?.map(opt => {
+                            const isSelected = (extraData[field.key] || []).includes(opt.value);
+                            return (
+                              <button key={opt.value} type="button"
+                                onClick={() => handleMultiToggle(field.key, opt.value)}
+                                style={{
+                                  padding: "3px 11px", borderRadius: "20px", fontSize: "12px",
+                                  fontWeight: isSelected ? "600" : "500", cursor: "pointer",
+                                  border: `1.5px solid ${isSelected ? C.mid : C.gray}`,
+                                  background: isSelected ? `linear-gradient(135deg, ${C.navy}, ${C.mid})` : C.white,
+                                  color: isSelected ? "#fff" : "#374151",
+                                }}
+                              >
+                                {isSelected ? "✓ " : ""}{opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <FieldError error={fieldErrors[field.key]} />
+                      </>
+                    );
+                  } else {
+                    fieldElement = (
+                      <>
+                        <input
+                          id={field.key}
+                          style={{ ...inputStyle, ...(fieldErrors[field.key] ? inputErrorStyle : {}) }}
+                          type={field.type || "text"}
+                          placeholder={`Enter ${field.label}`}
+                          value={extraData[field.key] ?? ""}
+                          onChange={e => handleExtraChange(field.key, e.target.value)}
+                        />
+                        <FieldError error={fieldErrors[field.key]} />
+                      </>
+                    );
+                  }
+                  return (
+                    <div key={field.key} style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                      {field.type !== "custom" && (
+                        <label htmlFor={field.key} style={labelStyle}>{field.label}</label>
+                      )}
+                      {fieldElement}
+                    </div>
+                  );
+                })}
               </div>
 
-              {extraFields.map(field => {
-                let fieldElement = null;
-                if (field.type === "custom") {
-                  fieldElement = (<>{field.component}<FieldError error={fieldErrors[field.key]} /></>);
-                } else if (field.type === "select") {
-                  fieldElement = (
-                    <>
-                      <select
-                        id={field.key}
-                        style={{ ...inputStyle, ...(fieldErrors[field.key] ? inputErrorStyle : {}) }}
-                        value={extraData[field.key] ?? ""}
-                        onChange={e => handleExtraChange(field.key, e.target.value)}
-                      >
-                        <option value="">Select {field.label}</option>
-                        {field.options?.map(opt => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                      <FieldError error={fieldErrors[field.key]} />
-                    </>
-                  );
-                } else if (field.type === "multiselect") {
-                  fieldElement = (
-                    <>
-                      <div style={{
-                        display: "flex", flexWrap: "wrap", gap: "6px", padding: "8px",
-                        border: `1.5px solid ${fieldErrors[field.key] ? C.error : C.gray}`,
-                        borderRadius: "7px", background: "#fafafa", minHeight: "42px",
-                      }}>
-                        {field.options?.map(opt => {
-                          const isSelected = (extraData[field.key] || []).includes(opt.value);
-                          return (
-                            <button key={opt.value} type="button"
-                              onClick={() => handleMultiToggle(field.key, opt.value)}
-                              style={{
-                                padding: "3px 11px", borderRadius: "20px", fontSize: "12px",
-                                fontWeight: isSelected ? "600" : "500", cursor: "pointer",
-                                border: `1.5px solid ${isSelected ? C.mid : C.gray}`,
-                                background: isSelected ? `linear-gradient(135deg, ${C.navy}, ${C.mid})` : C.white,
-                                color: isSelected ? "#fff" : "#374151",
-                              }}
-                            >
-                              {isSelected ? "✓ " : ""}{opt.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <FieldError error={fieldErrors[field.key]} />
-                    </>
-                  );
-                } else {
-                  fieldElement = (
-                    <>
-                      <input
-                        id={field.key}
-                        style={{ ...inputStyle, ...(fieldErrors[field.key] ? inputErrorStyle : {}) }}
-                        type={field.type || "text"}
-                        placeholder={`Enter ${field.label}`}
-                        value={extraData[field.key] ?? ""}
-                        onChange={e => handleExtraChange(field.key, e.target.value)}
-                      />
-                      <FieldError error={fieldErrors[field.key]} />
-                    </>
-                  );
-                }
-                return (
-                  <div key={field.key} style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                    {field.type !== "custom" && (
-                      <label htmlFor={field.key} style={labelStyle}>{field.label}</label>
-                    )}
-                    {fieldElement}
-                  </div>
-                );
-              })}
-            </div>
+              <div style={{
+                display: "flex", justifyContent: "flex-end",
+                gap: "10px", marginTop: "24px",
+                paddingTop: "18px", borderTop: "1.5px solid #e8eaf0",
+              }}>
+                <button
+                  type="button" onClick={() => router.back()}
+                  style={{
+                    padding: "9px 24px", borderRadius: "7px",
+                    border: "1.5px solid #e8eaf0",
+                    background: "#ffffff", color: "#374151",
+                    fontSize: "13px", fontWeight: "600", cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit" disabled={submitting}
+                  style={{
+                    padding: "9px 28px", borderRadius: "7px", border: "none",
+                    background: submitting ? "#c4c8d4" : `linear-gradient(135deg, ${C.navy}, ${C.mid})`,
+                    color: "#fff", fontSize: "13px",
+                    fontWeight: "600", cursor: submitting ? "not-allowed" : "pointer",
+                    boxShadow: submitting ? "none" : "0 3px 10px rgba(54,57,85,0.25)",
+                  }}
+                >
+                  {submitting ? "Saving…" : `Update ${title}`}
+                </button>
+              </div>
+            </form>
 
-            <div style={{
-              display: "flex", justifyContent: "flex-end",
-              gap: "10px", marginTop: "24px",
-              paddingTop: "18px", borderTop: "1.5px solid #e8eaf0",
-            }}>
-              <button
-                type="button" onClick={() => router.back()}
-                style={{
-                  padding: "9px 24px", borderRadius: "7px",
-                  border: "1.5px solid #e8eaf0",
-                  background: "#ffffff", color: "#374151",
-                  fontSize: "13px", fontWeight: "600", cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit" disabled={submitting}
-                style={{
-                  padding: "9px 28px", borderRadius: "7px", border: "none",
-                  background: submitting ? "#c4c8d4" : `linear-gradient(135deg, ${C.navy}, ${C.mid})`,
-                  color: "#fff", fontSize: "13px",
-                  fontWeight: "600", cursor: submitting ? "not-allowed" : "pointer",
-                  boxShadow: submitting ? "none" : "0 3px 10px rgba(54,57,85,0.25)",
-                }}
-              >
-                {submitting ? "Saving…" : `Update ${title}`}
-              </button>
-            </div>
-          </form>
+            <AuditFooter
+              createdBy={auditInfo.createdBy}
+              createdAt={auditInfo.createdAt}
+              modifiedBy={auditInfo.modifiedBy}
+              modifiedAt={auditInfo.modifiedAt}
+            />
+          </>
         )}
       </PageCard>
     </PageShell>

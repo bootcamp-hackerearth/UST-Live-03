@@ -98,20 +98,25 @@ export function dropdownStyles(p) {
   `;
 }
 
+export function DropdownChevron({ prefix, isOpen }) {
+  return <span className={`${prefix}-chevron${isOpen ? " open" : ""}`}>▼</span>;
+}
+
+DropdownChevron.propTypes = {
+  prefix: PropTypes.string.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+};
+
 export function DropdownMenu({ prefix, isOpen, menuPos, label, children }) {
+  if (!isOpen) return null;
   return (
-    <>
-      <span className={`${prefix}-chevron${isOpen ? " open" : ""}`}>▼</span>
-      {isOpen && (
-        <div
-          className={`${prefix}-menu`}
-          style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
-          aria-label={`${label} options`}
-        >
-          {children}
-        </div>
-      )}
-    </>
+    <div
+      className={`${prefix}-menu`}
+      style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
+      aria-label={`${label} options`}
+    >
+      {children}
+    </div>
   );
 }
 

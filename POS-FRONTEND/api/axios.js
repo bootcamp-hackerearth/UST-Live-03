@@ -25,9 +25,19 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const isAuthEndpoint = error.config?.url === "/authenticate";
-    if (!isAuthEndpoint && (error.response?.status === 401 || error.response?.status === 403)) {
-      localStorage.removeItem("token");
-      globalThis.location.href = "/login";
+    const status = error.response?.status;
+
+    if (!isAuthEndpoint && (status === 401 || status === 403)) {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        globalThis.location.href = "/login";
+        return Promise.reject(error);
+      }
+      if (status === 401) {
+        localStorage.removeItem("token");
+        globalThis.location.href = "/login";
+        return Promise.reject(error);
+      }
     }
     return Promise.reject(error);
   }

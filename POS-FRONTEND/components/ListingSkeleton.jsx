@@ -6,42 +6,281 @@ import api from "@/api/axios";
 import {
   useSidebarOpen,
   usePageNavigation,
-  thStyle, tdStyle, paginationBtn,
 } from "@/components/ListingShared";
 
 const C = {
-  navy: "#363955", mid: "#54668E", light: "#879EC6",
-  text: "#1e2235", muted: "#6b7280",
+  navy: "#363955",
+  mid: "#54668E",
+  light: "#879EC6",
+  text: "#1e2235",
+  muted: "#6b7280",
+  bg: "#f4f5f9",
+  border: "#e4e6ef",
+  rowHover: "#f8f9fc",
 };
 
+/* ── Shared cell styles ── */
+const th = {
+  padding: "10px 14px",
+  fontSize: "11px",
+  fontWeight: "700",
+  color: C.mid,
+  textTransform: "uppercase",
+  letterSpacing: "0.06em",
+  textAlign: "left",
+  whiteSpace: "nowrap",
+  background: "#f4f5f9",
+  borderBottom: `1.5px solid ${C.border}`,
+};
+
+const td = {
+  padding: "10px 14px",
+  fontSize: "13px",
+  color: C.text,
+  verticalAlign: "middle",
+  borderBottom: `1px solid ${C.border}`,
+  whiteSpace: "nowrap",
+};
+
+/* ── Action buttons ── */
+const actionBtn = (variant) => ({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "4px",
+  padding: variant === "delete" ? "6px 8px" : "6px 12px",
+  borderRadius: "5px",
+  fontSize: variant === "delete" ? "13px" : "12px",
+  fontWeight: "600",
+  cursor: "pointer",
+  lineHeight: 1.4,
+  transition: "all 0.12s",
+  minWidth: variant === "delete" ? "auto" : "auto",
+  ...(variant === "edit"
+    ? {
+      background: "#ffffff",
+      border: `1.5px solid ${C.mid}`,
+      color: C.mid,
+    }
+    : {
+      background: "#ffffff",
+      border: "1.5px solid #dc2626",
+      color: "#dc2626",
+      padding: "6px 8px",
+    }),
+});
+
+/* ── Pagination button ── */
+const pgBtn = (disabled, active) => ({
+  minWidth: "28px",
+  height: "28px",
+  padding: "0 6px",
+  borderRadius: "5px",
+  border: `1.5px solid ${active ? C.navy : C.border}`,
+  background: active ? C.navy : "#fff",
+  color: active ? "#fff" : disabled ? "#cbd5e1" : C.text,
+  fontSize: "12px",
+  fontWeight: "600",
+  cursor: disabled ? "not-allowed" : "pointer",
+  opacity: disabled ? 0.5 : 1,
+  transition: "all 0.12s",
+});
+
+/* ── Delete Confirmation Modal ── */
+function DeleteConfirmationModal({ isOpen, itemName, onConfirm, onCancel }) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+        animation: "fadeIn 0.2s ease-out",
+      }}
+      onClick={onCancel}
+    >
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <div
+        style={{
+          background: "#ffffff",
+          borderRadius: "12px",
+          padding: "32px 36px",
+          maxWidth: "420px",
+          width: "90%",
+          boxShadow: "0 10px 40px rgba(54, 57, 85, 0.15)",
+          border: `1.5px solid ${C.border}`,
+          animation: "slideUp 0.3s ease-out",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        
+
+        {/* Title */}
+        <h3
+          style={{
+            margin: "0 0 8px 0",
+            fontSize: "18px",
+            fontWeight: "700",
+            color: C.navy,
+          }}
+        >
+          Delete Item
+        </h3>
+
+        {/* Message */}
+        <p
+          style={{
+            margin: "0 0 24px 0",
+            fontSize: "14px",
+            color: C.muted,
+            lineHeight: 1.6,
+          }}
+        >
+          Are you sure you want to delete{" "}
+          <span style={{ fontWeight: "700", color: C.text }}>"{itemName}"</span>
+          ? This action cannot be undone.
+        </p>
+
+        {/* Buttons */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            onClick={onCancel}
+            style={{
+              padding: "8px 20px",
+              background: "#f3f4f6",
+              border: `1.5px solid ${C.border}`,
+              borderRadius: "6px",
+              fontSize: "13px",
+              fontWeight: "600",
+              color: C.text,
+              cursor: "pointer",
+              transition: "all 0.12s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#e5e7eb";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#f3f4f6";
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: "8px 20px",
+              background: "#dc2626",
+              border: "1.5px solid #dc2626",
+              borderRadius: "6px",
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#ffffff",
+              cursor: "pointer",
+              transition: "all 0.12s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#b91c1c";
+              e.currentTarget.style.borderColor = "#b91c1c";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#dc2626";
+              e.currentTarget.style.borderColor = "#dc2626";
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ListingSkeleton({
-  title, fields, apis, addPath, editPathBase,
-  paramKey = "identifier", identifierLabel = "Identifier", deleteStyle = "path",
+  title,
+  fields,
+  apis,
+  addPath,
+  editPathBase,
+  paramKey = "identifier",
+  identifierLabel = "Identifier",
+  deleteStyle = "path",
 }) {
   const router = useRouter();
-  const isSidebarOpen = useSidebarOpen(); 
+  const isSidebarOpen = useSidebarOpen();
 
-  const [data, setData]             = useState([]);
+  const [data, setData] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [pagination, setPagination] = useState({
-    page: 0, sizePerPage: 5, sortDirection: "ASC", sortField: "id",
+    page: 0,
+    sizePerPage: 5,
+    sortDirection: "ASC",
+    sortField: "id",
   });
 
-  const { currentPage, goToPage, getVisiblePages } = usePageNavigation(pagination, setPagination);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemName: "",
+    itemData: null,
+  });
+
+  const { currentPage, goToPage, getVisiblePages } = usePageNavigation(
+    pagination,
+    setPagination
+  );
 
   const loadList = useCallback(async () => {
     try {
       if (searchTerm.trim()) {
-        const res = await api.post(apis.list, { ...pagination, page: 0, sizePerPage: 1000 });
-        const allData = Array.isArray(res.data) ? res.data : (res.data.dtoList ?? []);
-        const escapedSearch = searchTerm.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-        const regex = new RegExp(String.raw`\b${escapedSearch}`, "i");
+        const res = await api.post(apis.list, {
+          ...pagination,
+          page: 0,
+          sizePerPage: 1000,
+        });
+        const allData = Array.isArray(res.data)
+          ? res.data
+          : res.data.dtoList ?? [];
+        const escaped = searchTerm.replaceAll(
+          /[.*+?^${}()|[\]\\]/g,
+          String.raw`\$&`
+        );
+        const regex = new RegExp(String.raw`\b${escaped}`, "i");
         const filtered = allData.filter((item) => {
           const idMatch = regex.test(String(item[paramKey] ?? ""));
           const fieldMatch = fields.some((f) => {
             const v = item[f];
-            return regex.test(Array.isArray(v) ? v.join(" ") : String(v ?? ""));
+            return regex.test(
+              Array.isArray(v) ? v.join(" ") : String(v ?? "")
+            );
           });
           return idMatch || fieldMatch;
         });
@@ -62,17 +301,43 @@ export default function ListingSkeleton({
     }
   }, [apis.list, pagination, searchTerm, fields, paramKey]);
 
-  useEffect(() => { loadList(); }, [loadList]);
-
-  async function handleDelete(row) {
-    const value = row[paramKey];
-    const { showConfirm } = await import("@/utils/browser");
-    if (!showConfirm(`Delete "${value}"? This cannot be undone.`)) return;
-    const url = deleteStyle === "param"
-      ? `${apis.delete}?${paramKey}=${value}`
-      : `${apis.delete}/${value}`;
-    await api.get(url);
+  useEffect(() => {
     loadList();
+  }, [loadList]);
+
+  function openDeleteModal(row) {
+    setDeleteModal({
+      isOpen: true,
+      itemName: row[paramKey],
+      itemData: row,
+    });
+  }
+
+  function closeDeleteModal() {
+    setDeleteModal({
+      isOpen: false,
+      itemName: "",
+      itemData: null,
+    });
+  }
+
+  async function confirmDelete() {
+    if (!deleteModal.itemData) return;
+
+    try {
+      const row = deleteModal.itemData;
+      const value = row[paramKey];
+      const url =
+        deleteStyle === "param"
+          ? `${apis.delete}?${paramKey}=${value}`
+          : `${apis.delete}/${value}`;
+      await api.get(url);
+      closeDeleteModal();
+      loadList();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") console.log(err);
+      closeDeleteModal();
+    }
   }
 
   async function handleToggle(row) {
@@ -83,167 +348,300 @@ export default function ListingSkeleton({
   const visiblePages = getVisiblePages(totalPages);
 
   return (
-    <div style={{
-      position: "fixed", top: "60px", right: 0, bottom: 0,
-      left: isSidebarOpen ? "220px" : "55px",
-      backgroundColor: "#ffffff", fontFamily: "'Segoe UI', sans-serif",
-      display: "flex", flexDirection: "column",
-      overflow: "hidden", transition: "left 0.2s ease",
-    }}>
-      {/* ── Toolbar ── */}
-      <div style={{
-        background: "#ffffff", padding: "16px 28px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexShrink: 0, borderBottom: "1.5px solid #e8eaf0",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-          <button
-            onClick={() => router.push("/home")}
-            style={{
-              background: "#ffffff", border: `1.5px solid ${C.mid}`,
-              color: C.mid, borderRadius: "7px",
-              padding: "5px 14px", fontSize: "12px", fontWeight: "600", cursor: "pointer",
-            }}
-          >
-            ← Home
-          </button>
-          <div style={{ width: "1px", height: "22px", background: "#e8eaf0" }} />
-          <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: C.navy, letterSpacing: "0.1px" }}>
-            {title}
-          </h2>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <input
-            type="text"
-            placeholder={`Search ${title}...`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              padding: "7px 14px", background: "#f7f8fc",
-              border: "1.5px solid #e8eaf0", borderRadius: "7px",
-              fontSize: "13px", color: C.text, outline: "none", width: "240px",
-            }}
-          />
-          <button
-            onClick={() => router.push(addPath)}
-            style={{
-              padding: "7px 20px",
-              background: `linear-gradient(135deg, ${C.navy}, ${C.mid})`,
-              color: "#fff", border: "none", borderRadius: "7px",
-              fontSize: "13px", fontWeight: "700", cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(54,57,85,0.20)",
-            }}
-          >
-            + Add {title}
-          </button>
-        </div>
-      </div>
-
-      <div style={{ flex: 1, overflow: "auto", padding: "24px 32px", display: "flex", flexDirection: "column" }}>
-        <div style={{
-          flex: 1, display: "flex", flexDirection: "column",
-          background: "#ffffff", borderRadius: "12px",
-          boxShadow: "0 1px 12px rgba(54,57,85,0.07)",
-          border: "1.5px solid #e8eaf0", overflow: "hidden",
-        }}>
-          <div style={{ flex: 1, overflowY: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#f7f8fc" }}>
-                  <th style={thStyle}>{identifierLabel}</th>
-                  {fields.map((f) => (
-                    <th key={f} style={thStyle}>{f.charAt(0).toUpperCase() + f.slice(1)}</th>
-                  ))}
-                  <th style={thStyle}>Status</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.length === 0 ? (
-                  <tr>
-                    <td colSpan={fields.length + 3} style={{ textAlign: "center", padding: "64px", color: C.light, fontSize: "13px" }}>
-                      No records found.
-                    </td>
-                  </tr>
-                ) : (
-                  data.map((row) => (
-                    <tr
-                      key={row[paramKey]}
-                      style={{ borderBottom: "1px solid #f0f1f6", background: "#ffffff", transition: "background 0.12s" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "#f7f8fc"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "#ffffff"; }}
-                    >
-                      <td style={tdStyle}>
-                        <span style={{ fontWeight: "600", color: C.navy, fontSize: "13px" }}>{row[paramKey]}</span>
-                      </td>
-                      {fields.map((f) => (
-                        <td key={f} style={tdStyle}>
-                          {Array.isArray(row[f]) ? row[f].join(", ") : row[f]}
-                        </td>
-                      ))}
-                      <td style={tdStyle}>
-                        <button
-                          onClick={() => handleToggle(row)}
-                          style={{
-                            padding: "4px 14px", borderRadius: "20px", border: "none",
-                            fontSize: "11px", fontWeight: "700", cursor: "pointer",
-                            background: row.status ? `linear-gradient(135deg, ${C.navy}, ${C.mid})` : "#e5e7eb",
-                            color: row.status ? "#fff" : "#9ca3af",
-                          }}
-                        >
-                          {row.status ? "Active" : "Inactive"}
-                        </button>
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: "right" }}>
-                        <button
-                          onClick={() => router.push(editPathBase + row[paramKey])}
-                          style={{
-                            marginRight: "8px", padding: "5px 16px", borderRadius: "6px",
-                            background: "#ffffff", border: `1.5px solid ${C.mid}`,
-                            color: C.mid, fontSize: "12px", fontWeight: "600", cursor: "pointer",
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(row)}
-                          style={{
-                            padding: "5px 16px", borderRadius: "6px",
-                            background: "#ffffff", border: "1.5px solid #dc2626",
-                            color: "#dc2626", fontSize: "12px", fontWeight: "600", cursor: "pointer",
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+    <>
+      <div
+        style={{
+          position: "fixed",
+          top: "60px",
+          right: 0,
+          bottom: 0,
+          left: isSidebarOpen ? "220px" : "55px",
+          backgroundColor: C.bg,
+          fontFamily: "'Segoe UI', sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          transition: "left 0.2s ease",
+        }}
+      >
+        {/* ── Toolbar ── */}
+        <div
+          style={{
+            background: "#ffffff",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+            borderBottom: `1.5px solid ${C.border}`,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              onClick={() => router.push("/home")}
+              style={{
+                background: "#ffffff",
+                border: `1.5px solid ${C.mid}`,
+                color: C.mid,
+                borderRadius: "6px",
+                padding: "5px 12px",
+                fontSize: "12px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              ← Home
+            </button>
+            <div style={{ width: "1px", height: "20px", background: C.border }} />
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "16px",
+                fontWeight: "700",
+                color: C.navy,
+              }}
+            >
+              {title}
+            </h2>
           </div>
 
-          {searchTerm.trim() === "" && totalPages > 1 && visiblePages.length > 0 && (
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "flex-end",
-              gap: "6px", padding: "12px 24px",
-              borderTop: "1.5px solid #e8eaf0", background: "#ffffff", flexShrink: 0,
-            }}>
-              <span style={{ fontSize: "12px", color: C.muted, marginRight: "8px" }}>
-                Page {currentPage + 1} of {totalPages}
-              </span>
-              <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 0} style={paginationBtn(currentPage === 0, false)}>‹</button>
-              {visiblePages.map((pageIndex) => (
-                <button key={`page-${pageIndex}`} onClick={() => goToPage(pageIndex)} style={paginationBtn(false, currentPage === pageIndex)}>
-                  {pageIndex + 1}
-                </button>
-              ))}
-              <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages - 1} style={paginationBtn(currentPage === totalPages - 1, false)}>›</button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <input
+              type="text"
+              placeholder={`Search ${title}...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                padding: "6px 12px",
+                background: "#f7f8fc",
+                border: `1.5px solid ${C.border}`,
+                borderRadius: "6px",
+                fontSize: "12px",
+                color: C.text,
+                outline: "none",
+                width: "220px",
+              }}
+            />
+            <button
+              onClick={() => router.push(addPath)}
+              style={{
+                padding: "6px 16px",
+                background: `linear-gradient(135deg, ${C.navy}, ${C.mid})`,
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                fontSize: "12px",
+                fontWeight: "700",
+                cursor: "pointer",
+                boxShadow: "0 2px 6px rgba(54,57,85,0.20)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              + Add {title}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Content ── */}
+        <div
+          style={{
+            flex: 1,
+            overflow: "auto",
+            padding: "20px 24px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: "10px",
+              boxShadow: "0 1px 8px rgba(54,57,85,0.07)",
+              border: `1.5px solid ${C.border}`,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              flex: 1,
+            }}
+          >
+            <div style={{ overflowX: "auto", flex: 1 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={th}>{identifierLabel}</th>
+                    {fields.map((f) => (
+                      <th key={f} style={th}>
+                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                      </th>
+                    ))}
+                    <th style={th}>Status</th>
+                    <th style={{ ...th, textAlign: "center" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={fields.length + 3}
+                        style={{
+                          textAlign: "center",
+                          padding: "56px",
+                          color: C.light,
+                          fontSize: "13px",
+                        }}
+                      >
+                        No records found.
+                      </td>
+                    </tr>
+                  ) : (
+                    data.map((row) => (
+                      <tr
+                        key={row[paramKey]}
+                        style={{ background: "#ffffff", transition: "background 0.1s" }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = C.rowHover;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#ffffff";
+                        }}
+                      >
+                        <td style={td}>
+                          <span
+                            style={{
+                              fontWeight: "700",
+                              color: C.navy,
+                              fontSize: "13px",
+                            }}
+                          >
+                            {row[paramKey]}
+                          </span>
+                        </td>
+                        {fields.map((f) => (
+                          <td key={f} style={td}>
+                            {Array.isArray(row[f])
+                              ? row[f].join(", ")
+                              : row[f]}
+                          </td>
+                        ))}
+
+                        {/* Status toggle */}
+                        <td style={td}>
+                          <button
+                            onClick={() => handleToggle(row)}
+                            style={{
+                              padding: "3px 12px",
+                              borderRadius: "20px",
+                              border: "none",
+                              fontSize: "11px",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              background: row.status
+                                ? `linear-gradient(135deg, ${C.navy}, ${C.mid})`
+                                : "#e5e7eb",
+                              color: row.status ? "#fff" : "#9ca3af",
+                            }}
+                          >
+                            {row.status ? "Active" : "Inactive"}
+                          </button>
+                        </td>
+
+                        {/* Actions — compact inline with improved alignment */}
+                        <td style={{ ...td, textAlign: "center" }}>
+                          <div
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <button
+                              onClick={() =>
+                                router.push(editPathBase + row[paramKey])
+                              }
+                              style={actionBtn("edit")}
+                              title="Edit"
+                            >
+                              ✎
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(row)}
+                              style={actionBtn("delete")}
+                              title="Delete"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          )}
+
+            {/* Pagination */}
+            {searchTerm.trim() === "" &&
+              totalPages > 1 &&
+              visiblePages.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    gap: "4px",
+                    padding: "10px 20px",
+                    borderTop: `1.5px solid ${C.border}`,
+                    background: "#ffffff",
+                    flexShrink: 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: C.muted,
+                      marginRight: "8px",
+                    }}
+                  >
+                    Page {currentPage + 1} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 0}
+                    style={pgBtn(currentPage === 0, false)}
+                  >
+                    ‹
+                  </button>
+                  {visiblePages.map((pageIndex) => (
+                    <button
+                      key={`page-${pageIndex}`}
+                      onClick={() => goToPage(pageIndex)}
+                      style={pgBtn(false, currentPage === pageIndex)}
+                    >
+                      {pageIndex + 1}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages - 1}
+                    style={pgBtn(currentPage === totalPages - 1, false)}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        itemName={deleteModal.itemName}
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteModal}
+      />
+    </>
   );
 }
 

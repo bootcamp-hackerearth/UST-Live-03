@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import { useDropdownPosition, useDropdownOptions, dropdownStyles, DropdownMenu } from "./DropdownShared";
+import { useDropdownPosition, useDropdownOptions, dropdownStyles, DropdownChevron, DropdownMenu } from "./DropdownShared";
 
 const P = "sd2";
 
@@ -31,7 +31,7 @@ export default function SingleDropdown({
   };
 
   if (loading) {
-    return <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "6px" }}>Loading {label}…</p>;
+    return <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "6px" }}>Loading {label}...</p>;
   }
 
   const optionItems = options.length === 0
@@ -65,12 +65,13 @@ export default function SingleDropdown({
         <span>
           {selectedValue
             ? options.find((o) => o.value === selectedValue)?.label ?? selectedValue
-            : <span style={{ color: "#9ca3af" }}>Select…</span>}
+            : <span style={{ color: "#9ca3af" }}>Select...</span>}
         </span>
-        <DropdownMenu prefix={P} isOpen={isOpen} menuPos={menuPos} label={label}>
-          {optionItems}
-        </DropdownMenu>
+        <DropdownChevron prefix={P} isOpen={isOpen} />
       </button>
+      <DropdownMenu prefix={P} isOpen={isOpen} menuPos={menuPos} label={label}>
+        {optionItems}
+      </DropdownMenu>
     </div>
   );
 }
