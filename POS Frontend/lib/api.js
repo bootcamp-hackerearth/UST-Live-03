@@ -1,11 +1,30 @@
 "use client";
 
-import logger from "./logger";
 import { STORAGE_KEYS, HTTP_STATUS, ERROR_MESSAGES, PATHS } from "@/config/constants";
 
 export const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-export const getToken = () => logger.getStorageItem(STORAGE_KEYS.TOKEN) ?? null;
+const getStorageItem = (key) => {
+  try {
+    if (globalThis.window?.localStorage) {
+      return globalThis.window.localStorage.getItem(key);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const removeStorageItem = (key) => {
+  try {
+    if (globalThis.window?.localStorage) {
+      globalThis.window.localStorage.removeItem(key);
+    }
+  } catch {
+  }
+};
+
+export const getToken = () => getStorageItem(STORAGE_KEYS.TOKEN) ?? null;
 
 export const authHeaders = () => ({
   Authorization: `Bearer ${getToken()}`,
@@ -13,54 +32,45 @@ export const authHeaders = () => ({
 });
 
 export const fetchWithAuth = async (url, options = {}) => {
-  try {
-    const fullUrl = `${BASE}${url}`;
-    const method = options.method || "GET";
+  const fullUrl = `${BASE}${url}`;
+  
+  const res = await fetch(fullUrl, {
+    ...options,
+    headers: options.headers
+      ? { ...authHeaders(), ...options.headers }
+      : authHeaders(),
+  });
+
+  if (res.status === HTTP_STATUS.UNAUTHORIZED) {
+    removeStorageItem(STORAGE_KEYS.TOKEN);
+    removeStorageItem(STORAGE_KEYS.USERNAME);
     
-    const res = await fetch(fullUrl, {
-      ...options,
-      headers: options.headers
-        ? { ...authHeaders(), ...options.headers }
-        : authHeaders(),
-    });
-
-    if (res.status === HTTP_STATUS.UNAUTHORIZED) {
-      logger.removeStorageItem(STORAGE_KEYS.TOKEN);
-      logger.removeStorageItem(STORAGE_KEYS.USERNAME);
-      
-      if (globalThis.window?.location) {
-        globalThis.window.location.href = PATHS.LOGIN;
-      }
-      throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
+    if (globalThis.window?.location) {
+      globalThis.window.location.href = PATHS.LOGIN;
     }
-
-    if (!res.ok) {
-      let body;
-      try {
-        body = await res.json();
-      } catch {
-        body = null;
-      }
-      
-      const msg = body?.message || body || ERROR_MESSAGES.SERVER_ERROR;
-      const errorMessage = typeof msg === "string" ? msg : ERROR_MESSAGES.SERVER_ERROR;
-      
-      logger.apiError(url, method, res.status, errorMessage);
-      
-      throw Object.assign(
-        new Error(errorMessage),
-        { status: res.status, body },
-      );
-    }
-
-    logger.apiSuccess(url, method, res.status);
-    
-    const ct = res.headers.get("content-type") || "";
-    if (ct.includes("application/json")) return res.json();
-    return null;
-  } catch (error) {
-    throw error;
+    throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
   }
+
+  if (!res.ok) {
+    let body;
+    try {
+      body = await res.json();
+    } catch {
+      body = null;
+    }
+    
+    const msg = body?.message || body || ERROR_MESSAGES.SERVER_ERROR;
+    const errorMessage = typeof msg === "string" ? msg : ERROR_MESSAGES.SERVER_ERROR;
+    
+    throw Object.assign(
+      new Error(errorMessage),
+      { status: res.status, body },
+    );
+  }
+  
+  const ct = res.headers.get("content-type") || "";
+  if (ct.includes("application/json")) return res.json();
+  return null;
 };
 
 export const listRecords = (url, page = 0, size = 10) =>

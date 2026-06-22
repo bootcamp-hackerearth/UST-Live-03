@@ -3,9 +3,19 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import PropTypes from "prop-types";
-import logger from "@/lib/logger";
 import { BASE } from "@/lib/api";
 import { STORAGE_KEYS, PATHS } from "@/config/constants";
+
+const getStorageItem = (key) => {
+  try {
+    if (globalThis.window?.localStorage) {
+      return globalThis.window.localStorage.getItem(key);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
 
 const PATH_MAP = {
   "/brand/list": PATHS.BRANDS,
@@ -34,9 +44,8 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
     
     setLoading(true);
     try {
-      const token = logger.getStorageItem(STORAGE_KEYS.TOKEN);
+      const token = getStorageItem(STORAGE_KEYS.TOKEN);
       if (!token) {
-        logger.warn("No token available for fetching nodes", "Sidebar");
         return;
       }
 
@@ -48,7 +57,6 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
       });
 
       if (response.status === 401) {
-        logger.warn("Unauthorized access - redirecting to login", "Sidebar");
         if (globalThis.window !== undefined) {
           globalThis.window.location.href = PATHS.LOGIN;
         }
@@ -56,12 +64,6 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
       }
 
       if (!response.ok) {
-        logger.apiError(
-          "/api/nodes/getNodesForRoles",
-          "GET",
-          response.status,
-          `Failed to fetch nodes: ${response.statusText}`
-        );
         return;
       }
 
@@ -69,8 +71,7 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
       if (data && Array.isArray(data)) {
         setNodes(data);
       }
-    } catch (error) {
-      logger.error("Failed to fetch navigation nodes", error, "Sidebar.fetchNodes");
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -138,7 +139,6 @@ export default function Sidebar({ menuOpen, setMenuOpen }) {
             {nodes.length > 0 && !loading && (
               nodes.map((node) => {
                 if (!node?.path) {
-                  logger.warn("Invalid node in navigation", { node }, "Sidebar");
                   return null;
                 }
                 const mapped = PATH_MAP[node.path] ?? node.path;

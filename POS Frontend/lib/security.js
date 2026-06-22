@@ -1,4 +1,3 @@
-import logger from './logger';
 export const htmlEscape = (str) => {
   if (!str || typeof str !== 'string') return '';
   const map = {
@@ -9,7 +8,7 @@ export const htmlEscape = (str) => {
     "'": '&#39;',
     '/': '&#x2F;',
   };
-  return str.replace(/[&<>"']/g, (char) => map[char]);
+  return str.replaceAll(/[&<>"']/g, (char) => map[char]);
 };
 
 class RateLimiter {
@@ -28,12 +27,6 @@ class RateLimiter {
     record.count += 1;
     this.attempts.set(key, record);
     const allowed = record.count <= this.maxAttempts;
-    if (!allowed) {
-      logger.warn(`Rate limit exceeded for key: ${key}`, {
-        attempts: record.count,
-        maxAllowed: this.maxAttempts,
-      });
-    }
     return allowed;
   }
   reset(key) {
@@ -68,13 +61,13 @@ export const throttle = (func, limitMs = 1000) => {
 };
 export const validators = {
   email: (email) => {
-    if (!email || typeof email !== 'string') return false;
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || typeof email !== 'string' || email.length > 254) return false;
+    const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return re.test(email);
   },
   phone: (phone) => {
     if (!phone || typeof phone !== 'string') return false;
-    return /^\d{10}$/.test(phone.replace(/\D/g, ''));
+    return /^\d{10}$/.test(phone.replaceAll(/\D/g, ''));
   },
   passwordStrength: (password) =>
     password && typeof password === 'string' && password.length > 0,
@@ -105,8 +98,7 @@ export const validators = {
 export const safeJsonParse = (json, defaultValue = null) => {
   try {
     return JSON.parse(json);
-  } catch (error) {
-    logger.error('JSON parse error', error, 'safeJsonParse');
+  } catch {
     return defaultValue;
   }
 };

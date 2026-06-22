@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
-import logger from "@/lib/logger";
 import { fetchWithAuth } from "@/lib/api";
 
 function validateField(f, val) {
@@ -754,7 +753,6 @@ export default function CrudPage({ config }) {
     const updatedRecord = extractUpdatedRecord(response);
     
     if (updatedRecord) {
-      logger.info(`Updating with DTO response`, "handleToggle");
       setAllRecords((prev) =>
         prev.map((r) =>
           r[idKey] === recordId ? updatedRecord : r,
@@ -765,7 +763,6 @@ export default function CrudPage({ config }) {
 
     const isSuccessIndicator = typeof response === "boolean" || response === true || response === null;
     if (isSuccessIndicator && getEndpoint) {
-      logger.info(`Toggle returned non-DTO response, refetching from server`, "handleToggle");
       try {
         const refetchedRecord = await fetchWithAuth(getEndpoint(recordId));
         if (refetchedRecord) {
@@ -774,14 +771,9 @@ export default function CrudPage({ config }) {
               r[idKey] === recordId ? refetchedRecord : r,
             ),
           );
-        } else {
-          logger.warn(`Refetch failed, keeping optimistic update`, "handleToggle");
         }
-      } catch (refetchError) {
-        logger.error("Refetch failed in handleToggle", refetchError, "handleToggle");
+      } catch {
       }
-    } else if (!isSuccessIndicator) {
-      logger.info(`Keeping optimistic update with response: ${JSON.stringify(response)}`, "handleToggle");
     }
   };
 
@@ -798,7 +790,6 @@ export default function CrudPage({ config }) {
     
     const recordId = record[idKey];
     if (togglingRef.current.has(recordId)) {
-      logger.warn(`Toggle already in progress for ${recordId}`, "handleToggle");
       return;
     }
     
@@ -819,12 +810,10 @@ export default function CrudPage({ config }) {
         body: JSON.stringify({}),
       });
       
-      logger.info(`Toggle response for ${recordId}:`, response, "handleToggle");
       if (response) {
         await handleToggleResponse(recordId, response);
       }
-    } catch (error) {
-      logger.error("Toggle failed", error, "handleToggle");
+    } catch {
       setAllRecords((prev) =>
         prev.map((r) =>
           r[idKey] === recordId ? originalRecord : r,

@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import logger from "@/lib/logger";
 import { BASE } from "@/lib/api";
 import { validators } from "@/lib/security";
 import { PATHS, ERROR_MESSAGES } from "@/config/constants";
@@ -47,15 +46,13 @@ export default function Register() {
         });
         
         if (!res.ok) {
-          logger.apiError("/api/role/list", "POST", res.status, "Failed to fetch roles");
           return;
         }
         
         const data = await res.json();
         const rolesList = Array.isArray(data) ? data : (data?.dtoList ?? []);
         setRoles(rolesList);
-      } catch (err) {
-        logger.error("Failed to fetch roles", err, "register");
+      } catch {
       }
     };
     
@@ -107,18 +104,15 @@ export default function Register() {
           ? msg
           : ERROR_MESSAGES.VALIDATION_ERROR;
         setError(errorMsg);
-        logger.error("Registration failed", { status: res.status, data }, "register");
         return;
       }
       
-      logger.info("Registration successful", { username: user.username });
       router.push(PATHS.LOGIN);
     } catch (err) {
       const errorMsg = err instanceof TypeError ? 
         ERROR_MESSAGES.NETWORK_ERROR : 
         ERROR_MESSAGES.SERVER_ERROR;
       setError(errorMsg);
-      logger.error("Registration error", err, "register");
     } finally {
       setLoading(false);
     }

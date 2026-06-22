@@ -3,66 +3,82 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import CartPage from "@/components/CartPage";
-import logger from "@/lib/logger";
 import { BASE } from "@/lib/api";
 import { PATHS, ERROR_MESSAGES, STORAGE_KEYS } from "@/config/constants";
 
-const getToken = () => logger.getStorageItem(STORAGE_KEYS.TOKEN) ?? null;
+const getToken = () => {
+  try {
+    if (globalThis.window?.localStorage) {
+      return globalThis.window.localStorage.getItem(STORAGE_KEYS.TOKEN) ?? null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const setStorageItem = (key, value) => {
+  try {
+    if (globalThis.window?.localStorage) {
+      globalThis.window.localStorage.setItem(key, value);
+      return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+};
+
+const removeStorageItem = (key) => {
+  try {
+    if (globalThis.window?.localStorage) {
+      globalThis.window.localStorage.removeItem(key);
+      return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+};
+
+const getStorageItem = (key) => {
+  try {
+    if (globalThis.window?.localStorage) {
+      return globalThis.window.localStorage.getItem(key);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
 const authHeaders = () => ({
   Authorization: `Bearer ${getToken()}`,
   "Content-Type": "application/json",
 });
+
 async function apiFetch(url, opts = {}) {
-  try {
-    const method = opts.method || "GET";
-    const res = await fetch(`${BASE}${url}`, {
-      ...opts,
-      headers: { ...authHeaders(), ...opts.headers },
-    });
+  const res = await fetch(`${BASE}${url}`, {
+    ...opts,
+    headers: { ...authHeaders(), ...opts.headers },
+  });
 
-    if (res.status === 401) {
-      logger.warn("Unauthorized - redirecting to login", "CartRoute");
-      if (globalThis.window !== undefined) {
-        globalThis.window.location.href = PATHS.LOGIN;
-      }
-      throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
+  if (res.status === 401) {
+    if (globalThis.window !== undefined) {
+      globalThis.window.location.href = PATHS.LOGIN;
     }
-
-    const ct = res.headers.get("content-type") || "";
-    const body = ct.includes("application/json") ? await res.json() : null;
-
-    if (!res.ok) {
-  const errMsg = body?.message || `HTTP ${res.status}`;
-
-  if (
-    !(
-      res.status === 400 &&
-      errMsg.toLowerCase().includes("already exists")
-    )
-  ) {
-    logger.apiError(url, method, res.status, errMsg);
+    throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
   }
 
-  throw Object.assign(new Error(errMsg), { body, status: res.status });
-}
+  const ct = res.headers.get("content-type") || "";
+  const body = ct.includes("application/json") ? await res.json() : null;
 
-    logger.apiSuccess(url, method, res.status);
-    return body;
-  } catch (error) {
-  const isDuplicateCustomer =
-    error?.status === 400 &&
-    error?.message?.toLowerCase().includes("already exists");
-
-  if (!isDuplicateCustomer) {
-    logger.error(
-      `API fetch failed: ${opts.method || "GET"} ${url}`,
-      error,
-      "apiFetch"
-    );
+  if (!res.ok) {
+    const errMsg = body?.message || `HTTP ${res.status}`;
+    throw Object.assign(new Error(errMsg), { body, status: res.status });
   }
 
-  throw error;
-}
+  return body;
 }
 
 const PB = JSON.stringify({
@@ -129,15 +145,13 @@ export default function CartRoute() {
           body: PB,
         });
         setAllCustomers(Array.isArray(customersData) ? customersData : (customersData?.dtoList ?? []));
-      } catch (error) {
-        logger.error("Failed to fetch customers", error, "CartRoute");
+      } catch {
       } finally {
         setCustReady(true);
       }
     };
 
     const fetchProducts = async () => {
-      // FIX: helper to build productMap whenever we get a products list
       const applyProductsList = (list) => {
         setProducts(list);
         const map = {};
@@ -148,17 +162,14 @@ export default function CartRoute() {
       };
 
       try {
-        const productsData = await apiFetch("/api/products/active", {
-          method: "GET",
-        });
+        const productsData = await apiFetch("/api/products/active", { method: "GET" });
         const productsList = Array.isArray(productsData) ? productsData : (productsData?.dtoList ?? []);
         if (productsList.length > 0) {
           applyProductsList(productsList);
         } else {
           throw new Error("No products available");
         }
-      } catch (error) {
-        logger.error("Failed to fetch active products, trying list endpoint", error, "CartRoute");
+      } catch {
         try {
           const productsData = await apiFetch("/api/products/list", {
             method: "POST",
@@ -166,8 +177,7 @@ export default function CartRoute() {
           });
           const productsList = Array.isArray(productsData) ? productsData : (productsData?.dtoList ?? []);
           applyProductsList(productsList);
-        } catch (fallbackError) {
-          logger.error("Failed to fetch products from both endpoints", fallbackError, "CartRoute");
+        } catch {
         }
       }
     };
@@ -210,32 +220,27 @@ export default function CartRoute() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Load order confirmation from localStorage on mount
   useEffect(() => {
     try {
-      const stored = logger.getStorageItem("orderConfirm");
+      const stored = getStorageItem("orderConfirm");
       if (stored) {
         const parsed = JSON.parse(stored);
         setOrderConfirm(parsed);
       }
-    } catch (error) {
-      logger.error("Failed to load order confirmation from storage", error, "CartRoute");
+    } catch {
     }
   }, []);
 
-  // Save order confirmation to localStorage whenever it changes
   useEffect(() => {
     if (orderConfirm) {
       try {
-        logger.setStorageItem("orderConfirm", JSON.stringify(orderConfirm));
-      } catch (error) {
-        logger.error("Failed to save order confirmation to storage", error, "CartRoute");
+        setStorageItem("orderConfirm", JSON.stringify(orderConfirm));
+      } catch {
       }
     } else {
       try {
-        localStorage.removeItem("orderConfirm");
-      } catch (error) {
-        logger.error("Failed to clear order confirmation from storage", error, "CartRoute");
+        removeStorageItem("orderConfirm");
+      } catch {
       }
     }
   }, [orderConfirm]);
@@ -249,13 +254,12 @@ export default function CartRoute() {
 
   const ensureCart = useCallback(async (id) => {
     try {
-      const cart = await apiFetch(`/api/cart/${id}`);
-      if (cart) {
-        setCart(cart);
-        return cart;
+      const existingCart = await apiFetch(`/api/cart/${id}`);
+      if (existingCart) {
+        setCart(existingCart);
+        return existingCart;
       }
-    } catch (error) {
-      logger.error(`Failed to fetch cart for ${id}`, error, "ensureCart");
+    } catch {
     }
     try {
       const newCart = await apiFetch("/api/cart/save", {
@@ -267,13 +271,12 @@ export default function CartRoute() {
     } catch (error) {
       const errorMsg = error.message || ERROR_MESSAGES.SERVER_ERROR;
       setPageErr(errorMsg);
-      logger.error("Could not create cart", error, "ensureCart");
       return null;
     }
   }, []);
 
   const openQF = useCallback(() => {
-    setQfPhone(phoneInput.replace(/\D/g, ""));
+    setQfPhone(phoneInput.replaceAll(/\D/g, ""));
     setQfName("");
     setQfEmail("");
     setQfParty("Customer");
@@ -284,7 +287,6 @@ export default function CartRoute() {
 
   const selectCustomer = useCallback(async (c) => {
     if (!c?.identifier) {
-      logger.warn("Invalid customer selected", "selectCustomer");
       return;
     }
     setCustomer(c);
@@ -446,42 +448,28 @@ export default function CartRoute() {
       setBusy(true);
       await ensureCart(customerId);
       setBusy(false);
-      logger.info("Customer created successfully", { id: customerId });
     } catch (error) {
-  const errorMsg = error.message || ERROR_MESSAGES.SERVER_ERROR;
-
-  if (errorMsg.toLowerCase().includes("already exists")) {
-    const existingCustomer = allCustomers.find(
-      (c) => c.identifier === qfPhone.trim()
-    );
-
-    if (existingCustomer) {
-      setShowQF(false);
-      setQfErr("");
-      setCustomer(existingCustomer);
-      setPhoneInput(existingCustomer.identifier);
-      setPageOk("Customer already exists. Loaded existing customer.");
-
-      setBusy(true);
-      await ensureCart(existingCustomer.identifier);
-      setBusy(false);
-
-      logger.info(
-        "Existing customer loaded",
-        { id: existingCustomer.identifier },
-        "handleQFSave"
-      );
-
-      return;
-    }
-  }
-
-  setQfErr(errorMsg);
-  logger.error("Failed to save customer", error, "handleQFSave");
-} finally {
+      const errorMsg = error.message || ERROR_MESSAGES.SERVER_ERROR;
+      const isDuplicate = errorMsg.toLowerCase().includes("already exists");
+      if (isDuplicate) {
+        const existingCustomer = allCustomers.find((c) => c.identifier === qfPhone.trim());
+        if (existingCustomer) {
+          setShowQF(false);
+          setQfErr("");
+          setCustomer(existingCustomer);
+          setPhoneInput(existingCustomer.identifier);
+          setPageOk("Customer already exists. Loaded existing customer.");
+          setBusy(true);
+          await ensureCart(existingCustomer.identifier);
+          setBusy(false);
+          return;
+        }
+      }
+      setQfErr(errorMsg);
+    } finally {
       setQfSaving(false);
     }
-}, [qfPhone, qfName, qfEmail, qfParty, ensureCart, allCustomers]);
+  }, [qfPhone, qfName, qfEmail, qfParty, ensureCart, allCustomers]);
   const handleChangeCustomer = () => {
     setCustomer(null); setCart(null); setPhoneInput("");
     setPageErr(""); setPageOk("");

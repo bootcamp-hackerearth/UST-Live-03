@@ -133,13 +133,13 @@ function Pagination({
   if (totalPages <= 1) return null;
   const from = page * pageSize + 1;
   const to = Math.min((page + 1) * pageSize, totalRecords);
-  const delta = 2;
   const range = [];
+  const deltaPages = 2;
   for (let i = 0; i < totalPages; i++) {
     if (
       i === 0 ||
       i === totalPages - 1 ||
-      (i >= page - delta && i <= page + delta)
+      (i >= page - deltaPages && i <= page + deltaPages)
     )
       range.push(i);
   }
@@ -383,7 +383,7 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
               maxLength={10}
               onChange={(e) => {
                 if (!isEdit)
-                  setTop("identifier", e.target.value.replace(/\D/g, ""));
+                  setTop("identifier", e.target.value.replaceAll(/\D/g, ""));
               }}
             />
             </div>
@@ -558,7 +558,9 @@ export default function CustomersPage() {
       });
       setRecords(Array.isArray(data) ? data : (data?.dtoList ?? []));
     } catch (e) {
-      if (e.message !== ERROR_MESSAGES.UNAUTHORIZED) setError("Failed to load customers.");
+      if (e.status !== 401) {
+        setError(e.message || "Failed to load customers.");
+      }
     } finally {
       setLoading(false);
     }
@@ -609,7 +611,9 @@ export default function CustomersPage() {
       setEditData(data);
       setModal("edit");
     } catch (e) {
-      if (e.message !== ERROR_MESSAGES.UNAUTHORIZED) setError("Failed to load customer.");
+      if (e.status !== 401) {
+        setError(e.message || "Failed to load customer.");
+      }
     }
   };
 
@@ -652,12 +656,15 @@ export default function CustomersPage() {
         method: "POST",
         body: JSON.stringify({}),
       });
-    } catch {
+    } catch (e) {
       setRecords((prev) =>
         prev.map((r) =>
           r.identifier === record.identifier ? { ...r, status: !r.status } : r,
         ),
       );
+      if (e.status !== 401) {
+        setError(e.message || "Failed to update status.");
+      }
     }
   };
 

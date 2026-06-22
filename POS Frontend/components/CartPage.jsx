@@ -240,7 +240,7 @@ function QuickForm({ qfPhone, setQfPhone, qfName, setQfName, qfEmail, setQfEmail
       <div className="qf-grid">
         <div className="qf-field">
           <label htmlFor="qf-phone" className="qf-label">Phone <span className="qf-req">*</span></label>
-          <input id="qf-phone" className="qf-inp" value={qfPhone} maxLength={15} onChange={(e) => setQfPhone(e.target.value.replace(/\D/g, ""))} placeholder="Mobile number" />
+          <input id="qf-phone" className="qf-inp" value={qfPhone} maxLength={15} onChange={(e) => setQfPhone(e.target.value.replaceAll(/\D/g, ""))} placeholder="Mobile number" />
         </div>
         <div className="qf-field">
           <label htmlFor="qf-name" className="qf-label">Name <span className="qf-req">*</span></label>
@@ -352,11 +352,10 @@ CustomerLookup.propTypes = {
 
 function CustomerSection(props) {
   const { customer, showQF, cart, onNewCustomer, onChangeCustomer } = props;
-  const noCustomer  = customer == null;
   const hasCustomer = customer != null;
-  const showNewBtn  = noCustomer && !showQF;
-  const showForm    = noCustomer && showQF;
-  const showLookup  = noCustomer && !showQF;
+  const showNewBtn  = !hasCustomer && !showQF;
+  const showForm    = !hasCustomer && showQF;
+  const showLookup  = !hasCustomer && !showQF;
 
   return (
     <div className="pos-card">
@@ -480,10 +479,7 @@ export default function CartPage({
               <input className="srch-inp" placeholder="Search by name or SKU…" value={prodSearch} onChange={(e) => setProdSearch(e.target.value)} />
               {prodSearch && <button className="btn-sm-out" type="button" onClick={() => setProdSearch("")}>Clear</button>}
             </div>
-            {/* Positive branch (no products) first — resolves negated-condition finding */}
-            {hasProducts
-              ? null
-              : <div className="pos-empty"><span className="spin-dark" /> Loading products…</div>}
+            {!hasProducts && <div className="pos-empty"><span className="spin-dark" /> Loading products…</div>}
             {hasProducts && !hasFilteredProds && (
               <div className="pos-empty">No products match &ldquo;{prodSearch}&rdquo;</div>
             )}
@@ -511,7 +507,7 @@ export default function CartPage({
                       <input
                         type="number" min={1} className="qty-sm"
                         value={prodQtys[p.identifier] ?? ""}
-                        onChange={(e) => setProdQtys((prev) => ({ ...prev, [p.identifier]: e.target.value.replace(/\D/g, "") }))}
+                        onChange={(e) => setProdQtys((prev) => ({ ...prev, [p.identifier]: e.target.value.replaceAll(/\D/g, "") }))}
                         placeholder="1"
                         disabled={busy || customerMissing}
                       />
@@ -533,9 +529,7 @@ export default function CartPage({
               </span>
               {hasEntries && <span style={{ fontSize: 12, fontWeight: 700, color: "#111" }}>{fmt(totalPrice)} total</span>}
             </div>
-            {/* Positive branch (no entries) first */}
-            {hasEntries
-              ? (
+            {hasEntries ? (
                 <div className="tbl-scroll">
                   <table className="pos-tbl">
                     <thead>

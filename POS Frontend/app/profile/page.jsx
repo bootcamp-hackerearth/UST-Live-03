@@ -3,8 +3,18 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { fetchWithAuth } from "@/lib/api";
-import logger from "@/lib/logger";
 import { PATHS, ERROR_MESSAGES, STORAGE_KEYS } from "@/config/constants";
+
+const getStorageItem = (key) => {
+  try {
+    if (globalThis.window?.localStorage) {
+      return globalThis.window.localStorage.getItem(key);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
 
 function validateProfile({ name, phoneNo }) {
   if (!name?.trim()) return "Full name is required.";
@@ -25,7 +35,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const username = logger.getStorageItem(STORAGE_KEYS.USERNAME) ?? null;
+    const username = getStorageItem(STORAGE_KEYS.USERNAME) ?? null;
     if (!username) {
       router.replace(PATHS.LOGIN);
       return;
@@ -42,7 +52,6 @@ export default function ProfilePage() {
       } catch (err) {
         const errorMsg = err.message || ERROR_MESSAGES.SERVER_ERROR;
         setError(errorMsg);
-        logger.error("Failed to load profile", err, "ProfilePage");
       } finally {
         setLoading(false);
       }
@@ -96,11 +105,9 @@ export default function ProfilePage() {
       });
       setMessage("Profile updated successfully.");
       setEditMode(false);
-      logger.info("Profile updated", { username: user.username });
     } catch (err) {
       const errorMsg = err.message || ERROR_MESSAGES.SERVER_ERROR;
       setError(errorMsg);
-      logger.error("Failed to update profile", err, "ProfilePage");
     } finally {
       setSaving(false);
     }

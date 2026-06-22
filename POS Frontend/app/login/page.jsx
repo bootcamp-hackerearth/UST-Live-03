@@ -3,13 +3,24 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import logger from "@/lib/logger";
 import { BASE } from "@/lib/api";
 import { isValidEmail } from "@/lib/validators";
 import { loginRateLimiter, htmlEscape } from "@/lib/security";
 import { STORAGE_KEYS, PATHS, ERROR_MESSAGES } from "@/config/constants";
 
 const LOGIN_TIMEOUT_MS = 10000;
+
+const setStorageItem = (key, value) => {
+  try {
+    if (globalThis.window?.localStorage) {
+      globalThis.window.localStorage.setItem(key, value);
+      return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+};
 
 function validate({ username, password }) {
   if (!username.trim()) return "Email is required.";
@@ -43,15 +54,14 @@ async function callAuthenticate(username, password) {
 function handleAuthFailure(res, data, username) {
   const msg = data?.message || data;
   const errorMsg = typeof msg === "string" && msg ? msg : ERROR_MESSAGES.INVALID_CREDENTIALS;
-  logger.error("Login failed", { status: res.status, sanitized: true }, "login");
 
   const remaining = loginRateLimiter.getRemaining(username);
   return { errorMsg: htmlEscape(errorMsg), remaining };
 }
 
 function persistSession(token, username) {
-  const stored = logger.setStorageItem(STORAGE_KEYS.TOKEN, token) &&
-    logger.setStorageItem(STORAGE_KEYS.USERNAME, username);
+  const stored = setStorageItem(STORAGE_KEYS.TOKEN, token) &&
+    setStorageItem(STORAGE_KEYS.USERNAME, username);
   return stored;
 }
 
@@ -84,7 +94,6 @@ export default function Login() {
     const token = data?.token;
     if (!token || typeof token !== "string" || token.trim() === "" || token === "Error") {
       setError(ERROR_MESSAGES.INVALID_CREDENTIALS);
-      logger.warn("Invalid token received", { hasToken: !!token }, "login");
       return false;
     }
 
@@ -92,11 +101,9 @@ export default function Login() {
 
     if (!persistSession(token, username)) {
       setError(ERROR_MESSAGES.STORAGE_ERROR);
-      logger.error("Failed to store credentials", null, "login");
       return false;
     }
 
-    logger.info("Login successful", { username });
     setForm({ username: "", password: "" });
     router.replace(PATHS.HOME);
     return true;
@@ -111,7 +118,6 @@ export default function Login() {
     if (!loginRateLimiter.isAllowed(username)) {
       setError("Too many login attempts. Please try again in 15 minutes.");
       setIsRateLimited(true);
-      logger.warn("Login rate limit exceeded", { username });
       return;
     }
 
@@ -138,7 +144,6 @@ export default function Login() {
       await processSuccessfulLogin(data, username);
     } catch (err) {
       setError(getSubmitErrorMessage(err));
-      logger.error("Login error", { errorType: err?.name }, "login");
     } finally {
       setLoading(false);
     }
