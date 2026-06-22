@@ -1,9 +1,10 @@
 package com.ust.pos;
 
-import com.ust.pos.address.service.impl.AddressServiceImpl;
+import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
@@ -32,7 +33,7 @@ class CustomerServiceTest {
     private CustomerServiceImpl customerService;
 
     @Mock
-    private AddressServiceImpl addressService;
+    private AddressService addressService;
 
     @Mock
     private AddressRepository addressRepository;
@@ -131,8 +132,10 @@ class CustomerServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(customerRepository).deleteByIdentifier("Admin");
-        addressService.delete("Admin");
+        Customer customer = new Customer();
+        customer.setIdentifier("Admin");
+        Mockito.when(customerRepository.findByIdentifier("Admin")).thenReturn(customer);
+        Mockito.when(customerRepository.save(customer)).thenReturn(customer);
         boolean response = customerService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -147,10 +150,10 @@ class CustomerServiceTest {
         List<CustomerDto> customerDtos = List.of(customerDto);
         Page<Customer> customerPage = new PageImpl<>(customers, PageRequest.of(0, 2), customers.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(customerRepository.findAll(pageable)).thenReturn(customerPage);
+        Mockito.when(customerRepository.findByDeletedFalse(pageable)).thenReturn(customerPage);
         Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class))).thenReturn(customerDtos);
-        List<CustomerDto> response = customerService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<CustomerDto> response = customerService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -161,7 +164,7 @@ class CustomerServiceTest {
         customerDto.setIdentifier("Admin");
         List<Customer> customers = List.of(customer);
         List<CustomerDto> customerDtos = List.of(customerDto);
-        Mockito.when(customerRepository.findByStatusIsTrue()).thenReturn(customers);
+        Mockito.when(customerRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(customers);
         Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class))).thenReturn(customerDtos);
         List<CustomerDto> response = customerService.findIfTrue();
         Assertions.assertEquals(1, response.size());

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WareHouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.WareHouse;
 import com.ust.pos.model.WareHouseRepository;
 import com.ust.pos.warehouse.service.impl.WareHouseServiceImpl;
@@ -87,7 +88,10 @@ class WarehouseServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(wareHouseRepository).deleteByIdentifier("Admin");
+        WareHouse wareHouse = new WareHouse();
+        wareHouse.setIdentifier("Admin");
+        Mockito.when(wareHouseRepository.findByIdentifier("Admin")).thenReturn(wareHouse);
+        Mockito.when(wareHouseRepository.save(wareHouse)).thenReturn(wareHouse);
         boolean response = wareHouseService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -103,13 +107,13 @@ class WarehouseServiceTest {
         Page<WareHouse> wareHousePage =
                 new PageImpl<>(wareHouses, PageRequest.of(0, 2), wareHouses.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(wareHouseRepository.findAll(pageable)).thenReturn(wareHousePage);
+        Mockito.when(wareHouseRepository.findByDeletedFalse(pageable)).thenReturn(wareHousePage);
         Mockito.when(modelMapper.map(
                 Mockito.eq(wareHouses),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(wareHouseDtos);
-        List<WareHouseDto> response = wareHouseService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<WareHouseDto> response = wareHouseService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -120,7 +124,7 @@ class WarehouseServiceTest {
         wareHouseDto.setIdentifier("Admin");
         List<WareHouse> wareHouses = List.of(wareHouse);
         List<WareHouseDto> wareHouseDtos = List.of(wareHouseDto);
-        Mockito.when(wareHouseRepository.findByStatusIsTrue()).thenReturn(wareHouses);
+        Mockito.when(wareHouseRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(wareHouses);
         Mockito.when(modelMapper.map(
                 Mockito.eq(wareHouses),
                 Mockito.any(java.lang.reflect.Type.class)

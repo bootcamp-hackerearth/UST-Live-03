@@ -2,9 +2,10 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.StocksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stocks;
 import com.ust.pos.model.StocksRepository;
-import com.ust.pos.product.service.impl.ProductServiceImpl;
+import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stocks.service.impl.StocksServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ import java.util.List;
 class StocksServiceTest {
 
     @Mock
-    ProductServiceImpl productService;
+    ProductService productService;
 
     @Mock
     private StocksRepository stocksRepository;
@@ -100,8 +101,10 @@ class StocksServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(stocksRepository)
-                .deleteByIdentifier("Admin");
+        Stocks stocks = new Stocks();
+        stocks.setIdentifier("Admin");
+        Mockito.when(stocksRepository.findByIdentifier("Admin")).thenReturn(stocks);
+        Mockito.when(stocksRepository.save(stocks)).thenReturn(stocks);
         boolean response = stocksService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -118,13 +121,13 @@ class StocksServiceTest {
                 2), stockss.size());
         Pageable pageable = PageRequest.of(0,
                 50, Sort.by(new ArrayList<>()));
-        Mockito.when(stocksRepository.findAll(pageable)).thenReturn(stocksPage);
+        Mockito.when(stocksRepository.findByDeletedFalse(pageable)).thenReturn(stocksPage);
         Mockito.when(modelMapper.map(
                 Mockito.eq(stockss),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(stocksDtos);
-        List<StocksDto> response = stocksService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<StocksDto> response = stocksService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -135,7 +138,7 @@ class StocksServiceTest {
         stocksDto.setIdentifier("Admin");
         List<Stocks> stockss = List.of(stocks);
         List<StocksDto> stocksDtos = List.of(stocksDto);
-        Mockito.when(stocksRepository.findByStatusIsTrue()).thenReturn(stockss);
+        Mockito.when(stocksRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(stockss);
         Mockito.when(modelMapper.map(
                 Mockito.eq(stockss),
                 Mockito.any(java.lang.reflect.Type.class)

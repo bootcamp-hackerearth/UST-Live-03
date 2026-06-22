@@ -3,8 +3,8 @@ package com.ust.pos.api.modelsapi;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,11 +14,14 @@ import java.util.List;
 @RequestMapping("/api/models")
 public class ApiModelsController extends BaseController {
 
-    @Autowired
-    private ModelsService modelsService;
+    public ApiModelsController(ModelsService modelsService) {
+        this.modelsService = modelsService;
+    }
+
+    private final ModelsService modelsService;
 
     @PostMapping("/list")
-    public List<ModelsDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ModelsDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return modelsService.findAll(pageable);
     }

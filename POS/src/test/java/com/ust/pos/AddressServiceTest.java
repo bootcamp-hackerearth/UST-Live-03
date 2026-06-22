@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.address.service.impl.AddressServiceImpl;
 import com.ust.pos.dto.AddressDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.junit.jupiter.api.Assertions;
@@ -13,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,11 +90,18 @@ class AddressServiceTest {
     @Test
     void deleteTest() {
         Address address = new Address();
-        List<Address> addressList = List.of(address);
-        Mockito.when(addressRepository.findAllByPhoneNo("8919")).thenReturn(addressList);
-        Mockito.doNothing().when(addressRepository).deleteAll(addressList);
-        boolean response = addressService.delete("8919");
-        Assertions.assertEquals(true, response);
+        address.setIdentifier("Admin");
+        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(address);
+        Mockito.when(addressRepository.save(address)).thenReturn(address);
+        boolean response = addressService.delete("Admin");
+        Assertions.assertTrue(response);
+    }
+
+    @Test
+    void deleteTestFailure() {
+        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(null);
+        boolean response = addressService.delete("Admin");
+        Assertions.assertFalse(response);
     }
 
     @Test
@@ -101,18 +110,19 @@ class AddressServiceTest {
         address.setIdentifier("Admin");
         AddressDto addressDto = new AddressDto();
         addressDto.setIdentifier("Admin");
-        List<Address> addresss = List.of(address);
+        List<Address> addresses = List.of(address);
         List<AddressDto> addressDtos = List.of(addressDto);
         Page<Address> addressPage =
-                new PageImpl<>(addresss, PageRequest.of(0, 2), addresss.size());
+                new PageImpl<>(addresses, PageRequest.of(0, 2), addresses.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(addressRepository.findAll(pageable)).thenReturn(addressPage);
+        Mockito.when(addressRepository.findByDeletedFalse(pageable)).thenReturn(addressPage);
         Mockito.when(modelMapper.map(
-                Mockito.eq(addresss),
+                Mockito.eq(addresses),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(addressDtos);
-        List<AddressDto> response = addressService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<AddressDto> response = addressService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 
     @Test
@@ -121,10 +131,10 @@ class AddressServiceTest {
         address.setIdentifier("Admin");
         AddressDto addressDto = new AddressDto();
         addressDto.setIdentifier("Admin");
-        List<Address> addresss = List.of(address);
+        List<Address> addresses = List.of(address);
         List<AddressDto> addressDtos = List.of(addressDto);
-        Mockito.when(addressRepository.findAllByPhoneNo("8919")).thenReturn(addresss);
-        Mockito.when(modelMapper.map(Mockito.eq(addresss), Mockito.any(java.lang.reflect.Type.class))).thenReturn(addressDtos);
+        Mockito.when(addressRepository.findAllByPhoneNoAndDeletedFalse("8919")).thenReturn(addresses);
+        Mockito.when(modelMapper.map(Mockito.eq(addresses), Mockito.any(java.lang.reflect.Type.class))).thenReturn(addressDtos);
         List<AddressDto> response = addressService.findAllByPhoneNo("8919");
         Assertions.assertEquals(1, response.size());
     }

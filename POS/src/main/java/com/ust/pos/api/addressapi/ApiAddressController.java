@@ -4,7 +4,7 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -13,11 +13,14 @@ import java.util.List;
 @RequestMapping("/api/address")
 public class ApiAddressController extends BaseController {
 
-    @Autowired
-    private AddressService addressService;
+
+    public ApiAddressController(AddressService addressService) {
+        this.addressService = addressService;
+    }
+    private final AddressService addressService;
 
     @PostMapping("/list")
-    public List<AddressDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<AddressDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return addressService.findAll(pageable);
     }

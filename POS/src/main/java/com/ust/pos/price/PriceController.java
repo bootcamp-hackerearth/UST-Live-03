@@ -3,7 +3,6 @@ package com.ust.pos.price;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,11 +16,14 @@ public class PriceController {
 
     private static final String PRODUCTS = "products";
 
-    @Autowired
-    private PriceService priceService;
+    private final  PriceService priceService;
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+
+    public PriceController(PriceService priceService, ProductService productService) {
+        this.priceService = priceService;
+        this.productService = productService;
+    }
 
     @GetMapping("/list")
     public String home(Model model,Pageable pageable) {

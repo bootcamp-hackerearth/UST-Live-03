@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -91,8 +92,10 @@ class BrandServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(brandRepository)
-                .deleteByIdentifier("Admin");
+        Brand brand = new Brand();
+        brand.setIdentifier("Admin");
+        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(brand);
+        Mockito.when(brandRepository.save(brand)).thenReturn(brand);
         boolean response = brandService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -107,10 +110,10 @@ class BrandServiceTest {
         List<BrandDto> brandDtos = List.of(brandDto);
         Page<Brand> brandPage = new PageImpl<>(brands, PageRequest.of(0, 2), brands.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(brandRepository.findAll(pageable)).thenReturn(brandPage);
+        Mockito.when(brandRepository.findByDeletedFalse(pageable)).thenReturn(brandPage);
         Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(java.lang.reflect.Type.class))).thenReturn(brandDtos);
-        List<BrandDto> response = brandService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<BrandDto> response = brandService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -121,7 +124,7 @@ class BrandServiceTest {
         brandDto.setIdentifier("Admin");
         List<Brand> brands = List.of(brand);
         List<BrandDto> brandDtos = List.of(brandDto);
-        Mockito.when(brandRepository.findByStatusIsTrue()).thenReturn(brands);
+        Mockito.when(brandRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(brands);
         Mockito.when(modelMapper.map(
                 Mockito.eq(brands),
                 Mockito.any(java.lang.reflect.Type.class)

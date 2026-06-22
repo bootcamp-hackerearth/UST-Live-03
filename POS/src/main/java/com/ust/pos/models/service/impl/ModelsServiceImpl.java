@@ -1,12 +1,13 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ModelsServiceImpl implements ModelsService {
+public class ModelsServiceImpl extends CommonService implements ModelsService {
 
-    @Autowired
-    private ModelsRepository modelsRepository;
+    private static final String MODELS_WITH_IDENTIFIER = "Models with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelsRepository modelsRepository;
+
+    private final ModelMapper modelMapper;
+
+    public ModelsServiceImpl(ModelsRepository modelsRepository, ModelMapper modelMapper) {
+        this.modelsRepository = modelsRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
@@ -32,6 +38,7 @@ public class ModelsServiceImpl implements ModelsService {
     public ModelsDto toggleStatus(String identifier) {
         Models models = modelsRepository.findByIdentifier(identifier);
         models.setStatus(!models.isStatus());
+        setAuditFields(models,false);
         modelsRepository.save(models);
         return modelMapper.map(models, ModelsDto.class);
     }
@@ -42,12 +49,21 @@ public class ModelsServiceImpl implements ModelsService {
         String identifier = modelsDto.getIdentifier();
         Models existingModels = modelsRepository.findByIdentifier(identifier);
         if (existingModels != null) {
-            modelsDto.setMessage("Models with identifier - " + identifier + " already exists");
+            if (!existingModels.isDeleted()) {
+                modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " already exists");
+                modelsDto.setSuccess(false);
+                return modelsDto;
+            }
+            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " was previously deleted. " +
+                    "Please contact backend team to restore.");
             modelsDto.setSuccess(false);
             return modelsDto;
         }
         Models models = modelMapper.map(modelsDto, Models.class);
+        setAuditFields(models,true);
         modelsRepository.save(models);
+        modelsDto.setSuccess(true);
+        modelsDto.setMessage("Models created successfully");
         return modelsDto;
     }
 
@@ -56,33 +72,44 @@ public class ModelsServiceImpl implements ModelsService {
         String identifier = modelsDto.getIdentifier();
         Models existingModels = modelsRepository.findByIdentifier(identifier);
         if (existingModels == null) {
-            modelsDto.setMessage("Models with identifier - " + identifier + " not found");
+            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " not found");
             modelsDto.setSuccess(false);
             return modelsDto;
         }
         modelMapper.map(modelsDto, existingModels);
+        setAuditFields(existingModels,false);
         modelsRepository.save(existingModels);
         return modelsDto;
     }
 
     @Override
     public boolean delete(String identifier) {
-        modelsRepository.deleteByIdentifier(identifier);
+        Models models = modelsRepository.findByIdentifier(identifier);
+        if (models == null) return false;
+        softDelete(models);
+        setAuditFields(models,false);
+        modelsRepository.save(models);
         return true;
     }
 
     @Override
-    public List<ModelsDto> findAll(Pageable pageable) {
+    public WsDto<ModelsDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
-        return modelMapper.map(modelsPage.getContent(), listType);
+        Page<Models> modelsPage = modelsRepository.findByDeletedFalse(pageable);
+        WsDto<ModelsDto> modelsDtoWsDto = new WsDto<>();
+        modelsDtoWsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
+        modelsDtoWsDto.setTotalRecords(modelsPage.getTotalElements());
+        modelsDtoWsDto.setTotalPages(modelsPage.getTotalPages());
+        modelsDtoWsDto.setSizePerPage(pageable.getPageSize());
+        modelsDtoWsDto.setPage(pageable.getPageNumber());
+        return modelsDtoWsDto;
     }
 
     @Override
     public List<ModelsDto> findIfTrue() {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        return modelMapper.map(modelsRepository.findByStatusIsTrue(), listType);
+        return modelMapper.map(modelsRepository.findByStatusIsTrueAndDeletedFalse(), listType);
     }
 }

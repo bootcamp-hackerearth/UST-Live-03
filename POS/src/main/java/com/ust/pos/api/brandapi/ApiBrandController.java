@@ -4,7 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -13,11 +13,13 @@ import java.util.List;
 @RequestMapping("/api/brand")
 public class ApiBrandController extends BaseController {
 
-    @Autowired
-    private BrandService brandService;
+    public ApiBrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
+    private final BrandService brandService;
 
     @PostMapping("/list")
-    public List<BrandDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<BrandDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return brandService.findAll(pageable);
     }

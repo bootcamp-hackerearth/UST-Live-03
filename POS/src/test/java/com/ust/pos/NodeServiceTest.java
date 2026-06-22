@@ -88,7 +88,7 @@ class NodeServiceTest {
         Node node = new Node();
         node.setIdentifier("dashboard");
         node.setRoles(List.of("ADMIN"));
-        Mockito.when(nodeRepository.findByStatusIsTrue()).thenReturn(List.of(node)); // ← fix here
+        Mockito.when(nodeRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(List.of(node));
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("dashboard");
         Mockito.when(nodeRepository.findByIdentifier("dashboard")).thenReturn(node);
@@ -130,7 +130,10 @@ class NodeServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(nodeRepository).deleteByIdentifier("Admin");
+        Node node = new Node();
+        node.setIdentifier("Admin");
+        Mockito.when(nodeRepository.findByIdentifier("Admin")).thenReturn(node);
+        Mockito.when(nodeRepository.save(node)).thenReturn(node);
         boolean response = nodeService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -145,7 +148,7 @@ class NodeServiceTest {
         List<NodeDto> nodeDtos = List.of(nodeDto);
         Page<Node> nodePage = new PageImpl<>(nodes, PageRequest.of(0, 2), nodes.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(nodeRepository.findAll(pageable)).thenReturn(nodePage);
+        Mockito.when(nodeRepository.findByDeletedFalse(pageable)).thenReturn(nodePage);
         Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(java.lang.reflect.Type.class))).thenReturn(nodeDtos);
         WsDto<NodeDto> response = nodeService.findAll(pageable);
         Assertions.assertEquals(nodeDtos, response.getDtoList());
@@ -163,7 +166,7 @@ class NodeServiceTest {
         nodeDto.setIdentifier("Admin");
         List<Node> nodes = List.of(node);
         List<NodeDto> nodeDtos = List.of(nodeDto);
-        Mockito.when(nodeRepository.findByStatusIsTrue()).thenReturn(nodes);
+        Mockito.when(nodeRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(nodes);
         Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(java.lang.reflect.Type.class))).thenReturn(nodeDtos);
         List<NodeDto> response = nodeService.findIfTrue();
         Assertions.assertEquals(1, response.size());

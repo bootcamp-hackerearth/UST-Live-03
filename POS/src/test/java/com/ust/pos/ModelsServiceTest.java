@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.impl.ModelsServiceImpl;
@@ -87,7 +88,10 @@ class ModelsServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(modelsRepository).deleteByIdentifier("Admin");
+        Models models = new Models();
+        models.setIdentifier("Admin");
+        Mockito.when(modelsRepository.findByIdentifier("Admin")).thenReturn(models);
+        Mockito.when(modelsRepository.save(models)).thenReturn(models);
         boolean response = modelsService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -102,10 +106,10 @@ class ModelsServiceTest {
         List<ModelsDto> modelsDtos = List.of(modelsDto);
         Page<Models> modelsPage = new PageImpl<>(modelss, PageRequest.of(0, 2), modelss.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(modelsRepository.findAll(pageable)).thenReturn(modelsPage);
+        Mockito.when(modelsRepository.findByDeletedFalse(pageable)).thenReturn(modelsPage);
         Mockito.when(modelMapper.map(Mockito.eq(modelss), Mockito.any(java.lang.reflect.Type.class))).thenReturn(modelsDtos);
-        List<ModelsDto> response = modelsService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<ModelsDto> response = modelsService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -116,7 +120,7 @@ class ModelsServiceTest {
         modelsDto.setIdentifier("Admin");
         List<Models> modelss = List.of(models);
         List<ModelsDto> modelsDtos = List.of(modelsDto);
-        Mockito.when(modelsRepository.findByStatusIsTrue()).thenReturn(modelss);
+        Mockito.when(modelsRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(modelss);
         Mockito.when(modelMapper.map(Mockito.eq(modelss), Mockito.any(java.lang.reflect.Type.class))).thenReturn(modelsDtos);
         List<ModelsDto> response = modelsService.findIfTrue();
         Assertions.assertEquals(1, response.size());

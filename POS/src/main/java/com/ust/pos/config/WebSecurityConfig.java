@@ -50,6 +50,7 @@ public class WebSecurityConfig {
                                 "/api/validateToken",
                                 "/api/user/register",
                                 "/api/role/findByStatus",
+                                "/api/order/**",
                                 "/swagger-ui/**",
                                 "/v3/**"
                         ).permitAll()

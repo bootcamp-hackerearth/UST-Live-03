@@ -17,7 +17,4 @@ public interface CategoryService {
     CategoryDto findByIdentifier(String identifier);
     List<CategoryDto> findBySuperCategoryNotNull();
     CategoryDto toggleStatus(String identifier);
-    List<CategoryDto> findIfTrue();
-    List<CategoryDto> findAllActive();
-
 }

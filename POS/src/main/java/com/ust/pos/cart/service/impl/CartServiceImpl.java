@@ -2,29 +2,33 @@ package com.ust.pos.cart.service.impl;
 
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.cart.service.CartService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-public class CartServiceImpl implements CartService {
+public class CartServiceImpl extends CommonService implements CartService {
     private static final String CART_WITH_IDENTIFIER = "Cart with identifier - " ;
-    @Autowired
-    private CartRepository cartRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CartRepository cartRepository;
 
-    @Autowired
-    private CartEntryService cartEntryService;
+    private final ModelMapper modelMapper;
+
+    private final CartEntryService cartEntryService;
+
+    public CartServiceImpl(CartRepository cartRepository, ModelMapper modelMapper, CartEntryService cartEntryService) {
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+        this.cartEntryService = cartEntryService;
+    }
 
     @Override
     public CartDto save(CartDto cartDto) {
@@ -36,6 +40,7 @@ public class CartServiceImpl implements CartService {
             return cartDto;
         }
         Cart cart = modelMapper.map(cartDto, Cart.class);
+        setAuditFields(cart,true);
         cartRepository.save(cart);
         return cartDto;
     }

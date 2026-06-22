@@ -5,7 +5,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +14,10 @@ import java.util.List;
 @RequestMapping("/api/category")
 public class ApiCategoryController extends BaseController {
 
-    @Autowired
-    private CategoryService categoryService;
+    public ApiCategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
+    private final CategoryService categoryService;
 
     @PostMapping("/list")
     public WsDto<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
@@ -57,10 +58,5 @@ public class ApiCategoryController extends BaseController {
     @PostMapping("/toggle-status")
     public CategoryDto toggle(@RequestParam String identifier) {
         return categoryService.toggleStatus(identifier);
-    }
-
-    @GetMapping("/findByStatus")
-    public List<CategoryDto> findByStatus() {
-        return categoryService.findIfTrue();
     }
 }
