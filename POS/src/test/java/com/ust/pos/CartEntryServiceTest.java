@@ -176,13 +176,15 @@ class CartEntryServiceTest {
         verify(cartEntryRepository).save(existing);
     }
 
+
     @Test
     void deleteTest() {
         CartEntry cartEntry = new CartEntry();
         when(cartEntryRepository.findByIdentifier("CART1_SKU1")).thenReturn(cartEntry);
         boolean response = cartEntryService.delete("CART1_SKU1");
         Assertions.assertTrue(response);
-        verify(cartEntryRepository).save(cartEntry);
+        verify(cartEntryRepository).deleteByIdentifier("CART1_SKU1");
+        verify(cartEntryRepository, never()).save(any());
     }
 
     @Test
@@ -190,23 +192,17 @@ class CartEntryServiceTest {
         when(cartEntryRepository.findByIdentifier("CART1_SKU1")).thenReturn(null);
         boolean response = cartEntryService.delete("CART1_SKU1");
         Assertions.assertFalse(response);
+        verify(cartEntryRepository, never()).deleteByIdentifier(any());
         verify(cartEntryRepository, never()).save(any());
     }
 
     @Test
     void deleteByCartIdentifierTest() {
-        CartEntry entry = new CartEntry();
-        when(cartEntryRepository.findAllByCartIdentifier("CART1")).thenReturn(List.of(entry));
         boolean response = cartEntryService.deleteByCartIdentifier("CART1");
         Assertions.assertTrue(response);
-        verify(cartEntryRepository).save(entry);
-    }
-
-    @Test
-    void deleteByCartIdentifierEmptyTest() {
-        when(cartEntryRepository.findAllByCartIdentifier("CART1")).thenReturn(List.of());
-        boolean response = cartEntryService.deleteByCartIdentifier("CART1");
-        Assertions.assertTrue(response);
+        verify(cartEntryRepository).deleteByCartIdentifier("CART1");
+        verify(cartEntryRepository, never()).findAllByCartIdentifier(any());
+        verify(cartEntryRepository, never()).save(any());
     }
 
     @Test
@@ -214,7 +210,7 @@ class CartEntryServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         CartEntry cartEntry = new CartEntry();
         CartEntryDto dto = new CartEntryDto();
-        when(cartEntryRepository.findByDeletedFalse(pageable)).thenReturn(new PageImpl<>(List.of(cartEntry)));
+        when(cartEntryRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(cartEntry)));
         when(modelMapper.map(cartEntry, CartEntryDto.class)).thenReturn(dto);
         List<CartEntryDto> response = cartEntryService.findAll(pageable);
         Assertions.assertEquals(1, response.size());
@@ -223,7 +219,7 @@ class CartEntryServiceTest {
     @Test
     void findAllEmptyTest() {
         Pageable pageable = PageRequest.of(0, 10);
-        when(cartEntryRepository.findByDeletedFalse(pageable)).thenReturn(new PageImpl<>(List.of()));
+        when(cartEntryRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of()));
         List<CartEntryDto> response = cartEntryService.findAll(pageable);
         Assertions.assertTrue(response.isEmpty());
     }

@@ -147,7 +147,8 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
 
     @Override
     public List<CustomerDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
         Page<Customer> customerPage = customerRepository.findByDeletedFalse(pageable);
         return modelMapper.map(customerPage.getContent(), listType);
     }

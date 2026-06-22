@@ -80,11 +80,10 @@ export const crudConfigs = {
 
   models: () => makeBaseConfig("models", "Model", [
     { key: "identifier", label: "Model Name", type: "text", required: true, readOnlyOnEdit: true },
-    { key: "description", label: "Description", type: "textarea" },
   ]),
 
   nodes: () => {
-    const config = makeBaseConfig("node", "Node", [
+    const config = makeBaseConfig("nodes", "Node", [
       { key: "identifier", label: "Node Name", type: "text", required: true, readOnlyOnEdit: true },
       { key: "path", label: "Path", type: "text", required: true },
       { key: "roles", label: "Roles", type: "select", multiple: true, options: [] },
@@ -143,7 +142,7 @@ export const crudConfigs = {
   },
 
   racks: () => {
-    const config = makeBaseConfig("rack", "Rack", [
+    const config = makeBaseConfig("racks", "Rack", [
       { key: "identifier", label: "Rack Name", type: "text", required: true, readOnlyOnEdit: true },
       { key: "shelfIdentifiers", label: "Shelves", type: "select", multiple: true, options: [], placeholder: "-- Select Shelves --" },
     ]);
@@ -169,7 +168,7 @@ export const crudConfigs = {
   ]),
 
   shelves: () => {
-    const config = makeBaseConfig("shelf", "Shelf", [
+    const config = makeBaseConfig("shelves", "Shelf", [
       { key: "identifier", label: "Shelf Number", type: "text", required: true, readOnlyOnEdit: true },
       { key: "rackNumber", label: "Rack Number", type: "text" },
       { key: "capacity", label: "Capacity", type: "number" },
@@ -226,7 +225,6 @@ export const crudConfigs = {
 
   units: () => makeBaseConfig("units", "Unit", [
     { key: "identifier", label: "Unit Name", type: "text", required: true, readOnlyOnEdit: true },
-    { key: "abbreviation", label: "Abbreviation", type: "text" },
   ]),
 
   warehouses: () => makeBaseConfig("warehouses", "Warehouse", [

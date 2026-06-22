@@ -18,7 +18,5 @@ public interface CartEntryRepository extends JpaRepository<CartEntry, Long> {
 
     Page<CartEntry> findAll(Pageable pageable);
 
-    Page<CartEntry> findByDeletedFalse(Pageable pageable);
-
     List<CartEntry> findAllByCartIdentifier(String cartIdentifier);
 }

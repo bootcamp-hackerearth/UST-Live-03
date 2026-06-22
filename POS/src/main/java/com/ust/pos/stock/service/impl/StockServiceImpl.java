@@ -23,7 +23,7 @@ public class StockServiceImpl extends CommonService implements StockService {
     private final ModelMapper modelMapper;
 
     public StockServiceImpl(StockRepository stockRepository, ProductRepository productRepository,
-                          WarehouseRepository warehouseRepository, ModelMapper modelMapper) {
+                            WarehouseRepository warehouseRepository, ModelMapper modelMapper) {
         this.stockRepository = stockRepository;
         this.productRepository = productRepository;
         this.warehouseRepository = warehouseRepository;

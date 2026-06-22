@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class CommonDto{
+public class CommonDto {
 
     private Long id;
     private String identifier;

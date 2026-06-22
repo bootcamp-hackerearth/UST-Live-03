@@ -17,7 +17,7 @@ public class TokenGenerationController {
     private final JWTUtility jwtUtility;
 
     public TokenGenerationController(UserDetailsService userDetailsService, AuthenticationProvider authenticationProvider,
-                                    JWTUtility jwtUtility) {
+                                     JWTUtility jwtUtility) {
         this.userDetailsService = userDetailsService;
         this.authenticationProvider = authenticationProvider;
         this.jwtUtility = jwtUtility;

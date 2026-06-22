@@ -4,8 +4,8 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.*;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
-import com.ust.pos.model.Orders;
 import com.ust.pos.model.OrderRepository;
+import com.ust.pos.model.Orders;
 import com.ust.pos.order.service.impl.OrderServiceImpl;
 import com.ust.pos.orderentry.service.OrderEntryService;
 import org.junit.jupiter.api.Assertions;
@@ -82,7 +82,6 @@ class OrderServiceTest {
         when(customerRepository.findByIdentifier("customer1")).thenReturn(customer);
         when(orderRepository.save(any(Orders.class))).thenAnswer(inv -> inv.getArgument(0));
         when(modelMapper.map(any(Orders.class), eq(OrderDto.class))).thenReturn(orderDto);
-        when(modelMapper.map(any(Orders.class), any(Class.class))).thenReturn(orderDto);
         when(orderEntryService.findAllByOrderIdentifier(any())).thenReturn(new ArrayList<>());
         when(orderEntryService.save(any(OrderEntryDto.class))).thenReturn(new OrderEntryDto());
 
@@ -130,13 +129,12 @@ class OrderServiceTest {
 
     @Test
     void placeOrderNullCartEntriesTest() {
-        // impl checks: cartEntries == null || cartEntries.isEmpty()
         PlaceOrderRequestDto request = new PlaceOrderRequestDto();
         request.setCartIdentifier("CART_NULL_ENTRIES");
 
         CartDto cartDto = new CartDto();
         cartDto.setIdentifier("CART_NULL_ENTRIES");
-        cartDto.setCartEntries(null); // null entries list
+        cartDto.setCartEntries(null);
 
         when(cartService.findByIdentifier("CART_NULL_ENTRIES")).thenReturn(cartDto);
 
@@ -146,10 +144,6 @@ class OrderServiceTest {
         Assertions.assertEquals("Cart is empty. Cannot place order.", response.getMessage());
         verify(orderRepository, never()).save(any(Orders.class));
     }
-
-    // -------------------------------------------------------------------------
-    // findByIdentifier
-    // -------------------------------------------------------------------------
 
     @Test
     void findByIdentifierSuccessTest() {
@@ -187,10 +181,6 @@ class OrderServiceTest {
         Assertions.assertNull(response);
     }
 
-    // -------------------------------------------------------------------------
-    // findByOrderId
-    // -------------------------------------------------------------------------
-
     @Test
     void findByOrderIdSuccessTest() {
         Orders orders = new Orders();
@@ -227,13 +217,6 @@ class OrderServiceTest {
         Assertions.assertNull(response);
     }
 
-    // -------------------------------------------------------------------------
-    // findAll
-    // FIX: impl calls orderRepository.findByDeletedFalse(pageable), NOT findAll(pageable).
-    //      Also fix TypeToken — use org.modelmapper.TypeToken, not com.modelmapper.TypeToken.
-    //      Use any(Type.class) for the list-mapper stub to avoid TypeToken instance mismatch.
-    // -------------------------------------------------------------------------
-
     @Test
     void findAllTest() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -250,8 +233,7 @@ class OrderServiceTest {
         orderDto.setCustomerIdentifier("customer1");
         List<OrderDto> orderDtos = new ArrayList<>(List.of(orderDto));
 
-        // FIX: impl calls findByDeletedFalse
-        when(orderRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        when(orderRepository.findAll(pageable)).thenReturn(page);
         when(modelMapper.map(eq(ordersList), any(Type.class))).thenReturn(orderDtos);
         when(customerRepository.findByIdentifier("customer1")).thenReturn(new Customer());
         when(modelMapper.map(any(Customer.class), eq(CustomerDto.class))).thenReturn(new CustomerDto());
@@ -269,7 +251,7 @@ class OrderServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Orders> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
 
-        when(orderRepository.findByDeletedFalse(pageable)).thenReturn(emptyPage);
+        when(orderRepository.findAll(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(eq(new ArrayList<>()), any(Type.class))).thenReturn(new ArrayList<>());
 
         List<OrderDto> response = orderService.findAll(pageable);
@@ -277,11 +259,6 @@ class OrderServiceTest {
         Assertions.assertNotNull(response);
         Assertions.assertEquals(0, response.size());
     }
-
-    // -------------------------------------------------------------------------
-    // findByCustomerIdentifier
-    // FIX: use any(Type.class) for list-mapper stub
-    // -------------------------------------------------------------------------
 
     @Test
     void findByCustomerIdentifierTest() {
@@ -317,23 +294,19 @@ class OrderServiceTest {
         Assertions.assertEquals(0, response.size());
     }
 
-    // -------------------------------------------------------------------------
-    // delete
-    // -------------------------------------------------------------------------
-
     @Test
     void deleteOrderSuccessTest() {
         Orders orders = new Orders();
         orders.setIdentifier("ORD-UUID");
 
         when(orderRepository.findByIdentifier("ORD-UUID")).thenReturn(orders);
-        when(orderRepository.save(any(Orders.class))).thenReturn(orders);
 
         boolean result = orderService.delete("ORD-UUID");
 
         Assertions.assertTrue(result);
         verify(orderEntryService).deleteByOrderIdentifier("ORD-UUID");
-        verify(orderRepository).save(orders);
+        verify(orderRepository).deleteByIdentifier("ORD-UUID");
+        verify(orderRepository, never()).save(any(Orders.class));
     }
 
     @Test
@@ -344,6 +317,7 @@ class OrderServiceTest {
 
         Assertions.assertFalse(result);
         verify(orderRepository, never()).save(any(Orders.class));
+        verify(orderRepository, never()).deleteByIdentifier(any());
         verify(orderEntryService, never()).deleteByOrderIdentifier(any());
     }
 }

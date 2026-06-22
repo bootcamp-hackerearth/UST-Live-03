@@ -224,69 +224,13 @@ class OrderEntryServiceTest {
         Assertions.assertNull(response.get(0).getProduct());
     }
 
+
     @Test
     void deleteByOrderIdentifierSuccessTest() {
-
-        OrderEntry entry = new OrderEntry();
-        entry.setIdentifier("OE-UUID1");
-        entry.setOrderIdentifier("ORD-UUID");
-
-        List<OrderEntry> entries = List.of(entry);
-
-        when(orderEntryRepository.findAllByOrderIdentifier("ORD-UUID"))
-                .thenReturn(entries);
-
-        when(orderEntryRepository.save(any(OrderEntry.class)))
-                .thenReturn(entry);
-
         orderEntryService.deleteByOrderIdentifier("ORD-UUID");
 
-        verify(orderEntryRepository)
-                .findAllByOrderIdentifier("ORD-UUID");
-
-        verify(orderEntryRepository, times(1))
-                .save(any(OrderEntry.class));
-    }
-
-    @Test
-    void deleteByOrderIdentifierEmptyListTest() {
-
-        when(orderEntryRepository.findAllByOrderIdentifier("INVALID"))
-                .thenReturn(new ArrayList<>());
-
-        orderEntryService.deleteByOrderIdentifier("INVALID");
-
-        verify(orderEntryRepository)
-                .findAllByOrderIdentifier("INVALID");
-
-        verify(orderEntryRepository, never())
-                .save(any(OrderEntry.class));
-    }
-
-    @Test
-    void deleteByOrderIdentifierMultipleEntriesTest() {
-
-        List<OrderEntry> entries = new ArrayList<>();
-
-        for (int i = 0; i < 5; i++) {
-            OrderEntry entry = new OrderEntry();
-            entry.setIdentifier("OE-UUID" + i);
-            entry.setOrderIdentifier("ORD-UUID");
-            entries.add(entry);
-        }
-
-        when(orderEntryRepository.findAllByOrderIdentifier("ORD-UUID"))
-                .thenReturn(entries);
-
-        when(orderEntryRepository.save(any(OrderEntry.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        orderEntryService.deleteByOrderIdentifier("ORD-UUID");
-
-        verify(orderEntryRepository)
-                .findAllByOrderIdentifier("ORD-UUID");
-
-        verify(orderEntryRepository, times(5))
-                .save(any(OrderEntry.class));
+        verify(orderEntryRepository).deleteByOrderIdentifier("ORD-UUID");
+        verify(orderEntryRepository, never()).findAllByOrderIdentifier(any());
+        verify(orderEntryRepository, never()).save(any());
     }
 }

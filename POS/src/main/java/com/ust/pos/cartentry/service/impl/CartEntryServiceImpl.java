@@ -24,8 +24,8 @@ public class CartEntryServiceImpl extends CommonService implements CartEntryServ
     private final ModelMapper modelMapper;
 
     public CartEntryServiceImpl(CartRepository cartRepository, ProductRepository productRepository,
-                              PriceRepository priceRepository, CartEntryRepository cartEntryRepository,
-                              ModelMapper modelMapper) {
+                                PriceRepository priceRepository, CartEntryRepository cartEntryRepository,
+                                ModelMapper modelMapper) {
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.priceRepository = priceRepository;
@@ -123,26 +123,19 @@ public class CartEntryServiceImpl extends CommonService implements CartEntryServ
         if (cartEntry == null) {
             return false;
         }
-        softDelete(cartEntry);
-        setAuditFields(cartEntry, false);
-        cartEntryRepository.save(cartEntry);
+        cartEntryRepository.deleteByIdentifier(identifier);
         return true;
     }
 
     @Override
     public boolean deleteByCartIdentifier(String cartIdentifier) {
-        List<CartEntry> entries = cartEntryRepository.findAllByCartIdentifier(cartIdentifier);
-        for (CartEntry entry : entries) {
-            softDelete(entry);
-            setAuditFields(entry, false);
-            cartEntryRepository.save(entry);
-        }
+        cartEntryRepository.deleteByCartIdentifier(cartIdentifier);
         return true;
     }
 
     @Override
     public List<CartEntryDto> findAll(Pageable pageable) {
-        Page<CartEntry> cartEntryPage = cartEntryRepository.findByDeletedFalse(pageable);
+        Page<CartEntry> cartEntryPage = cartEntryRepository.findAll(pageable);
         return cartEntryPage.getContent().stream().map(cartEntry -> modelMapper.map(cartEntry, CartEntryDto.class)).toList();
     }
 

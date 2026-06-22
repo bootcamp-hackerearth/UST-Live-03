@@ -515,16 +515,22 @@ export default function CartRoute() {
   }, [cart]);
 
   const handleClearCart = async () => {
-    setConfirmClear(false);
-    if (!cart) return;
-    setBusy(true); setPageErr("");
-    try {
-      await apiFetch(`/api/cart/delete/${cart.identifier}`, { method: "POST", body: JSON.stringify({}) });
-      setCart(await apiFetch(`/api/cart/${cart.identifier}`) ?? null);
-      setPageOk("Cart cleared.");
-    } catch (e) { setPageErr(e.message || "Failed to clear cart."); }
-    finally { setBusy(false); }
-  };
+  setConfirmClear(false);
+  if (!cart) return;
+  setBusy(true); setPageErr("");
+  try {
+    const currentEntries = cart.cartEntries ?? [];
+    for (const entry of currentEntries) {
+      await apiFetch(`/api/cart/delete-entry/${entry.identifier}`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+    }
+    setCart(await apiFetch(`/api/cart/${cart.identifier}`) ?? null);
+    setPageOk("Cart cleared.");
+  } catch (e) { setPageErr(e.message || "Failed to clear cart."); }
+  finally { setBusy(false); }
+};
 
   const handleCheckout = async () => {
     setConfirmCheckout(false);

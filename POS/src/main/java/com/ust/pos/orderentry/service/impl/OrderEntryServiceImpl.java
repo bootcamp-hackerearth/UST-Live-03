@@ -25,7 +25,7 @@ public class OrderEntryServiceImpl extends CommonService implements OrderEntrySe
     private final ModelMapper modelMapper;
 
     public OrderEntryServiceImpl(OrderEntryRepository orderEntryRepository, ProductRepository productRepository,
-                               ModelMapper modelMapper) {
+                                 ModelMapper modelMapper) {
         this.orderEntryRepository = orderEntryRepository;
         this.productRepository = productRepository;
         this.modelMapper = modelMapper;
@@ -49,7 +49,8 @@ public class OrderEntryServiceImpl extends CommonService implements OrderEntrySe
 
     @Override
     public List<OrderEntryDto> findAllByOrderIdentifier(String orderIdentifier) {
-        Type listType = new TypeToken<List<OrderEntryDto>>() {}.getType();
+        Type listType = new TypeToken<List<OrderEntryDto>>() {
+        }.getType();
         List<OrderEntry> entries = orderEntryRepository.findAllByOrderIdentifier(orderIdentifier);
         List<OrderEntryDto> dtos = modelMapper.map(entries, listType);
 
@@ -69,11 +70,6 @@ public class OrderEntryServiceImpl extends CommonService implements OrderEntrySe
 
     @Override
     public void deleteByOrderIdentifier(String orderIdentifier) {
-        List<OrderEntry> entries = orderEntryRepository.findAllByOrderIdentifier(orderIdentifier);
-        for (OrderEntry entry : entries) {
-            softDelete(entry);
-            setAuditFields(entry, false);
-            orderEntryRepository.save(entry);
-        }
+        orderEntryRepository.deleteByOrderIdentifier(orderIdentifier);
     }
 }

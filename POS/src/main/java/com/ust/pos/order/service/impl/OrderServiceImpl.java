@@ -4,8 +4,8 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.*;
 import com.ust.pos.model.CustomerRepository;
-import com.ust.pos.model.Orders;
 import com.ust.pos.model.OrderRepository;
+import com.ust.pos.model.Orders;
 import com.ust.pos.order.service.OrderService;
 import com.ust.pos.orderentry.service.OrderEntryService;
 import jakarta.transaction.Transactional;
@@ -32,7 +32,7 @@ public class OrderServiceImpl extends CommonService implements OrderService {
     private final ModelMapper modelMapper;
 
     public OrderServiceImpl(OrderRepository orderRepository, OrderEntryService orderEntryService,
-                          CartService cartService, CustomerRepository customerRepository, ModelMapper modelMapper) {
+                            CartService cartService, CustomerRepository customerRepository, ModelMapper modelMapper) {
         this.orderRepository = orderRepository;
         this.orderEntryService = orderEntryService;
         this.cartService = cartService;
@@ -135,7 +135,7 @@ public class OrderServiceImpl extends CommonService implements OrderService {
     public List<OrderDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<OrderDto>>() {
         }.getType();
-        Page<Orders> orderPage = orderRepository.findByDeletedFalse(pageable);
+        Page<Orders> orderPage = orderRepository.findAll(pageable);
         List<OrderDto> orderDtos = modelMapper.map(orderPage.getContent(), listType);
         orderDtos.forEach(this::enrichOrderDto);
         return orderDtos;
@@ -158,9 +158,7 @@ public class OrderServiceImpl extends CommonService implements OrderService {
             return false;
         }
         orderEntryService.deleteByOrderIdentifier(identifier);
-        softDelete(orders);
-        setAuditFields(orders, false);
-        orderRepository.save(orders);
+        orderRepository.deleteByIdentifier(identifier);
         return true;
     }
 

@@ -28,7 +28,7 @@ public class ProductController extends BaseController {
     private final ModelsService modelsService;
 
     public ProductController(ProductService productService, CategoryService categoryService, BrandService brandService,
-                           UnitService unitService, ModelsService modelsService) {
+                             UnitService unitService, ModelsService modelsService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.brandService = brandService;

@@ -30,7 +30,7 @@ public class CartServiceImpl extends CommonService implements CartService {
     private final ModelMapper modelMapper;
 
     public CartServiceImpl(CustomerRepository customerRepository, CartRepository cartRepository,
-                         CartEntryService cartEntryService, ModelMapper modelMapper) {
+                           CartEntryService cartEntryService, ModelMapper modelMapper) {
         this.customerRepository = customerRepository;
         this.cartRepository = cartRepository;
         this.cartEntryService = cartEntryService;
@@ -167,9 +167,7 @@ public class CartServiceImpl extends CommonService implements CartService {
             return false;
         }
         cartEntryService.deleteByCartIdentifier(identifier);
-        softDelete(cart);
-        setAuditFields(cart, false);
-        cartRepository.save(cart);
+        cartRepository.deleteByIdentifier(identifier);
         return true;
     }
 
@@ -203,7 +201,7 @@ public class CartServiceImpl extends CommonService implements CartService {
     public List<CartDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CartDto>>() {
         }.getType();
-        Page<Cart> cartPage = cartRepository.findByDeletedFalse(pageable);
+        Page<Cart> cartPage = cartRepository.findAll(pageable);
         List<CartDto> cartDtos = modelMapper.map(cartPage.getContent(), listType);
         cartDtos.forEach(cartDto -> {
             List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(cartDto.getIdentifier());
