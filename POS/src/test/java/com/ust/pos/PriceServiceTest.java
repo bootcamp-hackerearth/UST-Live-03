@@ -45,7 +45,90 @@ class PriceServiceTest {
     private ModelMapper modelMapper;
 
     @Test
+    void createPriceProductNotFoundTest() {
+
+        PriceDto dto = new PriceDto();
+        dto.setProductId(1L);
+
+        Mockito.when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        PriceDto response = priceService.createPrice(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Product not found", response.getMessage());
+
+        Mockito.verify(priceRepository, Mockito.never()).save(any());
+    }
+
+    @Test
+    void createPriceAlreadyExistsTest() {
+
+        PriceDto dto = new PriceDto();
+        dto.setProductId(1L);
+
+        Product product = new Product();
+        product.setIdentifier("SKU001");
+
+        Price existingPrice = new Price();
+        existingPrice.setIdentifier("SKU001");
+
+        Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        Mockito.when(priceRepository.findByProductId(1L)).thenReturn(existingPrice);
+
+        PriceDto response = priceService.createPrice(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Price for product - SKU001 already exists", response.getMessage());
+
+        Mockito.verify(priceRepository, Mockito.never()).save(any());
+    }
+
+    @Test
+    void createPriceSoftDeletedTest() {
+
+        PriceDto dto = new PriceDto();
+        dto.setProductId(1L);
+
+        Product product = new Product();
+        product.setIdentifier("SKU001");
+
+        Price existingPrice = new Price();
+        existingPrice.setIdentifier("SKU001");
+        existingPrice.setDeleted(true);
+
+        Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        Mockito.when(priceRepository.findByProductId(1L)).thenReturn(existingPrice);
+
+        PriceDto response = priceService.createPrice(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+
+        Assertions.assertEquals("Price for product - SKU001 has been soft deleted.(Rollback by changing status)", response.getMessage());
+
+        Mockito.verify(priceRepository, Mockito.never()).save(any());
+    }
+
+    @Test
+    void updatePriceNotFoundTest() {
+
+        PriceDto dto = new PriceDto();
+        dto.setId(1L);
+
+        Mockito.when(priceRepository.findById(1L)).thenReturn(Optional.empty());
+
+        PriceDto response = priceService.updatePrice(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Price record not found", response.getMessage());
+
+        Mockito.verify(priceRepository, Mockito.never()).save(any());
+    }
+
+    @Test
     void createPriceSuccessTest() {
+
         PriceDto dto = new PriceDto();
         dto.setProductId(1L);
 
@@ -56,44 +139,19 @@ class PriceServiceTest {
         Price price = new Price();
 
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        Mockito.when(priceRepository.existsByProductId(1L)).thenReturn(false);
+
+        Mockito.when(priceRepository.findByProductId(1L)).thenReturn(null);
+
         Mockito.when(modelMapper.map(dto, Price.class)).thenReturn(price);
 
         PriceDto response = priceService.createPrice(dto);
 
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Price created successfully", response.getMessage());
         Assertions.assertEquals("Samsung", response.getProductName());
         Assertions.assertEquals("SKU001", response.getIdentifier());
 
         Mockito.verify(priceRepository).save(price);
-    }
-
-    @Test
-    void createPriceProductNotFoundTest() {
-        PriceDto dto = new PriceDto();
-        dto.setProductId(1L);
-
-        Mockito.when(productRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResponseStatusException exception = Assertions.assertThrows(
-                ResponseStatusException.class,
-                () -> priceService.createPrice(dto));
-
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-    }
-
-    @Test
-    void createPriceAlreadyExistsTest() {
-        PriceDto dto = new PriceDto();
-        dto.setProductId(1L);
-
-        Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(new Product()));
-        Mockito.when(priceRepository.existsByProductId(1L)).thenReturn(true);
-
-        ResponseStatusException exception = Assertions.assertThrows(
-                ResponseStatusException.class,
-                () -> priceService.createPrice(dto));
-
-        Assertions.assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
     }
 
     @Test
@@ -151,20 +209,6 @@ class PriceServiceTest {
         Assertions.assertNotNull(response);
 
         Mockito.verify(priceRepository).save(price);
-    }
-
-    @Test
-    void updatePriceNotFoundTest() {
-        PriceDto dto = new PriceDto();
-        dto.setId(1L);
-
-        Mockito.when(priceRepository.findById(1L)).thenReturn(Optional.empty());
-
-        RuntimeException exception = Assertions.assertThrows(
-                RuntimeException.class,
-                () -> priceService.updatePrice(dto));
-
-        Assertions.assertEquals("Price record not found", exception.getMessage());
     }
 
     @Test

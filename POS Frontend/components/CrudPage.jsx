@@ -685,26 +685,34 @@ export default function CrudPage({ config }) {
     );
 
     try {
-      if (modal === "add") {
-        await fetchWithAuth(saveEndpoint, {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-      } else if (customUpdateRecord) {
-        await customUpdateRecord(editId, payload);
-      } else {
-        await fetchWithAuth(updateEndpoint(editId), {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-      }
-      closeModal();
-      fetchList();
-    } catch (e) {
-      setError(e.message || "Save failed. Please try again.");
-    } finally {
-      setSaving(false);
-    }
+  let response;
+
+  if (modal === "add") {
+    response = await fetchWithAuth(saveEndpoint, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  } else if (customUpdateRecord) {
+    response = await customUpdateRecord(editId, payload);
+  } else {
+    response = await fetchWithAuth(updateEndpoint(editId), {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  if (response?.success === false) {
+    setError(response.message || "Operation failed");
+    return;
+  }
+
+  closeModal();
+  fetchList();
+} catch (e) {
+  setError(e.message || "Save failed. Please try again.");
+} finally {
+  setSaving(false);
+}
   };
 
   const handleDelete = async () => {

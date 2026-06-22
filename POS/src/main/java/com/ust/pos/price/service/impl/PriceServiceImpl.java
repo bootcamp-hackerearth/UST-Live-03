@@ -31,18 +31,42 @@ public class PriceServiceImpl extends CommonService implements PriceService {
     @Override
     public PriceDto createPrice(PriceDto priceDto) {
 
-        var product = productRepository.findById(priceDto.getProductId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        var productOpt = productRepository.findById(priceDto.getProductId());
 
-        if (priceRepository.existsByProductId(priceDto.getProductId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Price already exists for this product");
+        if (productOpt.isEmpty()) {
+            priceDto.setSuccess(false);
+            priceDto.setMessage("Product not found");
+            return priceDto;
         }
+
+        Price existingPrice = priceRepository.findByProductId(priceDto.getProductId());
+
+        if (existingPrice != null) {
+
+            if (existingPrice.isDeleted()) {
+                priceDto.setMessage("Price for product - " + existingPrice.getIdentifier() + " has been soft deleted.(Rollback by changing status)");
+                priceDto.setSuccess(false);
+                return priceDto;
+            }
+
+            priceDto.setMessage("Price for product - " + existingPrice.getIdentifier() + " already exists");
+            priceDto.setSuccess(false);
+            return priceDto;
+        }
+
+        var product = productOpt.get();
 
         priceDto.setProductName(product.getProductName());
         priceDto.setIdentifier(product.getIdentifier());
 
         Price price = modelMapper.map(priceDto, Price.class);
+
         setAuditFields(price, true);
+
         priceRepository.save(price);
+
+        priceDto.setSuccess(true);
+        priceDto.setMessage("Price created successfully");
 
         return priceDto;
     }
@@ -50,7 +74,13 @@ public class PriceServiceImpl extends CommonService implements PriceService {
     @Override
     public PriceDto updatePrice(PriceDto priceDto) {
 
-        Price price = priceRepository.findById(priceDto.getId()).orElseThrow(() -> new RuntimeException("Price record not found"));
+        Price price = priceRepository.findById(priceDto.getId()).orElse(null);
+
+        if (price == null) {
+            priceDto.setSuccess(false);
+            priceDto.setMessage("Price record not found");
+            return priceDto;
+        }
 
         price.setSellingPrice(priceDto.getSellingPrice());
         price.setCostPrice(priceDto.getCostPrice());
@@ -61,9 +91,13 @@ public class PriceServiceImpl extends CommonService implements PriceService {
         });
 
         setAuditFields(price, false);
+
         priceRepository.save(price);
 
         modelMapper.map(price, priceDto);
+
+        priceDto.setSuccess(true);
+        priceDto.setMessage("Price updated successfully");
 
         return priceDto;
     }
