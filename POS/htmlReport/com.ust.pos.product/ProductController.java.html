@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.product</a> &gt; <span class="el_source">ProductController.java</span></div><h1>ProductController.java</h1><pre class="source lang-java linenums">package com.ust.pos.product;
+
+import com.ust.pos.brand.service.BrandService;
+import com.ust.pos.category.service.CategoryService;
+import com.ust.pos.dto.ProductDto;
+import com.ust.pos.models.service.ModelsService;
+import com.ust.pos.product.service.ProductService;
+import com.ust.pos.unit.service.UnitService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+@Controller
+@RequestMapping(&quot;/product&quot;)
+public class ProductController {
+
+    public static final String REDIRECT_PRODUCT_LIST = &quot;redirect:/product/list&quot;;
+
+    private static final String BRAND = &quot;brand&quot;;
+
+    private static final String MODEL = &quot;model&quot;;
+
+    private static final String CATEGORIES = &quot;categories&quot;;
+
+    private final ProductService productService;
+
+    private final CategoryService categoryService;
+
+    private final BrandService brandService;
+
+    private final UnitService unitService;
+
+    private final ModelsService modelsService;
+
+<span class="fc" id="L36">    public ProductController(ProductService productService, CategoryService categoryService, BrandService brandService, UnitService unitService, ModelsService modelsService) {</span>
+<span class="fc" id="L37">        this.productService = productService;</span>
+<span class="fc" id="L38">        this.categoryService = categoryService;</span>
+<span class="fc" id="L39">        this.brandService = brandService;</span>
+<span class="fc" id="L40">        this.unitService = unitService;</span>
+<span class="fc" id="L41">        this.modelsService = modelsService;</span>
+<span class="fc" id="L42">    }</span>
+
+    @GetMapping(&quot;/list&quot;)
+    public String home(Model model, Pageable pageable) {
+<span class="nc" id="L46">        model.addAttribute(&quot;products&quot;, productService.findAll(pageable));</span>
+<span class="nc" id="L47">        return &quot;product/list&quot;;</span>
+    }
+
+    @GetMapping(&quot;/add&quot;)
+    public String add(Model model,@ModelAttribute ProductDto productDto) {
+<span class="nc" id="L52">        model.addAttribute(CATEGORIES, categoryService.findBySuperCategoryNotNull());</span>
+<span class="nc" id="L53">        model.addAttribute(BRAND, brandService.findIfTrue());</span>
+<span class="nc" id="L54">        model.addAttribute(&quot;unit&quot;, unitService.findIfTrue());</span>
+<span class="nc" id="L55">        model.addAttribute(MODEL, modelsService.findIfTrue());</span>
+<span class="nc" id="L56">        return &quot;product/add&quot;;</span>
+    }
+
+    @PostMapping(&quot;/add&quot;)
+    public String addPost(Model model, @ModelAttribute ProductDto productDto) {
+<span class="nc" id="L61">        ProductDto response = productService.save(productDto);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (!response.isSuccess()) {</span>
+<span class="nc" id="L63">            model.addAttribute(CATEGORIES, categoryService.findBySuperCategoryNotNull());</span>
+<span class="nc" id="L64">            model.addAttribute(BRAND, brandService.findIfTrue());</span>
+<span class="nc" id="L65">            model.addAttribute(&quot;unit&quot;, unitService.findIfTrue());</span>
+<span class="nc" id="L66">            model.addAttribute(MODEL, modelsService.findIfTrue());</span>
+<span class="nc" id="L67">            model.addAttribute(&quot;message&quot;, response.getMessage());</span>
+<span class="nc" id="L68">            return &quot;product/add&quot;;</span>
+        }
+<span class="nc" id="L70">        return REDIRECT_PRODUCT_LIST;</span>
+    }
+
+    @GetMapping(&quot;/get/{identifier}&quot;)
+    public String update(Model model, @PathVariable String identifier) {
+<span class="nc" id="L75">        ProductDto response = productService.findByIdentifier(identifier);</span>
+<span class="nc" id="L76">        model.addAttribute(CATEGORIES, categoryService.findBySuperCategoryNotNull());</span>
+<span class="nc" id="L77">        model.addAttribute(&quot;product&quot;, response);</span>
+<span class="nc" id="L78">        model.addAttribute(BRAND, brandService.findIfTrue());</span>
+<span class="nc" id="L79">        model.addAttribute(&quot;unit&quot;, unitService.findIfTrue());</span>
+<span class="nc" id="L80">        model.addAttribute(MODEL, modelsService.findIfTrue());</span>
+<span class="nc" id="L81">        return &quot;product/product&quot;;</span>
+    }
+
+    @PostMapping(&quot;/update&quot;)
+    public String updatePost(Model model, @ModelAttribute ProductDto productDto) {
+<span class="nc" id="L86">        ProductDto response = productService.update(productDto);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (!response.isSuccess()) {</span>
+<span class="nc" id="L88">            model.addAttribute(&quot;product&quot;, response);</span>
+<span class="nc" id="L89">            model.addAttribute(CATEGORIES, categoryService.findBySuperCategoryNotNull());</span>
+<span class="nc" id="L90">            model.addAttribute(&quot;message&quot;, response.getMessage());</span>
+<span class="nc" id="L91">            model.addAttribute(BRAND, brandService.findIfTrue());</span>
+<span class="nc" id="L92">            model.addAttribute(&quot;unit&quot;, unitService.findIfTrue());</span>
+<span class="nc" id="L93">            model.addAttribute(MODEL, modelsService.findIfTrue());</span>
+<span class="nc" id="L94">            return &quot;product/product&quot;;</span>
+        }
+<span class="nc" id="L96">        return REDIRECT_PRODUCT_LIST;</span>
+    }
+
+    @GetMapping(&quot;/delete/{identifier}&quot;)
+    public String delete(@PathVariable String identifier) {
+<span class="nc" id="L101">        productService.delete(identifier);</span>
+<span class="nc" id="L102">        return REDIRECT_PRODUCT_LIST;</span>
+    }
+
+    @PostMapping(&quot;/toggle-status&quot;)
+    @ResponseBody
+    public void toggle(@RequestParam String identifier) {
+<span class="nc" id="L108">        productService.toggleStatus(identifier);</span>
+<span class="nc" id="L109">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -5,7 +5,6 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +15,14 @@ public class CustomerController extends BaseController {
 
     public static final String REDIRECT_CUSTOMER_LIST = "redirect:/customer/list";
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
 
-    @Autowired
-    private ShelfsService shelfsService;
+    private final ShelfsService shelfsService;
+
+    public CustomerController(CustomerService customerService, ShelfsService shelfsService) {
+        this.customerService = customerService;
+        this.shelfsService = shelfsService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

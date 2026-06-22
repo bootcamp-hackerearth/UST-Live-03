@@ -1,41 +1,39 @@
 package com.ust.pos.cartentry.service.impl;
 
-import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.*;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
 public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private PriceService priceService;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PriceRepository priceRepository;
+    private final PriceService priceService;
 
-    @Lazy
-    @Autowired
-    private CartService cartService;
+    private final PriceRepository priceRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
+
+
+
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, ModelMapper modelMapper, PriceService priceService, PriceRepository priceRepository, CartRepository cartRepository) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+        this.priceService = priceService;
+        this.priceRepository = priceRepository;
+        this.cartRepository = cartRepository;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -59,7 +57,6 @@ public class CartEntryServiceImpl implements CartEntryService {
         cartEntryDto.setSellingPrice(price.getSellingPrice());
         modelMapper.map(cartEntryDto, cartEntry);
         cartEntryRepository.save(cartEntry);
-        cartService.recalculate(cartEntry.getCart());
         return cartEntryDto;
     }
 

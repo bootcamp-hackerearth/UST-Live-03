@@ -5,7 +5,6 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,13 +14,17 @@ import org.springframework.web.bind.annotation.*;
 public class NodeController extends BaseController {
 
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
+
     public static final String ROLES = "roles";
 
-    @Autowired
-    RoleService roleService;
+    final RoleService roleService;
 
-    @Autowired
-    private NodeService nodeService;
+    private final NodeService nodeService;
+
+    public NodeController(RoleService roleService, NodeService nodeService) {
+        this.roleService = roleService;
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

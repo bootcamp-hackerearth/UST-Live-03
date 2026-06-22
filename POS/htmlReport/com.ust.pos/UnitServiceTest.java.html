@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnitServiceTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos</a> &gt; <span class="el_source">UnitServiceTest.java</span></div><h1>UnitServiceTest.java</h1><pre class="source lang-java linenums">package com.ust.pos;
+
+import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Unit;
+import com.ust.pos.model.UnitRepository;
+import com.ust.pos.unit.service.impl.UnitServiceImpl;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@ExtendWith(MockitoExtension.class)
+<span class="fc" id="L21">class UnitServiceTest {</span>
+
+    @Mock
+    private UnitRepository unitRepository;
+
+    @Mock
+    private ModelMapper modelMapper;
+
+    @InjectMocks
+    private UnitServiceImpl unitService;
+
+    @Test
+    void saveTest() {
+<span class="fc" id="L34">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L35">        unitDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L36">        Mockito.when(unitRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(null);</span>
+<span class="fc" id="L37">        Unit unit = new Unit();</span>
+<span class="fc" id="L38">        Mockito.when(modelMapper.map(unitDto, Unit.class)).thenReturn(unit);</span>
+<span class="fc" id="L39">        Mockito.when(unitRepository.save(unit)).thenReturn(unit);</span>
+<span class="fc" id="L40">        UnitDto response = unitService.save(unitDto);</span>
+<span class="fc" id="L41">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L42">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L43">    }</span>
+
+    @Test
+    void saveTestFailure() {
+<span class="fc" id="L47">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L48">        unitDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L49">        Unit existingUnit = new Unit();</span>
+<span class="fc" id="L50">        existingUnit.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L51">        Mockito.when(unitRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(existingUnit);</span>
+<span class="fc" id="L52">        UnitDto response = unitService.save(unitDto);</span>
+<span class="fc" id="L53">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L54">    }</span>
+
+    @Test
+    void findByIdentifierTest() {
+<span class="fc" id="L58">        Unit unit = new Unit();</span>
+<span class="fc" id="L59">        unit.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L60">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L61">        unitDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L62">        Mockito.when(unitRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(unit);</span>
+<span class="fc" id="L63">        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);</span>
+<span class="fc" id="L64">        UnitDto response = unitService.findByIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L65">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L66">    }</span>
+
+    @Test
+    void updateTest() {
+<span class="fc" id="L70">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L71">        unitDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L72">        Unit existingUnit = new Unit();</span>
+<span class="fc" id="L73">        existingUnit.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L74">        Mockito.when(unitRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(existingUnit);</span>
+<span class="fc" id="L75">        Mockito.when(unitRepository.save(existingUnit)).thenReturn(existingUnit);</span>
+<span class="fc" id="L76">        UnitDto response = unitService.update(unitDto);</span>
+<span class="fc" id="L77">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L78">    }</span>
+
+    @Test
+    void updateTestFailure() {
+<span class="fc" id="L82">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L83">        unitDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L84">        Mockito.when(unitRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(null);</span>
+<span class="fc" id="L85">        UnitDto response = unitService.update(unitDto);</span>
+<span class="fc" id="L86">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L87">    }</span>
+
+    @Test
+    void deleteTest() {
+<span class="fc" id="L91">        Unit unit = new Unit();</span>
+<span class="fc" id="L92">        unit.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L93">        Mockito.when(unitRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(unit);</span>
+<span class="fc" id="L94">        Mockito.when(unitRepository.save(unit)).thenReturn(unit);</span>
+<span class="fc" id="L95">        boolean response = unitService.delete(&quot;Admin&quot;);</span>
+<span class="fc" id="L96">        Assertions.assertEquals(true, response);</span>
+<span class="fc" id="L97">    }</span>
+
+    @Test
+    void findAllTest() {
+<span class="fc" id="L101">        Unit unit = new Unit();</span>
+<span class="fc" id="L102">        unit.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L103">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L104">        unitDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L105">        List&lt;Unit&gt; units = List.of(unit);</span>
+<span class="fc" id="L106">        List&lt;UnitDto&gt; unitDtos = List.of(unitDto);</span>
+<span class="fc" id="L107">        Page&lt;Unit&gt; unitPage = new PageImpl&lt;&gt;(units, PageRequest.of(0, 2), units.size());</span>
+<span class="fc" id="L108">        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList&lt;&gt;()));</span>
+<span class="fc" id="L109">        Mockito.when(unitRepository.findByDeletedFalse(pageable)).thenReturn(unitPage);</span>
+<span class="fc" id="L110">        Mockito.when(modelMapper.map(</span>
+<span class="fc" id="L111">                Mockito.eq(units),</span>
+<span class="fc" id="L112">                Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L113">        )).thenReturn(unitDtos);</span>
+<span class="fc" id="L114">        WsDto&lt;UnitDto&gt; response = unitService.findAll(pageable);</span>
+<span class="fc" id="L115">        Assertions.assertEquals(1, response.getDtoList().size());</span>
+<span class="fc" id="L116">    }</span>
+
+    @Test
+    void findByStatusTest() {
+<span class="fc" id="L120">        Unit unit = new Unit();</span>
+<span class="fc" id="L121">        unit.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L122">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L123">        unitDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L124">        List&lt;Unit&gt; units = List.of(unit);</span>
+<span class="fc" id="L125">        List&lt;UnitDto&gt; unitDtos = List.of(unitDto);</span>
+<span class="fc" id="L126">        Mockito.when(unitRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(units);</span>
+<span class="fc" id="L127">        Mockito.when(modelMapper.map(</span>
+<span class="fc" id="L128">                Mockito.eq(units),</span>
+<span class="fc" id="L129">                Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L130">        )).thenReturn(unitDtos);</span>
+<span class="fc" id="L131">        List&lt;UnitDto&gt; response = unitService.findIfTrue();</span>
+<span class="fc" id="L132">        Assertions.assertEquals(1, response.size());</span>
+<span class="fc" id="L133">    }</span>
+
+    @Test
+    void toggleTestActive() {
+<span class="fc" id="L137">        Unit unit = new Unit();</span>
+<span class="fc" id="L138">        unit.setStatus(false);</span>
+<span class="fc" id="L139">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L140">        unitDto.setStatus(true);</span>
+<span class="fc" id="L141">        Mockito.when(unitRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(unit);</span>
+<span class="fc" id="L142">        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);</span>
+<span class="fc" id="L143">        UnitDto response = unitService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L144">        Assertions.assertTrue(response.isStatus());</span>
+<span class="fc" id="L145">    }</span>
+
+    @Test
+    void toggleTestInactive() {
+<span class="fc" id="L149">        Unit unit = new Unit();</span>
+<span class="fc" id="L150">        unit.setStatus(true);</span>
+<span class="fc" id="L151">        UnitDto unitDto = new UnitDto();</span>
+<span class="fc" id="L152">        unitDto.setStatus(false);</span>
+<span class="fc" id="L153">        Mockito.when(unitRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(unit);</span>
+<span class="fc" id="L154">        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);</span>
+<span class="fc" id="L155">        UnitDto response = unitService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L156">        Assertions.assertFalse(response.isStatus());</span>
+<span class="fc" id="L157">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

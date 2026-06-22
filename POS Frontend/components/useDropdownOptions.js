@@ -6,6 +6,10 @@ export function useDropdownOptions(apiUrl, valueField, labelField) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!apiUrl) {
+      setLoading(false);
+      return;
+    }
     const loadOptions = async () => {
       try {
         const res = await api.get(apiUrl);

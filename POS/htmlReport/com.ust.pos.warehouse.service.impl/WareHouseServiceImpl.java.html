@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WareHouseServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.warehouse.service.impl</a> &gt; <span class="el_source">WareHouseServiceImpl.java</span></div><h1>WareHouseServiceImpl.java</h1><pre class="source lang-java linenums">package com.ust.pos.warehouse.service.impl;
+
+import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.WareHouseDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.WareHouse;
+import com.ust.pos.model.WareHouseRepository;
+import com.ust.pos.warehouse.service.WareHouseService;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import java.lang.reflect.Type;
+import java.util.List;
+
+@Service
+public class WareHouseServiceImpl extends CommonService implements WareHouseService {
+
+    private static final String WAREHOUSE_WITH_IDENTIFIER = &quot;WareHouse with identifier - &quot;;
+
+    private final WareHouseRepository wareHouseRepository;
+
+    private final ModelMapper modelMapper;
+
+<span class="fc" id="L26">    public WareHouseServiceImpl(WareHouseRepository wareHouseRepository, ModelMapper modelMapper) {</span>
+<span class="fc" id="L27">        this.wareHouseRepository = wareHouseRepository;</span>
+<span class="fc" id="L28">        this.modelMapper = modelMapper;</span>
+<span class="fc" id="L29">    }</span>
+
+    @Override
+    public WareHouseDto findByIdentifier(String identifier) {
+<span class="fc" id="L33">        return modelMapper.map(wareHouseRepository.findByIdentifier(identifier), WareHouseDto.class);</span>
+    }
+
+    @Override
+    public WareHouseDto save(WareHouseDto wareHouseDto) {
+<span class="fc" id="L38">        wareHouseDto.setIdentifier(wareHouseDto.getIdentifier().trim());</span>
+<span class="fc" id="L39">        String identifier = wareHouseDto.getIdentifier();</span>
+<span class="fc" id="L40">        WareHouse existingWareHouse = wareHouseRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (existingWareHouse != null) {</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">            if (!existingWareHouse.isDeleted()) {</span>
+<span class="fc" id="L43">                wareHouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + &quot; already exists&quot;);</span>
+<span class="fc" id="L44">                wareHouseDto.setSuccess(false);</span>
+<span class="fc" id="L45">                return wareHouseDto;</span>
+            }
+<span class="nc" id="L47">            wareHouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + &quot; was previously deleted. &quot; +</span>
+                    &quot;Please contact backend team to restore.&quot;);
+<span class="nc" id="L49">            wareHouseDto.setSuccess(false);</span>
+<span class="nc" id="L50">            return wareHouseDto;</span>
+        }
+<span class="fc" id="L52">        WareHouse wareHouse = modelMapper.map(wareHouseDto, WareHouse.class);</span>
+<span class="fc" id="L53">        setAuditFields(wareHouse,true);</span>
+<span class="fc" id="L54">        wareHouseRepository.save(wareHouse);</span>
+<span class="fc" id="L55">        wareHouseDto.setSuccess(true);</span>
+<span class="fc" id="L56">        wareHouseDto.setMessage(&quot;WareHouse created successfully&quot;);</span>
+<span class="fc" id="L57">        return wareHouseDto;</span>
+    }
+
+    @Override
+    public WareHouseDto update(WareHouseDto wareHouseDto) {
+<span class="fc" id="L62">        String identifier = wareHouseDto.getIdentifier();</span>
+<span class="fc" id="L63">        WareHouse existingWareHouse = wareHouseRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (existingWareHouse == null) {</span>
+<span class="fc" id="L65">            wareHouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + &quot; not found&quot;);</span>
+<span class="fc" id="L66">            wareHouseDto.setSuccess(false);</span>
+<span class="fc" id="L67">            return wareHouseDto;</span>
+        }
+<span class="fc" id="L69">        modelMapper.map(wareHouseDto, existingWareHouse);</span>
+<span class="fc" id="L70">        setAuditFields(existingWareHouse,false);</span>
+<span class="fc" id="L71">        wareHouseRepository.save(existingWareHouse);</span>
+<span class="fc" id="L72">        return wareHouseDto;</span>
+    }
+
+    @Override
+    public boolean delete(String identifier) {
+<span class="fc" id="L77">        WareHouse wareHouse = wareHouseRepository.findByIdentifier(identifier);</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (wareHouse == null) return false;</span>
+<span class="fc" id="L79">        softDelete(wareHouse);</span>
+<span class="fc" id="L80">        setAuditFields(wareHouse,false);</span>
+<span class="fc" id="L81">        wareHouseRepository.save(wareHouse);</span>
+<span class="fc" id="L82">        return true;</span>
+    }
+
+    @Override
+    public WsDto&lt;WareHouseDto&gt; findAll(Pageable pageable) {
+<span class="fc" id="L87">        Type listType = new TypeToken&lt;List&lt;WareHouseDto&gt;&gt;() {</span>
+<span class="fc" id="L88">        }.getType();</span>
+<span class="fc" id="L89">        Page&lt;WareHouse&gt; wareHousePage = wareHouseRepository.findByDeletedFalse(pageable);</span>
+<span class="fc" id="L90">        WsDto&lt;WareHouseDto&gt; wareHouseDtoWsDto = new WsDto&lt;&gt;();</span>
+<span class="fc" id="L91">        wareHouseDtoWsDto.setDtoList(modelMapper.map(wareHousePage.getContent(), listType));</span>
+<span class="fc" id="L92">        wareHouseDtoWsDto.setTotalRecords(wareHousePage.getTotalElements());</span>
+<span class="fc" id="L93">        wareHouseDtoWsDto.setTotalPages(wareHousePage.getTotalPages());</span>
+<span class="fc" id="L94">        wareHouseDtoWsDto.setSizePerPage(pageable.getPageSize());</span>
+<span class="fc" id="L95">        wareHouseDtoWsDto.setPage(pageable.getPageNumber());</span>
+<span class="fc" id="L96">        return wareHouseDtoWsDto;    }</span>
+
+    @Override
+    public List&lt;WareHouseDto&gt; findIfTrue() {
+<span class="fc" id="L100">        Type listType = new TypeToken&lt;List&lt;WareHouseDto&gt;&gt;() {</span>
+<span class="fc" id="L101">        }.getType();</span>
+<span class="fc" id="L102">        return modelMapper.map(wareHouseRepository.findByStatusIsTrueAndDeletedFalse(), listType);</span>
+    }
+
+    @Override
+    public WareHouseDto toggleStatus(String identifier) {
+<span class="fc" id="L107">        WareHouse wareHouse = wareHouseRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        wareHouse.setStatus(!wareHouse.isStatus());</span>
+<span class="fc" id="L109">        setAuditFields(wareHouse,false);</span>
+<span class="fc" id="L110">        wareHouseRepository.save(wareHouse);</span>
+<span class="fc" id="L111">        return modelMapper.map(wareHouse, WareHouseDto.class);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

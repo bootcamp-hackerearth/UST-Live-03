@@ -55,14 +55,12 @@ class CartEntryServiceTest {
         Mockito.when(cartEntryRepository.findByIdentifier(identifier)).thenReturn(null);
         Mockito.when(priceRepository.findByIdentifier("P1")).thenReturn(price);
         Mockito.when(cartEntryRepository.save(Mockito.any(CartEntry.class))).thenReturn(savedEntry);
-        Mockito.when(cartService.recalculate(Mockito.any())).thenReturn(null);
         CartEntryDto response = cartEntryService.save(dto);
         Assertions.assertEquals("P1-C1", response.getIdentifier());
         Assertions.assertEquals(BigDecimal.valueOf(2), response.getQuantity());
         Assertions.assertEquals(BigDecimal.valueOf(160), response.getTotalPrice());
         Assertions.assertEquals(BigDecimal.valueOf(40), response.getDiscount());
         Mockito.verify(cartEntryRepository).save(Mockito.any(CartEntry.class));
-        Mockito.verify(cartService).recalculate(Mockito.any());
     }
 
     @Test
@@ -80,7 +78,6 @@ class CartEntryServiceTest {
         Mockito.when(cartEntryRepository.findByIdentifier(identifier)).thenReturn(existing);
         Mockito.when(priceRepository.findByIdentifier("P1")).thenReturn(price);
         Mockito.when(cartEntryRepository.save(existing)).thenReturn(existing);
-        Mockito.when(cartService.recalculate(Mockito.any())).thenReturn(null);
         CartEntryDto response = cartEntryService.save(dto);
         Assertions.assertEquals(BigDecimal.valueOf(5), response.getQuantity());
         Assertions.assertEquals(BigDecimal.valueOf(400), response.getTotalPrice());

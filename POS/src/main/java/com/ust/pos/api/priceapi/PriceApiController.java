@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.price.service.PriceService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +15,11 @@ import java.util.List;
 @RequestMapping("/api/price")
 public class PriceApiController extends BaseController {
 
-    @Autowired
-    private PriceService priceService;
+    private final PriceService priceService;
+
+    public PriceApiController(PriceService priceService) {
+        this.priceService = priceService;
+    }
 
     @PostMapping("/list")
     public WsDto<PriceDto> home(@RequestBody PaginationDto paginationDto) {

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BrandServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.brand.service.impl</a> &gt; <span class="el_source">BrandServiceImpl.java</span></div><h1>BrandServiceImpl.java</h1><pre class="source lang-java linenums">package com.ust.pos.brand.service.impl;
+
+import com.ust.pos.brand.service.BrandService;
+import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Brand;
+import com.ust.pos.model.BrandRepository;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+@Service
+public class BrandServiceImpl extends CommonService implements BrandService {
+    private static final String BRAND_WITH_IDENTIFIER =&quot;Brand with identifier &quot; ;
+
+<span class="fc" id="L22">    public BrandServiceImpl(BrandRepository brandRepository, ModelMapper modelMapper) {</span>
+<span class="fc" id="L23">        this.brandRepository = brandRepository;</span>
+<span class="fc" id="L24">        this.modelMapper = modelMapper;</span>
+<span class="fc" id="L25">    }</span>
+    private final BrandRepository brandRepository;
+    private final ModelMapper modelMapper;
+
+    @Override
+    public BrandDto findByIdentifier(String identifier) {
+<span class="fc" id="L31">        return modelMapper.map(brandRepository.findByIdentifier(identifier), BrandDto.class);</span>
+    }
+
+    @Override
+    public BrandDto toggleStatus(String identifier) {
+<span class="fc" id="L36">        Brand brand = brandRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        brand.setStatus(!brand.isStatus());</span>
+<span class="fc" id="L38">        setAuditFields(brand,false);</span>
+<span class="fc" id="L39">        brandRepository.save(brand);</span>
+<span class="fc" id="L40">        return modelMapper.map(brand, BrandDto.class);</span>
+    }
+
+    @Override
+    public BrandDto save(BrandDto brandDto) {
+<span class="fc" id="L45">        brandDto.setIdentifier(brandDto.getIdentifier().trim());</span>
+<span class="fc" id="L46">        String identifier = brandDto.getIdentifier();</span>
+<span class="fc" id="L47">        Brand existingBrand = brandRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (existingBrand != null) {</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">            if (!existingBrand.isDeleted()) {</span>
+<span class="fc" id="L50">                brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + &quot; already exists&quot;);</span>
+<span class="fc" id="L51">                brandDto.setSuccess(false);</span>
+<span class="fc" id="L52">                return brandDto;</span>
+            }
+<span class="nc" id="L54">            brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + &quot; was previously deleted. &quot; +</span>
+                    &quot;Please contact backend team to restore.&quot;);
+<span class="nc" id="L56">            brandDto.setSuccess(false);</span>
+<span class="nc" id="L57">            return brandDto;</span>
+        }
+<span class="fc" id="L59">        Brand brand = modelMapper.map(brandDto, Brand.class);</span>
+<span class="fc" id="L60">        setAuditFields(brand, true);</span>
+<span class="fc" id="L61">        brandRepository.save(brand);</span>
+<span class="fc" id="L62">        brandDto.setSuccess(true);</span>
+<span class="fc" id="L63">        brandDto.setMessage(&quot;Brand created successfully&quot;);</span>
+<span class="fc" id="L64">        return brandDto;</span>
+    }
+
+    @Override
+    public BrandDto update(BrandDto brandDto) {
+<span class="fc" id="L69">        String identifier = brandDto.getIdentifier();</span>
+<span class="fc" id="L70">        Brand existingBrand = brandRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (existingBrand == null) {</span>
+<span class="fc" id="L72">            brandDto.setMessage(&quot;Brand with identifier - &quot; + identifier + &quot; not found&quot;);</span>
+<span class="fc" id="L73">            brandDto.setSuccess(false);</span>
+<span class="fc" id="L74">            return brandDto;</span>
+        }
+<span class="fc" id="L76">        modelMapper.map(brandDto, existingBrand);</span>
+<span class="fc" id="L77">        setAuditFields(existingBrand,false);</span>
+<span class="fc" id="L78">        brandRepository.save(existingBrand);</span>
+<span class="fc" id="L79">        return brandDto;</span>
+    }
+
+    @Override
+    public boolean delete(String identifier) {
+<span class="fc" id="L84">        Brand brand = brandRepository.findByIdentifier(identifier);</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (brand == null) return false;</span>
+<span class="fc" id="L86">        softDelete(brand);</span>
+<span class="fc" id="L87">        setAuditFields(brand,false);</span>
+<span class="fc" id="L88">        brandRepository.save(brand);</span>
+<span class="fc" id="L89">        return true;</span>
+    }
+
+    @Override
+    public WsDto&lt;BrandDto&gt; findAll(Pageable pageable) {
+<span class="fc" id="L94">        Type listType = new TypeToken&lt;List&lt;BrandDto&gt;&gt;() {</span>
+<span class="fc" id="L95">        }.getType();</span>
+<span class="fc" id="L96">        Page&lt;Brand&gt; brandPage = brandRepository.findByDeletedFalse(pageable);</span>
+<span class="fc" id="L97">        WsDto&lt;BrandDto&gt;  brandDtoWsDto= new WsDto&lt;&gt;();</span>
+<span class="fc" id="L98">        brandDtoWsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));</span>
+<span class="fc" id="L99">        brandDtoWsDto.setTotalRecords(brandPage.getTotalElements());</span>
+<span class="fc" id="L100">        brandDtoWsDto.setTotalPages(brandPage.getTotalPages());</span>
+<span class="fc" id="L101">        brandDtoWsDto.setSizePerPage(pageable.getPageSize());</span>
+<span class="fc" id="L102">        brandDtoWsDto.setPage(pageable.getPageNumber());</span>
+<span class="fc" id="L103">        return brandDtoWsDto;</span>
+    }
+
+    @Override
+    public List&lt;BrandDto&gt; findIfTrue() {
+<span class="fc" id="L108">        Type listType = new TypeToken&lt;List&lt;BrandDto&gt;&gt;() {</span>
+<span class="fc" id="L109">        }.getType();</span>
+<span class="fc" id="L110">        return modelMapper.map(brandRepository.findByStatusIsTrueAndDeletedFalse(), listType);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

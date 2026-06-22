@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CartApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.api.cartapi</a> &gt; <span class="el_source">CartApiController.java</span></div><h1>CartApiController.java</h1><pre class="source lang-java linenums">package com.ust.pos.api.cartapi;
+
+import com.ust.pos.api.BaseController;
+import com.ust.pos.cartentry.service.CartEntryService;
+import com.ust.pos.dto.CartDto;
+import com.ust.pos.cart.service.CartService;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping(&quot;/api/cart&quot;)
+public class CartApiController extends BaseController {
+
+    private final CartService cartService;
+
+    private final CartEntryService cartEntryService;
+
+<span class="fc" id="L17">    public CartApiController(CartService cartService, CartEntryService cartEntryService) {</span>
+<span class="fc" id="L18">        this.cartService = cartService;</span>
+<span class="fc" id="L19">        this.cartEntryService = cartEntryService;</span>
+<span class="fc" id="L20">    }</span>
+
+    @PostMapping(&quot;/add&quot;)
+    public CartDto addCart(@RequestBody CartDto cartDto) {
+<span class="nc" id="L24">        return cartService.save(cartDto);</span>
+    }
+
+    @PostMapping(&quot;/getCart&quot;)
+    public CartDto getCart(@RequestBody CartDto cartDto) {
+<span class="nc" id="L29">        return cartService.findByIdentifier(cartDto.getIdentifier());</span>
+    }
+
+    @PostMapping(&quot;/addToCart&quot;)
+    public CartDto addToCart(@RequestBody CartDto cartDto){
+<span class="nc" id="L34">        return cartService.recalculate(cartDto.getIdentifier());</span>
+    }
+
+    @PostMapping(&quot;/deleteCart&quot;)
+    public Boolean deleteCart(@RequestBody CartDto cartDto){
+        try {
+<span class="nc" id="L40">            cartService.deleteByIdentifier(cartDto.getIdentifier());</span>
+<span class="nc" id="L41">        } catch (Exception e) {</span>
+<span class="nc" id="L42">            return false;</span>
+<span class="nc" id="L43">        }</span>
+<span class="nc" id="L44">        return true;</span>
+    }
+
+    @GetMapping(&quot;/deleteEntry&quot;)
+    public boolean delete(@RequestParam String identifier, String cart) {
+        try{
+<span class="nc" id="L50">            cartEntryService.deleteByIdentifier(identifier);</span>
+<span class="nc" id="L51">            cartService.recalculate(cart);</span>
+        }
+<span class="nc" id="L53">        catch (Exception e){</span>
+<span class="nc" id="L54">            return false;</span>
+<span class="nc" id="L55">        }</span>
+<span class="nc" id="L56">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

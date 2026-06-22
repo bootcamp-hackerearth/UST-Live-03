@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CategoryServiceTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos</a> &gt; <span class="el_source">CategoryServiceTest.java</span></div><h1>CategoryServiceTest.java</h1><pre class="source lang-java linenums">package com.ust.pos;
+
+import com.ust.pos.category.service.impl.CategoryServiceImpl;
+import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Category;
+import com.ust.pos.model.CategoryRepository;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import java.util.List;
+
+@ExtendWith(MockitoExtension.class)
+<span class="fc" id="L24">class CategoryServiceTest {</span>
+
+    @Mock
+    private CategoryRepository categoryRepository;
+
+<span class="fc" id="L29">    @Spy</span>
+    private ModelMapper modelMapper = new ModelMapper();
+
+    @InjectMocks
+    private CategoryServiceImpl categoryService;
+
+    @Test
+    void saveTest() {
+<span class="fc" id="L37">        CategoryDto dto = new CategoryDto();</span>
+<span class="fc" id="L38">        dto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L39">        Mockito.when(categoryRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(null);</span>
+<span class="fc" id="L40">        Mockito.when(categoryRepository.save(Mockito.any(Category.class))).thenReturn(new Category());</span>
+<span class="fc" id="L41">        CategoryDto response = categoryService.save(dto);</span>
+<span class="fc" id="L42">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L43">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L44">    }</span>
+
+    @Test
+    void saveTestFailure() {
+<span class="fc" id="L48">        CategoryDto dto = new CategoryDto();</span>
+<span class="fc" id="L49">        dto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L50">        Mockito.when(categoryRepository.findByIdentifier(&quot;Admin&quot;))</span>
+<span class="fc" id="L51">                .thenReturn(new Category());</span>
+<span class="fc" id="L52">        CategoryDto response = categoryService.save(dto);</span>
+<span class="fc" id="L53">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L54">    }</span>
+
+    @Test
+    void findByIdentifierTest() {
+<span class="fc" id="L58">        Category category = new Category();</span>
+<span class="fc" id="L59">        category.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L60">        Mockito.when(categoryRepository.findByIdentifier(&quot;Admin&quot;))</span>
+<span class="fc" id="L61">                .thenReturn(category);</span>
+<span class="fc" id="L62">        CategoryDto response = categoryService.findByIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L63">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L64">    }</span>
+
+    @Test
+    void updateTest() {
+<span class="fc" id="L68">        Category category = new Category();</span>
+<span class="fc" id="L69">        category.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L70">        Mockito.when(categoryRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(category);</span>
+<span class="fc" id="L71">        Mockito.when(categoryRepository.save(category)).thenReturn(category);</span>
+<span class="fc" id="L72">        CategoryDto dto = new CategoryDto();</span>
+<span class="fc" id="L73">        dto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L74">        CategoryDto response = categoryService.update(dto);</span>
+<span class="fc" id="L75">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L76">    }</span>
+
+    @Test
+    void updateTestFailure() {
+<span class="fc" id="L80">        Mockito.when(categoryRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(null);</span>
+<span class="fc" id="L81">        CategoryDto dto = new CategoryDto();</span>
+<span class="fc" id="L82">        dto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L83">        CategoryDto response = categoryService.update(dto);</span>
+<span class="fc" id="L84">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L85">    }</span>
+
+    @Test
+    void deleteTest() {
+<span class="fc" id="L89">        Category category = new Category();</span>
+<span class="fc" id="L90">        category.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L91">        Mockito.when(categoryRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(category);</span>
+<span class="fc" id="L92">        Mockito.when(categoryRepository.save(category)).thenReturn(category);</span>
+<span class="fc" id="L93">        boolean response = categoryService.delete(&quot;Admin&quot;);</span>
+<span class="fc" id="L94">        Assertions.assertTrue(response);</span>
+<span class="fc" id="L95">    }</span>
+
+    @Test
+    void findAllTest() {
+<span class="fc" id="L99">        Category category = new Category();</span>
+<span class="fc" id="L100">        category.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L101">        CategoryDto categoryDto = new CategoryDto();</span>
+<span class="fc" id="L102">        categoryDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L103">        List&lt;Category&gt; categories = List.of(category);</span>
+<span class="fc" id="L104">        List&lt;CategoryDto&gt; categoryDtos = List.of(categoryDto);</span>
+<span class="fc" id="L105">        Page&lt;Category&gt; categoryPage = new PageImpl&lt;&gt;(categories, PageRequest.of(0, 2), categories.size());</span>
+<span class="fc" id="L106">        Pageable pageable = PageRequest.of(0, 50);</span>
+<span class="fc" id="L107">        Mockito.when(categoryRepository.findByDeletedFalse(pageable)).thenReturn(categoryPage);</span>
+<span class="fc" id="L108">        Mockito.doReturn(categoryDtos).when(modelMapper).map(</span>
+<span class="fc" id="L109">                Mockito.eq(categories),</span>
+<span class="fc" id="L110">                Mockito.any(java.lang.reflect.Type.class)</span>
+        );
+<span class="fc" id="L112">        WsDto&lt;CategoryDto&gt; response = categoryService.findAll(pageable);</span>
+<span class="fc" id="L113">        Assertions.assertEquals(categoryDtos, response.getDtoList());</span>
+<span class="fc" id="L114">        Assertions.assertEquals(1L, response.getTotalRecords());</span>
+<span class="fc" id="L115">        Assertions.assertEquals(1, response.getTotalPages());</span>
+<span class="fc" id="L116">        Assertions.assertEquals(50, response.getSizePerPage());</span>
+<span class="fc" id="L117">        Assertions.assertEquals(0, response.getPage());</span>
+
+<span class="fc" id="L119">    }</span>
+
+    @Test
+    void toggleTestActive() {
+<span class="fc" id="L123">        Category category = new Category();</span>
+<span class="fc" id="L124">        category.setStatus(false);</span>
+<span class="fc" id="L125">        Mockito.when(categoryRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(category);</span>
+<span class="fc" id="L126">        CategoryDto response = categoryService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L127">        Assertions.assertTrue(response.isStatus());</span>
+<span class="fc" id="L128">    }</span>
+
+    @Test
+    void toggleTestInactive() {
+<span class="fc" id="L132">        Category category = new Category();</span>
+<span class="fc" id="L133">        category.setStatus(true);</span>
+<span class="fc" id="L134">        Mockito.when(categoryRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(category);</span>
+<span class="fc" id="L135">        CategoryDto response = categoryService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L136">        Assertions.assertFalse(response.isStatus());</span>
+<span class="fc" id="L137">    }</span>
+
+    @Test
+    void findBySuperCategoryNotNullTest() {
+<span class="fc" id="L141">        Category category = new Category();</span>
+<span class="fc" id="L142">        category.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L143">        Mockito.when(categoryRepository.findByStatusTrueAndDeletedFalseAndSuperCategoryIsNot(&quot;&quot;))</span>
+<span class="fc" id="L144">                .thenReturn(List.of(category));</span>
+<span class="fc" id="L145">        List&lt;CategoryDto&gt; response = categoryService.findBySuperCategoryNotNull();</span>
+<span class="fc" id="L146">        Assertions.assertEquals(1, response.size());</span>
+<span class="fc" id="L147">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

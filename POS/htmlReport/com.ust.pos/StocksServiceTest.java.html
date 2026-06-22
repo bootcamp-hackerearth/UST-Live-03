@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StocksServiceTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos</a> &gt; <span class="el_source">StocksServiceTest.java</span></div><h1>StocksServiceTest.java</h1><pre class="source lang-java linenums">package com.ust.pos;
+
+import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.StocksDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Stocks;
+import com.ust.pos.model.StocksRepository;
+import com.ust.pos.product.service.ProductService;
+import com.ust.pos.stocks.service.impl.StocksServiceImpl;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@ExtendWith(MockitoExtension.class)
+<span class="fc" id="L24">class StocksServiceTest {</span>
+
+    @Mock
+    ProductService productService;
+
+    @Mock
+    private StocksRepository stocksRepository;
+
+    @Mock
+    private ModelMapper modelMapper;
+
+    @InjectMocks
+    private StocksServiceImpl stocksService;
+
+    @Test
+    void saveTest() {
+<span class="fc" id="L40">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L41">        stocksDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L42">        ProductDto productDto = new ProductDto();</span>
+<span class="fc" id="L43">        productDto.setName(&quot;Srujan&quot;);</span>
+<span class="fc" id="L44">        Mockito.when(stocksRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(null);</span>
+<span class="fc" id="L45">        Stocks stocks = new Stocks();</span>
+<span class="fc" id="L46">        Mockito.when(modelMapper.map(stocksDto, Stocks.class)).thenReturn(stocks);</span>
+<span class="fc" id="L47">        Mockito.when(stocksRepository.save(stocks)).thenReturn(stocks);</span>
+<span class="fc" id="L48">        Mockito.when(productService.findByIdentifier(stocksDto.getIdentifier())).thenReturn(productDto);</span>
+<span class="fc" id="L49">        StocksDto response = stocksService.save(stocksDto);</span>
+<span class="fc" id="L50">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L51">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L52">    }</span>
+
+    @Test
+    void saveTestFailure() {
+<span class="fc" id="L56">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L57">        stocksDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L58">        Stocks existingStocks = new Stocks();</span>
+<span class="fc" id="L59">        existingStocks.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L60">        Mockito.when(stocksRepository.findByIdentifier(&quot;Admin&quot;))</span>
+<span class="fc" id="L61">                .thenReturn(existingStocks);</span>
+<span class="fc" id="L62">        StocksDto response = stocksService.save(stocksDto);</span>
+<span class="fc" id="L63">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L64">    }</span>
+
+    @Test
+    void findByIdentifierTest() {
+<span class="fc" id="L68">        Stocks stocks = new Stocks();</span>
+<span class="fc" id="L69">        stocks.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L70">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L71">        stocksDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L72">        Mockito.when(stocksRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(stocks);</span>
+<span class="fc" id="L73">        Mockito.when(modelMapper.map(stocks, StocksDto.class)).thenReturn(stocksDto);</span>
+<span class="fc" id="L74">        StocksDto response = stocksService.findByIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L75">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L76">    }</span>
+
+    @Test
+    void updateTest() {
+<span class="fc" id="L80">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L81">        stocksDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L82">        Stocks existingStocks = new Stocks();</span>
+<span class="fc" id="L83">        existingStocks.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L84">        Mockito.when(stocksRepository.findByIdentifier(&quot;Admin&quot;))</span>
+<span class="fc" id="L85">                .thenReturn(existingStocks);</span>
+<span class="fc" id="L86">        Mockito.when(stocksRepository.save(existingStocks))</span>
+<span class="fc" id="L87">                .thenReturn(existingStocks);</span>
+<span class="fc" id="L88">        StocksDto response = stocksService.update(stocksDto);</span>
+<span class="fc" id="L89">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L90">    }</span>
+
+    @Test
+    void updateTestFailure() {
+<span class="fc" id="L94">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L95">        stocksDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L96">        Mockito.when(stocksRepository.findByIdentifier(&quot;Admin&quot;))</span>
+<span class="fc" id="L97">                .thenReturn(null);</span>
+<span class="fc" id="L98">        StocksDto response = stocksService.update(stocksDto);</span>
+<span class="fc" id="L99">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L100">    }</span>
+
+    @Test
+    void deleteTest() {
+<span class="fc" id="L104">        Stocks stocks = new Stocks();</span>
+<span class="fc" id="L105">        stocks.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L106">        Mockito.when(stocksRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(stocks);</span>
+<span class="fc" id="L107">        Mockito.when(stocksRepository.save(stocks)).thenReturn(stocks);</span>
+<span class="fc" id="L108">        boolean response = stocksService.delete(&quot;Admin&quot;);</span>
+<span class="fc" id="L109">        Assertions.assertEquals(true, response);</span>
+<span class="fc" id="L110">    }</span>
+
+    @Test
+    void findAllTest() {
+<span class="fc" id="L114">        Stocks stocks = new Stocks();</span>
+<span class="fc" id="L115">        stocks.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L116">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L117">        stocksDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L118">        List&lt;Stocks&gt; stockss = List.of(stocks);</span>
+<span class="fc" id="L119">        List&lt;StocksDto&gt; stocksDtos = List.of(stocksDto);</span>
+<span class="fc" id="L120">        Page&lt;Stocks&gt; stocksPage = new PageImpl&lt;&gt;(stockss, PageRequest.of(0,</span>
+<span class="fc" id="L121">                2), stockss.size());</span>
+<span class="fc" id="L122">        Pageable pageable = PageRequest.of(0,</span>
+<span class="fc" id="L123">                50, Sort.by(new ArrayList&lt;&gt;()));</span>
+<span class="fc" id="L124">        Mockito.when(stocksRepository.findByDeletedFalse(pageable)).thenReturn(stocksPage);</span>
+<span class="fc" id="L125">        Mockito.when(modelMapper.map(</span>
+<span class="fc" id="L126">                Mockito.eq(stockss),</span>
+<span class="fc" id="L127">                Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L128">        )).thenReturn(stocksDtos);</span>
+<span class="fc" id="L129">        WsDto&lt;StocksDto&gt; response = stocksService.findAll(pageable);</span>
+<span class="fc" id="L130">        Assertions.assertEquals(1, response.getDtoList().size());</span>
+<span class="fc" id="L131">    }</span>
+
+    @Test
+    void findByStatusTest() {
+<span class="fc" id="L135">        Stocks stocks = new Stocks();</span>
+<span class="fc" id="L136">        stocks.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L137">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L138">        stocksDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L139">        List&lt;Stocks&gt; stockss = List.of(stocks);</span>
+<span class="fc" id="L140">        List&lt;StocksDto&gt; stocksDtos = List.of(stocksDto);</span>
+<span class="fc" id="L141">        Mockito.when(stocksRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(stockss);</span>
+<span class="fc" id="L142">        Mockito.when(modelMapper.map(</span>
+<span class="fc" id="L143">                Mockito.eq(stockss),</span>
+<span class="fc" id="L144">                Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L145">        )).thenReturn(stocksDtos);</span>
+<span class="fc" id="L146">        List&lt;StocksDto&gt; response = stocksService.findIfTrue();</span>
+<span class="fc" id="L147">        Assertions.assertEquals(1, response.size());</span>
+<span class="fc" id="L148">    }</span>
+
+    @Test
+    void toggleTestActive() {
+<span class="fc" id="L152">        Stocks stocks = new Stocks();</span>
+<span class="fc" id="L153">        stocks.setStatus(false);</span>
+<span class="fc" id="L154">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L155">        stocksDto.setStatus(true);</span>
+<span class="fc" id="L156">        Mockito.when(stocksRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(stocks);</span>
+<span class="fc" id="L157">        Mockito.when(modelMapper.map(stocks, StocksDto.class)).thenReturn(stocksDto);</span>
+<span class="fc" id="L158">        StocksDto response = stocksService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L159">        Assertions.assertTrue(response.isStatus());</span>
+<span class="fc" id="L160">    }</span>
+
+    @Test
+    void toggleTestInactive() {
+<span class="fc" id="L164">        Stocks stocks = new Stocks();</span>
+<span class="fc" id="L165">        stocks.setStatus(true);</span>
+<span class="fc" id="L166">        StocksDto stocksDto = new StocksDto();</span>
+<span class="fc" id="L167">        stocksDto.setStatus(false);</span>
+<span class="fc" id="L168">        Mockito.when(stocksRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(stocks);</span>
+<span class="fc" id="L169">        Mockito.when(modelMapper.map(stocks, StocksDto.class)).thenReturn(stocksDto);</span>
+<span class="fc" id="L170">        StocksDto response = stocksService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L171">        Assertions.assertFalse(response.isStatus());</span>
+<span class="fc" id="L172">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

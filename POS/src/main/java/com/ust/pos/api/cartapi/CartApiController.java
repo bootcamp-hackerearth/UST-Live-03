@@ -4,18 +4,20 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.cart.service.CartService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartApiController extends BaseController {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
 
-    @Autowired
-    private CartEntryService cartEntryService;
+    private final CartEntryService cartEntryService;
+
+    public CartApiController(CartService cartService, CartEntryService cartEntryService) {
+        this.cartService = cartService;
+        this.cartEntryService = cartEntryService;
+    }
 
     @PostMapping("/add")
     public CartDto addCart(@RequestBody CartDto cartDto) {

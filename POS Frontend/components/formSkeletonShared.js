@@ -106,7 +106,7 @@ export const sharedStyles = {
   field:      { display: "flex", flexDirection: "column", gap: "4px" },
   label:      { fontSize: "12px", fontWeight: BTN_WEIGHT, color: TEXT_DARK, letterSpacing: "0.2px" },
   input:      { ...INPUT_BASE },
-  inputError: { borderColor: C.error, background: C.errorBg },
+  inputError: { border: `1.5px solid ${C.error}`, background: C.errorBg },
   fieldError: { fontSize: "11px", color: C.error, marginTop: "2px" },
   select:     { ...INPUT_BASE },
   multiWrap: {

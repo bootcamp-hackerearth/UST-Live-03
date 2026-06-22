@@ -8,7 +8,6 @@ import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -19,14 +18,17 @@ import java.util.List;
 public class CartServiceImpl implements CartService {
     private static final String CART_WITH_IDENTIFIER = "Cart with identifier - " ;
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CartEntryService cartEntryService;
+    private final CartEntryService cartEntryService;
+
+    public CartServiceImpl(CartRepository cartRepository, ModelMapper modelMapper, CartEntryService cartEntryService) {
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+        this.cartEntryService = cartEntryService;
+    }
 
     @Override
     public CartDto save(CartDto cartDto) {

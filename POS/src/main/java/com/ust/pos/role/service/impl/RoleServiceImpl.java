@@ -1,5 +1,6 @@
 package com.ust.pos.role.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
@@ -7,7 +8,6 @@ import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class RoleServiceImpl implements RoleService {
+public class RoleServiceImpl extends CommonService implements RoleService {
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private static final String ROLE_WITH_IDENTIFIER = "Role with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final RoleRepository roleRepository;
+
+    private final ModelMapper modelMapper;
+
+    public RoleServiceImpl(RoleRepository roleRepository, ModelMapper modelMapper) {
+        this.roleRepository = roleRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
@@ -31,15 +36,25 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleDto save(RoleDto roleDto) {
+        roleDto.setIdentifier(roleDto.getIdentifier().trim());
         String identifier = roleDto.getIdentifier();
         Role existingRole = roleRepository.findByIdentifier(identifier);
         if (existingRole != null) {
-            roleDto.setMessage("Role with identifier - " + identifier + " already exists");
+            if (!existingRole.isDeleted()) {
+                roleDto.setMessage(ROLE_WITH_IDENTIFIER + identifier + " already exists");
+                roleDto.setSuccess(false);
+                return roleDto;
+            }
+            roleDto.setMessage(ROLE_WITH_IDENTIFIER + identifier + " was previously deleted. " +
+                    "Please contact backend team to restore.");
             roleDto.setSuccess(false);
             return roleDto;
         }
         Role role = modelMapper.map(roleDto, Role.class);
+        setAuditFields(role,true);
         roleRepository.save(role);
+        roleDto.setSuccess(true);
+        roleDto.setMessage("Role created successfully");
         return roleDto;
     }
 
@@ -48,18 +63,23 @@ public class RoleServiceImpl implements RoleService {
         String identifier = roleDto.getIdentifier();
         Role existingRole = roleRepository.findByIdentifier(identifier);
         if (existingRole == null) {
-            roleDto.setMessage("Role with identifier - " + identifier + " not found");
+            roleDto.setMessage(ROLE_WITH_IDENTIFIER + identifier + " not found");
             roleDto.setSuccess(false);
             return roleDto;
         }
         modelMapper.map(roleDto, existingRole);
+        setAuditFields(existingRole,false);
         roleRepository.save(existingRole);
         return roleDto;
     }
 
     @Override
     public boolean delete(String identifier) {
-        roleRepository.deleteByIdentifier(identifier);
+        Role role = roleRepository.findByIdentifier(identifier);
+        if (role == null) return false;
+        softDelete(role);
+        setAuditFields(role,false);
+        roleRepository.save(role);
         return true;
     }
 
@@ -67,7 +87,7 @@ public class RoleServiceImpl implements RoleService {
     public WsDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        Page<Role> rolePage = roleRepository.findAll(pageable);
+        Page<Role> rolePage = roleRepository.findByDeletedFalse(pageable);
         WsDto<RoleDto> roleDtoWsDto = new WsDto<>();
         roleDtoWsDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
         roleDtoWsDto.setTotalRecords(rolePage.getTotalElements());
@@ -79,16 +99,17 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public List<RoleDto> findIfTrue() {
-        Type listType = new TypeToken<List<RoleDto>>(){
+        Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        return modelMapper.map(roleRepository.findByStatusIsTrue(), listType);
+        return modelMapper.map(roleRepository.findByStatusIsTrueAndDeletedFalse(), listType);
     }
 
     @Override
     public RoleDto toggleStatus(String identifier) {
-        Role role =  roleRepository.findByIdentifier(identifier);
+        Role role = roleRepository.findByIdentifier(identifier);
         role.setStatus(!role.isStatus());
+        setAuditFields(role,false);
         roleRepository.save(role);
-        return modelMapper.map(role,RoleDto.class);
+        return modelMapper.map(role, RoleDto.class);
     }
 }

@@ -247,6 +247,7 @@ function LogoutButton({ isOpen, logoutHover, setLogoutHover, onClick }) {
 
 export default function Sidebar() {
   const [nodes, setNodes] = useState([]);
+  const [loadError, setLoadError] = useState("");
   const [hovered, setHovered] = useState(null);
   const [logoutHover, setLogoutHover] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -264,8 +265,16 @@ export default function Sidebar() {
         const res = await api.get("/node/getNodesForRoles");
         const data = res.data;
         setNodes(Array.isArray(data) ? data : data.data ?? []);
+        setLoadError("");
       } catch (err) {
-        console.error("Failed to fetch nodes:", err.response?.data || err.message);
+        const status = err.response?.status;
+        if (status === 403) {
+          console.warn("Sidebar navigation forbidden:", err.response?.data || err.message);
+          setLoadError("You do not have permission to view sidebar navigation.");
+        } else {
+          console.error("Failed to fetch nodes:", err.response?.data || err.message);
+          setLoadError("Unable to load navigation items. Please refresh or contact support.");
+        }
         setNodes([]);
       }
     }
@@ -339,14 +348,20 @@ export default function Sidebar() {
           onClick={() => router.push("/home")}
         />
 
-        <NodeList
-          nodes={nodes}
-          isOpen={isOpen}
-          hovered={hovered}
-          setHovered={setHovered}
-          pathname={pathname}
-          router={router}
-        />
+        {loadError ? (
+          <div style={{ color: "#7f1d1d", padding: "12px 10px", fontSize: "13px" }}>
+            {loadError}
+          </div>
+        ) : (
+          <NodeList
+            nodes={nodes}
+            isOpen={isOpen}
+            hovered={hovered}
+            setHovered={setHovered}
+            pathname={pathname}
+            router={router}
+          />
+        )}
       </div>
 
       <div style={styles.footerSection}>

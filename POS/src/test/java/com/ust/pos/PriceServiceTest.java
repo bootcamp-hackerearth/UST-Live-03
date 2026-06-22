@@ -49,8 +49,7 @@ class PriceServiceTest {
         priceDto.setIdentifier("Admin");
         Price existingPrice = new Price();
         existingPrice.setIdentifier("Admin");
-        Mockito.when(priceRepository.findByIdentifier("Admin"))
-                .thenReturn(existingPrice);
+        Mockito.when(priceRepository.findByIdentifier("Admin")).thenReturn(existingPrice);
         PriceDto response = priceService.save(priceDto);
         Assertions.assertFalse(response.isSuccess());
     }
@@ -73,10 +72,8 @@ class PriceServiceTest {
         priceDto.setIdentifier("Admin");
         Price existingPrice = new Price();
         existingPrice.setIdentifier("Admin");
-        Mockito.when(priceRepository.findByIdentifier("Admin"))
-                .thenReturn(existingPrice);
-        Mockito.when(priceRepository.save(existingPrice))
-                .thenReturn(existingPrice);
+        Mockito.when(priceRepository.findByIdentifier("Admin")).thenReturn(existingPrice);
+        Mockito.when(priceRepository.save(existingPrice)).thenReturn(existingPrice);
         PriceDto response = priceService.update(priceDto);
         Assertions.assertTrue(response.isSuccess());
     }
@@ -85,16 +82,17 @@ class PriceServiceTest {
     void updateTestFailure() {
         PriceDto priceDto = new PriceDto();
         priceDto.setIdentifier("Admin");
-        Mockito.when(priceRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
+        Mockito.when(priceRepository.findByIdentifier("Admin")).thenReturn(null);
         PriceDto response = priceService.update(priceDto);
         Assertions.assertFalse(response.isSuccess());
     }
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(priceRepository)
-                .deleteByIdentifier("Admin");
+        Price price = new Price();
+        price.setIdentifier("Admin");
+        Mockito.when(priceRepository.findByIdentifier("Admin")).thenReturn(price);
+        Mockito.when(priceRepository.save(price)).thenReturn(price);
         boolean response = priceService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -111,7 +109,7 @@ class PriceServiceTest {
                 PageRequest.of(0, 2), prices.size());
         Pageable pageable = PageRequest.of(0,
                 50, Sort.by(new ArrayList<>()));
-        Mockito.when(priceRepository.findAll(pageable)).thenReturn(pricePage);
+        Mockito.when(priceRepository.findByDeletedFalse(pageable)).thenReturn(pricePage);
         Mockito.when(modelMapper.map(
                 Mockito.eq(prices),
                 Mockito.any(java.lang.reflect.Type.class)
@@ -132,7 +130,7 @@ class PriceServiceTest {
         priceDto.setIdentifier("Admin");
         List<Price> prices = List.of(price);
         List<PriceDto> priceDtos = List.of(priceDto);
-        Mockito.when(priceRepository.findByStatusIsTrue()).thenReturn(prices);
+        Mockito.when(priceRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(prices);
         Mockito.when(modelMapper.map(
                 Mockito.eq(prices),
                 Mockito.any(java.lang.reflect.Type.class)

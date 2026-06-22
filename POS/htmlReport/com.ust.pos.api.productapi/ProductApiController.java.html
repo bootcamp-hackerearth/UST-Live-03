@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.api.productapi</a> &gt; <span class="el_source">ProductApiController.java</span></div><h1>ProductApiController.java</h1><pre class="source lang-java linenums">package com.ust.pos.api.productapi;
+
+import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.product.service.ProductService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/product&quot;)
+public class ProductApiController extends BaseController {
+
+    private final ProductService productService;
+
+<span class="fc" id="L19">    public ProductApiController(ProductService productService) {</span>
+<span class="fc" id="L20">        this.productService = productService;</span>
+<span class="fc" id="L21">    }</span>
+
+    @PostMapping(&quot;/list&quot;)
+    public WsDto&lt;ProductDto&gt; home(@RequestBody PaginationDto paginationDto) {
+<span class="nc" id="L25">        Pageable pageable = getPageable(paginationDto.getPage(),</span>
+<span class="nc" id="L26">                paginationDto.getSizePerPage(),paginationDto.getSortDirection(),</span>
+<span class="nc" id="L27">                paginationDto.getSortField());</span>
+<span class="nc" id="L28">        return productService.findAll(pageable);</span>
+    }
+
+    @PostMapping(&quot;/add&quot;)
+    public ProductDto addPost(@RequestBody ProductDto productDto) {
+<span class="nc" id="L33">        return productService.save(productDto);</span>
+    }
+
+    @GetMapping(&quot;/get&quot;)
+    public ProductDto update(@RequestParam String identifier) {
+<span class="nc" id="L38">        return productService.findByIdentifier(identifier);</span>
+    }
+
+    @PostMapping(&quot;/update&quot;)
+    public ProductDto updatePost(@RequestBody ProductDto productDto) {
+<span class="nc" id="L43">        return productService.update(productDto);</span>
+    }
+
+    @GetMapping(&quot;/delete/{identifier}&quot;)
+    public boolean delete(@PathVariable String identifier) {
+        try {
+<span class="nc" id="L49">            productService.delete(identifier);</span>
+<span class="nc" id="L50">        } catch (Exception e) {</span>
+<span class="nc" id="L51">            return false;</span>
+<span class="nc" id="L52">        }</span>
+<span class="nc" id="L53">        return true;</span>
+    }
+
+    @PostMapping(&quot;/toggle-status&quot;)
+    public ProductDto toggle(@RequestParam String identifier) {
+<span class="nc" id="L58">        return productService.toggleStatus(identifier);</span>
+    }
+
+    @GetMapping(&quot;/findByStatus&quot;)
+    public List&lt;ProductDto&gt; findByStatus() {
+<span class="nc" id="L63">        return productService.findIfTrue();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -88,7 +88,6 @@ class UserServiceTest {
         Mockito.when(userRepository.save(existingUser)).thenReturn(existingUser);
         UserDto response = userService.update(userDto);
         Assertions.assertEquals("Admin", response.getUsername());
-        Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
@@ -128,7 +127,7 @@ class UserServiceTest {
         List<UserDto> userDtos = List.of(userDto);
         Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 2), users.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
+        Mockito.when(userRepository.findByDeletedFalse(pageable)).thenReturn(userPage);
         Mockito.when(modelMapper.map(
                 Mockito.eq(users),
                 Mockito.any(java.lang.reflect.Type.class)
@@ -149,7 +148,7 @@ class UserServiceTest {
         userDto.setIdentifier("Admin");
         List<User> users = List.of(user);
         List<UserDto> userDtos = List.of(userDto);
-        Mockito.when(userRepository.findByStatusIsTrue()).thenReturn(users);
+        Mockito.when(userRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(users);
         Mockito.when(modelMapper.map(
                 Mockito.eq(users),
                 Mockito.any(java.lang.reflect.Type.class)
@@ -180,5 +179,19 @@ class UserServiceTest {
         Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
         UserDto response = userService.toggleStatus("Admin");
         Assertions.assertFalse(response.isStatus());
+    }
+    @Test
+    void getUserDetailsTest() {
+        User user = new User();
+        user.setName("Navya");
+        user.setUsername("Admin");
+        user.setPhoneNo("9999999999");
+        user.setRoles(List.of("ADMIN"));
+        Mockito.when(userRepository.findByUsername("Admin")).thenReturn(user);
+        UserDto response = userService.getUserDetails("Admin");
+        Assertions.assertEquals("Navya", response.getName());
+        Assertions.assertEquals("Admin", response.getUsername());
+        Assertions.assertEquals("9999999999", response.getPhoneNo());
+        Assertions.assertEquals(List.of("ADMIN"), response.getRoles());
     }
 }

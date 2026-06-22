@@ -1,15 +1,12 @@
 "use client";
- 
+
 import ListingSkeleton from "@/components/CommonListForm";
- 
+
 export default function ListNode() {
   return (
     <ListingSkeleton
       title="Nodes"
-      fields={[
-        "path",
-        "roles",
-      ]}
+      fields={["identifier", "path"]}
       apis={{
         list: "/node/list",
         delete: "/node/delete",
@@ -17,6 +14,7 @@ export default function ListNode() {
       }}
       addPath="/node/add"
       editPathBase="/node/edit/"
+      paramKey="identifier"
     />
   );
 }

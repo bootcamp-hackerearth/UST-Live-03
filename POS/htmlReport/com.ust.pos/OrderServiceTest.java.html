@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrderServiceTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos</a> &gt; <span class="el_source">OrderServiceTest.java</span></div><h1>OrderServiceTest.java</h1><pre class="source lang-java linenums">package com.ust.pos;
+
+import com.ust.pos.cart.service.CartService;
+import com.ust.pos.cartentry.service.CartEntryService;
+import com.ust.pos.dto.OrderDto;
+import com.ust.pos.dto.OrderEntryDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.*;
+import com.ust.pos.order.service.impl.OrderServiceImpl;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
+@ExtendWith(MockitoExtension.class)
+<span class="fc" id="L26">class OrderServiceTest {</span>
+
+    @Mock
+    private CartRepository cartRepository;
+
+    @Mock
+    private CartEntryRepository cartEntryRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
+    private OrderEntryRepository orderEntryRepository;
+
+    @Mock
+    private CartEntryService cartEntryService;
+
+    @Mock
+    private CartService cartService;
+
+    @Mock
+    private ModelMapper modelMapper;
+
+    @InjectMocks
+    private OrderServiceImpl orderService;
+
+    @Test
+    void placeOrderTest() {
+<span class="fc" id="L54">        Cart cart = new Cart();</span>
+<span class="fc" id="L55">        cart.setIdentifier(&quot;CART1&quot;);</span>
+<span class="fc" id="L56">        CartEntry cartEntry = new CartEntry();</span>
+<span class="fc" id="L57">        List&lt;CartEntry&gt; cartEntries = List.of(cartEntry);</span>
+<span class="fc" id="L58">        Order order = new Order();</span>
+<span class="fc" id="L59">        OrderEntry orderEntry = new OrderEntry();</span>
+<span class="fc" id="L60">        List&lt;OrderEntry&gt; orderEntries = List.of(orderEntry);</span>
+<span class="fc" id="L61">        OrderDto orderDto = new OrderDto();</span>
+<span class="fc" id="L62">        List&lt;OrderEntryDto&gt; orderEntryDtos = List.of(new OrderEntryDto());</span>
+<span class="fc" id="L63">        Mockito.when(cartRepository.findByIdentifier(&quot;CART1&quot;)).thenReturn(cart);</span>
+<span class="fc" id="L64">        Mockito.when(cartEntryRepository.findByCart(&quot;CART1&quot;)).thenReturn(cartEntries);</span>
+<span class="fc" id="L65">        Mockito.when(modelMapper.map(cart, Order.class)).thenReturn(order);</span>
+<span class="fc" id="L66">        Mockito.when(modelMapper.map(cartEntry, OrderEntry.class)).thenReturn(orderEntry);</span>
+<span class="fc" id="L67">        Mockito.when(orderRepository.save(order)).thenReturn(order);</span>
+<span class="fc" id="L68">        Mockito.when(orderEntryRepository.saveAll(orderEntries)).thenReturn(orderEntries);</span>
+<span class="fc" id="L69">        Mockito.doNothing().when(cartEntryService).deleteAllByCart(&quot;CART1&quot;);</span>
+<span class="fc" id="L70">        Mockito.lenient().when(cartService.recalculate(&quot;CART1&quot;)).thenReturn(null);</span>
+<span class="fc" id="L71">        Mockito.when(modelMapper.map(order, OrderDto.class)).thenReturn(orderDto);</span>
+<span class="fc" id="L72">        Mockito.when(modelMapper.map(</span>
+<span class="fc" id="L73">                Mockito.eq(orderEntries),</span>
+<span class="fc" id="L74">                Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L75">        )).thenReturn(orderEntryDtos);</span>
+<span class="fc" id="L76">        OrderDto response = orderService.placeOrder(&quot;CART1&quot;, &quot;CASH&quot;);</span>
+<span class="fc" id="L77">        Assertions.assertNotNull(response);</span>
+<span class="fc" id="L78">        Assertions.assertEquals(orderEntryDtos, response.getEntryDtoList());</span>
+<span class="fc" id="L79">        Mockito.verify(orderRepository).save(order);</span>
+<span class="fc" id="L80">        Mockito.verify(orderEntryRepository).saveAll(orderEntries);</span>
+<span class="fc" id="L81">        Mockito.verify(cartEntryService).deleteAllByCart(&quot;CART1&quot;);</span>
+<span class="fc" id="L82">        Mockito.verify(cartService).recalculate(&quot;CART1&quot;);</span>
+<span class="fc" id="L83">    }</span>
+
+    @Test
+    void findByOrderIdTest() {
+<span class="fc" id="L87">        Order order = new Order();</span>
+<span class="fc" id="L88">        order.setOrderId(&quot;ORD-1&quot;);</span>
+<span class="fc" id="L89">        OrderEntry orderEntry = new OrderEntry();</span>
+<span class="fc" id="L90">        List&lt;OrderEntry&gt; entries = List.of(orderEntry);</span>
+<span class="fc" id="L91">        OrderDto orderDto = new OrderDto();</span>
+<span class="fc" id="L92">        List&lt;OrderEntryDto&gt; orderEntryDtos = List.of(new OrderEntryDto());</span>
+<span class="fc" id="L93">        Mockito.when(orderRepository.findByOrderId(&quot;ORD-1&quot;)).thenReturn(List.of(order));</span>
+<span class="fc" id="L94">        Mockito.when(modelMapper.map(order, OrderDto.class)).thenReturn(orderDto);</span>
+<span class="fc" id="L95">        Mockito.when(orderEntryRepository.findByOrderId(&quot;ORD-1&quot;)).thenReturn(entries);</span>
+<span class="fc" id="L96">        Mockito.when(modelMapper.map(</span>
+<span class="fc" id="L97">                Mockito.eq(entries),</span>
+<span class="fc" id="L98">                Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L99">        )).thenReturn(orderEntryDtos);</span>
+<span class="fc" id="L100">        OrderDto response = orderService.findByOrderId(&quot;ORD-1&quot;);</span>
+<span class="fc" id="L101">        Assertions.assertEquals(orderEntryDtos, response.getEntryDtoList());</span>
+<span class="fc" id="L102">    }</span>
+
+    @Test
+    void findByOrderIdNotFoundTest() {
+<span class="fc" id="L106">        Mockito.when(orderRepository.findByOrderId(&quot;ORD-MISSING&quot;)).thenReturn(List.of());</span>
+<span class="fc" id="L107">        OrderDto response = orderService.findByOrderId(&quot;ORD-MISSING&quot;);</span>
+<span class="fc" id="L108">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L109">        Assertions.assertEquals(&quot;Order not found&quot;, response.getMessage());</span>
+<span class="fc" id="L110">    }</span>
+
+    @Test
+    void findAllTest() {
+<span class="fc" id="L114">        Order order = new Order();</span>
+<span class="fc" id="L115">        order.setOrderId(&quot;ORD-1&quot;);</span>
+<span class="fc" id="L116">        OrderDto orderDto = new OrderDto();</span>
+<span class="fc" id="L117">        orderDto.setOrderId(&quot;ORD-1&quot;);</span>
+<span class="fc" id="L118">        List&lt;Order&gt; orders = List.of(order);</span>
+<span class="fc" id="L119">        List&lt;OrderDto&gt; orderDtos = List.of(orderDto);</span>
+<span class="fc" id="L120">        OrderEntry orderEntry = new OrderEntry();</span>
+<span class="fc" id="L121">        List&lt;OrderEntry&gt; entries = List.of(orderEntry);</span>
+<span class="fc" id="L122">        List&lt;OrderEntryDto&gt; orderEntryDtos = List.of(new OrderEntryDto());</span>
+<span class="fc" id="L123">        Page&lt;Order&gt; orderPage = new PageImpl&lt;&gt;(orders, PageRequest.of(0, 2), orders.size());</span>
+<span class="fc" id="L124">        Pageable pageable = PageRequest.of(0, 50);</span>
+<span class="fc" id="L125">        Mockito.when(orderRepository.findAll(pageable)).thenReturn(orderPage);</span>
+<span class="fc" id="L126">        Mockito.when(modelMapper.map(Mockito.eq(orders), Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L127">        )).thenReturn(orderDtos);</span>
+<span class="fc" id="L128">        Mockito.when(orderEntryRepository.findByOrderId(&quot;ORD-1&quot;)).thenReturn(entries);</span>
+<span class="fc" id="L129">        Mockito.when(modelMapper.map(Mockito.eq(entries), Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L130">        )).thenReturn(orderEntryDtos);</span>
+<span class="fc" id="L131">        WsDto&lt;OrderDto&gt; response = orderService.findAll(pageable);</span>
+<span class="fc" id="L132">        Assertions.assertEquals(1, response.getDtoList().size());</span>
+<span class="fc" id="L133">        Assertions.assertEquals(orderEntryDtos, response.getDtoList().get(0).getEntryDtoList());</span>
+<span class="fc" id="L134">        Assertions.assertEquals(1L, response.getTotalRecords());</span>
+<span class="fc" id="L135">        Assertions.assertEquals(1, response.getTotalPages());</span>
+<span class="fc" id="L136">        Assertions.assertEquals(50, response.getSizePerPage());</span>
+<span class="fc" id="L137">        Assertions.assertEquals(0, response.getPage());</span>
+<span class="fc" id="L138">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

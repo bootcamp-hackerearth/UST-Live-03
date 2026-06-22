@@ -16,7 +16,7 @@ export default function EditCategory() {
       component: (
         <SingleDropdown
           label="Super Category"
-          apiUrl="/category/findByStatus"
+          apiUrl="/category/getBySuperCategoryNotNull"
           valueField="identifier"
           labelField="identifier"
           selectedValue={superCategory}

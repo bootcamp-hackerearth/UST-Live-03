@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoleDaoImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.dao.impl</a> &gt; <span class="el_source">RoleDaoImpl.java</span></div><h1>RoleDaoImpl.java</h1><pre class="source lang-java linenums">package com.ust.pos.dao.impl;
+
+import com.ust.pos.dao.RoleDao;
+import com.ust.pos.dto.RoleDto;
+import com.ust.pos.model.Role;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class RoleDaoImpl implements RoleDao {
+
+    private final JdbcTemplate jdbcTemplate;
+
+<span class="fc" id="L17">    public RoleDaoImpl(JdbcTemplate jdbcTemplate) {</span>
+<span class="fc" id="L18">        this.jdbcTemplate = jdbcTemplate;</span>
+<span class="fc" id="L19">    }</span>
+
+    @Override
+    public Role findByIdentifier(String identifier) {
+<span class="nc" id="L23">        String sql = &quot;SELECT * FROM ROLE WHERE identifier = ?&quot;;</span>
+<span class="nc" id="L24">        List&lt;Role&gt; roleList = jdbcTemplate.query(sql, new BeanPropertyRowMapper&lt;&gt;(Role.class), identifier);</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        return roleList.isEmpty() ? null : roleList.get(0);</span>
+    }
+
+    @Override
+    public Role save(RoleDto roleDto) {
+<span class="nc" id="L30">        String sql = &quot;INSERT INTO ROLE (identifier, description, status) VALUES (?, ?, ?)&quot;;</span>
+<span class="nc" id="L31">        jdbcTemplate.update(sql,</span>
+<span class="nc" id="L32">                roleDto.getIdentifier(),</span>
+<span class="nc" id="L33">                roleDto.getDescription(),</span>
+<span class="nc" id="L34">                roleDto.isStatus());</span>
+<span class="nc" id="L35">        return findByIdentifier(roleDto.getIdentifier());</span>
+    }
+
+    @Override
+    public Role update(RoleDto roleDto) {
+<span class="nc" id="L40">        String sql = &quot;UPDATE ROLE SET description = ?, status = ? WHERE identifier = ?&quot;;</span>
+<span class="nc" id="L41">        jdbcTemplate.update(sql,</span>
+<span class="nc" id="L42">                roleDto.getDescription(),</span>
+<span class="nc" id="L43">                roleDto.isStatus(),</span>
+<span class="nc" id="L44">                roleDto.getIdentifier());</span>
+<span class="nc" id="L45">        return findByIdentifier(roleDto.getIdentifier());</span>
+    }
+
+    @Override
+    public void deleteByIdentifier(String identifier) {
+<span class="nc" id="L50">        String sql = &quot;DELETE FROM ROLE WHERE identifier = ?&quot;;</span>
+<span class="nc" id="L51">        jdbcTemplate.update(sql, identifier);</span>
+<span class="nc" id="L52">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

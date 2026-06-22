@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerServiceTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos</a> &gt; <span class="el_source">CustomerServiceTest.java</span></div><h1>CustomerServiceTest.java</h1><pre class="source lang-java linenums">package com.ust.pos;
+
+import com.ust.pos.address.service.AddressService;
+import com.ust.pos.customer.service.impl.CustomerServiceImpl;
+import com.ust.pos.dto.AddressDto;
+import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.AddressRepository;
+import com.ust.pos.model.Customer;
+import com.ust.pos.model.CustomerRepository;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@ExtendWith(MockitoExtension.class)
+<span class="fc" id="L24">class CustomerServiceTest {</span>
+
+    @Mock
+    private CustomerRepository customerRepository;
+
+    @Mock
+    private ModelMapper modelMapper;
+
+    @InjectMocks
+    private CustomerServiceImpl customerService;
+
+    @Mock
+    private AddressService addressService;
+
+    @Mock
+    private AddressRepository addressRepository;
+
+    @Test
+    void findByIdentifierTest() {
+<span class="fc" id="L43">        Customer customer = new Customer();</span>
+<span class="fc" id="L44">        customer.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L45">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L46">        customerDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L47">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(customer);</span>
+<span class="fc" id="L48">        Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);</span>
+<span class="fc" id="L49">        CustomerDto response = customerService.findByIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L50">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L51">    }</span>
+
+    @Test
+    void findByIdentifierWithAddressDtoTest() {
+<span class="fc" id="L55">        Customer customer = new Customer();</span>
+<span class="fc" id="L56">        customer.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L57">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L58">        customerDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L59">        AddressDto addressDto = new AddressDto();</span>
+<span class="fc" id="L60">        List&lt;AddressDto&gt; addressDtoList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L61">        addressDtoList.add(addressDto);</span>
+<span class="fc" id="L62">        addressDtoList.add(addressDto);</span>
+<span class="fc" id="L63">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(customer);</span>
+<span class="fc" id="L64">        Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);</span>
+<span class="fc" id="L65">        Mockito.when(addressService.findAllByPhoneNo(&quot;Admin&quot;)).thenReturn(addressDtoList);</span>
+<span class="fc" id="L66">        CustomerDto response = customerService.findByIdentifierWithAddressDto(&quot;Admin&quot;);</span>
+<span class="fc" id="L67">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L68">    }</span>
+
+    @Test
+    void saveTest() {
+<span class="fc" id="L72">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L73">        customerDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L74">        Customer customer = new Customer();</span>
+<span class="fc" id="L75">        AddressDto addressDto1 = new AddressDto();</span>
+<span class="fc" id="L76">        AddressDto addressDto2 = new AddressDto();</span>
+<span class="fc" id="L77">        customerDto.setBillingAddress(addressDto1);</span>
+<span class="fc" id="L78">        customerDto.setShippingAddress(addressDto2);</span>
+<span class="fc" id="L79">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(null);</span>
+<span class="fc" id="L80">        Mockito.when(modelMapper.map(customerDto, Customer.class)).thenReturn(customer);</span>
+<span class="fc" id="L81">        Mockito.when(customerRepository.save(customer)).thenReturn(customer);</span>
+<span class="fc" id="L82">        Mockito.when(modelMapper.map(addressDto1, AddressDto.class)).thenReturn(addressDto1);</span>
+<span class="fc" id="L83">        Mockito.when(modelMapper.map(addressDto2, AddressDto.class)).thenReturn(addressDto2);</span>
+<span class="fc" id="L84">        Mockito.when(addressService.save(Mockito.any(AddressDto.class))).thenAnswer(invocation -&gt; invocation.getArgument(0));</span>
+<span class="fc" id="L85">        CustomerDto response = customerService.save(customerDto);</span>
+<span class="fc" id="L86">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L87">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L88">        Mockito.verify(addressService).save(addressDto1);</span>
+<span class="fc" id="L89">        Mockito.verify(addressService).save(addressDto2);</span>
+<span class="fc" id="L90">    }</span>
+
+    @Test
+    void SaveTestFailure() {
+<span class="fc" id="L94">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L95">        customerDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L96">        Customer existingCustomer = new Customer();</span>
+<span class="fc" id="L97">        existingCustomer.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L98">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(existingCustomer);</span>
+<span class="fc" id="L99">        CustomerDto response = customerService.save(customerDto);</span>
+<span class="fc" id="L100">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L101">    }</span>
+
+    @Test
+    void updateTest() {
+<span class="fc" id="L105">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L106">        AddressDto addressDto1 = new AddressDto();</span>
+<span class="fc" id="L107">        AddressDto addressDto2 = new AddressDto();</span>
+<span class="fc" id="L108">        customerDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L109">        Customer existingCustomer = new Customer();</span>
+<span class="fc" id="L110">        List&lt;AddressDto&gt; addresses = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L111">        addresses.add(addressDto1);</span>
+<span class="fc" id="L112">        addresses.add(addressDto2);</span>
+<span class="fc" id="L113">        customerDto.setBillingAddress(addressDto1);</span>
+<span class="fc" id="L114">        customerDto.setShippingAddress(addressDto2);</span>
+<span class="fc" id="L115">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(existingCustomer);</span>
+<span class="fc" id="L116">        Mockito.when(customerRepository.save(existingCustomer)).thenReturn(existingCustomer);</span>
+<span class="fc" id="L117">        Mockito.when(addressService.findAllByPhoneNo(&quot;Admin&quot;)).thenReturn(addresses);</span>
+<span class="fc" id="L118">        addressService.update(addressDto1);</span>
+<span class="fc" id="L119">        addressService.update(addressDto2);</span>
+<span class="fc" id="L120">        CustomerDto response = customerService.update(customerDto);</span>
+<span class="fc" id="L121">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L122">    }</span>
+
+    @Test
+    void updateFailureTest() {
+<span class="fc" id="L126">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L127">        customerDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L128">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(null);</span>
+<span class="fc" id="L129">        CustomerDto response = customerService.update(customerDto);</span>
+<span class="fc" id="L130">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L131">    }</span>
+
+    @Test
+    void deleteTest() {
+<span class="fc" id="L135">        Customer customer = new Customer();</span>
+<span class="fc" id="L136">        customer.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L137">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(customer);</span>
+<span class="fc" id="L138">        Mockito.when(customerRepository.save(customer)).thenReturn(customer);</span>
+<span class="fc" id="L139">        boolean response = customerService.delete(&quot;Admin&quot;);</span>
+<span class="fc" id="L140">        Assertions.assertEquals(true, response);</span>
+<span class="fc" id="L141">    }</span>
+
+    @Test
+    void findAllTest() {
+<span class="fc" id="L145">        Customer customer = new Customer();</span>
+<span class="fc" id="L146">        customer.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L147">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L148">        customerDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L149">        List&lt;Customer&gt; customers = List.of(customer);</span>
+<span class="fc" id="L150">        List&lt;CustomerDto&gt; customerDtos = List.of(customerDto);</span>
+<span class="fc" id="L151">        Page&lt;Customer&gt; customerPage = new PageImpl&lt;&gt;(customers, PageRequest.of(0, 2), customers.size());</span>
+<span class="fc" id="L152">        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList&lt;&gt;()));</span>
+<span class="fc" id="L153">        Mockito.when(customerRepository.findByDeletedFalse(pageable)).thenReturn(customerPage);</span>
+<span class="fc" id="L154">        Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class))).thenReturn(customerDtos);</span>
+<span class="fc" id="L155">        WsDto&lt;CustomerDto&gt; response = customerService.findAll(pageable);</span>
+<span class="fc" id="L156">        Assertions.assertEquals(1, response.getDtoList().size());</span>
+<span class="fc" id="L157">    }</span>
+
+    @Test
+    void findByStatusTest() {
+<span class="fc" id="L161">        Customer customer = new Customer();</span>
+<span class="fc" id="L162">        customer.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L163">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L164">        customerDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L165">        List&lt;Customer&gt; customers = List.of(customer);</span>
+<span class="fc" id="L166">        List&lt;CustomerDto&gt; customerDtos = List.of(customerDto);</span>
+<span class="fc" id="L167">        Mockito.when(customerRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(customers);</span>
+<span class="fc" id="L168">        Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class))).thenReturn(customerDtos);</span>
+<span class="fc" id="L169">        List&lt;CustomerDto&gt; response = customerService.findIfTrue();</span>
+<span class="fc" id="L170">        Assertions.assertEquals(1, response.size());</span>
+<span class="fc" id="L171">    }</span>
+
+    @Test
+    void toggleTestActive() {
+<span class="fc" id="L175">        Customer customer = new Customer();</span>
+<span class="fc" id="L176">        customer.setStatus(false);</span>
+<span class="fc" id="L177">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L178">        customerDto.setStatus(true);</span>
+<span class="fc" id="L179">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(customer);</span>
+<span class="fc" id="L180">        Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);</span>
+<span class="fc" id="L181">        CustomerDto response = customerService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L182">        Assertions.assertTrue(response.isStatus());</span>
+<span class="fc" id="L183">    }</span>
+
+    @Test
+    void toggleTestInactive() {
+<span class="fc" id="L187">        Customer customer = new Customer();</span>
+<span class="fc" id="L188">        customer.setStatus(true);</span>
+<span class="fc" id="L189">        CustomerDto customerDto = new CustomerDto();</span>
+<span class="fc" id="L190">        customerDto.setStatus(false);</span>
+<span class="fc" id="L191">        Mockito.when(customerRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(customer);</span>
+<span class="fc" id="L192">        Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);</span>
+<span class="fc" id="L193">        CustomerDto response = customerService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L194">        Assertions.assertFalse(response.isStatus());</span>
+<span class="fc" id="L195">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

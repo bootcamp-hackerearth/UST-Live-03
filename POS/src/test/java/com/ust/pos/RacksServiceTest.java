@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.impl.RacksServiceImpl;
@@ -13,7 +14,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,8 +48,7 @@ class RacksServiceTest {
         racksDto.setIdentifier("Admin");
         Racks existingRacks = new Racks();
         existingRacks.setIdentifier("Admin");
-        Mockito.when(racksRepository.findByIdentifier("Admin"))
-                .thenReturn(existingRacks);
+        Mockito.when(racksRepository.findByIdentifier("Admin")).thenReturn(existingRacks);
         RacksDto response = racksService.save(racksDto);
         Assertions.assertFalse(response.isSuccess());
     }
@@ -72,10 +71,8 @@ class RacksServiceTest {
         racksDto.setIdentifier("Admin");
         Racks existingRacks = new Racks();
         existingRacks.setIdentifier("Admin");
-        Mockito.when(racksRepository.findByIdentifier("Admin"))
-                .thenReturn(existingRacks);
-        Mockito.when(racksRepository.save(existingRacks))
-                .thenReturn(existingRacks);
+        Mockito.when(racksRepository.findByIdentifier("Admin")).thenReturn(existingRacks);
+        Mockito.when(racksRepository.save(existingRacks)).thenReturn(existingRacks);
         RacksDto response = racksService.update(racksDto);
         Assertions.assertTrue(response.isSuccess());
     }
@@ -84,16 +81,17 @@ class RacksServiceTest {
     void updateTestFailure() {
         RacksDto racksDto = new RacksDto();
         racksDto.setIdentifier("Admin");
-        Mockito.when(racksRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
+        Mockito.when(racksRepository.findByIdentifier("Admin")).thenReturn(null);
         RacksDto response = racksService.update(racksDto);
         Assertions.assertFalse(response.isSuccess());
     }
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(racksRepository)
-                .deleteByIdentifier("Admin");
+        Racks racks = new Racks();
+        racks.setIdentifier("Admin");
+        Mockito.when(racksRepository.findByIdentifier("Admin")).thenReturn(racks);
+        Mockito.when(racksRepository.save(racks)).thenReturn(racks);
         boolean response = racksService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -106,16 +104,15 @@ class RacksServiceTest {
         racksDto.setIdentifier("Admin");
         List<Racks> rackss = List.of(racks);
         List<RacksDto> racksDtos = List.of(racksDto);
-        Page<Racks> racksPage =
-                new PageImpl<>(rackss, PageRequest.of(0, 2), rackss.size());
+        Page<Racks> racksPage = new PageImpl<>(rackss, PageRequest.of(0, 2), rackss.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(racksRepository.findAll(pageable)).thenReturn(racksPage);
+        Mockito.when(racksRepository.findByDeletedFalse(pageable)).thenReturn(racksPage);
         Mockito.when(modelMapper.map(
                 Mockito.eq(rackss),
                 Mockito.any(java.lang.reflect.Type.class)
         )).thenReturn(racksDtos);
-        List<RacksDto> response = racksService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        WsDto<RacksDto> response = racksService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -126,7 +123,7 @@ class RacksServiceTest {
         racksDto.setIdentifier("Admin");
         List<Racks> rackss = List.of(racks);
         List<RacksDto> racksDtos = List.of(racksDto);
-        Mockito.when(racksRepository.findByStatusIsTrue()).thenReturn(rackss);
+        Mockito.when(racksRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(rackss);
         Mockito.when(modelMapper.map(
                 Mockito.eq(rackss),
                 Mockito.any(java.lang.reflect.Type.class)

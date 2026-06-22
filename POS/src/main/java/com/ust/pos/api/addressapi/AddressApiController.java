@@ -4,7 +4,6 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,11 @@ import java.util.List;
 @RequestMapping("/api/address")
 public class AddressApiController extends BaseController {
 
-    @Autowired
-    private AddressService addressService;
+    private final AddressService addressService;
+
+    public AddressApiController(AddressService addressService) {
+        this.addressService = addressService;
+    }
 
     @PostMapping("/list")
     public List<AddressDto> home(@RequestBody PaginationDto paginationDto) {

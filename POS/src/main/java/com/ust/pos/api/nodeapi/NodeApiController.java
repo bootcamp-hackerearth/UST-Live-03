@@ -6,7 +6,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,11 +15,14 @@ import java.util.List;
 @RequestMapping("/api/node")
 public class NodeApiController extends BaseController {
 
-    @Autowired
-    RoleService roleService;
+    private final RoleService roleService;
 
-    @Autowired
-    private NodeService nodeService;
+    private final NodeService nodeService;
+
+    public NodeApiController(RoleService roleService, NodeService nodeService) {
+        this.roleService = roleService;
+        this.nodeService = nodeService;
+    }
 
     @PostMapping("/list")
     public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {

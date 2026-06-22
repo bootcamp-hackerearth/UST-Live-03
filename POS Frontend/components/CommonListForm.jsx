@@ -203,6 +203,28 @@ const styles = {
     height: "42px",
   },
   pageInfo: { fontSize: "12px", color: C.muted, padding: "0 8px", whiteSpace: "nowrap" },
+  modalOverlay: {
+    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)", display: "flex",
+    alignItems: "center", justifyContent: "center", zIndex: 1000,
+    fontFamily: "'Segoe UI', sans-serif",
+  },
+  modalBox: {
+    backgroundColor: "#fff", padding: "24px", borderRadius: "12px",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.15)", width: "100%", maxWidth: "400px",
+    textAlign: "center",
+  },
+  modalTitle: { margin: "0 0 10px 0", fontSize: "18px", fontWeight: "700", color: C.primary },
+  modalText: { margin: "0 0 20px 0", fontSize: "14px", color: C.text, lineHeight: "1.5" },
+  modalBtns: { display: "flex", gap: "12px", justifyContent: "center" },
+  modalCancel: {
+    padding: "9px 18px", backgroundColor: C.gray, color: C.text,
+    border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "600",
+  },
+  modalConfirm: {
+    padding: "9px 18px", backgroundColor: "#dc2626", color: "#fff",
+    border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "600",
+  },
 };
  
 const toCamelCase = (value) => value.replaceAll(/_([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -230,7 +252,9 @@ export default function ListingSkeleton({
   const [data, setData] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const router = useRouter();
   const [pagination, setPagination] = useState({
     page: 0, sizePerPage: 5, sortDirection: "ASC", sortField: "id",
@@ -253,6 +277,7 @@ export default function ListingSkeleton({
           setData(res.data.dtoList ?? []);
           setTotalPages(res.data.totalPages ?? 1);
         }
+        setLoadError("");
       } else {
         const res = await api.post(apis.list, { ...pagination, page: 0, sizePerPage: 1000 });
         const allData = Array.isArray(res.data) ? res.data : (res.data.dtoList ?? []);
@@ -264,9 +289,19 @@ export default function ListingSkeleton({
  
         setData(filtered);
         setTotalPages(1);
+        setLoadError("");
       }
     } catch (err) {
-      console.log(err);
+      const status = err.response?.status;
+      if (status === 403) {
+        console.warn(`Permission denied accessing ${apis.list}:`, err.response?.data || err.message);
+        setLoadError("You do not have permission to view this resource.");
+      } else {
+        console.error(`Failed to load ${apis.list}:`, err.response?.data || err.message);
+        setLoadError("Failed to load data. Please try again.");
+      }
+      setData([]);
+      setTotalPages(0);
     }
   }, [apis.list, pagination, searchQuery, fields, paramKey]);
  
@@ -274,18 +309,22 @@ export default function ListingSkeleton({
     loadList();
   }, [loadList]);
  
-  async function handleDelete(row) {
-    const value = row[paramKey];
-    if (!globalThis.confirm(`Delete "${value}"? This cannot be undone.`)) return;
-    const url = deleteStyle === "param"
-      ? `${apis.delete}?${paramKey}=${value}` 
-      : `${apis.delete}/${value}`;              
-    await api.get(url);
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    const value = String(deleteTarget[paramKey] ?? "");
+
+    if (deleteStyle === "param") {
+      await api.get(apis.delete, { params: { [paramKey]: value } });
+    } else {
+      await api.get(`${apis.delete}/${encodeURIComponent(value)}`);
+    }
+    setDeleteTarget(null);
     loadList();
   }
  
   async function handleToggle(row) {
-    await api.post(`${apis.toggleStatus}?${paramKey}=${row[paramKey]}`);
+    const value = String(row[paramKey] ?? "");
+    await api.post(apis.toggleStatus, null, { params: { [paramKey]: value } });
     loadList();
   }
  
@@ -316,13 +355,18 @@ export default function ListingSkeleton({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button style={styles.addBtn} onClick={() => router.push(addPath)}>
+          <button style={styles.addBtn} onClick={() => router.push(addPath)} disabled={!!loadError}>
             + Add {title}
           </button>
         </div>
  
         <div style={styles.card}>
           <div style={styles.tableWrap}>
+            {loadError ? (
+              <div style={{ color: "#7f1d1d", backgroundColor: "#fee2e2", padding: "48px 20px", textAlign: "center", fontSize: "14px", lineHeight: "1.5" }}>
+                ⚠️ {loadError}
+              </div>
+            ) : (
             <table style={styles.table}>
               <thead>
                 <tr>
@@ -363,7 +407,7 @@ export default function ListingSkeleton({
                       <td style={styles.td}>
                         <button
                           style={styles.actionEdit}
-                          onClick={() => router.push(editPathBase + row[paramKey])}
+                          onClick={() => router.push(editPathBase + encodeURIComponent(String(row[paramKey] ?? "")))}
                           title="Edit"
                           aria-label={`Edit ${row[paramKey]}`}
                         >
@@ -371,7 +415,7 @@ export default function ListingSkeleton({
                         </button>
                         <button
                           style={styles.actionDelete}
-                          onClick={() => handleDelete(row)}
+                          onClick={() => setDeleteTarget(row)}
                           title="Delete"
                           aria-label={`Delete ${row[paramKey]}`}
                         >
@@ -383,9 +427,10 @@ export default function ListingSkeleton({
                 )}
               </tbody>
             </table>
+            )}
           </div>
  
-          {searchQuery.trim() === "" && totalPages > 1 && getVisiblePages().length > 0 && (
+          {!loadError && searchQuery.trim() === "" && totalPages > 1 && getVisiblePages().length > 0 && (
             <div style={styles.paginationBar}>
               <button
                 style={{ ...styles.pageArrow, ...(currentPage === 0 ? styles.pageArrowDisabled : {}) }}
@@ -410,6 +455,21 @@ export default function ListingSkeleton({
           )}
         </div>
       </div>
+
+      {deleteTarget && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalBox}>
+            <h3 style={styles.modalTitle}>Confirm Deletion</h3>
+            <p style={styles.modalText}>
+              Are you sure you want to delete <strong>{deleteTarget[paramKey]}</strong>? This action cannot be undone.
+            </p>
+            <div style={styles.modalBtns}>
+              <button style={styles.modalCancel} onClick={() => setDeleteTarget(null)}>Cancel</button>
+              <button style={styles.modalConfirm} onClick={confirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

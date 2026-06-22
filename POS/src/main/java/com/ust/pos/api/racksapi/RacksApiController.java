@@ -3,9 +3,9 @@ package com.ust.pos.api.racksapi;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
 import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,14 +15,17 @@ import java.util.List;
 @RequestMapping("/api/racks")
 public class RacksApiController extends BaseController {
 
-    @Autowired
-    private RacksService racksService;
+    private final RacksService racksService;
 
-    @Autowired
-    private ShelfsService shelfsService;
+    private final ShelfsService shelfsService;
+
+    public RacksApiController(RacksService racksService, ShelfsService shelfsService) {
+        this.racksService = racksService;
+        this.shelfsService = shelfsService;
+    }
 
     @PostMapping("/list")
-    public List<RacksDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RacksDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return racksService.findAll(pageable);
     }

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CategoryController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.category</a> &gt; <span class="el_source">CategoryController.java</span></div><h1>CategoryController.java</h1><pre class="source lang-java linenums">package com.ust.pos.category;
+
+import com.ust.pos.api.BaseController;
+import com.ust.pos.category.service.CategoryService;
+import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.PaginationDto;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+@Controller
+@RequestMapping(&quot;/category&quot;)
+public class CategoryController extends BaseController {
+
+    public static final String REDIRECT_CATEGORY_LIST = &quot;redirect:/category/list&quot;;
+    public static final String CATEGORIES = &quot;categories&quot;;
+
+    private final CategoryService categoryService;
+
+<span class="fc" id="L20">    public CategoryController(CategoryService categoryService) {</span>
+<span class="fc" id="L21">        this.categoryService = categoryService;</span>
+<span class="fc" id="L22">    }</span>
+
+    @GetMapping(&quot;/list&quot;)
+    public String home(Model model) {
+<span class="nc" id="L26">        PaginationDto paginationDto = new PaginationDto();</span>
+<span class="nc" id="L27">        model.addAttribute(CATEGORIES, categoryService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));</span>
+<span class="nc" id="L28">        return &quot;category/list&quot;;</span>
+    }
+
+    @GetMapping(&quot;/add&quot;)
+    public String add(Model model, @ModelAttribute CategoryDto categoryDto) {
+<span class="nc" id="L33">        PaginationDto paginationDto = new PaginationDto();</span>
+<span class="nc" id="L34">        model.addAttribute(CATEGORIES, categoryService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));</span>
+<span class="nc" id="L35">        return &quot;category/add&quot;;</span>
+    }
+
+    @PostMapping(&quot;/add&quot;)
+    public String addPost(Model model, @ModelAttribute CategoryDto categoryDto) {
+<span class="nc" id="L40">        CategoryDto response = categoryService.save(categoryDto);</span>
+<span class="nc" id="L41">        PaginationDto paginationDto = new PaginationDto();</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (!response.isSuccess()) {</span>
+<span class="nc" id="L43">            model.addAttribute(&quot;message&quot;, response.getMessage());</span>
+<span class="nc" id="L44">            model.addAttribute(CATEGORIES, categoryService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));</span>
+<span class="nc" id="L45">            return &quot;category/add&quot;;</span>
+        }
+<span class="nc" id="L47">        return REDIRECT_CATEGORY_LIST;</span>
+    }
+
+    @GetMapping(&quot;/get&quot;)
+    public String update(Model model, @RequestParam String identifier) {
+<span class="nc" id="L52">        CategoryDto response = categoryService.findByIdentifier(identifier);</span>
+<span class="nc" id="L53">        PaginationDto paginationDto = new PaginationDto();</span>
+<span class="nc" id="L54">        model.addAttribute(&quot;category&quot;, response);</span>
+<span class="nc" id="L55">        model.addAttribute(CATEGORIES, categoryService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));</span>
+<span class="nc" id="L56">        return &quot;category/category&quot;;</span>
+    }
+
+    @PostMapping(&quot;/update&quot;)
+    public String updatePost(Model model, @ModelAttribute CategoryDto categoryDto) {
+<span class="nc" id="L61">        CategoryDto response = categoryService.update(categoryDto);</span>
+<span class="nc" id="L62">        PaginationDto paginationDto = new PaginationDto();</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (!response.isSuccess()) {</span>
+<span class="nc" id="L64">            model.addAttribute(&quot;category&quot;, response);</span>
+<span class="nc" id="L65">            model.addAttribute(CATEGORIES, categoryService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField())));</span>
+<span class="nc" id="L66">            model.addAttribute(&quot;message&quot;, response.getMessage());</span>
+<span class="nc" id="L67">            return &quot;category/category&quot;;</span>
+        }
+<span class="nc" id="L69">        return REDIRECT_CATEGORY_LIST;</span>
+    }
+
+    @GetMapping(&quot;/delete&quot;)
+    public String delete(Model model, @RequestParam String identifier) {
+<span class="nc" id="L74">        categoryService.delete(identifier);</span>
+<span class="nc" id="L75">        return REDIRECT_CATEGORY_LIST;</span>
+    }
+
+    @PostMapping(&quot;/toggle-status&quot;)
+    @ResponseBody
+    public void toggle(Model model, @RequestParam String identifier) {
+<span class="nc" id="L81">        categoryService.toggleStatus(identifier);</span>
+<span class="nc" id="L82">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

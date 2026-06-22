@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BrandServiceTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos</a> &gt; <span class="el_source">BrandServiceTest.java</span></div><h1>BrandServiceTest.java</h1><pre class="source lang-java linenums">package com.ust.pos;
+
+import com.ust.pos.brand.service.impl.BrandServiceImpl;
+import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Brand;
+import com.ust.pos.model.BrandRepository;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@ExtendWith(MockitoExtension.class)
+<span class="fc" id="L21">class BrandServiceTest {</span>
+
+    @Mock
+    private BrandRepository brandRepository;
+
+    @Mock
+    private ModelMapper modelMapper;
+
+    @InjectMocks
+    private BrandServiceImpl brandService;
+
+    @Test
+    void saveTest() {
+<span class="fc" id="L34">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L35">        brandDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L36">        Mockito.when(brandRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(null);</span>
+<span class="fc" id="L37">        Brand brand = new Brand();</span>
+<span class="fc" id="L38">        Mockito.when(modelMapper.map(brandDto, Brand.class)).thenReturn(brand);</span>
+<span class="fc" id="L39">        Mockito.when(brandRepository.save(brand)).thenReturn(brand);</span>
+<span class="fc" id="L40">        BrandDto response = brandService.save(brandDto);</span>
+<span class="fc" id="L41">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L42">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L43">    }</span>
+
+    @Test
+    void saveTestFailure() {
+<span class="fc" id="L47">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L48">        brandDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L49">        Brand existingBrand = new Brand();</span>
+<span class="fc" id="L50">        existingBrand.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L51">        Mockito.when(brandRepository.findByIdentifier(&quot;Admin&quot;))</span>
+<span class="fc" id="L52">                .thenReturn(existingBrand);</span>
+<span class="fc" id="L53">        BrandDto response = brandService.save(brandDto);</span>
+<span class="fc" id="L54">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L55">    }</span>
+
+    @Test
+    void findByIdentifierTest() {
+<span class="fc" id="L59">        Brand brand = new Brand();</span>
+<span class="fc" id="L60">        brand.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L61">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L62">        brandDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L63">        Mockito.when(brandRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(brand);</span>
+<span class="fc" id="L64">        Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);</span>
+<span class="fc" id="L65">        BrandDto response = brandService.findByIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L66">        Assertions.assertEquals(&quot;Admin&quot;, response.getIdentifier());</span>
+<span class="fc" id="L67">    }</span>
+
+    @Test
+    void updateTest() {
+<span class="fc" id="L71">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L72">        brandDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L73">        Brand existingBrand = new Brand();</span>
+<span class="fc" id="L74">        existingBrand.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L75">        Mockito.when(brandRepository.findByIdentifier(&quot;Admin&quot;))</span>
+<span class="fc" id="L76">                .thenReturn(existingBrand);</span>
+<span class="fc" id="L77">        Mockito.when(brandRepository.save(existingBrand))</span>
+<span class="fc" id="L78">                .thenReturn(existingBrand);</span>
+<span class="fc" id="L79">        BrandDto response = brandService.update(brandDto);</span>
+<span class="fc" id="L80">        Assertions.assertTrue(response.isSuccess());</span>
+<span class="fc" id="L81">    }</span>
+
+    @Test
+    void updateTestFailure() {
+<span class="fc" id="L85">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L86">        brandDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L87">        Mockito.when(brandRepository.findByIdentifier(&quot;Admin&quot;))</span>
+<span class="fc" id="L88">                .thenReturn(null);</span>
+<span class="fc" id="L89">        BrandDto response = brandService.update(brandDto);</span>
+<span class="fc" id="L90">        Assertions.assertFalse(response.isSuccess());</span>
+<span class="fc" id="L91">    }</span>
+
+    @Test
+    void deleteTest() {
+<span class="fc" id="L95">        Brand brand = new Brand();</span>
+<span class="fc" id="L96">        brand.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L97">        Mockito.when(brandRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(brand);</span>
+<span class="fc" id="L98">        Mockito.when(brandRepository.save(brand)).thenReturn(brand);</span>
+<span class="fc" id="L99">        boolean response = brandService.delete(&quot;Admin&quot;);</span>
+<span class="fc" id="L100">        Assertions.assertEquals(true, response);</span>
+<span class="fc" id="L101">    }</span>
+
+    @Test
+    void findAllTest() {
+<span class="fc" id="L105">        Brand brand = new Brand();</span>
+<span class="fc" id="L106">        brand.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L107">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L108">        brandDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L109">        List&lt;Brand&gt; brands = List.of(brand);</span>
+<span class="fc" id="L110">        List&lt;BrandDto&gt; brandDtos = List.of(brandDto);</span>
+<span class="fc" id="L111">        Page&lt;Brand&gt; brandPage = new PageImpl&lt;&gt;(brands, PageRequest.of(0, 2), brands.size());</span>
+<span class="fc" id="L112">        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList&lt;&gt;()));</span>
+<span class="fc" id="L113">        Mockito.when(brandRepository.findByDeletedFalse(pageable)).thenReturn(brandPage);</span>
+<span class="fc" id="L114">        Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(java.lang.reflect.Type.class))).thenReturn(brandDtos);</span>
+<span class="fc" id="L115">        WsDto&lt;BrandDto&gt; response = brandService.findAll(pageable);</span>
+<span class="fc" id="L116">        Assertions.assertEquals(1, response.getDtoList().size());</span>
+<span class="fc" id="L117">    }</span>
+
+    @Test
+    void findByStatusTest() {
+<span class="fc" id="L121">        Brand brand = new Brand();</span>
+<span class="fc" id="L122">        brand.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L123">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L124">        brandDto.setIdentifier(&quot;Admin&quot;);</span>
+<span class="fc" id="L125">        List&lt;Brand&gt; brands = List.of(brand);</span>
+<span class="fc" id="L126">        List&lt;BrandDto&gt; brandDtos = List.of(brandDto);</span>
+<span class="fc" id="L127">        Mockito.when(brandRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(brands);</span>
+<span class="fc" id="L128">        Mockito.when(modelMapper.map(</span>
+<span class="fc" id="L129">                Mockito.eq(brands),</span>
+<span class="fc" id="L130">                Mockito.any(java.lang.reflect.Type.class)</span>
+<span class="fc" id="L131">        )).thenReturn(brandDtos);</span>
+<span class="fc" id="L132">        List&lt;BrandDto&gt; response = brandService.findIfTrue();</span>
+<span class="fc" id="L133">        Assertions.assertEquals(1, response.size());</span>
+<span class="fc" id="L134">    }</span>
+
+    @Test
+    void toggleTestActive() {
+<span class="fc" id="L138">        Brand brand = new Brand();</span>
+<span class="fc" id="L139">        brand.setStatus(false);</span>
+<span class="fc" id="L140">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L141">        brandDto.setStatus(true);</span>
+<span class="fc" id="L142">        Mockito.when(brandRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(brand);</span>
+<span class="fc" id="L143">        Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);</span>
+<span class="fc" id="L144">        BrandDto response = brandService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L145">        Assertions.assertTrue(response.isStatus());</span>
+<span class="fc" id="L146">    }</span>
+
+    @Test
+    void toggleTestInactive() {
+<span class="fc" id="L150">        Brand brand = new Brand();</span>
+<span class="fc" id="L151">        brand.setStatus(true);</span>
+<span class="fc" id="L152">        BrandDto brandDto = new BrandDto();</span>
+<span class="fc" id="L153">        brandDto.setStatus(false);</span>
+<span class="fc" id="L154">        Mockito.when(brandRepository.findByIdentifier(&quot;Admin&quot;)).thenReturn(brand);</span>
+<span class="fc" id="L155">        Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);</span>
+<span class="fc" id="L156">        BrandDto response = brandService.toggleStatus(&quot;Admin&quot;);</span>
+<span class="fc" id="L157">        Assertions.assertFalse(response.isStatus());</span>
+<span class="fc" id="L158">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

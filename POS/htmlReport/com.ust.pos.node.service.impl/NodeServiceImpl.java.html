@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NodeServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.node.service.impl</a> &gt; <span class="el_source">NodeServiceImpl.java</span></div><h1>NodeServiceImpl.java</h1><pre class="source lang-java linenums">package com.ust.pos.node.service.impl;
+
+import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.NodeRepository;
+import com.ust.pos.model.User;
+import com.ust.pos.model.UserRepository;
+import com.ust.pos.node.service.NodeService;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+@Service
+public class NodeServiceImpl extends CommonService implements NodeService {
+
+    private static final String NODE_WITH_IDENTIFIER = &quot;Node with identifier - &quot;;
+
+    private final UserRepository userRepository;
+
+    private final NodeRepository nodeRepository;
+
+    private final ModelMapper modelMapper;
+
+<span class="fc" id="L36">    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {</span>
+<span class="fc" id="L37">        this.userRepository = userRepository;</span>
+<span class="fc" id="L38">        this.nodeRepository = nodeRepository;</span>
+<span class="fc" id="L39">        this.modelMapper = modelMapper;</span>
+<span class="fc" id="L40">    }</span>
+
+    @Override
+    public List&lt;NodeDto&gt; getNodesForRoles() {
+<span class="fc" id="L44">        List&lt;NodeDto&gt; nodeDtos = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L45">        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (authentication != null) {</span>
+<span class="fc" id="L47">            org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">            if (principalObject != null) findNodes(principalObject, nodeDtos);</span>
+        }
+<span class="fc" id="L50">        return nodeDtos;</span>
+    }
+
+    private void findNodes(org.springframework.security.core.userdetails.User principalObject, List&lt;NodeDto&gt; nodeDtos) {
+<span class="fc" id="L54">        User currentUser = userRepository.findByUsername(principalObject.getUsername());</span>
+<span class="fc" id="L55">        Set&lt;String&gt; nodesStr = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L56">        List&lt;Node&gt; nodes = nodeRepository.findByStatusIsTrueAndDeletedFalse();</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        for (String role : currentUser.getRoles()) {</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">            for (Node node : nodes) {</span>
+<span class="pc bpc" id="L59" title="2 of 4 branches missed.">                if (node.getRoles() != null &amp;&amp; node.getRoles().contains(role)) {</span>
+<span class="fc" id="L60">                    nodesStr.add(node.getIdentifier());</span>
+                }
+<span class="fc" id="L62">            }</span>
+
+<span class="fc" id="L64">        }</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        for (String nodeStr : nodesStr) {</span>
+<span class="fc" id="L66">            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));</span>
+<span class="fc" id="L67">        }</span>
+<span class="fc" id="L68">    }</span>
+
+    @Override
+    public NodeDto findByIdentifier(String identifier) {
+<span class="fc" id="L72">        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);</span>
+    }
+
+    @Override
+    public NodeDto save(NodeDto nodeDto) {
+<span class="fc" id="L77">        nodeDto.setIdentifier(nodeDto.getIdentifier().trim());</span>
+<span class="fc" id="L78">        String identifier = nodeDto.getIdentifier();</span>
+<span class="fc" id="L79">        Node existingNode = nodeRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        if (existingNode != null) {</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">            if (!existingNode.isDeleted()) {</span>
+<span class="fc" id="L82">                nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + &quot; already exists&quot;);</span>
+<span class="fc" id="L83">                nodeDto.setSuccess(false);</span>
+<span class="fc" id="L84">                return nodeDto;</span>
+            }
+<span class="nc" id="L86">            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + &quot; was previously deleted. &quot; +</span>
+                    &quot;Please contact backend team to restore.&quot;);
+<span class="nc" id="L88">            nodeDto.setSuccess(false);</span>
+<span class="nc" id="L89">            return nodeDto;</span>
+        }
+<span class="fc" id="L91">        Node node = modelMapper.map(nodeDto, Node.class);</span>
+<span class="fc" id="L92">        setAuditFields(node,true);</span>
+<span class="fc" id="L93">        nodeRepository.save(node);</span>
+<span class="fc" id="L94">        nodeDto.setSuccess(true);</span>
+<span class="fc" id="L95">        nodeDto.setMessage(&quot;Node created successfully&quot;);</span>
+<span class="fc" id="L96">        return nodeDto;</span>
+    }
+
+    @Override
+    public NodeDto update(NodeDto nodeDto) {
+<span class="fc" id="L101">        String identifier = nodeDto.getIdentifier();</span>
+<span class="fc" id="L102">        Node existingNode = nodeRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (existingNode == null) {</span>
+<span class="fc" id="L104">            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + &quot;not found&quot;);</span>
+<span class="fc" id="L105">            nodeDto.setSuccess(false);</span>
+<span class="fc" id="L106">            return nodeDto;</span>
+        }
+<span class="fc" id="L108">        modelMapper.map(nodeDto, existingNode);</span>
+<span class="fc" id="L109">        setAuditFields(existingNode,false);</span>
+<span class="fc" id="L110">        nodeRepository.save(existingNode);</span>
+<span class="fc" id="L111">        return nodeDto;</span>
+    }
+
+    @Override
+    public boolean delete(String identifier) {
+<span class="fc" id="L116">        Node node = nodeRepository.findByIdentifier(identifier);</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        if (node == null) return false;</span>
+<span class="fc" id="L118">        softDelete(node);</span>
+<span class="fc" id="L119">        setAuditFields(node,false);</span>
+<span class="fc" id="L120">        nodeRepository.save(node);</span>
+<span class="fc" id="L121">        return true;</span>
+    }
+
+    @Override
+    public WsDto&lt;NodeDto&gt; findAll(Pageable pageable) {
+<span class="fc" id="L126">        Type listType = new TypeToken&lt;List&lt;NodeDto&gt;&gt;() {</span>
+<span class="fc" id="L127">        }.getType();</span>
+<span class="fc" id="L128">        Page&lt;Node&gt; nodePage = nodeRepository.findByDeletedFalse(pageable);</span>
+<span class="fc" id="L129">        WsDto&lt;NodeDto&gt; nodeDtoWsDto = new WsDto&lt;&gt;();</span>
+<span class="fc" id="L130">        nodeDtoWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));</span>
+<span class="fc" id="L131">        nodeDtoWsDto.setTotalRecords(nodePage.getTotalElements());</span>
+<span class="fc" id="L132">        nodeDtoWsDto.setTotalPages(nodePage.getTotalPages());</span>
+<span class="fc" id="L133">        nodeDtoWsDto.setSizePerPage(pageable.getPageSize());</span>
+<span class="fc" id="L134">        nodeDtoWsDto.setPage(pageable.getPageNumber());</span>
+<span class="fc" id="L135">        return nodeDtoWsDto;</span>
+    }
+
+    @Override
+    public List&lt;NodeDto&gt; findIfTrue() {
+<span class="fc" id="L140">        Type listType = new TypeToken&lt;List&lt;NodeDto&gt;&gt;() {</span>
+<span class="fc" id="L141">        }.getType();</span>
+<span class="fc" id="L142">        return modelMapper.map(nodeRepository.findByStatusIsTrueAndDeletedFalse(), listType);</span>
+    }
+
+    @Override
+    public NodeDto toggleStatus(String identifier) {
+<span class="fc" id="L147">        Node node = nodeRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        node.setStatus(!node.isStatus());</span>
+<span class="fc" id="L149">        setAuditFields(node,false);</span>
+<span class="fc" id="L150">        nodeRepository.save(node);</span>
+<span class="fc" id="L151">        return modelMapper.map(node, NodeDto.class);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

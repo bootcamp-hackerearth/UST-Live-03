@@ -195,6 +195,15 @@ export default function Navbar() {
                 transition: "all 0.2s ease",
               }}
             >
+              {profileData?.name && (
+                <span style={{
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  color: "rgba(255,255,255,0.9)",
+                }}>
+                  Welcome, {profileData.name}
+                </span>
+              )}
               <span style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -254,7 +263,6 @@ export default function Navbar() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <div>
               <p style={{ margin: 0, fontSize: "16px", fontWeight: "700", color: "#111" }}>My Profile</p>
-              <p style={{ margin: "6px 0 0", fontSize: "12px", color: "#666" }}>Editable profile panel</p>
             </div>
             <button
               type="button"

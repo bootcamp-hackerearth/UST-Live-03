@@ -1,9 +1,10 @@
 package com.ust.pos;
 
-import com.ust.pos.address.service.impl.AddressServiceImpl;
+import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
@@ -16,7 +17,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +33,10 @@ class CustomerServiceTest {
     private CustomerServiceImpl customerService;
 
     @Mock
-    private AddressServiceImpl addressService;
+    private AddressService addressService;
+
+    @Mock
+    private AddressRepository addressRepository;
 
     @Test
     void findByIdentifierTest() {
@@ -73,18 +76,12 @@ class CustomerServiceTest {
         AddressDto addressDto2 = new AddressDto();
         customerDto.setBillingAddress(addressDto1);
         customerDto.setShippingAddress(addressDto2);
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
-        Mockito.when(modelMapper.map(customerDto, Customer.class))
-                .thenReturn(customer);
-        Mockito.when(customerRepository.save(customer))
-                .thenReturn(customer);
-        Mockito.when(modelMapper.map(addressDto1, AddressDto.class))
-                .thenReturn(addressDto1);
-        Mockito.when(modelMapper.map(addressDto2, AddressDto.class))
-                .thenReturn(addressDto2);
-        Mockito.when(addressService.save(Mockito.any(AddressDto.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        Mockito.when(customerRepository.findByIdentifier("Admin")).thenReturn(null);
+        Mockito.when(modelMapper.map(customerDto, Customer.class)).thenReturn(customer);
+        Mockito.when(customerRepository.save(customer)).thenReturn(customer);
+        Mockito.when(modelMapper.map(addressDto1, AddressDto.class)).thenReturn(addressDto1);
+        Mockito.when(modelMapper.map(addressDto2, AddressDto.class)).thenReturn(addressDto2);
+        Mockito.when(addressService.save(Mockito.any(AddressDto.class))).thenAnswer(invocation -> invocation.getArgument(0));
         CustomerDto response = customerService.save(customerDto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
@@ -98,8 +95,7 @@ class CustomerServiceTest {
         customerDto.setIdentifier("Admin");
         Customer existingCustomer = new Customer();
         existingCustomer.setIdentifier("Admin");
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
-                .thenReturn(existingCustomer);
+        Mockito.when(customerRepository.findByIdentifier("Admin")).thenReturn(existingCustomer);
         CustomerDto response = customerService.save(customerDto);
         Assertions.assertFalse(response.isSuccess());
     }
@@ -129,17 +125,17 @@ class CustomerServiceTest {
     void updateFailureTest() {
         CustomerDto customerDto = new CustomerDto();
         customerDto.setIdentifier("Admin");
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
+        Mockito.when(customerRepository.findByIdentifier("Admin")).thenReturn(null);
         CustomerDto response = customerService.update(customerDto);
         Assertions.assertFalse(response.isSuccess());
     }
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(customerRepository)
-                .deleteByIdentifier("Admin");
-        addressService.delete("Admin");
+        Customer customer = new Customer();
+        customer.setIdentifier("Admin");
+        Mockito.when(customerRepository.findByIdentifier("Admin")).thenReturn(customer);
+        Mockito.when(customerRepository.save(customer)).thenReturn(customer);
         boolean response = customerService.delete("Admin");
         Assertions.assertEquals(true, response);
     }
@@ -152,16 +148,12 @@ class CustomerServiceTest {
         customerDto.setIdentifier("Admin");
         List<Customer> customers = List.of(customer);
         List<CustomerDto> customerDtos = List.of(customerDto);
-        Page<Customer> customerPage =
-                new PageImpl<>(customers, PageRequest.of(0, 2), customers.size());
+        Page<Customer> customerPage = new PageImpl<>(customers, PageRequest.of(0, 2), customers.size());
         Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Mockito.when(customerRepository.findAll(pageable)).thenReturn(customerPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(customers),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(customerDtos);
-        List<CustomerDto> response = customerService.findAll(pageable);
-        Assertions.assertEquals(1, response.size());
+        Mockito.when(customerRepository.findByDeletedFalse(pageable)).thenReturn(customerPage);
+        Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class))).thenReturn(customerDtos);
+        WsDto<CustomerDto> response = customerService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -172,11 +164,8 @@ class CustomerServiceTest {
         customerDto.setIdentifier("Admin");
         List<Customer> customers = List.of(customer);
         List<CustomerDto> customerDtos = List.of(customerDto);
-        Mockito.when(customerRepository.findByStatusIsTrue()).thenReturn(customers);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(customers),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(customerDtos);
+        Mockito.when(customerRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(customers);
+        Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class))).thenReturn(customerDtos);
         List<CustomerDto> response = customerService.findIfTrue();
         Assertions.assertEquals(1, response.size());
     }

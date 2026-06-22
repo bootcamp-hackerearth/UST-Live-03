@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.customer.service.impl</a> &gt; <span class="el_source">CustomerServiceImpl.java</span></div><h1>CustomerServiceImpl.java</h1><pre class="source lang-java linenums">package com.ust.pos.customer.service.impl;
+
+import com.ust.pos.address.service.AddressService;
+import com.ust.pos.common.CommonService;
+import com.ust.pos.customer.service.CustomerService;
+import com.ust.pos.dto.*;
+import com.ust.pos.model.Customer;
+import com.ust.pos.model.CustomerRepository;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+@Service
+public class CustomerServiceImpl extends CommonService implements CustomerService {
+
+    private static final String CUSTOMER_WITH_IDENTIFIER = &quot;Customer with identifier - &quot;;
+
+    private final CustomerRepository customerRepository;
+
+    private final ModelMapper modelMapper;
+
+    private final AddressService addressService;
+
+<span class="fc" id="L29">    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, AddressService addressService) {</span>
+<span class="fc" id="L30">        this.customerRepository = customerRepository;</span>
+<span class="fc" id="L31">        this.modelMapper = modelMapper;</span>
+<span class="fc" id="L32">        this.addressService = addressService;</span>
+<span class="fc" id="L33">    }</span>
+
+    @Override
+    public CustomerDto findByIdentifier(String identifier) {
+<span class="fc" id="L37">        return modelMapper.map(customerRepository.findByIdentifier(identifier), CustomerDto.class);</span>
+    }
+
+    @Override
+    public CustomerDto findByIdentifierWithAddressDto(String identifier) {
+<span class="fc" id="L42">        Customer customer = customerRepository.findByIdentifier(identifier);</span>
+<span class="fc" id="L43">        CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);</span>
+<span class="fc" id="L44">        List&lt;AddressDto&gt; addressDtoList = addressService.findAllByPhoneNo(identifier);</span>
+<span class="fc" id="L45">        customerDto.setBillingAddress(addressDtoList.get(0));</span>
+<span class="fc" id="L46">        customerDto.setShippingAddress(addressDtoList.get(1));</span>
+<span class="fc" id="L47">        return customerDto;</span>
+    }
+
+    @Override
+    public CustomerDto save(CustomerDto customerDto) {
+<span class="fc" id="L52">        customerDto.setIdentifier(customerDto.getIdentifier().trim());</span>
+<span class="fc" id="L53">        String identifier = customerDto.getIdentifier();</span>
+<span class="fc" id="L54">        Customer existingCustomer = customerRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (existingCustomer != null) {</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">            if (!existingCustomer.isDeleted()) {</span>
+<span class="fc" id="L57">                customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier + &quot; already exists&quot;);</span>
+<span class="fc" id="L58">                customerDto.setSuccess(false);</span>
+<span class="fc" id="L59">                return customerDto;</span>
+            }
+<span class="nc" id="L61">            customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier + &quot; was previously deleted. &quot; +</span>
+                    &quot;Please contact backend team to restore.&quot;);
+<span class="nc" id="L63">            customerDto.setSuccess(false);</span>
+<span class="nc" id="L64">            return customerDto;</span>
+        }
+<span class="fc" id="L66">        Customer customer = modelMapper.map(customerDto, Customer.class);</span>
+<span class="fc" id="L67">        setAuditFields(customer,true);</span>
+<span class="fc" id="L68">        customerRepository.save(customer);</span>
+<span class="fc" id="L69">        AddressDto billingAddress = modelMapper.map(customerDto.getBillingAddress(), AddressDto.class);</span>
+<span class="fc" id="L70">        billingAddress.setIdentifier(customerDto.getIdentifier() + &quot;_&quot; + &quot;Billing&quot;);</span>
+<span class="fc" id="L71">        billingAddress.setAddressType(&quot;Billing&quot;);</span>
+<span class="fc" id="L72">        billingAddress.setPhoneNo(customerDto.getIdentifier());</span>
+<span class="fc" id="L73">        addressService.save(billingAddress);</span>
+<span class="fc" id="L74">        AddressDto shippingAddress = modelMapper.map(customerDto.getShippingAddress(), AddressDto.class);</span>
+<span class="fc" id="L75">        shippingAddress.setIdentifier(customerDto.getIdentifier() + &quot;_&quot; + &quot;Shipping&quot;);</span>
+<span class="fc" id="L76">        shippingAddress.setAddressType(&quot;Shipping&quot;);</span>
+<span class="fc" id="L77">        shippingAddress.setPhoneNo(customerDto.getIdentifier());</span>
+<span class="fc" id="L78">        addressService.save(shippingAddress);</span>
+<span class="fc" id="L79">        customerDto.setSuccess(true);</span>
+<span class="fc" id="L80">        customerDto.setMessage(&quot;Customer created successfully&quot;);</span>
+<span class="fc" id="L81">        return customerDto;</span>
+    }
+
+    @Override
+    public CustomerDto update(CustomerDto customerDto) {
+<span class="fc" id="L86">        String identifier = customerDto.getIdentifier();</span>
+<span class="fc" id="L87">        Customer existingCustomer = customerRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (existingCustomer == null) {</span>
+<span class="fc" id="L89">            customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier + &quot; not found&quot;);</span>
+<span class="fc" id="L90">            customerDto.setSuccess(false);</span>
+<span class="fc" id="L91">            return customerDto;</span>
+        }
+<span class="fc" id="L93">        modelMapper.map(customerDto, existingCustomer);</span>
+<span class="fc" id="L94">        setAuditFields(existingCustomer,false);</span>
+<span class="fc" id="L95">        customerRepository.save(existingCustomer);</span>
+<span class="fc" id="L96">        List&lt;AddressDto&gt; addresses = addressService.findAllByPhoneNo(customerDto.getIdentifier());</span>
+<span class="fc" id="L97">        AddressDto billingAddress = customerDto.getBillingAddress();</span>
+<span class="fc" id="L98">        billingAddress.setIdentifier(addresses.get(0).getIdentifier());</span>
+<span class="fc" id="L99">        addressService.update(billingAddress);</span>
+<span class="fc" id="L100">        AddressDto shippingAddress = customerDto.getShippingAddress();</span>
+<span class="fc" id="L101">        shippingAddress.setIdentifier(addresses.get(1).getIdentifier());</span>
+<span class="fc" id="L102">        addressService.update(shippingAddress);</span>
+<span class="fc" id="L103">        return customerDto;</span>
+    }
+
+    @Override
+    public boolean delete(String identifier) {
+<span class="fc" id="L108">        Customer customer = customerRepository.findByIdentifier(identifier);</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (customer == null) return false;</span>
+<span class="fc" id="L110">        softDelete(customer);</span>
+<span class="fc" id="L111">        setAuditFields(customer,false);</span>
+<span class="fc" id="L112">        customerRepository.save(customer);</span>
+<span class="fc" id="L113">        addressService.delete(identifier);</span>
+<span class="fc" id="L114">        return true;</span>
+    }
+
+    @Override
+    public WsDto&lt;CustomerDto&gt; findAll(Pageable pageable) {
+<span class="fc" id="L119">        Type listType = new TypeToken&lt;List&lt;CustomerDto&gt;&gt;() {</span>
+<span class="fc" id="L120">        }.getType();</span>
+<span class="fc" id="L121">        Page&lt;Customer&gt; customerPage = customerRepository.findByDeletedFalse(pageable);</span>
+<span class="fc" id="L122">        WsDto&lt;CustomerDto&gt; customerDtoWsDto = new WsDto&lt;&gt;();</span>
+<span class="fc" id="L123">        customerDtoWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));</span>
+<span class="fc" id="L124">        customerDtoWsDto.setTotalRecords(customerPage.getTotalElements());</span>
+<span class="fc" id="L125">        customerDtoWsDto.setTotalPages(customerPage.getTotalPages());</span>
+<span class="fc" id="L126">        customerDtoWsDto.setSizePerPage(pageable.getPageSize());</span>
+<span class="fc" id="L127">        customerDtoWsDto.setPage(pageable.getPageNumber());</span>
+<span class="fc" id="L128">        return customerDtoWsDto;</span>
+    }
+
+    @Override
+    public CustomerDto toggleStatus(String identifier) {
+<span class="fc" id="L133">        Customer customer = customerRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        customer.setStatus(!customer.isStatus());</span>
+<span class="fc" id="L135">        setAuditFields(customer,false);</span>
+<span class="fc" id="L136">        customerRepository.save(customer);</span>
+<span class="fc" id="L137">        return modelMapper.map(customer, CustomerDto.class);</span>
+    }
+
+    @Override
+    public List&lt;CustomerDto&gt; findIfTrue() {
+<span class="fc" id="L142">        Type listType = new TypeToken&lt;List&lt;CustomerDto&gt;&gt;() {</span>
+<span class="fc" id="L143">        }.getType();</span>
+<span class="fc" id="L144">        return modelMapper.map(customerRepository.findByStatusIsTrueAndDeletedFalse(), listType);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ModelsServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">All in pos Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.ust.pos.models.service.impl</a> &gt; <span class="el_source">ModelsServiceImpl.java</span></div><h1>ModelsServiceImpl.java</h1><pre class="source lang-java linenums">package com.ust.pos.models.service.impl;
+
+import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Models;
+import com.ust.pos.model.ModelsRepository;
+import com.ust.pos.models.service.ModelsService;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+@Service
+public class ModelsServiceImpl extends CommonService implements ModelsService {
+
+    private static final String MODELS_WITH_IDENTIFIER = &quot;Models with identifier - &quot;;
+
+    private final ModelsRepository modelsRepository;
+
+    private final ModelMapper modelMapper;
+
+<span class="fc" id="L27">    public ModelsServiceImpl(ModelsRepository modelsRepository, ModelMapper modelMapper) {</span>
+<span class="fc" id="L28">        this.modelsRepository = modelsRepository;</span>
+<span class="fc" id="L29">        this.modelMapper = modelMapper;</span>
+<span class="fc" id="L30">    }</span>
+
+    @Override
+    public ModelsDto findByIdentifier(String identifier) {
+<span class="fc" id="L34">        return modelMapper.map(modelsRepository.findByIdentifier(identifier), ModelsDto.class);</span>
+    }
+
+    @Override
+    public ModelsDto toggleStatus(String identifier) {
+<span class="fc" id="L39">        Models models = modelsRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        models.setStatus(!models.isStatus());</span>
+<span class="fc" id="L41">        setAuditFields(models,false);</span>
+<span class="fc" id="L42">        modelsRepository.save(models);</span>
+<span class="fc" id="L43">        return modelMapper.map(models, ModelsDto.class);</span>
+    }
+
+    @Override
+    public ModelsDto save(ModelsDto modelsDto) {
+<span class="fc" id="L48">        modelsDto.setIdentifier(modelsDto.getIdentifier().trim());</span>
+<span class="fc" id="L49">        String identifier = modelsDto.getIdentifier();</span>
+<span class="fc" id="L50">        Models existingModels = modelsRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (existingModels != null) {</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">            if (!existingModels.isDeleted()) {</span>
+<span class="fc" id="L53">                modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + &quot; already exists&quot;);</span>
+<span class="fc" id="L54">                modelsDto.setSuccess(false);</span>
+<span class="fc" id="L55">                return modelsDto;</span>
+            }
+<span class="nc" id="L57">            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + &quot; was previously deleted. &quot; +</span>
+                    &quot;Please contact backend team to restore.&quot;);
+<span class="nc" id="L59">            modelsDto.setSuccess(false);</span>
+<span class="nc" id="L60">            return modelsDto;</span>
+        }
+<span class="fc" id="L62">        Models models = modelMapper.map(modelsDto, Models.class);</span>
+<span class="fc" id="L63">        setAuditFields(models,true);</span>
+<span class="fc" id="L64">        modelsRepository.save(models);</span>
+<span class="fc" id="L65">        modelsDto.setSuccess(true);</span>
+<span class="fc" id="L66">        modelsDto.setMessage(&quot;Models created successfully&quot;);</span>
+<span class="fc" id="L67">        return modelsDto;</span>
+    }
+
+    @Override
+    public ModelsDto update(ModelsDto modelsDto) {
+<span class="fc" id="L72">        String identifier = modelsDto.getIdentifier();</span>
+<span class="fc" id="L73">        Models existingModels = modelsRepository.findByIdentifier(identifier);</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (existingModels == null) {</span>
+<span class="fc" id="L75">            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + &quot; not found&quot;);</span>
+<span class="fc" id="L76">            modelsDto.setSuccess(false);</span>
+<span class="fc" id="L77">            return modelsDto;</span>
+        }
+<span class="fc" id="L79">        modelMapper.map(modelsDto, existingModels);</span>
+<span class="fc" id="L80">        setAuditFields(existingModels,false);</span>
+<span class="fc" id="L81">        modelsRepository.save(existingModels);</span>
+<span class="fc" id="L82">        return modelsDto;</span>
+    }
+
+    @Override
+    public boolean delete(String identifier) {
+<span class="fc" id="L87">        Models models = modelsRepository.findByIdentifier(identifier);</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (models == null) return false;</span>
+<span class="fc" id="L89">        softDelete(models);</span>
+<span class="fc" id="L90">        setAuditFields(models,false);</span>
+<span class="fc" id="L91">        modelsRepository.save(models);</span>
+<span class="fc" id="L92">        return true;</span>
+    }
+
+    @Override
+    public WsDto&lt;ModelsDto&gt; findAll(Pageable pageable) {
+<span class="fc" id="L97">        Type listType = new TypeToken&lt;List&lt;ModelsDto&gt;&gt;() {</span>
+<span class="fc" id="L98">        }.getType();</span>
+<span class="fc" id="L99">        Page&lt;Models&gt; modelsPage = modelsRepository.findByDeletedFalse(pageable);</span>
+<span class="fc" id="L100">        WsDto&lt;ModelsDto&gt; modelsDtoWsDto = new WsDto&lt;&gt;();</span>
+<span class="fc" id="L101">        modelsDtoWsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));</span>
+<span class="fc" id="L102">        modelsDtoWsDto.setTotalRecords(modelsPage.getTotalElements());</span>
+<span class="fc" id="L103">        modelsDtoWsDto.setTotalPages(modelsPage.getTotalPages());</span>
+<span class="fc" id="L104">        modelsDtoWsDto.setSizePerPage(pageable.getPageSize());</span>
+<span class="fc" id="L105">        modelsDtoWsDto.setPage(pageable.getPageNumber());</span>
+<span class="fc" id="L106">        return modelsDtoWsDto;</span>
+    }
+
+    @Override
+    public List&lt;ModelsDto&gt; findIfTrue() {
+<span class="fc" id="L111">        Type listType = new TypeToken&lt;List&lt;ModelsDto&gt;&gt;() {</span>
+<span class="fc" id="L112">        }.getType();</span>
+<span class="fc" id="L113">        return modelMapper.map(modelsRepository.findByStatusIsTrueAndDeletedFalse(), listType);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

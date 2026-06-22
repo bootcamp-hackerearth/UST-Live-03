@@ -4,6 +4,7 @@ import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Transactional
@@ -15,8 +16,6 @@ public interface CategoryService {
     WsDto<CategoryDto> findAll(Pageable pageable);
     CategoryDto findByIdentifier(String identifier);
     List<CategoryDto> findBySuperCategoryNotNull();
+    List<CategoryDto> findByStatus();
     CategoryDto toggleStatus(String identifier);
-    List<CategoryDto> findIfTrue();
-    List<CategoryDto> findAllActive();
-
 }
