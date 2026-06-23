@@ -49,7 +49,7 @@ public class RackController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<RackDto> update(@PathVariable Long id, @RequestBody RackDto rackDto) {
         rackDto.setId(id);
         RackDto response = rackService.updateRack(rackDto);
@@ -59,7 +59,7 @@ public class RackController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         try {
             rackService.deleteRack(id);

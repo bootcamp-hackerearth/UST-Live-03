@@ -85,10 +85,10 @@ export const saveRecord = (url, data) =>
   fetchWithAuth(url, { method: "POST", body: JSON.stringify(data) });
 
 export const updateRecord = (url, data) =>
-  fetchWithAuth(url, { method: "POST", body: JSON.stringify(data) });
+  fetchWithAuth(url, { method: "PUT", body: JSON.stringify(data) });
 
 export const deleteRecord = (url) =>
-  fetchWithAuth(url, { method: "POST", body: JSON.stringify({}) });
+  fetchWithAuth(url, { method: "DELETE", body: JSON.stringify({}) });
 
 export const toggleRecord = (url) =>
   fetchWithAuth(url, { method: "POST", body: JSON.stringify({}) });

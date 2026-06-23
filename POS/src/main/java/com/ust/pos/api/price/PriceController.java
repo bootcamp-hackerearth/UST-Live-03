@@ -51,7 +51,7 @@ public class PriceController extends BaseController {
         }
     }
 
-    @PostMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<PriceDto> update(@PathVariable Long id, @RequestBody PriceDto priceDto) {
         try {
             priceDto.setId(id);
@@ -65,7 +65,7 @@ public class PriceController extends BaseController {
         }
     }
 
-    @PostMapping("/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         try {
             priceService.deletePrice(id);

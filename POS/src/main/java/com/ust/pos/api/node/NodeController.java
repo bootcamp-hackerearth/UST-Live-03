@@ -50,7 +50,7 @@ public class NodeController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{identifier}")
+    @PutMapping("/update/{identifier}")
     public ResponseEntity<NodeDto> update(@PathVariable String identifier, @RequestBody NodeDto nodeDto) {
         nodeDto.setIdentifier(identifier);
         NodeDto response = nodeService.update(nodeDto);
@@ -60,7 +60,7 @@ public class NodeController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             nodeService.delete(identifier);

@@ -44,7 +44,7 @@ public class CartController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{identifier}")
+    @PutMapping("/update/{identifier}")
     public ResponseEntity<CartDto> update(@PathVariable String identifier, @RequestBody CartDto cartDto) {
         cartDto.setIdentifier(identifier);
         CartDto response = cartService.update(cartDto);
@@ -54,13 +54,13 @@ public class CartController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         boolean response = cartService.delete(identifier);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete-entry/{identifier}")
+    @DeleteMapping("/delete-entry/{identifier}")
     public ResponseEntity<Boolean> deleteEntry(@PathVariable String identifier) {
         boolean response = cartService.deleteCartEntry(identifier);
         return ResponseEntity.ok(response);

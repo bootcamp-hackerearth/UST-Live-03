@@ -52,7 +52,7 @@ public class CustomerController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{identifier}")
+    @PutMapping("/update/{identifier}")
     public ResponseEntity<CustomerDto> update(
             @PathVariable String identifier,
             @RequestBody CustomerDto customerDto) {
@@ -65,7 +65,7 @@ public class CustomerController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             boolean deleted = customerService.delete(identifier);

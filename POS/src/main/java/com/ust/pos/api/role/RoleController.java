@@ -43,7 +43,7 @@ public class RoleController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{identifier}")
+    @PutMapping("/update/{identifier}")
     public ResponseEntity<RoleDto> update(@PathVariable String identifier, @RequestBody RoleDto roleDto) {
         roleDto.setIdentifier(identifier);
         RoleDto response = roleService.update(roleDto);
@@ -53,7 +53,7 @@ public class RoleController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             roleService.delete(identifier);

@@ -48,7 +48,7 @@ public class BrandController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{identifier}")
+    @PutMapping("/update/{identifier}")
     public ResponseEntity<BrandDto> update(@PathVariable String identifier, @RequestBody BrandDto brandDto) {
         brandDto.setIdentifier(identifier);
         BrandDto response = brandService.update(brandDto);
@@ -58,7 +58,7 @@ public class BrandController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             brandService.delete(identifier);

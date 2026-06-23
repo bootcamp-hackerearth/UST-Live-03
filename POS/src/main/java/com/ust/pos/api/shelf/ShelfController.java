@@ -45,7 +45,7 @@ public class ShelfController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ShelfDto> update(@PathVariable Long id, @RequestBody ShelfDto shelfDto) {
         shelfDto.setId(id);
         ShelfDto response = shelfService.updateShelf(shelfDto);
@@ -55,7 +55,7 @@ public class ShelfController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         try {
             shelfService.deleteShelf(id);

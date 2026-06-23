@@ -45,7 +45,7 @@ public class CategoryController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{identifier}")
+    @PutMapping("/update/{identifier}")
     public ResponseEntity<CategoryDto> update(@PathVariable String identifier, @RequestBody CategoryDto categoryDto) {
         categoryDto.setIdentifier(identifier);
         CategoryDto response = categoryService.update(categoryDto);
@@ -55,7 +55,7 @@ public class CategoryController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             boolean deleted = categoryService.delete(identifier);

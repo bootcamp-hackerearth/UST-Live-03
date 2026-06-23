@@ -35,7 +35,7 @@ public class UserController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{username}")
+    @PutMapping("/update/{username}")
     public ResponseEntity<UserDto> update(@PathVariable String username, @RequestBody UserDto userDto) {
         userDto.setUsername(username);
         UserDto response = userService.update(userDto);
@@ -45,7 +45,7 @@ public class UserController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{username}")
+    @DeleteMapping("/delete/{username}")
     public ResponseEntity<Boolean> delete(@PathVariable String username) {
         try {
             userService.delete(username);

@@ -51,7 +51,7 @@ public class UnitController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{identifier}")
+    @PutMapping("/update/{identifier}")
     public ResponseEntity<UnitDto> update(@PathVariable String identifier, @RequestBody UnitDto unitDto) {
         unitDto.setIdentifier(identifier);
         UnitDto response = unitService.update(unitDto);
@@ -61,7 +61,7 @@ public class UnitController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             unitService.delete(identifier);

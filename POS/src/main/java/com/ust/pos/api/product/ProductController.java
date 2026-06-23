@@ -53,7 +53,7 @@ public class ProductController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update/{identifier}")
+    @PutMapping("/update/{identifier}")
     public ResponseEntity<ProductDto> update(@PathVariable String identifier, @RequestBody ProductDto productDto) {
         productDto.setIdentifier(identifier);
         ProductDto response = productService.update(productDto);
@@ -63,7 +63,7 @@ public class ProductController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             boolean deleted = productService.delete(identifier);

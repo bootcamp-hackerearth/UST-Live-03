@@ -53,7 +53,7 @@ public class StockController extends BaseController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update-quantity/{stockId}")
+    @PutMapping("/update-quantity/{stockId}")
     public ResponseEntity<StockDto> updateQuantity(@PathVariable Long stockId, @RequestParam Integer quantity) {
         StockDto response = stockService.updateStockQuantity(stockId, quantity);
         if (!response.isSuccess()) {
@@ -72,7 +72,7 @@ public class StockController extends BaseController {
         }
     }
 
-    @PostMapping("/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         try {
             boolean deleted = stockService.deleteStock(id);

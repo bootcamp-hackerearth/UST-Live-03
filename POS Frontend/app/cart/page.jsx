@@ -3,19 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import CartPage from "@/components/CartPage";
-import { BASE } from "@/lib/api";
-import { PATHS, ERROR_MESSAGES, STORAGE_KEYS } from "@/config/constants";
-
-const getToken = () => {
-  try {
-    if (globalThis.window?.localStorage) {
-      return globalThis.window.localStorage.getItem(STORAGE_KEYS.TOKEN) ?? null;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-};
+import { fetchWithAuth } from "@/lib/api";
 
 const setStorageItem = (key, value) => {
   try {
@@ -51,35 +39,6 @@ const getStorageItem = (key) => {
   }
   return null;
 };
-
-const authHeaders = () => ({
-  Authorization: `Bearer ${getToken()}`,
-  "Content-Type": "application/json",
-});
-
-async function apiFetch(url, opts = {}) {
-  const res = await fetch(`${BASE}${url}`, {
-    ...opts,
-    headers: { ...authHeaders(), ...opts.headers },
-  });
-
-  if (res.status === 401) {
-    if (globalThis.window !== undefined) {
-      globalThis.window.location.href = PATHS.LOGIN;
-    }
-    throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
-  }
-
-  const ct = res.headers.get("content-type") || "";
-  const body = ct.includes("application/json") ? await res.json() : null;
-
-  if (!res.ok) {
-    const errMsg = body?.message || `HTTP ${res.status}`;
-    throw Object.assign(new Error(errMsg), { body, status: res.status });
-  }
-
-  return body;
-}
 
 const PB = JSON.stringify({
   page: 0,
@@ -120,8 +79,6 @@ export default function CartRoute() {
   const [cart, setCart] = useState(null);
   const [busy, setBusy] = useState(false);
   const [products, setProducts] = useState([]);
-  // FIX: productMap is a { [identifier]: product } lookup built from the products list.
-  // Used as a fallback when the backend doesn't embed product name inside cart entries.
   const [productMap, setProductMap] = useState({});
   const [prodSearch, setProdSearch] = useState("");
   const [debouncedProdSearch, setDebouncedProdSearch] = useState("");
@@ -136,11 +93,10 @@ export default function CartRoute() {
   const prodSearchDebounceRef = useRef(null);
   const receiptRef = useRef(null);
 
-  // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const customersData = await apiFetch("/api/customers/list", {
+        const customersData = await fetchWithAuth("/api/customers/list", {
           method: "POST",
           body: PB,
         });
@@ -162,7 +118,7 @@ export default function CartRoute() {
       };
 
       try {
-        const productsData = await apiFetch("/api/products/active", { method: "GET" });
+        const productsData = await fetchWithAuth("/api/products/active", { method: "GET" });
         const productsList = Array.isArray(productsData) ? productsData : (productsData?.dtoList ?? []);
         if (productsList.length > 0) {
           applyProductsList(productsList);
@@ -171,7 +127,7 @@ export default function CartRoute() {
         }
       } catch {
         try {
-          const productsData = await apiFetch("/api/products/list", {
+          const productsData = await fetchWithAuth("/api/products/list", {
             method: "POST",
             body: PB,
           });
@@ -186,7 +142,6 @@ export default function CartRoute() {
     fetchProducts();
   }, []);
 
-  // Debounce phone input (300ms)
   useEffect(() => {
     if (phoneDebounceRef.current) clearTimeout(phoneDebounceRef.current);
     phoneDebounceRef.current = setTimeout(() => {
@@ -197,7 +152,6 @@ export default function CartRoute() {
     };
   }, [phoneInput]);
 
-  // Debounce product search (300ms)
   useEffect(() => {
     if (prodSearchDebounceRef.current) clearTimeout(prodSearchDebounceRef.current);
     prodSearchDebounceRef.current = setTimeout(() => {
@@ -208,7 +162,6 @@ export default function CartRoute() {
     };
   }, [prodSearch]);
 
-  // Handle dropdown close
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (ddRef.current && !ddRef.current.contains(e.target)) {
@@ -254,7 +207,7 @@ export default function CartRoute() {
 
   const ensureCart = useCallback(async (id) => {
     try {
-      const existingCart = await apiFetch(`/api/cart/${id}`);
+      const existingCart = await fetchWithAuth(`/api/cart/${id}`);
       if (existingCart) {
         setCart(existingCart);
         return existingCart;
@@ -262,7 +215,7 @@ export default function CartRoute() {
     } catch {
     }
     try {
-      const newCart = await apiFetch("/api/cart/save", {
+      const newCart = await fetchWithAuth("/api/cart/save", {
         method: "POST",
         body: JSON.stringify({ username: id, identifier: id }),
       });
@@ -366,12 +319,10 @@ export default function CartRoute() {
         </body>
       </html>
     `;
-    // Modern approach: use Blob URL instead of deprecated document.write
     const blob = new Blob([htmlContent], { type: 'text/html;charset=UTF-8' });
     const url = URL.createObjectURL(blob);
     const newWindow = window.open(url, '_blank');
     if (newWindow) {
-      // Print when the document is loaded
       newWindow.addEventListener('load', () => {
         newWindow.print();
       }, { once: true });
@@ -404,7 +355,7 @@ export default function CartRoute() {
     setQfSaving(true);
     setQfErr("");
     try {
-      const newCustomer = await apiFetch("/api/customers/save", {
+      const newCustomer = await fetchWithAuth("/api/customers/save", {
         method: "POST",
         body: JSON.stringify({
           identifier: qfPhone.trim(),
@@ -470,6 +421,7 @@ export default function CartRoute() {
       setQfSaving(false);
     }
   }, [qfPhone, qfName, qfEmail, qfParty, ensureCart, allCustomers]);
+
   const handleChangeCustomer = () => {
     setCustomer(null); setCart(null); setPhoneInput("");
     setPageErr(""); setPageOk("");
@@ -481,7 +433,7 @@ export default function CartRoute() {
     if (Number.isNaN(qty) || qty < 1) { setPageErr("Quantity must be at least 1."); return; }
     setBusy(true); setPageErr(""); setPageOk("");
     try {
-      const updated = await apiFetch("/api/cart/save", { method: "POST", body: JSON.stringify({
+      const updated = await fetchWithAuth("/api/cart/save", { method: "POST", body: JSON.stringify({
         username: cart.username ?? cart.identifier, identifier: cart.identifier,
         cartEntries: [{ cartIdentifier: cart.identifier, productIdentifier: product.identifier, quantity: qty }],
       })});
@@ -496,7 +448,7 @@ export default function CartRoute() {
     if (newQty < 1) return;
     setBusy(true); setPageErr("");
     try {
-      const updated = await apiFetch(`/api/cart/update/${cart.identifier}`, { method: "POST", body: JSON.stringify({
+      const updated = await fetchWithAuth(`/api/cart/update/${cart.identifier}`, { method: "PUT", body: JSON.stringify({
         identifier: cart.identifier, username: cart.username ?? cart.identifier,
         cartEntries: [{ identifier: entry.identifier, cartIdentifier: cart.identifier, productIdentifier: entry.productIdentifier, quantity: newQty }],
       })});
@@ -508,29 +460,29 @@ export default function CartRoute() {
   const handleRemoveEntry = useCallback(async (entryId) => {
     setBusy(true); setPageErr("");
     try {
-      await apiFetch(`/api/cart/delete-entry/${entryId}`, { method: "POST", body: JSON.stringify({}) });
-      setCart(await apiFetch(`/api/cart/${cart.identifier}`) ?? null);
+      await fetchWithAuth(`/api/cart/delete-entry/${entryId}`, { method: "DELETE", body: JSON.stringify({}) });
+      setCart(await fetchWithAuth(`/api/cart/${cart.identifier}`) ?? null);
     } catch (e) { setPageErr(e.message || "Failed to remove item."); }
     finally { setBusy(false); }
   }, [cart]);
 
   const handleClearCart = async () => {
-  setConfirmClear(false);
-  if (!cart) return;
-  setBusy(true); setPageErr("");
-  try {
-    const currentEntries = cart.cartEntries ?? [];
-    for (const entry of currentEntries) {
-      await apiFetch(`/api/cart/delete-entry/${entry.identifier}`, {
-        method: "POST",
-        body: JSON.stringify({}),
-      });
-    }
-    setCart(await apiFetch(`/api/cart/${cart.identifier}`) ?? null);
-    setPageOk("Cart cleared.");
-  } catch (e) { setPageErr(e.message || "Failed to clear cart."); }
-  finally { setBusy(false); }
-};
+    setConfirmClear(false);
+    if (!cart) return;
+    setBusy(true); setPageErr("");
+    try {
+      const currentEntries = cart.cartEntries ?? [];
+      for (const entry of currentEntries) {
+        await fetchWithAuth(`/api/cart/delete-entry/${entry.identifier}`, {
+          method: "DELETE",
+          body: JSON.stringify({}),
+        });
+      }
+      setCart(await fetchWithAuth(`/api/cart/${cart.identifier}`) ?? null);
+      setPageOk("Cart cleared.");
+    } catch (e) { setPageErr(e.message || "Failed to clear cart."); }
+    finally { setBusy(false); }
+  };
 
   const handleCheckout = async () => {
     setConfirmCheckout(false);
@@ -553,7 +505,7 @@ export default function CartRoute() {
     setBusy(true);
     setPageErr("");
     try {
-      const orderResponse = await apiFetch("/api/orders/place", {
+      const orderResponse = await fetchWithAuth("/api/orders/place", {
         method: "POST",
         body: JSON.stringify({ cartIdentifier: cart.identifier, paymentMode: "CASH" }),
       });
@@ -561,9 +513,6 @@ export default function CartRoute() {
       setOrderConfirm({
         orderId: orderResponse?.id || orderResponse?.identifier,
         customer: customer,
-        // FIX: use resolveProductName so receipt always shows the real product name,
-        // not the SKU. Also use sellingPrice (not mrpPrice) for the line price,
-        // and prefer entry.totalPrice directly instead of recomputing it.
         items: entries.map((e) => ({
           productName: resolveProductName(e, productMap),
           quantity: e.quantity ?? 1,

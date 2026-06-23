@@ -696,7 +696,7 @@ export default function CrudPage({ config }) {
     response = await customUpdateRecord(editId, payload);
   } else {
     response = await fetchWithAuth(updateEndpoint(editId), {
-      method: "POST",
+      method: "PUT",
       body: JSON.stringify(payload),
     });
   }
@@ -728,7 +728,7 @@ export default function CrudPage({ config }) {
     setSaving(true);
     try {
       await fetchWithAuth(deleteEndpoint(deleteTarget[idKey]), {
-        method: "POST",
+        method: "DELETE",
         body: JSON.stringify({}),
       });
       if (onDeleteSelf && getCurrentUserId?.() === deleteTarget[idKey]) {

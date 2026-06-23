@@ -56,7 +56,7 @@ public class OrderController extends BaseController {
         return ResponseEntity.ok(orders);
     }
 
-    @PostMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         boolean response = orderService.delete(identifier);
         return ResponseEntity.ok(response);

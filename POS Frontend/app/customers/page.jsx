@@ -23,8 +23,6 @@ const CSS = `
 .cu-search-clear:hover{color:#555}
 .btn-add{margin-left:auto;padding:7px 16px;background:#e31837;border:none;border-radius:6px;color:#fff;font-family:'Barlow',sans-serif;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:background .15s;white-space:nowrap;flex-shrink:0}
 .btn-add:hover{background:#c0152a}
-
-/* table card */
 .cu-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .cu-empty{padding:48px;text-align:center;color:#bbb;font-size:14px;font-weight:500}
 table.cu-tbl{width:100%;border-collapse:collapse;font-size:13px}
@@ -122,33 +120,21 @@ const emptyForm = (phone = "") => ({
   shippingAddress: emptyAddr(phone),
 });
 
-/* ── Pagination (reuse same style as CrudPage) ── */
-function Pagination({
-  page,
-  totalPages,
-  totalRecords,
-  pageSize,
-  onPageChange,
-}) {
+function Pagination({ page, totalPages, totalRecords, pageSize, onPageChange }) {
   if (totalPages <= 1) return null;
   const from = page * pageSize + 1;
   const to = Math.min((page + 1) * pageSize, totalRecords);
   const range = [];
   const deltaPages = 2;
   for (let i = 0; i < totalPages; i++) {
-    if (
-      i === 0 ||
-      i === totalPages - 1 ||
-      (i >= page - deltaPages && i <= page + deltaPages)
-    )
+    if (i === 0 || i === totalPages - 1 || (i >= page - deltaPages && i <= page + deltaPages))
       range.push(i);
   }
   const items = [];
   let prev = null;
   for (const i of range) {
     if (prev !== null) {
-      if (i - prev === 2)
-        items.push({ type: "page", page: prev + 1, key: `p${prev + 1}` });
+      if (i - prev === 2) items.push({ type: "page", page: prev + 1, key: `p${prev + 1}` });
       else if (i - prev > 2) items.push({ type: "ellipsis", key: `e${i}` });
     }
     items.push({ type: "page", page: i, key: `p${i}` });
@@ -156,29 +142,13 @@ function Pagination({
   }
   return (
     <div className="pag">
-      <span className="pag-info">
-        Showing {from}–{to} of {totalRecords}
-      </span>
+      <span className="pag-info">Showing {from}–{to} of {totalRecords}</span>
       <div className="pag-btns">
-        <button
-          className="pb"
-          onClick={() => onPageChange(0)}
-          disabled={page === 0}
-        >
-          «
-        </button>
-        <button
-          className="pb"
-          onClick={() => onPageChange(page - 1)}
-          disabled={page === 0}
-        >
-          ‹
-        </button>
+        <button className="pb" onClick={() => onPageChange(0)} disabled={page === 0}>«</button>
+        <button className="pb" onClick={() => onPageChange(page - 1)} disabled={page === 0}>‹</button>
         {items.map((item) =>
           item.type === "ellipsis" ? (
-            <span key={item.key} className="pb-dots">
-              …
-            </span>
+            <span key={item.key} className="pb-dots">…</span>
           ) : (
             <button
               key={item.key}
@@ -189,20 +159,8 @@ function Pagination({
             </button>
           ),
         )}
-        <button
-          className="pb"
-          onClick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages - 1}
-        >
-          ›
-        </button>
-        <button
-          className="pb"
-          onClick={() => onPageChange(totalPages - 1)}
-          disabled={page >= totalPages - 1}
-        >
-          »
-        </button>
+        <button className="pb" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages - 1}>›</button>
+        <button className="pb" onClick={() => onPageChange(totalPages - 1)} disabled={page >= totalPages - 1}>»</button>
       </div>
     </div>
   );
@@ -236,8 +194,7 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
         creditLimit: initialData.creditLimit ?? "",
         billingAddress: {
           addressLine: initialData.billingAddress?.addressLine ?? "",
-          phoneNo:
-            initialData.billingAddress?.phoneNo ?? initialData.identifier ?? "",
+          phoneNo: initialData.billingAddress?.phoneNo ?? initialData.identifier ?? "",
           city: initialData.billingAddress?.city ?? "",
           state: initialData.billingAddress?.state ?? "",
           zipCode: initialData.billingAddress?.zipCode ?? "",
@@ -245,10 +202,7 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
         },
         shippingAddress: {
           addressLine: initialData.shippingAddress?.addressLine ?? "",
-          phoneNo:
-            initialData.shippingAddress?.phoneNo ??
-            initialData.identifier ??
-            "",
+          phoneNo: initialData.shippingAddress?.phoneNo ?? initialData.identifier ?? "",
           city: initialData.shippingAddress?.city ?? "",
           state: initialData.shippingAddress?.state ?? "",
           zipCode: initialData.shippingAddress?.zipCode ?? "",
@@ -262,9 +216,7 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
 
   useEffect(() => {
     if (!open) return;
-    const h = (e) => {
-      if (e.key === "Escape") onClose();
-    };
+    const h = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", h);
     return () => document.removeEventListener("keydown", h);
   }, [open, onClose]);
@@ -282,57 +234,40 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
       };
     });
   };
-  const setShip = (k, v) =>
-    setForm((f) => ({
-      ...f,
-      shippingAddress: { ...f.shippingAddress, [k]: v },
-    }));
+  const setShip = (k, v) => setForm((f) => ({ ...f, shippingAddress: { ...f.shippingAddress, [k]: v } }));
 
   const toggleSame = () => {
     const next = !sameAsBilling;
     setSameAsBilling(next);
-    if (next) {
-      setForm((f) => ({ ...f, shippingAddress: { ...f.billingAddress } }));
-    }
+    if (next) setForm((f) => ({ ...f, shippingAddress: { ...f.billingAddress } }));
   };
 
   const handleSubmit = async () => {
-    if (!form.identifier.trim()) {
-      setError("Phone number is required.");
-      return;
-    }
-    if (!validators.phone(form.identifier)) {
-      setError("Phone number must be exactly 10 digits.");
-      return;
-    }
-    if (!form.customerName.trim()) {
-      setError("Customer name is required.");
-      return;
-    }
-    if (form.email && !validators.email(form.email)) {
-      setError("Enter a valid email address.");
-      return;
-    }
-    if (form.creditLimit && !validators.creditLimit(form.creditLimit)) {
-      setError("Credit limit must be between 0 and 1,000,000.");
-      return;
-    }
+    if (!form.identifier.trim()) { setError("Phone number is required."); return; }
+    if (!validators.phone(form.identifier)) { setError("Phone number must be exactly 10 digits."); return; }
+    if (!form.customerName.trim()) { setError("Customer name is required."); return; }
+    if (form.email && !validators.email(form.email)) { setError("Enter a valid email address."); return; }
+    if (form.creditLimit && !validators.creditLimit(form.creditLimit)) { setError("Credit limit must be between 0 and 1,000,000."); return; }
     setSaving(true);
     setError("");
     try {
-      const url =
-        mode === "add"
-          ? "/api/customers/save"
-          : `/api/customers/update/${form.identifier}`;
       const payload = {
         ...form,
         billingAddress: { ...form.billingAddress, phoneNo: form.identifier },
         shippingAddress: { ...form.shippingAddress, phoneNo: form.identifier },
       };
-      const res = await fetchWithAuth(url, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      let res;
+      if (mode === "add") {
+        res = await fetchWithAuth("/api/customers/save", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetchWithAuth(`/api/customers/update/${form.identifier}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+      }
       onSaved(res);
     } catch (e) {
       setError(e.message || "Save failed.");
@@ -352,19 +287,11 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
   const isEdit = mode === "edit";
 
   return (
-    <dialog
-      className="cu-ov"
-      open
-      aria-label={isEdit ? "Edit Customer" : "Add Customer"}
-    >
+    <dialog className="cu-ov" open aria-label={isEdit ? "Edit Customer" : "Add Customer"}>
       <div className="cu-mbox" style={{ maxWidth: 680 }}>
         <div className="cu-mhead">
-          <span className="cu-mtitle">
-            {isEdit ? "Edit Customer" : "Add Customer"}
-          </span>
-          <button className="cu-mx" onClick={onClose} type="button">
-            ✕
-          </button>
+          <span className="cu-mtitle">{isEdit ? "Edit Customer" : "Add Customer"}</span>
+          <button className="cu-mx" onClick={onClose} type="button">✕</button>
         </div>
         <div className="cu-mbody">
           {error && <div className="cu-alert">{error}</div>}
@@ -372,55 +299,39 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
           <div className="cu-section">Customer Details</div>
           <div className="cu-grid">
             <div className="cu-field">
-              <label className="cu-label" htmlFor="phoneInput">
-                Phone Number <span className="cu-req">*</span>
-              </label>
-            <input
-              id="phoneInput"
-              className={`fi${isEdit ? " fi-ro" : ""}`}
-              value={form.identifier}
-              readOnly={isEdit}
-              maxLength={10}
-              onChange={(e) => {
-                if (!isEdit)
-                  setTop("identifier", e.target.value.replaceAll(/\D/g, ""));
-              }}
-            />
+              <label className="cu-label" htmlFor="phoneInput">Phone Number <span className="cu-req">*</span></label>
+              <input
+                id="phoneInput"
+                className={`fi${isEdit ? " fi-ro" : ""}`}
+                value={form.identifier}
+                readOnly={isEdit}
+                maxLength={10}
+                onChange={(e) => { if (!isEdit) setTop("identifier", e.target.value.replaceAll(/\D/g, "")); }}
+              />
             </div>
             <div className="cu-field">
-              <label className="cu-label" htmlFor="customerNameInput">
-                Customer Name <span className="cu-req">*</span>
-              </label>
-            <input
-              id="customerNameInput"
-              className="fi"
-              value={form.customerName}
-              onChange={(e) => setTop("customerName", e.target.value)}
-            />
+              <label className="cu-label" htmlFor="customerNameInput">Customer Name <span className="cu-req">*</span></label>
+              <input
+                id="customerNameInput"
+                className="fi"
+                value={form.customerName}
+                onChange={(e) => setTop("customerName", e.target.value)}
+              />
             </div>
             <div className="cu-field">
               <label className="cu-label" htmlFor="emailInput">Email</label>
-            <input
-              id="emailInput"
-              className="fi"
-              type="email"
-              value={form.email}
-              onChange={(e) => setTop("email", e.target.value)}
-            />
+              <input
+                id="emailInput"
+                className="fi"
+                type="email"
+                value={form.email}
+                onChange={(e) => setTop("email", e.target.value)}
+              />
             </div>
             <div className="cu-field">
               <label className="cu-label" htmlFor="partyTypeSelect">Party Type</label>
-              <select
-                id="partyTypeSelect"
-                className="fi"
-                value={form.partyType}
-                onChange={(e) => setTop("partyType", e.target.value)}
-              >
-                {PARTY_TYPES.map((v) => (
-                  <option key={v} value={v}>
-                    {v}
-                  </option>
-                ))}
+              <select id="partyTypeSelect" className="fi" value={form.partyType} onChange={(e) => setTop("partyType", e.target.value)}>
+                {PARTY_TYPES.map((v) => <option key={v} value={v}>{v}</option>)}
               </select>
             </div>
             <div className="cu-field">
@@ -435,17 +346,8 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
             </div>
             <div className="cu-field">
               <label className="cu-label" htmlFor="creditTypeSelect">Credit Type</label>
-              <select
-                id="creditTypeSelect"
-                className="fi"
-                value={form.creditType}
-                onChange={(e) => setTop("creditType", e.target.value)}
-              >
-                {CREDIT_TYPES.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
+              <select id="creditTypeSelect" className="fi" value={form.creditType} onChange={(e) => setTop("creditType", e.target.value)}>
+                {CREDIT_TYPES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
             <div className="cu-field">
@@ -465,25 +367,14 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
             {addrKeys.map((k) => (
               <div className="cu-field" key={k}>
                 <label className="cu-label">{addrLabels[k]}</label>
-                <input
-                  className="fi fi-sm"
-                  value={form.billingAddress[k]}
-                  onChange={(e) => setBill(k, e.target.value)}
-                />
+                <input className="fi fi-sm" value={form.billingAddress[k]} onChange={(e) => setBill(k, e.target.value)} />
               </div>
             ))}
           </div>
 
           <div className="cu-check-row">
-            <input
-              type="checkbox"
-              id="cu-sab"
-              checked={sameAsBilling}
-              onChange={toggleSame}
-            />
-            <label htmlFor="cu-sab" className="cu-check-label">
-              Shipping address same as billing
-            </label>
+            <input type="checkbox" id="cu-sab" checked={sameAsBilling} onChange={toggleSame} />
+            <label htmlFor="cu-sab" className="cu-check-label">Shipping address same as billing</label>
           </div>
 
           {!sameAsBilling && (
@@ -493,11 +384,7 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
                 {addrKeys.map((k) => (
                   <div className="cu-field" key={k}>
                     <label className="cu-label">{addrLabels[k]}</label>
-                    <input
-                      className="fi fi-sm"
-                      value={form.shippingAddress[k]}
-                      onChange={(e) => setShip(k, e.target.value)}
-                    />
+                    <input className="fi fi-sm" value={form.shippingAddress[k]} onChange={(e) => setShip(k, e.target.value)} />
                   </div>
                 ))}
               </div>
@@ -506,13 +393,9 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
 
           {(() => {
             let btnText;
-            if (saving) {
-              btnText = "Saving…";
-            } else if (isEdit) {
-              btnText = "Update Customer";
-            } else {
-              btnText = "Add Customer";
-            }
+            if (saving) btnText = "Saving…";
+            else if (isEdit) btnText = "Update Customer";
+            else btnText = "Add Customer";
             return (
               <button className="btn-save" onClick={handleSubmit} disabled={saving}>
                 {btnText}
@@ -541,7 +424,7 @@ export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [modal, setModal] = useState(null); // null | "add" | "edit" | "delete"
+  const [modal, setModal] = useState(null);
   const [editData, setEditData] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -558,17 +441,13 @@ export default function CustomersPage() {
       });
       setRecords(Array.isArray(data) ? data : (data?.dtoList ?? []));
     } catch (e) {
-      if (e.status !== 401) {
-        setError(e.message || "Failed to load customers.");
-      }
+      if (e.status !== 401) setError(e.message || "Failed to load customers.");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchList();
-  }, [fetchList]);
+  useEffect(() => { fetchList(); }, [fetchList]);
 
   useEffect(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -576,9 +455,7 @@ export default function CustomersPage() {
       setDebouncedSearch(search);
       setPage(0);
     }, 300);
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
+    return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
   }, [search]);
 
   const filtered = useMemo(() => {
@@ -593,16 +470,9 @@ export default function CustomersPage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
-  const pageRows = filtered.slice(
-    safePage * PAGE_SIZE,
-    (safePage + 1) * PAGE_SIZE,
-  );
+  const pageRows = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
-  const closeModal = () => {
-    setModal(null);
-    setEditData(null);
-    setDeleteTarget(null);
-  };
+  const closeModal = () => { setModal(null); setEditData(null); setDeleteTarget(null); };
 
   const openEdit = async (record) => {
     setError("");
@@ -611,28 +481,20 @@ export default function CustomersPage() {
       setEditData(data);
       setModal("edit");
     } catch (e) {
-      if (e.status !== 401) {
-        setError(e.message || "Failed to load customer.");
-      }
+      if (e.status !== 401) setError(e.message || "Failed to load customer.");
     }
   };
 
-  const openDelete = (record) => {
-    setDeleteTarget(record);
-    setModal("delete");
-  };
+  const openDelete = (record) => { setDeleteTarget(record); setModal("delete"); };
 
-  const handleSaved = () => {
-    closeModal();
-    fetchList();
-  };
+  const handleSaved = () => { closeModal(); fetchList(); };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
       await fetchWithAuth(`/api/customers/delete/${deleteTarget.identifier}`, {
-        method: "POST",
+        method: "DELETE",
         body: JSON.stringify({}),
       });
       closeModal();
@@ -647,9 +509,7 @@ export default function CustomersPage() {
 
   const handleToggle = async (record) => {
     setRecords((prev) =>
-      prev.map((r) =>
-        r.identifier === record.identifier ? { ...r, status: !r.status } : r,
-      ),
+      prev.map((r) => r.identifier === record.identifier ? { ...r, status: !r.status } : r),
     );
     try {
       await fetchWithAuth(`/api/customers/toggle/${record.identifier}`, {
@@ -658,13 +518,9 @@ export default function CustomersPage() {
       });
     } catch (e) {
       setRecords((prev) =>
-        prev.map((r) =>
-          r.identifier === record.identifier ? { ...r, status: !r.status } : r,
-        ),
+        prev.map((r) => r.identifier === record.identifier ? { ...r, status: !r.status } : r),
       );
-      if (e.status !== 401) {
-        setError(e.message || "Failed to update status.");
-      }
+      if (e.status !== 401) setError(e.message || "Failed to update status.");
     }
   };
 
@@ -675,25 +531,12 @@ export default function CustomersPage() {
         <div className="cu-wrap">
           <div className="cu-hd">
             <h1 className="cu-title">Customer Management</h1>
-            {records.length > 0 && (
-              <span className="cu-badge">{records.length}</span>
-            )}
+            {records.length > 0 && <span className="cu-badge">{records.length}</span>}
             <div className="cu-search-wrap">
               <span className="cu-search-icon">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <circle
-                    cx="6.5"
-                    cy="6.5"
-                    r="5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
-                  <path
-                    d="M10.5 10.5L14 14"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
+                  <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
               </span>
               <input
@@ -705,28 +548,15 @@ export default function CustomersPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
               {search && (
-                <button
-                  className="cu-search-clear"
-                  onClick={() => {
-                    setSearch("");
-                    searchRef.current?.focus();
-                  }}
-                  type="button"
-                >
+                <button className="cu-search-clear" onClick={() => { setSearch(""); searchRef.current?.focus(); }} type="button">
                   ✕
                 </button>
               )}
             </div>
-            <button className="btn-add" onClick={() => setModal("add")}>
-              + Add Customer
-            </button>
+            <button className="btn-add" onClick={() => setModal("add")}>+ Add Customer</button>
           </div>
 
-          {error && (
-            <div className="cu-pg-err" role="alert">
-              {error}
-            </div>
-          )}
+          {error && <div className="cu-pg-err" role="alert">{error}</div>}
 
           <div className="cu-card">
             {loading ? (
@@ -758,62 +588,25 @@ export default function CustomersPage() {
                     <tbody>
                       {pageRows.map((r) => (
                         <tr key={r.identifier}>
-                          <td style={{ fontWeight: 700, color: "#111" }}>
-                            {r.identifier}
-                          </td>
-                          <td>
-                            {r.customerName ? htmlEscape(r.customerName) : (
-                              <span style={{ color: "#ccc" }}>—</span>
-                            )}
-                          </td>
-                          <td>
-                            {r.email ? htmlEscape(r.email) : <span style={{ color: "#ccc" }}>—</span>}
-                          </td>
-                          <td>
-                            {r.partyType ? (
-                              <span className="badge">{r.partyType}</span>
-                            ) : (
-                              <span style={{ color: "#ccc" }}>—</span>
-                            )}
-                          </td>
-                          <td>
-                            {r.credit ?? <span style={{ color: "#ccc" }}>—</span>}
-                          </td>
-                          <td>
-                            {r.creditType || (
-                              <span style={{ color: "#ccc" }}>—</span>
-                            )}
-                          </td>
-                          <td>
-                            {r.creditLimit ?? (
-                              <span style={{ color: "#ccc" }}>—</span>
-                            )}
-                          </td>
+                          <td style={{ fontWeight: 700, color: "#111" }}>{r.identifier}</td>
+                          <td>{r.customerName ? htmlEscape(r.customerName) : <span style={{ color: "#ccc" }}>—</span>}</td>
+                          <td>{r.email ? htmlEscape(r.email) : <span style={{ color: "#ccc" }}>—</span>}</td>
+                          <td>{r.partyType ? <span className="badge">{r.partyType}</span> : <span style={{ color: "#ccc" }}>—</span>}</td>
+                          <td>{r.credit ?? <span style={{ color: "#ccc" }}>—</span>}</td>
+                          <td>{r.creditType || <span style={{ color: "#ccc" }}>—</span>}</td>
+                          <td>{r.creditLimit ?? <span style={{ color: "#ccc" }}>—</span>}</td>
                           <td>
                             <button
                               className={`tgl${r.status ? " on" : ""}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggle(r);
-                              }}
+                              onClick={(e) => { e.stopPropagation(); handleToggle(r); }}
                               aria-label="Toggle status"
                               type="button"
                             />
                           </td>
                           <td>
                             <div className="act-wrap">
-                              <button
-                                className="btn-edit"
-                                onClick={() => openEdit(r)}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                className="btn-del"
-                                onClick={() => openDelete(r)}
-                              >
-                                Delete
-                              </button>
+                              <button className="btn-edit" onClick={() => openEdit(r)}>Edit</button>
+                              <button className="btn-del" onClick={() => openDelete(r)}>Delete</button>
                             </div>
                           </td>
                         </tr>
@@ -834,7 +627,6 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* Add / Edit Modal */}
       <CustomerFormModal
         open={modal === "add" || modal === "edit"}
         onClose={closeModal}
@@ -843,15 +635,12 @@ export default function CustomersPage() {
         initialData={editData}
       />
 
-      {/* Delete Modal */}
       {modal === "delete" && (
         <dialog className="cu-ov" open aria-label="Delete Customer">
           <div className="cu-mbox" style={{ maxWidth: 420 }}>
             <div className="cu-mhead">
               <span className="cu-mtitle">Delete Customer</span>
-              <button className="cu-mx" onClick={closeModal} type="button">
-                ✕
-              </button>
+              <button className="cu-mx" onClick={closeModal} type="button">✕</button>
             </div>
             <div className="del-body">
               <p className="del-msg">
@@ -860,19 +649,8 @@ export default function CustomersPage() {
                 This action cannot be undone.
               </p>
               <div className="del-actions">
-                <button
-                  className="btn-cancel"
-                  onClick={closeModal}
-                  type="button"
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn-confirm-del"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  type="button"
-                >
+                <button className="btn-cancel" onClick={closeModal} type="button">Cancel</button>
+                <button className="btn-confirm-del" onClick={handleDelete} disabled={deleting} type="button">
                   {deleting ? "Deleting…" : "Delete"}
                 </button>
               </div>
