@@ -26,4 +26,6 @@ public interface CustomerService {
     CustomerDto toggleStatus(String identifier);
 
     List<CustomerDto> findIfTrue();
+
+    List<CustomerDto> searchCustomersFlexible(CustomerDto searchCriteria);
 }

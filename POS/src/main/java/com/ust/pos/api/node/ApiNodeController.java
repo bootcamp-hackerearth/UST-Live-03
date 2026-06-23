@@ -5,8 +5,6 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
-import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +17,12 @@ public class ApiNodeController extends BaseController {
 
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
     public static final String ROLES = "roles";
-    @Autowired
-    private NodeService nodeService;
-    @Autowired
-    private RoleService roleService;
+
+    private final NodeService nodeService;
+
+    public ApiNodeController(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
 
     @PostMapping("/list")
     public WsDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
@@ -39,17 +39,18 @@ public class ApiNodeController extends BaseController {
 
     @GetMapping("/get")
     public NodeDto update(@RequestParam String identifier) {
+
         return nodeService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
 
         return nodeService.update(nodeDto);
 
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             nodeService.delete(identifier);

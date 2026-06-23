@@ -93,7 +93,7 @@ const CommonList = ({ title, columns, urlName, showStatus = false, editKey = "id
   const deleteItem = async (identifier) => {
     if (!globalThis.confirm("Are you sure you want to delete this item?")) return;
     try {
-      const res = await axios.get(
+      const res = await axios.delete(
         `${BASE_URL}/${urlName}/delete?identifier=${identifier}`,
         { headers: { Authorization: "Bearer " + token } }
       );

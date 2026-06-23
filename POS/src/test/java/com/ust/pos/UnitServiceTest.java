@@ -1,21 +1,29 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UnitServiceTest {
@@ -23,150 +31,183 @@ class UnitServiceTest {
     @Mock
     private UnitRepository unitRepository;
 
-    @Mock
-    private ModelMapper modelMapper;
+    @Spy
+    private ModelMapper modelMapper = new ModelMapper();
 
     @InjectMocks
     private UnitServiceImpl unitService;
 
-    @Test
-    void saveTest() {
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("S1");
+    private Unit unitEntity;
+    private UnitDto unitDto;
 
-        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(null);
-        Mockito.when(modelMapper.map(dto, Unit.class)).thenReturn(new Unit());
+    @BeforeEach
+    void setUp() {
+        unitEntity = new Unit();
+        unitEntity.setId(1L);
+        unitEntity.setIdentifier("UNT-KG");
+        unitEntity.setStatus(true);
+        unitEntity.setDeleted(false);
 
-        UnitDto response = unitService.save(dto);
-
-        Assertions.assertEquals("S1", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        unitDto = new UnitDto();
+        unitDto.setIdentifier("UNT-KG");
     }
 
     @Test
-    void saveTestFailure() {
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("S1");
+    void testFindByIdentifier() {
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(unitEntity);
 
-        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(new Unit());
+        UnitDto result = unitService.findByIdentifier("UNT-KG");
 
-        UnitDto response = unitService.save(dto);
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        assertNotNull(result);
+        assertEquals("UNT-KG", result.getIdentifier());
     }
 
     @Test
-    void findByIdentifierTest() {
-        Unit unit = new Unit();
-        unit.setIdentifier("S1");
-
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("S1");
-
-        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(unit);
-        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(dto);
-
-        UnitDto response = unitService.findByIdentifier("S1");
-
-        Assertions.assertEquals("S1", response.getIdentifier());
+    void testSave_WhenDtoIsNull() {
+        assertThrows(IllegalArgumentException.class, () -> unitService.save(null));
     }
 
     @Test
-    void updateTest() {
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("S1");
-
-        Unit unit = new Unit();
-        unit.setIdentifier("S1");
-
-        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(unit);
-
-        UnitDto response = unitService.update(dto);
-
-        Assertions.assertTrue(response.isSuccess());
+    void testSave_WhenIdentifierIsNull() {
+        unitDto.setIdentifier(null);
+        assertThrows(IllegalArgumentException.class, () -> unitService.save(unitDto));
     }
 
     @Test
-    void updateTestFailure() {
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("S1");
+    void testSave_WhenUnitExistsAndNotDeleted() {
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(unitEntity);
 
-        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(null);
+        UnitDto result = unitService.save(unitDto);
 
-        UnitDto response = unitService.update(dto);
-
-        Assertions.assertFalse(response.isSuccess());
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("already exists"));
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(unitRepository).deleteByIdentifier("S1");
+    void testSave_WhenUnitWasPreviouslyDeleted() {
+        unitEntity.setDeleted(true);
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(unitEntity);
 
-        unitService.delete("S1");
+        UnitDto result = unitService.save(unitDto);
 
-        Mockito.verify(unitRepository).deleteByIdentifier("S1");
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("previously deleted"));
     }
 
     @Test
-    void findAllTest() {
-        Unit unit = new Unit();
-        unit.setIdentifier("Admin");
+    void testSave_Success() {
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(null);
+        when(unitRepository.save(any(Unit.class))).thenReturn(unitEntity);
 
-        UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("Admin");
+        UnitDto result = unitService.save(unitDto);
 
-        List<Unit> units = List.of(unit);
-        List<UnitDto> unitDtos = List.of(unitDto);
-
-        Page<Unit> unitPage = new PageImpl<>(units, PageRequest.of(0, 2), units.size());
-
-        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-
-        Mockito.when(unitRepository.findAll(pageable)).thenReturn(unitPage);
-        Mockito.when(modelMapper.map(Mockito.eq(units), Mockito.any(java.lang.reflect.Type.class))).thenReturn(unitDtos);
-
-        List<UnitDto> response = unitService.findAll(pageable).getDtoList();
-
-        Assertions.assertEquals(1, response.size());
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertEquals("Unit created successfully", result.getMessage());
     }
 
     @Test
-    void toggleActive() {
-        Unit unit = new Unit();
-        unit.setStatus(true);
+    void testUpdate_WhenUnitNotFound() {
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(null);
 
-        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(unit);
-        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(new UnitDto());
+        UnitDto result = unitService.update(unitDto);
 
-        unitService.toggleStatus("S1");
-
-        Assertions.assertFalse(unit.isStatus());
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("not found"));
     }
 
     @Test
-    void toggleInactive() {
-        Unit unit = new Unit();
-        unit.setStatus(false);
+    void testUpdate_WhenUnitIsDeleted() {
+        unitEntity.setDeleted(true);
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(unitEntity);
 
-        Mockito.when(unitRepository.findByIdentifier("S1")).thenReturn(unit);
-        Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(new UnitDto());
+        UnitDto result = unitService.update(unitDto);
 
-        unitService.toggleStatus("S1");
-
-        Assertions.assertTrue(unit.isStatus());
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("previously deleted"));
     }
 
     @Test
-    void findByStatusTest() {
-        List<Unit> shelves = List.of(new Unit());
-        List<UnitDto> unitDtos = List.of(new UnitDto());
+    void testUpdate_Success() {
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(unitEntity);
+        when(unitRepository.save(any(Unit.class))).thenReturn(unitEntity);
 
-        Mockito.when(unitRepository.findByStatusIsTrue()).thenReturn(shelves);
-        Mockito.when(modelMapper.map(Mockito.eq(shelves), Mockito.any(java.lang.reflect.Type.class))).thenReturn(unitDtos);
+        UnitDto result = unitService.update(unitDto);
 
-        List<UnitDto> response = unitService.findIfTrue();
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertEquals("Unit updated successfully", result.getMessage());
+    }
 
-        Assertions.assertEquals(1, response.size());
+    @Test
+    void testDelete_WhenUnitNotFound() {
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(null);
+
+        unitService.delete("UNT-KG");
+
+        verify(unitRepository, never()).save(any(Unit.class));
+    }
+
+    @Test
+    void testDelete_Success() {
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(unitEntity);
+        when(unitRepository.save(any(Unit.class))).thenReturn(unitEntity);
+
+        unitService.delete("UNT-KG");
+
+        verify(unitRepository, times(1)).save(unitEntity);
+    }
+
+    @Test
+    void testFindAll() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Unit> entityList = Collections.singletonList(unitEntity);
+        Page<Unit> page = new PageImpl<>(entityList, pageable, 1);
+
+        when(unitRepository.findByDeletedFalse(pageable)).thenReturn(page);
+
+        WsDto<UnitDto> result = unitService.findAll(pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(0, result.getPage());
+    }
+
+    @Test
+    void testToggleStatus_WhenUnitNotFound() {
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(null);
+
+        UnitDto result = unitService.toggleStatus("UNT-KG");
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("not found"));
+    }
+
+    @Test
+    void testToggleStatus_Success() {
+        unitEntity.setStatus(true);
+        when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(unitEntity);
+        when(unitRepository.save(any(Unit.class))).thenReturn(unitEntity);
+
+        UnitDto result = unitService.toggleStatus("UNT-KG");
+
+        assertNotNull(result);
+        assertFalse(result.isStatus());
+    }
+
+    @Test
+    void testFindIfTrue() {
+        List<Unit> activeUnits = Collections.singletonList(unitEntity);
+        when(unitRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(activeUnits);
+
+        List<UnitDto> result = unitService.findIfTrue();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
     }
 }

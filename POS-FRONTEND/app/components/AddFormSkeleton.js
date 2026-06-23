@@ -122,59 +122,71 @@ export default function AddFormSkeleton({
   }
 
   function handleResponseData(data) {
-    const serverMessage = (data?.message || data?.error || "").toLowerCase();
-
-    if (hasRejectMessage(serverMessage)) {
-      setError(data.message || `This ${title} already exists.`);
-      return;
-    }
-
-    if (data && (data.identifier || data.success === true || data.status === "SUCCESS")) {
-      setSuccess(`${title} successfully saved.`);
-      setTimeout(() => router.back(), 1500);
-      return;
-    }
-
-    setError("Please verify if this identifier is unique.");
+  if (!data) {
+    setError("Unexpected server response");
+    return;
   }
+
+  if (data.success === false) {
+    setError(data.message || `Failed to save ${title}`);
+    return;
+  }
+
+  if (data.success === true) {
+    setSuccess(data.message || `${title} successfully saved.`);
+    setTimeout(() => router.back(), 1500);
+    return;
+  }
+  setError("Unknown response from server");
+}
 
   function handleSubmissionError(err) {
-    console.error("Submission Error:", err);
-    if (err.response?.data) {
-      const serverPayload = err.response.data;
-      const msg = serverPayload.message || serverPayload.error;
-      setError(typeof msg === "string" ? msg : `This ${title} is already registered.`);
-      return;
-    }
-    setError("Already Exists: Could not complete registration.");
-  }
+  console.error("Submission Error:", err);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  if (err.response?.data) {
+    const data = err.response.data;
 
-    const validationError = getValidationError();
-    if (validationError) {
-      setError(validationError);
+    if (data.success === false) {
+      setError(data.message);
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/${apiPath}/add`,
-        { identifier, ...formData },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      handleResponseData(res.data);
-    } catch (err) {
-      handleSubmissionError(err);
-    } finally {
-      setLoading(false);
-    }
+    const msg = data.message || data.error;
+    setError(msg || `Failed to save ${title}`);
+    return;
   }
+
+  setError("Network error. Please try again.");
+}
+
+ async function handleSubmit(e) {
+  e.preventDefault();
+  setError("");
+  setSuccess("");
+
+  const validationError = getValidationError();
+  if (validationError) {
+    setError(validationError);
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/${apiPath}/add`,
+      { identifier, ...formData },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    handleResponseData(res.data);
+  } catch (err) {
+    handleSubmissionError(err);
+  } finally {
+    setLoading(false);
+  }
+}
+
 
   return (
     <Layout>

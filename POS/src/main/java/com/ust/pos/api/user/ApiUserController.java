@@ -4,9 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +15,11 @@ import java.util.List;
 @RequestMapping("/api/user")
 public class ApiUserController extends BaseController {
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private RoleService roleService;
+    private final UserService userService;
+
+    public ApiUserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/list")
     public WsDto<UserDto> list(@RequestBody PaginationDto paginationDto) {
@@ -50,13 +49,13 @@ public class ApiUserController extends BaseController {
         return userService.findByUserName(username);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto) {
 
         return userService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier, Authentication authentication) {
         try {
 

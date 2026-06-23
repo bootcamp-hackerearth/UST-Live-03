@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,11 @@ import java.util.List;
 public class ApiUnitController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/unit/list";
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
+
+    public ApiUnitController(UnitService unitService) {
+        this.unitService = unitService;
+    }
 
     @PostMapping("/list")
     public WsDto<UnitDto> list(@RequestBody PaginationDto paginationDto) {
@@ -41,13 +43,13 @@ public class ApiUnitController extends BaseController {
         return unitService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UnitDto updatePost(@RequestBody UnitDto userDto) {
 
         return unitService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             unitService.delete(identifier);

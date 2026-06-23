@@ -23,7 +23,6 @@ export default function AddUser() {
       type: "password",
       required: true,
       placeholder: "Enter secure initial password...",
-      // Rules: At least 8 characters, 1 uppercase, 1 lowercase, 1 number
       validation: {
         regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
         message: "Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, and a number.",
@@ -35,7 +34,6 @@ export default function AddUser() {
       type: "text",
       required: true,
       placeholder: "Enter contact number...",
-      // Rules: Exactly 10 digits
       validation: {
         regex: /^\d{10}$/,
         message: "Phone number must be exactly 10 digits.",

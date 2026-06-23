@@ -3,7 +3,6 @@ package com.ust.pos.brand;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,10 +14,11 @@ public class BrandController extends BaseController {
 
     public static final String REDIRECT_LIST = "redirect:/brand/list";
     public static final String BRAND = "brand";
+    private final BrandService brandService;
 
-    @Autowired
-    private BrandService brandService;
-
+    public BrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {

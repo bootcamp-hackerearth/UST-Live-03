@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.rack.service.RackService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,12 @@ import java.util.List;
 public class ApiRackController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/rack/list";
-    @Autowired
-    private RackService rackService;
+
+    private final RackService rackService;
+
+    public ApiRackController(RackService rackService) {
+        this.rackService = rackService;
+    }
 
     @PostMapping("/list")
     public WsDto<RackDto> list(@RequestBody PaginationDto paginationDto) {
@@ -41,13 +44,13 @@ public class ApiRackController extends BaseController {
         return rackService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RackDto updatePost(@RequestBody RackDto userDto) {
 
         return rackService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             rackService.delete(identifier);

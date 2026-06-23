@@ -1,5 +1,6 @@
 package com.ust.pos.rack.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Rack;
@@ -8,7 +9,6 @@ import com.ust.pos.rack.service.RackService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class RackServiceImpl implements RackService {
+public class RackServiceImpl extends CommonService implements RackService {
 
-    @Autowired
-    private RackRepository rackRepository;
+    private static final String RACK_WITH_IDENTIFIER = "Rack with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final RackRepository rackRepository;
+    private final ModelMapper modelMapper;
+
+    public RackServiceImpl(RackRepository rackRepository,
+                           ModelMapper modelMapper) {
+        this.rackRepository = rackRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public RackDto findByIdentifier(String identifier) {
@@ -31,32 +36,63 @@ public class RackServiceImpl implements RackService {
     }
 
     @Override
-    public RackDto save(RackDto dto) {
+    public RackDto save(RackDto rackDto) {
 
-        Rack existing = rackRepository.findByIdentifier(dto.getIdentifier());
-        if (existing != null) {
-            dto.setSuccess(false);
-            dto.setMessage("Rack already exists : " + dto.getIdentifier());
-            return dto;
+        if (rackDto == null || rackDto.getIdentifier() == null) {
+            throw new IllegalArgumentException("Identifier is required");
         }
 
-        Rack rack = modelMapper.map(dto, Rack.class);
-        rackRepository.save(rack);
-        return dto;
+        String identifier = rackDto.getIdentifier();
+        Rack existingRack = rackRepository.findByIdentifier(identifier);
+
+        if (existingRack != null) {
+            if (!existingRack.isDeleted()) {
+                rackDto.setMessage("Rack with identifier '" + identifier + "' already exists");
+                rackDto.setSuccess(false);
+                return rackDto;
+            }
+
+            rackDto.setMessage("Rack was previously deleted. Please contact backend team to restore.");
+            rackDto.setSuccess(false);
+            return rackDto;
+        }
+
+        Rack rack = modelMapper.map(rackDto, Rack.class);
+        setAuditFields(rack, true);
+        Rack savedRack = rackRepository.save(rack);
+        RackDto response = modelMapper.map(savedRack, RackDto.class);
+        response.setSuccess(true);
+        response.setMessage("Rack created successfully");
+        return response;
     }
 
     @Override
     public RackDto update(RackDto dto) {
 
-        Rack existing = rackRepository.findByIdentifier(dto.getIdentifier());
+        String identifier = dto.getIdentifier();
+        Rack existing = rackRepository.findByIdentifier(identifier);
+
         if (existing == null) {
             dto.setSuccess(false);
-            dto.setMessage("Rack not found : " + dto.getIdentifier());
+            dto.setMessage(RACK_WITH_IDENTIFIER + identifier + " not found");
+            return dto;
+        }
+
+        if (existing.isDeleted()) {
+            dto.setSuccess(false);
+            dto.setMessage(RACK_WITH_IDENTIFIER + identifier +
+                    " was previously deleted. Please contact backend team to restore.");
             return dto;
         }
 
         modelMapper.map(dto, existing);
+        setAuditFields(existing, false);
+
         rackRepository.save(existing);
+
+        dto.setSuccess(true);
+        dto.setMessage("Rack updated successfully");
+
         return dto;
     }
 
@@ -64,38 +100,61 @@ public class RackServiceImpl implements RackService {
     @Override
     public void delete(String identifier) {
 
-        rackRepository.deleteByIdentifier(identifier);
+        Rack rack = rackRepository.findByIdentifier(identifier);
+
+        if (rack != null) {
+            softDelete(rack);
+            setAuditFields(rack, false);
+            rackRepository.save(rack);
+        }
     }
 
     @Override
     public WsDto<RackDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
-        Page<Rack> rackPage = rackRepository.findAll(pageable);
+        Page<Rack> page = rackRepository.findByDeletedFalse(pageable);
 
-        WsDto<RackDto> rackWsDto = new WsDto<>();
-        rackWsDto.setDtoList(modelMapper.map(rackPage.getContent(), listType));
-        rackWsDto.setTotalRecords(rackPage.getTotalElements());
-        rackWsDto.setTotalPages(rackPage.getTotalPages());
-        rackWsDto.setSizePerPage(pageable.getPageSize());
-        rackWsDto.setPage(pageable.getPageNumber());
+        WsDto<RackDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
 
-        return rackWsDto;
+        return wsDto;
     }
 
     @Override
     public RackDto toggleStatus(String identifier) {
+
         Rack rack = rackRepository.findByIdentifier(identifier);
+
+        if (rack == null) {
+            RackDto dto = new RackDto();
+            dto.setSuccess(false);
+            dto.setMessage(RACK_WITH_IDENTIFIER + identifier + " not found");
+            return dto;
+        }
+
         rack.setStatus(!rack.isStatus());
+        setAuditFields(rack, false);
+
         rackRepository.save(rack);
+
         return modelMapper.map(rack, RackDto.class);
     }
 
     @Override
     public List<RackDto> findIfTrue() {
+
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
-        return modelMapper.map(rackRepository.findByStatusTrue(), listType);
-    }
 
+        return modelMapper.map(
+                rackRepository.findByStatusIsTrueAndDeletedFalse(),
+                listType
+        );
+    }
 }

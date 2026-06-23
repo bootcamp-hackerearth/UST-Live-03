@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.stock.service.StockService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,11 @@ import java.util.List;
 public class ApiStockController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/stock/list";
-    @Autowired
-    private StockService stockService;
+    private final StockService stockService;
+
+    public ApiStockController(StockService stockService) {
+        this.stockService = stockService;
+    }
 
     @PostMapping("/list")
     public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto) {
@@ -42,13 +44,13 @@ public class ApiStockController extends BaseController {
         return stockService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StockDto updatePost(@RequestBody StockDto userDto) {
 
         return stockService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             stockService.deleteByIdentifier(identifier);

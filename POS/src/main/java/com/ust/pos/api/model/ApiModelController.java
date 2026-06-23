@@ -5,7 +5,6 @@ import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,12 @@ import java.util.List;
 public class ApiModelController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/model/list";
-    @Autowired
-    private ModelService modelService;
+
+    private final ModelService modelService;
+
+    public ApiModelController(ModelService modelService) {
+        this.modelService = modelService;
+    }
 
     @PostMapping("/list")
     public WsDto<ModelDto> list(@RequestBody PaginationDto paginationDto) {
@@ -41,13 +44,13 @@ public class ApiModelController extends BaseController {
         return modelService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelDto updatePost(@RequestBody ModelDto userDto) {
 
         return modelService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             modelService.delete(identifier);

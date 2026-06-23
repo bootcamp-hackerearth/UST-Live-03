@@ -1,5 +1,6 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Model;
@@ -8,7 +9,6 @@ import com.ust.pos.models.service.ModelService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ModelServiceImpl implements ModelService {
+public class ModelServiceImpl extends CommonService implements ModelService {
 
-    @Autowired
-    private ModelRepository modelRepository;
+    private static final String MODEL_WITH_IDENTIFIER = "Model with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelRepository modelRepository;
+    private final ModelMapper modelMapper;
+
+    public ModelServiceImpl(ModelRepository modelRepository,
+                            ModelMapper modelMapper) {
+        this.modelRepository = modelRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ModelDto findByIdentifier(String identifier) {
@@ -33,68 +38,125 @@ public class ModelServiceImpl implements ModelService {
     @Override
     public ModelDto save(ModelDto dto) {
 
-        Model existing = modelRepository.findByIdentifier(dto.getIdentifier());
+        if (dto == null || dto.getIdentifier() == null) {
+            throw new IllegalArgumentException("Identifier is required");
+        }
+
+        String identifier = dto.getIdentifier();
+        Model existing = modelRepository.findByIdentifier(identifier);
+
         if (existing != null) {
+            if (!existing.isDeleted()) {
+                dto.setSuccess(false);
+                dto.setMessage(MODEL_WITH_IDENTIFIER + identifier + " already exists");
+                return dto;
+            }
+
             dto.setSuccess(false);
-            dto.setMessage("Model already exists : " + dto.getIdentifier());
+            dto.setMessage(MODEL_WITH_IDENTIFIER + identifier + " was previously deleted. Please contact backend team to restore.");
             return dto;
         }
 
         Model model = modelMapper.map(dto, Model.class);
-        modelRepository.save(model);
-        return dto;
+        setAuditFields(model, true);
+
+        Model saved = modelRepository.save(model);
+
+        ModelDto response = modelMapper.map(saved, ModelDto.class);
+        response.setSuccess(true);
+        response.setMessage("Model created successfully");
+
+        return response;
     }
 
     @Override
     public ModelDto update(ModelDto dto) {
 
-        Model existing = modelRepository.findByIdentifier(dto.getIdentifier());
+        String identifier = dto.getIdentifier();
+        Model existing = modelRepository.findByIdentifier(identifier);
+
         if (existing == null) {
             dto.setSuccess(false);
-            dto.setMessage("Model not found : " + dto.getIdentifier());
+            dto.setMessage(MODEL_WITH_IDENTIFIER + identifier + " not found");
+            return dto;
+        }
+
+        if (existing.isDeleted()) {
+            dto.setSuccess(false);
+            dto.setMessage(MODEL_WITH_IDENTIFIER + identifier + " was previously deleted. Please contact backend team to restore.");
             return dto;
         }
 
         modelMapper.map(dto, existing);
+        setAuditFields(existing, false);
+
         modelRepository.save(existing);
+
+        dto.setSuccess(true);
+        dto.setMessage("Model updated successfully");
+
         return dto;
     }
 
     @Transactional
     @Override
     public void delete(String identifier) {
-        modelRepository.deleteByIdentifier(identifier);
+
+        Model model = modelRepository.findByIdentifier(identifier);
+
+        if (model != null) {
+            softDelete(model);
+            setAuditFields(model, false);
+            modelRepository.save(model);
+        }
     }
 
     @Override
     public WsDto<ModelDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
-        Page<Model> modelPage = modelRepository.findAll(pageable);
+        Page<Model> page = modelRepository.findByDeletedFalse(pageable);
 
-        WsDto<ModelDto> modelWsDto = new WsDto<>();
-        modelWsDto.setDtoList(modelMapper.map(modelPage.getContent(), listType));
-        modelWsDto.setTotalRecords(modelPage.getTotalElements());
-        modelWsDto.setTotalPages(modelPage.getTotalPages());
-        modelWsDto.setSizePerPage(pageable.getPageSize());
-        modelWsDto.setPage(pageable.getPageNumber());
+        WsDto<ModelDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
 
-        return modelWsDto;
+        return wsDto;
     }
 
     @Override
     public ModelDto toggleStatus(String identifier) {
+
         Model model = modelRepository.findByIdentifier(identifier);
+
+        if (model == null) {
+            ModelDto dto = new ModelDto();
+            dto.setSuccess(false);
+            dto.setMessage(MODEL_WITH_IDENTIFIER + identifier + " not found");
+            return dto;
+        }
+
         model.setStatus(!model.isStatus());
+        setAuditFields(model, false);
+
         modelRepository.save(model);
+
         return modelMapper.map(model, ModelDto.class);
     }
 
     @Override
     public List<ModelDto> findIfTrue() {
-        Type listType = new TypeToken<List<ModelDto>>() {
 
+        Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
-        return modelMapper.map(modelRepository.findByStatusIsTrue(), listType);
+
+        return modelMapper.map(
+                modelRepository.findByStatusIsTrueAndDeletedFalse(),
+                listType
+        );
     }
 }

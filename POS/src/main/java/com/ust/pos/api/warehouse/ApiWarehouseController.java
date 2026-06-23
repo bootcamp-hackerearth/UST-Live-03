@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,12 @@ import java.util.List;
 public class ApiWarehouseController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/warehouse/list";
-    @Autowired
-    private WarehouseService warehouseService;
+
+    private final WarehouseService warehouseService;
+
+    public ApiWarehouseController(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @PostMapping("/list")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
@@ -41,13 +44,13 @@ public class ApiWarehouseController extends BaseController {
         return warehouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public WarehouseDto updatePost(@RequestBody WarehouseDto userDto) {
 
         return warehouseService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);

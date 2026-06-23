@@ -3,18 +3,22 @@ package com.ust.pos;
 import com.ust.pos.cartentry.service.impl.CartEntryServiceImpl;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,149 +33,149 @@ class CartEntryServiceTest {
     @Mock
     private PriceRepository priceRepository;
 
-    @Mock
-    private ModelMapper modelMapper;
+    @Spy
+    private ModelMapper modelMapper = new ModelMapper();
 
     @InjectMocks
     private CartEntryServiceImpl cartEntryService;
 
+    private Price price;
+    private CartEntry cartEntry;
+    private CartEntryDto cartEntryDto;
+
+    @BeforeEach
+    void setUp() {
+        price = new Price();
+        price.setMrp(new BigDecimal("100.00"));
+        price.setSellingPrice(new BigDecimal("80.00"));
+
+        cartEntry = new CartEntry();
+        cartEntry.setId(1L);
+        cartEntry.setIdentifier("PROD1-CART1");
+        cartEntry.setProduct("PROD1");
+        cartEntry.setCart("CART1");
+        cartEntry.setQuantity(new BigDecimal("2.00"));
+
+        cartEntryDto = new CartEntryDto();
+        cartEntryDto.setProduct("PROD1");
+        cartEntryDto.setCart("CART1");
+        cartEntryDto.setQuantity(new BigDecimal("3.00"));
+        cartEntryDto.setIdentifier("PROD1-CART1");
+    }
 
     @Test
-    void save_newEntry() {
-        CartEntryDto dto = new CartEntryDto();
-        dto.setProduct("PROD1");
-        dto.setCart("CART1");
-        dto.setQuantity(new BigDecimal("2"));
+    void testSave_WhenPriceNotFound() {
+        when(priceRepository.findByProductIdentifier("PROD1")).thenReturn(null);
 
-        Price price = new Price();
-        price.setMrp(new BigDecimal("100"));
-        price.setSellingPrice(new BigDecimal("80"));
+        assertThrows(IllegalArgumentException.class, () -> cartEntryService.save(cartEntryDto));
+    }
 
+    @Test
+    void testSave_WhenCartEntryDoesNotExist() {
+        when(priceRepository.findByProductIdentifier("PROD1")).thenReturn(price);
         when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(null);
-        when(priceRepository.findByProductIdentifier("PROD1")).thenReturn(price);
+        when(cartEntryRepository.save(any(CartEntry.class))).thenReturn(cartEntry);
 
-        CartEntryDto result = cartEntryService.save(dto);
+        CartEntryDto result = cartEntryService.save(cartEntryDto);
 
-        assertEquals("PROD1-CART1", result.getIdentifier());
-        assertEquals(new BigDecimal("2"), result.getQuantity());
-        assertEquals(new BigDecimal("160"), result.getTotalPrice());
-        assertEquals(new BigDecimal("40"), result.getDiscount());
-        assertEquals(new BigDecimal("100"), result.getPrice());
-        assertEquals(new BigDecimal("80"), result.getSellingPrice());
-        verify(cartEntryRepository).save(any(CartEntry.class));
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertEquals(new BigDecimal("3.00"), result.getQuantity());
+        assertEquals("Cart entry saved successfully", result.getMessage());
+        verify(cartEntryRepository, times(1)).save(any(CartEntry.class));
     }
 
     @Test
-    void save_existingEntry_quantityAccumulates() {
-        CartEntryDto dto = new CartEntryDto();
-        dto.setProduct("PROD1");
-        dto.setCart("CART1");
-        dto.setQuantity(new BigDecimal("2"));
-
-        CartEntry existing = new CartEntry();
-        existing.setQuantity(new BigDecimal("3"));
-
-        Price price = new Price();
-        price.setMrp(new BigDecimal("100"));
-        price.setSellingPrice(new BigDecimal("80"));
-
-        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(existing);
+    void testSave_WhenCartEntryAlreadyExists() {
         when(priceRepository.findByProductIdentifier("PROD1")).thenReturn(price);
+        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(cartEntry);
+        when(cartEntryRepository.save(any(CartEntry.class))).thenReturn(cartEntry);
 
-        CartEntryDto result = cartEntryService.save(dto);
+        CartEntryDto result = cartEntryService.save(cartEntryDto);
 
-        assertEquals(new BigDecimal("5"), result.getQuantity());
-        assertEquals(new BigDecimal("400"), result.getTotalPrice());
-        verify(cartEntryRepository).save(existing);
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertEquals(new BigDecimal("5.00"), result.getQuantity());
+        verify(cartEntryRepository, times(1)).save(any(CartEntry.class));
     }
 
     @Test
-    void findAllEntriesForCart_success() {
-        List<CartEntry> entries = List.of(new CartEntry());
-        List<CartEntryDto> dtos = List.of(new CartEntryDto());
-
+    void testFindAllEntriesForCart() {
+        List<CartEntry> entries = Collections.singletonList(cartEntry);
         when(cartEntryRepository.findByCart("CART1")).thenReturn(entries);
-        when(modelMapper.map(Mockito.eq(entries), Mockito.any(java.lang.reflect.Type.class))).thenReturn(dtos);
 
         List<CartEntryDto> result = cartEntryService.findAllEntriesForCart("CART1");
 
+        assertNotNull(result);
         assertEquals(1, result.size());
+        verify(cartEntryRepository, times(1)).findByCart("CART1");
     }
 
     @Test
-    void update_success() {
-        CartEntryDto dto = new CartEntryDto();
-        dto.setIdentifier("PROD1-CART1");
-        dto.setProduct("PROD1");
-        dto.setQuantity(new BigDecimal("3"));
-
-        CartEntry existing = new CartEntry();
-
-        Price price = new Price();
-        price.setCostPrice(new BigDecimal("120"));
-        price.setSellingPrice(new BigDecimal("90"));
-
-        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(existing);
-        when(priceRepository.findByIdentifier("PROD1")).thenReturn(price);
-
-        CartEntryDto result = cartEntryService.update(dto);
-
-        assertTrue(result.isSuccess());
-        assertEquals(new BigDecimal("270"), result.getTotalPrice());
-        assertEquals(new BigDecimal("90"), result.getDiscount());
-        assertEquals(new BigDecimal("120"), result.getPrice());
-        assertEquals(new BigDecimal("90"), result.getSellingPrice());
-        verify(cartEntryRepository).save(existing);
-    }
-
-    @Test
-    void update_notFound() {
-        CartEntryDto dto = new CartEntryDto();
-        dto.setIdentifier("PROD1-CART1");
-
+    void testUpdate_WhenCartEntryNotFound() {
         when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(null);
 
-        CartEntryDto result = cartEntryService.update(dto);
+        CartEntryDto result = cartEntryService.update(cartEntryDto);
 
+        assertNotNull(result);
         assertFalse(result.isSuccess());
         assertEquals("Cart entry not found", result.getMessage());
     }
 
     @Test
-    void deleteByIdentifier_success() {
-        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(new CartEntry());
+    void testUpdate_WhenPriceNotFound() {
+        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(cartEntry);
+        when(priceRepository.findByProductIdentifier("PROD1")).thenReturn(null);
+
+        assertThrows(IllegalArgumentException.class, () -> cartEntryService.update(cartEntryDto));
+    }
+
+    @Test
+    void testUpdate_Success() {
+        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(cartEntry);
+        when(priceRepository.findByProductIdentifier("PROD1")).thenReturn(price);
+        when(cartEntryRepository.save(any(CartEntry.class))).thenReturn(cartEntry);
+
+        CartEntryDto result = cartEntryService.update(cartEntryDto);
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertEquals("Cart entry updated successfully", result.getMessage());
+        verify(cartEntryRepository, times(1)).save(any(CartEntry.class));
+    }
+
+    @Test
+    void testDeleteByIdentifier_WhenCartEntryNotFound() {
+        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(null);
+
+        assertThrows(IllegalArgumentException.class, () -> cartEntryService.deleteByIdentifier("PROD1-CART1"));
+    }
+
+    @Test
+    void testDeleteByIdentifier_Success() {
+        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(cartEntry);
 
         cartEntryService.deleteByIdentifier("PROD1-CART1");
 
-        verify(cartEntryRepository).deleteByIdentifier("PROD1-CART1");
+        verify(cartEntryRepository, times(1)).deleteByIdentifier("PROD1-CART1");
     }
 
     @Test
-    void deleteByIdentifier_notFound() {
-        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(null);
+    void testDeleteAllByCart_WhenListIsEmpty() {
+        when(cartEntryRepository.findByCart("CART1")).thenReturn(new ArrayList<>());
 
-        assertThrows(IllegalArgumentException.class,
-                () -> cartEntryService.deleteByIdentifier("PROD1-CART1"));
+        cartEntryService.deleteAllByCart("CART1");
+
+        verify(cartEntryRepository, never()).deleteAll(anyList());
     }
 
-
     @Test
-    void deleteAllByCart_success() {
-        List<CartEntry> entries = List.of(new CartEntry());
-
+    void testDeleteAllByCart_Success() {
+        List<CartEntry> entries = Collections.singletonList(cartEntry);
         when(cartEntryRepository.findByCart("CART1")).thenReturn(entries);
 
         cartEntryService.deleteAllByCart("CART1");
 
-        verify(cartEntryRepository).deleteAll(entries);
-    }
-
-    @Test
-    void deleteAllByCart_emptyCart_doesNothing() {
-        when(cartEntryRepository.findByCart("CART1")).thenReturn(List.of());
-
-        cartEntryService.deleteAllByCart("CART1");
-
-        verify(cartEntryRepository, never()).deleteAll(any());
+        verify(cartEntryRepository, times(1)).deleteAll(entries);
     }
 }

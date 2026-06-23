@@ -24,8 +24,9 @@ import {
   Percent,
   Receipt,
   LayoutDashboard,
+  Box,
+  ListCollapse,
 } from "lucide-react";
-
 
 const ICON_MAPPING = [
   {
@@ -34,7 +35,7 @@ const ICON_MAPPING = [
   },
   {
     icon: ShoppingCart,
-    keywords: ["sale", "pos", "billing"],
+    keywords: ["pos", "billing", "sale"],
   },
   {
     icon: Package,
@@ -54,7 +55,7 @@ const ICON_MAPPING = [
   },
   {
     icon: Tag,
-    keywords: ["categor", "tag", "label"],
+    keywords: ["category", "tag", "label"],
   },
   {
     icon: Truck,
@@ -62,11 +63,11 @@ const ICON_MAPPING = [
   },
   {
     icon: CreditCard,
-    keywords: ["payment", "transaction", "card"],
+    keywords: ["payment", "transaction"],
   },
   {
     icon: ClipboardList,
-    keywords: ["order", "invoice"],
+    keywords: ["orders", "order", "invoice"],
   },
   {
     icon: Store,
@@ -81,8 +82,20 @@ const ICON_MAPPING = [
     keywords: ["return", "refund", "exchange"],
   },
   {
+    icon: Box,
+    keywords: ["stock", "inventory"],
+  },
+  {
     icon: Warehouse,
-    keywords: ["stock", "inventory", "warehouse"],
+    keywords: ["warehouse"],
+  },
+  {
+    icon: ListCollapse,
+    keywords: ["rack"],
+  },
+  {
+    icon: Grid,
+    keywords: ["shelf"],
   },
   {
     icon: Percent,
@@ -105,8 +118,8 @@ const ICON_MAPPING = [
     keywords: ["log", "audit", "history", "trail"],
   },
   {
-    icon: Grid,
-    keywords: ["master", "node", "module"],
+    icon: CreditCard,
+    keywords: ["cart"],
   },
   {
     icon: AlertCircle,
@@ -132,7 +145,6 @@ const Sidebar = ({ nodes = [], username, onLogout }) => {
 
   return (
     <aside className="w-60 min-w-[240px] bg-white text-slate-800 flex flex-col h-screen border-r border-slate-200 select-none">
-
       <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5 flex-shrink-0">
         <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0">
           <ShoppingCart size={15} className="text-white" strokeWidth={2.2} />
@@ -188,10 +200,18 @@ const Sidebar = ({ nodes = [], username, onLogout }) => {
         )}
       </nav>
       <div className="p-3 border-t border-slate-100 flex flex-col gap-2 bg-slate-50/60 flex-shrink-0">
-
-       
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <div className="flex flex-col truncate pr-2">
+            <span className="text-xs font-semibold text-slate-700 truncate">{username || "User"}</span>
+          </div>
+          <button
+            onClick={onLogout}
+            className="text-xs font-medium text-red-500 hover:text-red-600 transition-colors px-2 py-1 rounded hover:bg-red-50"
+          >
+            Logout
+          </button>
+        </div>
       </div>
-
     </aside>
   );
 };

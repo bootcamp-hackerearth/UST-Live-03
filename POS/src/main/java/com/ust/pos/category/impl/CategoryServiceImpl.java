@@ -1,5 +1,6 @@
 package com.ust.pos.category.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
@@ -8,7 +9,6 @@ import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,81 +17,113 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl extends CommonService implements CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private static final String CATEGORY_WITH_IDENTIFIER = "Category with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
+
+    public CategoryServiceImpl(CategoryRepository categoryRepository,
+                               ModelMapper modelMapper) {
+        this.categoryRepository = categoryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
-    public CategoryDto save(CategoryDto categoryDto) {
+    public CategoryDto save(CategoryDto dto) {
 
-        if (categoryRepository.findByIdentifier(categoryDto.getIdentifier()) != null) {
-            categoryDto.setSuccess(false);
-            categoryDto.setMessage("Category already exists");
-            return categoryDto;
+        if (dto == null || dto.getIdentifier() == null) {
+            throw new IllegalArgumentException("Identifier is required");
+        }
+
+        String identifier = dto.getIdentifier();
+        Category existing = categoryRepository.findByIdentifier(identifier);
+
+        if (existing != null) {
+            if (!existing.isDeleted()) {
+                dto.setSuccess(false);
+                dto.setMessage("Category with identifier '" + identifier + "' already exists");
+                return dto;
+            }
+
+            dto.setSuccess(false);
+            dto.setMessage("Category was previously deleted. Please contact backend team to restore.");
+            return dto;
         }
 
         Category category = new Category();
-        category.setIdentifier(categoryDto.getIdentifier());
+        category.setIdentifier(identifier);
+        category.setSuperCategory(
+                (dto.getSuperCategory() == null || dto.getSuperCategory().trim().isEmpty())
+                        ? null : dto.getSuperCategory()
+        );
 
-        if (categoryDto.getSuperCategory() == null || categoryDto.getSuperCategory().trim().isEmpty()) {
-            category.setSuperCategory(null);
-        } else {
-            category.setSuperCategory(categoryDto.getSuperCategory());
-        }
+        setAuditFields(category, true);
 
-        categoryRepository.save(category);
-        return categoryDto;
+        Category saved = categoryRepository.save(category);
+
+        CategoryDto response = modelMapper.map(saved, CategoryDto.class);
+        response.setSuccess(true);
+        response.setMessage("Category created successfully");
+
+        return response;
     }
 
     @Override
-    public CategoryDto update(CategoryDto categoryDto) {
+    public CategoryDto update(CategoryDto dto) {
 
-        Category existing = categoryRepository.findByIdentifier(categoryDto.getIdentifier());
+        String identifier = dto.getIdentifier();
+        Category existing = categoryRepository.findByIdentifier(identifier);
 
         if (existing == null) {
-            categoryDto.setSuccess(false);
-            categoryDto.setMessage("Category with identifier - " + categoryDto.getIdentifier() + " not found");
-            return categoryDto;
+            dto.setSuccess(false);
+            dto.setMessage(CATEGORY_WITH_IDENTIFIER + identifier + " not found");
+            return dto;
         }
 
-
-        if (!existing.getIdentifier().equalsIgnoreCase(categoryDto.getIdentifier()) &&
-                categoryRepository.findByIdentifier(categoryDto.getIdentifier()) != null) {
-            categoryDto.setSuccess(false);
-            categoryDto.setMessage("Category already exists");
-            return categoryDto;
+        if (existing.isDeleted()) {
+            dto.setSuccess(false);
+            dto.setMessage(CATEGORY_WITH_IDENTIFIER + identifier + " was previously deleted. Please contact backend team to restore.");
+            return dto;
         }
 
-        existing.setIdentifier(categoryDto.getIdentifier());
+        existing.setSuperCategory(
+                (dto.getSuperCategory() == null || dto.getSuperCategory().trim().isEmpty())
+                        ? null : dto.getSuperCategory()
+        );
 
-        if (categoryDto.getSuperCategory() == null || categoryDto.getSuperCategory().trim().isEmpty()) {
-            existing.setSuperCategory(null);
-        } else {
-            existing.setSuperCategory(categoryDto.getSuperCategory());
-        }
+        setAuditFields(existing, false);
 
-        categoryRepository.save(existing);
-        return categoryDto;
+        Category saved = categoryRepository.save(existing);
+
+        CategoryDto response = modelMapper.map(saved, CategoryDto.class);
+        response.setSuccess(true);
+        response.setMessage("Category updated successfully");
+
+        return response;
     }
 
-    @Override
+
     @Transactional
+    @Override
     public void deleteByIdentifier(String identifier) {
 
         if (categoryRepository.existsBySuperCategory(identifier)) {
             throw new IllegalStateException("Cannot delete category. It is used as a super category.");
         }
 
-        categoryRepository.deleteByIdentifier(identifier);
+        Category category = categoryRepository.findByIdentifier(identifier);
+
+        if (category != null) {
+            softDelete(category);
+            setAuditFields(category, false);
+            categoryRepository.save(category);
+        }
     }
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-
         return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
     }
 
@@ -100,15 +132,16 @@ public class CategoryServiceImpl implements CategoryService {
 
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        WsDto<CategoryDto> categoryWsDto = new WsDto<>();
-        categoryWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
-        categoryWsDto.setTotalRecords(categoryPage.getTotalElements());
-        categoryWsDto.setTotalPages(categoryPage.getTotalPages());
-        categoryWsDto.setSizePerPage(pageable.getPageSize());
-        categoryWsDto.setPage(pageable.getPageNumber());
+        Page<Category> page = categoryRepository.findByDeletedFalse(pageable);
 
-        return categoryWsDto;
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
     @Override
@@ -116,25 +149,41 @@ public class CategoryServiceImpl implements CategoryService {
 
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-
-        return modelMapper.map(categoryRepository.findBySuperCategoryIsNotNull(), listType);
-
+        return modelMapper.map(
+                categoryRepository.findBySuperCategoryIsNotNullAndDeletedFalse(),
+                listType
+        );
     }
 
     @Override
     public CategoryDto toggleStatus(String identifier) {
 
         Category category = categoryRepository.findByIdentifier(identifier);
+
+        if (category == null) {
+            CategoryDto dto = new CategoryDto();
+            dto.setSuccess(false);
+            dto.setMessage(CATEGORY_WITH_IDENTIFIER + identifier + " not found");
+            return dto;
+        }
+
         category.setStatus(!category.isStatus());
+        setAuditFields(category, false);
+
         categoryRepository.save(category);
+
         return modelMapper.map(category, CategoryDto.class);
     }
 
     @Override
     public List<CategoryDto> findIfTrue() {
 
-        return categoryRepository.findByStatusTrue().stream()
-                .map(category -> modelMapper.map(category, CategoryDto.class)).toList();
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        return modelMapper.map(
+                categoryRepository.findByStatusIsTrueAndDeletedFalse(),
+                listType
+        );
     }
 
     @Override
@@ -142,7 +191,9 @@ public class CategoryServiceImpl implements CategoryService {
 
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        return modelMapper.map(categoryRepository.findByStatusTrueAndSuperCategoryIsNot(""), listType);
+        return modelMapper.map(
+                categoryRepository.findByStatusIsTrueAndSuperCategoryIsNotNullAndDeletedFalse(),
+                listType
+        );
     }
-
 }

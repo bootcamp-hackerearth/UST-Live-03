@@ -2,7 +2,6 @@ package com.ust.pos.shelf;
 
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,10 +16,11 @@ public class ShelfController {
     public static final String SHELF = "shelf";
     public static final String SUCCESS_MESSAGE = "successMessage";
     public static final String ERROR_MESSAGE = "errorMessage";
+    private final ShelfService shelfService;
 
-    @Autowired
-    private ShelfService shelfService;
-
+    public ShelfController(ShelfService shelfService) {
+        this.shelfService = shelfService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {

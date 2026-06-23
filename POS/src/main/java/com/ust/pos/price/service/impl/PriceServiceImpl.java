@@ -1,5 +1,6 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
@@ -8,7 +9,6 @@ import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class PriceServiceImpl implements PriceService {
+public class PriceServiceImpl extends CommonService implements PriceService {
 
-    @Autowired
-    private PriceRepository priceRepository;
+    private static final String PRICE_WITH_IDENTIFIER = "Price with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final PriceRepository priceRepository;
+    private final ModelMapper modelMapper;
+
+    public PriceServiceImpl(PriceRepository priceRepository,
+                            ModelMapper modelMapper) {
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
@@ -31,49 +36,80 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
+    public PriceDto findByProductIdentifier(String productIdentifier) {
+        return modelMapper.map(
+                priceRepository.findByProductIdentifier(productIdentifier),
+                PriceDto.class
+        );
+    }
+
+    @Override
     public PriceDto save(PriceDto dto) {
+
+        if (dto == null || dto.getIdentifier() == null) {
+            throw new IllegalArgumentException("Identifier is required");
+        }
 
         Price existingByProduct = priceRepository.findByProductIdentifier(dto.getProductIdentifier());
 
-        if (existingByProduct != null) {
+        if (existingByProduct != null && !existingByProduct.isDeleted()) {
             dto.setSuccess(false);
             dto.setMessage("ProductIdentifier already exists: " + dto.getProductIdentifier());
             return dto;
         }
 
-        Price existing = priceRepository.findByIdentifier(
-
-                dto.getIdentifier());
+        Price existing = priceRepository.findByIdentifier(dto.getIdentifier());
 
         if (existing != null) {
+            if (!existing.isDeleted()) {
+                dto.setSuccess(false);
+                dto.setMessage(PRICE_WITH_IDENTIFIER + dto.getIdentifier() + " already exists");
+                return dto;
+            }
+
             dto.setSuccess(false);
-            dto.setMessage("Price identifier already exists  " + dto.getIdentifier());
+            dto.setMessage(PRICE_WITH_IDENTIFIER + dto.getIdentifier() +
+                    " was previously deleted. Please contact backend team to restore.");
             return dto;
         }
 
         Price price = modelMapper.map(dto, Price.class);
-        priceRepository.save(price);
+        setAuditFields(price, true);
 
-        dto.setSuccess(true);
-        dto.setMessage("Price saved successfully");
-        return dto;
+        Price saved = priceRepository.save(price);
+
+        PriceDto response = modelMapper.map(saved, PriceDto.class);
+        response.setSuccess(true);
+        response.setMessage("Price created successfully");
+
+        return response;
     }
-
 
     @Override
     public PriceDto update(PriceDto dto) {
 
-        Price existing = priceRepository.findByIdentifier(dto.getIdentifier());
+        String identifier = dto.getIdentifier();
+        Price existing = priceRepository.findByIdentifier(identifier);
+
         if (existing == null) {
             dto.setSuccess(false);
-            dto.setMessage("Price not found : " + dto.getIdentifier());
+            dto.setMessage(PRICE_WITH_IDENTIFIER + identifier + " not found");
             return dto;
         }
+
+        if (existing.isDeleted()) {
+            dto.setSuccess(false);
+            dto.setMessage(PRICE_WITH_IDENTIFIER + identifier +
+                    " was previously deleted. Please contact backend team to restore.");
+            return dto;
+        }
+
         if (dto.getProductIdentifier() != null &&
                 !dto.getProductIdentifier().equalsIgnoreCase(existing.getProductIdentifier())) {
 
-            Price conflicting = priceRepository.findByProductIdentifier(dto.getProductIdentifier());
-            if (conflicting != null) {
+            Price conflict = priceRepository.findByProductIdentifier(dto.getProductIdentifier());
+
+            if (conflict != null && !conflict.isDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage("ProductIdentifier already exists: " + dto.getProductIdentifier());
                 return dto;
@@ -81,7 +117,13 @@ public class PriceServiceImpl implements PriceService {
         }
 
         modelMapper.map(dto, existing);
+        setAuditFields(existing, false);
+
         priceRepository.save(existing);
+
+        dto.setSuccess(true);
+        dto.setMessage("Price updated successfully");
+
         return dto;
     }
 
@@ -89,44 +131,61 @@ public class PriceServiceImpl implements PriceService {
     @Override
     public void delete(String identifier) {
 
-        priceRepository.deleteByIdentifier(identifier);
+        Price price = priceRepository.findByIdentifier(identifier);
+
+        if (price != null) {
+            softDelete(price);
+            setAuditFields(price, false);
+            priceRepository.save(price);
+        }
     }
 
     @Override
     public WsDto<PriceDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
-        Page<Price> pricePage = priceRepository.findAll(pageable);
+        Page<Price> page = priceRepository.findByDeletedFalse(pageable);
 
-        WsDto<PriceDto> priceWsDto = new WsDto<>();
-        priceWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
-        priceWsDto.setTotalRecords(pricePage.getTotalElements());
-        priceWsDto.setTotalPages(pricePage.getTotalPages());
-        priceWsDto.setSizePerPage(pageable.getPageSize());
-        priceWsDto.setPage(pageable.getPageNumber());
+        WsDto<PriceDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
 
-        return priceWsDto;
+        return wsDto;
     }
 
     @Override
     public PriceDto toggleStatus(String identifier) {
+
         Price price = priceRepository.findByIdentifier(identifier);
+
+        if (price == null) {
+            PriceDto dto = new PriceDto();
+            dto.setSuccess(false);
+            dto.setMessage(PRICE_WITH_IDENTIFIER + identifier + " not found");
+            return dto;
+        }
+
         price.setStatus(!price.isStatus());
+        setAuditFields(price, false);
+
         priceRepository.save(price);
+
         return modelMapper.map(price, PriceDto.class);
     }
 
     @Override
     public List<PriceDto> findIfTrue() {
+
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
-        return modelMapper.map(priceRepository.findByStatusIsTrue(), listType);
+
+        return modelMapper.map(
+                priceRepository.findByStatusIsTrueAndDeletedFalse(),
+                listType
+        );
     }
-
-    @Override
-    public PriceDto findByProductIdentifier(String productIdentifier) {
-        return modelMapper.map(priceRepository.findByProductIdentifier(productIdentifier), PriceDto.class);
-    }
-
-
 }

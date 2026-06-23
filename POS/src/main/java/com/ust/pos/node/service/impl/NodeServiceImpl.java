@@ -1,5 +1,6 @@
 package com.ust.pos.node.service.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
@@ -10,7 +11,6 @@ import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -24,16 +24,17 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class NodeServiceImpl implements NodeService {
-    @Autowired
-    private UserRepository userRepository;
+public class NodeServiceImpl extends CommonService implements NodeService {
+    private static final String NODE_WITH_IDENTIFIER = "Node with identifier - ";
+    private final UserRepository userRepository;
+    private final NodeRepository nodeRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private NodeRepository nodeRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.nodeRepository = nodeRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
@@ -42,16 +43,33 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public NodeDto save(NodeDto nodeDto) {
+
+        if (nodeDto == null || nodeDto.getIdentifier() == null) {
+            throw new IllegalArgumentException("Identifier is required");
+        }
+
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
+
         if (existingNode != null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
+            if (!existingNode.isDeleted()) {
+                nodeDto.setMessage("Node with identifier '" + identifier + "' already exists");
+                nodeDto.setSuccess(false);
+                return nodeDto;
+            }
+
+            nodeDto.setMessage("Node was previously deleted. Please contact backend team to restore.");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
+
         Node node = modelMapper.map(nodeDto, Node.class);
-        nodeRepository.save(node);
-        return nodeDto;
+        setAuditFields(node, true);
+        Node savedNode = nodeRepository.save(node);
+        NodeDto response = modelMapper.map(savedNode, NodeDto.class);
+        response.setSuccess(true);
+        response.setMessage("Node created successfully");
+        return response;
     }
 
     @Override
@@ -59,11 +77,17 @@ public class NodeServiceImpl implements NodeService {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode == null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " not found");
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + "- " + identifier + " not found");
+            nodeDto.setSuccess(false);
+            return nodeDto;
+        }
+        if (existingNode.isDeleted()) {
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " was previously deleted. " + "Please contact backend team to restore.");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
         modelMapper.map(nodeDto, existingNode);
+        setAuditFields(existingNode, false);
         nodeRepository.save(existingNode);
         return nodeDto;
     }
@@ -71,15 +95,17 @@ public class NodeServiceImpl implements NodeService {
     @Transactional
     @Override
     public void delete(String identifier) {
-
-        nodeRepository.deleteByIdentifier(identifier);
+        Node node = nodeRepository.findByIdentifier(identifier);
+        softDelete(node);
+        setAuditFields(node, false);
+        nodeRepository.save(node);
     }
 
     @Override
     public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        Page<Node> nodePage = nodeRepository.findByDeletedFalse(pageable);
 
         WsDto<NodeDto> nodeWsDto = new WsDto<>();
         nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
@@ -104,7 +130,7 @@ public class NodeServiceImpl implements NodeService {
     private void findNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesStr = new HashSet<>();
-        List<Node> nodes = nodeRepository.findByStatusIsTrue();
+        List<Node> nodes = nodeRepository.findByStatusIsTrueAndDeletedFalse();
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
                 if (node.getRoles() != null && node.getRoles().contains(role)) {
@@ -121,6 +147,7 @@ public class NodeServiceImpl implements NodeService {
     public NodeDto toggleStatus(String identifier) {
         Node node = nodeRepository.findByIdentifier(identifier);
         node.setStatus(!node.isStatus());
+        setAuditFields(node, false);
         nodeRepository.save(node);
         return modelMapper.map(node, NodeDto.class);
     }
@@ -128,10 +155,7 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public List<NodeDto> findIfTrue() {
         Type listType = new TypeToken<List<NodeDto>>() {
-
         }.getType();
-        return modelMapper.map(nodeRepository.findByStatusIsTrue(), listType);
+        return modelMapper.map(nodeRepository.findByStatusIsTrueAndDeletedFalse(), listType);
     }
 }
-
-

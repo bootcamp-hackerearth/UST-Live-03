@@ -1,5 +1,6 @@
 package com.ust.pos.customer.service.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
@@ -9,7 +10,8 @@ import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,21 +20,26 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends CommonService implements CustomerService {
 
+    private static final String CUSTOMER_WITH_PHONE = "Customer with phone - ";
+    private static final String NOT_FOUND = " not found";
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
+    private final ModelMapper modelMapper;
+    private final AddressService addressService;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private AddressService addressService;
+    public CustomerServiceImpl(CustomerRepository customerRepository,
+                               ModelMapper modelMapper,
+                               AddressService addressService) {
+        this.customerRepository = customerRepository;
+        this.modelMapper = modelMapper;
+        this.addressService = addressService;
+    }
 
     @Override
-    public CustomerDto findById(String identifier) {
-        return modelMapper.map(customerRepository.findById(identifier), CustomerDto.class);
+    public CustomerDto findById(String phoneNo) {
+        return modelMapper.map(customerRepository.findByPhoneNo(phoneNo), CustomerDto.class);
     }
 
     @Override
@@ -40,16 +47,23 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer customer = customerRepository.findByPhoneNo(phoneNo);
 
+        if (customer == null) {
+            CustomerDto customerDto = new CustomerDto();
+            customerDto.setSuccess(false);
+            customerDto.setMessage(CUSTOMER_WITH_PHONE + phoneNo + NOT_FOUND);
+            return customerDto;
+        }
+
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
 
-        List<AddressDto> addressDtoList = addressService.findAllByPhoneNo(phoneNo);
+        List<AddressDto> list = addressService.findAllByPhoneNo(phoneNo);
 
-        if (addressDtoList != null) {
-            if (addressDtoList.isEmpty()) {
-                customerDto.setBillingAddress(addressDtoList.get(0));
+        if (list != null) {
+            if (!list.isEmpty()) {
+                customerDto.setBillingAddress(list.get(0));
             }
-            if (addressDtoList.size() > 1) {
-                customerDto.setShippingAddress(addressDtoList.get(1));
+            if (list.size() > 1) {
+                customerDto.setShippingAddress(list.get(1));
             }
         }
 
@@ -58,89 +72,201 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto save(CustomerDto customerDto) {
-        String identifier = customerDto.getIdentifier();
-        Customer existingCustomer = customerRepository.findById(identifier);
-        if (existingCustomer != null) {
-            customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
+
+        if (customerDto == null) {
+            return null;
+        }
+
+        if (customerDto.getPhoneNo() == null || customerDto.getPhoneNo().length() != 10) {
             customerDto.setSuccess(false);
+            customerDto.setMessage("Invalid phone number");
             return customerDto;
         }
+
+        String phone = customerDto.getPhoneNo();
+
+        Customer existing = customerRepository.findByPhoneNo(phone);
+
+        if (existing != null && !existing.isDeleted()) {
+            customerDto.setSuccess(false);
+            customerDto.setMessage(CUSTOMER_WITH_PHONE + phone + " already exists");
+            return customerDto;
+        }
+
+        if (existing != null && existing.isDeleted()) {
+            customerDto.setSuccess(false);
+            customerDto.setMessage(CUSTOMER_WITH_PHONE + phone + " was previously deleted. Please contact backend team to restore.");
+            return customerDto;
+        }
+
+        customerDto.setIdentifier(phone);
+
         Customer customer = modelMapper.map(customerDto, Customer.class);
+        setAuditFields(customer, true);
+
         customerRepository.save(customer);
 
-        AddressDto billingAddress = modelMapper.map(customerDto.getBillingAddress(), AddressDto.class);
-        billingAddress.setIdentifier(customerDto.getIdentifier() + "_" + "Billing");
-        billingAddress.setAddressType("Billing");
-        billingAddress.setPhoneNo(customerDto.getPhoneNo());
-        addressService.save(billingAddress);
+        if (customerDto.getBillingAddress() != null) {
+            AddressDto billing = customerDto.getBillingAddress();
+            billing.setIdentifier(phone + "_Billing");
+            billing.setPhoneNo(phone);
+            billing.setAddressType("Billing");
+            addressService.save(billing);
+        }
 
-        AddressDto shippingAddress = modelMapper.map(customerDto.getShippingAddress(), AddressDto.class);
-        shippingAddress.setIdentifier(customerDto.getIdentifier() + "_" + "Shipping");
-        shippingAddress.setAddressType("Shipping");
-        shippingAddress.setPhoneNo(customerDto.getPhoneNo());
-        addressService.save(shippingAddress);
+        if (customerDto.getShippingAddress() != null) {
+            AddressDto shipping = customerDto.getShippingAddress();
+            shipping.setIdentifier(phone + "_Shipping");
+            shipping.setPhoneNo(phone);
+            shipping.setAddressType("Shipping");
+            addressService.save(shipping);
+        }
+
+        customerDto.setSuccess(true);
+        customerDto.setMessage("Customer created successfully");
 
         return customerDto;
     }
 
     @Override
     public CustomerDto update(CustomerDto customerDto) {
-        Customer existingCustomer = customerRepository.findByPhoneNo(customerDto.getPhoneNo());
-        if (existingCustomer == null) {
-            customerDto.setMessage("Customer with identifier - " + customerDto.getPhoneNo() + " not found");
+
+        String phone = customerDto.getPhoneNo();
+        Customer existing = customerRepository.findByPhoneNo(phone);
+
+        if (existing == null) {
             customerDto.setSuccess(false);
+            customerDto.setMessage(CUSTOMER_WITH_PHONE + phone + NOT_FOUND);
             return customerDto;
         }
-        modelMapper.map(customerDto, existingCustomer);
-        customerRepository.save(existingCustomer);
-        List<AddressDto> addresses = addressService.findAllByPhoneNo((customerDto.getPhoneNo()));
-        AddressDto billingAddress = addresses.get(0);
-        billingAddress.setPhoneNo(existingCustomer.getPhoneNo());
-        addressService.update(billingAddress);
 
-        AddressDto shippingAddress = addresses.get(1);
-        shippingAddress.setPhoneNo(existingCustomer.getPhoneNo());
-        addressService.update(shippingAddress);
+        if (existing.isDeleted()) {
+            customerDto.setSuccess(false);
+            customerDto.setMessage(CUSTOMER_WITH_PHONE + phone + " was previously deleted. Please contact backend team to restore.");
+            return customerDto;
+        }
+
+        modelMapper.map(customerDto, existing);
+        setAuditFields(existing, false);
+
+        customerRepository.save(existing);
+
+        if (customerDto.getBillingAddress() != null) {
+            AddressDto billing = customerDto.getBillingAddress();
+            billing.setPhoneNo(phone);
+            billing.setAddressType("Billing");
+            billing.setIdentifier(phone + "_Billing");
+            addressService.update(billing);
+        }
+
+        if (customerDto.getShippingAddress() != null) {
+            AddressDto shipping = customerDto.getShippingAddress();
+            shipping.setPhoneNo(phone);
+            shipping.setAddressType("Shipping");
+            shipping.setIdentifier(phone + "_Shipping");
+            addressService.update(shipping);
+        }
+
+        customerDto.setSuccess(true);
+        customerDto.setMessage("Customer updated successfully");
 
         return customerDto;
     }
 
     @Override
     public boolean delete(String phoneNo) {
-        customerRepository.deleteByPhoneNo(phoneNo);
+
+        Customer customer = customerRepository.findByPhoneNo(phoneNo);
+
+        if (customer == null) {
+            return false;
+        }
+
+        softDelete(customer);
+        setAuditFields(customer, false);
+
+        customerRepository.save(customer);
         addressService.delete(phoneNo);
+
         return true;
     }
 
     @Override
     public WsDto<CustomerDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
 
-        WsDto<CustomerDto> customerWsDto = new WsDto<>();
-        customerWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
-        customerWsDto.setTotalRecords(customerPage.getTotalElements());
-        customerWsDto.setTotalPages(customerPage.getTotalPages());
-        customerWsDto.setSizePerPage(pageable.getPageSize());
-        customerWsDto.setPage(pageable.getPageNumber());
+        Page<Customer> page = customerRepository.findByDeletedFalse(pageable);
 
-        return customerWsDto;
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
     @Override
-    public CustomerDto toggleStatus(String identifier) {
-        Customer customer = customerRepository.findById(identifier);
+    public CustomerDto toggleStatus(String phoneNo) {
+
+        Customer customer = customerRepository.findByPhoneNo(phoneNo);
+
+        if (customer == null) {
+            CustomerDto customerDto = new CustomerDto();
+            customerDto.setSuccess(false);
+            customerDto.setMessage(CUSTOMER_WITH_PHONE + phoneNo + NOT_FOUND);
+            return customerDto;
+        }
+
         customer.setStatus(!customer.isStatus());
+        setAuditFields(customer, false);
+
         customerRepository.save(customer);
+
         return modelMapper.map(customer, CustomerDto.class);
     }
 
     @Override
     public List<CustomerDto> findIfTrue() {
-        Type listType = new TypeToken<List<CustomerDto>>() {
 
+        Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        return modelMapper.map(customerRepository.findByStatusIsTrue(), listType);
+
+        return modelMapper.map(
+                customerRepository.findByStatusIsTrueAndDeletedFalse(),
+                listType
+        );
+    }
+
+    @Override
+    public List<CustomerDto> searchCustomersFlexible(CustomerDto searchCriteria) {
+
+        Customer probe = new Customer();
+
+        if (searchCriteria.getCustomerName() != null && !searchCriteria.getCustomerName().trim().isEmpty()) {
+            probe.setCustomerName(searchCriteria.getCustomerName());
+        }
+
+        if (searchCriteria.getPhoneNo() != null && !searchCriteria.getPhoneNo().trim().isEmpty()) {
+            probe.setPhoneNo(searchCriteria.getPhoneNo());
+        }
+
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnoreCase()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreNullValues()
+                .withIgnorePaths("status");
+
+        Example<Customer> example = Example.of(probe, matcher);
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        return modelMapper.map(
+                customerRepository.findAll(example),
+                listType
+        );
     }
 }

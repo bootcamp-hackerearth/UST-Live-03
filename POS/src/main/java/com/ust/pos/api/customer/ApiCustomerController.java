@@ -5,8 +5,8 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,8 +16,12 @@ import java.util.List;
 public class ApiCustomerController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/customer/list";
-    @Autowired
-    private CustomerService customerService;
+
+    private final CustomerService customerService;
+
+    public ApiCustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
     @PostMapping("/list")
     public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
@@ -39,13 +43,13 @@ public class ApiCustomerController extends BaseController {
         return customerService.findByIdentifierWithAddressDto(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
 
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);
@@ -71,6 +75,12 @@ public class ApiCustomerController extends BaseController {
     public CustomerDto findByIdentifier(@RequestParam String identifier) {
 
         return customerService.findById(identifier);
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<List<CustomerDto>> searchCustomers(@RequestBody CustomerDto searchCriteria) {
+        List<CustomerDto> results = customerService.searchCustomersFlexible(searchCriteria);
+        return ResponseEntity.ok(results);
     }
 
 }

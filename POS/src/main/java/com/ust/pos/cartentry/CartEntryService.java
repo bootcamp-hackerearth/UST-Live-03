@@ -1,4 +1,4 @@
-package com.ust.pos.cartentry.service;
+package com.ust.pos.cartentry;
 
 import com.ust.pos.dto.CartEntryDto;
 
@@ -15,4 +15,5 @@ public interface CartEntryService {
     void deleteAllByCart(String cart);
 
     void deleteByIdentifier(String identifier);
+
 }

@@ -65,11 +65,7 @@ const Header = ({ username }) => {
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xs font-semibold text-slate-700 leading-none">
-                {username ? username.split("@")[0] : "Operator"}
-              </span>
-              <span className="text-[10px] font-medium text-green-600 mt-0.5 leading-none flex items-center gap-1">
-               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />{''}
-                Online
+                {username ? username.split("@")[0] : "User"}
               </span>
             </div>
             <svg
@@ -89,7 +85,7 @@ const Header = ({ username }) => {
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-slate-800 leading-none">
-                      {username ? username.split("@")[0] : "Operator"}
+                      {username ? username.split("@")[0] : "User"}
                     </p>
                     <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-600 mt-0.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />{''}
