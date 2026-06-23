@@ -160,7 +160,15 @@ dialog.m-box{position:static;margin:0;padding:0;border:none}
 .m-footer{display:flex;gap:8px;justify-content:flex-end}
 `;
 
-function ConfirmModal({ open, onClose, onConfirm, title, message, confirmLabel, danger }) {
+function ConfirmModal({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmLabel,
+  danger = false,
+}) {
   useEffect(() => {
     if (!open) return undefined;
     const handler = (e) => { if (e.key === "Escape") onClose(); };
@@ -198,9 +206,12 @@ ConfirmModal.propTypes = {
   confirmLabel: PropTypes.string.isRequired,
   danger: PropTypes.bool,
 };
-ConfirmModal.defaultProps = { danger: false };
 
-function CustomerPanel({ customer, cart, onChangeCustomer }) {
+function CustomerPanel({
+  customer,
+  cart = null,
+  onChangeCustomer,
+}) {
   const initial = (customer.customerName?.[0] ?? customer.identifier?.[0] ?? "?").toUpperCase();
   return (
     <div className="cust-panel">
@@ -231,7 +242,6 @@ CustomerPanel.propTypes = {
   cart: PropTypes.object,
   onChangeCustomer: PropTypes.func.isRequired,
 };
-CustomerPanel.defaultProps = { cart: null };
 
 function QuickForm({ qfPhone, setQfPhone, qfName, setQfName, qfEmail, setQfEmail, qfParty, setQfParty, qfSaving, qfErr, onQFSave, onQFCancel }) {
   return (
@@ -398,7 +408,6 @@ CustomerSection.propTypes = {
   onQFSave: PropTypes.func.isRequired,
   onQFCancel: PropTypes.func.isRequired,
 };
-CustomerSection.defaultProps = { customer: null, cart: null };
 
 export default function CartPage({
   phoneInput, handlePhoneChange,
@@ -407,7 +416,8 @@ export default function CartPage({
   ddIdx, ddRef,
   handlePhoneKey, selectCustomer,
   onNewCustomer,
-  customer, onChangeCustomer,
+  customer = null,
+  onChangeCustomer,
   showQF,
   qfPhone, setQfPhone,
   qfName, setQfName,
@@ -415,10 +425,12 @@ export default function CartPage({
   qfParty, setQfParty,
   qfSaving, qfErr,
   onQFSave, onQFCancel,
-  cart, busy,
+  cart = null,
+  busy,
   entries, entrySkus,
   totalPrice, totalDiscount, totalMrp,
-  products, productMap,
+  products,
+  productMap = {},
   filteredProducts,
   prodSearch, setProdSearch,
   prodQtys, setProdQtys,
@@ -427,7 +439,8 @@ export default function CartPage({
   pageErr, pageOk,
   confirmClear, setConfirmClear,
   confirmCheckout, setConfirmCheckout,
-  orderConfirm, onPrintReceipt, onViewOrder, onNewOrder, receiptRef,
+  orderConfirm = null,
+  onPrintReceipt, onViewOrder, onNewOrder, receiptRef,
 }) {
   const hasCustomer      = customer != null;
   const hasEntries       = entries.length > 0;
@@ -530,56 +543,55 @@ export default function CartPage({
               {hasEntries && <span style={{ fontSize: 12, fontWeight: 700, color: "#111" }}>{fmt(totalPrice)} total</span>}
             </div>
             {hasEntries ? (
-                <div className="tbl-scroll">
-                  <table className="pos-tbl">
-                    <thead>
-                      <tr>
-                        <th>Product</th><th>Price</th><th>MRP</th><th>Qty</th>
-                        <th style={{ textAlign: "right" }}>Total</th>
-                        <th style={{ textAlign: "right" }}>Savings</th>
-                        <th style={{ width: 28 }} />
+              <div className="tbl-scroll">
+                <table className="pos-tbl">
+                  <thead>
+                    <tr>
+                      <th>Product</th><th>Price</th><th>MRP</th><th>Qty</th>
+                      <th style={{ textAlign: "right" }}>Total</th>
+                      <th style={{ textAlign: "right" }}>Savings</th>
+                      <th style={{ width: 28 }} />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entries.map((entry) => (
+                      <tr key={entry.identifier}>
+                        <td>
+                          <div style={{ fontWeight: 700, color: "#111" }}>{resolveProductName(entry, productMap)}</div>
+                          <span className="sku-chip">{entry.productIdentifier}</span>
+                        </td>
+                        <td style={{ fontWeight: 700 }}>
+                          {entry.sellingPrice == null ? <span style={{ color: "#ddd" }}>—</span> : fmt(entry.sellingPrice)}
+                        </td>
+                        <td style={{ color: "#bbb", textDecoration: "line-through", fontSize: 12 }}>
+                          {entry.mrpPrice == null ? <span style={{ color: "#eee" }}>—</span> : fmt(entry.mrpPrice)}
+                        </td>
+                        <td>
+                          <div className="qty-wrap">
+                            <button className="qty-btn" type="button" onClick={() => onQtyChange(entry, -1)} disabled={busy || (entry.quantity ?? 1) <= 1}>−</button>
+                            <span className="qty-val">{entry.quantity}</span>
+                            <button className="qty-btn" type="button" onClick={() => onQtyChange(entry, +1)} disabled={busy}>+</button>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: "right", fontWeight: 700 }}>
+                          {entry.totalPrice == null ? <span style={{ color: "#ddd" }}>—</span> : fmt(entry.totalPrice)}
+                        </td>
+                        <td style={{ textAlign: "right", color: "#16a34a", fontWeight: 600, fontSize: 12 }}>
+                          {(entry.discount ?? 0) > 0 ? `− ${fmt(entry.discount)}` : <span style={{ color: "#eee" }}>—</span>}
+                        </td>
+                        <td>
+                          <button className="btn-rm" type="button" onClick={() => onRemoveEntry(entry.identifier)} disabled={busy}>✕</button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {entries.map((entry) => (
-                        <tr key={entry.identifier}>
-                          <td>
-                            <div style={{ fontWeight: 700, color: "#111" }}>{resolveProductName(entry, productMap)}</div>
-                            <span className="sku-chip">{entry.productIdentifier}</span>
-                          </td>
-                          <td style={{ fontWeight: 700 }}>
-                            {entry.sellingPrice == null ? <span style={{ color: "#ddd" }}>—</span> : fmt(entry.sellingPrice)}
-                          </td>
-                          <td style={{ color: "#bbb", textDecoration: "line-through", fontSize: 12 }}>
-                            {entry.mrpPrice == null ? <span style={{ color: "#eee" }}>—</span> : fmt(entry.mrpPrice)}
-                          </td>
-                          <td>
-                            <div className="qty-wrap">
-                              <button className="qty-btn" type="button" onClick={() => onQtyChange(entry, -1)} disabled={busy || (entry.quantity ?? 1) <= 1}>−</button>
-                              <span className="qty-val">{entry.quantity}</span>
-                              <button className="qty-btn" type="button" onClick={() => onQtyChange(entry, +1)} disabled={busy}>+</button>
-                            </div>
-                          </td>
-                          <td style={{ textAlign: "right", fontWeight: 700 }}>
-                            {entry.totalPrice == null ? <span style={{ color: "#ddd" }}>—</span> : fmt(entry.totalPrice)}
-                          </td>
-                          <td style={{ textAlign: "right", color: "#16a34a", fontWeight: 600, fontSize: 12 }}>
-                            {(entry.discount ?? 0) > 0 ? `− ${fmt(entry.discount)}` : <span style={{ color: "#eee" }}>—</span>}
-                          </td>
-                          <td>
-                            <button className="btn-rm" type="button" onClick={() => onRemoveEntry(entry.identifier)} disabled={busy}>✕</button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )
-              : (
-                <div className="pos-empty">
-                  {hasCustomer ? "Add products above to start billing." : "Select a customer to begin."}
-                </div>
-              )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="pos-empty">
+                {hasCustomer ? "Add products above to start billing." : "Select a customer to begin."}
+              </div>
+            )}
           </div>
         </div>
 
@@ -589,42 +601,39 @@ export default function CartPage({
             <span className="sb-title">Bill Summary</span>
             {hasEntries && <span className="sb-count">{entries.length} item{isMultiItem ? "s" : ""}</span>}
           </div>
-          {/* Positive branch (has entries) first */}
-          {hasEntries
-            ? (
-              <>
-                <div className="sb-list">
-                  {entries.map((e) => (
-                    <div key={e.identifier} className="sb-row">
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="sb-item-name">{resolveProductName(e, productMap)}</div>
-                        <div className="sb-item-sub">{fmt(e.sellingPrice)} × {e.quantity}</div>
-                      </div>
-                      <div className="sb-item-total">{fmt(e.totalPrice)}</div>
+          {hasEntries ? (
+            <>
+              <div className="sb-list">
+                {entries.map((e) => (
+                  <div key={e.identifier} className="sb-row">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="sb-item-name">{resolveProductName(e, productMap)}</div>
+                      <div className="sb-item-sub">{fmt(e.sellingPrice)} × {e.quantity}</div>
                     </div>
-                  ))}
-                </div>
-                <div className="sb-totals">
-                  {totalMrp > 0      && <div className="t-row"><span>Subtotal (MRP)</span><span>{fmt(totalMrp)}</span></div>}
-                  {totalDiscount > 0 && <div className="t-row green"><span>You save</span><span>− {fmt(totalDiscount)}</span></div>}
-                  <div className="t-row grand"><span>Total</span><span>{fmt(totalPrice)}</span></div>
-                </div>
-                <div className="sb-actions">
-                  <button className="btn-checkout" type="button" onClick={() => setConfirmCheckout(true)} disabled={busy || !hasEntries}>
-                    {busy ? <><span className="spin" /> Placing Order…</> : "✓ Confirm Order"}
-                  </button>
-                  <button className="btn-clear-cart" type="button" onClick={() => setConfirmClear(true)} disabled={busy}>Clear Cart</button>
-                </div>
-              </>
-            )
-            : (
-              <div className="sb-empty">
-                <div className="sb-empty-inner">
-                  <span className="sb-empty-icon">🛒</span>
-                  {hasCustomer ? "No items yet" : "Select a customer to begin"}
-                </div>
+                    <div className="sb-item-total">{fmt(e.totalPrice)}</div>
+                  </div>
+                ))}
               </div>
-            )}
+              <div className="sb-totals">
+                {totalMrp > 0      && <div className="t-row"><span>Subtotal (MRP)</span><span>{fmt(totalMrp)}</span></div>}
+                {totalDiscount > 0 && <div className="t-row green"><span>You save</span><span>− {fmt(totalDiscount)}</span></div>}
+                <div className="t-row grand"><span>Total</span><span>{fmt(totalPrice)}</span></div>
+              </div>
+              <div className="sb-actions">
+                <button className="btn-checkout" type="button" onClick={() => setConfirmCheckout(true)} disabled={busy || !hasEntries}>
+                  {busy ? <><span className="spin" /> Placing Order…</> : "✓ Confirm Order"}
+                </button>
+                <button className="btn-clear-cart" type="button" onClick={() => setConfirmClear(true)} disabled={busy}>Clear Cart</button>
+              </div>
+            </>
+          ) : (
+            <div className="sb-empty">
+              <div className="sb-empty-inner">
+                <span className="sb-empty-icon">🛒</span>
+                {hasCustomer ? "No items yet" : "Select a customer to begin"}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -718,11 +727,4 @@ CartPage.propTypes = {
   onViewOrder: PropTypes.func.isRequired,
   onNewOrder: PropTypes.func.isRequired,
   receiptRef: PropTypes.object.isRequired,
-};
-
-CartPage.defaultProps = {
-  customer: null,
-  cart: null,
-  productMap: {},
-  orderConfirm: null,
 };
