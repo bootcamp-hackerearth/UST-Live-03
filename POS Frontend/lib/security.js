@@ -92,9 +92,7 @@ export const validators = {
   },
 };
 
-/**
- * Safe JSON parsing with error handling
- */
+
 export const safeJsonParse = (json, defaultValue = null) => {
   try {
     return JSON.parse(json);
@@ -103,9 +101,6 @@ export const safeJsonParse = (json, defaultValue = null) => {
   }
 };
 
-/**
- * Sanitize object - remove sensitive fields
- */
 export const sanitizeObject = (obj, fieldsToRemove = ['password', 'token', 'secret']) => {
   if (!obj || typeof obj !== 'object') return obj;
   
@@ -117,24 +112,16 @@ export const sanitizeObject = (obj, fieldsToRemove = ['password', 'token', 'secr
   return sanitized;
 };
 
-/**
- * Check if operation is safe (not in high-risk state)
- */
 export const isSafeOperation = (state) => {
   if (!state) return false;
   
-  // Don't allow if already saving or deleting
   if (state.saving || state.deleting) return false;
   
-  // Don't allow if there are unsaved errors
   if (state.error && state.error.length > 0) return false;
   
   return true;
 };
 
-/**
- * Validate cart before checkout
- */
 export const validateCart = (cart) => {
   if (!cart) return 'No cart found';
   if (!cart.cartEntries || cart.cartEntries.length === 0) return 'Cart is empty';
