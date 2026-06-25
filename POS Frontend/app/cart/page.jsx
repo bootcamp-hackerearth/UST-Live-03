@@ -123,7 +123,7 @@ export default function CartRoute() {
         if (productsList.length > 0) {
           applyProductsList(productsList);
         } else {
-          throw new Error("No products available");
+          throw new Error("No active products found");
         }
       } catch {
         try {
@@ -222,14 +222,13 @@ export default function CartRoute() {
       setCart(newCart);
       return newCart;
     } catch (error) {
-      const errorMsg = error.message || ERROR_MESSAGES.SERVER_ERROR;
-      setPageErr(errorMsg);
+      setPageErr(error?.message || "Server error. Please try again.");
       return null;
     }
   }, []);
 
   const openQF = useCallback(() => {
-    setQfPhone(phoneInput.replaceAll(/\D/g, ""));
+    setQfPhone(phoneInput.replaceAll(/\D/g, "").slice(0, 10));
     setQfName("");
     setQfEmail("");
     setQfParty("Customer");
@@ -255,9 +254,10 @@ export default function CartRoute() {
   }, [ensureCart]);
 
   const handlePhoneChange = useCallback((val) => {
-    setPhoneInput(val);
+    const digits = val.replaceAll(/\D/g, "").slice(0, 10);
+    setPhoneInput(digits);
     setDdIdx(-1);
-    setDdShow(val.length > 0);
+    setDdShow(digits.length > 0);
   }, []);
 
   const handlePhoneKey = useCallback((e) => {
@@ -319,18 +319,18 @@ export default function CartRoute() {
         </body>
       </html>
     `;
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=UTF-8' });
+    const blob = new Blob([htmlContent], { type: "text/html;charset=UTF-8" });
     const url = URL.createObjectURL(blob);
-    const newWindow = window.open(url, '_blank');
+    const newWindow = window.open(url, "_blank");
     if (newWindow) {
-      newWindow.addEventListener('load', () => {
+      newWindow.addEventListener("load", () => {
         newWindow.print();
       }, { once: true });
     }
   };
 
   const handleViewOrder = () => {
-    router.push(`/orders`);
+    router.push("/orders");
   };
 
   const handleNewOrder = () => {
@@ -400,7 +400,7 @@ export default function CartRoute() {
       await ensureCart(customerId);
       setBusy(false);
     } catch (error) {
-      const errorMsg = error.message || ERROR_MESSAGES.SERVER_ERROR;
+      const errorMsg = error?.message || "Server error. Please try again.";
       const isDuplicate = errorMsg.toLowerCase().includes("already exists");
       if (isDuplicate) {
         const existingCustomer = allCustomers.find((c) => c.identifier === qfPhone.trim());
@@ -423,8 +423,11 @@ export default function CartRoute() {
   }, [qfPhone, qfName, qfEmail, qfParty, ensureCart, allCustomers]);
 
   const handleChangeCustomer = () => {
-    setCustomer(null); setCart(null); setPhoneInput("");
-    setPageErr(""); setPageOk("");
+    setCustomer(null);
+    setCart(null);
+    setPhoneInput("");
+    setPageErr("");
+    setPageOk("");
   };
 
   const handleAddProduct = useCallback(async (product) => {
@@ -433,14 +436,21 @@ export default function CartRoute() {
     if (Number.isNaN(qty) || qty < 1) { setPageErr("Quantity must be at least 1."); return; }
     setBusy(true); setPageErr(""); setPageOk("");
     try {
-      const updated = await fetchWithAuth("/api/cart/save", { method: "POST", body: JSON.stringify({
-        username: cart.username ?? cart.identifier, identifier: cart.identifier,
-        cartEntries: [{ cartIdentifier: cart.identifier, productIdentifier: product.identifier, quantity: qty }],
-      })});
+      const updated = await fetchWithAuth("/api/cart/save", {
+        method: "POST",
+        body: JSON.stringify({
+          username: cart.username ?? cart.identifier,
+          identifier: cart.identifier,
+          cartEntries: [{ cartIdentifier: cart.identifier, productIdentifier: product.identifier, quantity: qty }],
+        }),
+      });
       setCart(updated);
       setProdQtys((p) => ({ ...p, [product.identifier]: "" }));
-    } catch (e) { setPageErr(e.message || "Failed to add product."); }
-    finally { setBusy(false); }
+    } catch (e) {
+      setPageErr(e?.message || "Failed to add product.");
+    } finally {
+      setBusy(false);
+    }
   }, [cart, prodQtys]);
 
   const handleQtyChange = useCallback(async (entry, delta) => {
@@ -448,22 +458,33 @@ export default function CartRoute() {
     if (newQty < 1) return;
     setBusy(true); setPageErr("");
     try {
-      const updated = await fetchWithAuth(`/api/cart/update/${cart.identifier}`, { method: "PUT", body: JSON.stringify({
-        identifier: cart.identifier, username: cart.username ?? cart.identifier,
-        cartEntries: [{ identifier: entry.identifier, cartIdentifier: cart.identifier, productIdentifier: entry.productIdentifier, quantity: newQty }],
-      })});
+      const updated = await fetchWithAuth(`/api/cart/update/${cart.identifier}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          identifier: cart.identifier,
+          username: cart.username ?? cart.identifier,
+          cartEntries: [{ identifier: entry.identifier, cartIdentifier: cart.identifier, productIdentifier: entry.productIdentifier, quantity: newQty }],
+        }),
+      });
       setCart(updated);
-    } catch (e) { setPageErr(e.message || "Failed to update quantity."); }
-    finally { setBusy(false); }
+    } catch (e) {
+      setPageErr(e?.message || "Failed to update quantity.");
+    } finally {
+      setBusy(false);
+    }
   }, [cart]);
 
   const handleRemoveEntry = useCallback(async (entryId) => {
     setBusy(true); setPageErr("");
     try {
       await fetchWithAuth(`/api/cart/delete-entry/${entryId}`, { method: "DELETE", body: JSON.stringify({}) });
-      setCart(await fetchWithAuth(`/api/cart/${cart.identifier}`) ?? null);
-    } catch (e) { setPageErr(e.message || "Failed to remove item."); }
-    finally { setBusy(false); }
+      const refreshed = await fetchWithAuth(`/api/cart/${cart.identifier}`);
+      setCart(refreshed ?? null);
+    } catch (e) {
+      setPageErr(e?.message || "Failed to remove item.");
+    } finally {
+      setBusy(false);
+    }
   }, [cart]);
 
   const handleClearCart = async () => {
@@ -478,11 +499,20 @@ export default function CartRoute() {
           body: JSON.stringify({}),
         });
       }
-      setCart(await fetchWithAuth(`/api/cart/${cart.identifier}`) ?? null);
+      const refreshed = await fetchWithAuth(`/api/cart/${cart.identifier}`);
+      setCart(refreshed ?? null);
       setPageOk("Cart cleared.");
-    } catch (e) { setPageErr(e.message || "Failed to clear cart."); }
-    finally { setBusy(false); }
+    } catch (e) {
+      setPageErr(e?.message || "Failed to clear cart.");
+    } finally {
+      setBusy(false);
+    }
   };
+
+  const entries = cart?.cartEntries ?? [];
+  const totalPrice = Number(cart?.totalPrice ?? 0);
+  const totalDiscount = Number(cart?.discount ?? 0);
+  const totalMrp = entries.reduce((s, e) => s + Number(e.mrpPrice ?? 0) * Number(e.quantity ?? 1), 0);
 
   const handleCheckout = async () => {
     setConfirmCheckout(false);
@@ -527,16 +557,12 @@ export default function CartRoute() {
 
       setPageOk("Order placed successfully!");
     } catch (e) {
-      setPageErr(e.message || "Failed to place order.");
+      setPageErr(e?.message || "Failed to place order.");
       setBusy(false);
     }
   };
 
-  const entries = cart?.cartEntries ?? [];
   const entrySkus = new Set(entries.map((e) => e.productIdentifier));
-  const totalPrice = Number(cart?.totalPrice ?? 0);
-  const totalDiscount = Number(cart?.discount ?? 0);
-  const totalMrp = entries.reduce((s, e) => s + Number(e.mrpPrice ?? 0) * Number(e.quantity ?? 1), 0);
   const pq = debouncedProdSearch.trim().toLowerCase();
   const filteredProducts = pq
     ? products.filter((p) => p.productName?.toLowerCase().includes(pq) || p.identifier?.toLowerCase().includes(pq))

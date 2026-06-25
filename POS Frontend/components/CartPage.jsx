@@ -207,11 +207,7 @@ ConfirmModal.propTypes = {
   danger: PropTypes.bool,
 };
 
-function CustomerPanel({
-  customer,
-  cart = null,
-  onChangeCustomer,
-}) {
+function CustomerPanel({ customer, cart = null, onChangeCustomer }) {
   const initial = (customer.customerName?.[0] ?? customer.identifier?.[0] ?? "?").toUpperCase();
   return (
     <div className="cust-panel">
@@ -250,7 +246,15 @@ function QuickForm({ qfPhone, setQfPhone, qfName, setQfName, qfEmail, setQfEmail
       <div className="qf-grid">
         <div className="qf-field">
           <label htmlFor="qf-phone" className="qf-label">Phone <span className="qf-req">*</span></label>
-          <input id="qf-phone" className="qf-inp" value={qfPhone} maxLength={15} onChange={(e) => setQfPhone(e.target.value.replaceAll(/\D/g, ""))} placeholder="Mobile number" />
+          <input
+            id="qf-phone"
+            className="qf-inp"
+            value={qfPhone}
+            maxLength={10}
+            inputMode="numeric"
+            onChange={(e) => setQfPhone(e.target.value.replaceAll(/\D/g, "").slice(0, 10))}
+            placeholder="10-digit mobile number"
+          />
         </div>
         <div className="qf-field">
           <label htmlFor="qf-name" className="qf-label">Name <span className="qf-req">*</span></label>
@@ -267,7 +271,7 @@ function QuickForm({ qfPhone, setQfPhone, qfName, setQfName, qfEmail, setQfEmail
           </select>
         </div>
       </div>
-      <p className="qf-hint">Phone & name required — other details can be updated later.</p>
+      <p className="qf-hint">Phone &amp; name required — other details can be updated later.</p>
       <div className="qf-row">
         <button className="btn-primary" style={{ flex: 1, justifyContent: "center", padding: "8px 12px" }} type="button" onClick={onQFSave} disabled={qfSaving}>
           {qfSaving ? <><span className="spin" /> Saving…</> : "Save & Start Billing"}
@@ -299,12 +303,13 @@ function CustomerLookup({ phoneInput, handlePhoneChange, handlePhoneKey, ddShow,
         <input
           className="phone-inp"
           type="text"
+          inputMode="numeric"
           placeholder="Search by phone or name…"
           value={phoneInput}
           onChange={(e) => handlePhoneChange(e.target.value)}
           onKeyDown={handlePhoneKey}
           onFocus={() => { if (phoneInput.length > 0) setDdShow(true); }}
-          maxLength={50}
+          maxLength={10}
           autoComplete="off"
         />
         {phoneInput && (
@@ -326,7 +331,7 @@ function CustomerLookup({ phoneInput, handlePhoneChange, handlePhoneKey, ddShow,
                 <div className="dd-av">{(c.customerName?.[0] ?? c.identifier?.[0] ?? "?").toUpperCase()}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="dd-name">{c.customerName ? htmlEscape(c.customerName) : c.identifier}</div>
-                  <div className="dd-sub">📞 {c.identifier}{c.email ? ` · ${htmlEscape(c.email)}` : ""}</div>
+                  <div className="dd-sub">{c.identifier}{c.email ? ` · ${htmlEscape(c.email)}` : ""}</div>
                 </div>
                 {c.partyType && <span className="dd-tag">{htmlEscape(c.partyType)}</span>}
               </button>
@@ -342,7 +347,7 @@ function CustomerLookup({ phoneInput, handlePhoneChange, handlePhoneKey, ddShow,
           </div>
         )}
       </div>
-      <p className="lookup-hint">Type a phone number or name · ↑↓ to navigate · Enter to select</p>
+      <p className="lookup-hint">Type a phone number · ↑↓ to navigate · Enter to select</p>
     </div>
   );
 }
