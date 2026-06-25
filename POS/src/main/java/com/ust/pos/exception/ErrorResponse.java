@@ -14,8 +14,20 @@ public class ErrorResponse {
         this.path = path;
         this.timestamp = LocalDateTime.now();
     }
-    public int getStatus() { return status; }
-    public String getMessage() { return message; }
-    public String getPath() { return path; }
-    public LocalDateTime getTimestamp() { return timestamp; }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
 }
