@@ -107,7 +107,7 @@ export default function OrderRoute() {
     setBusy(true); setPageErr("");
     try {
       await fetchWithAuth(`/api/orders/delete/${confirmDelete.identifier}`, {
-        method: "POST",
+        method: "DELETE",
         body: JSON.stringify({}),
       });
       setConfirmDelete(null);
