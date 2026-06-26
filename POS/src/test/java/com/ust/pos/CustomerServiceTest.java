@@ -4,6 +4,7 @@ import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,11 +62,12 @@ class CustomerServiceTest {
         customer = new Customer();
         customer.setIdentifier("CUST123");
         customer.setPhoneNo(9876543210L);
+        customer.setDeleted(false);
     }
 
     @Test
     void testFindByIdentifier_Found() {
-        when(customerRepository.findByIdentifier("CUST123")).thenReturn(customer);
+        when(customerRepository.findByIdentifierAndDeletedFalse("CUST123")).thenReturn(customer);
         when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
 
         CustomerDto result = customerService.findByIdentifier("CUST123");
@@ -76,7 +78,7 @@ class CustomerServiceTest {
 
     @Test
     void testFindByIdentifier_NotFound() {
-        when(customerRepository.findByIdentifier("CUST123")).thenReturn(null);
+        when(customerRepository.findByIdentifierAndDeletedFalse("CUST123")).thenReturn(null);
 
         CustomerDto result = customerService.findByIdentifier("CUST123");
 
@@ -84,14 +86,24 @@ class CustomerServiceTest {
     }
 
     @Test
-    void testSave_WhenCustomerAlreadyExists() {
+    void testSave_WhenCustomerAlreadyExists_Active() {
         when(customerRepository.findByIdentifier("CUST123")).thenReturn(customer);
 
         CustomerDto result = customerService.save(customerDto);
 
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("already exists"));
-        verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void testSave_WhenCustomerAlreadyExists_SoftDeleted() {
+        customer.setDeleted(true);
+        when(customerRepository.findByIdentifier("CUST123")).thenReturn(customer);
+
+        CustomerDto result = customerService.save(customerDto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("Please contact administrator"));
     }
 
     @Test
@@ -101,15 +113,29 @@ class CustomerServiceTest {
 
         CustomerDto result = customerService.save(customerDto);
 
-        verify(addressService).save(customerDto.getBillingAddress());
-        verify(addressService).save(customerDto.getShippingAddress());
-        verify(customerRepository).save(customer);
         assertNotNull(result);
+        verify(addressService, times(1)).save(customerDto.getBillingAddress());
+        verify(addressService, times(1)).save(customerDto.getShippingAddress());
+        verify(customerRepository, times(1)).save(customer);
+    }
+
+    @Test
+    void testSave_NewCustomer_NullAddresses() {
+        customerDto.setBillingAddress(null);
+        customerDto.setShippingAddress(null);
+
+        when(customerRepository.findByIdentifier("CUST123")).thenReturn(null);
+        when(modelMapper.map(customerDto, Customer.class)).thenReturn(customer);
+
+        CustomerDto result = customerService.save(customerDto);
+
+        verify(addressService, never()).save(any());
+        verify(customerRepository, times(1)).save(customer);
     }
 
     @Test
     void testUpdate_CustomerNotFound() {
-        when(customerRepository.findByIdentifier("CUST123")).thenReturn(null);
+        when(customerRepository.findByIdentifierAndDeletedFalse("CUST123")).thenReturn(null);
 
         CustomerDto result = customerService.update(customerDto);
 
@@ -119,66 +145,90 @@ class CustomerServiceTest {
 
     @Test
     void testUpdate_CustomerFound() {
-        when(customerRepository.findByIdentifier("CUST123")).thenReturn(customer);
+        when(customerRepository.findByIdentifierAndDeletedFalse("CUST123")).thenReturn(customer);
 
-        when(addressService.findByPhoneNoAndAddressType(
-                anyLong(), eq("billingAddress"))).thenReturn(customerDto.getBillingAddress());
-        when(addressService.findByPhoneNoAndAddressType(
-                anyLong(), eq("shippingAddress"))).thenReturn(customerDto.getShippingAddress());
+        when(addressService.findByPhoneNoAndAddressType(9876543210L, "billingAddress"))
+                .thenReturn(customerDto.getBillingAddress());
+        when(addressService.findByPhoneNoAndAddressType(9876543210L, "shippingAddress"))
+                .thenReturn(customerDto.getShippingAddress());
 
         CustomerDto result = customerService.update(customerDto);
-
-        verify(addressService).update(customerDto.getBillingAddress());
-        verify(addressService).update(customerDto.getShippingAddress());
-        verify(customerRepository).save(customer);
         assertNotNull(result);
+        verify(customerRepository, times(1)).save(customer);
+        verify(addressService, times(1)).update(customerDto.getBillingAddress());
+        verify(addressService, times(1)).update(customerDto.getShippingAddress());
     }
 
     @Test
-    void testDelete() {
-        doNothing().when(customerRepository).deleteByIdentifier("CUST123");
+    void testUpdate_CustomerFound_NullAddresses() {
+        customerDto.setBillingAddress(null);
+        customerDto.setShippingAddress(null);
+
+        when(customerRepository.findByIdentifierAndDeletedFalse("CUST123")).thenReturn(customer);
+
+        CustomerDto result = customerService.update(customerDto);
+        assertNotNull(result);
+        verify(addressService, times(2)).update(null);
+    }
+
+    @Test
+    void testDelete_Success() {
+        when(customerRepository.findByIdentifierAndDeletedFalse("CUST123"))
+                .thenReturn(customer);
+        when(customerRepository.save(any(Customer.class)))
+                .thenReturn(customer);
         doNothing().when(addressService).deleteByPhone(9876543210L);
+        assertDoesNotThrow(() -> customerService.delete("CUST123"));
+        verify(customerRepository, times(1))
+                .findByIdentifierAndDeletedFalse("CUST123");
+        verify(customerRepository, times(1))
+                .save(customer);
+        verify(addressService, times(1))
+                .deleteByPhone(9876543210L);
+        assertTrue(customer.getDeleted());
+        assertNotNull(customer.getModifiedOn());
+    }
 
-        customerService.delete("CUST123", 9876543210L);
+    @Test
+    void testDelete_CustomerNotFound() {
+        when(customerRepository.findByIdentifierAndDeletedFalse("CUST123"))
+                .thenReturn(null);
 
-        verify(customerRepository).deleteByIdentifier("CUST123");
-        verify(addressService).deleteByPhone(9876543210L);
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> customerService.delete("CUST123")
+        );
+
+        assertTrue(exception.getMessage().contains("not found"));
+
+        verify(customerRepository, times(1))
+                .findByIdentifierAndDeletedFalse("CUST123");
+        verify(customerRepository, never()).save(any());
+        verify(addressService, never()).deleteByPhone(anyLong());
     }
 
     @Test
     void testFindAll() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Customer> customerList = Collections.singletonList(customer);
+        List<CustomerDto> customerDtoList = Collections.singletonList(customerDto);
 
-        Pageable pageable = PageRequest.of(0, 50);
+        Page<Customer> customerPage = new PageImpl<>(customerList, pageable, 1);
 
-        List<Customer> customerList =
-                Collections.singletonList(customer);
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
 
-        List<CustomerDto> customerDtoList =
-                Collections.singletonList(customerDto);
-
-        Page<Customer> customerPage =
-                new PageImpl<>(customerList, pageable, customerList.size());
-
-        Type listType =
-                new TypeToken<List<CustomerDto>>() {
-                }.getType();
-
-        when(customerRepository.findAll(pageable))
+        when(customerRepository.findAllByDeletedFalse(pageable))
                 .thenReturn(customerPage);
 
         when(modelMapper.map(customerPage.getContent(), listType))
                 .thenReturn(customerDtoList);
 
-        List<CustomerDto> result =
-                customerService.findAll(pageable);
+        WsDto<CustomerDto> result = customerService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-
-        verify(customerRepository, times(1))
-                .findAll(pageable);
-
-        verify(modelMapper, times(1))
-                .map(customerPage.getContent(), listType);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(0, result.getPage());
     }
 }

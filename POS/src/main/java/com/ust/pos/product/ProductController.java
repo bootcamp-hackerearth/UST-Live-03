@@ -7,7 +7,7 @@ import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.shelf.service.ShelfService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/product")
-public class
-ProductController {
+@RequiredArgsConstructor
+public class ProductController {
 
     public static final String CATEGORIES = "categories";
     public static final String PRODUCTS = "products";
@@ -25,23 +25,13 @@ ProductController {
     public static final String SHELF = "shelf";
     public static final String BRAND = "brand";
     public static final String MODEL = "model";
-    @Autowired
-    private ProductService productService;
 
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private BrandService brandService;
-
-    @Autowired
-    private ModelsService modelsService;
-
-    @Autowired
-    private UnitService unitService;
-
-    @Autowired
-    private ShelfService shelfService;
+    private final ProductService productService;
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final ModelsService modelsService;
+    private final UnitService unitService;
+    private final ShelfService shelfService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

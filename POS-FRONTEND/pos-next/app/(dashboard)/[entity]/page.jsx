@@ -5,6 +5,8 @@ import {cookies} from "next/headers";
 import {redirect} from "next/navigation";
 import GenericTable from "../components/GenericTable";
 import {ENTITY_CONFIG} from "../lib/entityConfig";
+import AccessDenied from "../components/AccessDenied";
+import NotFound from "../components/NotFound";
 
 export default async function EntityPage({
   params,
@@ -17,7 +19,7 @@ export default async function EntityPage({
   const config = ENTITY_CONFIG[entity];
 
   if (!config) {
-    redirect("/home");}
+    return <NotFound />}
 
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -33,7 +35,7 @@ export default async function EntityPage({
         {
           page,
           sizePerPage,
-          sortField: "id",
+          sortField: "identifier",
           sortDirection: "ASC",
         },
         {headers: {Authorization:`Bearer ${token}`}}
@@ -45,8 +47,26 @@ export default async function EntityPage({
     totalRecords = data.totalRecords || 0;
 
   } catch (error) {
-    console.error(error);
+
+  if (error.response) {
+    const status = error.response.status;
+    if (status === 403) {
+      return <AccessDenied />;
+    }
+    if (status === 404) {
+      return <NotFound />;
+    }
+    if (status === 401) {
+      redirect("/login");
+    }
   }
+
+  return (
+    <div className="p-4 text-red-600">
+      Failed to load data
+    </div>
+  );
+}
 
   return (
     <div>
@@ -64,15 +84,16 @@ export default async function EntityPage({
       </div>
 
       <GenericTable
+        entity={entity}
         columns={config.columns}
         rows={rows}
-        entity={entity}
         config={config}
         toggleEndpoint={config.toggleEndpoint}
         currentPage={page}
         pageSize={sizePerPage}
         totalPages={totalPages}
         totalRecords={totalRecords}
+        showActions={config.entityName !== "Order"}
       />
     </div>
   );

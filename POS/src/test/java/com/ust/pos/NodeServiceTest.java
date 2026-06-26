@@ -7,29 +7,39 @@ import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.impl.NodeServiceImpl;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NodeServiceTest {
 
-    @Mock private UserRepository userRepository;
-    @Mock private NodeRepository nodeRepository;
-    @Mock private ModelMapper modelMapper;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private NodeRepository nodeRepository;
+    @Mock
+    private ModelMapper modelMapper;
 
     @InjectMocks
     private NodeServiceImpl nodeService;
@@ -42,10 +52,12 @@ class NodeServiceTest {
     void setUp() {
         nodeDto = new NodeDto();
         nodeDto.setIdentifier("NODE-001");
+        nodeDto.setSuccess(true);
 
         node = new Node();
         node.setIdentifier("NODE-001");
         node.setRoles(List.of("ADMIN"));
+        node.setDeleted(false);
 
         user = new User();
         user.setUsername("testuser");
@@ -68,20 +80,15 @@ class NodeServiceTest {
     }
 
     @Test
-    void testGetNodesForRoles_PrincipalNull() {
+    void testGetNodesForRoles_PrincipalInvalidType() {
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(null, null)
+                new UsernamePasswordAuthenticationToken("anonymousUser", "password")
         );
-
-        List<NodeDto> result = nodeService.getNodesForRoles();
-
-        assertTrue(result.isEmpty());
-        verifyNoInteractions(userRepository);
+        assertThrows(ClassCastException.class, () -> nodeService.getNodesForRoles());
     }
 
     @Test
     void testGetNodesForRoles_HappyPath_RoleMatch() {
-
         var principal = new org.springframework.security.core.userdetails.User(
                 "testuser", "pass", Collections.emptyList());
 
@@ -90,21 +97,19 @@ class NodeServiceTest {
         );
 
         when(userRepository.findByUsername("testuser")).thenReturn(user);
-        when(nodeRepository.findAll()).thenReturn(List.of(node));
+        when(nodeRepository.findAllByDeletedFalse()).thenReturn(List.of(node));
         when(nodeRepository.findByIdentifier("NODE-001")).thenReturn(node);
         when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
 
         List<NodeDto> result = nodeService.getNodesForRoles();
 
         assertEquals(1, result.size());
-
-        verify(nodeRepository).findAll();
-        verify(nodeRepository).findByIdentifier("NODE-001");
+        verify(nodeRepository, times(1)).findAllByDeletedFalse();
+        verify(nodeRepository, times(1)).findByIdentifier("NODE-001");
     }
 
     @Test
     void testGetNodesForRoles_NodeRolesNull() {
-
         var principal = new org.springframework.security.core.userdetails.User(
                 "testuser", "pass", Collections.emptyList());
 
@@ -116,25 +121,75 @@ class NodeServiceTest {
                 new UsernamePasswordAuthenticationToken(principal, null)
         );
 
-        user.setRoles(List.of("ADMIN"));
-
         when(userRepository.findByUsername("testuser")).thenReturn(user);
-        when(nodeRepository.findAll()).thenReturn(List.of(badNode));
+        when(nodeRepository.findAllByDeletedFalse()).thenReturn(List.of(badNode));
 
         List<NodeDto> result = nodeService.getNodesForRoles();
 
         assertTrue(result.isEmpty());
-        verify(nodeRepository).findAll();
+        verify(nodeRepository, times(1)).findAllByDeletedFalse();
         verify(nodeRepository, never()).findByIdentifier(any());
     }
 
     @Test
-    void testSave_AlreadyExists() {
+    void testGetNodesForRoles_PrincipalObjectNull() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(null, null)
+        );
+
+        List<NodeDto> result = nodeService.getNodesForRoles();
+
+        assertTrue(result.isEmpty());
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(nodeRepository);
+    }
+
+    @Test
+    void testGetNodesForRoles_NodeRolesDoNotMatchUserRoles() {
+        var principal = new org.springframework.security.core.userdetails.User(
+                "testuser", "pass", Collections.emptyList());
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null)
+        );
+
+        Node mismatchNode = new Node();
+        mismatchNode.setIdentifier("NODE-999");
+        mismatchNode.setRoles(List.of("GUEST", "MANAGER"));
+        mismatchNode.setDeleted(false);
+
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
+        when(nodeRepository.findAllByDeletedFalse()).thenReturn(List.of(mismatchNode));
+
+        List<NodeDto> result = nodeService.getNodesForRoles();
+
+        assertTrue(result.isEmpty());
+        verify(nodeRepository, times(1)).findAllByDeletedFalse();
+        verify(nodeRepository, never()).findByIdentifier(anyString());
+    }
+
+    @Test
+    void testSave_AlreadyExists_Active() {
+        node.setDeleted(false);
         when(nodeRepository.findByIdentifier("NODE-001")).thenReturn(node);
 
         NodeDto result = nodeService.save(nodeDto);
 
         assertFalse(result.isSuccess());
+        assertEquals("Node with identifier - NODE-001 already exists", result.getMessage());
+        verify(nodeRepository, never()).save(any());
+    }
+
+    @Test
+    void testSave_AlreadyExists_SoftDeleted() {
+        node.setDeleted(true);
+        when(nodeRepository.findByIdentifier("NODE-001")).thenReturn(node);
+
+        NodeDto result = nodeService.save(nodeDto);
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertEquals("Node identifier - NODE-001 not available", result.getMessage());
         verify(nodeRepository, never()).save(any());
     }
 
@@ -146,7 +201,7 @@ class NodeServiceTest {
         NodeDto result = nodeService.save(nodeDto);
 
         assertTrue(result.isSuccess());
-        verify(nodeRepository).save(node);
+        verify(nodeRepository, times(1)).save(node);
     }
 
     @Test
@@ -156,6 +211,7 @@ class NodeServiceTest {
         NodeDto result = nodeService.update(nodeDto);
 
         assertFalse(result.isSuccess());
+        assertEquals("Node with identifier - NODE-001 not found", result.getMessage());
         verify(nodeRepository, never()).save(any());
     }
 
@@ -166,63 +222,56 @@ class NodeServiceTest {
         NodeDto result = nodeService.update(nodeDto);
 
         assertTrue(result.isSuccess());
-        verify(modelMapper).map(nodeDto, node);
-        verify(nodeRepository).save(node);
+        verify(modelMapper, times(1)).map(nodeDto, node);
+        verify(nodeRepository, times(1)).save(node);
     }
 
     @Test
-    void testDelete() {
-        boolean result = nodeService.delete("NODE-001");
+    void testDelete_Success() {
+        String identifier = "NODE-001";
+        when(nodeRepository.findByIdentifierAndDeletedFalse(identifier)).thenReturn(node);
 
-        assertTrue(result);
-        verify(nodeRepository).deleteByIdentifier("NODE-001");
+        assertDoesNotThrow(() -> nodeService.delete(identifier));
+
+        verify(nodeRepository, times(1)).findByIdentifierAndDeletedFalse(identifier);
+        assertTrue(node.getDeleted());
     }
 
     @Test
     void testFindAll() {
-
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Node> page = new PageImpl<>(List.of(node), pageable, 1);
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
 
-        Page<Node> page =
-                new PageImpl<>(List.of(node), pageable, 1);
+        when(nodeRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
+        when(modelMapper.map(page.getContent(), listType)).thenReturn(List.of(nodeDto));
 
-        Type listType =
-                new TypeToken<List<NodeDto>>() {
-                }.getType();
-
-        when(nodeRepository.findAll(pageable))
-                .thenReturn(page);
-
-        when(modelMapper.map(page.getContent(), listType))
-                .thenReturn(List.of(nodeDto));
-
-        WsDto<NodeDto> result =
-                nodeService.findAll(pageable);
+        WsDto<NodeDto> result = nodeService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-
-        verify(nodeRepository).findAll(pageable);
-
-        verify(modelMapper)
-                .map(page.getContent(), listType);
+        verify(nodeRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
     @Test
     void testFindByIdentifier() {
-        when(nodeRepository.findByIdentifier("NODE-001")).thenReturn(node);
+        when(nodeRepository.findByIdentifierAndDeletedFalse("NODE-001")).thenReturn(node);
         when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
 
         NodeDto result = nodeService.findByIdentifier("NODE-001");
 
+        assertNotNull(result);
         assertEquals("NODE-001", result.getIdentifier());
+        verify(nodeRepository, times(1)).findByIdentifierAndDeletedFalse("NODE-001");
     }
 
     @Test
     void testFindByIdentifier_Null() {
-        when(nodeRepository.findByIdentifier("NODE-001")).thenReturn(null);
+        when(nodeRepository.findByIdentifierAndDeletedFalse("NODE-001")).thenReturn(null);
         when(modelMapper.map(null, NodeDto.class)).thenReturn(null);
 
         assertNull(nodeService.findByIdentifier("NODE-001"));
+        verify(nodeRepository, times(1)).findByIdentifierAndDeletedFalse("NODE-001");
     }
 }

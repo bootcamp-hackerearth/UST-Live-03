@@ -8,7 +8,6 @@ import java.util.List;
 @Getter
 @Setter
 
-public class WsDto<T> extends PaginationDto{
-
-        List<T> dtoList;
-    }
+public class WsDto<T> extends PaginationDto {
+    List<T> dtoList;
+}

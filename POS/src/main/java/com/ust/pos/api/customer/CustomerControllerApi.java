@@ -1,32 +1,25 @@
 package com.ust.pos.api.customer;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.WsDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/customer")
+@RequiredArgsConstructor
 public class CustomerControllerApi extends BaseController {
 
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private AddressService addressService;
+    private final CustomerService customerService;
+    private final AddressService addressService;
 
     @PostMapping("/list")
-    public List<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return customerService.findAll(pageable);
     }
@@ -44,15 +37,15 @@ public class CustomerControllerApi extends BaseController {
         return response;
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier, Long phoneNo) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestParam String identifier) {
         try {
-            customerService.delete(identifier, phoneNo);
+            customerService.delete(identifier);
         } catch (Exception e) {
             return false;
         }

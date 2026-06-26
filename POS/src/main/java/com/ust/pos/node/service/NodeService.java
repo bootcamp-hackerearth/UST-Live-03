@@ -13,7 +13,7 @@ public interface NodeService {
 
     NodeDto update(NodeDto nodeDto);
 
-    boolean delete(String identifier);
+    void delete(String identifier);
 
     WsDto<NodeDto> findAll(Pageable pageable);
 

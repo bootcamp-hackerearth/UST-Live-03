@@ -1,24 +1,24 @@
 package com.ust.pos.api.cart;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
+@RequiredArgsConstructor
 public class CartControllerApi extends BaseController {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
 
     @PostMapping("/list")
     public WsDto<CartDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return cartService.findAllws(pageable);
     }
@@ -33,10 +33,10 @@ public class CartControllerApi extends BaseController {
         return cartService.findByIdentifier(identifier);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PostMapping("/delete")
+    public boolean delete(@RequestBody CartDto cartDto) {
         try {
-            cartService.delete(identifier);
+            cartService.delete(cartDto.getIdentifier());
         } catch (Exception e) {
             return false;
         }

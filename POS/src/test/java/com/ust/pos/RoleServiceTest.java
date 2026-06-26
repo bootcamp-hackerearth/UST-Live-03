@@ -24,7 +24,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,6 +51,7 @@ class RoleServiceTest {
         role = new Role();
         role.setIdentifier("ROLE_ADMIN");
         role.setDescription("Administrator Role");
+        role.setDeleted(false);
     }
 
     @Test
@@ -63,10 +63,12 @@ class RoleServiceTest {
 
         assertNotNull(result);
         assertEquals("ROLE_ADMIN", result.getIdentifier());
+        verify(roleRepository, times(1)).findByIdentifier("ROLE_ADMIN");
     }
 
     @Test
-    void testSave_RoleAlreadyExists() {
+    void testSave_RoleAlreadyExists_Active() {
+        role.setDeleted(false);
         when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(role);
 
         RoleDto result = roleService.save(roleDto);
@@ -77,14 +79,26 @@ class RoleServiceTest {
     }
 
     @Test
+    void testSave_RoleAlreadyExists_SoftDeleted() {
+        role.setDeleted(true);
+        when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(role);
+
+        RoleDto result = roleService.save(roleDto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("not available"));
+        verify(roleRepository, never()).save(any());
+    }
+
+    @Test
     void testSave_NewRole() {
         when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(null);
         when(modelMapper.map(roleDto, Role.class)).thenReturn(role);
 
         RoleDto result = roleService.save(roleDto);
 
-        verify(roleRepository).save(role);
         assertNotNull(result);
+        verify(roleRepository, times(1)).save(role);
     }
 
     @Test
@@ -104,47 +118,51 @@ class RoleServiceTest {
 
         RoleDto result = roleService.update(roleDto);
 
-        verify(modelMapper).map(roleDto, role);
-        verify(roleRepository).save(role);
         assertNotNull(result);
+        verify(modelMapper, times(1)).map(roleDto, role);
+        verify(roleRepository, times(1)).save(role);
     }
 
     @Test
-    void testDelete() {
-        doNothing().when(roleRepository).deleteByIdentifier("ROLE_ADMIN");
-
-        roleService.delete("ROLE_ADMIN");
-
-        verify(roleRepository).deleteByIdentifier("ROLE_ADMIN");
+    void testDelete_Success() {
+        String identifier = "ROLE_ADMIN";
+        when(roleRepository.findByIdentifierAndDeletedFalse(identifier)).thenReturn(role);
+        assertDoesNotThrow(() -> roleService.delete(identifier));
+        verify(roleRepository, times(1)).findByIdentifierAndDeletedFalse(identifier);
+        assertTrue(role.getDeleted());
     }
 
     @Test
-    void testFindAll() {
-
+    void testFindAll_WithData() {
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Role> rolePage = new PageImpl<>(Collections.singletonList(role), pageable, 1);
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        when(roleRepository.findAllByDeletedFalse(pageable)).thenReturn(rolePage);
+        when(modelMapper.map(rolePage.getContent(), listType)).thenReturn(List.of(roleDto));
 
-        Page<Role> rolePage =
-                new PageImpl<>(Collections.singletonList(role), pageable, 1);
-
-        Type listType =
-                new TypeToken<List<RoleDto>>() {
-                }.getType();
-
-        when(roleRepository.findAll(pageable))
-                .thenReturn(rolePage);
-
-        when(modelMapper.map(rolePage.getContent(), listType))
-                .thenReturn(List.of(roleDto));
-
-        WsDto<RoleDto> result =
-                roleService.findAll(pageable);
+        WsDto<RoleDto> result = roleService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
+        verify(roleRepository, times(1)).findAllByDeletedFalse(pageable);
+    }
 
-        verify(roleRepository).findAll(pageable);
+    @Test
+    void testFindAll_EmptyList() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Role> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        when(roleRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
+        when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
 
-        verify(modelMapper)
-                .map(rolePage.getContent(), listType);
+        WsDto<RoleDto> result = roleService.findAll(pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0, result.getTotalRecords());
+        verify(roleRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 }

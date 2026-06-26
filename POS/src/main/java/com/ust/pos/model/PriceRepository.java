@@ -1,5 +1,7 @@
 package com.ust.pos.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,8 +10,10 @@ public interface PriceRepository extends JpaRepository<Price, Long> {
 
     Price findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String identifier);
+    Price findByIdentifierAndDeletedFalse(String identifier);
 
-    Price findByProductAndPriceType(String product, String priceType);
+    Page<Price> findAllByDeletedFalse(Pageable pageable);
+
+    Price findByProductAndPriceTypeAndDeletedFalse(String product, String priceType);
 
 }

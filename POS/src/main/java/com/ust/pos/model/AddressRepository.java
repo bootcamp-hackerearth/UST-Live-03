@@ -1,14 +1,22 @@
 package com.ust.pos.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
     Address findByIdentifier(String identifier);
 
-    Address findByPhoneNoAndAddressType(Long phoneNo, String addressType);
+    Address findByPhoneNoAndAddressTypeAndDeletedFalse(Long phoneNo, String addressType);
 
-    void deleteByPhoneNo(Long phoneNo);
+    List<Address> findByPhoneNoAndDeletedFalse(Long phoneNo);
+
+    List<Address> findByStatusTrueAndDeletedFalse();
+
+    Page<Address> findAllByDeletedFalse(Pageable pageable);
 }

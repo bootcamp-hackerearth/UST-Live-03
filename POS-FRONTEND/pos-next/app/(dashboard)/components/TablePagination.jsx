@@ -31,14 +31,14 @@ export default function TablePagination({
                      font-medium transition-all duration-200 hover:border-indigo-300 hover:shadow-md focus:outline-none
                      focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 cursor-pointer"
         >
-          <option value={3}>
-            3
-          </option>
           <option value={5}>
             5
           </option>
           <option value={10}>
             10
+          </option>
+          <option value={20}>
+            20
           </option>
           <option value={50}>
             50

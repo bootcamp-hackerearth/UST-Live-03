@@ -58,70 +58,7 @@ class UserServiceTest {
         user.setId(1L);
         user.setUsername("testuser");
         user.setPassword("encoded-password");
-    }
-
-    @Test
-    void testFindAll_EmptyPage() {
-
-        Pageable pageable =
-                PageRequest.of(0, 10);
-
-        Page<User> emptyPage =
-                new PageImpl<>(
-                        Collections.emptyList(),
-                        pageable,
-                        0
-                );
-
-        when(userRepository.findAll(pageable))
-                .thenReturn(emptyPage);
-
-        when(modelMapper.map(anyList(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<UserDto> result =
-                userService.findAll(pageable);
-
-        assertNotNull(result);
-
-        assertNotNull(result.getDtoList());
-        assertTrue(result.getDtoList().isEmpty());
-
-        assertEquals(0, result.getTotalRecords());
-        assertEquals(0, result.getTotalPages());
-        assertEquals(10, result.getSizePerPage());
-        assertEquals(0, result.getPage());
-
-        verify(userRepository)
-                .findAll(pageable);
-    }
-
-    @Test
-    void testFindAll_Metadata() {
-
-        Pageable pageable =
-                PageRequest.of(2, 5);
-
-        Page<User> page =
-                new PageImpl<>(
-                        List.of(user),
-                        pageable,
-                        21
-                );
-
-        when(userRepository.findAll(pageable))
-                .thenReturn(page);
-
-        when(modelMapper.map(anyList(), any(Type.class)))
-                .thenReturn(List.of(userDto));
-
-        WsDto<UserDto> result =
-                userService.findAll(pageable);
-
-        assertEquals(21, result.getTotalRecords());
-        assertEquals(page.getTotalPages(), result.getTotalPages());
-        assertEquals(5, result.getSizePerPage());
-        assertEquals(2, result.getPage());
+        user.setDeleted(false);
     }
 
     @Test
@@ -133,34 +70,41 @@ class UserServiceTest {
 
         assertNotNull(result);
         assertEquals("testuser", result.getUsername());
+        verify(userRepository, times(1)).findByUsername("testuser");
     }
 
     @Test
     void testFindByUserName_NotFound() {
+        when(userRepository.findByUsername("unknown")).thenReturn(null);
 
-        when(userRepository.findByUsername("unknown"))
-                .thenReturn(null);
-
-        UserDto result =
-                userService.findByUserName("unknown");
+        UserDto result = userService.findByUserName("unknown");
 
         assertNull(result);
-
-        verify(userRepository)
-                .findByUsername("unknown");
-
-        verify(modelMapper, never())
-                .map(any(), eq(UserDto.class));
+        verify(userRepository, times(1)).findByUsername("unknown");
+        verify(modelMapper, never()).map(any(), eq(UserDto.class));
     }
 
     @Test
-    void testSave_UserAlreadyExists() {
+    void testSave_UserAlreadyExists_Active() {
+        user.setDeleted(false);
         when(userRepository.findByUsername("testuser")).thenReturn(user);
 
         UserDto result = userService.save(userDto);
 
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("already exists"));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void testSave_UserAlreadyExists_SoftDeleted() {
+        user.setDeleted(true);
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
+
+        UserDto result = userService.save(userDto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("not available. Pls contact Admin"));
         verify(userRepository, never()).save(any());
     }
 
@@ -172,32 +116,22 @@ class UserServiceTest {
 
         UserDto result = userService.save(userDto);
 
-        verify(passwordEncoder).encode("password");
-        verify(userRepository).save(user);
         assertNotNull(result);
+        verify(passwordEncoder, times(1)).encode("password");
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
     void testSave_EncodesPasswordBeforeSave() {
-
-        when(userRepository.findByUsername("testuser"))
-                .thenReturn(null);
-
-        when(modelMapper.map(userDto, User.class))
-                .thenReturn(user);
-
-        when(passwordEncoder.encode("password"))
-                .thenReturn("ENCODED");
+        when(userRepository.findByUsername("testuser")).thenReturn(null);
+        when(modelMapper.map(userDto, User.class)).thenReturn(user);
+        when(passwordEncoder.encode("password")).thenReturn("ENCODED");
 
         userService.save(userDto);
 
         assertEquals("ENCODED", user.getPassword());
-
-        verify(passwordEncoder)
-                .encode("password");
-
-        verify(userRepository)
-                .save(user);
+        verify(passwordEncoder, times(1)).encode("password");
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
@@ -238,73 +172,72 @@ class UserServiceTest {
 
         UserDto result = userService.update(userDto);
 
-        verify(modelMapper).map(userDto, user);
-        verify(userRepository).save(user);
         assertNotNull(result);
+        verify(modelMapper, times(1)).map(userDto, user);
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
     void testUpdate_UsernameNotChanged_ShouldUpdateSuccessfully() {
-
         user.setId(1L);
-        user.setUsername("sameuser");
+        user.setUsername("testuser");
 
         userDto.setId(1L);
-        userDto.setUsername("sameuser");
+        userDto.setUsername("TESTUSER");
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         UserDto result = userService.update(userDto);
 
         assertTrue(result.isSuccess());
-        verify(modelMapper).map(userDto, user);
-        verify(userRepository).save(user);
+        verify(modelMapper, times(1)).map(userDto, user);
+        verify(userRepository, times(1)).save(user);
         verify(userRepository, never()).findByUsername(any());
     }
 
     @Test
-    void testDelete() {
-        doNothing().when(userRepository).deleteByUsername("testuser");
+    void testDelete_Success() {
+        String username = "testuser";
+        when(userRepository.findByUsernameAndDeletedFalse(username)).thenReturn(user);
 
-        userService.delete("testuser");
+        assertDoesNotThrow(() -> userService.delete(username));
 
-        verify(userRepository).deleteByUsername("testuser");
+        verify(userRepository, times(1)).findByUsernameAndDeletedFalse(username);
+        assertTrue(user.getDeleted());
     }
 
     @Test
-    void testFindAll() {
-
+    void testFindAll_EmptyPage() {
         Pageable pageable = PageRequest.of(0, 10);
+        Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        Page<User> userPage =
-                new PageImpl<>(
-                        Collections.singletonList(user),
-                        pageable,
-                        1
-                );
+        when(userRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(Collections.emptyList());
 
-        when(userRepository.findAll(pageable))
-                .thenReturn(userPage);
-
-        when(modelMapper.map(anyList(), any(Type.class)))
-                .thenReturn(List.of(userDto));
-
-        WsDto<UserDto> result =
-                userService.findAll(pageable);
+        WsDto<UserDto> result = userService.findAll(pageable);
 
         assertNotNull(result);
-
         assertNotNull(result.getDtoList());
-        assertEquals(1, result.getDtoList().size());
+        assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0, result.getTotalRecords());
+        verify(userRepository, times(1)).findAllByDeletedFalse(pageable);
+    }
 
-        assertEquals(1, result.getTotalRecords());
-        assertEquals(1, result.getTotalPages());
+    @Test
+    void testFindAll_Metadata() {
+        Pageable pageable = PageRequest.of(2, 5);
+        Page<User> page = new PageImpl<>(List.of(user), pageable, 21);
 
-        verify(userRepository)
-                .findAll(pageable);
+        when(userRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(userDto));
 
-        verify(modelMapper)
-                .map(anyList(), any(Type.class));
+        WsDto<UserDto> result = userService.findAll(pageable);
+
+        assertNotNull(result);
+        assertEquals(21, result.getTotalRecords());
+        assertEquals(5, result.getTotalPages());
+        assertEquals(5, result.getSizePerPage());
+        assertEquals(2, result.getPage());
+        verify(userRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 }

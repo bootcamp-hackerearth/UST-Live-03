@@ -1,27 +1,22 @@
 package com.ust.pos.api.user;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class UserControllerApi extends BaseController {
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private RoleService roleService;
+    private final UserService userService;
 
     @PostMapping("/list")
     public WsDto<UserDto> list(@RequestBody PaginationDto paginationDto) {
@@ -30,7 +25,7 @@ public class UserControllerApi extends BaseController {
     }
 
     @PostMapping("/register")
-    public UserDto add(@RequestBody UserDto userDto){
+    public UserDto add(@RequestBody UserDto userDto) {
         return userService.save(userDto);
     }
 
@@ -39,13 +34,13 @@ public class UserControllerApi extends BaseController {
         return userService.findByUserName(username);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(Model model, @RequestParam String username) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestParam String username) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null) {

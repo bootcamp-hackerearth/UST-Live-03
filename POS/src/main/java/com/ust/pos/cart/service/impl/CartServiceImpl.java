@@ -1,14 +1,15 @@
 package com.ust.pos.cart.service.impl;
 
+import com.ust.pos.base.service.BaseService;
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.CartRepository;
-import com.ust.pos.cart.service.CartService;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,16 +19,12 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CartServiceImpl implements CartService {
+@RequiredArgsConstructor
+public class CartServiceImpl extends BaseService implements CartService {
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CartRepository cartRepository;
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     public CartDto findByIdentifier(String identifier) {
@@ -42,11 +39,13 @@ public class CartServiceImpl implements CartService {
     public CartDto save(CartDto cartDto) {
         String identifier = cartDto.getIdentifier();
         Cart existingCart = cartRepository.findByIdentifier(identifier);
-        if(existingCart!=null){
-            cartDto.setMessage("cart with"+identifier+"exists");
+        if (existingCart != null) {
+            cartDto.setMessage("cart with" + identifier + "exists");
             return cartDto;
         }
-        cartRepository.save(modelMapper.map(cartDto, Cart.class));
+        Cart cart = modelMapper.map(cartDto, Cart.class);
+        setCreatedDetails(cart);
+        cartRepository.save(cart);
         return cartDto;
     }
 
@@ -54,7 +53,6 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public void delete(String identifier) {
         cartEntryRepository.deleteAllByCartId(identifier);
-        cartRepository.deleteByIdentifier(identifier);
     }
 
     @Override

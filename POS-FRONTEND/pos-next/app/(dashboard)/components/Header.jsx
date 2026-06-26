@@ -9,7 +9,7 @@ export default function Header({ username }) {
     >
       <div className="flex items-center gap-3">
         <h1 className="text-lg font-semibold text-slate-700">
-          Dashboard
+          COSTCO
         </h1>
       </div>
 

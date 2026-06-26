@@ -1,6 +1,6 @@
 "use client";
-import PropTypes from "prop-types";
 
+import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import EditModal from "./EditModal";
@@ -13,20 +13,16 @@ export default function GenericTable({
   rows,
   toggleEndpoint,
   config,
+  showActions = true,
 }) {
   const router = useRouter();
 
-  const currentUserEmail =
-    globalThis.window === undefined
-      ? null
-      : localStorage.getItem("userEmail");
-
+  const currentUserEmail = globalThis.window === undefined ? null : localStorage.getItem("userEmail");
   const [tableRows, setTableRows] = useState(rows);
   const [editingRow, setEditingRow] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(3);
+  const [pageSize, setPageSize] = useState(5);
 
   useEffect(() => { setTableRows(rows); }, [rows]);
   useEffect(() => { setCurrentPage(1); }, [searchTerm]);
@@ -36,24 +32,24 @@ export default function GenericTable({
     if (!confirmed) return;
 
     try {
-
-      console.log("DELETE CONFIG", config);
-      console.log("DELETE IDENTIFIER", identifier);
-      await axios.post("/api/delete-entity", {
-        endpoint: config.deleteEndpoint,
-        identifier,
-        paramName: config.deleteParam || "identifier",
+      const response = await axios.delete("/api/delete-entity", {
+        data: {
+          endpoint: config.deleteEndpoint,
+          identifier,
+          paramName: config.deleteParam || "identifier",
+        },
       });
 
-      setTableRows((prev) =>
-        prev.filter((item) => (item[config.deleteParam || "identifier"]) !== identifier));
+      if (!response.data.success) {
+        alert("Failed to delete record from system");
+        return;
+      }
+
+      setTableRows((prev) => prev.filter((item) => item[config.deleteParam || "identifier"] !== identifier));
 
       const isUserEntity = config.deleteEndpoint === "/api/user/delete";
 
-      if (
-        isUserEntity &&
-        identifier === currentUserEmail
-      ) {
+      if (isUserEntity && identifier === currentUserEmail) {
         await axios.post("/api/logout");
         localStorage.removeItem("userEmail");
         globalThis.location.replace("/login");
@@ -89,8 +85,7 @@ export default function GenericTable({
         identifier: row.identifier
       });
 
-      setTableRows((prev) =>
-        prev.map((item) => {
+      setTableRows((prev) => prev.map((item) => {
           if (item.id !== row.id) return item;
 
           const nextStatus = Number(item.status) === 1 ? 0 : 1;
@@ -117,7 +112,6 @@ export default function GenericTable({
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg w-full">
 
-      {/* Search */}
       <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
         <SearchBar
           searchTerm={searchTerm}
@@ -125,11 +119,9 @@ export default function GenericTable({
         />
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
 
-          {/* Header */}
           <thead className="bg-linear-to-r from-slate-800 to-slate-700 text-white">
             <tr>
               {columns.map((column) => (
@@ -140,79 +132,83 @@ export default function GenericTable({
                   {column.label}
                 </th>
               ))}
-              <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
-                Actions
-              </th>
+              {showActions && (
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
 
-          {/* Body */}
           <tbody>
-            {tableRows.length > 0 ? (
-              paginatedRows.map((row, index) => (
-                <tr
-                  key={row.id}
-                  className={`border-b border-slate-200 transition-all duration-200 hover:bg-blue-50
-                  ${index % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
-                >
-                  {columns.map((column) => {
-                    const value = row[column.field];
+            {paginatedRows.length > 0 ? (
+              paginatedRows.map((row, index) => {
+                const serialNumber = (currentPage - 1) * pageSize + index + 1;
 
-                    return (
-                      <td key={column.field} className="px-6 py-4 text-sm text-slate-700">
-                        {column.field === "status" ? (
+                return (
+                  <tr
+                    key={row.id || row.identifier || index}
+                    className={`border-b border-slate-200 transition-all duration-200 hover:bg-blue-50
+                    ${index % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
+                  >
+                    {columns.map((column) => {
+                      const value = column.field === "serialNumber" ? serialNumber : row[column.field];
+
+                      return (
+                        <td key={column.field} className="px-6 py-4 text-sm text-slate-700">
+                          {column.field === "status" ? (
+                            <button
+                              type="button"
+                              onClick={() => handleToggle(row)}
+                              className={`relative h-6 w-12 rounded-full transition-all duration-300
+                              ${Number(value) === 1 ? "bg-green-500" : "bg-red-500"}`}
+                            >
+                              <div
+                                className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all duration-300
+                                ${Number(value) === 1 ? "left-7" : "left-1"}`}
+                              />
+                            </button>
+                          ) : (
+                            <span className="font-medium">
+                              {String(value ?? "")}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+
+                    {showActions && (
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => handleToggle(row)}
-                            className={`relative h-6 w-12 rounded-full transition-all duration-300
-                            ${Number(value) === 1 ? "bg-green-500" : "bg-red-500"}`}
+                            onClick={() => handleEdit(row)}
+                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"
                           >
-                            <div
-                              className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all duration-300
-                              ${Number(value) === 1 ? "left-7" : "left-1"}`}
-                            />
+                            Edit
                           </button>
-                        ) : (
-                          <span className="font-medium">
-                            {String(value ?? "")}
-                          </span>
-                        )}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDelete(
+                                row[config.deleteParam || "identifier"]
+                              )
+                            }
+                            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
-                    );
-                  })}
-
-                  {/* Actions */}
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(row)}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleDelete(
-                            row[config.deleteParam || "identifier"]
-                          )
-                        }
-                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white"
-                      >
-                        Delete
-                      </button>
-
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    )}
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td
-                  colSpan={columns.length + 1}
+                  colSpan={showActions ? columns.length + 1 : columns.length}
                   className="py-10 text-center text-slate-500"
                 >
                   No records found
@@ -223,7 +219,6 @@ export default function GenericTable({
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="border-t border-slate-200 bg-slate-50 px-6 py-4">
         <TablePagination
           currentPage={currentPage}
@@ -258,6 +253,7 @@ GenericTable.propTypes = {
   ).isRequired,
   rows: PropTypes.arrayOf(PropTypes.object).isRequired,
   toggleEndpoint: PropTypes.string,
+  showActions: PropTypes.bool,
   config: PropTypes.shape({
     deleteEndpoint: PropTypes.string,
     deleteParam: PropTypes.string,

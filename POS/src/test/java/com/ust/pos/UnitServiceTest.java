@@ -43,7 +43,6 @@ class UnitServiceTest {
 
     @BeforeEach
     void setUp() {
-
         unitDto = new UnitDto();
         unitDto.setIdentifier("Kg");
         unitDto.setSuccess(true);
@@ -51,16 +50,13 @@ class UnitServiceTest {
         unit = new Unit();
         unit.setIdentifier("Kg");
         unit.setStatus(true);
+        unit.setDeleted(false);
     }
 
     @Test
     void testSave_NewUnit() {
-
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(null);
-
-        when(modelMapper.map(unitDto, Unit.class))
-                .thenReturn(unit);
+        when(unitRepository.findByIdentifier("Kg")).thenReturn(null);
+        when(modelMapper.map(unitDto, Unit.class)).thenReturn(unit);
 
         UnitDto result = unitService.save(unitDto);
 
@@ -68,306 +64,217 @@ class UnitServiceTest {
         assertEquals("Kg", result.getIdentifier());
         assertTrue(result.isSuccess());
 
-        verify(unitRepository, times(1))
-                .findByIdentifier("Kg");
-
-        verify(modelMapper, times(1))
-                .map(unitDto, Unit.class);
-
-        verify(unitRepository, times(1))
-                .save(unit);
+        verify(unitRepository, times(1)).findByIdentifier("Kg");
+        verify(modelMapper, times(1)).map(unitDto, Unit.class);
+        verify(unitRepository, times(1)).save(unit);
     }
 
     @Test
-    void testSave_UnitAlreadyExists() {
-
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(unit);
+    void testSave_UnitAlreadyExists_Active() {
+        unit.setDeleted(false);
+        when(unitRepository.findByIdentifier("Kg")).thenReturn(unit);
 
         UnitDto result = unitService.save(unitDto);
 
         assertNotNull(result);
-        assertEquals("Kg", result.getIdentifier());
         assertFalse(result.isSuccess());
+        assertEquals("Unit with identifier - Kg already exists", result.getMessage());
 
-        assertEquals(
-                "Unit with identifier - Kg already exists",
-                result.getMessage()
-        );
+        verify(unitRepository, times(1)).findByIdentifier("Kg");
+        verify(unitRepository, never()).save(any());
+    }
 
-        verify(unitRepository, times(1))
-                .findByIdentifier("Kg");
+    @Test
+    void testSave_UnitAlreadyExists_SoftDeleted() {
+        unit.setDeleted(true);
+        when(unitRepository.findByIdentifier("Kg")).thenReturn(unit);
 
-        verify(unitRepository, never())
-                .save(any());
+        UnitDto result = unitService.save(unitDto);
 
-        verify(modelMapper, never())
-                .map(any(), any());
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertEquals("Unit identifier - Kg not available", result.getMessage());
+
+        verify(unitRepository, times(1)).findByIdentifier("Kg");
+        verify(unitRepository, never()).save(any());
     }
 
     @Test
     void testUpdate_UnitFound() {
-
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(unit);
+        when(unitRepository.findByIdentifier("Kg")).thenReturn(unit);
 
         UnitDto result = unitService.update(unitDto);
 
         assertNotNull(result);
         assertEquals("Kg", result.getIdentifier());
 
-        verify(unitRepository, times(1))
-                .findByIdentifier("Kg");
-
-        verify(modelMapper, times(1))
-                .map(unitDto, unit);
-
-        verify(unitRepository, times(1))
-                .save(unit);
+        verify(unitRepository, times(1)).findByIdentifier("Kg");
+        verify(modelMapper, times(1)).map(unitDto, unit);
+        verify(unitRepository, times(1)).save(unit);
     }
 
     @Test
     void testUpdate_UnitNotFound() {
-
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(null);
+        when(unitRepository.findByIdentifier("Kg")).thenReturn(null);
 
         UnitDto result = unitService.update(unitDto);
 
         assertNotNull(result);
-        assertEquals("Kg", result.getIdentifier());
         assertFalse(result.isSuccess());
+        assertEquals("unit with identifier - Kg not found", result.getMessage());
 
-        assertEquals(
-                "unit with identifier - Kg not found",
-                result.getMessage()
-        );
-
-        verify(unitRepository, times(1))
-                .findByIdentifier("Kg");
-
-        verify(unitRepository, never())
-                .save(any());
-
-        verify(modelMapper, never())
-                .map(any(), any());
+        verify(unitRepository, times(1)).findByIdentifier("Kg");
+        verify(unitRepository, never()).save(any());
     }
 
     @Test
-    void testDelete() {
+    void testDelete_Success() {
+        String identifier = "Kg";
+        when(unitRepository.findByIdentifierAndDeletedFalse(identifier)).thenReturn(unit);
 
-        doNothing().when(unitRepository)
-                .deleteByIdentifier("Kg");
+        assertDoesNotThrow(() -> unitService.delete(identifier));
 
-        unitService.delete("Kg");
-
-        verify(unitRepository, times(1))
-                .deleteByIdentifier("Kg");
+        verify(unitRepository, times(1)).findByIdentifierAndDeletedFalse(identifier);
+        assertTrue(unit.getDeleted());
     }
 
     @Test
     void testFindByIdentifier_Found() {
+        when(unitRepository.findByIdentifierAndDeletedFalse("Kg")).thenReturn(unit);
+        when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);
 
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(unit);
-
-        when(modelMapper.map(unit, UnitDto.class))
-                .thenReturn(unitDto);
-
-        UnitDto result =
-                unitService.findByIdentifier("Kg");
+        UnitDto result = unitService.findByIdentifier("Kg");
 
         assertNotNull(result);
         assertEquals("Kg", result.getIdentifier());
-
-        verify(unitRepository, times(1))
-                .findByIdentifier("Kg");
-
-        verify(modelMapper, times(1))
-                .map(unit, UnitDto.class);
+        verify(unitRepository, times(1)).findByIdentifierAndDeletedFalse("Kg");
     }
 
     @Test
     void testFindByIdentifier_NotFound() {
+        when(unitRepository.findByIdentifierAndDeletedFalse("Kg")).thenReturn(null);
+        when(modelMapper.map(null, UnitDto.class)).thenReturn(null);
 
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(null);
-
-        when(modelMapper.map(null, UnitDto.class))
-                .thenReturn(null);
-
-        UnitDto result =
-                unitService.findByIdentifier("Kg");
+        UnitDto result = unitService.findByIdentifier("Kg");
 
         assertNull(result);
-
-        verify(unitRepository, times(1))
-                .findByIdentifier("Kg");
-
-        verify(modelMapper, times(1))
-                .map(null, UnitDto.class);
+        verify(unitRepository, times(1)).findByIdentifierAndDeletedFalse("Kg");
     }
 
     @Test
     void testFindAll_WithData() {
-
         Unit unit1 = new Unit();
         unit1.setIdentifier("Kg");
-
         Unit unit2 = new Unit();
         unit2.setIdentifier("L");
-
         List<Unit> units = List.of(unit1, unit2);
 
         UnitDto dto1 = new UnitDto();
         dto1.setIdentifier("Kg");
-
         UnitDto dto2 = new UnitDto();
         dto2.setIdentifier("L");
-
         List<UnitDto> unitDtos = List.of(dto1, dto2);
 
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Unit> unitPage = new PageImpl<>(units, pageable, units.size());
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
 
-        Page<Unit> unitPage =
-                new PageImpl<>(units, pageable, units.size());
+        when(unitRepository.findAllByDeletedFalse(pageable)).thenReturn(unitPage);
+        when(modelMapper.map(units, listType)).thenReturn(unitDtos);
 
-        Type listType =
-                new TypeToken<List<UnitDto>>() {
-                }.getType();
-
-        when(unitRepository.findAll(pageable))
-                .thenReturn(unitPage);
-
-        when(modelMapper.map(units, listType))
-                .thenReturn(unitDtos);
-
-        WsDto<UnitDto> result =
-                unitService.findAll(pageable);
+        WsDto<UnitDto> result = unitService.findAll(pageable);
 
         assertNotNull(result);
-
         assertEquals(2, result.getDtoList().size());
-
-        assertEquals("Kg",
-                result.getDtoList().get(0).getIdentifier());
-
-        assertEquals("L",
-                result.getDtoList().get(1).getIdentifier());
-
+        assertEquals("Kg", result.getDtoList().get(0).getIdentifier());
+        assertEquals("L", result.getDtoList().get(1).getIdentifier());
         assertEquals(2, result.getTotalRecords());
 
-        verify(unitRepository, times(1))
-                .findAll(pageable);
-
-        verify(modelMapper, times(1))
-                .map(units, listType);
+        verify(unitRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
     @Test
     void testFindAll_EmptyList() {
-
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Unit> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
 
-        Page<Unit> emptyPage =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
+        when(unitRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
+        when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
 
-        Type listType =
-                new TypeToken<List<UnitDto>>() {
-                }.getType();
-
-        when(unitRepository.findAll(pageable))
-                .thenReturn(emptyPage);
-
-        when(modelMapper.map(emptyPage.getContent(), listType))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<UnitDto> result =
-                unitService.findAll(pageable);
+        WsDto<UnitDto> result = unitService.findAll(pageable);
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
-
         assertEquals(0, result.getTotalRecords());
 
-        verify(unitRepository, times(1))
-                .findAll(pageable);
-
-        verify(modelMapper, times(1))
-                .map(emptyPage.getContent(), listType);
+        verify(unitRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
     @Test
     void testFindActiveUnits() {
-
         Unit unit1 = new Unit();
         unit1.setIdentifier("Kg");
         unit1.setStatus(true);
-
         Unit unit2 = new Unit();
         unit2.setIdentifier("L");
         unit2.setStatus(true);
+        List<Unit> activeUnits = List.of(unit1, unit2);
 
-        List<Unit> activeUnits =
-                List.of(unit1, unit2);
+        List<UnitDto> dtoList = List.of(unitDto, new UnitDto());
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
 
-        when(unitRepository.findByStatus(true))
-                .thenReturn(activeUnits);
+        when(unitRepository.findByStatusTrueAndDeletedFalse()).thenReturn(activeUnits);
+        when(modelMapper.map(activeUnits, listType)).thenReturn(dtoList);
 
-        List<Unit> result =
-                unitService.findActiveUnits();
+        List<UnitDto> result = unitService.findActiveUnits();
 
         assertNotNull(result);
         assertEquals(2, result.size());
-
-        verify(unitRepository, times(1))
-                .findByStatus(true);
+        verify(unitRepository, times(1)).findByStatusTrueAndDeletedFalse();
+        verify(modelMapper, times(1)).map(activeUnits, listType);
     }
 
     @Test
     void testToggleStatus_TrueToFalse() {
-
         unit.setStatus(true);
+        when(unitRepository.findByIdentifier("Kg")).thenReturn(unit);
+        when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);
 
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(unit);
+        UnitDto result = unitService.toggleStatus("Kg");
 
-        unitService.toggleStatus("Kg");
-
+        assertNotNull(result);
         assertFalse(unit.isStatus());
-
-        verify(unitRepository, times(1))
-                .save(unit);
+        verify(unitRepository, times(1)).save(unit);
+        verify(modelMapper, times(1)).map(unit, UnitDto.class);
     }
 
     @Test
     void testToggleStatus_FalseToTrue() {
-
         unit.setStatus(false);
+        when(unitRepository.findByIdentifier("Kg")).thenReturn(unit);
+        when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);
 
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(unit);
+        UnitDto result = unitService.toggleStatus("Kg");
 
-        unitService.toggleStatus("Kg");
-
+        assertNotNull(result);
         assertTrue(unit.isStatus());
-
-        verify(unitRepository, times(1))
-                .save(unit);
+        verify(unitRepository, times(1)).save(unit);
+        verify(modelMapper, times(1)).map(unit, UnitDto.class);
     }
 
     @Test
     void testToggleStatus_UnitNotFound() {
+        when(unitRepository.findByIdentifier("Kg")).thenReturn(null);
 
-        when(unitRepository.findByIdentifier("Kg"))
-                .thenReturn(null);
+        UnitDto result = unitService.toggleStatus("Kg");
 
-        unitService.toggleStatus("Kg");
-
-        verify(unitRepository, times(1))
-                .findByIdentifier("Kg");
-
-        verify(unitRepository, never())
-                .save(any());
+        assertNull(result);
+        verify(unitRepository, times(1)).findByIdentifier("Kg");
+        verify(unitRepository, never()).save(any());
+        verify(modelMapper, never()).map(any(), any());
     }
 }

@@ -1,6 +1,7 @@
 package com.ust.pos.model;
 
-import com.ust.pos.dto.RackDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,7 +12,9 @@ public interface RackRepository extends JpaRepository<Rack, Long> {
 
     Rack findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String identifier);
+    Rack findByIdentifierAndDeletedFalse(String identifier);
 
-    List<RackDto> findByStatus(boolean status);
+    List<Rack> findByStatusTrueAndDeletedFalse();
+
+    Page<Rack> findAllByDeletedFalse(Pageable pageable);
 }

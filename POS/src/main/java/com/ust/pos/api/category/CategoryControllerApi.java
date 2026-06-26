@@ -1,11 +1,11 @@
 package com.ust.pos.api.category;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +13,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/category")
+@RequiredArgsConstructor
 public class CategoryControllerApi extends BaseController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     @PostMapping("/list")
     public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
@@ -26,7 +26,7 @@ public class CategoryControllerApi extends BaseController {
 
     @PostMapping("/add")
     public CategoryDto addPost(@RequestBody CategoryDto categoryDto) {
-            return categoryService.save(categoryDto);
+        return categoryService.save(categoryDto);
     }
 
     @GetMapping("/get")
@@ -34,12 +34,12 @@ public class CategoryControllerApi extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);

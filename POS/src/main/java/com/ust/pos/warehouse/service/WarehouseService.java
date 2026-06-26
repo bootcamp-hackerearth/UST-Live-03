@@ -2,7 +2,6 @@ package com.ust.pos.warehouse.service;
 
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Warehouse;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -18,7 +17,7 @@ public interface WarehouseService {
 
     WarehouseDto findByIdentifier(String identifier);
 
-    List<Warehouse> findActiveWarehouses();
+    List<WarehouseDto> findActiveWarehouses();
 
     void toggleStatus(String identifier);
 }

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -42,7 +43,6 @@ class ShelfServiceTest {
 
     @BeforeEach
     void setUp() {
-
         shelfDto = new ShelfDto();
         shelfDto.setIdentifier("SHELF-001");
         shelfDto.setSuccess(true);
@@ -50,286 +50,204 @@ class ShelfServiceTest {
         shelf = new Shelf();
         shelf.setIdentifier("SHELF-001");
         shelf.setStatus(true);
+        shelf.setDeleted(false);
     }
 
     @Test
     void testSave_ShelfAlreadyExists() {
-
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(shelf);
+        when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(shelf);
 
         ShelfDto result = shelfService.save(shelfDto);
 
         assertNotNull(result);
         assertFalse(result.isSuccess());
+        assertEquals("Shelf with identifier - SHELF-001 already exists", result.getMessage());
 
-        assertEquals(
-                "Shelf with identifier - SHELF-001 already exists",
-                result.getMessage()
-        );
+        verify(shelfRepository, times(1)).findByIdentifier("SHELF-001");
+        verify(shelfRepository, never()).save(any());
+    }
 
-        verify(shelfRepository, times(1))
-                .findByIdentifier("SHELF-001");
-
-        verify(shelfRepository, never())
-                .save(any());
-
-        verify(modelMapper, never())
-                .map(any(), any());
+    @Test
+    void testSave_ShelfAlreadyExists_ButIsSoftDeleted() {
+        shelf.setDeleted(true);
+        when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(shelf);
+        ShelfDto result = shelfService.save(shelfDto);
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertEquals("Shelf identifier - SHELF-001 not available", result.getMessage());
+        verify(shelfRepository, times(1)).findByIdentifier("SHELF-001");
+        verify(shelfRepository, never()).save(any());
+        verify(modelMapper, never()).map(any(), any());
     }
 
     @Test
     void testSave_NewShelf() {
-
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(null);
-
-        when(modelMapper.map(shelfDto, Shelf.class))
-                .thenReturn(shelf);
+        when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(null);
+        when(modelMapper.map(shelfDto, Shelf.class)).thenReturn(shelf);
 
         ShelfDto result = shelfService.save(shelfDto);
 
         assertNotNull(result);
-
-        verify(shelfRepository, times(1))
-                .findByIdentifier("SHELF-001");
-
-        verify(modelMapper, times(1))
-                .map(shelfDto, Shelf.class);
-
-        verify(shelfRepository, times(1))
-                .save(shelf);
+        verify(shelfRepository, times(1)).findByIdentifier("SHELF-001");
+        verify(modelMapper, times(1)).map(shelfDto, Shelf.class);
+        verify(shelfRepository, times(1)).save(shelf);
     }
 
     @Test
     void testUpdate_ShelfNotFound() {
-
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(null);
+        when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(null);
 
         ShelfDto result = shelfService.update(shelfDto);
 
         assertNotNull(result);
         assertFalse(result.isSuccess());
+        assertEquals("shelf with identifier - SHELF-001 not found", result.getMessage());
 
-        assertEquals(
-                "shelf with identifier - SHELF-001 not found",
-                result.getMessage()
-        );
-
-        verify(shelfRepository, times(1))
-                .findByIdentifier("SHELF-001");
-
-        verify(shelfRepository, never())
-                .save(any());
-
-        verify(modelMapper, never())
-                .map(any(), any());
+        verify(shelfRepository, times(1)).findByIdentifier("SHELF-001");
+        verify(shelfRepository, never()).save(any());
     }
 
     @Test
     void testUpdate_ShelfFound() {
-
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(shelf);
+        when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(shelf);
 
         ShelfDto result = shelfService.update(shelfDto);
 
         assertNotNull(result);
-
-        verify(shelfRepository, times(1))
-                .findByIdentifier("SHELF-001");
-
-        verify(modelMapper, times(1))
-                .map(shelfDto, shelf);
-
-        verify(shelfRepository, times(1))
-                .save(shelf);
+        verify(shelfRepository, times(1)).findByIdentifier("SHELF-001");
+        verify(modelMapper, times(1)).map(shelfDto, shelf);
+        verify(shelfRepository, times(1)).save(shelf);
     }
 
     @Test
     void testDelete() {
+        shelf.setDeleted(false);
 
-        doNothing().when(shelfRepository)
-                .deleteByIdentifier("SHELF-001");
+        when(shelfRepository.findByIdentifierAndDeletedFalse("SHELF-001"))
+                .thenReturn(shelf);
+        assertDoesNotThrow(() -> shelfService.delete("SHELF-001"));
 
-        shelfService.delete("SHELF-001");
-
-        verify(shelfRepository, times(1))
-                .deleteByIdentifier("SHELF-001");
+        verify(shelfRepository, times(1)).findByIdentifierAndDeletedFalse("SHELF-001");
+        assertTrue(shelf.getDeleted());
     }
 
     @Test
     void testFindAll_WithData() {
-
         Pageable pageable = PageRequest.of(0, 10);
+        List<Shelf> shelfList = Collections.singletonList(shelf);
+        List<ShelfDto> shelfDtoList = Collections.singletonList(shelfDto);
+        Page<Shelf> shelfPage = new PageImpl<>(shelfList, pageable, shelfList.size());
 
-        List<Shelf> shelfList =
-                Collections.singletonList(shelf);
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
+        when(shelfRepository.findAllByDeletedFalse(pageable)).thenReturn(shelfPage);
+        when(modelMapper.map(shelfPage.getContent(), listType)).thenReturn(shelfDtoList);
 
-        List<ShelfDto> shelfDtoList =
-                Collections.singletonList(shelfDto);
-
-        Page<Shelf> shelfPage =
-                new PageImpl<>(shelfList, pageable, shelfList.size());
-
-        Type listType =
-                new TypeToken<List<ShelfDto>>() {
-                }.getType();
-
-        when(shelfRepository.findAll(pageable))
-                .thenReturn(shelfPage);
-
-        when(modelMapper.map(shelfPage.getContent(), listType))
-                .thenReturn(shelfDtoList);
-
-        List<ShelfDto> result =
-                shelfService.findAll(pageable);
+        WsDto<ShelfDto> result = shelfService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
 
-        verify(shelfRepository, times(1))
-                .findAll(pageable);
-
-        verify(modelMapper, times(1))
-                .map(shelfPage.getContent(), listType);
+        verify(shelfRepository, times(1)).findAllByDeletedFalse(pageable);
+        verify(modelMapper, times(1)).map(shelfPage.getContent(), listType);
     }
 
     @Test
     void testFindAll_EmptyList() {
-
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Shelf> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        Page<Shelf> emptyPage =
-                new PageImpl<>(Collections.emptyList());
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
+        when(shelfRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
+        when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
 
-        Type listType =
-                new TypeToken<List<ShelfDto>>() {
-                }.getType();
-
-        when(shelfRepository.findAll(pageable))
-                .thenReturn(emptyPage);
-
-        when(modelMapper.map(emptyPage.getContent(), listType))
-                .thenReturn(Collections.emptyList());
-
-        List<ShelfDto> result =
-                shelfService.findAll(pageable);
+        WsDto<ShelfDto> result = shelfService.findAll(pageable);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0, result.getTotalRecords());
 
-        verify(shelfRepository, times(1))
-                .findAll(pageable);
-
-        verify(modelMapper, times(1))
-                .map(emptyPage.getContent(), listType);
+        verify(shelfRepository, times(1)).findAllByDeletedFalse(pageable);
+        verify(modelMapper, times(1)).map(emptyPage.getContent(), listType);
     }
 
     @Test
     void testFindByIdentifier_Found() {
+        when(shelfRepository.findByIdentifierAndDeletedFalse("SHELF-001")).thenReturn(shelf);
+        when(modelMapper.map(shelf, ShelfDto.class)).thenReturn(shelfDto);
 
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(shelf);
-
-        when(modelMapper.map(shelf, ShelfDto.class))
-                .thenReturn(shelfDto);
-
-        ShelfDto result =
-                shelfService.findByIdentifier("SHELF-001");
+        ShelfDto result = shelfService.findByIdentifier("SHELF-001");
 
         assertNotNull(result);
         assertEquals("SHELF-001", result.getIdentifier());
 
-        verify(shelfRepository, times(1))
-                .findByIdentifier("SHELF-001");
-
-        verify(modelMapper, times(1))
-                .map(shelf, ShelfDto.class);
+        verify(shelfRepository, times(1)).findByIdentifierAndDeletedFalse("SHELF-001");
+        verify(modelMapper, times(1)).map(shelf, ShelfDto.class);
     }
 
     @Test
     void testFindByIdentifier_NotFound() {
+        when(shelfRepository.findByIdentifierAndDeletedFalse("SHELF-001")).thenReturn(null);
+        when(modelMapper.map(null, ShelfDto.class)).thenReturn(null);
 
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(null);
-
-        when(modelMapper.map(null, ShelfDto.class))
-                .thenReturn(null);
-
-        ShelfDto result =
-                shelfService.findByIdentifier("SHELF-001");
+        ShelfDto result = shelfService.findByIdentifier("SHELF-001");
 
         assertNull(result);
 
-        verify(shelfRepository, times(1))
-                .findByIdentifier("SHELF-001");
-
-        verify(modelMapper, times(1))
-                .map(null, ShelfDto.class);
+        verify(shelfRepository, times(1)).findByIdentifierAndDeletedFalse("SHELF-001");
+        verify(modelMapper, times(1)).map(null, ShelfDto.class);
     }
 
     @Test
     void testFindActiveShelves() {
+        List<Shelf> shelfEntities = Collections.singletonList(shelf);
+        List<ShelfDto> shelfDtos = Collections.singletonList(shelfDto);
 
-        when(shelfRepository.findByStatus(true))
-                .thenReturn(Collections.singletonList(shelfDto));
+        when(shelfRepository.findByStatusTrueAndDeletedFalse()).thenReturn(shelfEntities);
+        when(modelMapper.map(eq(shelfEntities), any(Type.class))).thenReturn(shelfDtos);
 
-        List<ShelfDto> result =
-                shelfService.findActiveShelves();
+        List<ShelfDto> result = shelfService.findActiveShelves();
 
         assertNotNull(result);
         assertEquals(1, result.size());
 
-        verify(shelfRepository, times(1))
-                .findByStatus(true);
+        verify(shelfRepository, times(1)).findByStatusTrueAndDeletedFalse();
     }
 
     @Test
     void testToggleStatus_TrueToFalse() {
-
         shelf.setStatus(true);
-
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(shelf);
+        when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(shelf);
+        when(modelMapper.map(shelf, ShelfDto.class)).thenReturn(shelfDto);
 
         shelfService.toggleStatus("SHELF-001");
 
         assertFalse(shelf.isStatus());
-
-        verify(shelfRepository, times(1))
-                .save(shelf);
+        verify(shelfRepository, times(1)).save(shelf);
     }
 
     @Test
     void testToggleStatus_FalseToTrue() {
-
         shelf.setStatus(false);
-
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(shelf);
+        when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(shelf);
+        when(modelMapper.map(shelf, ShelfDto.class)).thenReturn(shelfDto);
 
         shelfService.toggleStatus("SHELF-001");
 
         assertTrue(shelf.isStatus());
-
-        verify(shelfRepository, times(1))
-                .save(shelf);
+        verify(shelfRepository, times(1)).save(shelf);
     }
 
     @Test
     void testToggleStatus_ShelfNotFound() {
+        when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(null);
 
-        when(shelfRepository.findByIdentifier("SHELF-001"))
-                .thenReturn(null);
+        ShelfDto result = shelfService.toggleStatus("SHELF-001");
 
-        shelfService.toggleStatus("SHELF-001");
-
-        verify(shelfRepository, times(1))
-                .findByIdentifier("SHELF-001");
-
-        verify(shelfRepository, never())
-                .save(any());
+        assertNull(result);
+        verify(shelfRepository, times(1)).findByIdentifier("SHELF-001");
+        verify(shelfRepository, never()).save(any());
     }
 }

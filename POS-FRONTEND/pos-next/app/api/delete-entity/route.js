@@ -1,39 +1,40 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
+export async function DELETE(req) {
   try {
     const body = await req.json();
-    const paramName = body.paramName || "identifier";
+
+    const {
+      endpoint,
+      identifier,
+      paramName = "identifier",
+    } = body;
 
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
+    const url = `http://localhost:8080${endpoint}?${paramName}=${encodeURIComponent(identifier)}`;
+    console.log("Forwarding Request to Backend URL:", url);
 
-    const response = await fetch(
-      `http://localhost:8080${body.endpoint}?${paramName}=${encodeURIComponent(
-        body.identifier
-      )}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-    const text = await response.text();   
-    const data = text === "true";         
+    const text = await response.text();
+    const data = text === "true";
 
     return NextResponse.json({
-      success: response.ok,
-      data: data,
+      success: response.ok && data, 
     });
 
   } catch (error) {
     console.error("DELETE API ERROR:", error);
 
     return NextResponse.json(
-      { message: error.message },
+      { success: false, message: error.message },
       { status: 500 }
     );
   }

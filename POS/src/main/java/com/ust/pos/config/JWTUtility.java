@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -21,7 +22,6 @@ public class JWTUtility implements Serializable {
 
     @Value("${jwt.secret}")
     private String secretKey;
-
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));

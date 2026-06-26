@@ -14,7 +14,7 @@ export async function POST(req) {
     const response = await fetch(
       `http://localhost:8080${body.endpoint}`,
       {
-        method: "POST",
+        method: body.method || "POST",
         headers: { "Content-Type": "application/json",
         Authorization: `Bearer ${token}`},
         body: JSON.stringify(body.payload),

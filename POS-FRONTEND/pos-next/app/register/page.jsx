@@ -80,7 +80,7 @@ function Register() {
     if (!user.name.trim()) {
       return "Full name is required.";
     }
-
+    
     if (!user.username.trim()) {
       return "Email is required.";
     }
@@ -141,19 +141,11 @@ function Register() {
 
   return (
     <>
-      <style>{`
-        @keyframes fadeIn {
-          from {opacity: 0; transform: translateY(16px);}
-          to {opacity: 1; transform: translateY(0);}
-        }
-
-        .fade-in {animation: fadeIn 0.4s ease;}
+      <style>{`@keyframes fadeIn {from {opacity: 0; transform: translateY(16px);} to {opacity: 1; transform: translateY(0);}}.fade-in {animation: fadeIn 0.4s ease;}
       `}</style>
 
       <div className="min-h-screen bg-[#e8eaf0] flex items-center justify-center px-4 py-10">
         <div className="fade-in flex w-full max-w-225 rounded-2xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.18)]">
-
-
           <div className="w-55 min-w-55 bg-[#1e2433] flex flex-col justify-between p-7">
             <div>
               <div className="flex items-center gap-3 mb-10">
@@ -173,35 +165,21 @@ function Register() {
                     className="flex items-start gap-3"
                   >
                     <div
-                      className={
-                        "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 " +
-                        (step.active
-                          ? "bg-[#3b82f6] text-white"
-                          : "bg-[#2d3748] text-[#4a5568]")
-                      }
+                      className={"w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 " + (step.active ? "bg-[#3b82f6] text-white": "bg-[#2d3748] text-[#4a5568]")}
                     >
                       {step.num}
                     </div>
 
                     <div>
                       <div
-                        className={
-                          "text-sm font-medium " +
-                          (step.active
-                            ? "text-white"
-                            : "text-[#4a5568]")
+                        className={"text-sm font-medium " + (step.active ? "text-white" : "text-[#4a5568]")
                         }
                       >
                         {step.title}
                       </div>
 
                       <div
-                        className={
-                          "text-xs " +
-                          (step.active
-                            ? "text-[#94a3b8]"
-                            : "text-[#374151]")
-                        }
+                        className={"text-xs " + (step.active ? "text-[#94a3b8]" : "text-[#374151]")}
                       >
                         {step.sub}
                       </div>

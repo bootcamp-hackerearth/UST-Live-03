@@ -9,7 +9,7 @@ export async function POST(req) {
     const response = await fetch(`http://localhost:8080${body.endpoint}?identifier=${encodeURIComponent(
         body.identifier)}`,
       {
-        method: "GET",
+        method: "PATCH",
         headers: {Authorization: `Bearer ${token}`},
       }
     );

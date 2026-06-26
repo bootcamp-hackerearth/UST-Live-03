@@ -1,38 +1,46 @@
 package com.ust.pos.brand.service.impl;
+
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class BrandServiceImpl implements BrandService {
+@RequiredArgsConstructor
+public class BrandServiceImpl extends BaseService implements BrandService {
 
-    @Autowired
-    ModelMapper modelMapper;
-
-    @Autowired
-    BrandRepository brandRepository;
+    private final ModelMapper modelMapper;
+    private final BrandRepository brandRepository;
 
     @Override
     public BrandDto save(BrandDto brandDto) {
         String identifier = brandDto.getIdentifier();
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
         if (existingBrand != null) {
+            if (Boolean.TRUE.equals(existingBrand.getDeleted())) {
+                brandDto.setMessage("Brand identifier - " + identifier + " not available");
+                brandDto.setSuccess(false);
+                return brandDto;
+            }
             brandDto.setMessage("Brand with identifier - " + identifier + " already exists");
             brandDto.setSuccess(false);
             return brandDto;
         }
         Brand brand = modelMapper.map(brandDto, Brand.class);
+        setCreatedDetails(brand);
+        setModifiedDetails(brand);
         brandRepository.save(brand);
         return brandDto;
     }
@@ -47,6 +55,7 @@ public class BrandServiceImpl implements BrandService {
             return brandDto;
         }
         modelMapper.map(brandDto, existingBrand);
+        setModifiedDetails(existingBrand);
         brandRepository.save(existingBrand);
         return brandDto;
     }
@@ -55,14 +64,16 @@ public class BrandServiceImpl implements BrandService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        brandRepository.deleteByIdentifier(identifier);
+        Brand brand = brandRepository.findByIdentifierAndDeletedFalse(identifier);
+        setModifiedDetails(brand);
+        softDelete(brand);
     }
 
     @Override
     public WsDto<BrandDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
-        Page<Brand> brandPage = brandRepository.findAll(pageable);
+        Page<Brand> brandPage = brandRepository.findAllByDeletedFalse(pageable);
 
         WsDto<BrandDto> brandWsDto = new WsDto<>();
         brandWsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));
@@ -75,12 +86,12 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public BrandDto findByIdentifier(String identifier) {
-        return modelMapper.map(brandRepository.findByIdentifier(identifier), BrandDto.class);
+        return modelMapper.map(brandRepository.findByIdentifierAndDeletedFalse(identifier), BrandDto.class);
     }
 
     @Override
     public List<Brand> findActiveBrands() {
-        return brandRepository.findByStatus(true);
+        return brandRepository.findByStatusTrueAndDeletedFalse();
     }
 
     @Override
@@ -90,6 +101,7 @@ public class BrandServiceImpl implements BrandService {
             return null;
         }
         brands.setStatus(!brands.isStatus());
+        setModifiedDetails(brands);
         brandRepository.save(brands);
         return modelMapper.map(brands, BrandDto.class);
     }

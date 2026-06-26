@@ -1,20 +1,20 @@
 package com.ust.pos.api.role;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/role")
+@RequiredArgsConstructor
 public class RoleControllerApi extends BaseController {
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
 
     @PostMapping("/list")
     public WsDto<RoleDto> list(@RequestBody PaginationDto paginationDto) {
@@ -37,12 +37,12 @@ public class RoleControllerApi extends BaseController {
         return roleService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RoleDto updatePost(@RequestBody RoleDto roleDto) {
         return roleService.update(roleDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             roleService.delete(identifier);
