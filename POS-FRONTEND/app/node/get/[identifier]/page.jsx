@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { requiredValidation } from "@/validation/validation"
+import { requiredValidation,pathValidation } from "@/validation/validation"
 import Update from "@/components/Update";
 import WithRoleAccess from '@/components/WithRoleAccess'
 
@@ -11,7 +11,7 @@ const NodeUpdate = () => {
 
     const formFelids = [
         { name: "identifier", type: "text", validation: requiredValidation, isDisabled: true },
-        { name: "path", type: "text", validation: requiredValidation },
+        { name: "path", type: "text", validation: pathValidation },
     ]
     const dropDowns = [
         { name: "roles", urlName: "role/list", httpMethod: "post", ismultiple: true, validation: requiredValidation }

@@ -10,7 +10,6 @@ public class CustomerDto extends CommonDto {
     private String name;
     private String email;
     private String partyType;
-    private String address;
     private Double balance;
     private String creditLimit;
     private Address shippingAddress;

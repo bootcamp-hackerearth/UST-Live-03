@@ -5,9 +5,9 @@ import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
 public interface RoleService {
-    RoleDto save(RoleDto userDto);
+    RoleDto save(RoleDto roleDto);
 
-    RoleDto update(RoleDto userDto);
+    RoleDto update(RoleDto roleDto);
 
     void delete(String username);
 

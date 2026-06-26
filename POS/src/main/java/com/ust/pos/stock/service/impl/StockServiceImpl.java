@@ -1,13 +1,14 @@
 package com.ust.pos.stock.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,16 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class StockServiceImpl implements StockService {
+public class StockServiceImpl extends BaseService implements StockService {
 
-    @Autowired
-    private StockRepository stockRepository;
+    public static final String STOCK_WITH_IDENTIFIER = "Stock with identifier - ";
+    private final StockRepository stockRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper) {
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public StockDto save(StockDto stockDto) {
@@ -31,11 +35,15 @@ public class StockServiceImpl implements StockService {
         String identifier = stockDto.getIdentifier();
         Stock existingStock = stockRepository.findByIdentifier(identifier);
         if (existingStock != null) {
-            stockDto.setMessage("Stock with identifier - " + identifier + " already exists");
+            stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " already exists");
+            if(existingStock.isDeleted()){
+                stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " was deleted , Please Contact the Administrator to add.");
+            }
             stockDto.setSuccess(false);
             return stockDto;
         }
         Stock stock = modelMapper.map(stockDto, Stock.class);
+        setCreatedDetails(stock);
         stockRepository.save(stock);
         return stockDto;
     }
@@ -46,11 +54,12 @@ public class StockServiceImpl implements StockService {
         String identifier = stockDto.getIdentifier();
         Stock existingStock = stockRepository.findByIdentifier(identifier);
         if (existingStock == null) {
-            stockDto.setMessage("Stock with identifier - " + identifier + " not found");
+            stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " not found");
             stockDto.setSuccess(false);
             return stockDto;
         }
         modelMapper.map(stockDto, existingStock);
+        setModifiedDetails(existingStock);
         stockRepository.save(existingStock);
         return stockDto;
     }
@@ -58,14 +67,16 @@ public class StockServiceImpl implements StockService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        stockRepository.deleteByIdentifier(identifier);
+        Stock stock = stockRepository.findByIdentifier(identifier);
+        softDelete(stock);
+        setModifiedDetails(stock);
     }
 
     @Override
     public WsDto<StockDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
+        Page<Stock> stockPage = stockRepository.findByIsDeletedFalse(pageable);
 
         WsDto<StockDto> stockWsDto = new WsDto<>();
         stockWsDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
@@ -79,6 +90,10 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        return modelMapper.map(stockRepository.findByIdentifier(identifier), StockDto.class);
+        Stock stock = stockRepository.findByIdentifier(identifier);
+        if (stock == null) {
+            throw new ResourceNotFoundException("Stock with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(stock, StockDto.class);
     }
 }

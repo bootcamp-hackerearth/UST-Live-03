@@ -5,40 +5,47 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequestMapping("/api/product")
 public class ProductControllerApi extends BaseController {
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+
+    public ProductControllerApi(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Cashier')")
     public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return productService.findAll(pageable);
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public ProductDto addPost(@RequestBody ProductDto productDto) {
         return productService.save(productDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('Admin')")
     public ProductDto update(@RequestParam String identifier) {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             productService.delete(identifier);
@@ -46,5 +53,11 @@ public class ProductControllerApi extends BaseController {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @PostMapping("/searchByIdentifierOrName")
+    public WsDto<ProductDto> searchByIdentifierOrName(String keyword,@RequestBody PaginationDto paginationDto){
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        return productService.searchByIdentifierOrName(keyword,pageable);
     }
 }

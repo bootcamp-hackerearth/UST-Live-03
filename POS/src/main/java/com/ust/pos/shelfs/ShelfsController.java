@@ -4,7 +4,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,14 +17,15 @@ public class ShelfsController {
     public static final String NODES = "nodes";
     public static final String STOCK_ADD = "shelfs/add";
 
-    @Autowired
-    private ShelfsService shelfsService;
+    private final ShelfsService shelfsService;
+    private final NodeService nodeService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public ShelfsController(ShelfsService shelfsService, NodeService nodeService, CategoryService categoryService) {
+        this.shelfsService = shelfsService;
+        this.nodeService = nodeService;
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

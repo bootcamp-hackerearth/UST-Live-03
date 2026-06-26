@@ -4,7 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,19 +13,21 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/brand")
 public class BrandControllerApi extends BaseController {
+    private final BrandService brandService;
 
-    @Autowired
-    private BrandService brandService;
+    public BrandControllerApi(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @PostMapping("/list")
-    public List<BrandDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<BrandDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return brandService.findAll(pageable);
     }
 
     @PostMapping("/add")
-    public BrandDto addPost(@RequestBody BrandDto userDto) {
-        return brandService.save(userDto);
+    public BrandDto addPost(@RequestBody BrandDto brandDto) {
+        return brandService.save(brandDto);
     }
 
     @GetMapping("/get")
@@ -33,12 +35,12 @@ public class BrandControllerApi extends BaseController {
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public BrandDto updatePost(@RequestBody BrandDto userDto) {
-        return brandService.update(userDto);
+    @PutMapping("/update")
+    public BrandDto updatePost(@RequestBody BrandDto brandDto) {
+        return brandService.update(brandDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -53,7 +55,7 @@ public class BrandControllerApi extends BaseController {
         return brandService.findAllActive();
     }
 
-    @GetMapping("/toggle")
+    @PostMapping("/toggle")
     public boolean toggle(@RequestParam String identifier) {
         try {
             brandService.toggleStatus(identifier);

@@ -1,10 +1,8 @@
 package com.ust.pos.models;
 
-import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,14 +16,13 @@ public class ModelsController {
     public static final String NODES = "nodes";
     public static final String MODELS_ADD = "models/add";
 
-    @Autowired
-    private ModelsService modelsService;
+    private final ModelsService modelsService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public ModelsController(ModelsService modelsService, NodeService nodeService) {
+        this.modelsService = modelsService;
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -59,8 +56,8 @@ public class ModelsController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute ModelsDto userDto) {
-        ModelsDto response = modelsService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute ModelsDto modelsDto) {
+        ModelsDto response = modelsService.update(modelsDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "models/models";

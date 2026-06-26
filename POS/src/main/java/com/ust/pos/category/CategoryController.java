@@ -1,10 +1,8 @@
 package com.ust.pos.category;
 
-
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,11 +17,13 @@ public class CategoryController {
     public static final String CATEGORY_ADD = "category/add";
     public static final String CATEGORYS = "categorys";
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private NodeService nodeService;
+    public CategoryController(CategoryService categoryService, NodeService nodeService) {
+        this.categoryService = categoryService;
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

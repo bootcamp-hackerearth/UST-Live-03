@@ -1,10 +1,8 @@
 package com.ust.pos.customer;
 
-import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,14 +16,13 @@ public class CustomerController {
     public static final String NODES = "nodes";
     public static final String CUSTOMER_ADD = "customer/add";
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public CustomerController(CustomerService customerService, NodeService nodeService) {
+        this.customerService = customerService;
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -59,8 +56,8 @@ public class CustomerController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute CustomerDto userDto) {
-        CustomerDto response = customerService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute CustomerDto customerDto) {
+        CustomerDto response = customerService.update(customerDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "customer/customer";

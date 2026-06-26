@@ -8,7 +8,6 @@ import com.ust.pos.node.service.NodeService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,17 +24,17 @@ public class StockController {
     public static final String PRODUCTS = "products";
     public static final String WAREHOUSES = "warehouses";
 
-    @Autowired
-    private StockService stockService;
+    private final StockService stockService;
+    private final NodeService nodeService;
+    private final ProductService productService;
+    private final WarehouseService warehouseService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private WarehouseService warehouseService;
+    public StockController(StockService stockService, NodeService nodeService, ProductService productService, WarehouseService warehouseService) {
+        this.stockService = stockService;
+        this.nodeService = nodeService;
+        this.productService = productService;
+        this.warehouseService = warehouseService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

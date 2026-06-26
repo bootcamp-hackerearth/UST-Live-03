@@ -3,7 +3,6 @@ package com.ust.pos.warehouse;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,11 +16,13 @@ public class WarehouseController {
     public static final String NODES = "nodes";
     public static final String WAREHOUSE_ADD = "warehouse/add";
 
-    @Autowired
-    private WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private NodeService nodeService;
+    public WarehouseController(NodeService nodeService, WarehouseService warehouseService) {
+        this.nodeService = nodeService;
+        this.warehouseService = warehouseService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -56,8 +57,8 @@ public class WarehouseController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute WarehouseDto userDto) {
-        WarehouseDto response = warehouseService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute WarehouseDto warehouseDto) {
+        WarehouseDto response = warehouseService.update(warehouseDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(NODES, nodeService.getNodesForRoles());

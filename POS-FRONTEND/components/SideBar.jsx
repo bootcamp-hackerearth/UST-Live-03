@@ -6,7 +6,7 @@ import {
   Warehouse, ShelvingUnit, Users, LayoutList, Boxes, 
   PersonStanding, Package, UserKey, Ruler, 
   AlignVerticalDistributeEnd, ChartNetwork, Tag, 
-  CircleDollarSign, Tags 
+  CircleDollarSign, Tags, ShoppingCart ,History
 } from "lucide-react"
 
 const SideBar = () => {
@@ -40,7 +40,9 @@ const SideBar = () => {
     "Nodes": <ChartNetwork className="size-4 shrink-0" />,
     "Brand": <Tag className="size-4 shrink-0" />,
     "Price": <CircleDollarSign className="size-4 shrink-0" />,
-    "Models": <Tags className="size-4 shrink-0" />
+    "Models": <Tags className="size-4 shrink-0" />,
+    "Sales": <ShoppingCart className="size-4 shrink-0"/>,
+    "Orders": <History className="size-4 shrink-0"/>
   }
 
   const isNodeActive = (nodePath) => {
@@ -49,7 +51,7 @@ const SideBar = () => {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-12 hover:w-52 bg-slate-950 border-r border-slate-800 text-slate-400 hover:text-slate-200 transition-all duration-300 ease-in-out pt-14 z-10 flex flex-col group/sidebar shadow-xl">
+    <aside className="fixed left-0 top-0 h-full w-12 hover:w-52 bg-slate-950 border-r border-slate-800 text-slate-400 hover:text-slate-200 transition-all duration-300 ease-in-out pt-14 z-200 flex flex-col group/sidebar shadow-xl">
       
       <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto scrollbar-none">
         <ul>

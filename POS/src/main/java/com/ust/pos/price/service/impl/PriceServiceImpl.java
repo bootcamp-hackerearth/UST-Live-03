@@ -1,5 +1,6 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
@@ -7,7 +8,6 @@ import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,15 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class PriceServiceImpl implements PriceService {
+public class PriceServiceImpl extends BaseService implements PriceService {
 
-    @Autowired
-    private PriceRepository priceRepository;
+    private final PriceRepository priceRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public PriceServiceImpl(PriceRepository priceRepository, ModelMapper modelMapper) {
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PriceDto save(PriceDto priceDto) {
@@ -32,10 +34,14 @@ public class PriceServiceImpl implements PriceService {
         Price existingPrice = priceRepository.findByIdentifier(identifier);
         if (existingPrice != null) {
             priceDto.setMessage("Price with identifier - " + identifier + " already exists");
+            if(existingPrice.isDeleted()){
+                priceDto.setMessage("Models with identifier - " + identifier + " was deleted , Please Contact the Administrator to add.");
+            }
             priceDto.setSuccess(false);
             return priceDto;
         }
         Price price = modelMapper.map(priceDto, Price.class);
+        setCreatedDetails(price);
         priceRepository.save(price);
         return priceDto;
     }
@@ -52,20 +58,23 @@ public class PriceServiceImpl implements PriceService {
         }
         modelMapper.map(priceDto, existingPrice);
         priceRepository.save(existingPrice);
+        setModifiedDetails(existingPrice);
         return priceDto;
     }
 
     @Override
     @Transactional
     public void delete(String identifier) {
-        priceRepository.deleteByIdentifier(identifier);
+        Price price = priceRepository.findByIdentifier(identifier);
+        softDelete(price);
+        setModifiedDetails(price);
     }
 
     @Override
     public WsDto<PriceDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
-        Page<Price> pricePage = priceRepository.findAll(pageable);
+        Page<Price> pricePage = priceRepository.findByIsDeletedFalse(pageable);
 
         WsDto<PriceDto> priceWsDto = new WsDto<>();
         priceWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));

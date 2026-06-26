@@ -4,7 +4,6 @@ import com.ust.pos.dto.UserDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,14 +17,15 @@ public class UserController {
 
     public static final String MESSAGE = "message";
     public static final String REDIRECT_USER_LIST = "redirect:/user/list";
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final RoleService roleService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private NodeService nodeService;
+    public UserController(UserService userService, RoleService roleService, NodeService nodeService) {
+        this.userService = userService;
+        this.roleService = roleService;
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

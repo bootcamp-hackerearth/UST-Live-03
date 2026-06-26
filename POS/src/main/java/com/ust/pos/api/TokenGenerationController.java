@@ -4,10 +4,7 @@ import com.ust.pos.config.JWTUtility;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.RoleValidateDto;
 import com.ust.pos.dto.UserDto;
-import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
-import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,26 +19,29 @@ import java.util.List;
 
 @RestController
 public class TokenGenerationController {
-
-    @Autowired
     UserDetailsService userDetailsService;
-    @Autowired
-    private AuthenticationProvider authenticationProvider;
-    @Autowired
-    private JWTUtility jwtUtility;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private NodeService nodeService;
+    private final AuthenticationProvider authenticationProvider;
+    private final JWTUtility jwtUtility;
+    private final NodeService nodeService;
+
+    public TokenGenerationController(UserDetailsService userDetailsService, AuthenticationProvider authenticationProvider, JWTUtility jwtUtility, NodeService nodeService) {
+        this.userDetailsService = userDetailsService;
+        this.authenticationProvider = authenticationProvider;
+        this.jwtUtility = jwtUtility;
+        this.nodeService = nodeService;
+    }
 
     @PostMapping("/api/authenticate")
     public UserDto authenticate(@RequestBody UserDto userDto) {
         try {
             Authentication authentication = authenticationProvider.authenticate(
                     new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
+
+            if (authentication == null) {
+                return new UserDto("Error");
+            }
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
             final String token = jwtUtility.generateToken(userDetails);
             return new UserDto(token);
         } catch (Exception e) {
@@ -62,12 +62,15 @@ public class TokenGenerationController {
     @PostMapping("/api/roleValidation")
     public  boolean roleValidation(@RequestBody RoleValidateDto roleValidateDto){
         try{
-            List<String> userRoles = roleValidateDto.getRoles();
-            String url = roleValidateDto.getUrl();
-            NodeDto nodeDto = nodeService.findByPath("/"+url);
-            List<String> nodeRoles = nodeDto.getRoles();
-            if(!Collections.disjoint(nodeRoles, userRoles)){
-                return true;
+            UserDetails userDetails = userDetailsService.loadUserByUsername(roleValidateDto.getUsername());
+            if(jwtUtility.validateToken(roleValidateDto.getToken(), userDetails)){
+                List<String> userRoles = roleValidateDto.getRoles();
+                String url = roleValidateDto.getUrl();
+                NodeDto nodeDto = nodeService.findByPath("/"+url);
+                List<String> nodeRoles = nodeDto.getRoles();
+                if(!Collections.disjoint(nodeRoles, userRoles)){
+                    return true;
+                }
             }
         } catch (Exception e) {
             return false;

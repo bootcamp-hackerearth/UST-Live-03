@@ -7,7 +7,6 @@ import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,23 +20,21 @@ public class ProductController {
     public static final String NODES = "nodes";
     public static final String PRODUCT_ADD = "product/add";
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+    private final NodeService nodeService;
+    private final CategoryService categoryService;
+    private final UnitService unitService;
+    private final BrandService brandService;
+    private final ModelsService modelsService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private UnitService unitService;
-
-    @Autowired
-    private BrandService brandService;
-
-    @Autowired
-    private ModelsService modelsService;
+    public ProductController(ProductService productService, NodeService nodeService, CategoryService categoryService, UnitService unitService, BrandService brandService, ModelsService modelsService) {
+        this.productService = productService;
+        this.nodeService = nodeService;
+        this.categoryService = categoryService;
+        this.unitService = unitService;
+        this.brandService = brandService;
+        this.modelsService = modelsService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -79,8 +76,8 @@ public class ProductController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute ProductDto userDto) {
-        ProductDto response = productService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute ProductDto productDto) {
+        ProductDto response = productService.update(productDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "product/product";

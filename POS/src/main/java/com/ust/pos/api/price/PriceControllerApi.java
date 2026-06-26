@@ -5,16 +5,17 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.price.service.PriceService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/price")
 public class PriceControllerApi extends BaseController {
+    private final PriceService priceService;
 
-    @Autowired
-    private PriceService priceService;
+    public PriceControllerApi(PriceService priceService) {
+        this.priceService = priceService;
+    }
 
     @PostMapping("/list")
     public WsDto<PriceDto> home(@RequestBody PaginationDto paginationDto) {
@@ -32,12 +33,12 @@ public class PriceControllerApi extends BaseController {
         return priceService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public PriceDto updatePost(@RequestBody PriceDto priceDto) {
         return priceService.update(priceDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             priceService.delete(identifier);

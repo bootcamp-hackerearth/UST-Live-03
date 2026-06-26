@@ -1,13 +1,12 @@
 package com.ust.pos.address.service.impl;
 
-
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,13 +14,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl extends BaseService implements AddressService {
+    private final AddressRepository addressRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private AddressRepository addressRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto save(AddressDto addressDto) {
@@ -34,6 +34,7 @@ public class AddressServiceImpl implements AddressService {
             return addressDto;
         }
         Address address = modelMapper.map(addressDto, Address.class);
+        setCreatedDetails(address);
         addressRepository.save(address);
         return addressDto;
     }
@@ -48,6 +49,7 @@ public class AddressServiceImpl implements AddressService {
             return addressDto;
         }
         modelMapper.map(addressDto, existingAddress);
+        setModifiedDetails(existingAddress);
         addressRepository.save(existingAddress);
         return addressDto;
     }

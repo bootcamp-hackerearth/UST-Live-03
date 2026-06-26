@@ -19,7 +19,7 @@ const Navbar = () => {
   }
 
   return (
-    <header className="fixed top-0 right-0 left-0 h-12 bg-slate-900 border-b border-slate-800 text-white flex items-center justify-between px-4 z-20 shadow-sm pl-3">
+    <header className="fixed top-0 right-0 left-0 h-12 bg-slate-900 border-b border-slate-800 text-white flex items-center justify-between px-4 z-1000 shadow-sm pl-3">
       
       <button
         type="button"

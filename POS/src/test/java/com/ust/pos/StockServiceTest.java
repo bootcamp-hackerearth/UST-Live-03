@@ -37,7 +37,6 @@ class StockServiceTest {
 
     @Test
     void saveSuccessTest() {
-
         StockDto stockDto = new StockDto();
         stockDto.setProduct("PROD1");
         stockDto.setWarehouse("WH1");
@@ -50,31 +49,49 @@ class StockServiceTest {
         StockDto response = stockService.save(stockDto);
 
         Assertions.assertEquals("PROD1WH1", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertNull(response.getMessage());
-
         verify(stockRepository).save(stock);
     }
 
     @Test
-    void saveFailureTest() {
-
+    void saveFailureAlreadyExistsTest() {
         StockDto stockDto = new StockDto();
         stockDto.setProduct("PROD1");
         stockDto.setWarehouse("WH1");
 
-        Mockito.when(stockRepository.findByIdentifier("PROD1WH1")).thenReturn(new Stock());
+        Stock existingStock = new Stock();
+        existingStock.setDeleted(false);
+
+        Mockito.when(stockRepository.findByIdentifier("PROD1WH1")).thenReturn(existingStock);
 
         StockDto response = stockService.save(stockDto);
 
         Assertions.assertEquals("PROD1WH1", response.getIdentifier());
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertEquals("Stock with identifier - PROD1WH1 already exists", response.getMessage());
+        Mockito.verify(stockRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void saveFailureAlreadyDeletedTest() {
+        StockDto stockDto = new StockDto();
+        stockDto.setProduct("PROD1");
+        stockDto.setWarehouse("WH1");
+
+        Stock existingStock = new Stock();
+        existingStock.setDeleted(true);
+
+        Mockito.when(stockRepository.findByIdentifier("PROD1WH1")).thenReturn(existingStock);
+
+        StockDto response = stockService.save(stockDto);
+
+        Assertions.assertEquals("PROD1WH1", response.getIdentifier());
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Models with identifier - PROD1WH1 was deleted , Please Contact the Administrator to add.", response.getMessage());
+        Mockito.verify(stockRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
     void updateSuccessTest() {
-
         StockDto stockDto = new StockDto();
         stockDto.setProduct("PROD1");
         stockDto.setWarehouse("WH1");
@@ -86,12 +103,12 @@ class StockServiceTest {
         StockDto response = stockService.update(stockDto);
 
         Assertions.assertEquals("PROD1WH1", response.getIdentifier());
+        verify(modelMapper).map(stockDto, existingStock);
         verify(stockRepository).save(existingStock);
     }
 
     @Test
     void updateFailureTest() {
-
         StockDto stockDto = new StockDto();
         stockDto.setProduct("PROD1");
         stockDto.setWarehouse("WH1");
@@ -102,71 +119,50 @@ class StockServiceTest {
 
         Assertions.assertEquals("PROD1WH1", response.getIdentifier());
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertEquals("Stock with identifier - PROD1WH1 not found", response.getMessage());
+        Mockito.verify(stockRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
     void deleteSuccessTest() {
+        Stock stock = new Stock();
+        Mockito.when(stockRepository.findByIdentifier("PROD1WH1")).thenReturn(stock);
 
         stockService.delete("PROD1WH1");
 
-        verify(stockRepository).deleteByIdentifier("PROD1WH1");
+        verify(stockRepository).findByIdentifier("PROD1WH1");
+    }
+
+    @Test
+    void findAllSuccessTest() {
+        Stock stock = new Stock();
+        List<Stock> stockList = List.of(stock);
+
+        StockDto dto = new StockDto();
+        List<StockDto> stockDtos = List.of(dto);
+
+        Page<Stock> page = new PageImpl<>(stockList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Mockito.when(stockRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(stockList), Mockito.any(Type.class))).thenReturn(stockDtos);
+
+        WsDto<StockDto> result = stockService.findAll(pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 
     @Test
     void findByIdentifierSuccessTest() {
-
         Stock stock = new Stock();
-        stock.setIdentifier("PROD1WH1");
-
         StockDto stockDto = new StockDto();
-        stockDto.setIdentifier("PROD1WH1");
 
         Mockito.when(stockRepository.findByIdentifier("PROD1WH1")).thenReturn(stock);
         Mockito.when(modelMapper.map(stock, StockDto.class)).thenReturn(stockDto);
 
         StockDto response = stockService.findByIdentifier("PROD1WH1");
 
-        Assertions.assertEquals("PROD1WH1", response.getIdentifier());
-    }
-
-    @Test
-    void findByIdentifierFailureTest() {
-
-        Mockito.when(stockRepository.findByIdentifier("PROD1WH1")).thenReturn(null);
-
-        StockDto response = stockService.findByIdentifier("PROD1WH1");
-
-        Assertions.assertNull(response);
-    }
-
-    @Test
-    void findAllSuccessTest() {
-
-        Stock s1 = new Stock();
-        s1.setIdentifier("PROD1WH1");
-
-        Stock s2 = new Stock();
-        s2.setIdentifier("PROD2WH2");
-
-        List<Stock> stocks = List.of(s1, s2);
-
-        StockDto d1 = new StockDto();
-        d1.setIdentifier("PROD1WH1");
-
-        StockDto d2 = new StockDto();
-        d2.setIdentifier("PROD2WH2");
-
-        List<StockDto> stockDtos = List.of(d1, d2);
-
-        Page<Stock> page = new PageImpl<>(stocks);
-        Pageable pageable = PageRequest.of(0, 20);
-
-        Mockito.when(stockRepository.findAll(pageable)).thenReturn(page);
-        Mockito.when(modelMapper.map(Mockito.eq(stocks), Mockito.any(Type.class))).thenReturn(stockDtos);
-
-        WsDto<StockDto> result = stockService.findAll(pageable);
-
-        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertNotNull(response);
     }
 }

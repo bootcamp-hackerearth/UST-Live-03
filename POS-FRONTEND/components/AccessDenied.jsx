@@ -18,7 +18,7 @@ export default function AccessDenied() {
           Access Denied
         </h1>
         <p className="mb-8 text-base text-gray-600 dark:text-gray-400">
-          Oops! You don't have permission to view this page.
+          Oops! You don't have permission.
         </p>
 
         <button

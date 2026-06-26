@@ -26,4 +26,6 @@ public interface CartEntryService {
     List<CartEntryDto> findByCartId(String cartId);
 
     void deleteAllByCartId(String cartId);
+
+    CartEntryDto updateQuantity(CartEntryDto cartEntryDto);
 }

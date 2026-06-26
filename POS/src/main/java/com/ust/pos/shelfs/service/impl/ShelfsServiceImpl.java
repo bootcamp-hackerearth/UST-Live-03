@@ -1,5 +1,6 @@
 package com.ust.pos.shelfs.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.model.Shelfs;
@@ -7,7 +8,6 @@ import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.shelfs.service.ShelfsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,12 +17,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ShelfsServiceImpl implements ShelfsService {
-    @Autowired
-    private ShelfsRepository shelfsRepository;
+public class ShelfsServiceImpl extends BaseService implements ShelfsService {
+    private final ShelfsRepository shelfsRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ShelfsServiceImpl(ShelfsRepository shelfsRepository, ModelMapper modelMapper) {
+        this.shelfsRepository = shelfsRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ShelfsDto save(ShelfsDto shelfsDto) {
@@ -31,10 +33,14 @@ public class ShelfsServiceImpl implements ShelfsService {
         Shelfs existingShelfs = shelfsRepository.findByIdentifier(identifier);
         if (existingShelfs != null) {
             shelfsDto.setMessage("Shelfs with identifier - " + identifier + " already exists");
+            if(existingShelfs.isDeleted()){
+                shelfsDto.setMessage("Racks with identifier - " + identifier + " was deleted , Please Contact the Administrator to add.");
+            }
             shelfsDto.setSuccess(false);
             return shelfsDto;
         }
         Shelfs shelfs = modelMapper.map(shelfsDto, Shelfs.class);
+        setCreatedDetails(shelfs);
         shelfsRepository.save(shelfs);
         return shelfsDto;
     }
@@ -49,6 +55,7 @@ public class ShelfsServiceImpl implements ShelfsService {
             return shelfsDto;
         }
         modelMapper.map(shelfsDto, existingShelfs);
+        setModifiedDetails(existingShelfs);
         shelfsRepository.save(existingShelfs);
         return shelfsDto;
     }
@@ -56,14 +63,16 @@ public class ShelfsServiceImpl implements ShelfsService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        shelfsRepository.deleteByIdentifier(identifier);
+        Shelfs shelfs = shelfsRepository.findByIdentifier(identifier);
+        softDelete(shelfs);
+        setModifiedDetails(shelfs);
     }
 
     @Override
     public WsDto<ShelfsDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfsDto>>() {
         }.getType();
-        Page<Shelfs> shelfsPage = shelfsRepository.findAll(pageable);
+        Page<Shelfs> shelfsPage = shelfsRepository.findByIsDeletedFalse(pageable);
 
         WsDto<ShelfsDto> shelfsWsDto = new WsDto<>();
         shelfsWsDto.setDtoList(modelMapper.map(shelfsPage.getContent(), listType));
@@ -84,7 +93,7 @@ public class ShelfsServiceImpl implements ShelfsService {
     public List<ShelfsDto> findAllActive() {
         Type listType = new TypeToken<List<ShelfsDto>>() {
         }.getType();
-        return modelMapper.map(shelfsRepository.findByStatus(true), listType);
+        return modelMapper.map(shelfsRepository.findByStatusTrueAndIsDeletedFalse(), listType);
     }
 
     @Override
@@ -92,6 +101,7 @@ public class ShelfsServiceImpl implements ShelfsService {
         Shelfs shelfs = shelfsRepository.findByIdentifier(identifier);
         if (shelfs != null) {
             shelfs.setStatus(!shelfs.isStatus());
+            setModifiedDetails(shelfs);
             shelfsRepository.save(shelfs);
         }
     }

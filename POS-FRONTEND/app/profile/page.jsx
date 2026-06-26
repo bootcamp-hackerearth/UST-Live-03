@@ -34,7 +34,6 @@ const ProfilePage = () => {
         async function initPage() {
             try {
                 setIsLoading(true);
-                // Execute parallel fetches for optimal performance
                 await Promise.all([
                     fetchUserProfile(user),
                     getRoles()
@@ -79,7 +78,7 @@ const ProfilePage = () => {
     const onSubmit = async (data) => {
         try {
             const res = await fetch(`http://localhost:8080/api/user/update`, {
-                method: "POST",
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },

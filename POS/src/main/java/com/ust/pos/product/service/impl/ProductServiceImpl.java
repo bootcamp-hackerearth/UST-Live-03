@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
@@ -7,7 +8,6 @@ import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,16 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl extends BaseService implements ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    public static final String PRODUCT_WITH_IDENTIFIER = "Product with identifier - ";
+    private final ProductRepository productRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ProductServiceImpl(ProductRepository productRepository, ModelMapper modelMapper) {
+        this.productRepository = productRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ProductDto save(ProductDto productDto) {
@@ -31,11 +34,15 @@ public class ProductServiceImpl implements ProductService {
         String identifier = productDto.getIdentifier();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct != null) {
-            productDto.setMessage("Product with identifier - " + identifier + " already exists");
+            productDto.setMessage(PRODUCT_WITH_IDENTIFIER + identifier + " already exists");
+            if(existingProduct.isDeleted()){
+                productDto.setMessage(PRODUCT_WITH_IDENTIFIER + identifier + " was deleted , Please Contact the Administrator to add.");
+            }
             productDto.setSuccess(false);
             return productDto;
         }
         Product product = modelMapper.map(productDto, Product.class);
+        setCreatedDetails(product);
         productRepository.save(product);
         return productDto;
     }
@@ -45,11 +52,12 @@ public class ProductServiceImpl implements ProductService {
         String identifier = productDto.getIdentifier();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct == null) {
-            productDto.setMessage("Product with identifier - " + identifier + " not found");
+            productDto.setMessage(PRODUCT_WITH_IDENTIFIER + identifier + " not found");
             productDto.setSuccess(false);
             return productDto;
         }
         modelMapper.map(productDto, existingProduct);
+        setModifiedDetails(existingProduct);
         productRepository.save(existingProduct);
         return productDto;
     }
@@ -57,14 +65,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        productRepository.deleteByIdentifier(identifier);
+        Product product = productRepository.findByIdentifier(identifier);
+        softDelete(product);
+        setModifiedDetails(product);
     }
 
     @Override
     public WsDto<ProductDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<Product> productPage = productRepository.findByIsDeletedFalse(pageable);
 
         WsDto<ProductDto> productWsDto = new WsDto<>();
         productWsDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
@@ -80,4 +90,15 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto findByIdentifier(String identifier) {
         return modelMapper.map(productRepository.findByIdentifier(identifier), ProductDto.class);
     }
+
+    @Override
+    public WsDto<ProductDto> searchByIdentifierOrName(String keyword, Pageable pageable) {
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Product> productPage = productRepository.searchByIdentifierOrName(keyword,pageable);
+        WsDto<ProductDto> productWsDto = new WsDto<>();
+        productWsDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
+        return productWsDto;
+    }
+
 }

@@ -16,4 +16,6 @@ public interface ProductService {
     WsDto<ProductDto> findAll(Pageable pageable);
 
     ProductDto findByIdentifier(String identifier);
+
+    WsDto<ProductDto> searchByIdentifierOrName(String keyword, Pageable pageable);
 }

@@ -1,10 +1,8 @@
 package com.ust.pos.brand;
 
 import com.ust.pos.brand.service.BrandService;
-import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,14 +16,13 @@ public class BrandController {
     public static final String NODES = "nodes";
     public static final String BRAND_ADD = "brand/add";
 
-    @Autowired
-    private BrandService brandService;
+    private final BrandService brandService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public BrandController(BrandService brandService, NodeService nodeService) {
+        this.brandService = brandService;
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -59,8 +56,8 @@ public class BrandController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute BrandDto userDto) {
-        BrandDto response = brandService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute BrandDto brandDto) {
+        BrandDto response = brandService.update(brandDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "brand/brand";

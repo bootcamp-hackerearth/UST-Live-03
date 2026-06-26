@@ -4,7 +4,6 @@ package com.ust.pos.node;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +15,14 @@ public class NodeController {
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
     public static final String ROLES = "roles";
     public static final String NODES = "nodes";
-    @Autowired
-    private NodeService nodeService;
 
-    @Autowired
-    private RoleService roleService;
+    private final NodeService nodeService;
+    private final RoleService roleService;
+
+    public NodeController(NodeService nodeService, RoleService roleService) {
+        this.nodeService = nodeService;
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -30,15 +32,15 @@ public class NodeController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute NodeDto userDto) {
+    public String add(Model model, @ModelAttribute NodeDto nodeDto) {
         model.addAttribute(ROLES, roleService.findAll(null));
         model.addAttribute(NODES, nodeService.getNodesForRoles());
         return "node/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute NodeDto userDto) {
-        NodeDto response = nodeService.save(userDto);
+    public String addPost(Model model, @ModelAttribute NodeDto nodeDto) {
+        NodeDto response = nodeService.save(nodeDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(ROLES, roleService.findAll(null));
@@ -57,8 +59,8 @@ public class NodeController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute NodeDto userDto) {
-        NodeDto response = nodeService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute NodeDto nodeDto) {
+        NodeDto response = nodeService.update(nodeDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
         }

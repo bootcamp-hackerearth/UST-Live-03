@@ -3,7 +3,6 @@ package com.ust.pos.role;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +15,13 @@ public class RoleController {
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
     public static final String NODES = "nodes";
     public static final String ROLE_ADD = "role/add";
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private NodeService nodeService;
+    public RoleController(RoleService roleService, NodeService nodeService) {
+        this.roleService = roleService;
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -30,14 +31,14 @@ public class RoleController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute RoleDto userDto) {
+    public String add(Model model, @ModelAttribute RoleDto roleDto) {
         model.addAttribute(NODES, nodeService.getNodesForRoles());
         return ROLE_ADD;
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute RoleDto userDto) {
-        RoleDto response = roleService.save(userDto);
+    public String addPost(Model model, @ModelAttribute RoleDto roleDto) {
+        RoleDto response = roleService.save(roleDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return ROLE_ADD;
@@ -54,8 +55,8 @@ public class RoleController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute RoleDto userDto) {
-        RoleDto response = roleService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute RoleDto roleDto) {
+        RoleDto response = roleService.update(roleDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "role/role";

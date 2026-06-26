@@ -1,11 +1,21 @@
 "use client"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation";
-import React from 'react'
+import {useEffect} from 'react'
 import { ShoppingBag, KeyRound, User, Store } from "lucide-react"
 
 const Login = () => {
     const router = useRouter()
+    
+    useEffect(() => {
+        async function init(){
+        const res = await fetch('/api/print');
+        console.log(res)
+        }
+    init()
+     
+    }, [])
+    
 
     const {
         register,
@@ -14,7 +24,6 @@ const Login = () => {
     } = useForm()
 
     const onSubmit = async (data) => {
-        debugger
         const res = await fetch("/api/login", {
             method: "POST",
             headers: {

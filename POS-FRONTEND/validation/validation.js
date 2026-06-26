@@ -56,3 +56,11 @@ export const phoneValidation = {
     message: "Phone number must be 10 digits",
   },
 };
+
+export const pathValidation = {
+  required: "Path is required",
+  pattern: {
+    value: /^\/[a-zA-Z0-9\-_/]*$/,
+    message: "Path must start with '/' and contain only valid characters",
+  },
+};

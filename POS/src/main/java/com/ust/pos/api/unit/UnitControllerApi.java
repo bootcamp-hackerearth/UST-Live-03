@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +13,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/unit")
 public class UnitControllerApi extends BaseController {
+    private final UnitService unitService;
 
-    @Autowired
-    private UnitService unitService;
+    public UnitControllerApi(UnitService unitService) {
+        this.unitService = unitService;
+    }
 
     @PostMapping("/list")
     public WsDto<UnitDto> home(@RequestBody PaginationDto paginationDto) {
@@ -34,12 +35,12 @@ public class UnitControllerApi extends BaseController {
         return unitService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
@@ -54,7 +55,7 @@ public class UnitControllerApi extends BaseController {
         return unitService.findAllActive();
     }
 
-    @GetMapping("/toggle")
+    @PostMapping("/toggle")
     public boolean toggle(@RequestParam String identifier) {
         try {
             unitService.toggleStatus(identifier);

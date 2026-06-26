@@ -1,11 +1,9 @@
 package com.ust.pos.racks;
 
-import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.racks.service.RacksService;
 import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,17 +18,15 @@ public class RacksController {
     public static final String RACKS_ADD = "racks/add";
     public static final String SHELFS = "shelfs";
 
-    @Autowired
-    private RacksService racksService;
+    private final RacksService racksService;
+    private final NodeService nodeService;
+    private final ShelfsService shelfsService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private ShelfsService shelfsService;
+    public RacksController(RacksService racksService, NodeService nodeService, ShelfsService shelfsService) {
+        this.racksService = racksService;
+        this.nodeService = nodeService;
+        this.shelfsService = shelfsService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -68,8 +64,8 @@ public class RacksController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute RacksDto userDto) {
-        RacksDto response = racksService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute RacksDto racksDto) {
+        RacksDto response = racksService.update(racksDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             model.addAttribute(NODES, nodeService.getNodesForRoles());

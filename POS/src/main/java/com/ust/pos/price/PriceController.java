@@ -6,7 +6,6 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,14 +21,15 @@ public class PriceController {
     public static final String STOCK_ADD = "price/add";
     public static final String PRODUCTS = "products";
 
-    @Autowired
-    private PriceService priceService;
+    private final PriceService priceService;
+    private final NodeService nodeService;
+    private final ProductService productService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private ProductService productService;
+    public PriceController(PriceService priceService, NodeService nodeService, ProductService productService) {
+        this.priceService = priceService;
+        this.nodeService = nodeService;
+        this.productService = productService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -69,8 +69,8 @@ public class PriceController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute PriceDto userDto, Pageable pageable) {
-        PriceDto response = priceService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute PriceDto nodeDto, Pageable pageable) {
+        PriceDto response = priceService.update(nodeDto);
         if (!response.isSuccess()) {
             model.addAttribute(NODES, nodeService.getNodesForRoles());
             model.addAttribute("message", response.getMessage());

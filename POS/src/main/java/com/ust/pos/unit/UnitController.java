@@ -4,7 +4,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,14 +17,15 @@ public class UnitController {
     public static final String NODES = "nodes";
     public static final String UNIT_ADD = "unit/add";
 
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
+    private final NodeService nodeService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public UnitController(UnitService unitService, NodeService nodeService, CategoryService categoryService) {
+        this.unitService = unitService;
+        this.nodeService = nodeService;
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -61,8 +61,8 @@ public class UnitController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute UnitDto userDto) {
-        UnitDto response = unitService.update(userDto);
+    public String updatePost(Model model, @ModelAttribute UnitDto unitDto) {
+        UnitDto response = unitService.update(unitDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
             return "unit/unit";

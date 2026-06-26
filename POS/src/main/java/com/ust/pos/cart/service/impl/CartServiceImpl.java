@@ -1,33 +1,30 @@
 package com.ust.pos.cart.service.impl;
 
-
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartEntry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class CartServiceImpl implements CartService {
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
+    private final ModelMapper modelMapper;
+    private final CartEntryService cartEntryService;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private CartEntryService cartEntryService;
-
+    public CartServiceImpl(CartRepository cartRepository, ModelMapper modelMapper, CartEntryService cartEntryService) {
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+        this.cartEntryService = cartEntryService;
+    }
 
     @Override
     public CartDto findByIdentifier(String identifier) {

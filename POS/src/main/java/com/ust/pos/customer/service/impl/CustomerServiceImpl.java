@@ -1,15 +1,15 @@
 package com.ust.pos.customer.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.base.service.BaseService;
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.customer.service.CustomerService;
-import com.ust.pos.dto.AddressDto;
-import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.*;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,16 +19,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends BaseService implements CustomerService {
+    private final CustomerRepository customerRepository;
+    private final AddressService addressService;
+    private final ModelMapper modelMapper;
+    private final CartService cartService;
 
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private AddressService addressService;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CustomerServiceImpl(CustomerRepository customerRepository, AddressService addressService, ModelMapper modelMapper, CartService cartService) {
+        this.customerRepository = customerRepository;
+        this.addressService = addressService;
+        this.modelMapper = modelMapper;
+        this.cartService = cartService;
+    }
 
     @Override
     public CustomerDto save(CustomerDto customerDto) {
@@ -40,20 +42,14 @@ public class CustomerServiceImpl implements CustomerService {
             return customerDto;
         }
         Customer customer = modelMapper.map(customerDto, Customer.class);
+        setCreatedDetails(customer);
         customerRepository.save(customer);
 
-        AddressDto billingAddress = modelMapper.map(customerDto.getBillingAddress(), AddressDto.class);
-        billingAddress.setPhoneNo(customerDto.getIdentifier());
-        billingAddress.setAddressType("billing");
-        billingAddress.setIdentifier(customerDto.getIdentifier() + "_" + billingAddress.getAddressType() + "_" + billingAddress.getZipcode());
-        addressService.save(billingAddress);
+        setAddressFields(customerDto);
 
-        AddressDto shippingAddress = modelMapper.map(customerDto.getShippingAddress(), AddressDto.class);
-        shippingAddress.setPhoneNo(customerDto.getIdentifier());
-        shippingAddress.setAddressType("shipping");
-        shippingAddress.setIdentifier(customerDto.getIdentifier() + "_" + shippingAddress.getAddressType() + "_" + shippingAddress.getZipcode());
-        addressService.save(shippingAddress);
-
+        CartDto cartDto = new CartDto();
+        cartDto.setIdentifier(customerDto.getIdentifier());
+        cartService.save(cartDto);
         return customerDto;
     }
 
@@ -67,19 +63,25 @@ public class CustomerServiceImpl implements CustomerService {
             return customerDto;
         }
         modelMapper.map(customerDto, existingCustomer);
+        setModifiedDetails(existingCustomer);
         customerRepository.save(existingCustomer);
 
         List<AddressDto> addressDtoList = addressService.findByPhoneNo(identifier);
 
-        Address billingAddress = customerDto.getBillingAddress();
-        billingAddress.setIdentifier(addressDtoList.get(0).getIdentifier());
-        billingAddress.setAddressType(addressDtoList.get(0).getAddressType());
-        addressService.update(modelMapper.map(billingAddress, AddressDto.class));
+        if(addressDtoList.isEmpty()){
+            setAddressFields(customerDto);
+        }
+        else {
+            Address billingAddress = customerDto.getBillingAddress();
+            billingAddress.setIdentifier(addressDtoList.get(0).getIdentifier());
+            billingAddress.setAddressType(addressDtoList.get(0).getAddressType());
+            addressService.update(modelMapper.map(billingAddress, AddressDto.class));
 
-        Address shippingAddress = customerDto.getShippingAddress();
-        shippingAddress.setIdentifier(addressDtoList.get(1).getIdentifier());
-        shippingAddress.setAddressType(addressDtoList.get(1).getAddressType());
-        addressService.update(modelMapper.map(shippingAddress, AddressDto.class));
+            Address shippingAddress = customerDto.getShippingAddress();
+            shippingAddress.setIdentifier(addressDtoList.get(1).getIdentifier());
+            shippingAddress.setAddressType(addressDtoList.get(1).getAddressType());
+            addressService.update(modelMapper.map(shippingAddress, AddressDto.class));
+        }
 
         return customerDto;
     }
@@ -87,17 +89,26 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public void delete(String identifier) {
-
-        customerRepository.deleteByIdentifier(identifier);
+        Customer customer = customerRepository.findByIdentifier(identifier);
+        softDelete(customer);
+        setModifiedDetails(customer);
         addressService.delete(identifier);
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        Page<Customer> customerPage = customerRepository.findByIsDeletedFalse(pageable);
+
+        WsDto<CustomerDto> customerWsDto = new WsDto<>();
+        customerWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        customerWsDto.setTotalRecords(customerPage.getTotalElements());
+        customerWsDto.setTotalPages(customerPage.getTotalPages());
+        customerWsDto.setSizePerPage(pageable.getPageSize());
+        customerWsDto.setPage(pageable.getPageNumber());
+
+        return customerWsDto;
     }
 
     @Override
@@ -109,8 +120,28 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDto findByIdentifierWithAddressDto(String identifier) {
         CustomerDto customerDto = findByIdentifier(identifier);
         List<AddressDto> addressDtoList = addressService.findByPhoneNo(identifier);
-        customerDto.setBillingAddress(modelMapper.map(addressDtoList.get(0), Address.class));
-        customerDto.setShippingAddress(modelMapper.map(addressDtoList.get(1), Address.class));
+        if(!addressDtoList.isEmpty()){
+            customerDto.setBillingAddress(modelMapper.map(addressDtoList.get(0), Address.class));
+            customerDto.setShippingAddress(modelMapper.map(addressDtoList.get(1), Address.class));
+        }
         return customerDto;
+    }
+
+    private void setAddressFields(CustomerDto customerDto){
+        if(customerDto.getBillingAddress()!=null) {
+            AddressDto billingAddress = modelMapper.map(customerDto.getBillingAddress(), AddressDto.class);
+            billingAddress.setPhoneNo(customerDto.getIdentifier());
+            billingAddress.setAddressType("billing");
+            billingAddress.setIdentifier(customerDto.getIdentifier() + "_" + billingAddress.getAddressType() + "_" + billingAddress.getZipcode());
+            addressService.save(billingAddress);
+        }
+
+        if(customerDto.getShippingAddress()!=null) {
+            AddressDto shippingAddress = modelMapper.map(customerDto.getShippingAddress(), AddressDto.class);
+            shippingAddress.setPhoneNo(customerDto.getIdentifier());
+            shippingAddress.setAddressType("shipping");
+            shippingAddress.setIdentifier(customerDto.getIdentifier() + "_" + shippingAddress.getAddressType() + "_" + shippingAddress.getZipcode());
+            addressService.save(shippingAddress);
+        }
     }
 }

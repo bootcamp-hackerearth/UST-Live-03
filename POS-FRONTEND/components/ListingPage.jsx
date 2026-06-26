@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import PropTypes from 'prop-types'
 import { Pencil, Trash2, Plus } from 'lucide-react'
 import { useRouter } from "next/navigation"
+import AccessDenied from "./AccessDenied"
 
 const ListingPage = (props) => {
 
@@ -10,7 +11,9 @@ const ListingPage = (props) => {
     const keys = props.keys
     const urlName = props.urlName
 
+    
     const [listData, setListData] = useState([])
+    const [accessDenied, setAccessDenied] = useState(false)
 
     const [paginationDto, setPaginationDto] = useState({
         "page": 0,
@@ -27,12 +30,15 @@ const ListingPage = (props) => {
             headers: {
                 "Content-Type": "application/json",
             },
-            credentials:"include",
+            credentials: "include",
             body: JSON.stringify(paginationDto)
         });
 
         const response = await res.json();
         console.log(response)
+        if(res.status=="403"){
+           setAccessDenied(true);
+        }
         setListData(response.dtoList)
         setTotalPages(response.totalPages)
     }
@@ -49,13 +55,16 @@ const ListingPage = (props) => {
 
     const deleteItem = async (identifier) => {
         const identifierKey = listData?.[0]?.identifier !== null && listData?.[0]?.identifier !== undefined ? "identifier" : "username";
-        await fetch(`http://localhost:8080/api/${urlName}/delete?${identifierKey}=${identifier}`, {
-            method: "get",
+        const res = await fetch(`http://localhost:8080/api/${urlName}/delete?${identifierKey}=${identifier}`, {
+            method: "delete",
             headers: {
                 "Content-Type": "application/json",
             },
-            credentials:"include",
+            credentials: "include",
         });
+        if(res.status=="403"){
+           setAccessDenied(true);
+        }
         fetchList()
     }
 
@@ -65,11 +74,11 @@ const ListingPage = (props) => {
 
     const handleToggle = async (identifier) => {
         await fetch(`http://localhost:8080/api/${urlName}/toggle?identifier=${identifier}`, {
-            method: "get",
+            method: "post",
             headers: {
                 "Content-Type": "application/json",
             },
-            credentials:"include",
+            credentials: "include",
         });
         fetchList()
     }
@@ -82,8 +91,8 @@ const ListingPage = (props) => {
                 <button
                     onClick={() => handleToggle(item.identifier)}
                     className={`w-21 px-2.5 py-1 text-xs font-semibold rounded-full transition-all cursor-pointer shadow-sm border ${value
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                        : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                         }`}
                 >
                     {value ? "● Active" : "○ Inactive"}
@@ -100,15 +109,21 @@ const ListingPage = (props) => {
         }
 
         if (Array.isArray(value)) {
-            return value.length ? (
-                <span className="bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded-md">{value.join(", ")}</span>
-            ) : "-"
+            return (
+                <span className="bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded-md">
+                    {value.length ? value.join(", ") : "-"}
+                </span>
+            )
         }
 
-        return value ? String(value) : "-"
+        return (
+            <span>{value ? String(value) : "-"}</span>
+        )
     }
 
     return (
+        <>
+        {accessDenied ? <AccessDenied/> : ""}
         <div className="p-8 bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
 
@@ -206,6 +221,7 @@ const ListingPage = (props) => {
 
             </div>
         </div>
+    </>
     )
 }
 

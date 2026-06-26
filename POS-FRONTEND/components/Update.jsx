@@ -5,6 +5,9 @@ import PropTypes from 'prop-types';
 import CommonDropDown from "@/components/CommonDropDown";
 import axios from "./axiosConfig";
 import { useRouter } from "next/navigation";
+import AuditField from "./AuditField";
+import AccessDenied from "./AccessDenied";
+import ResourceNotFound from "./ResourceNotFound";
 
 const Update = (props) => {
     const router = useRouter();
@@ -14,6 +17,9 @@ const Update = (props) => {
     const formFields = props.formFelids;
     const dropDowns = props.dropDowns;
     const hardCodedDropDowns = props.hardCodedDropDowns;
+    const [auditField, setAuditField] = useState({});
+    const [accessDenied, setAccessDenied] = useState(false)
+    const [resourceNotFound, setResourceNotFound] = useState(false)
 
     const {
         register,
@@ -25,9 +31,23 @@ const Update = (props) => {
     } = useForm();
 
     const getByIdentifier = async (identifier) => {
-        const queryParam = urlName === "user" ? "username" : "identifier";
-        const res = await axios.get(`${urlName}/get?${queryParam}=${identifier}`);
-        reset(res.data);
+        try {
+            const queryParam = urlName === "user" ? "username" : "identifier";
+            const res = await axios.get(`${urlName}/get?${queryParam}=${identifier}`);
+            setAuditField(res.data);
+            reset(res.data);
+        } catch (error) {
+            if (error.response?.status === 403) {
+                setAccessDenied(true)
+            }
+            else
+            if(error.response?.status === 404){
+                setResourceNotFound(true);
+            }
+            else {
+                alert("Something went wrong");
+            }
+        }
     }
 
     useEffect(() => {
@@ -36,7 +56,7 @@ const Update = (props) => {
 
 
     const onSubmit = async (formData) => {
-        const res = await axios.post(`/${urlName}/update`, formData);
+        const res = await axios.put(`/${urlName}/update`, formData);
 
         if (res.data.success) {
             setMessage("Update success");
@@ -54,6 +74,9 @@ const Update = (props) => {
     };
 
     return (
+        <>
+        {accessDenied ? <AccessDenied/> : ""}
+        {resourceNotFound ? <ResourceNotFound/> : ""}
         <div className="min-h-screen bg-gray-50 flex justify-center items-start pt-16">
             <div className="w-full max-w-4xl bg-white shadow-lg rounded-2xl p-8">
 
@@ -123,7 +146,7 @@ const Update = (props) => {
                                 errors={errors}
                                 setValue={setValue}
                                 currentValue={watch(dropDown.name)}
-                                isDisabled={dropDown.isDisabled} 
+                                isDisabled={dropDown.isDisabled}
                             />
                         </div>
                     ))}
@@ -137,7 +160,7 @@ const Update = (props) => {
                                 {...register(dropDown.name, dropDown.validation)}
                                 className={`text-sm px-3 py-2 border border-gray-300 rounded-lg bg-white 
                                 focus:outline-none focus:ring-2 focus:ring-black transition`}
-                                disabled={dropDown.isDisabled ?? false} 
+                                disabled={dropDown.isDisabled ?? false}
                             >
                                 <option value="">Select {dropDown.name}</option>
                                 {dropDown.values.map((value) => (
@@ -170,9 +193,11 @@ const Update = (props) => {
                         </button>
                     </div>
 
+                    <AuditField auditField={auditField} />
                 </form>
             </div>
         </div>
+    </>
     );
 };
 

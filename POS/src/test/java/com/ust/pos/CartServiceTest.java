@@ -39,8 +39,10 @@ class CartServiceTest {
     private CartEntryService cartEntryService;
 
     @Test
-    void findByIdentifierTest() {
+    void findByIdentifierSuccessTest() {
         Cart cart = new Cart();
+        cart.setIdentifier("CART1");
+
         CartDto cartDto = new CartDto();
         cartDto.setIdentifier("CART1");
 
@@ -49,6 +51,7 @@ class CartServiceTest {
 
         CartDto response = cartService.findByIdentifier("CART1");
 
+        Assertions.assertNotNull(response);
         Assertions.assertEquals("CART1", response.getIdentifier());
     }
 
@@ -71,17 +74,21 @@ class CartServiceTest {
     }
 
     @Test
-    void saveFailureTest() {
+    void saveFailureAlreadyExistsTest() {
         CartDto cartDto = new CartDto();
         cartDto.setIdentifier("CART1");
 
-        Mockito.when(cartRepository.findByIdentifier("CART1")).thenReturn(new Cart());
+        Cart existingCart = new Cart();
+
+        Mockito.when(cartRepository.findByIdentifier("CART1")).thenReturn(existingCart);
 
         CartDto response = cartService.save(cartDto);
 
         Assertions.assertEquals("CART1", response.getIdentifier());
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertEquals("Cart with identifier - CART1 already exists", response.getMessage());
+        Mockito.verify(cartRepository, Mockito.never()).save(Mockito.any());
+        Mockito.verify(cartEntryService, Mockito.never()).recalculate(Mockito.anyString());
     }
 
     @Test
@@ -90,12 +97,14 @@ class CartServiceTest {
         cartDto.setIdentifier("CART1");
 
         Cart existingCart = new Cart();
+        existingCart.setIdentifier("CART1");
 
         Mockito.when(cartRepository.findByIdentifier("CART1")).thenReturn(existingCart);
 
         CartDto response = cartService.update(cartDto);
 
         Assertions.assertEquals("CART1", response.getIdentifier());
+        verify(modelMapper).map(cartDto, existingCart);
         verify(cartRepository).save(existingCart);
     }
 
@@ -110,37 +119,40 @@ class CartServiceTest {
 
         Assertions.assertEquals("CART1", response.getIdentifier());
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertEquals("Cart with identifier - CART1 not found", response.getMessage());
+        Mockito.verify(cartRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
-    void deleteTest() {
+    void deleteSuccessTest() {
         cartService.delete("CART1");
 
         verify(cartRepository).deleteByIdentifier("CART1");
     }
 
     @Test
-    void findAllTest() {
-        Cart cart = new Cart();
-        List<Cart> cartList = List.of(cart);
+    void findAllSuccessTest() {
+        Cart c1 = new Cart();
+        c1.setIdentifier("CART1");
+        List<Cart> cartList = List.of(c1);
 
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART1");
+        CartDto d1 = new CartDto();
+        d1.setIdentifier("CART1");
 
-        Pageable pageable = PageRequest.of(0, 10);
         Page<Cart> cartPage = new PageImpl<>(cartList);
+        Pageable pageable = PageRequest.of(0, 10);
 
         CartEntryDto entryDto = new CartEntryDto();
         List<CartEntryDto> entryDtoList = List.of(entryDto);
 
         Mockito.when(cartRepository.findAll(pageable)).thenReturn(cartPage);
-        Mockito.when(modelMapper.map(cart, CartDto.class)).thenReturn(cartDto);
+        Mockito.when(modelMapper.map(c1, CartDto.class)).thenReturn(d1);
         Mockito.when(cartEntryService.findByCartId("CART1")).thenReturn(entryDtoList);
 
-        List<CartDto> response = cartService.findAll(pageable);
+        List<CartDto> result = cartService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals(entryDtoList, response.get(0).getCartEntryDtoList());
+        Assertions.assertEquals(1, result.size());
+        Assertions.assertEquals("CART1", result.get(0).getIdentifier());
+        Assertions.assertEquals(entryDtoList, result.get(0).getCartEntryDtoList());
     }
 }

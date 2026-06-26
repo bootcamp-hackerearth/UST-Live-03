@@ -42,7 +42,6 @@ class UserServiceTest {
 
     @Test
     void findByUserNameSuccessTest() {
-
         User user = new User();
         user.setUsername("john");
 
@@ -59,7 +58,6 @@ class UserServiceTest {
 
     @Test
     void findByUserNameFailureTest() {
-
         Mockito.when(userRepository.findByUsername("john")).thenReturn(null);
 
         UserDto result = userService.findByUserName("john");
@@ -69,10 +67,10 @@ class UserServiceTest {
 
     @Test
     void saveSuccessTest() {
-
         UserDto dto = new UserDto();
         dto.setUsername("john");
         dto.setPassword("pwd");
+        dto.setSuccess(true);
 
         User user = new User();
         user.setUsername("john");
@@ -90,7 +88,6 @@ class UserServiceTest {
 
     @Test
     void saveFailureUserAlreadyExistsTest() {
-
         UserDto dto = new UserDto();
         dto.setUsername("john");
 
@@ -104,7 +101,6 @@ class UserServiceTest {
 
     @Test
     void updateFailureUserNotFoundTest() {
-
         UserDto dto = new UserDto();
         dto.setId(1L);
         dto.setUsername("john");
@@ -119,7 +115,6 @@ class UserServiceTest {
 
     @Test
     void updateSuccessTest_usernameUnchanged() {
-
         UserDto dto = new UserDto();
         dto.setId(1L);
         dto.setUsername("john");
@@ -130,6 +125,8 @@ class UserServiceTest {
 
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
 
+        Mockito.doNothing().when(modelMapper).map(Mockito.any(UserDto.class), Mockito.any(User.class));
+
         UserDto result = userService.update(dto);
 
         Assertions.assertTrue(result.isSuccess());
@@ -138,7 +135,6 @@ class UserServiceTest {
 
     @Test
     void updateFailureUsernameAlreadyExistsTest() {
-
         UserDto dto = new UserDto();
         dto.setId(1L);
         dto.setUsername("newUser");
@@ -148,7 +144,6 @@ class UserServiceTest {
         existingUser.setUsername("oldUser");
 
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-
         Mockito.when(userRepository.findByUsername("newUser")).thenReturn(new User());
 
         UserDto result = userService.update(dto);
@@ -159,7 +154,6 @@ class UserServiceTest {
 
     @Test
     void updateSuccessTest_usernameChangedButNotExists() {
-
         UserDto dto = new UserDto();
         dto.setId(1L);
         dto.setUsername("newUser");
@@ -169,8 +163,9 @@ class UserServiceTest {
         existingUser.setUsername("oldUser");
 
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-
         Mockito.when(userRepository.findByUsername("newUser")).thenReturn(null);
+
+        Mockito.doNothing().when(modelMapper).map(Mockito.any(UserDto.class), Mockito.any(User.class));
 
         UserDto result = userService.update(dto);
 
@@ -180,15 +175,16 @@ class UserServiceTest {
 
     @Test
     void deleteSuccessTest() {
+        User user = new User();
+        Mockito.when(userRepository.findByUsername("john")).thenReturn(user);
 
         userService.delete("john");
 
-        verify(userRepository).deleteByUsername("john");
+        verify(userRepository).findByUsername("john");
     }
 
     @Test
     void findAllSuccessTest() {
-
         User u1 = new User();
         u1.setUsername("john");
 
@@ -208,7 +204,7 @@ class UserServiceTest {
         Page<User> page = new PageImpl<>(users);
         Pageable pageable = PageRequest.of(0, 20);
 
-        Mockito.when(userRepository.findAll(pageable)).thenReturn(page);
+        Mockito.when(userRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(userDtos);
 
         WsDto<UserDto> result = userService.findAll(pageable);

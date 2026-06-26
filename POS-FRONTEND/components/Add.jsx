@@ -6,6 +6,7 @@ import CommonDropDown from "@/components/CommonDropDown";
 import axios from "../components/axiosConfig";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import AccessDenied from "./AccessDenied";
 
 const Add = (props) => {
     const router = useRouter();
@@ -19,12 +20,14 @@ const Add = (props) => {
 
     const [message, setMessage] = useState("");
     const urlName = props.urlName;
+    const [accessDenied, setAccessDenied] = useState(false)
 
     const onSubmit = async (formData) => {
         const endpoint = urlName === "user" ? "/register" : `/${urlName}/add`;
-        const res = await axios.post(endpoint, formData);
 
-        if (res.data.success) {
+        try{
+            const res = await axios.post(endpoint, formData);
+            if (res.data.success) {
             setMessage("Add success");
             setTimeout(() => {
                 setMessage("");
@@ -40,6 +43,15 @@ const Add = (props) => {
         setTimeout(() => {
             setMessage("");
         }, 3000);
+
+        }catch (error) {
+            if (error.response?.status === 403) {
+                setAccessDenied(true)
+            }
+            else {
+                alert("Something went wrong");
+            }
+        }
     };
 
     const formFields = props.formFelids;
@@ -47,6 +59,8 @@ const Add = (props) => {
     const hardCodedDropDowns = props.hardCodedDropDowns;
 
     return (
+        <>
+        {accessDenied ? <AccessDenied/> : ""}
         <div className="min-h-screen bg-slate-50 p-6 md:p-12 flex justify-center items-start">
             <div className="w-full max-w-4xl bg-white shadow-sm border border-slate-200/80 rounded-2xl overflow-hidden">
                 
@@ -182,6 +196,7 @@ const Add = (props) => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

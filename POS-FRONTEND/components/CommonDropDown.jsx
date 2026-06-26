@@ -73,10 +73,10 @@ const CommonDropDown = ({
                 {listData?.map((data) => (
                     <option
                         key={data.identifier} 
-                        value={data.identifier}
+                        value={data.identifier + (data.name ? "-"+data.name : "")}
                         className="text-sm py-1 px-1 text-slate-700"
                     >
-                        {data.identifier}
+                        {data.identifier + (data.name ? "-"+data.name : "")}
                     </option>
                 ))}
             </select>
