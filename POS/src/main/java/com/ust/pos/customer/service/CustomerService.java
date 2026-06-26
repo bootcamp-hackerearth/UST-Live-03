@@ -14,11 +14,11 @@ public interface CustomerService {
 
     CustomerDto update(CustomerDto customerDto);
 
-    boolean delete(String identifier);
+    void delete(String identifier);
 
     WsDto<CustomerDto> findAll(Pageable pageable);
 
-    CustomerDto findById(String identifier);
+    CustomerDto findByIdentifier(String identifier);
 
     CustomerDto findByIdentifierWithAddressDto(String phoneNo);
 

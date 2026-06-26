@@ -3,17 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
-import api from "../services/api";
-import CommonDropDown from "./CommonDropDown";
-import Layout from "./Layout";
+import api from "@/app/services/api";
+import CommonDropDown from "@/app/components/CommonDropDown";
+import Layout from "@/app/components/Layout";
 
 export default function CommonAddPage({
   title = "Add",
   submitApi,
   redirectRoute,
+  onCancel,
   fields = [],
   initialValues = {},
   submitButtonText = "Save",
+  onFormChange,
 }) {
   const router = useRouter();
 
@@ -22,16 +24,10 @@ export default function CommonAddPage({
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    let { name, value } = e.target;
-
-    if (value === "true") value = true;
-    if (value === "false") value = false;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
+    const { name, value } = e.target;
+    const updated = { ...formData, [name]: value };
+    setFormData(updated);
+    if (onFormChange) onFormChange(updated);
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -42,19 +38,23 @@ export default function CommonAddPage({
       const val = formData[f.name];
 
       if (f.type === "dropdown" && f.multiple) {
-        if (!val || val.length === 0) {
+        if (!val || val.length === 0)
           newErrors[f.name] = "Required";
-        }
-      } else if (
-        (val === "" || val === null || val === undefined) &&
-        !f.readOnly
-      ) {
+      } else if (f.required && !val && !f.readOnly) {
         newErrors[f.name] = "Required";
       }
     });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCloseOrCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else if (redirectRoute && redirectRoute !== "#") {
+      router.push(redirectRoute);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -64,32 +64,19 @@ export default function CommonAddPage({
     try {
       setLoading(true);
 
-      const filteredData = { ...formData };
+      let success = true;
 
-      Object.keys(filteredData).forEach((key) => {
-        if (
-          filteredData[key] === "" ||
-          filteredData[key] === undefined
-        ) {
-          delete filteredData[key];
-        }
-      });
+if (typeof submitApi === "function") {
+  success = await submitApi(formData);
+} else {
+  await api.post(submitApi, formData);
+}
 
-      console.log("Submitting:", filteredData); 
-
-      if (typeof submitApi === "function") {
-        await submitApi(filteredData);
-      } else {
-        await api.post(submitApi, filteredData);
-      }
-
-      router.push(redirectRoute);
+if (success && redirectRoute && redirectRoute !== "#") {
+  router.push(redirectRoute);
+}
     } catch (err) {
-      console.error(
-        " Submit Error:",
-        err.response?.data || err.message
-      );
-      alert(err.response?.data?.message || "Request failed");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -105,9 +92,7 @@ export default function CommonAddPage({
           value={val}
           onChange={handleChange}
           type={f.type}
-          readOnly={f.readOnly || false}
-          className={`w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 
-          ${f.readOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
+          className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
       );
     }
@@ -126,18 +111,11 @@ export default function CommonAddPage({
       return (
         <div className="flex gap-4">
           {f.options.map((opt) => (
-            <label
-              key={`${f.name}-${opt.value}`}
-              className="flex items-center gap-2"
-            >
+            <label key={`${f.name}-${opt.value}`} className="flex items-center gap-2">
               <input
                 type="radio"
                 name={f.name}
                 value={opt.value}
-                checked={
-                  String(formData[f.name]) === String(opt.value)
-                }
-                onChange={handleChange}
               />
               {opt.label}
             </label>
@@ -156,7 +134,8 @@ export default function CommonAddPage({
               {title}
             </h2>
             <button
-              onClick={() => router.push(redirectRoute)}
+              type="button"
+              onClick={handleCloseOrCancel}
               className="text-gray-500 hover:text-gray-700"
             >
               ✕
@@ -170,9 +149,7 @@ export default function CommonAddPage({
                   <label className="block text-sm mb-1 text-gray-700 font-medium">
                     {f.label}
                   </label>
-
                   {renderField(f)}
-
                   {errors[f.name] && (
                     <p className="text-red-500 text-xs mt-1">
                       {errors[f.name]}
@@ -185,7 +162,7 @@ export default function CommonAddPage({
             <div className="flex justify-end gap-2 mt-6">
               <button
                 type="button"
-                onClick={() => router.push(redirectRoute)}
+                onClick={handleCloseOrCancel}
                 className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100"
               >
                 Cancel
@@ -210,7 +187,9 @@ CommonAddPage.propTypes = {
   title: PropTypes.string,
   submitApi: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
   redirectRoute: PropTypes.string.isRequired,
+  onCancel: PropTypes.func,
   fields: PropTypes.array,
   initialValues: PropTypes.object,
   submitButtonText: PropTypes.string,
+  onFormChange: PropTypes.func,
 };

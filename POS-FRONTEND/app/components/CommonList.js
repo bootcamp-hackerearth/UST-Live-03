@@ -21,7 +21,7 @@ function CommonList({
   toggleApi,
   toggleParam = "identifier",
   toggleField = "status",
-  toggleMethod = "POST",
+  toggleMethod = "PATCH",
   sortField = "id",
   sortOrder = "ASC",
   itemsPerPage = 5,
@@ -76,11 +76,37 @@ function CommonList({
         },
       });
 
+      if (res?.status) {
+        if (res.status === 403) {
+          router.push("/403");
+          return;
+        }
+        if (res.status === 404) {
+          router.push("/404");
+          return;
+        }
+        if (res.status >= 500) {
+          router.push("/500");
+          return;
+        }
+      }
+
       setData(res.data?.dtoList || []);
       setTotalRecords(res.data?.totalRecords || 0);
       setTotalPages(res.data?.totalPage || 0);
-    } catch {
-      triggerToast("Failed to fetch data");
+    } catch (err) {
+      console.error("Fetch failed:", err);
+      const statusCode = err?.response?.status || err?.status;
+
+      if (statusCode === 403) {
+        router.push("/403");
+      } else if (statusCode === 404) {
+        router.push("/404");
+      } else if (statusCode >= 500) {
+        router.push("/500");
+      } else {
+        triggerToast("Failed to fetch data");
+      }
     } finally {
       setLoading(false);
     }
@@ -104,13 +130,16 @@ function CommonList({
     if (!confirm("Delete this record?")) return;
 
     try {
-      await api.get(deleteApi, {
-        params: { [deleteParam]: row[deleteParam] },
+      await api.delete(deleteApi, {
+        params: {
+          [deleteParam]: row[deleteParam],
+        },
       });
 
       triggerToast("Deleted successfully");
       fetchData();
-    } catch {
+    } catch (error) {
+      console.error(error);
       triggerToast("Delete failed");
     }
   };
@@ -123,6 +152,10 @@ function CommonList({
       route = route.replace(":username", encodeURIComponent(value));
     }
 
+    if (route.includes(":phoneNo")) {
+      route = route.replace(":phoneNo", encodeURIComponent(value));
+    }
+
     if (route.includes(":identifier")) {
       route = route.replace(":identifier", encodeURIComponent(value));
     }
@@ -131,18 +164,18 @@ function CommonList({
   };
 
   const handleToggle = async (row) => {
-  const id = row[deleteParam] ?? row.identifier ?? row.id;
+    const id = row[deleteParam] ?? row.identifier ?? row.id;
 
-  if (!id) {
-    console.error(" Missing identifier in row:", row);
-    triggerToast("Invalid ID");
-    return;
-  }
+    if (!id) {
+      console.error(" Missing identifier in row:", row);
+      triggerToast("Invalid ID");
+      return;
+    }
 
-  setData((prev) =>
-    prev.map((item) =>
-      (item[deleteParam] ?? item.identifier ?? item.id) === id
-        ? {
+    setData((prev) =>
+      prev.map((item) =>
+        (item[deleteParam] ?? item.identifier ?? item.id) === id
+          ? {
             ...item,
             [toggleField]: !(
               item[toggleField] === true ||
@@ -150,24 +183,24 @@ function CommonList({
               item[toggleField] === 1
             ),
           }
-        : item
-    )
-  );
+          : item
+      )
+    );
 
-  try {
-    await api({
-      method: toggleMethod,
-      url: toggleApi,
-      params: { [toggleParam]: id },
-    });
+    try {
+      await api({
+        method: toggleMethod,
+        url: toggleApi,
+        params: { [toggleParam]: id },
+      });
 
-    triggerToast("Status updated");
-  } catch (err) {
-    console.error(" Toggle error:", err);
-    triggerToast("Toggle failed");
-    fetchData();
-  }
-};
+      triggerToast("Status updated");
+    } catch (err) {
+      console.error(" Toggle error:", err);
+      triggerToast("Toggle failed");
+      fetchData();
+    }
+  };
   const numbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
@@ -234,42 +267,46 @@ function CommonList({
             <tbody>
               {filteredData.map((row) => {
                 const rowKey =
-                  row[deleteParam] ?? row.identifier ?? JSON.stringify(row);
+                  row.id ??
+                  row[deleteParam] ??
+                  row.identifier;
+
 
                 return (
                   <tr key={rowKey} className="border-t hover:bg-slate-50">
 
-                    {columns.map((c) => (
-                      <td key={`${rowKey}-${c.field}`} className="p-3">
+                    {columns.map((c) => {
+                      const cellContent = c.render ? c.render(row) : row[c.field];
 
-                        {c.field === toggleField && showStatus ? (
-                          <button
-                            onClick={() => handleToggle(row)}
-                            className={`w-11 h-6 flex items-center rounded-full p-1 ${
-                              row[toggleField] === true ||
-                              row[toggleField] === "ACTIVE" ||
-                              row[toggleField] === 1
-                                ? "bg-green-500"
-                                : "bg-gray-300"
-                            }`}
-                          >
-                            <span
-                              className={`w-4 h-4 bg-white rounded-full shadow transform ${
-                                row[toggleField] === true ||
+                      return (
+                        <td key={`${rowKey}-${c.field}`} className="p-3">
+
+                          {c.field === toggleField && showStatus ? (
+                            <button
+                              onClick={() => handleToggle(row)}
+                              className={`w-11 h-6 flex items-center rounded-full p-1 ${row[toggleField] === true ||
                                 row[toggleField] === "ACTIVE" ||
                                 row[toggleField] === 1
+                                ? "bg-green-500"
+                                : "bg-gray-300"
+                                }`}
+                            >
+                              <span
+                                className={`w-4 h-4 bg-white rounded-full shadow transform ${row[toggleField] === true ||
+                                  row[toggleField] === "ACTIVE" ||
+                                  row[toggleField] === 1
                                   ? "translate-x-5"
                                   : ""
-                              }`}
-                            />
-                          </button>
-                        ) : (
-                          row[c.field]
-                        )}
+                                  }`}
+                              />
+                            </button>
+                          ) : (
+                            cellContent
+                          )}
 
-                      </td>
-                    ))}
-
+                        </td>
+                      );
+                    })}
                     <td className="p-3 text-center flex justify-center gap-2">
 
                       <button
@@ -311,11 +348,10 @@ function CommonList({
                   onClick={() =>
                     setPagination((p) => ({ ...p, page: num - 1 }))
                   }
-                  className={`px-3 py-1 border rounded ${
-                    pagination.page === num - 1
-                      ? "bg-slate-900 text-white"
-                      : "hover:bg-gray-100"
-                  }`}
+                  className={`px-3 py-1 border rounded ${pagination.page === num - 1
+                    ? "bg-slate-900 text-white"
+                    : "hover:bg-gray-100"
+                    }`}
                 >
                   {num}
                 </button>

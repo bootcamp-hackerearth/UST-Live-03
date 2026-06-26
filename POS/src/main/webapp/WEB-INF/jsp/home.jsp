@@ -29,34 +29,24 @@
 body{
 
     font-family:'Poppins', sans-serif;
-
     background:#ffffff;
-
     overflow-x:hidden;
-
     color:#111;
 }
 .layout{
 
     display:flex;
-
     min-height:100vh;
 }
 
 .sidebar{
 
     width:270px;
-
     background:#111;
-
     color:#fff;
-
     display:flex;
-
     flex-direction:column;
-
     transition:0.3s ease;
-
     min-height:100vh;
 
 }
@@ -69,72 +59,51 @@ body{
 .sidebar-header{
 
     padding:25px 20px;
-
     border-bottom:1px solid rgba(255,255,255,0.08);
-
     text-align:center;
 }
 
 .app-name{
 
     font-size:24px;
-
     font-weight:700;
-
     letter-spacing:1px;
-
     color:#fff;
 }
 
 .menu{
 
     flex:1;
-
     padding:25px 18px;
-
     overflow-y:auto;
 }
 
 .menu a{
 
     display:flex;
-
     align-items:center;
-
     padding:14px 16px;
-
     margin-bottom:14px;
-
     text-decoration:none;
-
     color:#ddd;
-
     background:#1f1f1f;
-
     border-radius:12px;
-
     transition:0.3s ease;
-
     font-size:15px;
-
     font-weight:500;
 }
 
 .menu a:hover{
 
     background:#fff;
-
     color:#000;
-
     transform:translateX(5px);
 }
 
 .menu a.active{
 
     background:#fff;
-
     color:#000;
-
     font-weight:600;
 }
 
@@ -146,23 +115,14 @@ body{
 .logout-btn{
 
     width:100%;
-
     padding:13px;
-
     border:none;
-
     border-radius:12px;
-
     background:#fff;
-
     color:#000;
-
     font-size:15px;
-
     font-weight:600;
-
     cursor:pointer;
-
     transition:0.3s ease;
 }
 
@@ -174,51 +134,33 @@ body{
 .content{
 
     flex:1;
-
     display:flex;
-
     flex-direction:column;
-
     background:#ffffff;
 }
 
 .topbar{
 
     height:75px;
-
     background:#ffffff;
-
     border-bottom:1px solid #e5e5e5;
-
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
-
     padding:0 25px;
-
     box-shadow:0 2px 10px rgba(0,0,0,0.05);
 }
 
 .toggle-btn{
 
     width:45px;
-
     height:45px;
-
     border:none;
-
     border-radius:10px;
-
     background:#111;
-
     color:#fff;
-
     font-size:20px;
-
     cursor:pointer;
-
     transition:0.3s ease;
 }
 
@@ -230,65 +172,50 @@ body{
 .user-name{
 
     font-size:15px;
-
     color:#666;
 }
 
 .user-name span{
 
     color:#111;
-
     font-weight:600;
 }
 
 .content-body{
 
     flex:1;
-
     padding:45px;
-
     background:#ffffff;
 }
 
 .welcome-card{
 
     background:#ffffff;
-
     border-radius:20px;
-
     padding:40px;
-
     border:1px solid #e5e5e5;
-
     box-shadow:0 8px 25px rgba(0,0,0,0.06);
 }
 
 .welcome-card h1{
 
     font-size:38px;
-
     margin-bottom:15px;
-
     color:#111;
 }
 
 .welcome-card p{
 
     color:#555;
-
     font-size:16px;
-
     line-height:1.7;
 }
 
 @media(max-width:768px){
 
     .sidebar{
-
         position:fixed;
-
         z-index:1000;
-
         height:100%;
     }
 
@@ -326,12 +253,9 @@ function toggleSidebar(){
 function setActive(el){
 
     const links=document.querySelectorAll('.menu a');
-
     links.forEach(link=>{
-
         link.classList.remove('active');
     });
-
     el.classList.add('active');
 }
 

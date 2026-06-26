@@ -20,4 +20,6 @@ public interface RackService {
 
     List<RackDto> findAllActive();
 
+    RackDto toggleStatus(String identifier);
+
 }

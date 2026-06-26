@@ -6,7 +6,6 @@ import com.ust.pos.modell.Address;
 import com.ust.pos.modell.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -15,11 +14,13 @@ import java.util.List;
 @Service
 public class AddressServiceImpl implements AddressService {
 
-    @Autowired
-    private AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto findByIdentifier(String identifier) {
@@ -28,9 +29,9 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public List<AddressDto> findAllByPhoneNo(String phoneNo) {
-        Type listType = new TypeToken<List<AddressDto>>() {
-        }.getType();
-        return modelMapper.map(addressRepository.findAllByPhoneNo(phoneNo), listType);
+        List<Address> addresses = addressRepository.findAllByPhoneNoAndDeletedFalse(phoneNo);
+        Type listType = new TypeToken<List<AddressDto>>() {}.getType();
+        return modelMapper.map(addresses, listType);
     }
 
     @Override
@@ -42,8 +43,13 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto update(AddressDto addressDto) {
-        String phoneNo = addressDto.getPhoneNo();
-        Address existingAddress = addressRepository.findByPhoneNoAndAddressType(phoneNo, addressDto.getAddressType());
+        Address existingAddress = addressRepository.findByPhoneNoAndAddressTypeAndDeletedFalse(
+                addressDto.getPhoneNo(),
+                addressDto.getAddressType());
+
+        if (existingAddress == null)
+            return null;
+
         modelMapper.map(addressDto, existingAddress);
         addressRepository.save(existingAddress);
         return addressDto;
@@ -51,15 +57,20 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public boolean delete(String phoneNo) {
-        List<Address> address = addressRepository.findAllByPhoneNo(phoneNo);
-        addressRepository.deleteAll(address);
+        List<Address> addresses = addressRepository.findAllByPhoneNoAndDeletedFalse(phoneNo);
+
+        if (addresses != null) {
+            for (Address a : addresses) {
+                a.setDeleted(true);
+            }
+            addressRepository.saveAll(addresses);
+        }
         return true;
     }
 
     @Override
     public List<AddressDto> findAll() {
-        Type listType = new TypeToken<List<AddressDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<AddressDto>>() {}.getType();
         return modelMapper.map(addressRepository.findAll(), listType);
     }
 }

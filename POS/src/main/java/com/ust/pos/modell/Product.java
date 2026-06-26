@@ -1,6 +1,5 @@
 package com.ust.pos.modell;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Product extends CommonFields {
-    @Column(nullable = false, unique = true)
     private String category;
     private String brand;
     private String model;

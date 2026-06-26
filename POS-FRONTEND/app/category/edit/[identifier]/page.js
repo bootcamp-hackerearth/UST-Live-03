@@ -32,7 +32,7 @@ export default function CategoryEditPage() {
       }
 
       updateApi={(data) =>
-        api.post("/api/category/update", data)
+        api.put("/api/category/update", data)
       }
 
       redirectRoute="/category/list"
@@ -46,7 +46,7 @@ export default function CategoryEditPage() {
           readOnly: true,
         },
 
-        dropdown("Super Category", "superCategory", "/api/category/list"),
+        dropdown("Super Category", "superCategory", "/api/category/list",{ includeNoneOption: true }),
 
       ]}
     />

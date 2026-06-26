@@ -7,7 +7,6 @@ import api from "../services/api";
 import CommonDropDown from "./CommonDropDown";
 import Layout from "./Layout";
 
-
 CommonDropDown.propTypes = {
   name: PropTypes.string.isRequired,
   value: PropTypes.any,
@@ -36,6 +35,7 @@ CommonEditPage.propTypes = {
   submitButtonText: PropTypes.string,
   initialData: PropTypes.object,
   onSuccess: PropTypes.func,
+  onChange: PropTypes.func,
 };
 
 export default function CommonEditPage({
@@ -48,6 +48,7 @@ export default function CommonEditPage({
   submitButtonText = "Update",
   initialData,
   onSuccess,
+  onChange,
 }) {
   const router = useRouter();
   const params = useParams();
@@ -56,19 +57,16 @@ export default function CommonEditPage({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [pageLoading, setPageLoading] = useState(true);
-
   const normalizeDropdownValue = (field, val) => {
     const key = field.optionValue || "identifier";
 
     if (field.multiple) {
       if (!val) return [];
-
       if (Array.isArray(val)) {
         return val.map((item) =>
           typeof item === "object" ? item[key] : item
         );
       }
-
       return [typeof val === "object" ? val[key] : val];
     }
 
@@ -79,16 +77,36 @@ export default function CommonEditPage({
     return val;
   };
 
-  const loadData = async (identifier) => {
+  const formatAuditDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleString();
+    } catch (e) {
+      console.warn("Failed to format date:", dateString, e);
+      return dateString;
+    }
+  };
+
+ const loadData = async (paramValue) => {
     try {
       setPageLoading(true);
 
       const res =
         typeof fetchApi === "function"
-          ? await fetchApi(identifier)
-          : await api.get(fetchApi, { params: { identifier } });
+          ? await fetchApi(paramValue)
+          : await api.get(fetchApi, { params: { [identifierParam]: paramValue } });
+
+      if (res?.status && res.status !== 200 && res.status !== 201) {
+        router.push("/404");
+        return;
+      }
 
       let data = res?.data?.data ?? res?.data ?? res ?? {};
+      
+      if (!data || (typeof res === "object" && res.error)) {
+        router.push("/404");
+        return;
+      }
 
       fields.forEach((f) => {
         if (f.type === "dropdown") {
@@ -97,8 +115,11 @@ export default function CommonEditPage({
       });
 
       setFormData(data);
+      if (onChange) onChange(data);
+
     } catch (err) {
       console.error("Load failed:", err);
+      router.push("/404");
     } finally {
       setPageLoading(false);
     }
@@ -111,19 +132,30 @@ export default function CommonEditPage({
       return;
     }
 
-    const identifier = params?.[identifierParam];
-    if (identifier) {
-      loadData(identifier);
+    const paramValue = params?.[identifierParam];
+
+    if (!paramValue) {
+      console.error("Missing route param:", identifierParam);
+      setPageLoading(false);
+      return;
     }
+
+    loadData(paramValue);
   }, [params, initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [name]: value,
+      };
+
+      if (onChange) onChange(updated);
+
+      return updated;
+    });
 
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
@@ -157,11 +189,14 @@ export default function CommonEditPage({
     try {
       setLoading(true);
 
+      let result;
       if (typeof updateApi === "function") {
-        await updateApi(formData);
+        result = await updateApi(formData);
       } else {
-        await api.post(updateApi, formData);
+        result = await api.post(updateApi, formData);
       }
+
+      if (result === false) return;
 
       if (onSuccess) return onSuccess();
       if (redirectRoute) return router.push(redirectRoute);
@@ -188,10 +223,7 @@ export default function CommonEditPage({
   const renderRadioField = (f, val) => (
     <div className="flex gap-4">
       {f.options.map((opt) => (
-        <label
-          key={opt.value ?? opt.label}
-          className="flex items-center gap-2"
-        >
+        <label key={opt.value ?? opt.label} className="flex items-center gap-2">
           <input
             type="radio"
             name={f.name}
@@ -213,12 +245,11 @@ export default function CommonEditPage({
   };
 
   const renderField = (f) => {
-    const val = formData[f.name] ?? (f.multiple ? [] : "");
+    const val = formData?.[f.name] ?? (f.multiple ? [] : "");
     const renderer = fieldRenderers[f.type];
     return renderer ? renderer(f, val) : null;
   };
-
-  if (pageLoading || !formData) {
+  if (pageLoading) {
     return (
       <Layout>
         <div className="p-6 text-center">Loading...</div>
@@ -226,11 +257,12 @@ export default function CommonEditPage({
     );
   }
 
+  const hasAuditDetails = formData && (formData.createdBy || formData.createdOn || formData.modifiedBy || formData.modifiedOn);
+
   return (
     <Layout>
       <div className="p-6 flex justify-center">
         <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl">
-
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-800">
               {title}
@@ -247,7 +279,6 @@ export default function CommonEditPage({
               ✕
             </button>
           </div>
-
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {fields.map((f) => (
@@ -266,7 +297,24 @@ export default function CommonEditPage({
                 </div>
               ))}
             </div>
-  
+
+            {hasAuditDetails && (
+              <div className="mt-8 pt-4 border-t border-gray-100 bg-gray-50/50 rounded-lg p-4 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
+                <div>
+                  <span className="font-semibold text-gray-600">Created By:</span> {formData.createdBy || "SYSTEM"}
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-600">Created On:</span> {formatAuditDate(formData.createdOn)}
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-600">Modified By:</span> {formData.modifiedBy || "SYSTEM"}
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-600">Modified On:</span> {formatAuditDate(formData.modifiedOn)}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end gap-2 mt-6">
               <button
                 type="button"
@@ -289,6 +337,7 @@ export default function CommonEditPage({
               </button>
             </div>
           </form>
+
         </div>
       </div>
     </Layout>

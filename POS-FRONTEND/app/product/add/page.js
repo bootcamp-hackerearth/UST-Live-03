@@ -2,78 +2,94 @@
 
 import CommonAddPage from "@/app/components/CommonAddPage";
 import api from "@/app/services/api";
-import { createDropdownField } from "@/app/components/formFields";
+
+const dropdown = (label, name, apiUrl, extra = {}) => ({
+  label,
+  name,
+  type: "dropdown",
+  api: apiUrl,
+  payload: {
+    page: 0,
+    sizePerPage: 100,
+    sortField: "identifier",
+    sortDirection: "ASC",
+  },
+  optionLabel: "identifier",
+  optionValue: "identifier",
+  placeholder: `Select ${label}`,
+  ...extra,
+});
 
 export default function ProductAddPage() {
-  const handleSubmit = (data) => {
-    console.log("Submitting Product:", data);
 
-    if (
-      !data.identifier ||
-      !data.category ||
-      !data.brand ||
-      !data.model ||
-      !data.unit
-    ) {
-      alert("Please fill all required fields");
-      return;
+  const handleSubmit = async (data) => {
+    try {
+      const response = await api.post("/api/product/add", {
+        ...data,
+        quantity: data.quantity ? Number(data.quantity) : 0,
+        status: data.status === true || data.status === "true",
+      });
+
+      console.log("PRODUCT RESPONSE:", response.data);
+
+      const res = response.data;
+
+      if (res.success === false) {
+        alert(res.message);
+        return false;
+      }
+
+      alert(res.message || "Product added successfully");
+      return true;
+
+    } catch (error) {
+      console.error("ERROR:", error);
+      alert("Server error");
+      return false;
     }
-
-    return api.post("/api/product/add", {
-      identifier: data.identifier,
-      category: data.category,
-      brand: data.brand,
-      model: data.model,
-      unit: data.unit,
-      quantity: Number(data.quantity) || 0,
-      status: data.status === true || data.status === "true",
-    });
   };
-
-  const fields = [
-    {
-      label: "Identifier",
-      name: "identifier",
-      type: "text",
-      placeholder: "Enter product code",
-    },
-
-    createDropdownField("Category", "category", "/api/category/findallactive"),
-    createDropdownField("Brand", "brand", "/api/brand/list"),
-    createDropdownField("Model", "model", "/api/model/list"),
-    createDropdownField("Unit", "unit", "/api/unit/list"),
-
-    {
-      label: "Quantity",
-      name: "quantity",
-      type: "number",
-    },
-    {
-      label: "Status",
-      name: "status",
-      type: "radio",
-      options: [
-        { label: "Active", value: true },
-        { label: "Inactive", value: false },
-      ],
-    },
-  ];
 
   return (
     <CommonAddPage
       title="Add Product"
+
       submitApi={handleSubmit}
+
       redirectRoute="/product/list"
+
       initialValues={{
         identifier: "",
         category: "",
         brand: "",
         model: "",
         unit: "",
-        quantity: 0,
+        quantity: "",
         status: true,
       }}
-      fields={fields}
+
+      fields={[
+
+        {
+          label: "Identifier *",
+          name: "identifier",
+          type: "text",
+          required: true,
+        },
+
+        dropdown("Category", "category", "/api/category/list"),
+        dropdown("Brand", "brand", "/api/brand/list"),
+        dropdown("Model", "model", "/api/model/list"),
+        dropdown("Unit", "unit", "/api/unit/list"),
+        {
+          label: "Status",
+          name: "status",
+          type: "radio",
+          options: [
+            { label: "Active", value: "true" },
+            { label: "Inactive", value: "false" },
+          ],
+        },
+      ]}
     />
   );
 }

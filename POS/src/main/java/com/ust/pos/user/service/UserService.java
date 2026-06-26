@@ -15,4 +15,5 @@ public interface UserService {
 
     WsDto<UserDto> findAll(Pageable pageable);
 
+
 }

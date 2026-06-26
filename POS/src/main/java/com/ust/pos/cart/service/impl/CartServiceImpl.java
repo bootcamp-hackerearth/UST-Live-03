@@ -1,117 +1,101 @@
 package com.ust.pos.cart.service.impl;
 
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
+import com.ust.pos.dto.CartEntryDto;
+import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Cart;
+import com.ust.pos.modell.CartEntry;
+import com.ust.pos.modell.CartEntryRepository;
 import com.ust.pos.modell.CartRepository;
-import com.ust.pos.cart.service.CartService;
+import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
+    private final CartEntryRepository cartEntryRepository;
+    private final PriceService priceService;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    @Override
+    public CartDto save(CartDto cartDto) {
+        String identifier = cartDto.getIdentifier();
+
+        if (cartRepository.findByIdentifier(identifier) != null) {
+            cartDto.setMessage("Cart already exists");
+            cartDto.setSuccess(false);
+            return cartDto;
+        }
+
+        Cart cart = new Cart();
+        cart.setIdentifier(identifier);
+        cart.setCustomerIdentifier(cartDto.getCustomerIdentifier());
+        cart.setCoupon(cartDto.getCoupon());
+        cart.setOriginalPrice(BigDecimal.ZERO);
+        cart.setTotalPrice(BigDecimal.ZERO);
+        cart.setDiscount(BigDecimal.ZERO);
+        cartRepository.save(cart);
+        return cartDto;
+    }
+
+    @Transactional
+    public void delete(String identifier) {
+        CartEntry entry = cartEntryRepository.findByIdentifier(identifier);
+
+        if (entry == null) {
+            throw new IllegalArgumentException("Cart entry not found");
+        }
+
+        cartEntryRepository.delete(entry);
+        String cartId = identifier.split("-")[0];
+        Cart cart = cartRepository.findByIdentifier(cartId);
+
+        if (cart != null) {
+            recalculateAndSave(cart);
+        }
+    }
 
     @Override
     public CartDto findByIdentifier(String identifier) {
         Cart cart = cartRepository.findByIdentifier(identifier);
 
         if (cart == null) {
-            return null;
+            throw new IllegalArgumentException("Cart not found");
         }
 
-        return modelMapper.map(cart, CartDto.class);
-    }
-
-    @Override
-    public CartDto save(CartDto cartDto) {
-        String identifier = cartDto.getIdentifier();
-        Cart existingCart = cartRepository.findByIdentifier(identifier);
-
-        if (existingCart != null) {
-            cartDto.setMessage("Cart already exists with identifier: " + identifier);
-            cartDto.setSuccess(false);
-            return cartDto;
-        }
-        Cart cart = modelMapper.map(cartDto, Cart.class);
-
-        if (cart.getTotalPrice() == null) {
-            cart.setTotalPrice(BigDecimal.ZERO);
-        }
-
-        if (cart.getOriginalPrice() == null) {
-            cart.setOriginalPrice(BigDecimal.ZERO);
-        }
-
-        if (cart.getDiscount() == null) {
-            cart.setDiscount(BigDecimal.ZERO);
-        }
-
-        cartRepository.save(cart);
-        cartDto.setSuccess(true);
-        return cartDto;
-    }
-
-    @Override
-    public CartDto update(CartDto cartDto) {
-        String identifier = cartDto.getIdentifier();
-        Cart existingCart = cartRepository.findByIdentifier(identifier);
-
-        if (existingCart == null) {
-            cartDto.setMessage("Cart not found with identifier: " + identifier);
-            cartDto.setSuccess(false);
-            return cartDto;
-        }
-
-        existingCart.setCoupon(cartDto.getCoupon());
-
-        if (cartDto.getTotalPrice() != null) {
-            existingCart.setTotalPrice(cartDto.getTotalPrice());
-        }
-
-        if (cartDto.getOriginalPrice() != null) {
-            existingCart.setOriginalPrice(cartDto.getOriginalPrice());
-        }
-
-        if (cartDto.getDiscount() != null) {
-            existingCart.setDiscount(cartDto.getDiscount());
-        }
-
-        cartRepository.save(existingCart);
-        cartDto.setSuccess(true);
-        return cartDto;
-    }
-
-    @Override
-    @Transactional
-    public void delete(String identifier) {
-        Cart existingCart = cartRepository.findByIdentifier(identifier);
-
-        if (existingCart != null) {
-            cartRepository.delete(existingCart);
-        }
+        recalculateAndSave(cart);
+        CartDto dto = modelMapper.map(cart, CartDto.class);
+        List<CartEntry> entries = cartEntryRepository.findByCartIdentifier(identifier);
+        List<CartEntryDto> entryDtos = entries.stream()
+                .map(e -> modelMapper.map(e, CartEntryDto.class))
+                .toList();
+        dto.setEntryCart(entryDtos);
+        return dto;
     }
 
     @Override
     public WsDto<CartDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CartDto>>() {}.getType();
         Page<Cart> cartPage = cartRepository.findAll(pageable);
+        List<CartDto> cartDtos = cartPage.getContent().stream().map(cart -> {
+            recalculateAndSave(cart);
+            CartDto dto = modelMapper.map(cart, CartDto.class);
+            List<CartEntry> entries = cartEntryRepository.findByCartIdentifier(cart.getIdentifier());
+            dto.setEntryCart(entries.stream().map(e -> modelMapper.map(e, CartEntryDto.class)).toList());
+            return dto;}).toList();
         WsDto<CartDto> cartWsDto = new WsDto<>();
-        cartWsDto.setDtoList(modelMapper.map(cartPage.getContent(), listType));
+        cartWsDto.setDtoList(cartDtos);
         cartWsDto.setTotalRecords(cartPage.getTotalElements());
         cartWsDto.setTotalPage(cartPage.getTotalPages());
         cartWsDto.setSizePerPage(pageable.getPageSize());
@@ -119,4 +103,54 @@ public class CartServiceImpl implements CartService {
         return cartWsDto;
     }
 
+    public void recalculateAndSave(Cart cart) {
+        List<CartEntry> entries = cartEntryRepository.findByCartIdentifier(cart.getIdentifier());
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        BigDecimal originalPrice = BigDecimal.ZERO;
+        for (CartEntry entry : entries) {
+            String productId = entry.getProductIdentifier();
+            int qty = entry.getQuantity();
+            PriceDto selling = priceService.findByIdentifier(productId + "-SELLING");
+            PriceDto mrp = priceService.findByIdentifier(productId + "-MRP");
+            if (selling == null && mrp == null) {
+                throw new IllegalArgumentException("Price not configured");
+            }
+            if (mrp != null) {
+                originalPrice = originalPrice.add(mrp.getPriceAmount().multiply(BigDecimal.valueOf(qty)));
+            }
+            BigDecimal unitPrice;
+            if (selling != null) {
+                unitPrice = selling.getPriceAmount();
+            } else {
+                unitPrice = mrp.getPriceAmount();
+            }
+            totalPrice = totalPrice.add(unitPrice.multiply(BigDecimal.valueOf(qty)));
+        }
+        BigDecimal discount = originalPrice.subtract(totalPrice);
+        if ("FLAT10".equalsIgnoreCase(cart.getCoupon())) {
+            BigDecimal extra = totalPrice.multiply(BigDecimal.valueOf(10)).divide(BigDecimal.valueOf(100));
+            discount = discount.add(extra);
+            totalPrice = totalPrice.subtract(extra);
+        }
+        cart.setOriginalPrice(originalPrice);
+        cart.setTotalPrice(totalPrice);
+        cart.setDiscount(discount);
+        cartRepository.save(cart);
+    }
+
+    @Override
+    @Transactional
+    public void clearCart(String cartIdentifier) {
+        Cart cart = cartRepository.findByIdentifier(cartIdentifier);
+
+        if (cart == null) {
+            throw new IllegalArgumentException("Cart not found");
+        }
+        cartEntryRepository.deleteByCartIdentifier(cartIdentifier);
+        cart.setTotalPrice(BigDecimal.ZERO);
+        cart.setOriginalPrice(BigDecimal.ZERO);
+        cart.setDiscount(BigDecimal.ZERO);
+        cartRepository.save(cart);
+    }
 }
+

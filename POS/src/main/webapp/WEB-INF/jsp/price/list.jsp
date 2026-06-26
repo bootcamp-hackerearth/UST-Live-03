@@ -81,8 +81,6 @@
 <body>
 
 <div class="container mt-4">
-
-    <!-- Header -->
     <div class="page-header d-flex justify-content-between align-items-center">
         <h3>Price Management</h3>
 
@@ -99,7 +97,6 @@
         </div>
     </div>
 
-    <!-- Table -->
     <div class="card shadow">
         <div class="card-body p-0">
 

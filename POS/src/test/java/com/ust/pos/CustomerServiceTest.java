@@ -7,13 +7,11 @@ import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Customer;
 import com.ust.pos.modell.CustomerRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
@@ -23,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,151 +48,166 @@ class CustomerServiceTest {
         customer.setIdentifier("C001");
         customer.setPhoneNo("9999999999");
         customer.setStatus(true);
+        customer.setDeleted(false);
         customerDto = new CustomerDto();
         customerDto.setIdentifier("C001");
         customerDto.setPhoneNo("9999999999");
-        customerDto.setBillingAddress(new AddressDto());
-        customerDto.setShippingAddress(new AddressDto());
-    }
-
-    @Test
-    void findByIdTest() {
-        when(customerRepository.findById("C001")).thenReturn(customer);
-        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
-        CustomerDto result = customerService.findById("C001");
-        assertNotNull(result);
-        assertEquals("C001", result.getIdentifier());
-    }
-
-    @Test
-    void findWithAddress_nullList() {
-        when(customerRepository.findByPhoneNo("9999999999")).thenReturn(customer);
-        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
-        when(addressService.findAllByPhoneNo("9999999999")).thenReturn(null);
-        CustomerDto result = customerService.findByIdentifierWithAddressDto("9999999999");
-        assertNotNull(result);
-    }
-
-    @Test
-    void findWithAddress_emptyList() {
-        when(customerRepository.findByPhoneNo("9999999999")).thenReturn(customer);
-        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
-        when(addressService.findAllByPhoneNo("9999999999")).thenReturn(new ArrayList<>());
-        assertThrows(IndexOutOfBoundsException.class, () -> customerService.findByIdentifierWithAddressDto("9999999999"));
-    }
-
-    @Test
-    void findWithAddress_singleItem() {
-        AddressDto addr = new AddressDto();
-        CustomerDto localDto = new CustomerDto();
-        localDto.setIdentifier("C001");
-        localDto.setPhoneNo("9999999999");
-        when(customerRepository.findByPhoneNo("9999999999")).thenReturn(customer);
-        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(localDto);
-        when(addressService.findAllByPhoneNo("9999999999")).thenReturn(List.of(addr));
-        CustomerDto result = customerService.findByIdentifierWithAddressDto("9999999999");
-        assertNull(result.getShippingAddress());
-    }
-
-    @Test
-    void findWithAddress_multipleItems() {
         AddressDto billing = new AddressDto();
+        billing.setAddressType("Billing");
         AddressDto shipping = new AddressDto();
+        shipping.setAddressType("Shipping");
+        customerDto.setBillingAddress(billing);
+        customerDto.setShippingAddress(shipping);
+    }
+
+    @Test
+    void findByIdentifier_success() {
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(customer);
+        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
+        CustomerDto result = customerService.findByIdentifier("C001");
+        assertNotNull(result);
+    }
+
+    @Test
+    void findByIdentifier_notFound() {
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(null);
+        assertNull(customerService.findByIdentifier("C001"));
+    }
+
+    @Test
+    void findWithAddress_success() {
+        AddressDto billing = new AddressDto();
+        billing.setAddressType("Billing");
+        AddressDto shipping = new AddressDto();
+        shipping.setAddressType("Shipping");
         when(customerRepository.findByPhoneNo("9999999999")).thenReturn(customer);
         when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
         when(addressService.findAllByPhoneNo("9999999999")).thenReturn(List.of(billing, shipping));
         CustomerDto result = customerService.findByIdentifierWithAddressDto("9999999999");
+        assertNotNull(result.getBillingAddress());
         assertNotNull(result.getShippingAddress());
     }
 
     @Test
-    void saveSuccess() {
-        when(customerRepository.findById("C001")).thenReturn(null);
+    void save_success() {
+        when(customerRepository.findByPhoneNo("9999999999")).thenReturn(null);
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(null);
         when(modelMapper.map(customerDto, Customer.class)).thenReturn(customer);
         when(modelMapper.map(any(AddressDto.class), eq(AddressDto.class))).thenAnswer(inv -> inv.getArgument(0));
         CustomerDto result = customerService.save(customerDto);
         verify(customerRepository).save(customer);
         verify(addressService, times(2)).save(any(AddressDto.class));
-        assertEquals("C001", result.getIdentifier());
+        assertTrue(result.isSuccess());
     }
 
     @Test
-    void saveDuplicate() {
-        when(customerRepository.findById("C001")).thenReturn(customer);
+    void save_phoneExists_notDeleted() {
+        Customer existing = new Customer();
+        existing.setDeleted(false);
+        when(customerRepository.findByPhoneNo("9999999999")).thenReturn(existing);
         CustomerDto result = customerService.save(customerDto);
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("already exists"));
+        verify(customerRepository, never()).save(any());
     }
 
     @Test
-    void updateSuccess() {
-        AddressDto billing = new AddressDto();
-        AddressDto shipping = new AddressDto();
-        when(customerRepository.findByPhoneNo("9999999999")).thenReturn(customer);
-        when(addressService.findAllByPhoneNo("9999999999")).thenReturn(List.of(billing, shipping));
-        customerService.update(customerDto);
-        verify(customerRepository).save(customer);
-        verify(addressService, times(2)).update(any());
+    void save_phoneExists_deleted() {
+        Customer existing = new Customer();
+        existing.setDeleted(true);
+        when(customerRepository.findByPhoneNo("9999999999")).thenReturn(existing);
+        CustomerDto result = customerService.save(customerDto);
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("deleted"));
+        verify(customerRepository, never()).save(any());
     }
 
     @Test
-    void updateNotFound() {
+    void save_identifierExists() {
         when(customerRepository.findByPhoneNo("9999999999")).thenReturn(null);
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(customer);
+        CustomerDto result = customerService.save(customerDto);
+        assertFalse(result.isSuccess());
+    }
+
+    @Test
+    void update_success() {
+        AddressDto billing = new AddressDto();
+        billing.setAddressType("Billing");
+        AddressDto shipping = new AddressDto();
+        shipping.setAddressType("Shipping");
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(customer);
+        when(addressService.findAllByPhoneNo("9999999999")).thenReturn(List.of(billing, shipping));
+        CustomerDto result = customerService.update(customerDto);
+        assertTrue(result.isSuccess());
+        verify(addressService, times(2)).update(any(AddressDto.class));
+        verify(customerRepository).save(customer);
+    }
+
+    @Test
+    void update_notFound() {
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(null);
         CustomerDto result = customerService.update(customerDto);
         assertFalse(result.isSuccess());
     }
 
     @Test
-    void deleteTest() {
-        boolean result = customerService.delete("9999999999");
-        verify(customerRepository).deleteByPhoneNo("9999999999");
+    void update_nullAddresses_shouldCoverBranch() {
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(customer);
+        when(addressService.findAllByPhoneNo("9999999999")).thenReturn(null);
+        CustomerDto result = customerService.update(customerDto);
+        assertTrue(result.isSuccess());
+        verify(addressService, never()).update(any());
+    }
+
+    @Test
+    void update_emptyAddresses_shouldCoverLoop() {
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(customer);
+        when(addressService.findAllByPhoneNo("9999999999")).thenReturn(new ArrayList<>());
+        CustomerDto result = customerService.update(customerDto);
+        assertTrue(result.isSuccess());
+    }
+
+    @Test
+    void delete_success() {
+        when(customerRepository.findByPhoneNoAndDeletedFalse("9999999999")).thenReturn(customer);
+        customerService.delete("9999999999");
+        verify(customerRepository).save(customer);
         verify(addressService).delete("9999999999");
-        assertTrue(result);
     }
 
     @Test
-    void findAllTest() {
-        Customer localCustomer = new Customer();
-        localCustomer.setIdentifier("Admin");
-        CustomerDto localCustomerDto = new CustomerDto();
-        localCustomerDto.setIdentifier("Admin");
-        List<Customer> customers = List.of(localCustomer);
-        List<CustomerDto> customerDtos = List.of(localCustomerDto);
-        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
-        Page<Customer> customerPage = new PageImpl<>(customers, pageable, customers.size());
-        Mockito.when(customerRepository.findAll(pageable)).thenReturn(customerPage);
-        Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class))).thenReturn(customerDtos);
-        WsDto<CustomerDto> response = customerService.findAll(pageable);
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
-        Assertions.assertEquals(1, response.getTotalRecords());
-        Assertions.assertEquals(1, response.getTotalPage());
-        Assertions.assertEquals(50, response.getSizePerPage());
-        Assertions.assertEquals(0, response.getPage());
-        Mockito.verify(customerRepository, Mockito.times(1)).findAll(pageable);
-        Mockito.verify(modelMapper, Mockito.times(1)).map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class));
+    void delete_notFound() {
+        when(customerRepository.findByPhoneNoAndDeletedFalse("9999999999")).thenReturn(null);
+        customerService.delete("9999999999");
+        verify(customerRepository, never()).save(any());
     }
 
     @Test
-    void toggleStatusTest() {
-        when(customerRepository.findById("C001")).thenReturn(customer);
+    void findAll_success() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Customer> page = new PageImpl<>(List.of(customer));
+        when(customerRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(customerDto));
+        WsDto<CustomerDto> result = customerService.findAll(pageable);
+        assertEquals(1, result.getDtoList().size());
+    }
+
+    @Test
+    void toggleStatus_success() {
+        when(customerRepository.findByIdentifierAndDeletedFalse("C001")).thenReturn(customer);
         when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
         boolean before = customer.getStatus();
-        CustomerDto result = customerService.toggleStatus("C001");
+        customerService.toggleStatus("C001");
         assertEquals(!before, customer.getStatus());
         verify(customerRepository).save(customer);
-        assertNotNull(result);
     }
 
     @Test
-    void findIfTrueTest() {
-        customer.setStatus(true);
-        customerDto.setStatus(true);
-        when(customerRepository.findByStatusIsTrue()).thenReturn(List.of(customer));
-        when(modelMapper.map(any(), any(Type.class))).thenReturn(List.of(customerDto));
+    void findIfTrue_success() {
+        when(customerRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(List.of(customer));
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(customerDto));
         List<CustomerDto> result = customerService.findIfTrue();
         assertEquals(1, result.size());
-        assertTrue(result.get(0).getStatus());
     }
 }

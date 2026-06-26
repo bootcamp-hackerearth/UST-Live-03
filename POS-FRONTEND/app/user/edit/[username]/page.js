@@ -21,29 +21,76 @@ const dropdown = (label, name, apiUrl, extra = {}) => ({
 });
 
 export default function UserEditPage() {
+  const fetchUser = async (username) => {
+    try {
+      const response = await api.get("/api/user/get", {
+        params: {
+          username: decodeURIComponent(username),
+        },
+      });
+
+      const data = response.data?.data ?? response.data;
+
+      return {
+        data: {
+          username: data.username || "",
+          name: data.name || "",
+          phoneNo: data.phoneNo || "",
+          roles: data.roles || [],
+
+          createdBy: data.createdBy || "",
+          createdOn: data.createdOn || "",
+          modifiedBy: data.modifiedBy || "",
+          modifiedOn: data.modifiedOn || "",
+        },
+      };
+    } catch (err) {
+      console.error("Fetch User Error:", err);
+      throw err;
+    }
+  };
+
+  const handleUpdate = async (data) => {
+    try {
+      const response = await api.put(
+        "/api/user/update",
+        {
+          username: data.username,
+          name: data.name,
+          phoneNo: data.phoneNo,
+          roles: data.roles,
+        },
+        {
+          params: {
+            oldUsername: data.username,
+          },
+        }
+      );
+
+      const res = response.data;
+
+      if (res.success === false) {
+        alert(res.message);
+        return false;
+      }
+
+      alert(res.message || "User updated successfully");
+      return true;
+    } catch (err) {
+      console.error("Update User Error:", err);
+      alert("Server error");
+      return false;
+    }
+  };
+
   return (
     <CommonEditPage
       title="Edit User"
-
-      fetchApi={(username) =>
-        api.get("/api/user/get", {
-          params: {
-            username: decodeURIComponent(username),
-          },
-        })
-      }
-
-      updateApi={(data) =>
-        api.post("/api/user/update", data, {
-          params: {
-            oldUsername: data.username, 
-          },
-        })
-      }
-
+      fetchApi={fetchUser}
+      updateApi={handleUpdate}
       redirectRoute="/user/list"
       identifierParam="username"
-
+      submitButtonText="Update User"
       fields={[
         {
           label: "Username",

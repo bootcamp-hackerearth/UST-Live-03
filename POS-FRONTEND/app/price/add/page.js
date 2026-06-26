@@ -13,7 +13,7 @@ const dropdown = (label, name, apiUrl, extra = {}) => ({
     sizePerPage: 100,
     sortField: "identifier",
     sortDirection: "ASC",
-    status: true, 
+    status: true,
   },
   optionLabel: "identifier",
   optionValue: "identifier",
@@ -22,31 +22,61 @@ const dropdown = (label, name, apiUrl, extra = {}) => ({
 });
 
 export default function PriceAddPage() {
+  const handleSubmit = async (data) => {
+    try {
+      const payload = {
+        product:
+          typeof data.product === "object"
+            ? data.product.identifier
+            : data.product,
+
+        type:
+          typeof data.type === "object"
+            ? data.type.identifier
+            : data.type,
+
+        priceAmount: Number(data.priceAmount),
+      };
+
+      console.log("Submitting Payload:", payload);
+
+      const response = await api.post(
+        "/api/price/add",
+        payload
+      );
+
+      const res = response.data;
+
+      if (res.success === false) {
+        alert(res.message);
+        return false;
+      }
+
+      alert(res.message || "Price added successfully");
+      return true;
+    } catch (error) {
+      console.error("PRICE SAVE ERROR:", error.response?.data || error);
+
+      alert(
+        error.response?.data?.message ||
+          "Failed to save price"
+      );
+
+      return false;
+    }
+  };
+
   return (
     <CommonAddPage
       title="Add Price"
-
-      submitApi={(data) => {
-        console.log("Submitting Price:", data);
-
-        return api.post("/api/price/add", {
-          product: data.product,
-          priceAmount: Number(data.priceAmount),
-          type: data.type,
-          identifier: undefined,
-          status: data.status === true || data.status === "true",
-        });
-      }}
-
+      submitApi={handleSubmit}
       redirectRoute="/price/list"
-
+      submitButtonText="Save Price"
       initialValues={{
         product: "",
         priceAmount: "",
         type: "",
-        status: true,
       }}
-
       fields={[
         dropdown(
           "Product",

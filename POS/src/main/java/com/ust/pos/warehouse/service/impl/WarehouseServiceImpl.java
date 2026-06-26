@@ -1,14 +1,16 @@
 package com.ust.pos.warehouse.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Warehouse;
 import com.ust.pos.modell.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,28 +19,22 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class WarehouseServiceImpl implements WarehouseService {
+@RequiredArgsConstructor
+public class WarehouseServiceImpl extends BaseService implements WarehouseService {
 
-    @Autowired
-    private WarehouseRepository warehouseRepository;
+    public static final String WAREHOUSE_WITH_IDENTIFIER = "Warehouse with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final WarehouseRepository warehouseRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     public WarehouseDto findByIdentifier(String identifier) {
-        Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
-        WarehouseDto response = new WarehouseDto();
-
+        Warehouse warehouse = warehouseRepository.findByIdentifierAndDeletedFalse(identifier);
+        
         if (warehouse == null) {
-            response.setSuccess(false);
-            response.setMessage("Warehouse not found");
-            return response;
+            throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
         }
-
-        response = modelMapper.map(warehouse, WarehouseDto.class);
-        response.setSuccess(true);
-        return response;
+        return modelMapper.map(warehouse, WarehouseDto.class);
     }
 
     @Override
@@ -47,12 +43,18 @@ public class WarehouseServiceImpl implements WarehouseService {
         Warehouse existingWarehouse = warehouseRepository.findByIdentifier(identifier);
 
         if (existingWarehouse != null) {
-            warehouseDto.setMessage("Warehouse with identifier - " + identifier + " already exists");
+            if (Boolean.TRUE.equals(existingWarehouse.getDeleted())) {
+                warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " was deleted and cannot be created again.");
+                warehouseDto.setSuccess(false);
+                return warehouseDto;
+            }
+
+            warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " already exists");
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
-
         Warehouse warehouse = modelMapper.map(warehouseDto, Warehouse.class);
+        setCreatedDetails(warehouse);
         warehouseRepository.save(warehouse);
         return warehouseDto;
     }
@@ -63,12 +65,13 @@ public class WarehouseServiceImpl implements WarehouseService {
         Warehouse existingWarehouse = warehouseRepository.findByIdentifier(identifier);
 
         if (existingWarehouse == null) {
-            warehouseDto.setMessage("Warehouse with identifier - " + identifier + " not found");
+            warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " not found");
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
 
         modelMapper.map(warehouseDto, existingWarehouse);
+        setModifiedDetails(existingWarehouse);
         warehouseRepository.save(existingWarehouse);
         return warehouseDto;
     }
@@ -76,13 +79,16 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        warehouseRepository.deleteByIdentifier(identifier);
+        Warehouse warehouse = warehouseRepository.findByIdentifierAndDeletedFalse(identifier);
+        softDelete(warehouse);
+        setModifiedDetails(warehouse);
+        warehouseRepository.save(warehouse);
     }
 
     public WsDto<WarehouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
-        Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
+        Page<Warehouse> warehousePage = warehouseRepository.findALlByDeletedFalse(pageable);
         WsDto<WarehouseDto> warehouseWsDto = new WsDto<>();
         warehouseWsDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
         warehouseWsDto.setTotalRecords(warehousePage.getTotalElements());
@@ -93,21 +99,24 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    public void toggleStatus(String identifier) {
-        Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
+    @Transactional
+    public WarehouseDto toggleStatus(String identifier) {
+        Warehouse warehouse = warehouseRepository.findByIdentifierAndDeletedFalse(identifier);
 
         if (warehouse == null) {
-            throw new IllegalArgumentException("Warehouse not found: " + identifier);
+            throw new IllegalArgumentException("Warehouse not found with identifier: " + identifier);
         }
 
         Boolean currentStatus = warehouse.getStatus();
-        warehouse.setStatus(currentStatus == null || !currentStatus);
-        warehouseRepository.save(warehouse);
+        warehouse.setStatus(currentStatus == null ? Boolean.TRUE : !currentStatus);
+        setModifiedDetails(warehouse);
+        Warehouse saved = warehouseRepository.save(warehouse);
+        return modelMapper.map(saved, WarehouseDto.class);
     }
 
     @Override
     public List<WarehouseDto> findAllActive() {
-        return warehouseRepository.findByStatusTrue()
+        return warehouseRepository.findByStatusTrueAndDeletedFalse()
                 .stream()
                 .map(warehouse -> modelMapper.map(warehouse, WarehouseDto.class))
                 .toList();

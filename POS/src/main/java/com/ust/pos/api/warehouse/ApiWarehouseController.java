@@ -5,39 +5,47 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouse")
+@RequiredArgsConstructor
 public class ApiWarehouseController extends BaseController {
 
-    @Autowired
-    private WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Developer')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Developer')")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return warehouseService.findAll(pageable);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('Developer')")
     public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Developer')")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Developer')")
     public boolean delete(@RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);
@@ -47,9 +55,16 @@ public class ApiWarehouseController extends BaseController {
         return true;
     }
 
-    @PostMapping("/toggle-status")
-    public void toggle(@RequestParam String identifier) {
-        warehouseService.toggleStatus(identifier);
+    @PatchMapping("/toggle-status")
+    @PreAuthorize("hasAuthority('Developer')")
+    public WarehouseDto toggle(@RequestParam String identifier) {
+        return warehouseService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/findallactive")
+    @PreAuthorize("hasAuthority('Developer')")
+    public List<WarehouseDto> findAllActive() {
+        return warehouseService.findAllActive();
     }
 }
 

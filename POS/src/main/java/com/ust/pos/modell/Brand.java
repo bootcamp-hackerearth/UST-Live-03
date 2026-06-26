@@ -9,7 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Brand extends CommonFields {
-
     @Column(length = 500)
     private String description;
 

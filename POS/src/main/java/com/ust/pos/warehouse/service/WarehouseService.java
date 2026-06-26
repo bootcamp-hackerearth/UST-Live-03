@@ -17,7 +17,7 @@ public interface WarehouseService {
 
     WsDto<WarehouseDto> findAll(Pageable pageable);
 
-    void toggleStatus(String identifier);
+    WarehouseDto toggleStatus(String identifier);
 
     List<WarehouseDto> findAllActive();
 

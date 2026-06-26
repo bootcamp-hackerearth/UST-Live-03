@@ -1,14 +1,15 @@
 package com.ust.pos.stock.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.modell.Stock;
 import com.ust.pos.modell.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,82 +19,130 @@ import java.util.List;
 
 @Service
 @Transactional
-public class StockServiceImpl implements StockService {
+@RequiredArgsConstructor
+public class StockServiceImpl extends BaseService implements StockService {
 
-    @Autowired
-    private StockRepository stockRepository;
+    public static final String STOCK_WITH_IDENTIFIER = "Stock with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final StockRepository stockRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        Stock stock = stockRepository.findByIdentifier(identifier.trim());
+        StockDto response = new StockDto();
+        Stock stock = stockRepository.findByIdentifierAndDeletedFalse(identifier.trim());
 
         if (stock == null) {
-            throw new IllegalArgumentException("Stock not found");
+            response.setMessage("Stock not found");
+            response.setSuccess(false);
+            return response;
         }
-
         return mapToDto(stock);
     }
 
     @Override
     public StockDto findById(Long id) {
-        Stock stock = stockRepository.findById(id).orElseThrow(() -> new RuntimeException("Stock not found"));
+        StockDto response = new StockDto();
+        Stock stock = stockRepository.findByIdAndDeletedFalse(id).orElse(null);
+
+        if (stock == null) {
+            response.setMessage("Stock not found");
+            response.setSuccess(false);
+            return response;
+        }
         return mapToDto(stock);
     }
 
     @Override
     public StockDto save(StockDto stockDto) {
+
         if (stockDto.getProductIdentifier() == null ||
                 stockDto.getWarehouseIdentifier() == null) {
-            throw new IllegalArgumentException("Product & Warehouse required");
+
+            stockDto.setMessage("Product & Warehouse required");
+            stockDto.setSuccess(false);
+            return stockDto;
+        }
+
+        String identifier = "STK-" + stockDto.getProductIdentifier() + "-" + stockDto.getWarehouseIdentifier();
+        Stock existingStock = stockRepository.findByIdentifier(identifier);
+
+        if (existingStock != null) {
+            if (Boolean.TRUE.equals(existingStock.getDeleted())) {
+                stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " was deleted and cannot be created again.");
+                stockDto.setSuccess(false);
+                return stockDto;
+            }
+
+            stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " already exists");
+            stockDto.setSuccess(false);
+            return stockDto;
         }
 
         Stock stock = new Stock();
-        String identifier = "STK-" + stockDto.getProductIdentifier() + "-" + stockDto.getWarehouseIdentifier();
         stock.setIdentifier(identifier);
         stock.setProductIdentifier(stockDto.getProductIdentifier());
         stock.setWarehouseIdentifier(stockDto.getWarehouseIdentifier());
         stock.setQuantity(stockDto.getQuantity());
         stock.setMinimumStock(stockDto.getMinimumStock());
-        stock.setStatus(
-                stockDto.getQuantity() > stockDto.getMinimumStock()
-        );
-        return mapToDto(stockRepository.save(stock));
+        stock.setStatus(stockDto.getQuantity() > stockDto.getMinimumStock());
+        setCreatedDetails(stock);
+        stockRepository.save(stock);
+        stockDto.setIdentifier(identifier);
+        stockDto.setStatus(stock.getStatus());
+        stockDto.setMessage("Stock created successfully");
+        stockDto.setSuccess(true);
+        return stockDto;
     }
 
     @Override
     public StockDto update(StockDto stockDto) {
-        Stock stock = stockRepository.findById(stockDto.getId()).orElseThrow(() -> new RuntimeException("Stock not found"));
+        String identifier = stockDto.getIdentifier();
+        Stock stock = stockRepository.findByIdentifierAndDeletedFalse(identifier);
+
+        if (stock == null) {
+            stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " not found");
+            stockDto.setSuccess(false);
+            return stockDto;
+        }
+
+        String newIdentifier = "STK-" + stockDto.getProductIdentifier() + "-" + stockDto.getWarehouseIdentifier();
+        stock.setIdentifier(newIdentifier);
         stock.setProductIdentifier(stockDto.getProductIdentifier());
         stock.setWarehouseIdentifier(stockDto.getWarehouseIdentifier());
-        String identifier = "STK-" + stockDto.getProductIdentifier() + "-" + stockDto.getWarehouseIdentifier();
-        stock.setIdentifier(identifier);
         stock.setQuantity(stockDto.getQuantity());
         stock.setMinimumStock(stockDto.getMinimumStock());
-        stock.setStatus(stockDto.getQuantity() > stockDto.getMinimumStock()
-        );
-        return mapToDto(stockRepository.save(stock));
+        stock.setStatus(stockDto.getQuantity() > stockDto.getMinimumStock());
+        setModifiedDetails(stock);
+        stockRepository.save(stock);
+        stockDto.setIdentifier(newIdentifier);
+        stockDto.setMessage("Stock updated successfully");
+        stockDto.setSuccess(true);
+        return stockDto;
     }
 
     @Override
-    public void delete(Long id) {
-        stockRepository.deleteById(id);
+    public void delete(String identifier) {
+        Stock stock = stockRepository.findByIdentifierAndDeletedFalse(identifier);
+
+        if (stock != null) {
+            softDelete(stock);
+            setModifiedDetails(stock);
+            stockRepository.save(stock);
+        }
     }
 
     @Override
     public WsDto<StockDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<StockDto>>() {
-        }.getType();
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
-        WsDto<StockDto> stockWsDto = new WsDto<>();
-        stockWsDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
-        stockWsDto.setTotalRecords(stockPage.getTotalElements());
-        stockWsDto.setTotalPage(stockPage.getTotalPages());
-        stockWsDto.setSizePerPage(pageable.getPageSize());
-        stockWsDto.setPage(pageable.getPageNumber());
-        return stockWsDto;
+        Type listType = new TypeToken<List<StockDto>>() {}.getType();
+        Page<Stock> stockPage = stockRepository.findAllByDeletedFalse(pageable);
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
+        wsDto.setTotalRecords(stockPage.getTotalElements());
+        wsDto.setTotalPage(stockPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     private StockDto mapToDto(Stock stock) {
@@ -105,6 +154,12 @@ public class StockServiceImpl implements StockService {
         dto.setStatus(stock.getStatus());
         dto.setProductIdentifier(stock.getProductIdentifier());
         dto.setWarehouseIdentifier(stock.getWarehouseIdentifier());
+        dto.setCreatedBy(stock.getCreatedBy());
+        dto.setCreatedOn(stock.getCreatedOn());
+        dto.setModifiedBy(stock.getModifiedBy());
+        dto.setModifiedOn(stock.getModifiedOn());
+        dto.setSuccess(true);
         return dto;
     }
+
 }

@@ -17,7 +17,7 @@ export default function RoleEditPage() {
       }}
 
       updateApi={async (data) => {
-        return await api.post("/api/role/update", data);
+        return await api.put("/api/role/update", data);
       }}
 
       redirectRoute="/role/list"

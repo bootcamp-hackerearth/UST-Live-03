@@ -7,19 +7,18 @@ import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
+@RequiredArgsConstructor
 public class ApiCartController extends BaseController {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
 
-    @Autowired
-    private CartEntryService cartEntryService;
+    private final CartEntryService cartEntryService;
 
     @PostMapping("/add")
     public CartDto addPost(@RequestBody CartDto cartDto) {
@@ -28,6 +27,14 @@ public class ApiCartController extends BaseController {
 
     @PostMapping("/addToCart")
     public CartDto addToCart(@RequestBody CartEntryDto cartEntryDto) {
+        CartDto cart = cartService.findByIdentifier(cartEntryDto.getCartIdentifier());
+
+        if (cart == null) {
+            CartDto newCart = new CartDto();
+            newCart.setIdentifier(cartEntryDto.getCartIdentifier());
+            cartService.save(newCart);
+        }
+
         cartEntryService.save(cartEntryDto);
         return cartService.findByIdentifier(cartEntryDto.getCartIdentifier());
     }
@@ -38,8 +45,7 @@ public class ApiCartController extends BaseController {
                 paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(),
-                paginationDto.getSortField()
-        );
+                paginationDto.getSortField());
         return cartService.findAll(pageable);
     }
 
@@ -48,7 +54,7 @@ public class ApiCartController extends BaseController {
         return cartService.findByIdentifier(identifier);
     }
 
-    @GetMapping("/delete")
+    @PostMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             cartService.delete(identifier);
@@ -56,6 +62,12 @@ public class ApiCartController extends BaseController {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @GetMapping("/clear")
+    public CartDto clearCart (@RequestParam String cartIdentifier){
+        cartService.clearCart(cartIdentifier);
+        return cartService.findByIdentifier(cartIdentifier);
     }
 
 }

@@ -100,7 +100,6 @@
 
     <div class="card shadow">
         <div class="card-body p-0">
-
             <c:if test="${empty shelves}">
                 <div class="text-center text-muted py-5">
                     No shelves available.
@@ -129,7 +128,6 @@
                                       action="${pageContext.request.contextPath}/shelf/update"
                                       class="d-inline">
 
-                                    <!-- CSRF -->
                                     <input type="hidden"
                                            name="${_csrf.parameterName}"
                                            value="${_csrf.token}" />

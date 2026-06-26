@@ -112,7 +112,6 @@
 
                 <form:hidden path="id"/>
 
-                <!-- Identifier -->
                 <div class="mb-3">
                     <label class="form-label">Node Identifier</label>
                     <form:input path="identifier"
