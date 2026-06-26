@@ -108,13 +108,101 @@ class UserServiceTest {
         UserDto dto = new UserDto();
         dto.setUsername("admin");
 
-        Mockito.when(userRepository.findByUsername("admin"))
-                .thenReturn(new User());
+        User existing = new User();
+        existing.setDeleted(false);
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(existing);
 
         UserDto response = userService.save(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        assertNotNull(response.getMessage());
+        assertFalse(response.isSuccess());
+
+        assertTrue(response.getMessage()
+                .contains("already exists."));
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void saveTestPasswordEncoded() {
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+        dto.setPassword("plain");
+
+        User user = new User();
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(null);
+
+        when(modelMapper.map(dto, User.class))
+                .thenReturn(user);
+
+        when(passwordEncoder.encode("plain"))
+                .thenReturn("encodedPassword");
+
+        userService.save(dto);
+
+        assertEquals("encodedPassword", user.getPassword());
+
+        verify(passwordEncoder).encode("plain");
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void saveTestDuplicate_NotDeleted() {
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+
+        User existing = new User();
+        existing.setDeleted(false);
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(existing);
+
+        UserDto response = userService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertEquals(
+                "User with username/email - admin already exists.",
+                response.getMessage()
+        );
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void findAllEmptyTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<User> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(userRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        WsDto<UserDto> result =
+                userService.findAll(pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0, result.getTotalRecords());
+    }
+
+    @Test
+    void deleteUserNotFoundTest() {
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(null);
+
+        assertThrows(
+                NullPointerException.class,
+                () -> userService.delete("admin")
+        );
     }
 
     @Test
@@ -153,6 +241,31 @@ class UserServiceTest {
 
         Assertions.assertFalse(response.isSuccess());
         assertNotNull(response.getMessage());
+    }
+
+    @Test
+    void saveTestUserAlreadyExists_NotDeleted() {
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+
+        User existing = new User();
+        existing.setUsername("admin");
+        existing.setDeleted(false);
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(existing);
+
+        UserDto response = userService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertEquals(
+                "User with username/email - admin already exists.",
+                response.getMessage()
+        );
+
+        verify(userRepository, never()).save(any());
     }
 
     @Test

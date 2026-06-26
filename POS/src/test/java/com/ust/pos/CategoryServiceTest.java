@@ -225,29 +225,97 @@ class CategoryServiceTest {
     }
 
     @Test
-    void testFindAllCategoriesWithNoSuper() {
+    void findActiveCategoryTest() {
 
-        Category category1 = new Category();
-        category1.setSuperCategory(List.of("parent"));
+        Category category = new Category();
+        category.setIdentifier("CAT01");
 
-        Category category2 = new Category();
-        category2.setSuperCategory(List.of());
-
-        List<Category> categories = List.of(category1, category2);
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT01");
 
         when(categoryRepository.findByStatus(true))
-                .thenReturn(categories);
+                .thenReturn(List.of(category));
 
-        when(modelMapper.map(any(Category.class),
-                eq(CategoryDto.class)))
-                .thenReturn(new CategoryDto());
+        when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(dto);
+
+        List<CategoryDto> result =
+                categoryService.findActiveCategory();
+
+        assertEquals(1, result.size());
+        assertEquals("CAT01",
+                result.getFirst().getIdentifier());
+
+        verify(categoryRepository).findByStatus(true);
+    }
+
+    @Test
+    void toggleStatusTrueToFalseTest() {
+
+        Category category = new Category();
+        category.setStatus(true);
+
+        when(categoryRepository.findByIdentifier("CAT01"))
+                .thenReturn(category);
+
+        categoryService.toggleStatus("CAT01");
+
+        assertFalse(category.isStatus());
+
+        verify(categoryRepository).save(category);
+    }
+
+    @Test
+    void toggleStatusFalseToTrueTest() {
+
+        Category category = new Category();
+        category.setStatus(false);
+
+        when(categoryRepository.findByIdentifier("CAT01"))
+                .thenReturn(category);
+
+        categoryService.toggleStatus("CAT01");
+
+        assertTrue(category.isStatus());
+
+        verify(categoryRepository).save(category);
+    }
+
+    @Test
+    void toggleStatusCategoryNotFoundTest() {
+
+        when(categoryRepository.findByIdentifier("CAT01"))
+                .thenReturn(null);
+
+        categoryService.toggleStatus("CAT01");
+
+        verify(categoryRepository)
+                .findByIdentifier("CAT01");
+
+        verify(categoryRepository, never())
+                .save(any());
+    }
+
+    @Test
+    void testFindAllCategoriesWithNoSuper_emptyResult() {
+
+        Category category1 = new Category();
+        category1.setSuperCategory(List.of("PARENT1"));
+
+        Category category2 = new Category();
+        category2.setSuperCategory(List.of("PARENT2"));
+
+        when(categoryRepository.findByStatus(true))
+                .thenReturn(List.of(category1, category2));
 
         List<CategoryDto> result =
                 categoryService.findAllCategoriesWithNoSuper();
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertTrue(result.isEmpty());
 
         verify(categoryRepository).findByStatus(true);
+        verify(modelMapper, never())
+                .map(any(Category.class), eq(CategoryDto.class));
     }
 }

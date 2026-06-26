@@ -6,6 +6,7 @@ import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class WareHouseApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WsDto<WarehouseDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
@@ -31,30 +33,35 @@ public class WareHouseApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
 
         return warehouseService.save(warehouseDto);
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public WarehouseDto update(@PathVariable String identifier) {
 
         return warehouseService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
 
         return warehouseService.update(warehouseDto);
     }
 
     @GetMapping("/getactive")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public List<WarehouseDto> getActiveWarehouses() {
 
         return warehouseService.findActiveWarehouse();
     }
 
     @PatchMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public boolean toggleStatus(@RequestBody String identifier) {
 
         try {
@@ -66,6 +73,7 @@ public class WareHouseApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestBody WarehouseDto warehouseDto) {
 
         String identifier = warehouseDto.getIdentifier();

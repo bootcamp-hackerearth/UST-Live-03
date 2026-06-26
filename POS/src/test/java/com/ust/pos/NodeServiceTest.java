@@ -70,8 +70,15 @@ class NodeServiceTest {
     @Test
     void testFindByIdentifier_notFound() {
 
-        when(nodeRepository.findByIdentifier("NODE1")).thenReturn(null);
-        NodeDto result = nodeService.findByIdentifier("NODE1");
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(null, NodeDto.class))
+                .thenReturn(null);
+
+        NodeDto result =
+                nodeService.findByIdentifier("NODE1");
+
         assertNull(result);
     }
 
@@ -83,6 +90,189 @@ class NodeServiceTest {
 
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("already exists"));
+    }
+
+    @Test
+    void toggleStatus_trueToFalse() {
+
+        Node node1 = new Node();
+        node1.setIdentifier("NODE1");
+        node1.setStatus(true);
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node1);
+
+        nodeService.toggleStatus("NODE1");
+
+        assertFalse(node1.isStatus());
+
+        verify(nodeRepository).save(node1);
+    }
+
+    @Test
+    void testGetNodesForRoles_multipleRoles() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        org.springframework.security.core.userdetails.User springUser =
+                new org.springframework.security.core.userdetails.User(
+                        "testUser", "pass", new ArrayList<>());
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(springUser);
+
+        SecurityContextHolder.getContext()
+                .setAuthentication(authentication);
+
+        User appUser = new User();
+        appUser.setUsername("testUser");
+        appUser.setRoles(List.of("ADMIN", "MANAGER"));
+
+        when(userRepository.findByUsername("testUser"))
+                .thenReturn(appUser);
+
+        Node adminNode = new Node();
+        adminNode.setIdentifier("NODE1");
+        adminNode.setRoles(List.of("ADMIN"));
+
+        Node managerNode = new Node();
+        managerNode.setIdentifier("NODE2");
+        managerNode.setRoles(List.of("MANAGER"));
+
+        Page<Node> page = new PageImpl<>(
+                List.of(adminNode, managerNode));
+
+        when(nodeRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(adminNode);
+
+        when(nodeRepository.findByIdentifier("NODE2"))
+                .thenReturn(managerNode);
+
+        NodeDto dto1 = new NodeDto();
+        dto1.setIdentifier("NODE1");
+
+        NodeDto dto2 = new NodeDto();
+        dto2.setIdentifier("NODE2");
+
+        when(modelMapper.map(adminNode, NodeDto.class))
+                .thenReturn(dto1);
+
+        when(modelMapper.map(managerNode, NodeDto.class))
+                .thenReturn(dto2);
+
+        List<NodeDto> result =
+                nodeService.getNodesForRoles(pageable);
+
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void testGetNodesForRoles_emptyPage() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        org.springframework.security.core.userdetails.User springUser =
+                new org.springframework.security.core.userdetails.User(
+                        "testUser", "pass", new ArrayList<>());
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(springUser);
+
+        SecurityContextHolder.getContext()
+                .setAuthentication(authentication);
+
+        User appUser = new User();
+        appUser.setUsername("testUser");
+        appUser.setRoles(List.of("ADMIN"));
+
+        when(userRepository.findByUsername("testUser"))
+                .thenReturn(appUser);
+
+        when(nodeRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(Page.empty());
+
+        List<NodeDto> result =
+                nodeService.getNodesForRoles(pageable);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void toggleStatus_falseToTrue() {
+
+        Node node1 = new Node();
+        node.setIdentifier("NODE1");
+        node.setStatus(false);
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node1);
+
+        nodeService.toggleStatus("NODE1");
+
+        assertTrue(node1.isStatus());
+
+        verify(nodeRepository).save(node1);
+    }
+    @Test
+    void toggleStatus_nodeNotFound() {
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(null);
+
+        nodeService.toggleStatus("NODE1");
+
+        verify(nodeRepository).findByIdentifier("NODE1");
+        verify(nodeRepository, never()).save(any());
+    }
+
+    @Test
+    void testGetNodesForRoles_duplicateNodesRemoved() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        org.springframework.security.core.userdetails.User springUser =
+                new org.springframework.security.core.userdetails.User(
+                        "testUser", "pass", new ArrayList<>());
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(springUser);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        User appUser = new User();
+        appUser.setUsername("testUser");
+        appUser.setRoles(List.of("ADMIN"));
+
+        when(userRepository.findByUsername("testUser"))
+                .thenReturn(appUser);
+
+        Node node1 = new Node();
+        node1.setIdentifier("NODE1");
+        node1.setRoles(List.of("ADMIN"));
+
+        Node node2 = new Node();
+        node2.setIdentifier("NODE1");
+        node2.setRoles(List.of("ADMIN"));
+
+        Page<Node> page =
+                new PageImpl<>(List.of(node1, node2));
+
+        when(nodeRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node1);
+
+        when(modelMapper.map(node1, NodeDto.class))
+                .thenReturn(nodeDto);
+
+        List<NodeDto> result =
+                nodeService.getNodesForRoles(pageable);
+
+        assertEquals(1, result.size());
     }
 
     @Test

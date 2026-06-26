@@ -26,7 +26,7 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
   const [dropdownData, setDropdownData] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const { data, loading } = useFetchEntity({
+  const { data, loading, error } = useFetchEntity({
     baseUrl,
     apiRoute,
     identifier,
@@ -45,6 +45,16 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
   }, [dropdownApis]);
 
   useEffect(() => {
+    if (error) {
+      router.push(
+        `/error?status=${error.status}&message=${encodeURIComponent(
+          error.message
+        )}&returnTo=/${apiRoute}`
+      );
+    }
+  }, [error, router, apiRoute]);
+
+  useEffect(() => {
 
     const hasDropdownApis = dropdownApis && Object.keys(dropdownApis).length > 0;
 
@@ -56,10 +66,13 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
     }
   }, [data, dropdownData, dropdownApis, reset]);
 
-  const onSubmit = async (formData) => {    
-    setSubmitting(true)
+  const onSubmit = async (formData) => {
+    setSubmitting(true);
+
     try {
+
       if (method === FORM_MODE.ADD) {
+
         const response = await FetchEntity(
           `${baseUrl}/${apiRoute}/add`,
           "POST",
@@ -67,32 +80,70 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
           "application/json"
         );
 
-        if (response.message != null || response.error) {
-          setErrorMessage(response?.message || "Error adding data");
-
-          setTimeout(() => {
-            setErrorMessage("");
-          }, 4000);
-
+        if (response?.success === false) {
+          setErrorMessage(response.message);
           return;
-        } else {
-          router.push(`/${apiRoute}`);
         }
 
+        router.push(`/${apiRoute}`);
+
       } else {
-        await FetchEntity(
+
+        const response = await FetchEntity(
           `${baseUrl}/${apiRoute}/update`,
           "PUT",
           formData,
           "application/json"
         );
+
+        if (response?.success === false) {
+          setErrorMessage(response.message);
+          return;
+        }
+
         router.push(`/${apiRoute}`);
       }
+
     } catch (err) {
+
       console.log(err);
-      setErrorMessage("Something went wrong");
+
+      if (err.status === 403) {
+        router.push(
+          `/error?status=403&message=${encodeURIComponent(
+            err.message
+          )}&returnTo=/${apiRoute}`
+        );
+        return;
+      }
+
+      if (err.status === 404) {
+        router.push(
+          `/error?status=404&message=${encodeURIComponent(
+            err.message
+          )}&returnTo=/${apiRoute}`
+        );
+        return;
+      }
+
+      if (err.status === 400) {
+        setErrorMessage(err.message);
+        return;
+      }
+
+      if (err.status === 500) {
+        router.push(
+          `/error?status=500&message=${encodeURIComponent(
+            err.message
+          )}&returnTo=/${apiRoute}`
+        );
+        return;
+      }
+
+      setErrorMessage(err.message || "Something went wrong");
+
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
   };
 
@@ -177,7 +228,7 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
                   field={field}
                   register={register}
                   errors={errors}
-                  dropdownData={dropdownData}/>
+                  dropdownData={dropdownData} />
               );
             })}
 

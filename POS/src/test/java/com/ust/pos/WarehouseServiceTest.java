@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
@@ -20,8 +21,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class WarehouseServiceTest {
@@ -149,9 +149,93 @@ class WarehouseServiceTest {
         when(warehouseRepository.findByIdentifier("WH1"))
                 .thenReturn(null);
 
-        WarehouseDto response = warehouseService.findByIdentifier("WH1");
+        ResourseNotFoundException exception =
+                Assertions.assertThrows(
+                        ResourseNotFoundException.class,
+                        () -> warehouseService.findByIdentifier("WH1")
+                );
 
-        Assertions.assertNull(response);
+        Assertions.assertEquals(
+                "Data Cannot found WH1",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findActiveWarehouseTest() {
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("WH1");
+
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("WH1");
+
+        when(warehouseRepository.findByStatus(true))
+                .thenReturn(List.of(warehouse));
+
+        when(modelMapper.map(warehouse, WarehouseDto.class))
+                .thenReturn(dto);
+
+        List<WarehouseDto> result =
+                warehouseService.findActiveWarehouse();
+
+        assertEquals(1, result.size());
+        assertEquals("WH1",
+                result.getFirst().getIdentifier());
+
+        verify(warehouseRepository)
+                .findByStatus(true);
+    }
+
+    @Test
+    void toggleStatusTrueToFalseTest() {
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("WH1");
+        warehouse.setStatus(true);
+
+        when(warehouseRepository.findByIdentifier("WH1"))
+                .thenReturn(warehouse);
+
+        warehouseService.toggleStatus("WH1");
+
+        assertFalse(warehouse.isStatus());
+
+        verify(warehouseRepository)
+                .save(warehouse);
+    }
+
+    @Test
+    void toggleStatusFalseToTrueTest() {
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("WH1");
+        warehouse.setStatus(false);
+
+        when(warehouseRepository.findByIdentifier("WH1"))
+                .thenReturn(warehouse);
+
+        warehouseService.toggleStatus("WH1");
+
+        assertTrue(warehouse.isStatus());
+
+        verify(warehouseRepository)
+                .save(warehouse);
+    }
+
+    @Test
+    void toggleStatusWarehouseNotFoundTest() {
+
+        when(warehouseRepository.findByIdentifier("WH1"))
+                .thenReturn(null);
+
+        warehouseService.toggleStatus("WH1");
+
+        verify(warehouseRepository)
+                .findByIdentifier("WH1");
+
+        verify(warehouseRepository, never())
+                .save(any());
     }
 
     @Test

@@ -1,3 +1,46 @@
+const getAddressFields = (prefix, label) => [
+    {
+        type: "section",
+        title: `${label} Address`
+    },
+    {
+        name: `${prefix}.addressLine`,
+        type: "text",
+        placeholder: `${label} Address Line`,
+        required: true,
+        readOnly: false
+    },
+    {
+        name: `${prefix}.city`,
+        type: "text",
+        placeholder: `${label} City`,
+        required: true,
+        readOnly: false
+    },
+    {
+        name: `${prefix}.state`,
+        type: "text",
+        placeholder: `${label} State`,
+        required: true,
+        readOnly: false
+    },
+    {
+        name: `${prefix}.zipcode`,
+        type: "number",
+        maxlength: 10,
+        placeholder: `${label} ZipCode`,
+        required: true,
+        readOnly: false
+    },
+    {
+        name: `${prefix}.country`,
+        type: "text",
+        placeholder: `${label} Country`,
+        required: true,
+        readOnly: false
+    }
+];
+
 export const getCustomerFields = (isUpdate = false) => [
     {
         name: "name",
@@ -62,85 +105,6 @@ export const getCustomerFields = (isUpdate = false) => [
         readOnly: false
     },
 
-    {
-        type: "section",
-        title: "Shipping Address"
-    },
-    {
-        name: "shippingAddress.addressLine",
-        type: "text",
-        placeholder: "Shipping Address Line",
-        required: true,
-        readOnly: false
-    },
-    {
-        name: "shippingAddress.city",
-        type: "text",
-        placeholder: "Shipping City",
-        required: true,
-        readOnly: false
-    },
-    {
-        name: "shippingAddress.state",
-        type: "text",
-        placeholder: "Shipping State",
-        required: true,
-        readOnly: false
-    },
-    {
-        name: "shippingAddress.zipcode",
-        type: "number",
-        maxlength: 10,
-        placeholder: "Shipping ZipCode",
-        required: true,
-        readOnly: false
-    },
-    {
-        name: "shippingAddress.country",
-        type: "text",
-        placeholder: "Shipping Country",
-        required: true,
-        readOnly: false
-    },
-
-    {
-        type: "section",
-        title: "Billing Address"
-    },
-    {
-        name: "billingAddress.addressLine",
-        type: "text",
-        placeholder: "Billing Address Line",
-        required: true,
-        readOnly: false
-    },
-    {
-        name: "billingAddress.city",
-        type: "text",
-        placeholder: "Billing City",
-        required: true,
-        readOnly: false
-    },
-    {
-        name: "billingAddress.state",
-        type: "text",
-        placeholder: "Billing State",
-        required: true,
-        readOnly: false
-    },
-    {
-        name: "billingAddress.zipcode",
-        type: "number",
-        maxlength: 10,
-        placeholder: "Billing ZipCode",
-        required: true,
-        readOnly: false
-    },
-    {
-        name: "billingAddress.country",
-        type: "text",
-        placeholder: "Billing Country",
-        required: true,
-        readOnly: false
-    }
+    ...getAddressFields("shippingAddress", "Shipping"),
+    ...getAddressFields("billingAddress", "Billing")
 ];

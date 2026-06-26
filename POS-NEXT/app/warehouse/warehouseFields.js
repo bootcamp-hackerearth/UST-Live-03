@@ -34,8 +34,8 @@ export const getWarehouseFields = (isUpdate = false) => [
         type: "text",
         placeholder: "Region",
         required: true,
-        pattern: "^[a-zA-Z]{10}$",
-        patternMessage: "Enter Valid Region",
+        pattern: "^[A-Za-z ]{2,50}$",
+        patternMessage: "Enter a valid region",
         readOnly: false
     },
     {
@@ -43,8 +43,8 @@ export const getWarehouseFields = (isUpdate = false) => [
         type: "text",
         placeholder: "Country",
         required: true,
-        pattern: "^[a-zA-Z]{10}$",
-        patternMessage: "Enter Valid Country",
+        pattern: "^[A-Za-z ]{2,50}$",
+        patternMessage: "Enter a valid country",
         readOnly: false
     }
 ];

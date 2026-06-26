@@ -198,6 +198,107 @@ class StockServiceTest {
     }
 
     @Test
+    void updateQuantity_stockNotFoundTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProduct("P1");
+        dto.setQuantity(2L);
+
+        when(stockRepository.findByProduct("P1"))
+                .thenReturn(null);
+
+        StockDto result =
+                stockService.updateQuantity(dto);
+
+        assertNull(result);
+    }
+
+    @Test
+    void updateQuantity_availableTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProduct("P1");
+        dto.setQuantity(2L);
+
+        Stock stock = new Stock();
+        stock.setProduct("P1");
+        stock.setQuantity(20L);
+
+        StockDto mappedDto = new StockDto();
+
+        when(stockRepository.findByProduct("P1"))
+                .thenReturn(stock);
+
+        when(stockRepository.save(stock))
+                .thenReturn(stock);
+
+        when(modelMapper.map(stock, StockDto.class))
+                .thenReturn(mappedDto);
+
+        StockDto result =
+                stockService.updateQuantity(dto);
+
+        assertNotNull(result);
+        assertEquals(18L, stock.getQuantity());
+        assertEquals("AVAILABLE",
+                stock.getStockStatus());
+    }
+
+    @Test
+    void updateQuantity_limitedStockTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProduct("P1");
+        dto.setQuantity(5L);
+
+        Stock stock = new Stock();
+        stock.setProduct("P1");
+        stock.setQuantity(10L);
+
+        when(stockRepository.findByProduct("P1"))
+                .thenReturn(stock);
+
+        when(stockRepository.save(stock))
+                .thenReturn(stock);
+
+        when(modelMapper.map(stock, StockDto.class))
+                .thenReturn(new StockDto());
+
+        stockService.updateQuantity(dto);
+
+        assertEquals(5L, stock.getQuantity());
+        assertEquals("LIMITED STOCK",
+                stock.getStockStatus());
+    }
+
+    @Test
+    void updateQuantity_outOfStockTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProduct("P1");
+        dto.setQuantity(10L);
+
+        Stock stock = new Stock();
+        stock.setProduct("P1");
+        stock.setQuantity(5L);
+
+        when(stockRepository.findByProduct("P1"))
+                .thenReturn(stock);
+
+        when(stockRepository.save(stock))
+                .thenReturn(stock);
+
+        when(modelMapper.map(stock, StockDto.class))
+                .thenReturn(new StockDto());
+
+        stockService.updateQuantity(dto);
+
+        assertEquals(-5L, stock.getQuantity());
+        assertEquals("OUT OF STOCK",
+                stock.getStockStatus());
+    }
+
+    @Test
     void findByIdentifierSuccessTest() {
 
         Stock stock = new Stock();

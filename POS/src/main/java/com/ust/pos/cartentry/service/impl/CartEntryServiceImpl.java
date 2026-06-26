@@ -65,77 +65,65 @@ public class CartEntryServiceImpl extends BaseService implements CartEntryServic
         return discount.multiply(cartEntryDto.getQuantity());
     }
 
-    @Override
-    public CartEntryDto save(CartEntryDto cartEntryDto) {
+    private CartEntryDto persistCartEntry(CartEntryDto cartEntryDto,
+                                          boolean mergeQuantity) {
 
         String product = cartEntryDto.getProduct();
         String cartId = cartEntryDto.getCartId();
 
-        Price price = priceRepository.
-                findByProductAndPriceType(cartEntryDto.getProduct(), "MRP");
-        BigDecimal mrp = price.getPriceAmount();
-
         cartEntryDto.setIdentifier(product + "_" + cartId);
-        cartEntryDto.setUnitPrice(getSellingPrice(cartEntryDto.getProduct()));
+        cartEntryDto.setUnitPrice(getSellingPrice(product));
 
         String identifier = cartEntryDto.getIdentifier();
-        CartEntry existingCartEntry = cartEntryRepository.findByIdentifier(identifier);
 
-        if (existingCartEntry != null) {
-            cartEntryDto.setQuantity(cartEntryDto.getQuantity().
-                    add(existingCartEntry.getQuantity()));
+        CartEntry existingCartEntry =
+                cartEntryRepository.findByIdentifier(identifier);
+
+        if (mergeQuantity && existingCartEntry != null) {
+            cartEntryDto.setQuantity(
+                    cartEntryDto.getQuantity()
+                            .add(existingCartEntry.getQuantity())
+            );
         }
 
+        Price mrpPrice =
+                priceRepository.findByProductAndPriceType(product, "MRP");
+
+        BigDecimal mrp = mrpPrice.getPriceAmount();
+
         cartEntryDto.setDiscount(getDiscount(cartEntryDto));
-        cartEntryDto.setOriginalPrice(mrp.multiply(cartEntryDto.getQuantity()));
-        cartEntryDto.setTotalPrice(getSellingPrice(product).
-                multiply(cartEntryDto.getQuantity()));
+        cartEntryDto.setOriginalPrice(
+                mrp.multiply(cartEntryDto.getQuantity()));
+
+        cartEntryDto.setTotalPrice(
+                cartEntryDto.getUnitPrice()
+                        .multiply(cartEntryDto.getQuantity()));
 
         if (existingCartEntry != null) {
             modelMapper.map(cartEntryDto, existingCartEntry);
             setModifiedDetails(existingCartEntry);
             cartEntryRepository.save(existingCartEntry);
         } else {
-            setCreatedDetails(modelMapper.map(cartEntryDto, CartEntry.class));
-            cartEntryRepository.save(modelMapper.map(cartEntryDto, CartEntry.class));
+            CartEntry cartEntry =
+                    modelMapper.map(cartEntryDto, CartEntry.class);
+
+            setCreatedDetails(cartEntry);
+            cartEntryRepository.save(cartEntry);
         }
 
         recalculate(cartId);
+
         return cartEntryDto;
     }
 
     @Override
+    public CartEntryDto save(CartEntryDto cartEntryDto) {
+        return persistCartEntry(cartEntryDto, true);
+    }
+
+    @Override
     public CartEntryDto updateQuantity(CartEntryDto cartEntryDto) {
-
-        String product = cartEntryDto.getProduct();
-        String cartId = cartEntryDto.getCartId();
-
-        Price price = priceRepository.
-                findByProductAndPriceType(cartEntryDto.getProduct(), "MRP");
-        BigDecimal mrp = price.getPriceAmount();
-
-        cartEntryDto.setIdentifier(product + "_" + cartId);
-        cartEntryDto.setUnitPrice(getSellingPrice(cartEntryDto.getProduct()));
-
-        String identifier = cartEntryDto.getIdentifier();
-        CartEntry existingCartEntry = cartEntryRepository.findByIdentifier(identifier);
-
-        cartEntryDto.setDiscount(getDiscount(cartEntryDto));
-        cartEntryDto.setOriginalPrice(mrp.multiply(cartEntryDto.getQuantity()));
-        cartEntryDto.setTotalPrice(getSellingPrice(product).
-                multiply(cartEntryDto.getQuantity()));
-
-        if (existingCartEntry != null) {
-            modelMapper.map(cartEntryDto, existingCartEntry);
-            setModifiedDetails(existingCartEntry);
-            cartEntryRepository.save(existingCartEntry);
-        } else {
-            setCreatedDetails(modelMapper.map(cartEntryDto, CartEntry.class));
-            cartEntryRepository.save(modelMapper.map(cartEntryDto, CartEntry.class));
-        }
-
-        recalculate(cartId);
-        return cartEntryDto;
+        return persistCartEntry(cartEntryDto, false);
     }
 
     @Override

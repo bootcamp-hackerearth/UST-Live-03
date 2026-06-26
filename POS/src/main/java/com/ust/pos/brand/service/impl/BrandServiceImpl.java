@@ -4,6 +4,7 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.modelmapper.ModelMapper;
@@ -34,7 +35,7 @@ public class BrandServiceImpl extends BaseService implements BrandService {
         Brand brand = brandRepository.findByIdentifier(identifier);
 
         if (brand == null) {
-            return null;
+            throw new ResourseNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(brand, BrandDto.class);
@@ -47,15 +48,14 @@ public class BrandServiceImpl extends BaseService implements BrandService {
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
 
         if (existingBrand != null) {
-            brandDto.setMessage(
+
+            throw new IllegalArgumentException(
                     existingBrand.isDeleted()
                             ? VALIDATION_MESSAGE + identifier
                             + " already exists but was deleted, Please contact Administrator."
                             : VALIDATION_MESSAGE + identifier
                             + " already exists."
             );
-            brandDto.setSuccess(false);
-            return brandDto;
         }
 
         Brand brand = modelMapper.map(brandDto, Brand.class);

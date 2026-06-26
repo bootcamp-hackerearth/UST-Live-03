@@ -3,6 +3,7 @@ package com.ust.pos.warehouse.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -33,7 +34,7 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
 
         if (warehouse == null) {
-            return null;
+            throw new ResourseNotFoundException("Data Cannot found " + identifier);
         }
 
         return modelMapper.map(warehouse, WarehouseDto.class);

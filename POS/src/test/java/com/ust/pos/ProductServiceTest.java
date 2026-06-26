@@ -1,15 +1,16 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
+import com.ust.pos.model.Stock;
+import com.ust.pos.model.StockRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -17,13 +18,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -35,107 +34,98 @@ class ProductServiceTest {
     private ProductRepository productRepository;
 
     @Mock
+    private StockRepository stockRepository;
+
+    @Mock
     private ModelMapper modelMapper;
 
     @Test
-    void saveTestSuccess() {
+    void findByIdentifierSuccessTest() {
 
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("Admin");
         Product product = new Product();
+        ProductDto dto = new ProductDto();
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
-        Mockito.when(modelMapper.map(dto, Product.class))
+        when(productRepository.findByIdentifier("P1"))
                 .thenReturn(product);
 
-        ProductDto response = productService.save(dto);
-        Assertions.assertEquals("Admin", response.getIdentifier());
+        when(modelMapper.map(product, ProductDto.class))
+                .thenReturn(dto);
+
+        ProductDto response =
+                productService.findByIdentifier("P1");
+
+        assertNotNull(response);
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+
+        when(productRepository.findByIdentifier("P1"))
+                .thenReturn(null);
+
+        ProductDto response =
+                productService.findByIdentifier("P1");
+
+        assertNull(response);
+    }
+
+    @Test
+    void saveSuccessTest() {
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("P1");
+
+        Product product = new Product();
+
+        when(productRepository.findByIdentifier("P1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(dto, Product.class))
+                .thenReturn(product);
+
+        ProductDto response =
+                productService.save(dto);
+
+        assertEquals("P1", response.getIdentifier());
         assertTrue(response.isSuccess());
-        Assertions.assertNull(response.getMessage());
+        assertNull(response.getMessage());
 
         verify(productRepository).save(product);
     }
 
     @Test
-    void saveTestFailure() {
+    void saveFailureTest() {
 
         ProductDto dto = new ProductDto();
-        dto.setIdentifier("Admin");
-        Product existing = new Product();
+        dto.setIdentifier("P1");
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(existing);
-        ProductDto response = productService.save(dto);
+        when(productRepository.findByIdentifier("P1"))
+                .thenReturn(new Product());
 
-        Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
-    }
+        ProductDto response =
+                productService.save(dto);
 
+        assertFalse(response.isSuccess());
+        assertNotNull(response.getMessage());
 
-    @Test
-    void updateTestSuccess() {
-
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("Admin");
-        Product existing = new Product();
-
-        Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(existing);
-        ProductDto response = productService.update(dto);
-
-        Assertions.assertEquals("Admin", response.getIdentifier());
-        assertTrue(response.isSuccess());
-        Assertions.assertNull(response.getMessage());
-
-        verify(productRepository).save(existing);
+        verify(productRepository, never())
+                .save(any());
     }
 
     @Test
-    void updateTestFailure() {
+    void saveFailureDeletedProductTest() {
 
         ProductDto dto = new ProductDto();
-        dto.setIdentifier("Admin");
-
-        Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
-        ProductDto response = productService.update(dto);
-
-        Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
-    }
-
-    @Test
-    void deleteTest() {
-
-        Product product = new Product();
-
-        when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(product);
-
-        productService.delete("Admin");
-
-        assertTrue(product.isDeleted());
-
-        verify(productRepository)
-                .findByIdentifier("Admin");
-    }
-
-    @Test
-    void saveTestFailureDeletedProduct() {
-
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("Admin");
+        dto.setIdentifier("P1");
 
         Product existing = new Product();
         existing.setDeleted(true);
 
-        when(productRepository.findByIdentifier("Admin"))
+        when(productRepository.findByIdentifier("P1"))
                 .thenReturn(existing);
 
-        ProductDto response = productService.save(dto);
+        ProductDto response =
+                productService.save(dto);
 
         assertFalse(response.isSuccess());
 
@@ -143,63 +133,65 @@ class ProductServiceTest {
                 response.getMessage()
                         .contains("already exists but was deleted")
         );
+
+        verify(productRepository, never())
+                .save(any());
     }
 
     @Test
-    void findByIdentifierSuccessTest() {
-
-        Product product = new Product();
-        product.setIdentifier("Admin");
+    void updateSuccessTest() {
 
         ProductDto dto = new ProductDto();
-        dto.setIdentifier("Admin");
+        dto.setIdentifier("P1");
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(product);
-        Mockito.when(modelMapper.map(product, ProductDto.class))
-                .thenReturn(dto);
-        ProductDto response = productService.findByIdentifier("Admin");
+        Product existing = new Product();
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("Admin", response.getIdentifier());
+        when(productRepository.findByIdentifier("P1"))
+                .thenReturn(existing);
+
+        ProductDto response =
+                productService.update(dto);
+
+        assertEquals("P1", response.getIdentifier());
+        assertTrue(response.isSuccess());
+
+        verify(modelMapper).map(dto, existing);
+        verify(productRepository).save(existing);
     }
 
     @Test
-    void findByIdentifierFailureTest() {
+    void updateFailureTest() {
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("P1");
+
+        when(productRepository.findByIdentifier("P1"))
                 .thenReturn(null);
-        ProductDto response = productService.findByIdentifier("Admin");
 
-        Assertions.assertNull(response);
+        ProductDto response =
+                productService.update(dto);
+
+        assertFalse(response.isSuccess());
+        assertNotNull(response.getMessage());
+
+        verify(productRepository, never())
+                .save(any());
     }
 
     @Test
-    void toggleStatusTest() {
+    void deleteTest() {
 
         Product product = new Product();
-        product.setStatus(true);
 
-        when(productRepository.findByIdentifier("Admin"))
+        when(productRepository.findByIdentifier("P1"))
                 .thenReturn(product);
 
-        productService.toggleStatus("Admin");
+        productService.delete("P1");
 
-        assertFalse(product.isStatus());
+        assertTrue(product.isDeleted());
 
-        verify(productRepository).save(product);
-    }
-
-    @Test
-    void toggleStatusNotFoundTest() {
-
-        when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
-
-        productService.toggleStatus("Admin");
-
-        verify(productRepository, Mockito.never())
-                .save(any());
+        verify(productRepository)
+                .findByIdentifier("P1");
     }
 
     @Test
@@ -208,10 +200,10 @@ class ProductServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Product product = new Product();
-        product.setIdentifier("Admin");
+        product.setIdentifier("P1");
 
         ProductDto dto = new ProductDto();
-        dto.setIdentifier("Admin");
+        dto.setIdentifier("P1");
 
         Page<Product> page =
                 new PageImpl<>(List.of(product), pageable, 1);
@@ -222,12 +214,14 @@ class ProductServiceTest {
         when(modelMapper.map(product, ProductDto.class))
                 .thenReturn(dto);
 
-        var result = productService.findAll(pageable);
+        WsDto<ProductDto> result =
+                productService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
-        assertEquals("Admin",
+        assertEquals("P1",
                 result.getContent().getFirst().getIdentifier());
+
         assertEquals(0, result.getPage());
         assertEquals(10, result.getSizePerPage());
         assertEquals(1, result.getTotalPages());
@@ -235,5 +229,158 @@ class ProductServiceTest {
 
         verify(productRepository)
                 .findByIsDeletedFalse(pageable);
+    }
+
+    @Test
+    void toggleStatusTrueToFalseTest() {
+
+        Product product = new Product();
+        product.setStatus(true);
+
+        when(productRepository.findByIdentifier("P1"))
+                .thenReturn(product);
+
+        productService.toggleStatus("P1");
+
+        assertFalse(product.isStatus());
+
+        verify(productRepository).save(product);
+    }
+
+    @Test
+    void toggleStatusFalseToTrueTest() {
+
+        Product product = new Product();
+        product.setStatus(false);
+
+        when(productRepository.findByIdentifier("P1"))
+                .thenReturn(product);
+
+        productService.toggleStatus("P1");
+
+        assertTrue(product.isStatus());
+
+        verify(productRepository).save(product);
+    }
+
+    @Test
+    void toggleStatusNotFoundTest() {
+
+        when(productRepository.findByIdentifier("P1"))
+                .thenReturn(null);
+
+        productService.toggleStatus("P1");
+
+        verify(productRepository, never())
+                .save(any());
+    }
+
+    @Test
+    void findActiveShelfTest() {
+
+        Product product = new Product();
+
+        ProductDto dto = new ProductDto();
+
+        when(productRepository.findByStatus(true))
+                .thenReturn(List.of(product));
+
+        when(modelMapper.map(product, ProductDto.class))
+                .thenReturn(dto);
+
+        List<ProductDto> result =
+                productService.findActiveShelf();
+
+        assertEquals(1, result.size());
+
+        verify(productRepository).findByStatus(true);
+    }
+
+    @Test
+    void findAllWithQuantityStockExistsTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Product product = new Product();
+        product.setIdentifier("P1");
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("P1");
+
+        Stock stock = new Stock();
+        stock.setQuantity(25L);
+
+        Page<Product> page =
+                new PageImpl<>(List.of(product), pageable, 1);
+
+        when(productRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(product, ProductDto.class))
+                .thenReturn(dto);
+
+        when(stockRepository.findByProduct("P1"))
+                .thenReturn(stock);
+
+        WsDto<ProductDto> result =
+                productService.findAllWithQuantity(pageable);
+
+        assertEquals(25L,
+                result.getContent().getFirst().getStockQuantity());
+
+        verify(stockRepository)
+                .findByProduct("P1");
+    }
+
+    @Test
+    void findAllWithQuantityStockNotExistsTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Product product = new Product();
+        product.setIdentifier("P1");
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("P1");
+
+        Page<Product> page =
+                new PageImpl<>(List.of(product), pageable, 1);
+
+        when(productRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(product, ProductDto.class))
+                .thenReturn(dto);
+
+        when(stockRepository.findByProduct("P1"))
+                .thenReturn(null);
+
+        WsDto<ProductDto> result =
+                productService.findAllWithQuantity(pageable);
+
+        assertNull(
+                result.getContent().getFirst().getStockQuantity()
+        );
+
+        verify(stockRepository)
+                .findByProduct("P1");
+    }
+
+    @Test
+    void findAllWithQuantityEmptyPageTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Product> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(productRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        WsDto<ProductDto> result =
+                productService.findAllWithQuantity(pageable);
+
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0, result.getTotalRecords());
     }
 }

@@ -58,6 +58,78 @@ class RoleServiceTest {
     }
 
     @Test
+    void findActiveRolesTest() {
+
+        Role role = new Role();
+        role.setIdentifier("ADMIN");
+
+        RoleDto dto = new RoleDto();
+        dto.setIdentifier("ADMIN");
+
+        when(roleRepository.findByStatus(true))
+                .thenReturn(List.of(role));
+
+        when(modelMapper.map(role, RoleDto.class))
+                .thenReturn(dto);
+
+        List<RoleDto> result =
+                roleService.findActiveRoles();
+
+        assertEquals(1, result.size());
+        assertEquals("ADMIN",
+                result.getFirst().getIdentifier());
+
+        verify(roleRepository).findByStatus(true);
+    }
+
+    @Test
+    void toggleStatusTrueToFalseTest() {
+
+        Role role = new Role();
+        role.setStatus(true);
+
+        when(roleRepository.findByIdentifier("ADMIN"))
+                .thenReturn(role);
+
+        roleService.toggleStatus("ADMIN");
+
+        assertFalse(role.isStatus());
+
+        verify(roleRepository).save(role);
+    }
+
+    @Test
+    void toggleStatusFalseToTrueTest() {
+
+        Role role = new Role();
+        role.setStatus(false);
+
+        when(roleRepository.findByIdentifier("ADMIN"))
+                .thenReturn(role);
+
+        roleService.toggleStatus("ADMIN");
+
+        assertTrue(role.isStatus());
+
+        verify(roleRepository).save(role);
+    }
+
+    @Test
+    void toggleStatusRoleNotFoundTest() {
+
+        when(roleRepository.findByIdentifier("ADMIN"))
+                .thenReturn(null);
+
+        roleService.toggleStatus("ADMIN");
+
+        verify(roleRepository)
+                .findByIdentifier("ADMIN");
+
+        verify(roleRepository, never())
+                .save(any());
+    }
+
+    @Test
     void findByIdentifierFailureTest() {
 
         Mockito.when(roleRepository.findByIdentifier("ADMIN"))

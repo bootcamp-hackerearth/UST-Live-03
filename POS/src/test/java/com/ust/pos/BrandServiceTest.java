@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import com.ust.pos.model.CommonFields;
@@ -63,9 +64,17 @@ class BrandServiceTest {
     @Test
     void testFindByIdentifier_NotFound() {
 
-        when(brandRepository.findByIdentifier("BR001")).thenReturn(null);
-        BrandDto result = brandService.findByIdentifier("BR001");
-        assertNull(result);
+        when(brandRepository.findByIdentifier("BR001"))
+                .thenReturn(null);
+
+        ResourseNotFoundException exception =
+                assertThrows(
+                        ResourseNotFoundException.class,
+                        () -> brandService.findByIdentifier("BR001")
+                );
+
+        assertEquals("Data cannot found",
+                exception.getMessage());
     }
 
     @Test
@@ -81,13 +90,23 @@ class BrandServiceTest {
     @Test
     void testSave_AlreadyExists() {
 
-        when(brandRepository.findByIdentifier("BR001")).thenReturn(brand);
-        BrandDto result = brandService.save(brandDto);
-        assertFalse(result.isSuccess());
-        assertTrue(result.getMessage().contains("already exists"));
-        verify(brandRepository, never()).save(any());
-    }
+        when(brandRepository.findByIdentifier("BR001"))
+                .thenReturn(brand);
 
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> brandService.save(brandDto)
+                );
+
+        assertTrue(
+                exception.getMessage()
+                        .contains("already exists")
+        );
+
+        verify(brandRepository, never())
+                .save(any());
+    }
     @Test
     void testUpdate_Success() {
 
@@ -164,12 +183,14 @@ class BrandServiceTest {
         when(brandRepository.findByIdentifier("BR001"))
                 .thenReturn(brand);
 
-        BrandDto result = brandService.save(brandDto);
-
-        assertFalse(result.isSuccess());
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> brandService.save(brandDto)
+                );
 
         assertTrue(
-                result.getMessage()
+                exception.getMessage()
                         .contains("already exists but was deleted")
         );
 
