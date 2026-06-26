@@ -68,4 +68,5 @@ public class WareHouseApiController extends BaseController {
     public List<WareHouseDto> findByStatus() {
         return wareHouseService.findIfTrue();
     }
+
 }
