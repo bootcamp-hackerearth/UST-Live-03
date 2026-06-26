@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useRouter } from "next/navigation";
 import api from "@/api/axios";
+import { inputStyle, inputErrorStyle, errText, AlertBox, HttpErrorPopup } from "@/components/sharedStyles";
 const C = {
   navy: "#363955", mid: "#54668E", light: "#879EC6",
   gray: "#E8E8E8", offWhite: "#F5F6E6", text: "#1e2235",
@@ -127,12 +128,6 @@ export default function AddFormSkeleton({
     ...(showIdentifier ? [{ key: "__identifier__", label: "Identifier", type: "text", _isIdentifier: true }] : []),
     ...extraFields,
   ];
-  let statusAlert = null;
-  if (error) {
-    statusAlert = { text: error, bg: C.errorBg, border: "#f5c6c6", color: C.error };
-  } else if (success) {
-    statusAlert = { text: success, bg: "#f0fdf4", border: "#86efac", color: "#166534" };
-  }
   return (
     <div style={{
       position: "fixed", top: "60px", right: 0, bottom: 0,
@@ -204,20 +199,7 @@ export default function AddFormSkeleton({
               + New Record
             </div>
           </div>
-          {statusAlert && (
-            <div style={{ padding: "12px 28px 0" }}>
-              <div style={{
-                background: statusAlert.bg,
-                border: `1px solid ${statusAlert.border}`,
-                color: statusAlert.color,
-                borderRadius: "7px",
-                padding: "9px 14px",
-                fontSize: "13px",
-              }}>
-                {statusAlert.text}
-              </div>
-            </div>
-          )}
+          <AlertBox error={error} success={success} />
           <form onSubmit={handleSubmit} style={{ padding: "20px 28px 24px" }}>
             <div style={{
               display: "grid",
@@ -288,26 +270,6 @@ export default function AddFormSkeleton({
     </div>
   );
 }
-const inputStyle = {
-  padding: "9px 12px",
-  borderRadius: "7px",
-  fontSize: "13px",
-  outline: "none",
-  backgroundColor: "#fafafa",
-  boxSizing: "border-box",
-  width: "100%",
-  color: "#1e2235",
-  borderWidth: "1.5px",
-  borderStyle: "solid",
-  borderColor: "#E8E8E8",
-};
-const inputErrorStyle = {
-  borderColor: "#c0392b",
-  backgroundColor: "#fdf2f2",
-};
-const errText = {
-  fontSize: "11px", color: "#c0392b", marginTop: "2px",
-};
 AddFormSkeleton.propTypes = {
   title: PropTypes.string.isRequired,
   apiPath: PropTypes.string.isRequired,
@@ -472,54 +434,4 @@ FieldRenderer.propTypes = {
   handleIdentifierChange: PropTypes.func.isRequired,
   handleExtraChange: PropTypes.func.isRequired,
   handleMultiToggle: PropTypes.func.isRequired,
-};
-function HttpErrorPopup({ httpError, onClose }) {
-  if (!httpError) return null;
-  const styles = {
-    403: { icon: "🔒", title: "Access Denied", color: "#ef4444", defaultMsg: "You don't have permission to perform this action." },
-    404: { icon: "❌", title: "Not Found", color: "#f59e0b", defaultMsg: "The requested resource doesn't exist." },
-    400: { icon: "⚠️", title: "Invalid Request", color: "#f59e0b", defaultMsg: "The request contains invalid data." },
-    500: { icon: "⚡", title: "Server Error", color: "#ef4444", defaultMsg: "Something went wrong. Please try again later." },
-  };
-  const info = styles[httpError.statusCode] || styles[500];
-  return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(30,34,53,0.45)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 9999,
-    }}>
-      <div style={{
-        background: "#fff", borderRadius: "14px", padding: "32px 36px",
-        maxWidth: "380px", textAlign: "center",
-        boxShadow: "0 16px 48px rgba(30,34,53,0.25)",
-        border: "1.5px solid #e8eaf0",
-      }}>
-        <div style={{ fontSize: "44px", marginBottom: "12px" }}>{info.icon}</div>
-        <div style={{ fontSize: "22px", fontWeight: "700", color: info.color, marginBottom: "6px" }}>
-          {httpError.statusCode} · {info.title}
-        </div>
-        <p style={{ fontSize: "13.5px", color: "#6b7280", margin: "0 0 22px", lineHeight: 1.6 }}>
-          {httpError.message || info.defaultMsg}
-        </p>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            padding: "9px 28px", borderRadius: "7px", border: "none",
-            background: "linear-gradient(135deg, #363955, #54668E)",
-            color: "#fff", fontSize: "13px", fontWeight: "600", cursor: "pointer",
-          }}
-        >
-          Okay
-        </button>
-      </div>
-    </div>
-  );
-}
-HttpErrorPopup.propTypes = {
-  httpError: PropTypes.shape({
-    statusCode: PropTypes.number,
-    message: PropTypes.string,
-  }),
-  onClose: PropTypes.func.isRequired,
 };
