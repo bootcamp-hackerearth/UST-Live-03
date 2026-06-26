@@ -1,10 +1,9 @@
 package com.ust.pos.brand;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,8 +15,11 @@ public class BrandController extends BaseController {
 
     public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
 
-    @Autowired
-    BrandService brandService;
+    private final BrandService brandService;
+
+    public BrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute BrandDto brandDto) {

@@ -197,7 +197,7 @@ if (!product.description?.trim()) {
 
     try {
 
-      await api.post(
+      await api.put(
         '/product/update',
         product,
         {

@@ -136,8 +136,8 @@ const UpdateUser = ({
 
     try {
 
-      await api.post(
-        '/user/update',
+      await api.put(
+        'user/update',
         user,
         {
           headers: {

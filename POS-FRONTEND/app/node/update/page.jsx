@@ -126,7 +126,7 @@ const UpdateNode = ({
 
     try {
 
-      await api.post(
+      await api.put(
         '/node/update',
         node,
         {

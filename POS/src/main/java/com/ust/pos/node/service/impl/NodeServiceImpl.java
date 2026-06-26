@@ -1,13 +1,16 @@
 package com.ust.pos.node.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.*;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.NodeRepository;
+import com.ust.pos.model.User;
+import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -21,22 +24,30 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class NodeServiceImpl implements NodeService {
+public class NodeServiceImpl extends BaseService implements NodeService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private NodeRepository nodeRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final UserRepository userRepository;
+    private final NodeRepository nodeRepository;
+    private final ModelMapper modelMapper;
+
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.nodeRepository = nodeRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public List<NodeDto> getNodesForRoles() {
         List<NodeDto> nodeDtos = new ArrayList<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && !authentication.getPrincipal().equals("anonymousUser")) {
-            org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            if (principalObject != null) findNodes(principalObject, nodeDtos);
+        if (authentication != null
+                && !authentication.getPrincipal().equals("anonymousUser")) {
+            org.springframework.security.core.userdetails.User principalObject =
+                    (org.springframework.security.core.userdetails.User)
+                            authentication.getPrincipal();
+            if (principalObject != null) {
+                findNodes(principalObject, nodeDtos);
+            }
         }
         return nodeDtos;
     }
@@ -47,7 +58,8 @@ public class NodeServiceImpl implements NodeService {
         List<Node> nodes = nodeRepository.findAll();
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
-                if (node.getRoles() != null && node.getRoles().contains(role)) {
+                if (node.getRoles() != null
+                        && node.getRoles().contains(role)) {
                     nodesStr.add(node.getIdentifier());
                 }
             }
@@ -60,14 +72,22 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public NodeDto save(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier().trim();
-        Node existingRole = nodeRepository.findByIdentifier(identifier);
-        if (existingRole != null) {
+        Node existingNode = nodeRepository.findByIdentifier(identifier);
+        if (existingNode != null) {
+            if (existingNode.isDeleted()) {
+                nodeDto.setMessage("Node with identifier " + identifier + " has been soft deleted. (Rollback by changing status)");
+                nodeDto.setSuccess(false);
+                return nodeDto;
+            }
             nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
         Node node = modelMapper.map(nodeDto, Node.class);
+        setCreatedDetails(node);
         nodeRepository.save(node);
+        nodeDto.setSuccess(true);
+        nodeDto.setMessage("Node created successfully");
         return nodeDto;
     }
 
@@ -81,14 +101,20 @@ public class NodeServiceImpl implements NodeService {
             return nodeDto;
         }
         modelMapper.map(nodeDto, existingNode);
+        setModifiedDetails(existingNode);
         nodeRepository.save(existingNode);
+        nodeDto.setSuccess(true);
+        nodeDto.setMessage("Node updated successfully");
         return nodeDto;
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
+        Node node = nodeRepository.findByIdentifier(identifier);
+        softDelete(node);
+        setModifiedDetails(node);
+        nodeRepository.save(node);
     }
 
     @Override
@@ -100,19 +126,17 @@ public class NodeServiceImpl implements NodeService {
     public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        if (pageable == null) {
-            List<NodeDto> nodeDtoList = modelMapper.map(nodeRepository.findAll(), listType);
-            WsDto<NodeDto> response = new WsDto<>();
-            response.setDtoList(nodeDtoList);
-            response.setTotalRecords(nodeDtoList.size());
-            return response;
-        }
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
-        List<NodeDto> nodeDtoList = modelMapper.map(nodePage.getContent(), listType);
         WsDto<NodeDto> wsDto = new WsDto<>();
-        wsDto.setDtoList(nodeDtoList);
-        wsDto.setPage(nodePage.getNumber());
-        wsDto.setSizePerPage(nodePage.getSize());
+        if (pageable == null) {
+            List<NodeDto> nodeDtoList = modelMapper.map(nodeRepository.findByDeletedFalse(pageable), listType);
+            wsDto.setDtoList(nodeDtoList);
+            wsDto.setTotalRecords(nodeDtoList.size());
+            return wsDto;
+        }
+        Page<Node> nodePage = nodeRepository.findByDeletedFalse(pageable);
+        wsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setTotalPages(nodePage.getTotalPages());
         wsDto.setTotalRecords(nodePage.getTotalElements());
         return wsDto;

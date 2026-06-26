@@ -2,9 +2,6 @@ package com.ust.pos.api;
 
 import com.ust.pos.config.JWTUtility;
 import com.ust.pos.dto.UserDto;
-import com.ust.pos.model.UserRepository;
-import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,16 +13,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 //@RestController
 public class TokenGenerationController {
 
-    @Autowired
-    UserDetailsService userDetailsService;
-    @Autowired
-    private AuthenticationProvider authenticationProvider;
-    @Autowired
-    private JWTUtility jwtUtility;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserService userService;
+    private final UserDetailsService userDetailsService;
+    private final AuthenticationProvider authenticationProvider;
+    private final JWTUtility jwtUtility;
+
+    public TokenGenerationController(UserDetailsService userDetailsService, AuthenticationProvider authenticationProvider, JWTUtility jwtUtility) {
+        this.userDetailsService = userDetailsService;
+        this.authenticationProvider = authenticationProvider;
+        this.jwtUtility = jwtUtility;
+    }
 
     @PostMapping("/api/authenticate")
     @ResponseBody

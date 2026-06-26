@@ -2,7 +2,10 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.*;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.NodeRepository;
+import com.ust.pos.model.User;
+import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.impl.NodeServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -117,15 +120,23 @@ public class NodeServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(nodeRepository).deleteByIdentifier("Admin");
+
+        Node node = new Node();
+        node.setIdentifier("Admin");
+
+        Mockito.when(
+                nodeRepository.findByIdentifier("Admin")
+        ).thenReturn(node);
 
         nodeService.delete("Admin");
 
-        Mockito.verify(nodeRepository).deleteByIdentifier("Admin");
+        Mockito.verify(nodeRepository)
+                .save(Mockito.any(Node.class));
     }
 
     @Test
     void findAllWithPageableTest() {
+
         Node node = new Node();
         node.setIdentifier("Admin");
 
@@ -136,19 +147,38 @@ public class NodeServiceTest {
         List<NodeDto> dtos = List.of(dto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Node> nodePage = new PageImpl<>(nodes);
 
-        Mockito.when(nodeRepository.findAll(pageable)).thenReturn(nodePage);
-        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(Type.class))).thenReturn(dtos);
+        Page<Node> nodePage =
+                new PageImpl<>(nodes);
 
-        WsDto<NodeDto> response = nodeService.findAll(pageable);
+        Mockito.when(
+                nodeRepository.findByDeletedFalse(pageable)
+        ).thenReturn(nodePage);
 
-        Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(nodes),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(dtos);
+
+        WsDto<NodeDto> response =
+                nodeService.findAll(pageable);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Admin",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test
     void findAllWithoutPageableTest() {
+
         Node node = new Node();
         node.setIdentifier("Admin");
 
@@ -158,13 +188,37 @@ public class NodeServiceTest {
         List<Node> nodes = List.of(node);
         List<NodeDto> dtos = List.of(dto);
 
-        Mockito.when(nodeRepository.findAll()).thenReturn(nodes);
-        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(Type.class))).thenReturn(dtos);
+        Page<Node> nodePage =
+                new PageImpl<>(nodes);
 
-        WsDto<NodeDto> response = nodeService.findAll(null);
+        Mockito.when(
+                nodeRepository.findByDeletedFalse(null)
+        ).thenReturn(nodePage);
 
-        Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(nodePage),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(dtos);
+
+        WsDto<NodeDto> response =
+                nodeService.findAll(null);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Admin",
+                response.getDtoList().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
     }
 
     @Test

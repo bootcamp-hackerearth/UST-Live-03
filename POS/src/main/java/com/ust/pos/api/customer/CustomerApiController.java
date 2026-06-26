@@ -1,21 +1,25 @@
 package com.ust.pos.api.customer;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerApiController extends BaseController {
 
-    @Autowired
-    CustomerService customerService;
+    private final CustomerService customerService;
+
+    public CustomerApiController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
     @PostMapping("/add")
     public CustomerDto addPost(@RequestBody CustomerDto customerDto) {
@@ -33,13 +37,13 @@ public class CustomerApiController extends BaseController {
         return customerService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
     @Transactional
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);

@@ -53,7 +53,7 @@ const UpdateRole = ({
     }
 
     try {
-      const response = await api.post('/role/update', role);
+      const response = await api.put('/role/update', role);
       const result = response.data;
 
       setMessage(result.message || 'Role updated successfully');

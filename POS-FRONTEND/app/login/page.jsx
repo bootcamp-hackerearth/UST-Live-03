@@ -152,7 +152,6 @@ if (loginFailed) {
   );
 
 }
-
     } catch (err) {
 
       console.error(err);

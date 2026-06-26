@@ -1,5 +1,6 @@
 package com.ust.pos.category.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
@@ -9,7 +10,6 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,26 +18,38 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl extends BaseService implements CategoryService {
 
-    @Autowired
-    CategoryRepository categoryRepository;
-    @Autowired
-    ModelMapper modelMapper;
+    private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
+
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper) {
+        this.categoryRepository = categoryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CategoryDto save(CategoryDto categoryDto) {
         if (StringUtils.isEmpty(categoryDto.getSuperCategory())) {
             categoryDto.setSuperCategory(null);
         }
-        Category existingCategory = categoryRepository.findByIdentifier(categoryDto.getIdentifier().trim());
+        String identifier = categoryDto.getIdentifier().trim();
+        Category existingCategory = categoryRepository.findByIdentifier(identifier);
         if (existingCategory != null) {
-            categoryDto.setMessage("Category with identifier - " + categoryDto.getIdentifier() + " already exists");
+            if (existingCategory.isDeleted()) {
+                categoryDto.setMessage("Category with identifier " + identifier + " has been soft deleted. (Rollback by changing status)");
+                categoryDto.setSuccess(false);
+                return categoryDto;
+            }
+            categoryDto.setMessage("Category with identifier - " + identifier + " already exists");
             categoryDto.setSuccess(false);
             return categoryDto;
         }
         Category category = modelMapper.map(categoryDto, Category.class);
+        setCreatedDetails(category);
         categoryRepository.save(category);
+        categoryDto.setSuccess(true);
+        categoryDto.setMessage("Category created successfully");
         return categoryDto;
     }
 
@@ -45,19 +57,17 @@ public class CategoryServiceImpl implements CategoryService {
     public WsDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        if (pageable == null) {
-            List<CategoryDto> categoryDtoList = modelMapper.map(categoryRepository.findAll(), listType);
-            WsDto<CategoryDto> response = new WsDto<>();
-            response.setDtoList(categoryDtoList);
-            response.setTotalRecords(categoryDtoList.size());
-            return response;
-        }
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        List<CategoryDto> categoryDtoList = modelMapper.map(categoryPage.getContent(), listType);
         WsDto<CategoryDto> wsDto = new WsDto<>();
-        wsDto.setDtoList(categoryDtoList);
-        wsDto.setPage(categoryPage.getNumber());
-        wsDto.setSizePerPage(categoryPage.getSize());
+        if (pageable == null) {
+            List<CategoryDto> categoryDtoList = modelMapper.map(categoryRepository.findByDeletedFalse(pageable), listType);
+            wsDto.setDtoList(categoryDtoList);
+            wsDto.setTotalRecords(categoryDtoList.size());
+            return wsDto;
+        }
+        Page<Category> categoryPage = categoryRepository.findByDeletedFalse(pageable);
+        wsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setTotalPages(categoryPage.getTotalPages());
         wsDto.setTotalRecords(categoryPage.getTotalElements());
         return wsDto;
@@ -68,22 +78,28 @@ public class CategoryServiceImpl implements CategoryService {
         return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deleteByIdentifier(String identifier) {
-        categoryRepository.deleteByIdentifier(identifier);
+        Category category = categoryRepository.findByIdentifier(identifier);
+        softDelete(category);
+        setModifiedDetails(category);
+        categoryRepository.save(category);
     }
 
     @Override
     public CategoryDto update(CategoryDto categoryDto) {
         Category existingCategory = categoryRepository.findByIdentifier(categoryDto.getIdentifier());
         if (existingCategory == null) {
-            categoryDto.setMessage("Category with identifier - " + categoryDto.getIdentifier() + "not found");
+            categoryDto.setMessage("Category with identifier - " + categoryDto.getIdentifier() + " not found");
             categoryDto.setSuccess(false);
             return categoryDto;
         }
         modelMapper.map(categoryDto, existingCategory);
+        setModifiedDetails(existingCategory);
         categoryRepository.save(existingCategory);
+        categoryDto.setSuccess(true);
+        categoryDto.setMessage("Category updated successfully");
         return categoryDto;
     }
 

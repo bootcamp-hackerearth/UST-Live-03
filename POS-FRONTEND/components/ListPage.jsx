@@ -15,7 +15,8 @@ const CommonList = ({
   columns,
   AddComponent,
   UpdateComponent,
-  customRender
+  customRender,
+  customViewHandler
 }) => {
 
   const [data, setData] = useState([]);
@@ -29,6 +30,9 @@ const CommonList = ({
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState(null);
+
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewData, setViewData] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -64,7 +68,7 @@ const CommonList = ({
 
     } catch (err) {
 
-      console.error(err);
+      console.log(err);
       setError(`Failed to load ${modelName}`);
 
     } finally {
@@ -108,7 +112,7 @@ const CommonList = ({
 
     } catch (err) {
 
-      console.error(err);
+      console.log(err);
 
     }
 
@@ -124,7 +128,7 @@ const CommonList = ({
 
   try {
 
-    await api.get(
+    await api.delete(
       `${deleteUrl}?identifier=${identifier}`
     );
 
@@ -148,8 +152,7 @@ const CommonList = ({
     fetchAllData();
 
   } catch (err) {
-    console.error(err);
-    alert(`Failed to delete ${modelName}`);
+    console.log(err);
   }
 };
 
@@ -159,6 +162,25 @@ const CommonList = ({
     setShowUpdateModal(true);
 
   };
+
+  const handleView = async (item) => {
+
+  try {
+
+    const response = await api.get(
+      `/${modelName}/get?identifier=${item.identifier}`
+    );
+
+    setViewData(response.data);
+    setShowViewModal(true);
+
+  } catch (err) {
+
+    console.error(err);
+    alert("Failed to load details");
+
+  }
+};
 
   const filteredData = search
     ? allData.filter((row) =>
@@ -242,7 +264,7 @@ const CommonList = ({
             </div>
           )}
 
-          <div className="overflow-hidden rounded-xl border">
+          <div className="overflow-x-auto rounded-xl border">
 
             <table className="w-full text-sm">
 
@@ -306,12 +328,25 @@ const CommonList = ({
 
                       <td className="p-3">
 
-                        <ActionButtons
-                          onEdit={() => handleEdit(row)}
-                          onDelete={() => deleteItem(row.identifier)}
-                        />
+                      <ActionButtons
+                        onView={() => {
 
-                      </td>
+                          if (customViewHandler) {
+                            customViewHandler(
+                              row,
+                              setViewData,
+                              setShowViewModal
+                            );
+                          } else {
+                            handleView(row);
+                          }
+
+                        }}
+                        onEdit={() => handleEdit(row)}
+                        onDelete={() => deleteItem(row.identifier)}
+                      />
+
+                    </td>
 
                     </tr>
 
@@ -405,6 +440,18 @@ const CommonList = ({
 
         )}
 
+        {showViewModal && viewData && (
+
+          <AuditViewModal
+            data={viewData}
+            onClose={() => {
+              setShowViewModal(false);
+              setViewData(null);
+            }}
+          />
+
+        )}
+
       </div>
 
     </Layout>
@@ -420,6 +467,146 @@ CommonList.propTypes = {
   AddComponent: PropTypes.elementType,
   UpdateComponent: PropTypes.elementType,
   customRender: PropTypes.objectOf(PropTypes.func),
+  customViewHandler: PropTypes.func,
 };
 
+function AuditViewModal({
+  data,
+  onClose
+}) {
+
+  const formatDate = (value) => {
+
+    if (!value) return "N/A";
+
+    return new Date(value).toLocaleString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
+  };
+
+  return (
+
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl">
+
+        <div className="flex justify-between items-center p-5 border-b">
+
+          <h2 className="text-xl font-semibold">
+            Audit Details
+          </h2>
+
+          <button
+            onClick={onClose}
+            className="text-red-500"
+          >
+            ✕
+          </button>
+
+        </div>
+
+        <div className="p-6">
+
+          <div className="grid grid-cols-2 gap-4">
+
+            <div>
+              <span className="text-gray-500 text-sm block">
+                Identifier
+              </span>
+
+              <p className="font-medium">
+                {data.identifier}
+              </p>
+            </div>
+
+            {data.description && (
+              <div>
+                <span className="text-gray-500 text-sm block">
+                  Description
+                </span>
+
+                <p className="font-medium">
+                  {data.description}
+                </p>
+              </div>
+            )}
+
+            <div>
+              <span className="text-gray-500 text-sm block">
+                Created By
+              </span>
+
+              <p className="font-medium">
+                {data.createdBy || "N/A"}
+              </p>
+            </div>
+
+            <div>
+              <span className="text-gray-500 text-sm block">
+                Created On
+              </span>
+
+              <p className="font-medium">
+                {formatDate(data.createdOn)}
+              </p>
+            </div>
+
+            <div>
+              <span className="text-gray-500 text-sm block">
+                Modified By
+              </span>
+
+              <p className="font-medium">
+                {data.modifiedBy || "N/A"}
+              </p>
+            </div>
+
+            <div>
+              <span className="text-gray-500 text-sm block">
+                Modified On
+              </span>
+
+              <p className="font-medium">
+                {formatDate(data.modifiedOn)}
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+AuditViewModal.propTypes = {
+  data: PropTypes.shape({
+    identifier: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]),
+    description: PropTypes.string,
+    createdBy: PropTypes.string,
+    createdOn: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+      PropTypes.instanceOf(Date),
+    ]),
+    modifiedBy: PropTypes.string,
+    modifiedOn: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+      PropTypes.instanceOf(Date),
+    ]),
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 export default CommonList;

@@ -2,7 +2,6 @@ package com.ust.pos.config;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,10 +15,13 @@ import java.io.IOException;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private com.ust.pos.config.JWTUtility jwtUtility;
-    @Autowired
-    private UserDetailsService userService;
+    private final JWTUtility jwtUtility;
+    private final UserDetailsService userService;
+
+    public JwtFilter(JWTUtility jwtUtility, UserDetailsService userService) {
+        this.jwtUtility = jwtUtility;
+        this.userService = userService;
+    }
 
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest httpServletRequest,

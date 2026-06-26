@@ -91,7 +91,7 @@ const UpdateCategory = ({
     }
 
     try {
-      await api.post(
+      await api.put(
         '/category/update',
         {
           ...category,

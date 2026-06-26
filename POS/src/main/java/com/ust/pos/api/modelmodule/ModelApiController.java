@@ -1,11 +1,10 @@
 package com.ust.pos.api.modelmodule;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.modelmodule.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/model")
 public class ModelApiController extends BaseController {
 
-    @Autowired
-    ModelService modelService;
+    private final ModelService modelService;
+
+    public ModelApiController(ModelService modelService) {
+        this.modelService = modelService;
+    }
 
     @PostMapping("/add")
     public ModelDto addPost(@RequestBody ModelDto modelDto) {
@@ -32,12 +34,12 @@ public class ModelApiController extends BaseController {
         return modelService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelDto updatePost(@RequestBody ModelDto modelDto) {
         return modelService.update(modelDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.deleteByIdentifier(identifier);
@@ -51,4 +53,5 @@ public class ModelApiController extends BaseController {
     public ModelDto toggle(@RequestBody ModelDto modelDto) {
         return modelService.toggleStatus(modelDto.getIdentifier(), modelDto.isStatus());
     }
+
 }

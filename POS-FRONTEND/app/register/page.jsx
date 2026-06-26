@@ -137,21 +137,21 @@ const Register = () => {
             );
 
             const registrationSuccessful =
-    response.data.success === true ||
-    response.data.success === undefined;
-    if (registrationSuccessful) {
-        
-        setSuccess('Registration Successful');
-        setTimeout(() => {
-            router.push('/login');
-        }, 1500);
-    } else {
+            response.data.success === true ||
+            response.data.success === undefined;
+            if (registrationSuccessful) {
+                
+                setSuccess('Registration Successful');
+                setTimeout(() => {
+                    router.push('/login');
+                }, 1500);
+            } else {
 
-        setError(
-            response.data.message ||
-            'Registration failed'
-        );
-    }
+                setError(
+                    response.data.message ||
+                    'Registration failed'
+                );
+            }
 
         } catch (error) {
 

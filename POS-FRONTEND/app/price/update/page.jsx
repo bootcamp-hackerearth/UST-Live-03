@@ -124,7 +124,7 @@ const UpdatePrice = ({
 
     try {
 
-      await api.post(
+      await api.put(
         '/price/update',
         price,
         {

@@ -8,12 +8,12 @@ import java.util.List;
 @Repository
 public interface CartEntryRepository extends JpaRepository<CartEntry, Long> {
 
-    CartEntry findByIdentifier(String identifier);
+    CartEntry findByIdentifier(String productId);
 
     void deleteByIdentifier(String identifier);
 
-    List<CartEntry> findByCartIdentifier(String cartIdentifier);
+    List<CartEntry> findByCartId(String cartId);
 
-    void deleteByCartIdentifier(String cartIdentifier);
+    void deleteByCartId(String cartId);
 
 }

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 
 const ActionButtons = ({
+  onView,
   onEdit,
   onDelete
 }) => {
@@ -38,12 +39,20 @@ const ActionButtons = ({
 
       </button>
 
+      <button
+        onClick={onView}
+        className="bg-blue-500 text-white px-3 py-1 rounded"
+      >
+        View
+      </button>
+
     </div>
 
   );
 };
 
 ActionButtons.propTypes={
+onView: PropTypes.func.isRequired,
 onEdit: PropTypes.func.isRequired,
 onDelete: PropTypes.func.isRequired,
 };

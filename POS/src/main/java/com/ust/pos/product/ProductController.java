@@ -1,13 +1,12 @@
 package com.ust.pos.product;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,15 +17,17 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController extends BaseController {
 
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
+    private final ProductService productService;
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final UnitService unitService;
 
-    @Autowired
-    ProductService productService;
-    @Autowired
-    CategoryService categoryService;
-    @Autowired
-    BrandService brandService;
-    @Autowired
-    UnitService unitService;
+    public ProductController(ProductService productService, CategoryService categoryService, BrandService brandService, UnitService unitService) {
+        this.productService = productService;
+        this.categoryService = categoryService;
+        this.brandService = brandService;
+        this.unitService = unitService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ProductDto productDto) {

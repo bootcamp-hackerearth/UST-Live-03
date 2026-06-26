@@ -1,6 +1,6 @@
 package com.ust.pos.stock;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
@@ -8,7 +8,6 @@ import com.ust.pos.rack.service.RackService;
 import com.ust.pos.shelf.service.ShelfService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,16 +23,19 @@ public class StockController extends BaseController {
     public static final String SHELFS = "shelfs";
     public static final String RACKS = "racks";
 
-    @Autowired
-    StockService stockService;
-    @Autowired
-    ProductService productService;
-    @Autowired
-    WarehouseService warehouseService;
-    @Autowired
-    RackService rackService;
-    @Autowired
-    ShelfService shelfService;
+    private final StockService stockService;
+    private final ProductService productService;
+    private final WarehouseService warehouseService;
+    private final RackService rackService;
+    private final ShelfService shelfService;
+
+    public StockController(StockService stockService, ProductService productService, WarehouseService warehouseService, RackService rackService, ShelfService shelfService) {
+        this.stockService = stockService;
+        this.productService = productService;
+        this.warehouseService = warehouseService;
+        this.rackService = rackService;
+        this.shelfService = shelfService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute StockDto stockDto) {
