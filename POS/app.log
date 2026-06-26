@@ -56595,3 +56595,455 @@ java.lang.ArithmeticException: / by zero
 2026-06-26 21:27:52 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
 2026-06-26 21:27:52 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
 2026-06-26 21:27:52 - Completed 200 OK
+2026-06-26 21:37:02 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:37:02 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:37:02 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:37:02 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:37:02 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:37:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:37:02 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
+2026-06-26 21:37:02 - Completed 200 OK
+2026-06-26 21:37:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:37:02 - Writing [[com.ust.pos.dto.NodeDto@57279f13, com.ust.pos.dto.NodeDto@53cfef8b, com.ust.pos.dto.NodeDto@206ee4f (truncated)...]
+2026-06-26 21:37:02 - Completed 200 OK
+2026-06-26 21:40:53 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:40:53 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:40:53 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:40:53 - Writing [[com.ust.pos.dto.NodeDto@7655bbf3, com.ust.pos.dto.NodeDto@79341a81, com.ust.pos.dto.NodeDto@60e5ebc (truncated)...]
+2026-06-26 21:40:53 - Completed 200 OK
+2026-06-26 21:41:01 - POST "/api/wareHouse/add", parameters={}
+2026-06-26 21:41:01 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#addPost(WareHouseDto)
+2026-06-26 21:41:01 - Read "application/json;charset=UTF-8" to [com.ust.pos.dto.WareHouseDto@71619b2c]
+2026-06-26 21:41:01 - Using @ExceptionHandler com.ust.pos.exception.GlobalExceptionHandler#handleAuthorizationDenied(AuthorizationDeniedException, HttpServletRequest)
+2026-06-26 21:41:01 - Access denied: Access Denied
+2026-06-26 21:41:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:01 - Writing [com.ust.pos.exception.ErrorResponse@7c40abd3]
+2026-06-26 21:41:01 - Resolved [org.springframework.security.authorization.AuthorizationDeniedException: Access Denied]
+2026-06-26 21:41:01 - Completed 403 FORBIDDEN
+2026-06-26 21:41:12 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:12 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:12 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:12 - Writing [[com.ust.pos.dto.NodeDto@5e76370a, com.ust.pos.dto.NodeDto@3a1e2c32, com.ust.pos.dto.NodeDto@5862324 (truncated)...]
+2026-06-26 21:41:12 - Completed 200 OK
+2026-06-26 21:41:13 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:13 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:13 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:13 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:13 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:13 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:13 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:13 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:13 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:13 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
+2026-06-26 21:41:13 - Completed 200 OK
+2026-06-26 21:41:13 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:13 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
+2026-06-26 21:41:13 - Completed 200 OK
+2026-06-26 21:41:13 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:13 - Writing [[com.ust.pos.dto.NodeDto@7a109d72, com.ust.pos.dto.NodeDto@5b21bc19, com.ust.pos.dto.NodeDto@131451d (truncated)...]
+2026-06-26 21:41:13 - Completed 200 OK
+2026-06-26 21:41:16 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:16 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:16 - GET "/api/wareHouse/get?identifier=Main+Warehouse", parameters={masked}
+2026-06-26 21:41:16 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#update(String)
+2026-06-26 21:41:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:16 - Writing [com.ust.pos.dto.WareHouseDto@4c061ec6]
+2026-06-26 21:41:16 - Completed 200 OK
+2026-06-26 21:41:16 - GET "/api/wareHouse/get?identifier=Main+Warehouse", parameters={masked}
+2026-06-26 21:41:16 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#update(String)
+2026-06-26 21:41:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:16 - Writing [[com.ust.pos.dto.NodeDto@7bb0851f, com.ust.pos.dto.NodeDto@2f24ba33, com.ust.pos.dto.NodeDto@6bef852 (truncated)...]
+2026-06-26 21:41:16 - Completed 200 OK
+2026-06-26 21:41:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:16 - Writing [com.ust.pos.dto.WareHouseDto@16b49c22]
+2026-06-26 21:41:16 - Completed 200 OK
+2026-06-26 21:41:24 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:24 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:24 - GET "/api/wareHouse/get?identifier=2345", parameters={masked}
+2026-06-26 21:41:24 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#update(String)
+2026-06-26 21:41:24 - Using @ExceptionHandler com.ust.pos.exception.GlobalExceptionHandler#handleNotFound(ResourceNotFoundException, HttpServletRequest)
+2026-06-26 21:41:24 - Resource not found: Warehouse with identifier '2345' not found
+2026-06-26 21:41:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:24 - Writing [com.ust.pos.exception.ErrorResponse@734f245]
+2026-06-26 21:41:24 - Resolved [com.ust.pos.exception.ResourceNotFoundException: Warehouse with identifier '2345' not found]
+2026-06-26 21:41:24 - Completed 404 NOT_FOUND
+2026-06-26 21:41:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:24 - Writing [[com.ust.pos.dto.NodeDto@1bf7bad4, com.ust.pos.dto.NodeDto@497eaa3e, com.ust.pos.dto.NodeDto@3f4a8e7 (truncated)...]
+2026-06-26 21:41:24 - Completed 200 OK
+2026-06-26 21:41:25 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:25 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:25 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:25 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:25 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:25 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:25 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:25 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:25 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:25 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
+2026-06-26 21:41:25 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:25 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
+2026-06-26 21:41:25 - Completed 200 OK
+2026-06-26 21:41:25 - Completed 200 OK
+2026-06-26 21:41:26 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:26 - Writing [[com.ust.pos.dto.NodeDto@23863003, com.ust.pos.dto.NodeDto@7bbeb450, com.ust.pos.dto.NodeDto@608e6c5 (truncated)...]
+2026-06-26 21:41:26 - Completed 200 OK
+2026-06-26 21:41:28 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:28 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:28 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:28 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:28 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:28 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
+2026-06-26 21:41:28 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:28 - Completed 200 OK
+2026-06-26 21:41:28 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:28 - Writing [[com.ust.pos.dto.NodeDto@515fb899, com.ust.pos.dto.NodeDto@4caefd17, com.ust.pos.dto.NodeDto@3e96e0e (truncated)...]
+2026-06-26 21:41:28 - Completed 200 OK
+2026-06-26 21:41:39 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:39 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:39 - POST "/api/user/list", parameters={}
+2026-06-26 21:41:39 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:41:39 - POST "/api/user/list", parameters={}
+2026-06-26 21:41:39 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:39 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:41:39 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:39 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:39 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:39 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:41:39 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:41:39 - Completed 200 OK
+2026-06-26 21:41:39 - Completed 200 OK
+2026-06-26 21:41:40 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:40 - Writing [[com.ust.pos.dto.NodeDto@18f8b179, com.ust.pos.dto.NodeDto@4a1b1897, com.ust.pos.dto.NodeDto@3cf5e06 (truncated)...]
+2026-06-26 21:41:40 - Completed 200 OK
+2026-06-26 21:41:42 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:42 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:42 - GET "/api/user/get?username=navya%40gmail.com", parameters={masked}
+2026-06-26 21:41:42 - Mapped to com.ust.pos.api.userapi.ApiUserController#update(String)
+2026-06-26 21:41:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:42 - Writing [com.ust.pos.dto.UserDto@7aafd3ca]
+2026-06-26 21:41:42 - Completed 200 OK
+2026-06-26 21:41:42 - GET "/api/role/findByStatus", parameters={}
+2026-06-26 21:41:42 - Mapped to com.ust.pos.api.roleapi.ApiRoleController#findByStatus()
+2026-06-26 21:41:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:42 - Writing [[com.ust.pos.dto.NodeDto@57ae1b12, com.ust.pos.dto.NodeDto@7e6c0c80, com.ust.pos.dto.NodeDto@2916ba8 (truncated)...]
+2026-06-26 21:41:42 - GET "/api/user/get?username=navya%40gmail.com", parameters={masked}
+2026-06-26 21:41:42 - Mapped to com.ust.pos.api.userapi.ApiUserController#update(String)
+2026-06-26 21:41:42 - Completed 200 OK
+2026-06-26 21:41:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:42 - Writing [[com.ust.pos.dto.RoleDto@75d9bb0f, com.ust.pos.dto.RoleDto@310ab8e4, com.ust.pos.dto.RoleDto@2f8671d (truncated)...]
+2026-06-26 21:41:42 - Completed 200 OK
+2026-06-26 21:41:42 - GET "/api/role/findByStatus", parameters={}
+2026-06-26 21:41:42 - Mapped to com.ust.pos.api.roleapi.ApiRoleController#findByStatus()
+2026-06-26 21:41:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:42 - Writing [com.ust.pos.dto.UserDto@26927d3c]
+2026-06-26 21:41:42 - Completed 200 OK
+2026-06-26 21:41:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:42 - Writing [[com.ust.pos.dto.RoleDto@18b7522d, com.ust.pos.dto.RoleDto@63a138b4, com.ust.pos.dto.RoleDto@32f8e14 (truncated)...]
+2026-06-26 21:41:42 - Completed 200 OK
+2026-06-26 21:41:48 - PUT "/api/user/update", parameters={}
+2026-06-26 21:41:48 - Mapped to com.ust.pos.api.userapi.ApiUserController#updatePost(UserDto)
+2026-06-26 21:41:48 - Read "application/json;charset=UTF-8" to [com.ust.pos.dto.UserDto@63eb966b]
+2026-06-26 21:41:49 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:49 - Writing [com.ust.pos.dto.UserDto@63eb966b]
+2026-06-26 21:41:49 - Completed 200 OK
+2026-06-26 21:41:50 - POST "/api/user/list", parameters={}
+2026-06-26 21:41:50 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:41:50 - POST "/api/user/list", parameters={}
+2026-06-26 21:41:50 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:41:50 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:50 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:50 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:50 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:50 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:41:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:50 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:41:50 - Completed 200 OK
+2026-06-26 21:41:50 - Completed 200 OK
+2026-06-26 21:41:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:50 - Writing [[com.ust.pos.dto.NodeDto@42f6bd46, com.ust.pos.dto.NodeDto@69c7fdd8, com.ust.pos.dto.NodeDto@1b372d0 (truncated)...]
+2026-06-26 21:41:50 - Completed 200 OK
+2026-06-26 21:41:52 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:52 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:52 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:52 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:52 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:52 - Using @ExceptionHandler com.ust.pos.exception.GlobalExceptionHandler#handleAuthorizationDenied(AuthorizationDeniedException, HttpServletRequest)
+2026-06-26 21:41:52 - Access denied: Access Denied
+2026-06-26 21:41:52 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:52 - Writing [com.ust.pos.exception.ErrorResponse@33cc72ff]
+2026-06-26 21:41:52 - Resolved [org.springframework.security.authorization.AuthorizationDeniedException: Access Denied]
+2026-06-26 21:41:52 - Completed 403 FORBIDDEN
+2026-06-26 21:41:52 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:52 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:52 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:52 - Using @ExceptionHandler com.ust.pos.exception.GlobalExceptionHandler#handleAuthorizationDenied(AuthorizationDeniedException, HttpServletRequest)
+2026-06-26 21:41:52 - Access denied: Access Denied
+2026-06-26 21:41:52 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:52 - Writing [com.ust.pos.exception.ErrorResponse@61a62692]
+2026-06-26 21:41:52 - Resolved [org.springframework.security.authorization.AuthorizationDeniedException: Access Denied]
+2026-06-26 21:41:52 - Completed 403 FORBIDDEN
+2026-06-26 21:41:52 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:52 - Writing [[com.ust.pos.dto.NodeDto@3366587c, com.ust.pos.dto.NodeDto@6944264a, com.ust.pos.dto.NodeDto@131004b (truncated)...]
+2026-06-26 21:41:52 - Completed 200 OK
+2026-06-26 21:41:55 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:55 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:55 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:55 - Using @ExceptionHandler com.ust.pos.exception.GlobalExceptionHandler#handleAuthorizationDenied(AuthorizationDeniedException, HttpServletRequest)
+2026-06-26 21:41:55 - Access denied: Access Denied
+2026-06-26 21:41:55 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:55 - Writing [com.ust.pos.exception.ErrorResponse@5de91949]
+2026-06-26 21:41:55 - Resolved [org.springframework.security.authorization.AuthorizationDeniedException: Access Denied]
+2026-06-26 21:41:55 - Completed 403 FORBIDDEN
+2026-06-26 21:41:58 - POST "/api/wareHouse/list", parameters={}
+2026-06-26 21:41:58 - Mapped to com.ust.pos.api.warehouseapi.ApiWareHouseController#home(PaginationDto)
+2026-06-26 21:41:58 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:41:58 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:41:58 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:41:58 - Using @ExceptionHandler com.ust.pos.exception.GlobalExceptionHandler#handleAuthorizationDenied(AuthorizationDeniedException, HttpServletRequest)
+2026-06-26 21:41:58 - Access denied: Access Denied
+2026-06-26 21:41:58 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:58 - Writing [com.ust.pos.exception.ErrorResponse@10786c03]
+2026-06-26 21:41:58 - Resolved [org.springframework.security.authorization.AuthorizationDeniedException: Access Denied]
+2026-06-26 21:41:58 - Completed 403 FORBIDDEN
+2026-06-26 21:41:58 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:41:58 - Writing [[com.ust.pos.dto.NodeDto@d6baaa8, com.ust.pos.dto.NodeDto@47173946, com.ust.pos.dto.NodeDto@993fd05, (truncated)...]
+2026-06-26 21:41:58 - Completed 200 OK
+2026-06-26 21:42:00 - POST "/api/user/list", parameters={}
+2026-06-26 21:42:00 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:42:00 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:42:00 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:42:00 - POST "/api/user/list", parameters={}
+2026-06-26 21:42:00 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:42:00 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:42:00 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:42:00 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:00 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:42:00 - Completed 200 OK
+2026-06-26 21:42:00 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:00 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:42:00 - Completed 200 OK
+2026-06-26 21:42:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:01 - Writing [[com.ust.pos.dto.NodeDto@7e79af23, com.ust.pos.dto.NodeDto@69e2f16f, com.ust.pos.dto.NodeDto@71fe299 (truncated)...]
+2026-06-26 21:42:01 - Completed 200 OK
+2026-06-26 21:42:10 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:42:10 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:42:10 - GET "/api/user/get?username=navya%40gmail.com", parameters={masked}
+2026-06-26 21:42:10 - Mapped to com.ust.pos.api.userapi.ApiUserController#update(String)
+2026-06-26 21:42:10 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:10 - Writing [com.ust.pos.dto.UserDto@2d43f5bb]
+2026-06-26 21:42:10 - Completed 200 OK
+2026-06-26 21:42:10 - GET "/api/role/findByStatus", parameters={}
+2026-06-26 21:42:10 - Mapped to com.ust.pos.api.roleapi.ApiRoleController#findByStatus()
+2026-06-26 21:42:10 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:10 - Writing [[com.ust.pos.dto.RoleDto@5117685, com.ust.pos.dto.RoleDto@3f613613, com.ust.pos.dto.RoleDto@40eba6ed (truncated)...]
+2026-06-26 21:42:10 - Completed 200 OK
+2026-06-26 21:42:10 - GET "/api/role/findByStatus", parameters={}
+2026-06-26 21:42:10 - Mapped to com.ust.pos.api.roleapi.ApiRoleController#findByStatus()
+2026-06-26 21:42:10 - GET "/api/user/get?username=navya%40gmail.com", parameters={masked}
+2026-06-26 21:42:10 - Mapped to com.ust.pos.api.userapi.ApiUserController#update(String)
+2026-06-26 21:42:10 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:10 - Writing [[com.ust.pos.dto.NodeDto@69abc046, com.ust.pos.dto.NodeDto@1b32a29a, com.ust.pos.dto.NodeDto@4529f72 (truncated)...]
+2026-06-26 21:42:10 - Completed 200 OK
+2026-06-26 21:42:10 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:10 - Writing [[com.ust.pos.dto.RoleDto@c2128a6, com.ust.pos.dto.RoleDto@4cc01c8c, com.ust.pos.dto.RoleDto@401097f0 (truncated)...]
+2026-06-26 21:42:10 - Completed 200 OK
+2026-06-26 21:42:10 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:10 - Writing [com.ust.pos.dto.UserDto@dde12c0]
+2026-06-26 21:42:10 - Completed 200 OK
+2026-06-26 21:42:15 - PUT "/api/user/update", parameters={}
+2026-06-26 21:42:15 - Mapped to com.ust.pos.api.userapi.ApiUserController#updatePost(UserDto)
+2026-06-26 21:42:15 - Read "application/json;charset=UTF-8" to [com.ust.pos.dto.UserDto@7e8031ab]
+2026-06-26 21:42:15 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:15 - Writing [com.ust.pos.dto.UserDto@7e8031ab]
+2026-06-26 21:42:15 - Completed 200 OK
+2026-06-26 21:42:17 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:42:17 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:42:17 - POST "/api/user/list", parameters={}
+2026-06-26 21:42:17 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:42:17 - POST "/api/user/list", parameters={}
+2026-06-26 21:42:17 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:42:17 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:42:17 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:42:17 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:17 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:42:17 - Completed 200 OK
+2026-06-26 21:42:17 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:17 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:42:17 - Completed 200 OK
+2026-06-26 21:42:17 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:42:17 - Writing [[com.ust.pos.dto.NodeDto@6fa3a443, com.ust.pos.dto.NodeDto@78feac96, com.ust.pos.dto.NodeDto@718e826 (truncated)...]
+2026-06-26 21:42:17 - Completed 200 OK
+2026-06-26 21:43:22 - POST "/api/user/list", parameters={}
+2026-06-26 21:43:22 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:43:22 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:43:22 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:43:22 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:43:22 - Completed 200 OK
+2026-06-26 21:43:23 - POST "/api/user/list", parameters={}
+2026-06-26 21:43:23 - Mapped to com.ust.pos.api.userapi.ApiUserController#home(PaginationDto)
+2026-06-26 21:43:23 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:43:23 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:43:23 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-06-26 21:43:23 - Completed 200 OK
+2026-06-26 21:44:07 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:44:07 - POST "/api/category/list", parameters={}
+2026-06-26 21:44:07 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:44:07 - Mapped to com.ust.pos.api.categoryapi.ApiCategoryController#home(PaginationDto)
+2026-06-26 21:44:07 - POST "/api/category/list", parameters={}
+2026-06-26 21:44:07 - Mapped to com.ust.pos.api.categoryapi.ApiCategoryController#home(PaginationDto)
+2026-06-26 21:44:07 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:44:07 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:44:07 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:07 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-06-26 21:44:07 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:07 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-06-26 21:44:07 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:07 - Completed 200 OK
+2026-06-26 21:44:07 - Writing [[com.ust.pos.dto.NodeDto@34ed4db6, com.ust.pos.dto.NodeDto@5c812ccf, com.ust.pos.dto.NodeDto@4141473 (truncated)...]
+2026-06-26 21:44:07 - Completed 200 OK
+2026-06-26 21:44:07 - Completed 200 OK
+2026-06-26 21:44:10 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:44:10 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:44:10 - GET "/api/category/getAllActiveCategories", parameters={}
+2026-06-26 21:44:10 - Mapped to com.ust.pos.api.categoryapi.ApiCategoryController#getAllActiveCategories()
+2026-06-26 21:44:10 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:10 - Writing [[com.ust.pos.dto.CategoryDto@781b6ff4, com.ust.pos.dto.CategoryDto@6d6fbbdb, com.ust.pos.dto.Categor (truncated)...]
+2026-06-26 21:44:10 - Completed 200 OK
+2026-06-26 21:44:10 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:10 - Writing [[com.ust.pos.dto.NodeDto@6aa767ab, com.ust.pos.dto.NodeDto@765b97c2, com.ust.pos.dto.NodeDto@67e684e (truncated)...]
+2026-06-26 21:44:10 - Completed 200 OK
+2026-06-26 21:44:10 - GET "/api/category/getAllActiveCategories", parameters={}
+2026-06-26 21:44:10 - Mapped to com.ust.pos.api.categoryapi.ApiCategoryController#getAllActiveCategories()
+2026-06-26 21:44:10 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:10 - Writing [[com.ust.pos.dto.CategoryDto@29847c17, com.ust.pos.dto.CategoryDto@186bb047, com.ust.pos.dto.Categor (truncated)...]
+2026-06-26 21:44:10 - Completed 200 OK
+2026-06-26 21:44:17 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:44:17 - POST "/api/category/list", parameters={}
+2026-06-26 21:44:17 - Mapped to com.ust.pos.api.categoryapi.ApiCategoryController#home(PaginationDto)
+2026-06-26 21:44:17 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:44:17 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:44:17 - POST "/api/category/list", parameters={}
+2026-06-26 21:44:18 - Mapped to com.ust.pos.api.categoryapi.ApiCategoryController#home(PaginationDto)
+2026-06-26 21:44:18 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:44:18 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:18 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:18 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-06-26 21:44:18 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-06-26 21:44:18 - Completed 200 OK
+2026-06-26 21:44:18 - Completed 200 OK
+2026-06-26 21:44:18 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:18 - Writing [[com.ust.pos.dto.NodeDto@1f8b29c, com.ust.pos.dto.NodeDto@94fce0, com.ust.pos.dto.NodeDto@2a98f860,  (truncated)...]
+2026-06-26 21:44:18 - Completed 200 OK
+2026-06-26 21:44:22 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:44:22 - POST "/api/product/list", parameters={}
+2026-06-26 21:44:22 - POST "/api/product/list", parameters={}
+2026-06-26 21:44:22 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:44:22 - Mapped to com.ust.pos.api.productapi.ApiProductController#home(PaginationDto)
+2026-06-26 21:44:22 - Mapped to com.ust.pos.api.productapi.ApiProductController#home(PaginationDto)
+2026-06-26 21:44:22 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:44:22 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-06-26 21:44:23 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:23 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:23 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
+2026-06-26 21:44:23 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
+2026-06-26 21:44:23 - Completed 200 OK
+2026-06-26 21:44:23 - Completed 200 OK
+2026-06-26 21:44:23 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:23 - Writing [[com.ust.pos.dto.NodeDto@78c5fecd, com.ust.pos.dto.NodeDto@6c0dbce2, com.ust.pos.dto.NodeDto@18030c0 (truncated)...]
+2026-06-26 21:44:23 - Completed 200 OK
+2026-06-26 21:44:24 - GET "/api/unit/findByStatus", parameters={}
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.unitapi.ApiUnitController#findByStatus()
+2026-06-26 21:44:24 - GET "/api/category/getBySuperCategoryNotNull", parameters={}
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.categoryapi.ApiCategoryController#superCategoryNotNull()
+2026-06-26 21:44:24 - GET "/api/brand/findByStatus", parameters={}
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.brandapi.ApiBrandController#findByStatus()
+2026-06-26 21:44:24 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:44:24 - GET "/api/models/findByStatus", parameters={}
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.modelsapi.ApiModelsController#findByStatus()
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.CategoryDto@6f8d687c, com.ust.pos.dto.CategoryDto@7f6b8679, com.ust.pos.dto.Categor (truncated)...]
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.UnitDto@7eba9f15, com.ust.pos.dto.UnitDto@632ce49f, com.ust.pos.dto.UnitDto@2750286 (truncated)...]
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.BrandDto@142e13d7, com.ust.pos.dto.BrandDto@7f8c13a2, com.ust.pos.dto.BrandDto@68df (truncated)...]
+2026-06-26 21:44:24 - GET "/api/category/getBySuperCategoryNotNull", parameters={}
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.categoryapi.ApiCategoryController#superCategoryNotNull()
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.ModelsDto@39e3fbc5, com.ust.pos.dto.ModelsDto@6f1d8a6f, com.ust.pos.dto.ModelsDto@4 (truncated)...]
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.NodeDto@6c8bf69a, com.ust.pos.dto.NodeDto@38d76cc8, com.ust.pos.dto.NodeDto@738a7b7 (truncated)...]
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:24 - GET "/api/unit/findByStatus", parameters={}
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.unitapi.ApiUnitController#findByStatus()
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.CategoryDto@62f3def8, com.ust.pos.dto.CategoryDto@1c6e2f9, com.ust.pos.dto.Category (truncated)...]
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:24 - GET "/api/models/findByStatus", parameters={}
+2026-06-26 21:44:24 - GET "/api/brand/findByStatus", parameters={}
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.modelsapi.ApiModelsController#findByStatus()
+2026-06-26 21:44:24 - Mapped to com.ust.pos.api.brandapi.ApiBrandController#findByStatus()
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.UnitDto@5f84607a, com.ust.pos.dto.UnitDto@4fa289c, com.ust.pos.dto.UnitDto@29f07e49 (truncated)...]
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.BrandDto@404759ec, com.ust.pos.dto.BrandDto@55425143, com.ust.pos.dto.BrandDto@6596 (truncated)...]
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:24 - Writing [[com.ust.pos.dto.ModelsDto@61f77c2c, com.ust.pos.dto.ModelsDto@7877f775, com.ust.pos.dto.ModelsDto@4 (truncated)...]
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:24 - Completed 200 OK
+2026-06-26 21:44:34 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:44:34 - GET "/api/customer/findByStatus", parameters={}
+2026-06-26 21:44:34 - GET "/api/product/findByStatus", parameters={}
+2026-06-26 21:44:34 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:44:34 - Mapped to com.ust.pos.api.customerapi.ApiCustomerController#findByStatus()
+2026-06-26 21:44:34 - Mapped to com.ust.pos.api.productapi.ApiProductController#findByStatus()
+2026-06-26 21:44:34 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:34 - Writing [[com.ust.pos.dto.ProductDto@7ce2fe81, com.ust.pos.dto.ProductDto@58334764, com.ust.pos.dto.ProductDt (truncated)...]
+2026-06-26 21:44:34 - Completed 200 OK
+2026-06-26 21:44:34 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:34 - Writing [[com.ust.pos.dto.CustomerDto@4301a248, com.ust.pos.dto.CustomerDto@4b65f11f, com.ust.pos.dto.Custome (truncated)...]
+2026-06-26 21:44:34 - Completed 200 OK
+2026-06-26 21:44:34 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:34 - Writing [[com.ust.pos.dto.NodeDto@554277aa, com.ust.pos.dto.NodeDto@64b61f71, com.ust.pos.dto.NodeDto@76ccdab (truncated)...]
+2026-06-26 21:44:34 - Completed 200 OK
+2026-06-26 21:44:34 - GET "/api/price/findByStatus", parameters={}
+2026-06-26 21:44:34 - GET "/api/customer/findByStatus", parameters={}
+2026-06-26 21:44:34 - Mapped to com.ust.pos.api.priceapi.ApiPriceController#findByStatus()
+2026-06-26 21:44:34 - Mapped to com.ust.pos.api.customerapi.ApiCustomerController#findByStatus()
+2026-06-26 21:44:34 - GET "/api/product/findByStatus", parameters={}
+2026-06-26 21:44:34 - Mapped to com.ust.pos.api.productapi.ApiProductController#findByStatus()
+2026-06-26 21:44:34 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:34 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:34 - Writing [[com.ust.pos.dto.CustomerDto@651e1cc2, com.ust.pos.dto.CustomerDto@4754535e, com.ust.pos.dto.Custome (truncated)...]
+2026-06-26 21:44:34 - Writing [[com.ust.pos.dto.PriceDto@20d95fce, com.ust.pos.dto.PriceDto@682d07b, com.ust.pos.dto.PriceDto@3bbdc (truncated)...]
+2026-06-26 21:44:34 - Completed 200 OK
+2026-06-26 21:44:34 - Completed 200 OK
+2026-06-26 21:44:34 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:34 - Writing [[com.ust.pos.dto.ProductDto@6e6b2b49, com.ust.pos.dto.ProductDto@78cf314, com.ust.pos.dto.ProductDto (truncated)...]
+2026-06-26 21:44:34 - Completed 200 OK
+2026-06-26 21:44:38 - GET "/api/product/findByStatus", parameters={}
+2026-06-26 21:44:38 - GET "/api/customer/findByStatus", parameters={}
+2026-06-26 21:44:38 - GET "/api/node/getNodesForRoles", parameters={}
+2026-06-26 21:44:38 - Mapped to com.ust.pos.api.customerapi.ApiCustomerController#findByStatus()
+2026-06-26 21:44:38 - Mapped to com.ust.pos.api.productapi.ApiProductController#findByStatus()
+2026-06-26 21:44:38 - Mapped to com.ust.pos.api.nodeapi.ApiNodeController#getNodesForRoles()
+2026-06-26 21:44:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:38 - Writing [[com.ust.pos.dto.ProductDto@4d6238b7, com.ust.pos.dto.ProductDto@777c893c, com.ust.pos.dto.ProductDt (truncated)...]
+2026-06-26 21:44:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:38 - Writing [[com.ust.pos.dto.CustomerDto@3872f969, com.ust.pos.dto.CustomerDto@6aca999e, com.ust.pos.dto.Custome (truncated)...]
+2026-06-26 21:44:38 - Completed 200 OK
+2026-06-26 21:44:38 - Completed 200 OK
+2026-06-26 21:44:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:38 - Writing [[com.ust.pos.dto.NodeDto@47a74817, com.ust.pos.dto.NodeDto@7f69fa98, com.ust.pos.dto.NodeDto@1a34777 (truncated)...]
+2026-06-26 21:44:38 - Completed 200 OK
+2026-06-26 21:44:38 - GET "/api/price/findByStatus", parameters={}
+2026-06-26 21:44:38 - Mapped to com.ust.pos.api.priceapi.ApiPriceController#findByStatus()
+2026-06-26 21:44:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-06-26 21:44:38 - Writing [[com.ust.pos.dto.PriceDto@2fb0508, com.ust.pos.dto.PriceDto@5b7a7ee5, com.ust.pos.dto.PriceDto@1cbc2 (truncated)...]
+2026-06-26 21:44:38 - Completed 200 OK

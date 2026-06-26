@@ -2,5 +2,5 @@ projectKey=POS-FRONTEND
 serverUrl=http://localhost:9000
 serverVersion=26.1.0.118079
 dashboardUrl=http://localhost:9000/dashboard?id=POS-FRONTEND
-ceTaskId=209ad840-1f9e-4a6d-a6c3-a3f464ab151d
-ceTaskUrl=http://localhost:9000/api/ce/task?id=209ad840-1f9e-4a6d-a6c3-a3f464ab151d
+ceTaskId=2d643422-9a75-41ce-a566-e861d9150d5b
+ceTaskUrl=http://localhost:9000/api/ce/task?id=2d643422-9a75-41ce-a566-e861d9150d5b
