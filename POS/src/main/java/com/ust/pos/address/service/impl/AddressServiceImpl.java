@@ -80,12 +80,16 @@ public class AddressServiceImpl extends CommonService implements AddressService 
     }
 
     @Override
-    public boolean delete(String identifier) {
-        Address address = addressRepository.findByIdentifier(identifier);
-        if (address == null) return false;
-        softDelete(address);
-        setAuditFields(address, false);
-        addressRepository.save(address);
+    public boolean delete(String phoneNo) {
+        List<Address> addresses = addressRepository.findAllByPhoneNoAndDeletedFalse(phoneNo);
+        if (addresses == null || addresses.isEmpty()) {
+            return false;
+        }
+        for (Address address : addresses) {
+            softDelete(address);
+            setAuditFields(address, false);
+        }
+        addressRepository.saveAll(addresses);
         return true;
     }
 

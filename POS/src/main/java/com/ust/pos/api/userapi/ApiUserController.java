@@ -15,7 +15,6 @@ import java.util.List;
 @RequestMapping("/api/user")
 public class ApiUserController extends BaseController {
 
-
     private final UserService userService;
 
     public ApiUserController(UserService userService) {
@@ -39,12 +38,12 @@ public class ApiUserController extends BaseController {
         return userService.findByUserName(username);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String username) {
         try {
             userService.delete(username);

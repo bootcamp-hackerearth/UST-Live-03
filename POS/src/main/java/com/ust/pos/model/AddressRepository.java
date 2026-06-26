@@ -10,10 +10,10 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     Address findByIdentifier(String identifier);
 
-    List<Address> findByStatusIsTrueAndDeletedFalse(); // findByStatus
+    List<Address> findByStatusIsTrueAndDeletedFalse();
 
     List<Address> findAllByPhoneNoAndDeletedFalse(String phoneNo);
 
-    Page<Address> findByDeletedFalse(Pageable pageable); // listing page
+    Page<Address> findByDeletedFalse(Pageable pageable);
 
 }

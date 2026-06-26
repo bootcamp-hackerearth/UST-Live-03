@@ -35,12 +35,12 @@ public class ApiRacksController extends BaseController {
         return racksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RacksDto updatePost(@RequestBody RacksDto racksDto) {
         return racksService.update(racksDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);

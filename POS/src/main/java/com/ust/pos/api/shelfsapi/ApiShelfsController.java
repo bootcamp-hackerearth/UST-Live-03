@@ -14,7 +14,6 @@ import java.util.List;
 @RequestMapping("/api/shelfs")
 public class ApiShelfsController extends BaseController {
 
-
     private final ShelfsService shelfsService;
 
     public ApiShelfsController(ShelfsService shelfsService) {
@@ -37,12 +36,12 @@ public class ApiShelfsController extends BaseController {
         return shelfsService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfsDto updatePost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.update(shelfsDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfsService.delete(identifier);

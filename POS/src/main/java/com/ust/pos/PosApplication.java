@@ -20,7 +20,6 @@ import javax.sql.DataSource;
 @ComponentScan({"com.ust.pos.web.controller", "com.ust.pos"})
 public class PosApplication {
 
-
     final Environment environment;
 
     public PosApplication(Environment environment) {

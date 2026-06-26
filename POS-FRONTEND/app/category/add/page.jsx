@@ -17,7 +17,7 @@ export default function AddCategory() {
       component: (
         <SingleDropdown
           label="Super Category"
-          apiUrl="/category/getBySuperCategoryNotNull"
+          apiUrl="/category/getAllActiveCategories"
           valueField="identifier"
           labelField="identifier"
           selectedValue={superCategory}

@@ -1,17 +1,14 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useRouter } from "next/navigation";
 import api from "@/api/axios";
-
 const C = {
   navy: "#363955", mid: "#54668E", light: "#879EC6",
   gray: "#E8E8E8", offWhite: "#F5F6E6", text: "#1e2235",
   muted: "#6b7280", white: "#ffffff",
   error: "#c0392b", errorBg: "#fdf2f2",
 };
-
 export default function AddFormSkeleton({
   title, apiPath,
   apiEndpoint = "add",
@@ -29,20 +26,17 @@ export default function AddFormSkeleton({
   const [identifierError, setIdentifierError] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [activeDropdownKey, setActiveDropdownKey] = useState(null);
-
+  const [httpError, setHttpError] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
   useEffect(() => {
     const handleToggle = (e) => setIsSidebarOpen(e.detail.isOpen);
     globalThis.addEventListener("sidebar-toggle", handleToggle);
     return () => globalThis.removeEventListener("sidebar-toggle", handleToggle);
   }, []);
-
   function handleExtraChange(key, value) {
     setExtraData(prev => ({ ...prev, [key]: value }));
     if (fieldErrors[key]) setFieldErrors(prev => ({ ...prev, [key]: "" }));
   }
-
   function handleMultiToggle(key, value) {
     setExtraData(prev => {
       const current = prev[key] || [];
@@ -51,17 +45,14 @@ export default function AddFormSkeleton({
     });
     if (fieldErrors[key]) setFieldErrors(prev => ({ ...prev, [key]: "" }));
   }
-
   function handleIdentifierChange(e) {
     setIdentifier(e.target.value);
     if (identifierError) setIdentifierError(false);
     if (error) setError("");
     if (fieldErrors.identifier) setFieldErrors(prev => ({ ...prev, identifier: "" }));
   }
-
   function validate() {
     const errors = {};
-
     if (showIdentifier) {
       const idVal = identifier.trim();
       if (!idVal) {
@@ -72,7 +63,6 @@ export default function AddFormSkeleton({
           errors.identifier = "Enter a valid email address (e.g. user@gmail.com).";
       }
     }
-
     extraFields.forEach(field => {
       if (field.type === "custom") return;
       if (field.type === "multiselect") {
@@ -88,7 +78,6 @@ export default function AddFormSkeleton({
         }
       }
     });
-
     extraFields.forEach(field => {
       if (field.type !== "custom") return;
       if (field.optional) return;
@@ -96,11 +85,9 @@ export default function AddFormSkeleton({
       if (val === undefined || val === null || val === "" || (Array.isArray(val) && val.length === 0))
         errors[field.key] = `${field.label || field.key} is required.`;
     });
-
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError(""); setSuccess(""); setIdentifierError(false);
@@ -126,25 +113,26 @@ export default function AddFormSkeleton({
       }
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.error(err);
-      setError("Unable to connect to server. Please try again.");
+      const status = err.response?.status;
+      if (status === 403 || status === 404 || status === 400 || status === 500) {
+        setHttpError({ statusCode: status, message: err.response?.data?.message || null });
+      } else {
+        setError(err.response?.data?.message || "Unable to connect to server. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   }
-
   const allFields = [
     ...(showIdentifier ? [{ key: "__identifier__", label: "Identifier", type: "text", _isIdentifier: true }] : []),
     ...extraFields,
   ];
-
   let statusAlert = null;
-
   if (error) {
     statusAlert = { text: error, bg: C.errorBg, border: "#f5c6c6", color: C.error };
   } else if (success) {
     statusAlert = { text: success, bg: "#f0fdf4", border: "#86efac", color: "#166534" };
   }
-
   return (
     <div style={{
       position: "fixed", top: "60px", right: 0, bottom: 0,
@@ -154,7 +142,6 @@ export default function AddFormSkeleton({
       display: "flex", flexDirection: "column",
       overflow: "hidden", transition: "left 0.2s ease",
     }}>
-
       <div style={{
         background: "#ffffff",
         padding: "16px 28px",
@@ -183,7 +170,6 @@ export default function AddFormSkeleton({
           Add {title}
         </h2>
       </div>
-
       <div style={{
         flex: 1, overflow: "auto",
         padding: "28px 32px",
@@ -195,7 +181,6 @@ export default function AddFormSkeleton({
           boxShadow: "0 1px 12px rgba(54,57,85,0.07)",
           border: "1.5px solid #e8eaf0",
         }}>
-
           <div style={{
             padding: "18px 28px 16px",
             borderBottom: "1.5px solid #e8eaf0",
@@ -219,7 +204,6 @@ export default function AddFormSkeleton({
               + New Record
             </div>
           </div>
-
           {statusAlert && (
             <div style={{ padding: "12px 28px 0" }}>
               <div style={{
@@ -234,7 +218,6 @@ export default function AddFormSkeleton({
               </div>
             </div>
           )}
-
           <form onSubmit={handleSubmit} style={{ padding: "20px 28px 24px" }}>
             <div style={{
               display: "grid",
@@ -265,7 +248,6 @@ export default function AddFormSkeleton({
                 );
               })}
             </div>
-
             <div style={{
               display: "flex", justifyContent: "flex-end",
               gap: "10px", marginTop: "24px",
@@ -302,10 +284,10 @@ export default function AddFormSkeleton({
           </form>
         </div>
       </div>
+      <HttpErrorPopup httpError={httpError} onClose={() => setHttpError(null)} />
     </div>
   );
 }
-
 const inputStyle = {
   padding: "9px 12px",
   borderRadius: "7px",
@@ -319,16 +301,13 @@ const inputStyle = {
   borderStyle: "solid",
   borderColor: "#E8E8E8",
 };
-
 const inputErrorStyle = {
   borderColor: "#c0392b",
   backgroundColor: "#fdf2f2",
 };
-
 const errText = {
   fontSize: "11px", color: "#c0392b", marginTop: "2px",
 };
-
 AddFormSkeleton.propTypes = {
   title: PropTypes.string.isRequired,
   apiPath: PropTypes.string.isRequired,
@@ -338,7 +317,6 @@ AddFormSkeleton.propTypes = {
   showIdentifier: PropTypes.bool,
   validateIdentifier: PropTypes.bool,
 };
-
 function renderIdentifierField({ hasError, identifier, fieldErrors, handleIdentifierChange }) {
   return (
     <>
@@ -354,7 +332,6 @@ function renderIdentifierField({ hasError, identifier, fieldErrors, handleIdenti
     </>
   );
 }
-
 function renderCustomField({ field, activeDropdownKey, setActiveDropdownKey, fieldErrors }) {
   return (
     <>
@@ -365,7 +342,6 @@ function renderCustomField({ field, activeDropdownKey, setActiveDropdownKey, fie
     </>
   );
 }
-
 function renderSelectField({ field, hasError, handleExtraChange, fieldErrors }) {
   return (
     <>
@@ -383,7 +359,6 @@ function renderSelectField({ field, hasError, handleExtraChange, fieldErrors }) 
     </>
   );
 }
-
 function renderMultiSelectField({ field, hasError, extraData, handleMultiToggle, fieldErrors }) {
   const inner = (
     <div style={{
@@ -418,7 +393,6 @@ function renderMultiSelectField({ field, hasError, extraData, handleMultiToggle,
       })}
     </div>
   );
-
   return (
     <>
       {inner}
@@ -426,7 +400,6 @@ function renderMultiSelectField({ field, hasError, extraData, handleMultiToggle,
     </>
   );
 }
-
 function renderDefaultField({ field, hasError, handleExtraChange, fieldErrors }) {
   return (
     <>
@@ -441,7 +414,6 @@ function renderDefaultField({ field, hasError, handleExtraChange, fieldErrors })
     </>
   );
 }
-
 function FieldRenderer(props) {
   const {
     field,
@@ -456,9 +428,7 @@ function FieldRenderer(props) {
     handleExtraChange,
     handleMultiToggle,
   } = props;
-
   let fieldElement;
-
   if (isIdentifier) {
     fieldElement = renderIdentifierField({ hasError, identifier, fieldErrors, handleIdentifierChange });
   } else if (field.type === "custom") {
@@ -470,7 +440,6 @@ function FieldRenderer(props) {
   } else {
     fieldElement = renderDefaultField({ field, hasError, handleExtraChange, fieldErrors });
   }
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
       {field.type !== "custom" && (
@@ -487,12 +456,10 @@ function FieldRenderer(props) {
           {field.label}
         </label>
       )}
-
       {fieldElement}
     </div>
   );
 }
-
 FieldRenderer.propTypes = {
   field: PropTypes.object.isRequired,
   isIdentifier: PropTypes.bool,
@@ -505,4 +472,54 @@ FieldRenderer.propTypes = {
   handleIdentifierChange: PropTypes.func.isRequired,
   handleExtraChange: PropTypes.func.isRequired,
   handleMultiToggle: PropTypes.func.isRequired,
+};
+function HttpErrorPopup({ httpError, onClose }) {
+  if (!httpError) return null;
+  const styles = {
+    403: { icon: "🔒", title: "Access Denied", color: "#ef4444", defaultMsg: "You don't have permission to perform this action." },
+    404: { icon: "❌", title: "Not Found", color: "#f59e0b", defaultMsg: "The requested resource doesn't exist." },
+    400: { icon: "⚠️", title: "Invalid Request", color: "#f59e0b", defaultMsg: "The request contains invalid data." },
+    500: { icon: "⚡", title: "Server Error", color: "#ef4444", defaultMsg: "Something went wrong. Please try again later." },
+  };
+  const info = styles[httpError.statusCode] || styles[500];
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(30,34,53,0.45)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 9999,
+    }}>
+      <div style={{
+        background: "#fff", borderRadius: "14px", padding: "32px 36px",
+        maxWidth: "380px", textAlign: "center",
+        boxShadow: "0 16px 48px rgba(30,34,53,0.25)",
+        border: "1.5px solid #e8eaf0",
+      }}>
+        <div style={{ fontSize: "44px", marginBottom: "12px" }}>{info.icon}</div>
+        <div style={{ fontSize: "22px", fontWeight: "700", color: info.color, marginBottom: "6px" }}>
+          {httpError.statusCode} · {info.title}
+        </div>
+        <p style={{ fontSize: "13.5px", color: "#6b7280", margin: "0 0 22px", lineHeight: 1.6 }}>
+          {httpError.message || info.defaultMsg}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            padding: "9px 28px", borderRadius: "7px", border: "none",
+            background: "linear-gradient(135deg, #363955, #54668E)",
+            color: "#fff", fontSize: "13px", fontWeight: "600", cursor: "pointer",
+          }}
+        >
+          Okay
+        </button>
+      </div>
+    </div>
+  );
+}
+HttpErrorPopup.propTypes = {
+  httpError: PropTypes.shape({
+    statusCode: PropTypes.number,
+    message: PropTypes.string,
+  }),
+  onClose: PropTypes.func.isRequired,
 };

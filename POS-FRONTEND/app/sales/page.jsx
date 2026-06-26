@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
+import PropTypes from "prop-types";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import api from "@/api/axios";
@@ -41,6 +42,682 @@ function buildUpiPayload({ payeeVpa, payeeName, amount, note, txnRef }) {
     return `upi://pay?${params.toString()}`;
 }
 
+function getToken() {
+    return globalThis.window === undefined ? null : globalThis.window.localStorage.getItem("token");
+}
+
+function getAuthConfig() {
+    const token = getToken();
+    return token ? { headers: { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+}
+
+function getAuthParamsConfig(params = {}) {
+    const token = getToken();
+    const baseConfig = { params };
+    return token ? { ...baseConfig, headers: { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : baseConfig;
+}
+
+function mergePriceList(products, priceList) {
+    return products.map(product => {
+        const priceObj = priceList.find(pr => pr.identifier === product.identifier || pr.product === product.identifier);
+        return priceObj ? { ...product, sellingPrice: priceObj.sellingPrice, mrp: priceObj.mrp } : product;
+    });
+}
+
+function generateReceiptHTML({
+    orderId,
+    orderTimestamp,
+    receiptCustomerName,
+    paymentType,
+    receiptEntries,
+    receiptSubtotal,
+    receiptDiscount,
+    receiptTotal,
+}) {
+    const itemsHtml = receiptEntries.length === 0
+        ? `<tr><td colspan="4" style="text-align:center; padding:15px 0; font-size:12px; color:#999;">No items found</td></tr>`
+        : receiptEntries.map(entry => {
+            const qty = Number(entry.quantity ?? 0);
+            const price = Number(entry.sellingPrice ?? 0);
+            const lineTotal = Number(entry.totalPrice ?? (price * qty)).toFixed(2);
+            const displayName = entry.productName || entry.name || entry.product || entry.identifier || "Item";
+            const skuCode = entry.sku || entry.product || entry.identifier || "—";
+            return `
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${displayName}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: center;">${qty}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: right;">₹${price.toFixed(2)}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 600;">₹${lineTotal}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="padding: 2px 10px; font-size: 11px; color: #999;">SKU: ${skuCode}</td>
+                </tr>
+            `;
+        }).join("");
+
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - ${orderId}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .receipt-container {
+            max-width: 80mm;
+            width: 100%;
+            background: white;
+            margin: 0 auto;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            page-break-after: always;
+        }
+        
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+        
+        .receipt-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+        
+        .receipt-timestamp {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .receipt-divider {
+            border-bottom: 1px dashed #333;
+            margin: 12px 0;
+        }
+        
+        .receipt-info {
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+        
+        .receipt-info-row strong {
+            font-weight: bold;
+        }
+        
+        .receipt-items {
+            margin: 15px 0;
+        }
+        
+        .items-header {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-decoration: underline;
+            font-size: 12px;
+        }
+        
+        .receipt-items table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+        
+        .receipt-items th {
+            font-weight: bold;
+            text-align: left;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+            font-size: 11px;
+        }
+        
+        .receipt-items td {
+            padding: 5px;
+            word-break: break-word;
+        }
+        
+        .receipt-summary {
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+        
+        .summary-row.total {
+            font-weight: bold;
+            font-size: 14px;
+            border-top: 1px dashed #333;
+            border-bottom: 1px dashed #333;
+            padding: 8px 0;
+            margin-top: 10px;
+        }
+        
+        .receipt-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
+            padding-top: 10px;
+            border-top: 1px dashed #333;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .receipt-container {
+                box-shadow: none;
+                max-width: 100%;
+                width: 100%;
+                padding: 10mm;
+                margin: 0;
+            }
+        }
+        
+        @page {
+            size: 80mm auto;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="receipt-header">
+            <div class="receipt-title">RECEIPT</div>
+            <div class="receipt-timestamp">${orderTimestamp}</div>
+        </div>
+        
+        <div class="receipt-divider"></div>
+        
+        <div class="receipt-info">
+            <div class="receipt-info-row">
+                <span>Order No:</span>
+                <strong>${orderId || "—"}</strong>
+            </div>
+            <div class="receipt-info-row">
+                <span>Customer:</span>
+                <span>${receiptCustomerName || "Walk-in"}</span>
+            </div>
+            <div class="receipt-info-row">
+                <span>Payment:</span>
+                <span>${paymentType}</span>
+            </div>
+        </div>
+        
+        <div class="receipt-divider"></div>
+        
+        <div class="receipt-items">
+            <div class="items-header">ITEMS PURCHASED</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Rate</th>
+                        <th style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="receipt-divider"></div>
+        
+        <div class="receipt-summary">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span>₹${receiptSubtotal.toFixed(2)}</span>
+            </div>
+            <div class="summary-row">
+                <span>Discount:</span>
+                <span>-₹${receiptDiscount.toFixed(2)}</span>
+            </div>
+            <div class="summary-row total">
+                <span>TOTAL AMOUNT PAID:</span>
+                <span>₹${receiptTotal.toFixed(2)}</span>
+            </div>
+        </div>
+        
+        <div class="receipt-footer">
+            Thank you for your purchase!<br>
+            Please visit us again.
+        </div>
+    </div>
+    
+    <script>
+        // Wait for content to load before printing
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                window.print();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
+    `;
+}
+
+function OrderConfirmedScreen({
+    isSidebarOpen,
+    paymentType,
+    receiptTotal,
+    handleReceiptPrint,
+    startNewSale,
+    showViewReceiptModal,
+    setShowViewReceiptModal,
+    orderTimestamp,
+    orderReceipt,
+    receiptCustomerName,
+    receiptEntries,
+    receiptSubtotal,
+    receiptDiscount,
+}) {
+    return (
+        <div style={{ position: "fixed", top: "60px", right: 0, bottom: 0, left: isSidebarOpen ? "220px" : "55px", backgroundColor: "#f4f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Segoe UI', sans-serif", transition: "left 0.2s ease" }}>
+            <div style={{ background: "#fff", padding: "40px", borderRadius: "12px", width: "480px", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+                <div style={{ width: "60px", height: "64px", background: C.greenBg, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                    <span style={{ fontSize: "28px", color: C.green }}>✓</span>
+                </div>
+                <h2 style={{ fontSize: "22px", fontWeight: "700", color: C.navy, margin: "0 0 8px" }}>Order Completed Successfully!</h2>
+                <p style={{ fontSize: "13px", color: C.muted, margin: "0 0 8px" }}>Paid via {paymentType} · ₹{receiptTotal.toFixed(2)}</p>
+                <p style={{ fontSize: "13px", color: C.muted, margin: "0 0 32px" }}>The records have been updated securely. Select options below to view or print the receipt.</p>
+
+                <div style={{ display: "flex", gap: "12px" }}>
+                    <button type="button" onClick={() => setShowViewReceiptModal(true)} style={{ flex: 1, height: "42px", border: `1.5px solid ${C.navy}`, background: "#fff", color: C.navy, borderRadius: "8px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>
+                        👁 View Receipt
+                    </button>
+                    <button type="button" onClick={handleReceiptPrint} style={{ flex: 1, height: "42px", background: C.mid, color: "#fff", border: "none", borderRadius: "8px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>
+                        🖨 Print Receipt
+                    </button>
+                </div>
+
+                <button type="button" onClick={startNewSale} style={{ width: "100%", height: "42px", background: C.navy, color: "#fff", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "13px", marginTop: "12px", cursor: "pointer" }}>
+                    Start Next Order Session ➔
+                </button>
+            </div>
+
+            {showViewReceiptModal && (
+                <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 20000 }}>
+                    <div style={{ background: "#fff", padding: "32px", borderRadius: "8px", width: "460px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 10px 25px rgba(0,0,0,0.2)" }}>
+                        <div style={{ padding: "20px", fontFamily: "Courier, monospace", color: "#000", background: "#fff", border: "1px solid #e2e8f0" }}>
+                            <div style={{ textAlign: "center", fontSize: "22px", fontWeight: "700", marginBottom: "4px" }}>RECEIPT</div>
+                            <div style={{ textAlign: "center", fontSize: "12px", marginBottom: "16px" }}>{orderTimestamp}</div>
+                            <div style={{ borderBottom: "1px dashed #000", marginBottom: "12px" }}></div>
+                            <div style={{ display: "flex", fontSize: "13px", marginBottom: "4px", justifyContent: "space-between" }}>
+                                <span>Order No:</span> <span style={{ fontWeight: "700" }}>{orderReceipt?.orderId || "—"}</span>
+                            </div>
+                            <div style={{ display: "flex", fontSize: "13px", marginBottom: "4px", justifyContent: "space-between" }}>
+                                <span>Customer:</span> <span>{receiptCustomerName}</span>
+                            </div>
+                            <div style={{ display: "flex", fontSize: "13px", marginBottom: "12px", justifyContent: "space-between" }}>
+                                <span>Payment:</span> <span>{paymentType}</span>
+                            </div>
+                            <div style={{ borderBottom: "1px dashed #000", marginBottom: "12px" }}></div>
+                            <div style={{ textAlign: "center", fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>ITEMS</div>
+                            {receiptEntries.length === 0 ? (
+                                <div style={{ textAlign: "center", fontSize: "12px", padding: "8px 0" }}>No items found</div>
+                            ) : (
+                                receiptEntries.map((entry, i) => {
+                                    const qty = Number(entry.quantity ?? 0);
+                                    const price = Number(entry.sellingPrice ?? 0);
+                                    const lineTotal = Number(entry.totalPrice ?? (price * qty)).toFixed(2);
+                                    const displayName = entry.productName || entry.name || entry.product || entry.identifier || "Item";
+                                    const skuCode = entry.sku || entry.product || entry.identifier || "—";
+                                    return (
+                                        <div key={entry.identifier || i} style={{ marginBottom: "10px" }}>
+                                            <div style={{ fontWeight: "700", fontSize: "13px" }}>{displayName}</div>
+                                            <div style={{ fontSize: "11px", color: "#555", marginBottom: "2px" }}>SKU: {skuCode}</div>
+                                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                                                <span>{qty} x Rs. {price.toFixed(2)}</span>
+                                                <span>Rs. {lineTotal}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                            <div style={{ borderBottom: "1px dashed #000", marginBottom: "10px", marginTop: "6px" }}></div>
+                            <div style={{ display: "flex", fontSize: "13px", marginBottom: "4px", justifyContent: "space-between" }}>
+                                <span>Subtotal:</span> <span>Rs. {receiptSubtotal.toFixed(2)}</span>
+                            </div>
+                            <div style={{ display: "flex", fontSize: "13px", marginBottom: "8px", justifyContent: "space-between" }}>
+                                <span>Discount:</span> <span>- Rs. {receiptDiscount.toFixed(2)}</span>
+                            </div>
+                            <div style={{ borderBottom: "1px dashed #000", marginBottom: "10px" }}></div>
+                            <div style={{ display: "flex", fontSize: "15px", fontWeight: "700", justifyContent: "space-between" }}>
+                                <span>Amount Paid:</span> <span>Rs. {receiptTotal.toFixed(2)}</span>
+                            </div>
+                            <div style={{ borderBottom: "1px dashed #000", marginTop: "12px", marginBottom: "16px" }}></div>
+                            <div style={{ textAlign: "center", fontSize: "13px", fontStyle: "italic" }}>Thank you for your purchase!</div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+                            <button type="button" onClick={handleReceiptPrint} style={{ flex: 1, height: "36px", background: C.navy, color: "#fff", border: "none", borderRadius: "6px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Print Document</button>
+                            <button type="button" onClick={() => setShowViewReceiptModal(false)} style={{ flex: 1, height: "36px", background: "#e2e8f0", color: C.text, border: "none", borderRadius: "6px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Dismiss Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function OrderReceiptScreen({
+    isSidebarOpen,
+    today,
+    orderReceipt,
+    customerLabel,
+    receiptEntries,
+    receiptSubtotal,
+    receiptDiscount,
+    receiptTotal,
+    showPaymentForm,
+    paymentType,
+    paymentError,
+    paymentProcessing,
+    upiStatus,
+    upiPayload,
+    handleReceiptPrint,
+    confirmCashPayment,
+    confirmCardPayment,
+    startUpiPayment,
+    cancelUpiPayment,
+    setOrderReceipt,
+    setShowPaymentForm,
+    setPaymentType,
+    setPaymentError,
+    cardNumber,
+    cardExpiry,
+    cardCvv,
+    cardName,
+    setCardNumber,
+    setCardExpiry,
+    setCardCvv,
+    setCardName,
+    formatCardNumber,
+    formatExpiry,
+}) {
+    return (
+        <div style={{ position: "fixed", top: "60px", right: 0, bottom: 0, left: isSidebarOpen ? "220px" : "55px", backgroundColor: "#f4f5f9", fontFamily: "'Segoe UI', sans-serif", padding: "24px", overflowY: "auto", transition: "left 0.2s ease" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+                    <div>
+                        <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: C.mid }}>Checkout Validation</span>
+                        <h2 style={{ fontSize: "22px", fontWeight: 700, margin: "4px 0 0", color: C.navy }}>Order Receipt</h2>
+                    </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "20px", alignItems: "start" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        <div style={{ background: "#fff", borderRadius: "8px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+                            <div style={{ padding: "14px", borderBottom: "1px solid #e2e8f0", fontWeight: 700, fontSize: "14px", color: C.navy }}>Items</div>
+                            <table style={{ width: "100%", fontSize: "13px", borderCollapse: "collapse" }}>
+                                <thead>
+                                    <tr style={{ background: "#f8fafc", color: C.mid, borderBottom: "1px solid #e2e8f0", textAlign: "left" }}>
+                                        <th style={{ padding: "10px 14px" }}>Product</th>
+                                        <th style={{ padding: "10px 14px", textAlign: "center" }}>Qty</th>
+                                        <th style={{ padding: "10px 14px", textAlign: "right" }}>Price</th>
+                                        <th style={{ padding: "10px 14px", textAlign: "right" }}>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {receiptEntries.map((entry, i) => (
+                                        <tr key={entry.identifier || i} style={{ borderBottom: "1px solid #f1f5f9", color: C.text }}>
+                                            <td style={{ padding: "10px 14px" }}>
+                                                <div style={{ fontWeight: "600" }}>{entry.productName || entry.product}</div>
+                                                <div style={{ fontSize: "11px", color: C.muted }}>SKU: {entry.sku || entry.product}</div>
+                                            </td>
+                                            <td style={{ padding: "10px 14px", textAlign: "center" }}>{entry.quantity}</td>
+                                            <td style={{ padding: "10px 14px", textAlign: "right" }}>₹{Number(entry.sellingPrice ?? 0).toFixed(2)}</td>
+                                            <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: "600" }}>₹{Number(entry.totalPrice ?? 0).toFixed(2)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style={{ background: "#fff", borderRadius: "8px", border: "1px solid #e2e8f0", padding: "16px", fontSize: "14px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                                <span style={{ color: C.muted }}>Subtotal</span>
+                                <span style={{ fontWeight: "600" }}>₹{receiptSubtotal.toFixed(2)}</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", color: C.red, marginBottom: "8px" }}>
+                                <span>Discount</span>
+                                <span style={{ fontWeight: "600" }}>-₹{receiptDiscount.toFixed(2)}</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "700", borderTop: "1px solid #e2e8f0", paddingTop: "10px", marginTop: "10px" }}>
+                                <span style={{ color: C.navy }}>Total Due</span>
+                                <span style={{ fontSize: "16px", color: C.navy }}>₹{receiptTotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        <div style={{ background: C.navy, color: "#fff", borderRadius: "8px", padding: "18px", fontSize: "13px" }}>
+                            <div style={{ marginBottom: "12px" }}>
+                                <div style={{ color: C.light, fontSize: "11px", fontWeight: "600" }}>ORDER ID</div>
+                                <div style={{ fontSize: "14px", fontWeight: "700", marginTop: "2px" }}>{orderReceipt.orderId || "—"}</div>
+                            </div>
+                            <div style={{ marginBottom: "12px" }}>
+                                <div style={{ color: C.light, fontSize: "11px", fontWeight: "600" }}>CUSTOMER IDENTIFIER</div>
+                                <div style={{ fontSize: "14px", fontWeight: "700", marginTop: "2px" }}>{customerLabel}</div>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "10px" }}>
+                                <span style={{ color: C.light }}>Timestamp</span>
+                                <span>{orderReceipt.orderDate ? new Date(orderReceipt.orderDate).toLocaleString("en-GB") : today}</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px" }}>
+                                <span style={{ color: C.light }}>Amount Due</span>
+                                <span>₹{receiptTotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        {showPaymentForm && (
+                            <div style={{ background: "#fff", border: `1.5px solid #cbd5e1`, borderRadius: "8px", padding: "16px" }}>
+                                <p style={{ fontSize: "13px", fontWeight: "700", color: C.navy, margin: "0 0 12px" }}>Select Payment Method</p>
+
+                                <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+                                    {[
+                                        { key: "Cash", label: "💵 Cash" },
+                                        { key: "Card", label: "💳 Card" },
+                                        { key: "UPI", label: "📱 UPI" },
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.key}
+                                            type="button"
+                                            onClick={() => { setPaymentType(opt.key); setPaymentError(""); if (opt.key !== "UPI") cancelUpiPayment(); }}
+                                            disabled={paymentProcessing || upiStatus === "waiting" || upiStatus === "scanned"}
+                                            style={{
+                                                flex: 1, height: "36px", borderRadius: "6px", fontSize: "12.5px", fontWeight: "700",
+                                                border: paymentType === opt.key ? `1.5px solid ${C.navy}` : "1.5px solid #e2e8f0",
+                                                background: paymentType === opt.key ? C.navy : "#fff",
+                                                color: paymentType === opt.key ? "#fff" : C.text,
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {paymentError && (
+                                    <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: C.red, borderRadius: "6px", padding: "8px 10px", fontSize: "12px", marginBottom: "12px" }}>
+                                        {paymentError}
+                                    </div>
+                                )}
+
+                                {paymentType === "Cash" && (
+                                    <div>
+                                        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "14px", marginBottom: "14px", textAlign: "center" }}>
+                                            <div style={{ fontSize: "11px", color: C.muted, fontWeight: 600, marginBottom: "4px" }}>AMOUNT TO COLLECT</div>
+                                            <div style={{ fontSize: "26px", fontWeight: "800", color: C.navy }}>₹{receiptTotal.toFixed(2)}</div>
+                                            <div style={{ fontSize: "11.5px", color: C.muted, marginTop: "6px" }}>Confirm once cash has been received from the customer.</div>
+                                        </div>
+                                        <div style={{ display: "flex", gap: "8px" }}>
+                                            <button type="button" onClick={confirmCashPayment} disabled={paymentProcessing} style={{ flex: 2, height: "40px", background: C.green, color: "#fff", border: "none", borderRadius: "6px", fontWeight: "700", fontSize: "13px", cursor: "pointer" }}>
+                                                {paymentProcessing ? "Confirming..." : "Cash Received — Complete Sale"}
+                                            </button>
+                                            <button type="button" onClick={() => { setOrderReceipt(null); setShowPaymentForm(false); }} style={{ flex: 1, height: "40px", background: "#fff", border: "1px solid #cbd5e1", color: C.text, borderRadius: "6px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>Dismiss</button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {paymentType === "Card" && (
+                                    <div>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "12px" }}>
+                                            <div>
+                                                <label htmlFor="cardNumber" style={{ fontSize: "11px", fontWeight: "600", color: C.mid, display: "block", marginBottom: "4px" }}>Card Number</label>
+                                                <input
+                                                    id="cardNumber"
+                                                    type="text" inputMode="numeric" placeholder="1234 5678 9012 3456" maxLength={19}
+                                                    value={cardNumber} onChange={e => setCardNumber(formatCardNumber(e.target.value))}
+                                                    disabled={paymentProcessing}
+                                                    style={{ ...inputSt, fontFamily: "monospace", letterSpacing: "0.5px" }}
+                                                />
+                                            </div>
+                                            <div style={{ display: "flex", gap: "10px" }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <label htmlFor="cardExpiry" style={{ fontSize: "11px", fontWeight: "600", color: C.mid, display: "block", marginBottom: "4px" }}>Expiry (MM/YY)</label>
+                                                    <input
+                                                        id="cardExpiry"
+                                                        type="text" inputMode="numeric" placeholder="MM/YY" maxLength={5}
+                                                        value={cardExpiry} onChange={e => setCardExpiry(formatExpiry(e.target.value))}
+                                                        disabled={paymentProcessing}
+                                                        style={inputSt}
+                                                    />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <label htmlFor="cardCvv" style={{ fontSize: "11px", fontWeight: "600", color: C.mid, display: "block", marginBottom: "4px" }}>CVV</label>
+                                                    <input
+                                                        id="cardCvv"
+                                                        type="password" inputMode="numeric" placeholder="•••" maxLength={4}
+                                                        value={cardCvv} onChange={e => setCardCvv(e.target.value.replaceAll(/\D/g, "").slice(0, 4))}
+                                                        disabled={paymentProcessing}
+                                                        style={inputSt}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label htmlFor="cardName" style={{ fontSize: "11px", fontWeight: "600", color: C.mid, display: "block", marginBottom: "4px" }}>Name on Card</label>
+                                                <input
+                                                    id="cardName"
+                                                    type="text" placeholder="As printed on card"
+                                                    value={cardName} onChange={e => setCardName(e.target.value)}
+                                                    disabled={paymentProcessing}
+                                                    style={inputSt}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: C.muted, marginBottom: "12px" }}>
+                                            <span>Charge amount</span>
+                                            <span style={{ fontWeight: "700", color: C.navy }}>₹{receiptTotal.toFixed(2)}</span>
+                                        </div>
+                                        <div style={{ display: "flex", gap: "8px" }}>
+                                            <button type="button" onClick={confirmCardPayment} disabled={paymentProcessing} style={{ flex: 2, height: "40px", background: C.navy, color: "#fff", border: "none", borderRadius: "6px", fontWeight: "700", fontSize: "13px", cursor: paymentProcessing ? "not-allowed" : "pointer", opacity: paymentProcessing ? 0.75 : 1 }}>
+                                                {paymentProcessing ? "Authorizing with bank..." : "Charge Card"}
+                                            </button>
+                                            <button type="button" onClick={() => { setOrderReceipt(null); setShowPaymentForm(false); }} disabled={paymentProcessing} style={{ flex: 1, height: "40px", background: "#fff", border: "1px solid #cbd5e1", color: C.text, borderRadius: "6px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>Dismiss</button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {paymentType === "UPI" && (
+                                    <div>
+                                        {upiStatus === "idle" && (
+                                            <div style={{ textAlign: "center" }}>
+                                                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "14px", marginBottom: "14px" }}>
+                                                    <div style={{ fontSize: "11px", color: C.muted, fontWeight: 600, marginBottom: "4px" }}>AMOUNT TO PAY</div>
+                                                    <div style={{ fontSize: "26px", fontWeight: "800", color: C.navy }}>₹{receiptTotal.toFixed(2)}</div>
+                                                </div>
+                                                <button type="button" onClick={startUpiPayment} style={{ width: "100%", height: "40px", background: C.navy, color: "#fff", border: "none", borderRadius: "6px", fontWeight: "700", fontSize: "13px", cursor: "pointer", marginBottom: "8px" }}>
+                                                    Generate QR Code
+                                                </button>
+                                                <button type="button" onClick={() => { setOrderReceipt(null); setShowPaymentForm(false); }} style={{ width: "100%", height: "36px", background: "#fff", border: "1px solid #cbd5e1", color: C.text, borderRadius: "6px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>Dismiss</button>
+                                            </div>
+                                        )}
+
+                                        {(upiStatus === "waiting" || upiStatus === "scanned") && (
+                                            <div style={{ textAlign: "center" }}>
+                                                <div style={{
+                                                    display: "inline-block", padding: "12px", background: "#fff",
+                                                    border: `2px solid ${upiStatus === "scanned" ? C.green : "#e2e8f0"}`,
+                                                    borderRadius: "10px", marginBottom: "12px", transition: "border-color 0.3s",
+                                                }}>
+                                                    <UpiQrCode value={upiPayload} size={168} />
+                                                </div>
+                                                <div style={{ fontSize: "20px", fontWeight: "800", color: C.navy, marginBottom: "4px" }}>₹{receiptTotal.toFixed(2)}</div>
+                                                <div style={{
+                                                    display: "inline-flex", alignItems: "center", gap: "6px",
+                                                    fontSize: "12.5px", fontWeight: "600",
+                                                    color: upiStatus === "scanned" ? C.green : C.amber,
+                                                    background: upiStatus === "scanned" ? C.greenBg : C.amberBg,
+                                                    padding: "5px 12px", borderRadius: "20px", marginBottom: "14px",
+                                                }}>
+                                                    <span style={{
+                                                        width: "7px", height: "7px", borderRadius: "50%",
+                                                        background: upiStatus === "scanned" ? C.green : C.amber,
+                                                        display: "inline-block", animation: "upi-pulse 1.2s ease-in-out infinite",
+                                                    }} />
+                                                    {upiStatus === "scanned" ? "QR scanned — confirming with bank…" : "Waiting for customer to scan…"}
+                                                </div>
+                                                <div style={{ fontSize: "11.5px", color: C.muted, marginBottom: "14px" }}>
+                                                    Open any UPI app (GPay, PhonePe, Paytm) and scan this code to pay.
+                                                </div>
+                                                <button type="button" onClick={cancelUpiPayment} style={{ width: "100%", height: "36px", background: "#fff", border: "1px solid #cbd5e1", color: C.text, borderRadius: "6px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>Cancel</button>
+                                                <style>{`@keyframes upi-pulse {0%,100%{opacity:1;}50%{opacity:0.3;}}`}</style>
+                                            </div>
+                                        )}
+
+                                        {upiStatus === "success" && (
+                                            <div style={{ textAlign: "center", padding: "10px 0" }}>
+                                                <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: C.greenBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+                                                    <span style={{ fontSize: "22px", color: C.green }}>✓</span>
+                                                </div>
+                                                <div style={{ fontSize: "14px", fontWeight: "700", color: C.green }}>Payment received</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function SalesPage() {
     const router = useRouter();
     const isSidebarOpen = useSidebarOpen();
@@ -57,8 +734,6 @@ export default function SalesPage() {
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [productSearch, setProductSearch] = useState("");
-    const [warehouses, setWarehouses] = useState([]);
-    const [selectedWarehouse, setSelectedWarehouse] = useState("");
     const [newCustomer, setNewCustomer] = useState({ identifier: "", customerName: "", email: "" });
     const [addingCustomer, setAddingCustomer] = useState(false);
     const [addCustomerError, setAddCustomerError] = useState("");
@@ -83,8 +758,7 @@ export default function SalesPage() {
     const [cardCvv, setCardCvv] = useState("");
     const [cardName, setCardName] = useState("");
 
-    // UPI payment state
-    const [upiStatus, setUpiStatus] = useState("idle"); // idle | waiting | scanned | success | failed
+    const [upiStatus, setUpiStatus] = useState("idle");
     const upiPollRef = useRef(null);
     const upiTxnRef = useRef(null);
 
@@ -106,8 +780,7 @@ export default function SalesPage() {
     }, []);
 
     useEffect(() => {
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        const config = token ? { headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+        const config = getAuthConfig();
 
         api.get("/customer/findByStatus", config)
             .then(res => setAllCustomersList(Array.isArray(res.data) ? res.data : []))
@@ -122,33 +795,16 @@ export default function SalesPage() {
             })
             .catch(() => { });
 
-        api.post("/wareHouse/list", { page: 0, sizePerPage: 100, sortDirection: "ASC", sortField: "id" }, config)
-            .then(res => {
-                const data = res.data;
-                setWarehouses(Array.isArray(data) ? data : (data.dtoList ?? data.data ?? []));
-            })
-            .catch(() => {
-                api.get("/wareHouse/findByStatus", config)
-                    .then(res2 => {
-                        const d = res2.data;
-                        setWarehouses(Array.isArray(d) ? d : (d.dtoList ?? []));
-                    })
-                    .catch(() => setWarehouses([]));
-            });
     }, []);
 
     useEffect(() => {
         if (products.length === 0) return;
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        const config = token ? { headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+        const config = getAuthConfig();
 
         api.get("/price/findByStatus", config)
             .then(res => {
                 const priceList = Array.isArray(res.data) ? res.data : (res.data?.dtoList ?? []);
-                setProducts(prev => prev.map(p => {
-                    const priceObj = priceList.find(pr => pr.identifier === p.identifier || pr.product === p.identifier);
-                    return priceObj ? { ...p, sellingPrice: priceObj.sellingPrice, mrp: priceObj.mrp } : p;
-                }));
+                setProducts(prev => mergePriceList(prev, priceList));
             })
             .catch(() => { });
     }, [products.length]);
@@ -178,7 +834,6 @@ export default function SalesPage() {
         setFilteredProducts(list);
     }, [productSearch, products]);
 
-    // Clean up any running UPI poll timer on unmount
     useEffect(() => {
         return () => { if (upiPollRef.current) clearInterval(upiPollRef.current); };
     }, []);
@@ -186,12 +841,12 @@ export default function SalesPage() {
     const refreshCart = useCallback(async (identifier) => {
         if (!identifier) return null;
         try {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+            const token = getToken();
             const baseURL = api.defaults.baseURL || "";
             const config = {
                 headers: {
                     "Content-Type": "application/json",
-                    ...(token ? { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } : {})
+                    ...(token ? { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` } : {})
                 }
             };
             const res = await axios.post(`${baseURL}/cart/getCart`, { identifier }, config);
@@ -215,8 +870,7 @@ export default function SalesPage() {
             await refreshCart(identifier);
         } catch {
             try {
-                const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-                const config = token ? { headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+                const config = getAuthConfig();
                 const createRes = await api.post("/cart/add", { identifier, status: true }, config);
                 if (createRes.data) {
                     setCart(createRes.data);
@@ -240,8 +894,7 @@ export default function SalesPage() {
         setEntries([]);
         setShowCustomerDropdown(false);
         try {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-            const config = token ? { params: { identifier: phone }, headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : { params: { identifier: phone } };
+            const config = getAuthParamsConfig({ identifier: phone });
             const res = await api.get("/customer/findByStatus", config);
             const data = res.data;
 
@@ -282,11 +935,15 @@ export default function SalesPage() {
             return;
         }
         if (actionLoading || processingEntry) return;
+        const price = Number(product.sellingPrice || product.mrp || product.price || 0);
+        if (!price || price <= 0) {
+            showToast("This product has no price set and cannot be added.", "error");
+            return;
+        }
         setActionLoading(true);
         setError("");
         try {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-            const config = token ? { headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+            const config = getAuthConfig();
             await api.post("/cartEntry/addEntry", {
                 cart: explicitCartId,
                 product: product.identifier,
@@ -308,10 +965,9 @@ export default function SalesPage() {
         setError("");
         const cartId = entry.cart || cart?.identifier || phoneSearch.trim();
         try {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-            const config = token ? { headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+            const config = getAuthConfig();
             if (newQty <= 0) {
-                await api.get("/cart/deleteEntry", {
+                await api.put("/cart/deleteEntry", null, {
                     params: { identifier: entry.identifier, cart: cartId },
                     ...config
                 });
@@ -335,9 +991,8 @@ export default function SalesPage() {
         setError("");
         const cartId = entry.cart || cart?.identifier || phoneSearch.trim();
         try {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-            const config = token ? { params: { identifier: entry.identifier, cart: cartId }, headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : { params: { identifier: entry.identifier, cart: cartId } };
-            await api.get("/cart/deleteEntry", config);
+            const config = getAuthParamsConfig({ identifier: entry.identifier, cart: cartId });
+            await api.put("/cart/deleteEntry", null, config);
             await refreshCart(cartId);
             showToast("Item removed successfully.");
         } catch {
@@ -355,8 +1010,7 @@ export default function SalesPage() {
         setError("");
         setOrderReceipt(null);
         try {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-            const config = token ? { headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+            const config = getAuthConfig();
             const res = await api.post("/order/place", {
                 identifier: cartId,
                 paymentMode: paymentType,
@@ -406,24 +1060,22 @@ export default function SalesPage() {
         }, 500);
     };
 
-    // ---- Cash ----
     const confirmCashPayment = () => {
         setPaymentError("");
         finalizePayment();
     };
 
-    // ---- Card ----
     const formatCardNumber = (val) => {
-        const digits = val.replace(/\D/g, "").slice(0, 16);
-        return digits.replace(/(.{4})/g, "$1 ").trim();
+        const digits = val.replaceAll(/\D/g, "").slice(0, 16);
+        return digits.replaceAll(/(.{4})/g, "$1 ").trim();
     };
     const formatExpiry = (val) => {
-        const digits = val.replace(/\D/g, "").slice(0, 4);
+        const digits = val.replaceAll(/\D/g, "").slice(0, 4);
         if (digits.length <= 2) return digits;
         return `${digits.slice(0, 2)}/${digits.slice(2)}`;
     };
     const isCardValid = () => {
-        const digits = cardNumber.replace(/\s/g, "");
+        const digits = cardNumber.replaceAll(/\s/g, "");
         const expiryOk = /^\d{2}\/\d{2}$/.test(cardExpiry) && (() => {
             const [mm, yy] = cardExpiry.split("/").map(Number);
             if (mm < 1 || mm > 12) return false;
@@ -439,7 +1091,6 @@ export default function SalesPage() {
         }
         setPaymentError("");
         setPaymentProcessing(true);
-        // Simulate gateway authorization round-trip
         setTimeout(() => {
             setPaymentProcessing(false);
             setShowPaymentForm(false);
@@ -447,17 +1098,11 @@ export default function SalesPage() {
         }, 1400);
     };
 
-    // ---- UPI ----
     const startUpiPayment = () => {
-        const cartId = orderReceipt?.identifier || "POS";
         upiTxnRef.current = `TXN${Date.now()}`;
         setUpiStatus("waiting");
         setPaymentError("");
 
-        // Simulate a payment gateway webhook: the QR is "scanned" by the
-        // customer's UPI app, then the bank confirms the debit shortly after.
-        // In production this polling would hit a real order-status endpoint
-        // tied to the gateway's webhook (e.g. Razorpay/PhonePe/Paytm PG).
         let elapsed = 0;
         upiPollRef.current = setInterval(() => {
             elapsed += 1;
@@ -493,15 +1138,24 @@ export default function SalesPage() {
     };
 
     const handleAddCustomer = async () => {
+        const phoneRegex = /^\d{10}$/;
+        const emailRegex = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
         if (!newCustomer.identifier || !newCustomer.customerName) {
             setAddCustomerError("Phone number and name are required.");
+            return;
+        }
+        if (!phoneRegex.test(newCustomer.identifier)) {
+            setAddCustomerError("Phone number must be exactly 10 digits with no letters or special characters.");
+            return;
+        }
+        if (newCustomer.email && !emailRegex.test(newCustomer.email)) {
+            setAddCustomerError("Please enter a valid email address (e.g. user@example.com).");
             return;
         }
         setAddingCustomer(true);
         setAddCustomerError("");
         try {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-            const config = token ? { headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+            const config = getAuthConfig();
             const res = await api.post("/customer/add", {
                 identifier: newCustomer.identifier,
                 customerName: newCustomer.customerName,
@@ -538,8 +1192,7 @@ export default function SalesPage() {
         if (!cartId) return;
         setActionLoading(true);
         try {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-            const config = token ? { headers: { "Authorization": token.startsWith("Bearer ") ? token : `Bearer ${token}` } } : {};
+            const config = getAuthConfig();
             await api.post("/cart/deleteCart", { identifier: cartId }, config);
         } catch { /* swallow */ }
         setCart(null);
@@ -552,85 +1205,43 @@ export default function SalesPage() {
     };
 
     const handleReceiptPrint = () => {
-        const orderId = orderReceipt?.orderId || "—";
-        const items = receiptEntries;
+        const receiptEntries = orderReceipt?.entryDtoList || [];
+        const receiptSubtotal = receiptEntries.reduce((sum, e) => sum + (Number(e.totalPrice) || 0), 0);
+        const receiptDiscount = Number(orderReceipt?.totalDiscount) || 0;
+        const receiptTotal = Number(orderReceipt?.totalPrice ?? (receiptSubtotal - receiptDiscount));
+        const orderTimestamp = orderReceipt?.orderDate
+            ? new Date(orderReceipt.orderDate).toLocaleString("en-GB", { hour12: true }).toLowerCase()
+            : new Date().toLocaleString("en-GB", { hour12: true }).toLowerCase();
 
-        const itemsHtml = items.length === 0
-            ? `<div style="text-align:center; padding:10px 0; font-size:12px;">No items found</div>`
-            : items.map(entry => {
-                const qty = Number(entry.quantity ?? 0);
-                const price = Number(entry.sellingPrice ?? 0);
-                const lineTotal = Number(entry.totalPrice ?? (price * qty)).toFixed(2);
-                const displayName = entry.productName || entry.name || entry.product || entry.identifier || "Item";
-                const skuCode = entry.sku || entry.product || entry.identifier || "—";
-                return `
-                <div class="item-row">
-                    <div class="item-name">${displayName}</div>
-                    <div class="item-sku">SKU: ${skuCode}</div>
-                    <div class="item-meta">
-                        <span>${qty} x Rs. ${price.toFixed(2)}</span>
-                        <span>Rs. ${lineTotal}</span>
-                    </div>
-                </div>
-            `;
-            }).join("");
+        const htmlContent = generateReceiptHTML({
+            orderId: orderReceipt?.orderId || "—",
+            orderTimestamp,
+            receiptCustomerName,
+            paymentType,
+            receiptEntries,
+            receiptSubtotal,
+            receiptDiscount,
+            receiptTotal,
+        });
 
-        const winPrint = window.open("", "", "left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0");
-        winPrint.document.write(`
-        <html>
-            <head>
-                <title>Print Receipt</title>
-                <style>
-                    body { margin: 20px; font-family: Courier, monospace; color: #000; background: #fff; }
-                    .receipt-wrap { width: 100%; max-width: 360px; margin: 0 auto; }
-                    .flex-space { display: flex; justify-content: space-between; margin-bottom: 5px; }
-                    .dashed-line { border-bottom: 1px dashed #000; margin: 12px 0; }
-                    .center-text { text-align: center; font-weight: 700; }
-                    .item-row { margin-bottom: 10px; }
-                    .item-name { font-weight: 700; font-size: 13px; }
-                    .item-sku { font-size: 11px; color: #555; margin-bottom: 2px; }
-                    .item-meta { display: flex; justify-content: space-between; font-size: 12px; }
-                </style>
-            </head>
-            <body>
-                <div class="receipt-wrap">
-                    <div class="center-text" style="font-size: 22px; margin-bottom: 4px;">RECEIPT</div>
-                    <div class="center-text" style="font-size: 12px; margin-bottom: 16px;">${orderTimestamp}</div>
-                    <div class="dashed-line"></div>
-                    <div class="flex-space"><span>Order No:</span><strong>${orderId}</strong></div>
-                    <div class="flex-space"><span>Customer:</span><span>${receiptCustomerName}</span></div>
-                    <div class="flex-space"><span>Payment:</span><span>${paymentType}</span></div>
-                    <div class="dashed-line"></div>
-                    <div class="center-text" style="margin-bottom: 10px; font-size: 13px;">ITEMS</div>
-                    ${itemsHtml}
-                    <div class="dashed-line"></div>
-                    <div class="flex-space"><span>Subtotal:</span><span>Rs. ${receiptSubtotal.toFixed(2)}</span></div>
-                    <div class="flex-space"><span>Discount:</span><span>- Rs. ${receiptDiscount.toFixed(2)}</span></div>
-                    <div class="dashed-line"></div>
-                    <div class="flex-space" style="font-size: 15px; font-weight: 700;"><span>Amount Paid:</span><span>Rs. ${receiptTotal.toFixed(2)}</span></div>
-                    <div class="dashed-line"></div>
-                    <div class="center-text" style="font-style: italic; margin-top: 16px;">Thank you for your purchase!</div>
-                </div>
-            </body>
-        </html>
-    `);
-        winPrint.document.close();
-        winPrint.focus();
-        winPrint.print();
-        winPrint.close();
+        const newWindow = window.open("", "_blank", "width=800,height=900");
+        if (newWindow) {
+            const blob = new Blob([htmlContent], { type: "text/html" });
+            const url = URL.createObjectURL(blob);
+            newWindow.location.href = url;
+            newWindow.addEventListener("load", () => URL.revokeObjectURL(url));
+        } else {
+            alert("Please allow pop-ups in your browser to print receipts.");
+        }
     };
 
     const subTotal = entries.reduce((sum, e) => sum + (Number(e.totalPrice) || 0), 0);
     const totalDiscount = Number(cart?.totalDiscount ?? 0);
-    const totalAmount = cart?.totalPrice != null ? Number(cart.totalPrice) : (subTotal - totalDiscount);
-
+    const totalAmount = Number(cart?.totalPrice ?? (subTotal - totalDiscount));
     const receiptEntries = orderReceipt?.entryDtoList || [];
     const receiptSubtotal = receiptEntries.reduce((sum, e) => sum + (Number(e.totalPrice) || 0), 0);
     const receiptDiscount = Number(orderReceipt?.totalDiscount) || 0;
-    // Total Due must reflect subtotal minus discount, not be silently overwritten by a stale totalPrice field.
-    const receiptTotal = orderReceipt?.totalPrice != null
-        ? Number(orderReceipt.totalPrice)
-        : (receiptSubtotal - receiptDiscount);
+    const receiptTotal = Number(orderReceipt?.totalPrice ?? (receiptSubtotal - receiptDiscount));
     const orderTimestamp = orderReceipt?.orderDate
         ? new Date(orderReceipt.orderDate).toLocaleString("en-GB", { hour12: true }).toLowerCase()
         : new Date().toLocaleString("en-GB", { hour12: true }).toLowerCase();
@@ -645,382 +1256,258 @@ export default function SalesPage() {
 
     if (isOrderConfirmed) {
         return (
-            <div style={{ position: "fixed", top: "60px", right: 0, bottom: 0, left: isSidebarOpen ? "220px" : "55px", backgroundColor: "#f4f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Segoe UI', sans-serif", transition: "left 0.2s ease" }}>
-                <div style={{ background: "#fff", padding: "40px", borderRadius: "12px", width: "480px", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-                    <div style={{ width: "60px", height: "64px", background: C.greenBg, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                        <span style={{ fontSize: "28px", color: C.green }}>✓</span>
-                    </div>
-                    <h2 style={{ fontSize: "22px", fontWeight: "700", color: C.navy, margin: "0 0 8px" }}>Order Completed Successfully!</h2>
-                    <p style={{ fontSize: "13px", color: C.muted, margin: "0 0 8px" }}>Paid via {paymentType} · ₹{receiptTotal.toFixed(2)}</p>
-                    <p style={{ fontSize: "13px", color: C.muted, margin: "0 0 32px" }}>The records have been updated securely. Select options below to view or print the receipt.</p>
-
-                    <div style={{ display: "flex", gap: "12px" }}>
-                        <button type="button" onClick={() => setShowViewReceiptModal(true)} style={{ flex: 1, height: "42px", border: `1.5px solid ${C.navy}`, background: "#fff", color: C.navy, borderRadius: "8px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>
-                            👁 View Receipt
-                        </button>
-                        <button type="button" onClick={handleReceiptPrint} style={{ flex: 1, height: "42px", background: C.mid, color: "#fff", border: "none", borderRadius: "8px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>
-                            🖨 Print Receipt
-                        </button>
-                    </div>
-
-                    <button type="button" onClick={startNewSale} style={{ width: "100%", height: "42px", background: C.navy, color: "#fff", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "13px", marginTop: "12px", cursor: "pointer" }}>
-                        Start Next Order Session ➔
-                    </button>
-                </div>
-
-                {showViewReceiptModal && (
-                    <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 20000 }}>
-                        <div style={{ background: "#fff", padding: "32px", borderRadius: "8px", width: "460px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 10px 25px rgba(0,0,0,0.2)" }}>
-                            <div style={{ padding: "20px", fontFamily: "Courier, monospace", color: "#000", background: "#fff", border: "1px solid #e2e8f0" }}>
-                                <div style={{ textAlign: "center", fontSize: "22px", fontWeight: "700", marginBottom: "4px" }}>RECEIPT</div>
-                                <div style={{ textAlign: "center", fontSize: "12px", marginBottom: "16px" }}>{orderTimestamp}</div>
-                                <div style={{ borderBottom: "1px dashed #000", marginBottom: "12px" }}></div>
-                                <div style={{ display: "flex", fontSize: "13px", marginBottom: "4px", justifyContent: "space-between" }}>
-                                    <span>Order No:</span> <span style={{ fontWeight: "700" }}>{orderReceipt?.orderId || "—"}</span>
-                                </div>
-                                <div style={{ display: "flex", fontSize: "13px", marginBottom: "4px", justifyContent: "space-between" }}>
-                                    <span>Customer:</span> <span>{receiptCustomerName}</span>
-                                </div>
-                                <div style={{ display: "flex", fontSize: "13px", marginBottom: "12px", justifyContent: "space-between" }}>
-                                    <span>Payment:</span> <span>{paymentType}</span>
-                                </div>
-                                <div style={{ borderBottom: "1px dashed #000", marginBottom: "12px" }}></div>
-                                <div style={{ textAlign: "center", fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>ITEMS</div>
-                                {receiptEntries.length === 0 ? (
-                                    <div style={{ textAlign: "center", fontSize: "12px", padding: "8px 0" }}>No items found</div>
-                                ) : (
-                                    receiptEntries.map((entry, i) => {
-                                        const qty = Number(entry.quantity ?? 0);
-                                        const price = Number(entry.sellingPrice ?? 0);
-                                        const lineTotal = Number(entry.totalPrice ?? (price * qty)).toFixed(2);
-                                        const displayName = entry.productName || entry.name || entry.product || entry.identifier || "Item";
-                                        const skuCode = entry.sku || entry.product || entry.identifier || "—";
-                                        return (
-                                            <div key={entry.identifier || i} style={{ marginBottom: "10px" }}>
-                                                <div style={{ fontWeight: "700", fontSize: "13px" }}>{displayName}</div>
-                                                <div style={{ fontSize: "11px", color: "#555", marginBottom: "2px" }}>SKU: {skuCode}</div>
-                                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
-                                                    <span>{qty} x Rs. {price.toFixed(2)}</span>
-                                                    <span>Rs. {lineTotal}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                                <div style={{ borderBottom: "1px dashed #000", marginBottom: "10px", marginTop: "6px" }}></div>
-                                <div style={{ display: "flex", fontSize: "13px", marginBottom: "4px", justifyContent: "space-between" }}>
-                                    <span>Subtotal:</span> <span>Rs. {receiptSubtotal.toFixed(2)}</span>
-                                </div>
-                                <div style={{ display: "flex", fontSize: "13px", marginBottom: "8px", justifyContent: "space-between" }}>
-                                    <span>Discount:</span> <span>- Rs. {receiptDiscount.toFixed(2)}</span>
-                                </div>
-                                <div style={{ borderBottom: "1px dashed #000", marginBottom: "10px" }}></div>
-                                <div style={{ display: "flex", fontSize: "15px", fontWeight: "700", justifyContent: "space-between" }}>
-                                    <span>Amount Paid:</span> <span>Rs. {receiptTotal.toFixed(2)}</span>
-                                </div>
-                                <div style={{ borderBottom: "1px dashed #000", marginTop: "12px", marginBottom: "16px" }}></div>
-                                <div style={{ textAlign: "center", fontSize: "13px", fontStyle: "italic" }}>Thank you for your purchase!</div>
-                            </div>
-
-                            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-                                <button type="button" onClick={handleReceiptPrint} style={{ flex: 1, height: "36px", background: C.navy, color: "#fff", border: "none", borderRadius: "6px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Print Document</button>
-                                <button type="button" onClick={() => setShowViewReceiptModal(false)} style={{ flex: 1, height: "36px", background: "#e2e8f0", color: C.text, border: "none", borderRadius: "6px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Dismiss Close</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+            <OrderConfirmedScreen
+                isSidebarOpen={isSidebarOpen}
+                paymentType={paymentType}
+                receiptTotal={receiptTotal}
+                handleReceiptPrint={handleReceiptPrint}
+                startNewSale={startNewSale}
+                showViewReceiptModal={showViewReceiptModal}
+                setShowViewReceiptModal={setShowViewReceiptModal}
+                orderTimestamp={orderTimestamp}
+                orderReceipt={orderReceipt}
+                receiptCustomerName={receiptCustomerName}
+                receiptEntries={receiptEntries}
+                receiptSubtotal={receiptSubtotal}
+                receiptDiscount={receiptDiscount}
+            />
         );
     }
 
     if (orderReceipt) {
-        const customerLabel = orderReceipt.identifier || "Walk-in";
-
         return (
-            <div style={{ position: "fixed", top: "60px", right: 0, bottom: 0, left: isSidebarOpen ? "220px" : "55px", backgroundColor: "#f4f5f9", fontFamily: "'Segoe UI', sans-serif", padding: "24px", overflowY: "auto", transition: "left 0.2s ease" }}>
-                <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-                        <div>
-                            <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: C.mid }}>Checkout Validation</span>
-                            <h2 style={{ fontSize: "22px", fontWeight: 700, margin: "4px 0 0", color: C.navy }}>Order Receipt</h2>
-                        </div>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "20px", alignItems: "start" }}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                            <div style={{ background: "#fff", borderRadius: "8px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                                <div style={{ padding: "14px", borderBottom: "1px solid #e2e8f0", fontWeight: 700, fontSize: "14px", color: C.navy }}>Items</div>
-                                <table style={{ width: "100%", fontSize: "13px", borderCollapse: "collapse" }}>
-                                    <thead>
-                                        <tr style={{ background: "#f8fafc", color: C.mid, borderBottom: "1px solid #e2e8f0", textAlign: "left" }}>
-                                            <th style={{ padding: "10px 14px" }}>Product</th>
-                                            <th style={{ padding: "10px 14px", textAlign: "center" }}>Qty</th>
-                                            <th style={{ padding: "10px 14px", textAlign: "right" }}>Price</th>
-                                            <th style={{ padding: "10px 14px", textAlign: "right" }}>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {receiptEntries.map((entry, i) => (
-                                            <tr key={entry.identifier || i} style={{ borderBottom: "1px solid #f1f5f9", color: C.text }}>
-                                                <td style={{ padding: "10px 14px" }}>
-                                                    <div style={{ fontWeight: "600" }}>{entry.productName || entry.product}</div>
-                                                    <div style={{ fontSize: "11px", color: C.muted }}>SKU: {entry.sku || entry.product}</div>
-                                                </td>
-                                                <td style={{ padding: "10px 14px", textAlign: "center" }}>{entry.quantity}</td>
-                                                <td style={{ padding: "10px 14px", textAlign: "right" }}>₹{Number(entry.sellingPrice ?? 0).toFixed(2)}</td>
-                                                <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: "600" }}>₹{Number(entry.totalPrice ?? 0).toFixed(2)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div style={{ background: "#fff", borderRadius: "8px", border: "1px solid #e2e8f0", padding: "16px", fontSize: "14px" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                                    <span style={{ color: C.muted }}>Subtotal</span>
-                                    <span style={{ fontWeight: "600" }}>₹{receiptSubtotal.toFixed(2)}</span>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", color: C.red, marginBottom: "8px" }}>
-                                    <span>Discount</span>
-                                    <span style={{ fontWeight: "600" }}>-₹{receiptDiscount.toFixed(2)}</span>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "700", borderTop: "1px solid #e2e8f0", paddingTop: "10px", marginTop: "10px" }}>
-                                    <span style={{ color: C.navy }}>Total Due</span>
-                                    <span style={{ fontSize: "16px", color: C.navy }}>₹{receiptTotal.toFixed(2)}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                            <div style={{ background: C.navy, color: "#fff", borderRadius: "8px", padding: "18px", fontSize: "13px" }}>
-                                <div style={{ marginBottom: "12px" }}>
-                                    <div style={{ color: C.light, fontSize: "11px", fontWeight: "600" }}>ORDER ID</div>
-                                    <div style={{ fontSize: "14px", fontWeight: "700", marginTop: "2px" }}>{orderReceipt.orderId || "—"}</div>
-                                </div>
-                                <div style={{ marginBottom: "12px" }}>
-                                    <div style={{ color: C.light, fontSize: "11px", fontWeight: "600" }}>CUSTOMER IDENTIFIER</div>
-                                    <div style={{ fontSize: "14px", fontWeight: "700", marginTop: "2px" }}>{customerLabel}</div>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "10px" }}>
-                                    <span style={{ color: C.light }}>Timestamp</span>
-                                    <span>{orderReceipt.orderDate ? new Date(orderReceipt.orderDate).toLocaleString("en-GB") : today}</span>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px" }}>
-                                    <span style={{ color: C.light }}>Amount Due</span>
-                                    <span>₹{receiptTotal.toFixed(2)}</span>
-                                </div>
-                            </div>
-
-                            {showPaymentForm && (
-                                <div style={{ background: "#fff", border: `1.5px solid #cbd5e1`, borderRadius: "8px", padding: "16px" }}>
-                                    <p style={{ fontSize: "13px", fontWeight: "700", color: C.navy, margin: "0 0 12px" }}>Select Payment Method</p>
-
-                                    {/* Method tabs */}
-                                    <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
-                                        {[
-                                            { key: "Cash", label: "💵 Cash" },
-                                            { key: "Card", label: "💳 Card" },
-                                            { key: "UPI", label: "📱 UPI" },
-                                        ].map(opt => (
-                                            <button
-                                                key={opt.key}
-                                                type="button"
-                                                onClick={() => { setPaymentType(opt.key); setPaymentError(""); if (opt.key !== "UPI") cancelUpiPayment(); }}
-                                                disabled={paymentProcessing || upiStatus === "waiting" || upiStatus === "scanned"}
-                                                style={{
-                                                    flex: 1, height: "36px", borderRadius: "6px", fontSize: "12.5px", fontWeight: "700",
-                                                    border: paymentType === opt.key ? `1.5px solid ${C.navy}` : "1.5px solid #e2e8f0",
-                                                    background: paymentType === opt.key ? C.navy : "#fff",
-                                                    color: paymentType === opt.key ? "#fff" : C.text,
-                                                    cursor: "pointer",
-                                                }}
-                                            >
-                                                {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {paymentError && (
-                                        <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: C.red, borderRadius: "6px", padding: "8px 10px", fontSize: "12px", marginBottom: "12px" }}>
-                                            {paymentError}
-                                        </div>
-                                    )}
-
-                                    {/* CASH */}
-                                    {paymentType === "Cash" && (
-                                        <div>
-                                            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "14px", marginBottom: "14px", textAlign: "center" }}>
-                                                <div style={{ fontSize: "11px", color: C.muted, fontWeight: 600, marginBottom: "4px" }}>AMOUNT TO COLLECT</div>
-                                                <div style={{ fontSize: "26px", fontWeight: "800", color: C.navy }}>₹{receiptTotal.toFixed(2)}</div>
-                                                <div style={{ fontSize: "11.5px", color: C.muted, marginTop: "6px" }}>Confirm once cash has been received from the customer.</div>
-                                            </div>
-                                            <div style={{ display: "flex", gap: "8px" }}>
-                                                <button type="button" onClick={confirmCashPayment} disabled={paymentProcessing} style={{ flex: 2, height: "40px", background: C.green, color: "#fff", border: "none", borderRadius: "6px", fontWeight: "700", fontSize: "13px", cursor: "pointer" }}>
-                                                    {paymentProcessing ? "Confirming..." : "Cash Received — Complete Sale"}
-                                                </button>
-                                                <button type="button" onClick={() => { setOrderReceipt(null); setShowPaymentForm(false); }} style={{ flex: 1, height: "40px", background: "#fff", border: "1px solid #cbd5e1", color: C.text, borderRadius: "6px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>Dismiss</button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* CARD */}
-                                    {paymentType === "Card" && (
-                                        <div>
-                                            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "12px" }}>
-                                                <div>
-                                                    <label style={{ fontSize: "11px", fontWeight: "600", color: C.mid, display: "block", marginBottom: "4px" }}>Card Number</label>
-                                                    <input
-                                                        type="text" inputMode="numeric" placeholder="1234 5678 9012 3456" maxLength={19}
-                                                        value={cardNumber} onChange={e => setCardNumber(formatCardNumber(e.target.value))}
-                                                        disabled={paymentProcessing}
-                                                        style={{ ...inputSt, fontFamily: "monospace", letterSpacing: "0.5px" }}
-                                                    />
-                                                </div>
-                                                <div style={{ display: "flex", gap: "10px" }}>
-                                                    <div style={{ flex: 1 }}>
-                                                        <label style={{ fontSize: "11px", fontWeight: "600", color: C.mid, display: "block", marginBottom: "4px" }}>Expiry (MM/YY)</label>
-                                                        <input
-                                                            type="text" inputMode="numeric" placeholder="MM/YY" maxLength={5}
-                                                            value={cardExpiry} onChange={e => setCardExpiry(formatExpiry(e.target.value))}
-                                                            disabled={paymentProcessing}
-                                                            style={inputSt}
-                                                        />
-                                                    </div>
-                                                    <div style={{ flex: 1 }}>
-                                                        <label style={{ fontSize: "11px", fontWeight: "600", color: C.mid, display: "block", marginBottom: "4px" }}>CVV</label>
-                                                        <input
-                                                            type="password" inputMode="numeric" placeholder="•••" maxLength={4}
-                                                            value={cardCvv} onChange={e => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                                                            disabled={paymentProcessing}
-                                                            style={inputSt}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label style={{ fontSize: "11px", fontWeight: "600", color: C.mid, display: "block", marginBottom: "4px" }}>Name on Card</label>
-                                                    <input
-                                                        type="text" placeholder="As printed on card"
-                                                        value={cardName} onChange={e => setCardName(e.target.value)}
-                                                        disabled={paymentProcessing}
-                                                        style={inputSt}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: C.muted, marginBottom: "12px" }}>
-                                                <span>Charge amount</span>
-                                                <span style={{ fontWeight: "700", color: C.navy }}>₹{receiptTotal.toFixed(2)}</span>
-                                            </div>
-                                            <div style={{ display: "flex", gap: "8px" }}>
-                                                <button type="button" onClick={confirmCardPayment} disabled={paymentProcessing} style={{ flex: 2, height: "40px", background: C.navy, color: "#fff", border: "none", borderRadius: "6px", fontWeight: "700", fontSize: "13px", cursor: paymentProcessing ? "not-allowed" : "pointer", opacity: paymentProcessing ? 0.75 : 1 }}>
-                                                    {paymentProcessing ? "Authorizing with bank..." : "Charge Card"}
-                                                </button>
-                                                <button type="button" onClick={() => { setOrderReceipt(null); setShowPaymentForm(false); }} disabled={paymentProcessing} style={{ flex: 1, height: "40px", background: "#fff", border: "1px solid #cbd5e1", color: C.text, borderRadius: "6px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>Dismiss</button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* UPI */}
-                                    {paymentType === "UPI" && (
-                                        <div>
-                                            {upiStatus === "idle" && (
-                                                <div style={{ textAlign: "center" }}>
-                                                    <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "14px", marginBottom: "14px" }}>
-                                                        <div style={{ fontSize: "11px", color: C.muted, fontWeight: 600, marginBottom: "4px" }}>AMOUNT TO PAY</div>
-                                                        <div style={{ fontSize: "26px", fontWeight: "800", color: C.navy }}>₹{receiptTotal.toFixed(2)}</div>
-                                                    </div>
-                                                    <button type="button" onClick={startUpiPayment} style={{ width: "100%", height: "40px", background: C.navy, color: "#fff", border: "none", borderRadius: "6px", fontWeight: "700", fontSize: "13px", cursor: "pointer", marginBottom: "8px" }}>
-                                                        Generate QR Code
-                                                    </button>
-                                                    <button type="button" onClick={() => { setOrderReceipt(null); setShowPaymentForm(false); }} style={{ width: "100%", height: "36px", background: "#fff", border: "1px solid #cbd5e1", color: C.text, borderRadius: "6px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>Dismiss</button>
-                                                </div>
-                                            )}
-
-                                            {(upiStatus === "waiting" || upiStatus === "scanned") && (
-                                                <div style={{ textAlign: "center" }}>
-                                                    <div style={{
-                                                        display: "inline-block", padding: "12px", background: "#fff",
-                                                        border: `2px solid ${upiStatus === "scanned" ? C.green : "#e2e8f0"}`,
-                                                        borderRadius: "10px", marginBottom: "12px", transition: "border-color 0.3s",
-                                                    }}>
-                                                        <UpiQrCode value={upiPayload} size={168} />
-                                                    </div>
-                                                    <div style={{ fontSize: "20px", fontWeight: "800", color: C.navy, marginBottom: "4px" }}>₹{receiptTotal.toFixed(2)}</div>
-                                                    <div style={{
-                                                        display: "inline-flex", alignItems: "center", gap: "6px",
-                                                        fontSize: "12.5px", fontWeight: "600",
-                                                        color: upiStatus === "scanned" ? C.green : C.amber,
-                                                        background: upiStatus === "scanned" ? C.greenBg : C.amberBg,
-                                                        padding: "5px 12px", borderRadius: "20px", marginBottom: "14px",
-                                                    }}>
-                                                        <span style={{
-                                                            width: "7px", height: "7px", borderRadius: "50%",
-                                                            background: upiStatus === "scanned" ? C.green : C.amber,
-                                                            display: "inline-block", animation: "upi-pulse 1.2s ease-in-out infinite",
-                                                        }} />
-                                                        {upiStatus === "scanned" ? "QR scanned — confirming with bank…" : "Waiting for customer to scan…"}
-                                                    </div>
-                                                    <div style={{ fontSize: "11.5px", color: C.muted, marginBottom: "14px" }}>
-                                                        Open any UPI app (GPay, PhonePe, Paytm) and scan this code to pay.
-                                                    </div>
-                                                    <button type="button" onClick={cancelUpiPayment} style={{ width: "100%", height: "36px", background: "#fff", border: "1px solid #cbd5e1", color: C.text, borderRadius: "6px", fontWeight: "600", fontSize: "13px", cursor: "pointer" }}>Cancel</button>
-                                                    <style>{`@keyframes upi-pulse {0%,100%{opacity:1;}50%{opacity:0.3;}}`}</style>
-                                                </div>
-                                            )}
-
-                                            {upiStatus === "success" && (
-                                                <div style={{ textAlign: "center", padding: "10px 0" }}>
-                                                    <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: C.greenBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-                                                        <span style={{ fontSize: "22px", color: C.green }}>✓</span>
-                                                    </div>
-                                                    <div style={{ fontSize: "14px", fontWeight: "700", color: C.green }}>Payment received</div>
-                                                    <div style={{ fontSize: "12px", color: C.muted, marginTop: "4px" }}>Ref: {upiTxnRef.current}</div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <OrderReceiptScreen
+                isSidebarOpen={isSidebarOpen}
+                today={today}
+                orderReceipt={orderReceipt}
+                customerLabel={orderReceipt.identifier || "Walk-in"}
+                receiptEntries={receiptEntries}
+                receiptSubtotal={receiptSubtotal}
+                receiptDiscount={receiptDiscount}
+                receiptTotal={receiptTotal}
+                showPaymentForm={showPaymentForm}
+                paymentType={paymentType}
+                paymentError={paymentError}
+                paymentProcessing={paymentProcessing}
+                upiStatus={upiStatus}
+                upiPayload={upiPayload}
+                handleReceiptPrint={handleReceiptPrint}
+                confirmCashPayment={confirmCashPayment}
+                confirmCardPayment={confirmCardPayment}
+                startUpiPayment={startUpiPayment}
+                cancelUpiPayment={cancelUpiPayment}
+                setOrderReceipt={setOrderReceipt}
+                setShowPaymentForm={setShowPaymentForm}
+                setPaymentType={setPaymentType}
+                setPaymentError={setPaymentError}
+                cardNumber={cardNumber}
+                cardExpiry={cardExpiry}
+                cardCvv={cardCvv}
+                cardName={cardName}
+                setCardNumber={setCardNumber}
+                setCardExpiry={setCardExpiry}
+                setCardCvv={setCardCvv}
+                setCardName={setCardName}
+                formatCardNumber={formatCardNumber}
+                formatExpiry={formatExpiry}
+            />
         );
     }
 
     return (
-        <div style={{ position: "fixed", top: "60px", right: 0, bottom: 0, left: isSidebarOpen ? "220px" : "55px", backgroundColor: "#f4f5f9", fontFamily: "'Segoe UI', sans-serif", display: "flex", flexDirection: "column", overflow: "hidden", transition: "left 0.2s ease" }}>
+        <SalesWorkspace
+            isSidebarOpen={isSidebarOpen}
+            today={today}
+            navigateHome={() => router.push('/home')}
+            showAddModal={showAddModal}
+            setShowAddModal={setShowAddModal}
+            addCustomerError={addCustomerError}
+            setAddCustomerError={setAddCustomerError}
+            newCustomer={newCustomer}
+            setNewCustomer={setNewCustomer}
+            handleAddCustomer={handleAddCustomer}
+            addingCustomer={addingCustomer}
+            toast={toast}
+            error={error}
+            customerFound={customerFound}
+            bannerDismissed={bannerDismissed}
+            setBannerDismissed={setBannerDismissed}
+            showCustomerDropdown={showCustomerDropdown}
+            setShowCustomerDropdown={setShowCustomerDropdown}
+            filteredCustomers={filteredCustomers}
+            dropdownRef={dropdownRef}
+            phoneSearch={phoneSearch}
+            setPhoneSearch={setPhoneSearch}
+            searchingCustomer={searchingCustomer}
+            handlePhoneSearch={handlePhoneSearch}
+            handleClearCustomer={handleClearCustomer}
+            entries={entries}
+            cart={cart}
+            productSearch={productSearch}
+            setProductSearch={setProductSearch}
+            filteredProducts={filteredProducts}
+            handleAddProduct={handleAddProduct}
+            handleQtyChange={handleQtyChange}
+            handleDeleteEntry={handleDeleteEntry}
+            handleCancel={handleCancel}
+            handleSale={handleSale}
+            actionLoading={actionLoading}
+            subTotal={subTotal}
+            totalDiscount={totalDiscount}
+            totalAmount={totalAmount}
+        />
+    );
+}
+function UpiQrCode({ value, size = 168 }) {
+    const [dataUrl, setDataUrl] = useState(null);
 
-            {showAddModal && (
-                <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0, background: "rgba(0,0,0,0.55)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <div style={{ width: "420px", background: "#fff", borderRadius: "12px", overflow: "hidden", position: "relative", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
-                        <div style={{ padding: "18px 24px", borderBottom: "1px solid #e8eaf0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                            <h2 style={{ margin: 0, fontSize: "16px", color: C.navy, fontWeight: "700" }}>Add New Customer</h2>
-                            <button type="button" onClick={() => { setShowAddModal(false); setAddCustomerError(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: "20px", lineHeight: 1 }}>✕</button>
-                        </div>
-                        <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "14px" }}>
-                            {addCustomerError && (
-                                <div style={{ color: C.red, background: "#fef2f2", border: "1px solid #fecaca", padding: "10px 12px", borderRadius: "6px", fontSize: "13px" }}>{addCustomerError}</div>
-                            )}
-                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                <label style={{ fontSize: "11px", fontWeight: "600", color: C.mid }}>Phone Number <span style={{ color: C.red }}>*</span></label>
-                                <input type="text" placeholder="e.g. 9876543210" value={newCustomer.identifier} onChange={e => setNewCustomer(prev => ({ ...prev, identifier: e.target.value }))} style={inputSt} />
-                            </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                <label style={{ fontSize: "11px", fontWeight: "600", color: C.mid }}>Customer Name <span style={{ color: C.red }}>*</span></label>
-                                <input type="text" placeholder="Full name" value={newCustomer.customerName} onChange={e => setNewCustomer(prev => ({ ...prev, customerName: e.target.value }))} style={inputSt} />
-                            </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                <label style={{ fontSize: "11px", fontWeight: "600", color: C.mid }}>Email <span style={{ color: C.muted, fontWeight: 400 }}>(optional)</span></label>
-                                <input type="email" placeholder="customer@email.com" value={newCustomer.email} onChange={e => setNewCustomer(prev => ({ ...prev, email: e.target.value }))} style={inputSt} />
-                            </div>
-                            <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
-                                <button type="button" onClick={() => { setShowAddModal(false); setAddCustomerError(""); }} style={{ flex: 1, height: "42px", background: "#fff", border: `1.5px solid ${C.muted}`, color: C.muted, borderRadius: "7px", fontWeight: "600", cursor: "pointer", fontSize: "13px" }}>Cancel</button>
-                                <button type="button" onClick={handleAddCustomer} disabled={addingCustomer} style={{ flex: 2, height: "42px", background: C.green, color: "#fff", border: "none", borderRadius: "7px", fontWeight: "600", cursor: addingCustomer ? "not-allowed" : "pointer", opacity: addingCustomer ? 0.7 : 1, fontSize: "13px" }}>{addingCustomer ? "Saving..." : "Save Customer"}</button>
-                            </div>
-                        </div>
+    useEffect(() => {
+        const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size * 2}x${size * 2}&data=${encodeURIComponent(value)}`;
+        setDataUrl(url);
+    }, [value, size]);
+
+    if (!dataUrl) {
+        return <div style={{ width: size, height: size, background: "#f1f5f9" }} />;
+    }
+    return (
+        <img src={dataUrl} alt="UPI QR Code" width={size} height={size} style={{ display: "block" }} />
+    );
+}
+
+UpiQrCode.propTypes = {
+    value: PropTypes.string.isRequired,
+    size: PropTypes.number,
+};
+
+function AddCustomerModal({
+    showAddModal,
+    addCustomerError,
+    setShowAddModal,
+    setAddCustomerError,
+    newCustomer,
+    setNewCustomer,
+    handleAddCustomer,
+    addingCustomer,
+}) {
+    if (!showAddModal) return null;
+    return (
+        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0, background: "rgba(0,0,0,0.55)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: "420px", background: "#fff", borderRadius: "12px", overflow: "hidden", position: "relative", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
+                <div style={{ padding: "18px 24px", borderBottom: "1px solid #e8eaf0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <h2 style={{ margin: 0, fontSize: "16px", color: C.navy, fontWeight: "700" }}>Add New Customer</h2>
+                    <button type="button" onClick={() => { setShowAddModal(false); setAddCustomerError(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: "20px", lineHeight: 1 }}>✕</button>
+                </div>
+                <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {addCustomerError && (
+                        <div style={{ color: C.red, background: "#fef2f2", border: "1px solid #fecaca", padding: "10px 12px", borderRadius: "6px", fontSize: "13px" }}>{addCustomerError}</div>
+                    )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <label htmlFor="newCustomer_identifier" style={{ fontSize: "11px", fontWeight: "600", color: C.mid }}>Phone Number <span style={{ color: C.red }}>*</span></label>
+                        <input
+                            id="newCustomer_identifier"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="e.g. 9876543210"
+                            maxLength={10}
+                            value={newCustomer.identifier}
+                            onChange={e => {
+                                const digitsOnly = e.target.value.replaceAll(/\D/g, "").slice(0, 10);
+                                setNewCustomer(prev => ({ ...prev, identifier: digitsOnly }));
+                            }}
+                            style={inputSt}
+                        />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <label htmlFor="newCustomer_name" style={{ fontSize: "11px", fontWeight: "600", color: C.mid }}>Customer Name <span style={{ color: C.red }}>*</span></label>
+                        <input id="newCustomer_name" type="text" placeholder="Full name" value={newCustomer.customerName} onChange={e => setNewCustomer(prev => ({ ...prev, customerName: e.target.value }))} style={inputSt} />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <label htmlFor="newCustomer_email" style={{ fontSize: "11px", fontWeight: "600", color: C.mid }}>Email <span style={{ color: C.muted, fontWeight: 400 }}>(optional)</span></label>
+                        <input id="newCustomer_email" type="email" placeholder="customer@email.com" value={newCustomer.email} onChange={e => setNewCustomer(prev => ({ ...prev, email: e.target.value }))} style={inputSt} />
+                    </div>
+                    <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
+                        <button type="button" onClick={() => { setShowAddModal(false); setAddCustomerError(""); }} style={{ flex: 1, height: "42px", background: "#fff", border: `1.5px solid ${C.muted}`, color: C.muted, borderRadius: "7px", fontWeight: "600", cursor: "pointer", fontSize: "13px" }}>Cancel</button>
+                        <button type="button" onClick={handleAddCustomer} disabled={addingCustomer} style={{ flex: 2, height: "42px", background: C.navy, color: "#fff", border: "none", borderRadius: "7px", fontWeight: "600", cursor: addingCustomer ? "not-allowed" : "pointer", opacity: addingCustomer ? 0.7 : 1, fontSize: "13px" }}>{addingCustomer ? "Saving..." : "Save Customer"}</button>
                     </div>
                 </div>
-            )}
+            </div>
+        </div>
+    );
+}
+
+AddCustomerModal.propTypes = {
+    showAddModal: PropTypes.bool.isRequired,
+    addCustomerError: PropTypes.string,
+    setShowAddModal: PropTypes.func.isRequired,
+    setAddCustomerError: PropTypes.func.isRequired,
+    newCustomer: PropTypes.shape({
+        identifier: PropTypes.string,
+        customerName: PropTypes.string,
+        email: PropTypes.string,
+    }).isRequired,
+    setNewCustomer: PropTypes.func.isRequired,
+    handleAddCustomer: PropTypes.func.isRequired,
+    addingCustomer: PropTypes.bool.isRequired,
+};
+
+function SalesWorkspace(props) {
+    return <SalesWorkspaceView {...props} />;
+}
+
+function SalesWorkspaceView({
+    isSidebarOpen,
+    today,
+    navigateHome,
+    showAddModal,
+    setShowAddModal,
+    addCustomerError,
+    setAddCustomerError,
+    newCustomer,
+    setNewCustomer,
+    handleAddCustomer,
+    addingCustomer,
+    toast,
+    error,
+    customerFound,
+    bannerDismissed,
+    setBannerDismissed,
+    showCustomerDropdown,
+    setShowCustomerDropdown,
+    filteredCustomers,
+    dropdownRef,
+    phoneSearch,
+    setPhoneSearch,
+    searchingCustomer,
+    handlePhoneSearch,
+    handleClearCustomer,
+    entries,
+    cart,
+    productSearch,
+    setProductSearch,
+    filteredProducts,
+    handleAddProduct,
+    handleQtyChange,
+    handleDeleteEntry,
+    handleCancel,
+    handleSale,
+    actionLoading,
+    subTotal,
+    totalDiscount,
+    totalAmount,
+}) {
+    return (
+        <div style={{ position: "fixed", top: "60px", right: 0, bottom: 0, left: isSidebarOpen ? "220px" : "55px", backgroundColor: "#f4f5f9", fontFamily: "'Segoe UI', sans-serif", display: "flex", flexDirection: "column", overflow: "hidden", transition: "left 0.2s ease" }}>
+
+            <AddCustomerModal
+                showAddModal={showAddModal}
+                addCustomerError={addCustomerError}
+                setShowAddModal={setShowAddModal}
+                setAddCustomerError={setAddCustomerError}
+                newCustomer={newCustomer}
+                setNewCustomer={setNewCustomer}
+                handleAddCustomer={handleAddCustomer}
+                addingCustomer={addingCustomer}
+            />
 
             {toast && (
                 <div style={{ position: "absolute", top: "14px", right: "20px", zIndex: 999, padding: "10px 20px", borderRadius: "8px", background: toast.type === "error" ? "#fef2f2" : C.greenBg, border: `1px solid ${toast.type === "error" ? "#fca5a5" : "#86efac"}`, color: toast.type === "error" ? C.red : C.green, fontWeight: "600", fontSize: "13px", boxShadow: "0 2px 12px rgba(0,0,0,0.10)" }}>
@@ -1030,7 +1517,7 @@ export default function SalesPage() {
 
             <div style={{ background: "#fff", padding: "10px 20px", borderBottom: "1.5px solid #e8eaf0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "12px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <button type="button" onClick={() => router.push("/home")} style={{ background: "#fff", border: `1.5px solid ${C.mid}`, color: C.mid, borderRadius: "7px", padding: "5px 14px", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>← Home</button>
+                    <button type="button" onClick={navigateHome} style={{ background: "#fff", border: `1.5px solid ${C.mid}`, color: C.mid, borderRadius: "7px", padding: "5px 14px", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>← Home</button>
                     <div style={{ display: "flex", border: `1.5px solid ${C.mid}`, borderRadius: "7px", overflow: "hidden" }}>
                         <span style={{ padding: "6px 20px", fontSize: "12px", fontWeight: "700", background: C.mid, color: "#fff", display: "inline-block" }}>🛒 POS CART WORKSPACE</span>
                     </div>
@@ -1071,28 +1558,24 @@ export default function SalesPage() {
                                     <div style={{ position: "absolute", top: "40px", left: 0, right: 0, background: "#fff", border: "1px solid #cbd5e1", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 2000, maxHeight: "220px", overflowY: "auto" }}>
                                         {filteredCustomers.map(c => {
                                             const cPhone = c.phone || c.identifier || "—";
+                                            const cName = c.customerName || c.name || "—";
                                             return (
-                                                <div key={c.id || c.identifier} onClick={() => handlePhoneSearch(cPhone)} style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", cursor: "pointer", display: "flex", flexDirection: "column", gap: "2px" }} onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f8fafc"} onMouseLeave={e => e.currentTarget.style.backgroundColor = "#fff"}>
-                                                    <span style={{ fontWeight: "700", fontSize: "14px", color: C.text }}>{cPhone}</span>
-                                                    <span style={{ fontSize: "12px", color: C.muted }}>Phone/ID: {cPhone}</span>
-                                                </div>
+                                                <button key={c.id || c.identifier} type="button" onClick={() => handlePhoneSearch(cPhone)} style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", cursor: "pointer", display: "flex", flexDirection: "column", gap: "2px", background: "#fff", border: "none", width: "100%", textAlign: "left" }} onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f8fafc"} onMouseLeave={e => e.currentTarget.style.backgroundColor = "#fff"}>
+                                                    <span style={{ fontWeight: "700", fontSize: "14px", color: C.text }}>{cName}</span>
+                                                    <span style={{ fontSize: "12px", color: C.muted }}>ID: {c.identifier} | Phone: {cPhone}</span>
+                                                </button>
                                             );
                                         })}
                                     </div>
                                 )}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <select value={selectedWarehouse} onChange={e => setSelectedWarehouse(e.target.value)} style={inputSt}>
-                                    <option value="">Select Warehouse</option>
-                                    {warehouses.map(w => (<option key={w.identifier} value={w.identifier}>{w.name ?? w.identifier}{w.location ? ` · ${w.location}` : ""}</option>))}
-                                </select>
                             </div>
                         </div>
                         {customerFound && !bannerDismissed && (
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 12px", background: C.greenBg, border: "1px solid #bbf7d0", borderRadius: "8px" }}>
                                 <span style={{ fontSize: "14px", color: C.green, fontWeight: 700 }}>✓</span>
                                 <div style={{ flex: 1, fontSize: "13px", color: C.green }}>
-                                    <strong>{customerFound.identifier}</strong>
+                                    <strong>{customerFound.customerName || customerFound.name || customerFound.identifier}</strong>
+                                    <span style={{ marginLeft: "8px", fontWeight: 400, fontSize: "12px" }}>({customerFound.identifier})</span>
                                 </div>
                                 <button type="button" onClick={() => setBannerDismissed(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "16px" }}>✕</button>
                             </div>
@@ -1101,7 +1584,8 @@ export default function SalesPage() {
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px" }}>
                                 <span style={{ fontSize: "12px", color: C.green, fontWeight: 700 }}>✓</span>
                                 <span style={{ flex: 1, fontSize: "12px", color: "#475569" }}>
-                                    <strong>{customerFound.identifier}</strong>
+                                    <strong>{customerFound.customerName || customerFound.name || customerFound.identifier}</strong>
+                                    <span style={{ marginLeft: "6px", color: C.muted }}>({customerFound.identifier})</span>
                                 </span>
                                 <button type="button" onClick={handleClearCustomer} style={{ background: "none", border: "1px solid #e2e8f0", cursor: "pointer", color: "#94a3b8", fontSize: "11px", fontWeight: 600, padding: "2px 6px", borderRadius: "4px" }}>Change</button>
                             </div>
@@ -1134,14 +1618,14 @@ export default function SalesPage() {
                                             <td style={{ padding: "12px 6px" }}>₹{Number(entry.sellingPrice).toFixed(2)}</td>
                                             <td style={{ padding: "12px 6px", textAlign: "center" }}>
                                                 <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid #dcdfe6", borderRadius: "5px" }}>
-                                                    <button type="button" onClick={() => handleQtyChange(entry, -1)} disabled={processingEntry === entry.product} style={{ border: "none", background: "none", width: "24px", height: "24px", cursor: "pointer", fontWeight: "700" }}>-</button>
+                                                    <button type="button" onClick={() => handleQtyChange(entry, -1)} disabled={false} style={{ border: "none", background: "none", width: "24px", height: "24px", cursor: "pointer", fontWeight: "700" }}>-</button>
                                                     <span style={{ minWidth: "24px", textAlign: "center", fontWeight: "600", fontSize: "12px" }}>{entry.quantity}</span>
-                                                    <button type="button" onClick={() => handleQtyChange(entry, 1)} disabled={processingEntry === entry.product} style={{ border: "none", background: "none", width: "24px", height: "24px", cursor: "pointer", fontWeight: "700" }}>+</button>
+                                                    <button type="button" onClick={() => handleQtyChange(entry, 1)} disabled={false} style={{ border: "none", background: "none", width: "24px", height: "24px", cursor: "pointer", fontWeight: "700" }}>+</button>
                                                 </div>
                                             </td>
                                             <td style={{ padding: "12px 6px", textAlign: "right", fontWeight: "600" }}>₹{Number(entry.totalPrice).toFixed(2)}</td>
                                             <td style={{ padding: "12px 6px", textAlign: "center" }}>
-                                                <button type="button" onClick={() => handleDeleteEntry(entry)} disabled={processingEntry === entry.product} style={{ background: "none", border: "none", color: C.navy, cursor: "pointer", fontWeight: "600" }}>Delete</button>
+                                                <button type="button" onClick={() => handleDeleteEntry(entry)} style={{ background: "none", border: "none", color: C.navy, cursor: "pointer", fontWeight: "600" }}>Delete</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -1166,14 +1650,13 @@ export default function SalesPage() {
                             </div>
                         </div>
                         <div style={{ display: "flex", gap: "10px", marginTop: "14px" }}>
-                            <button type="button" onClick={handleCancel} disabled={actionLoading || !cart} style={{ flex: 1, height: "42px", background: "#fff", border: `1.5px solid ${C.navy}`, color: C.navy, borderRadius: "7px", fontWeight: "600", cursor: "pointer" }}>Clear Cart Workspace</button>
+                            <button type="button" onClick={handleCancel} style={{ flex: 1, height: "42px", background: "#fff", border: `1.5px solid ${C.navy}`, color: C.navy, borderRadius: "7px", fontWeight: "600", cursor: "pointer" }}>Clear Cart Workspace</button>
                             <button
                                 type="button"
                                 onClick={handleSale}
-                                disabled={entries.length === 0 || actionLoading}
-                                style={{ flex: 2, height: "42px", background: C.navy, border: "none", color: "#fff", borderRadius: "7px", fontWeight: "700", fontSize: "14px", cursor: (entries.length === 0 || actionLoading) ? "not-allowed" : "pointer", opacity: (entries.length === 0 || actionLoading) ? 0.6 : 1 }}
+                                style={{ flex: 2, height: "42px", background: C.navy, border: "none", color: "#fff", borderRadius: "7px", fontWeight: "700", fontSize: "14px", cursor: "pointer" }}
                             >
-                                {actionLoading ? "Processing Transaction..." : "Complete Sale"}
+                                Complete Sale
                             </button>
                         </div>
                     </div>
@@ -1190,20 +1673,19 @@ export default function SalesPage() {
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "10px" }}>
                                 {filteredProducts.map(p => {
                                     const matchInCart = entries.find(e => e.product === p.identifier);
+                                    const price = Number(p.sellingPrice || p.mrp || p.price || 0);
                                     return (
-                                        <div key={p.identifier} onClick={() => handleAddProduct(p)} style={{ background: "#fff", border: matchInCart ? `1.5px solid ${C.mid}` : "1.5px solid #e2e8f0", borderRadius: "8px", padding: "10px", cursor: "pointer", position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "110px", boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
-                                            {matchInCart && (
-                                                <span style={{ position: "absolute", top: "-6px", right: "-6px", background: C.mid, color: "#fff", fontSize: "10px", fontWeight: "700", padding: "2px 6px", borderRadius: "10px" }}>{matchInCart.quantity}</span>
-                                            )}
+                                        <button key={p.identifier} type="button" onClick={() => handleAddProduct(p)} disabled={!price || price <= 0} style={{ background: "#fff", border: matchInCart ? `1.5px solid ${C.mid}` : "1.5px solid #e2e8f0", borderRadius: "8px", padding: "10px", cursor: (!price || price <= 0) ? "not-allowed" : "pointer", opacity: (!price || price <= 0) ? 0.5 : 1, position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "110px", boxShadow: "0 1px 3px rgba(0,0,0,0.02)", textAlign: "left" }}>                                            {matchInCart && (
+                                            <span style={{ position: "absolute", top: "-6px", right: "-6px", background: C.mid, color: "#fff", fontSize: "10px", fontWeight: "700", padding: "2px 6px", borderRadius: "10px" }}>{matchInCart.quantity}</span>
+                                        )}
                                             <div>
                                                 <div style={{ fontWeight: "600", fontSize: "12px", color: C.navy, WebkitLineClamp: 2, display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.2 }}>{p.name || p.identifier}</div>
                                                 <div style={{ fontSize: "10px", color: C.muted, marginTop: "2px" }}>SKU: {p.identifier}</div>
                                             </div>
                                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: "6px" }}>
                                                 <span style={{ fontSize: "10px", color: C.muted }}>Rate</span>
-                                                <span style={{ fontWeight: "700", fontSize: "12px", color: C.text }}>₹{Number(p.sellingPrice || p.mrp || p.price || 0).toFixed(2)}</span>
-                                            </div>
-                                        </div>
+                                                <span style={{ fontWeight: "700", fontSize: "12px", color: (!price || price <= 0) ? C.red : C.text }}>{(!price || price <= 0) ? "No Price" : `₹${price.toFixed(2)}`}</span>                                            </div>
+                                        </button>
                                     );
                                 })}
                             </div>
@@ -1215,30 +1697,124 @@ export default function SalesPage() {
     );
 }
 
-/**
- * Renders a real, scannable QR code for the given UPI payload using a
- * lightweight in-component QR encoder (no external dependency needed).
- * If you already have the `qrcode.react` or `qrcode` package installed,
- * swap this for <QRCodeSVG value={value} size={size} /> instead — it will
- * be faster and more reliably scannable across all phone cameras.
- */
-function UpiQrCode({ value, size = 168 }) {
-    const [dataUrl, setDataUrl] = useState(null);
+SalesWorkspaceView.propTypes = {
+    isSidebarOpen: PropTypes.bool.isRequired,
+    today: PropTypes.string.isRequired,
+    navigateHome: PropTypes.func.isRequired,
+    showAddModal: PropTypes.bool.isRequired,
+    setShowAddModal: PropTypes.func.isRequired,
+    addCustomerError: PropTypes.string,
+    setAddCustomerError: PropTypes.func.isRequired,
+    newCustomer: PropTypes.shape({
+        identifier: PropTypes.string,
+        customerName: PropTypes.string,
+        email: PropTypes.string,
+    }).isRequired,
+    setNewCustomer: PropTypes.func.isRequired,
+    handleAddCustomer: PropTypes.func.isRequired,
+    addingCustomer: PropTypes.bool.isRequired,
+    toast: PropTypes.shape({
+        msg: PropTypes.string,
+        type: PropTypes.string,
+    }),
+    error: PropTypes.string,
+    customerFound: PropTypes.object,
+    bannerDismissed: PropTypes.bool.isRequired,
+    setBannerDismissed: PropTypes.func.isRequired,
+    showCustomerDropdown: PropTypes.bool.isRequired,
+    setShowCustomerDropdown: PropTypes.func.isRequired,
+    filteredCustomers: PropTypes.arrayOf(PropTypes.object).isRequired,
+    dropdownRef: PropTypes.shape({ current: PropTypes.any }),
+    phoneSearch: PropTypes.string.isRequired,
+    setPhoneSearch: PropTypes.func.isRequired,
+    searchingCustomer: PropTypes.bool.isRequired,
+    handlePhoneSearch: PropTypes.func.isRequired,
+    handleClearCustomer: PropTypes.func.isRequired,
+    entries: PropTypes.arrayOf(PropTypes.object).isRequired,
+    cart: PropTypes.object,
+    productSearch: PropTypes.string.isRequired,
+    setProductSearch: PropTypes.func.isRequired,
+    filteredProducts: PropTypes.arrayOf(PropTypes.object).isRequired,
+    handleAddProduct: PropTypes.func.isRequired,
+    handleQtyChange: PropTypes.func.isRequired,
+    handleDeleteEntry: PropTypes.func.isRequired,
+    handleCancel: PropTypes.func.isRequired,
+    handleSale: PropTypes.func.isRequired,
+    actionLoading: PropTypes.bool.isRequired,
+    subTotal: PropTypes.number.isRequired,
+    totalDiscount: PropTypes.number.isRequired,
+    totalAmount: PropTypes.number.isRequired,
+};
 
-    useEffect(() => {
-        let cancelled = false;
-        // Uses the public QR Server API to render a real scannable PNG.
-        // Swap to a local qrcode library for fully offline generation.
-        const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size * 2}x${size * 2}&data=${encodeURIComponent(value)}`;
-        setDataUrl(url);
-        return () => { cancelled = true; };
-    }, [value, size]);
+OrderConfirmedScreen.propTypes = {
+    isSidebarOpen: PropTypes.bool.isRequired,
+    paymentType: PropTypes.string.isRequired,
+    receiptTotal: PropTypes.number.isRequired,
+    handleReceiptPrint: PropTypes.func.isRequired,
+    startNewSale: PropTypes.func.isRequired,
+    showViewReceiptModal: PropTypes.bool.isRequired,
+    setShowViewReceiptModal: PropTypes.func.isRequired,
+    orderTimestamp: PropTypes.string.isRequired,
+    orderReceipt: PropTypes.shape({
+        orderId: PropTypes.string,
+        orderDate: PropTypes.string,
+    }),
+    receiptCustomerName: PropTypes.string,
+    receiptEntries: PropTypes.arrayOf(
+        PropTypes.shape({
+            product: PropTypes.string,
+            quantity: PropTypes.number,
+            rate: PropTypes.number,
+            total: PropTypes.number,
+        }),
+    ).isRequired,
+    receiptSubtotal: PropTypes.number.isRequired,
+    receiptDiscount: PropTypes.number.isRequired,
+};
 
-    if (!dataUrl) {
-        return <div style={{ width: size, height: size, background: "#f1f5f9" }} />;
-    }
-    return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={dataUrl} alt="UPI QR Code" width={size} height={size} style={{ display: "block" }} />
-    );
-}
+OrderReceiptScreen.propTypes = {
+    isSidebarOpen: PropTypes.bool.isRequired,
+    today: PropTypes.string.isRequired,
+    orderReceipt: PropTypes.shape({
+        orderId: PropTypes.string,
+        orderDate: PropTypes.string,
+        total: PropTypes.number,
+    }),
+    customerLabel: PropTypes.string.isRequired,
+    receiptEntries: PropTypes.arrayOf(
+        PropTypes.shape({
+            product: PropTypes.string,
+            quantity: PropTypes.number,
+            rate: PropTypes.number,
+            total: PropTypes.number,
+        }),
+    ).isRequired,
+    receiptSubtotal: PropTypes.number.isRequired,
+    receiptDiscount: PropTypes.number.isRequired,
+    receiptTotal: PropTypes.number.isRequired,
+    showPaymentForm: PropTypes.bool.isRequired,
+    paymentType: PropTypes.string.isRequired,
+    paymentError: PropTypes.string,
+    paymentProcessing: PropTypes.bool.isRequired,
+    upiStatus: PropTypes.string,
+    upiPayload: PropTypes.string,
+    handleReceiptPrint: PropTypes.func.isRequired,
+    confirmCashPayment: PropTypes.func.isRequired,
+    confirmCardPayment: PropTypes.func.isRequired,
+    startUpiPayment: PropTypes.func.isRequired,
+    cancelUpiPayment: PropTypes.func.isRequired,
+    setOrderReceipt: PropTypes.func.isRequired,
+    setShowPaymentForm: PropTypes.func.isRequired,
+    setPaymentType: PropTypes.func.isRequired,
+    setPaymentError: PropTypes.func.isRequired,
+    cardNumber: PropTypes.string,
+    cardExpiry: PropTypes.string,
+    cardCvv: PropTypes.string,
+    cardName: PropTypes.string,
+    setCardNumber: PropTypes.func.isRequired,
+    setCardExpiry: PropTypes.func.isRequired,
+    setCardCvv: PropTypes.func.isRequired,
+    setCardName: PropTypes.func.isRequired,
+    formatCardNumber: PropTypes.func.isRequired,
+    formatExpiry: PropTypes.func.isRequired,
+};

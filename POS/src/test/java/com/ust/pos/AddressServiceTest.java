@@ -90,16 +90,17 @@ class AddressServiceTest {
     @Test
     void deleteTest() {
         Address address = new Address();
-        address.setIdentifier("Admin");
-        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(address);
-        Mockito.when(addressRepository.save(address)).thenReturn(address);
-        boolean response = addressService.delete("Admin");
+        List<Address> addresses = new ArrayList<>();
+        addresses.add(address);
+        Mockito.when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(addresses);
+        Mockito.when(addressRepository.saveAll(addresses)).thenReturn(addresses);
+        boolean response = addressService.delete("9876543210");
         Assertions.assertTrue(response);
     }
 
     @Test
     void deleteTestFailure() {
-        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(null);
+        Mockito.when(addressRepository.findAllByPhoneNoAndDeletedFalse("Admin")).thenReturn(null);
         boolean response = addressService.delete("Admin");
         Assertions.assertFalse(response);
     }

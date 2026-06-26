@@ -6,7 +6,7 @@ export default function ListUnit() {
     return (
         <ListingSkeleton
             title="Units"
-            fields={["identifier"]}
+            fields={[]}
             apis={{
                 list: "/unit/list",
                 delete: "/unit/delete",

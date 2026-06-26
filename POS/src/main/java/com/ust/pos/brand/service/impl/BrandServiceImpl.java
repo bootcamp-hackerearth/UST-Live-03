@@ -23,6 +23,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         this.brandRepository = brandRepository;
         this.modelMapper = modelMapper;
     }
+
     private final BrandRepository brandRepository;
     private final ModelMapper modelMapper;
 

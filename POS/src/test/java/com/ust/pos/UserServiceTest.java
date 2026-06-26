@@ -180,6 +180,7 @@ class UserServiceTest {
         UserDto response = userService.toggleStatus("Admin");
         Assertions.assertFalse(response.isStatus());
     }
+
     @Test
     void getUserDetailsTest() {
         User user = new User();

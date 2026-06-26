@@ -10,10 +10,10 @@ import java.util.List;
 @Repository
 public interface BrandRepository extends JpaRepository<Brand, Long> {
 
-    Brand findByIdentifier(String identifier);//find
+    Brand findByIdentifier(String identifier);
 
-    Page<Brand> findByDeletedFalse(Pageable pageable);//listing page
+    Page<Brand> findByDeletedFalse(Pageable pageable);
 
-    List<Brand> findByStatusIsTrueAndDeletedFalse();//findbystatus
+    List<Brand> findByStatusIsTrueAndDeletedFalse();
 
 }

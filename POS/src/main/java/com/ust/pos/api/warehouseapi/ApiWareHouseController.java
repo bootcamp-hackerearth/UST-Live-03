@@ -6,6 +6,7 @@ import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WareHouseService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,27 +22,32 @@ public class ApiWareHouseController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public WsDto<WareHouseDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return wareHouseService.findAll(pageable);
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('MANAGER')")
     public WareHouseDto addPost(@RequestBody WareHouseDto wareHouseDto) {
         return wareHouseService.save(wareHouseDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public WareHouseDto update(@RequestParam String identifier) {
         return wareHouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public WareHouseDto updatePost(@RequestBody WareHouseDto wareHouseDto) {
         return wareHouseService.update(wareHouseDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             wareHouseService.delete(identifier);
@@ -52,11 +58,13 @@ public class ApiWareHouseController extends BaseController {
     }
 
     @PostMapping("/toggle-status")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public WareHouseDto toggle(@RequestParam String identifier) {
         return wareHouseService.toggleStatus(identifier);
     }
 
     @GetMapping("/findByStatus")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<WareHouseDto> findByStatus() {
         return wareHouseService.findIfTrue();
     }

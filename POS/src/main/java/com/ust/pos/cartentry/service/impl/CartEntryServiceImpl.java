@@ -20,7 +20,6 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     private final PriceRepository priceRepository;
 
-
     public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, ModelMapper modelMapper,  PriceRepository priceRepository) {
         this.cartEntryRepository = cartEntryRepository;
         this.modelMapper = modelMapper;

@@ -14,7 +14,6 @@ public class WareHouseController extends BaseController {
 
     public static final String REDIRECT_WAREHOUSE_LIST = "redirect:/wareHouse/list";
 
-
     private final WareHouseService wareHouseService;
 
     public WareHouseController(WareHouseService wareHouseService) {

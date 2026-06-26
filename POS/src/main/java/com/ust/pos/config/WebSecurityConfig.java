@@ -50,7 +50,6 @@ public class WebSecurityConfig {
                                 "/api/validateToken",
                                 "/api/user/register",
                                 "/api/role/findByStatus",
-                                "/api/order/**",
                                 "/swagger-ui/**",
                                 "/v3/**"
                         ).permitAll()
@@ -84,7 +83,7 @@ public class WebSecurityConfig {
                 "http://localhost:5173"
         ));
         configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+                "GET", "POST", "PUT", "DELETE","PATCH"
         ));
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization", "Content-Type", "Accept"

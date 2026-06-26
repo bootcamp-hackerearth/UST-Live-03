@@ -16,7 +16,6 @@ public class ApiCartEntryController extends BaseController {
     }
 
     private final CartEntryService cartEntryService;
-
     private final CartService cartService;
 
     @PostMapping("/addEntry")

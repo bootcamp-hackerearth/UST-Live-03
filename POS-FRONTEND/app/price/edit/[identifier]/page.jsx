@@ -14,7 +14,7 @@ const C = {
 function formatDateTime(value) {
   if (!value) return "—";
   const d = new Date(value);
-  if (isNaN(d.getTime())) return value;
+  if (Number.isNaN(d.getTime())) return value;
   return d.toLocaleString("en-IN", {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
@@ -54,7 +54,7 @@ export default function EditPrice() {
     fetchPriceData(rawIdentifier)
       .then((data) => {
         if (data) {
-          setIdentifier(data.identifier || "");
+          setIdentifier(data.identifier ?? "");
           setForm({
             mrp: data.mrp ?? "",
             sellingPrice: data.sellingPrice ?? "",
@@ -62,10 +62,10 @@ export default function EditPrice() {
             effectiveFrom: data.effectiveFrom ?? "",
           });
           setAuditInfo({
-            createdBy: data.createdBy,
-            createdAt: data.createdAt,
-            modifiedBy: data.modifiedBy,
-            modifiedAt: data.modifiedAt,
+            createdBy: data.createdBy ?? "",
+            createdAt: data.createdAt ?? "",
+            modifiedBy: data.modifiedBy ?? "",
+            modifiedAt: data.modifiedAt ?? "",
           });
         }
       })
@@ -232,23 +232,15 @@ function renderLoading() {
 function renderForm(identifier, form, fieldErrors, handleChange, handleSubmit, loading, router) {
   return (
     <form onSubmit={handleSubmit} style={{ padding: "20px 28px 24px" }}>
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "16px 20px",
-      }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px 20px" }}>
 
         <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "5px" }}>
           <label htmlFor="identifier" style={labelStyle}>Product Identifier</label>
           <input
             id="identifier"
-            style={{
-              ...inputStyle,
-              background: C.offWhite, color: "#9ca3af",
-              cursor: "not-allowed",
-            }}
+            style={{ ...inputStyle, background: C.offWhite, color: "#9ca3af", cursor: "not-allowed" }}
             type="text"
-            value={identifier}
+            value={identifier ?? ""}
             disabled
           />
         </div>
@@ -321,9 +313,7 @@ function renderForm(identifier, form, fieldErrors, handleChange, handleSubmit, l
           disabled={loading}
           style={{
             padding: "9px 28px", borderRadius: "7px", border: "none",
-            background: loading
-              ? "#c4c8d4"
-              : `linear-gradient(135deg, ${C.navy}, ${C.mid})`,
+            background: loading ? "#c4c8d4" : `linear-gradient(135deg, ${C.navy}, ${C.mid})`,
             color: "#fff", fontSize: "13px",
             fontWeight: "600", cursor: loading ? "not-allowed" : "pointer",
             boxShadow: loading ? "none" : "0 3px 10px rgba(54,57,85,0.25)",
@@ -450,11 +440,10 @@ function validatePriceForm(form, setFieldErrors) {
   setFieldErrors(errors);
   return Object.keys(errors).length === 0;
 }
-
 async function submitPriceUpdate({ identifier, form }, setError, setSuccess, setLoading, router) {
   setLoading(true);
   try {
-    const res = await api.post("/price/update", {
+    const res = await api.put("/price/update", {
       identifier,
       mrp: form.mrp,
       sellingPrice: form.sellingPrice,

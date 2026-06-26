@@ -14,7 +14,6 @@ public class UnitController extends BaseController {
 
     public static final String REDIRECT_UNIT_LIST = "redirect:/unit/list";
 
-
     private final UnitService unitService;
 
     public UnitController(UnitService unitService) {

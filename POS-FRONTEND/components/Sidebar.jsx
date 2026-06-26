@@ -3,15 +3,15 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import api from "@/api/axios";
-import { 
-  SquareChevronLeft, 
-  Home, 
-  Package, 
-  ShoppingCart, 
-  BarChart3, 
-  Users, 
-  Settings, 
-  Layers, 
+import {
+  SquareChevronLeft,
+  Home,
+  Package,
+  ShoppingCart,
+  BarChart3,
+  Users,
+  Settings,
+  Layers,
   LogOut,
   IndianRupee,
   FileBox,
@@ -24,9 +24,9 @@ import {
   History,
   FileSpreadsheet,
   Boxes,
-  Scale,     
-  Columns4,   
-  Grid,          
+  Scale,
+  Columns4,
+  Grid,
   Network,
   ClipboardList,
 } from 'lucide-react';
@@ -59,7 +59,7 @@ const getIconForNode = (identifier) => {
     { match: n => n.includes("role") || n.includes("permission") || n.includes("auth"), icon: ShieldCheck },
     { match: n => n.includes("node"), icon: Network },
     { match: n => n.includes("setting") || n.includes("config"), icon: Settings },
-  ]; 
+  ];
 
   for (const entry of iconMap) {
     if (entry.match(name)) {
@@ -84,7 +84,7 @@ const styles = {
     fontFamily: "'Segoe UI', sans-serif",
     zIndex: 100,
     overflowY: "auto",
-    overflowX: "hidden", 
+    overflowX: "hidden",
     transition: "width 0.2s ease, border-color 0.2s ease",
   },
   header: {
@@ -183,7 +183,7 @@ function renderNavButton({ buttonKey, icon, label, isOpen, isActive, isHovered, 
         ...(isActive ? styles.itemActive : {}),
         ...(isHovered ? styles.itemHover : {}),
         border: "none",
-        backgroundColor: "transparent", 
+        backgroundColor: "transparent",
         width: "100%",
         textAlign: "left",
       }}
@@ -198,7 +198,7 @@ export default function Sidebar() {
   const [nodes, setNodes] = useState([]);
   const [hovered, setHovered] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isOpen, setIsOpen] = useState(true); 
+  const [isOpen, setIsOpen] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -218,21 +218,21 @@ export default function Sidebar() {
   }, [pathname]);
 
   useEffect(() => {
-  async function fetchNodes() {
-    try {
-      const res = await api.get("/node/getNodesForRoles");
-      const data = res.data;
-      setNodes(Array.isArray(data) ? data : data.data ?? []);
-    } catch (err) {
-      console.error("Failed to fetch nodes:", err);
-      setNodes([]);
+    async function fetchNodes() {
+      try {
+        const res = await api.get("/node/getNodesForRoles");
+        const data = res.data;
+        setNodes(Array.isArray(data) ? data : data.data ?? []);
+      } catch (err) {
+        if (process.env.NODE_ENV !== "production") console.error("Failed to fetch nodes:", err);
+        setNodes([]);
+      }
     }
-  }
 
-  if (isLoggedIn && pathname !== "/login" && pathname !== "/register") {
-    fetchNodes();
-  }
-}, [isLoggedIn, pathname]);
+    if (isLoggedIn && pathname !== "/login" && pathname !== "/register") {
+      fetchNodes();
+    }
+  }, [isLoggedIn, pathname]);
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -243,7 +243,7 @@ export default function Sidebar() {
     const nextState = !isOpen;
     setIsOpen(nextState);
     localStorage.setItem("sidebar-open", String(nextState));
-    
+
     const event = new CustomEvent("sidebar-toggle", {
       detail: { isOpen: nextState }
     });
@@ -253,15 +253,15 @@ export default function Sidebar() {
   const collapsed = !isOpen;
 
   return (
-    <aside 
+    <aside
       style={{
         ...styles.sidebar,
-        width: isOpen ? SIDEBAR_WIDTH : "55px", 
+        width: isOpen ? SIDEBAR_WIDTH : "55px",
       }}
     >
-      <div 
-        style={{ 
-          ...styles.header, 
+      <div
+        style={{
+          ...styles.header,
           justifyContent: isOpen ? "space-between" : "center",
           padding: isOpen ? "18px 16px 10px" : "18px 0 10px",
           borderBottom: isOpen ? "1px solid #e8ece8" : "1px solid transparent",
@@ -314,15 +314,15 @@ export default function Sidebar() {
       </div>
 
       <div style={{ ...styles.logoutWrap, padding: isOpen ? "0 10px" : "0 4px" }}>
-        <button 
-          style={{ 
-            ...styles.logoutBtn, 
+        <button
+          style={{
+            ...styles.logoutBtn,
             height: isOpen ? "auto" : "36px",
             width: isOpen ? "100%" : "36px",
             padding: isOpen ? "10px 14px" : "0",
             justifyContent: "center",
             gap: isOpen ? "10px" : "0px",
-          }} 
+          }}
           onClick={handleLogout}
           title={collapsed ? "Logout" : ""}
         >

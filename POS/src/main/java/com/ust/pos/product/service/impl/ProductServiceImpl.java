@@ -22,7 +22,6 @@ public class ProductServiceImpl extends CommonService implements ProductService 
 
     private final ProductRepository productRepository;
 
-
     private final ModelMapper modelMapper;
 
     public ProductServiceImpl(ProductRepository productRepository, ModelMapper modelMapper) {

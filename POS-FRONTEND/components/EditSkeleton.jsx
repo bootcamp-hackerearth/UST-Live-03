@@ -1,18 +1,21 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useRouter, useParams } from "next/navigation";
 import api from "@/api/axios";
 import { labelStyle, inputStyle, inputErrorStyle, errText, AlertBox } from "@/components/sharedStyles";
-
+import { AuditFooter } from "@/app/customer/_shared/customerForm";
 const C = {
   navy: "#363955", mid: "#54668E", light: "#879EC6",
   gray: "#E8E8E8", offWhite: "#F5F6E6", text: "#1e2235",
   muted: "#6b7280", white: "#ffffff",
   error: "#c0392b", errorBg: "#fdf2f2",
 };
-
+const auditFooterWrapSt = {
+  margin: "4px 28px 24px", padding: "14px",
+  background: C.offWhite, border: "1.5px solid #e8eaf0",
+  borderRadius: "10px",
+};
 function useFieldChange(setData, setFieldErrors) {
   function handleChange(key, value) {
     setData(prev => ({ ...prev, [key]: value }));
@@ -20,17 +23,6 @@ function useFieldChange(setData, setFieldErrors) {
   }
   return handleChange;
 }
-
-function formatDateTime(value) {
-  if (!value) return "—";
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return value;
-  return d.toLocaleString("en-IN", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  });
-}
-
 export function PageShell({ isSidebarOpen, children }) {
   return (
     <div style={{
@@ -45,7 +37,6 @@ export function PageShell({ isSidebarOpen, children }) {
     </div>
   );
 }
-
 export function PageHeader({ onBack, backLabel = "← Back", title, subtitle }) {
   return (
     <div style={{
@@ -77,7 +68,6 @@ export function PageHeader({ onBack, backLabel = "← Back", title, subtitle }) 
     </div>
   );
 }
-
 export function PageCard({ children }) {
   return (
     <div style={{
@@ -95,103 +85,76 @@ export function PageCard({ children }) {
     </div>
   );
 }
-
 function FieldError({ error }) {
   if (!error) return null;
   return <span style={errText}>{error}</span>;
 }
-
-function AuditCard({ heading, accent, rows }) {
-  return (
-    <div style={{
-      flex: "1 1 200px",
-      background: C.white, border: "1.5px solid #e8eaf0",
-      borderRadius: "8px", padding: "12px 16px",
-    }}>
-      <div style={{
-        fontSize: "11px", fontWeight: "700", color: accent,
-        textTransform: "uppercase", letterSpacing: "0.5px",
-        marginBottom: "8px",
-      }}>
-        {heading}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {rows.map(({ label, value }) => (
-          <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
-            <span style={{ fontSize: "12px", color: C.muted }}>{label}</span>
-            <span style={{ fontSize: "13px", fontWeight: "600", color: C.text }}>{value || "—"}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-AuditCard.propTypes = {
-  heading: PropTypes.string.isRequired,
-  accent: PropTypes.string.isRequired,
-  rows: PropTypes.arrayOf(PropTypes.shape({
-    label: PropTypes.string.isRequired,
-    value: PropTypes.string,
-  })).isRequired,
-};
-
-function AuditFooter({ createdBy, createdAt, modifiedBy, modifiedAt }) {
-  return (
-    <div style={{
-      margin: "4px 28px 24px", padding: "14px",
-      background: C.offWhite, border: "1.5px solid #e8eaf0",
-      borderRadius: "10px",
-    }}>
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-        <AuditCard
-          heading="Created"
-          accent={C.mid}
-          rows={[
-            { label: "By", value: createdBy },
-            { label: "At", value: formatDateTime(createdAt) },
-          ]}
-        />
-        <AuditCard
-          heading="Last Modified"
-          accent={C.navy}
-          rows={[
-            { label: "By", value: modifiedBy },
-            { label: "At", value: formatDateTime(modifiedAt) },
-          ]}
-        />
-      </div>
-    </div>
-  );
-}
-
-AuditFooter.propTypes = {
-  createdBy: PropTypes.string,
-  createdAt: PropTypes.string,
-  modifiedBy: PropTypes.string,
-  modifiedAt: PropTypes.string,
-};
-
 PageShell.propTypes = {
   isSidebarOpen: PropTypes.bool.isRequired,
   children: PropTypes.node.isRequired,
 };
-
 PageHeader.propTypes = {
   onBack: PropTypes.func.isRequired,
   backLabel: PropTypes.string,
   title: PropTypes.string.isRequired,
   subtitle: PropTypes.string,
 };
-
 PageCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
-
 FieldError.propTypes = {
   error: PropTypes.string,
 };
-
+function HttpErrorPopup({ httpError, onClose }) {
+  if (!httpError) return null;
+  const styles = {
+    403: { icon: "🔒", title: "Access Denied", color: "#ef4444", defaultMsg: "You don't have permission to perform this action." },
+    404: { icon: "❌", title: "Not Found", color: "#f59e0b", defaultMsg: "The requested resource doesn't exist." },
+    400: { icon: "⚠️", title: "Invalid Request", color: "#f59e0b", defaultMsg: "The request contains invalid data." },
+    500: { icon: "⚡", title: "Server Error", color: "#ef4444", defaultMsg: "Something went wrong. Please try again later." },
+  };
+  const info = styles[httpError.statusCode] || styles[500];
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(30,34,53,0.45)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 9999,
+    }}>
+      <div style={{
+        background: "#fff", borderRadius: "14px", padding: "32px 36px",
+        maxWidth: "380px", textAlign: "center",
+        boxShadow: "0 16px 48px rgba(30,34,53,0.25)",
+        border: "1.5px solid #e8eaf0",
+      }}>
+        <div style={{ fontSize: "44px", marginBottom: "12px" }}>{info.icon}</div>
+        <div style={{ fontSize: "22px", fontWeight: "700", color: info.color, marginBottom: "6px" }}>
+          {httpError.statusCode} · {info.title}
+        </div>
+        <p style={{ fontSize: "13.5px", color: "#6b7280", margin: "0 0 22px", lineHeight: 1.6 }}>
+          {httpError.message || info.defaultMsg}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            padding: "9px 28px", borderRadius: "7px", border: "none",
+            background: "linear-gradient(135deg, #363955, #54668E)",
+            color: "#fff", fontSize: "13px", fontWeight: "600", cursor: "pointer",
+          }}
+        >
+          Okay
+        </button>
+      </div>
+    </div>
+  );
+}
+HttpErrorPopup.propTypes = {
+  httpError: PropTypes.shape({
+    statusCode: PropTypes.number,
+    message: PropTypes.string,
+  }),
+  onClose: PropTypes.func.isRequired,
+};
 export default function EditFormSkeleton({
   title, apiPath,
   paramName = "identifier", identifierField = "identifier", getStyle = "path",
@@ -200,7 +163,6 @@ export default function EditFormSkeleton({
   const router = useRouter();
   const params = useParams();
   const identifier = decodeURIComponent(params[paramName] || "");
-
   const [identifierDisplay, setIdentifierDisplay] = useState("");
   const [recordId, setRecordId] = useState(null);
   const [extraData, setExtraData] = useState({});
@@ -213,15 +175,13 @@ export default function EditFormSkeleton({
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
+  const [httpError, setHttpError] = useState(null);
   useEffect(() => {
     const handleToggle = (e) => setIsSidebarOpen(e.detail.isOpen);
     globalThis.addEventListener("sidebar-toggle", handleToggle);
     return () => globalThis.removeEventListener("sidebar-toggle", handleToggle);
   }, []);
-
   const handleExtraChange = useFieldChange(setExtraData, setFieldErrors);
-
   function handleMultiToggle(key, value) {
     setExtraData(prev => {
       const current = prev[key] || [];
@@ -230,7 +190,6 @@ export default function EditFormSkeleton({
     });
     setFieldErrors(prev => ({ ...prev, [key]: "" }));
   }
-
   useEffect(() => {
     if (!identifier) return;
     async function loadData() {
@@ -253,14 +212,18 @@ export default function EditFormSkeleton({
         Object.entries(setters).forEach(([key, setter]) => { if (data[key] !== undefined) setter(data[key]); });
       } catch (err) {
         if (process.env.NODE_ENV !== "production") console.error(err);
-        setError("Could not load data. Please go back and try again.");
+        const status = err.response?.status;
+        if (status === 403 || status === 404 || status === 400 || status === 500) {
+          setHttpError({ statusCode: status, message: err.response?.data?.message || null });
+        } else {
+          setError("Could not load data. Please go back and try again.");
+        }
       } finally {
         setLoading(false);
       }
     }
     loadData();
   }, [identifier, apiPath]);
-
   function validate() {
     const errors = {};
     extraFields.forEach(field => {
@@ -280,14 +243,13 @@ export default function EditFormSkeleton({
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError(""); setSuccess("");
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const res = await api.post(`/${apiPath}/update`, {
+      const res = await api.put(`/${apiPath}/update`, {
         id: recordId, [identifierField]: identifierDisplay,
         ...extraData, ...externalExtraData,
       });
@@ -305,7 +267,6 @@ export default function EditFormSkeleton({
       setSubmitting(false);
     }
   }
-
   return (
     <PageShell isSidebarOpen={isSidebarOpen}>
       <PageHeader
@@ -332,9 +293,7 @@ export default function EditFormSkeleton({
             Editing Record
           </div>
         </div>
-
         <AlertBox error={error} success={success} />
-
         {loading ? (
           <div style={{ textAlign: "center", padding: "52px", color: C.muted, fontSize: "14px" }}>
             Loading {title} data…
@@ -350,7 +309,14 @@ export default function EditFormSkeleton({
                     id="identifier" type="text" value={identifierDisplay} disabled
                   />
                 </div>
-
+                {extraFields.length === 0 && (
+                  <p style={{
+                    fontSize: "12px", color: C.muted, fontStyle: "italic",
+                    margin: "4px 0 0", gridColumn: "1 / -1",
+                  }}>
+                    This module only has an identifier — there are no additional fields to edit.
+                  </p>
+                )}
                 {extraFields.map(field => {
                   let fieldElement = null;
                   if (field.type === "custom") {
@@ -426,7 +392,6 @@ export default function EditFormSkeleton({
                   );
                 })}
               </div>
-
               <div style={{
                 display: "flex", justifyContent: "flex-end",
                 gap: "10px", marginTop: "24px",
@@ -457,20 +422,26 @@ export default function EditFormSkeleton({
                 </button>
               </div>
             </form>
-
             <AuditFooter
               createdBy={auditInfo.createdBy}
               createdAt={auditInfo.createdAt}
               modifiedBy={auditInfo.modifiedBy}
               modifiedAt={auditInfo.modifiedAt}
+              wrapperStyle={auditFooterWrapSt}
             />
           </>
         )}
       </PageCard>
+      <HttpErrorPopup
+        httpError={httpError}
+        onClose={() => {
+          setHttpError(null);
+          router.push(`/${apiPath}/list`);
+        }}
+      />
     </PageShell>
   );
 }
-
 EditFormSkeleton.propTypes = {
   title: PropTypes.string.isRequired,
   apiPath: PropTypes.string.isRequired,

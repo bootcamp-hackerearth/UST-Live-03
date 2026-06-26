@@ -7,7 +7,8 @@ export const labelStyle = {
 };
 
 export const inputStyle = {
-  padding: "9px 12px", border: "1.5px solid #E8E8E8",
+  padding: "9px 12px",
+  borderWidth: "1.5px", borderStyle: "solid", borderColor: "#E8E8E8",
   borderRadius: "7px", fontSize: "13px", outline: "none",
   background: "#fafafa", boxSizing: "border-box", width: "100%",
   color: "#1e2235",

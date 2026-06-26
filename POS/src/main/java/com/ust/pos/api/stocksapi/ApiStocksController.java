@@ -36,12 +36,12 @@ public class ApiStocksController extends BaseController {
         return stocksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StocksDto updatePost(@RequestBody StocksDto stocksDto) {
         return stocksService.update(stocksDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             stocksService.delete(identifier);

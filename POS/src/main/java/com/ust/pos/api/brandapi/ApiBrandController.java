@@ -16,6 +16,7 @@ public class ApiBrandController extends BaseController {
     public ApiBrandController(BrandService brandService) {
         this.brandService = brandService;
     }
+
     private final BrandService brandService;
 
     @PostMapping("/list")
@@ -34,12 +35,12 @@ public class ApiBrandController extends BaseController {
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);

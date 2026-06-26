@@ -14,9 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/user")
 public class UserController extends BaseController {
 
-
     private final UserService userService;
-
 
     private final RoleService roleService;
 

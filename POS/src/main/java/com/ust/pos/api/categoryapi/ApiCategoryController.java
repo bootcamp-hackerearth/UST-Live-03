@@ -17,6 +17,7 @@ public class ApiCategoryController extends BaseController {
     public ApiCategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
+
     private final CategoryService categoryService;
 
     @PostMapping("/list")
@@ -35,12 +36,12 @@ public class ApiCategoryController extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -53,6 +54,11 @@ public class ApiCategoryController extends BaseController {
     @GetMapping("/getBySuperCategoryNotNull")
     public List<CategoryDto> superCategoryNotNull() {
         return categoryService.findBySuperCategoryNotNull();
+    }
+
+    @GetMapping("/getAllActiveCategories")
+    public List<CategoryDto> getAllActiveCategories() {
+        return categoryService.findAllActiveCategories();
     }
 
     @PostMapping("/toggle-status")

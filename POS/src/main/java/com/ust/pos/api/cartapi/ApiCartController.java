@@ -14,6 +14,7 @@ public class ApiCartController extends BaseController {
         this.cartService = cartService;
         this.cartEntryService = cartEntryService;
     }
+
     private final CartService cartService;
     private final CartEntryService cartEntryService;
 
@@ -32,7 +33,7 @@ public class ApiCartController extends BaseController {
         return cartService.recalculate(cartDto.getIdentifier());
     }
 
-    @PostMapping("/deleteCart")
+    @PutMapping("/deleteCart")
     public Boolean deleteCart(@RequestBody CartDto cartDto){
         try {
             cartService.deleteByIdentifier(cartDto.getIdentifier());
@@ -42,7 +43,7 @@ public class ApiCartController extends BaseController {
         return true;
     }
 
-    @GetMapping("/deleteEntry")
+    @PutMapping("/deleteEntry")
     public boolean delete(@RequestParam String identifier, String cart) {
         try{
             cartEntryService.deleteByIdentifier(identifier);

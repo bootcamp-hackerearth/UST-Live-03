@@ -13,10 +13,10 @@ import java.util.List;
 @RequestMapping("/api/address")
 public class ApiAddressController extends BaseController {
 
-
     public ApiAddressController(AddressService addressService) {
         this.addressService = addressService;
     }
+
     private final AddressService addressService;
 
     @PostMapping("/list")
@@ -35,12 +35,12 @@ public class ApiAddressController extends BaseController {
         return addressService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public AddressDto updatePost(@RequestBody AddressDto addressDto) {
         return addressService.update(addressDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             addressService.delete(identifier);

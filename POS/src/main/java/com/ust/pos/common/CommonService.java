@@ -3,7 +3,6 @@ package com.ust.pos.common;
 import com.ust.pos.model.CommonFields;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.time.LocalDateTime;
 
 public abstract class CommonService {
@@ -30,6 +29,7 @@ public abstract class CommonService {
         }
         return authentication.getName();
     }
+
     protected void softDelete(CommonFields entity) {
         entity.setDeleted(true);
         entity.setStatus(false);
