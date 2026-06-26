@@ -240,9 +240,10 @@ class CustomerServiceTest {
     void deleteCustomerNullTest() {
         Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("C1"))
                 .thenReturn(null);
-
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            customerService.delete("C1");
-        });
+        customerService.delete("C1");
+        Mockito.verify(customerRepository, Mockito.never())
+                .save(Mockito.any());
+        Mockito.verify(addressService, Mockito.never())
+                .deleteByPhone(Mockito.any());
     }
 }
