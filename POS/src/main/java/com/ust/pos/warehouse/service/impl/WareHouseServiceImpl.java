@@ -3,6 +3,7 @@ package com.ust.pos.warehouse.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.WareHouse;
 import com.ust.pos.model.WareHouseRepository;
 import com.ust.pos.warehouse.service.WareHouseService;
@@ -28,7 +29,11 @@ public class WareHouseServiceImpl extends CommonService implements WareHouseServ
 
     @Override
     public WareHouseDto findByIdentifier(String identifier) {
-        return modelMapper.map(wareHouseRepository.findByIdentifier(identifier), WareHouseDto.class);
+        WareHouse warehouse =wareHouseRepository.findByIdentifier(identifier);
+        if (warehouse == null) {
+            throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(warehouse, WareHouseDto.class);
     }
 
     @Override

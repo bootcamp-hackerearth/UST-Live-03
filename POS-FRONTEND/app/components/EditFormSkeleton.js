@@ -91,7 +91,9 @@ export default function EditFormSkeleton({
           });
         }
       } catch (err) {
-        console.error(err);
+        if (isMounted) {
+          setError(err?.response?.data?.message || "Unable to connect to server.");
+        }
       } finally {
         if (isMounted) setLoading(false);
       }

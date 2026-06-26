@@ -22,26 +22,34 @@ class PosUserDetailsServiceTest {
     @InjectMocks
     private PosUserDetailsService posUserDetailsService;
 
+
     @Test
-    void loadUserByUsernameTest() {
+    void loadUserByUsername_success() {
         UserDto userDto = new UserDto();
         userDto.setUsername("admin@test.com");
-        userDto.setPassword("hashedpassword");
+        userDto.setPassword("encodedPassword");
+        userDto.setRoles(java.util.List.of("ROLE_ADMIN")); //
 
-        Mockito.when(userService.findByUserName("admin@test.com")).thenReturn(userDto);
+        Mockito.when(userService.findByUserName("admin@test.com"))
+                .thenReturn(userDto);
 
-        UserDetails response = posUserDetailsService.loadUserByUsername("admin@test.com");
+        UserDetails userDetails =
+                posUserDetailsService.loadUserByUsername("admin@test.com");
 
-        Assertions.assertEquals("admin@test.com", response.getUsername());
-        Assertions.assertEquals("hashedpassword", response.getPassword());
+        Assertions.assertNotNull(userDetails);
+        Assertions.assertEquals("admin@test.com", userDetails.getUsername());
+        Assertions.assertEquals("encodedPassword", userDetails.getPassword());
     }
 
-    @Test
-    void loadUserByUsernameNotFoundTest() {
-        Mockito.when(userService.findByUserName("unknown@test.com")).thenReturn(null);
 
-        Assertions.assertThrows(UsernameNotFoundException.class, () -> {
-            posUserDetailsService.loadUserByUsername("unknown@test.com");
-        });
+    @Test
+    void loadUserByUsername_userNotFound() {
+        Mockito.when(userService.findByUserName("missing@test.com"))
+                .thenReturn(null);
+
+        Assertions.assertThrows(
+                UsernameNotFoundException.class,
+                () -> posUserDetailsService.loadUserByUsername("missing@test.com")
+        );
     }
 }

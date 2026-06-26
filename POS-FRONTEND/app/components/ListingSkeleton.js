@@ -65,10 +65,13 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
         }
       } catch (err) {
         console.error(`Failed to load ${title} data:`, err);
+        if (err?.response?.status === 500) {
+          router.push("/500");
+        }
       }
     }
     loadList();
-  }, [pagination, debouncedSearch, apis.list, fields, title]);
+  }, [pagination, debouncedSearch, apis.list, fields, title, router]);
 
   async function confirmDelete() {
     if (!deleteTarget) return;
@@ -78,6 +81,9 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
       setPagination((prev) => ({ ...prev }));
     } catch (err) {
       console.error("Failed to delete record:", err);
+      if (err?.response?.status === 500) {
+        router.push("/500");
+      }
     }
   }
 
@@ -87,6 +93,9 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
       setPagination((prev) => ({ ...prev }));
     } catch (err) {
       console.error("Failed to toggle status:", err);
+      if (err?.response?.status === 500) {
+        router.push("/500");
+      }
     }
   }
 
@@ -210,8 +219,8 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
             <div className="flex items-center justify-center gap-1.5 p-4 border-t border-solid border-gray-200 bg-white shrink-0">
               <button
                 className={`${pgnButtonStyle} ${currentPage === 0
-                    ? "text-gray-300 border-gray-100 cursor-not-allowed"
-                    : "text-brand border-gray-200 cursor-pointer hover:bg-gray-50"
+                  ? "text-gray-300 border-gray-100 cursor-not-allowed"
+                  : "text-brand border-gray-200 cursor-pointer hover:bg-gray-50"
                   }`}
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 0}
@@ -223,8 +232,8 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
                 <button
                   key={pageIndex}
                   className={`min-w-9 h-9 px-2.5 rounded-lg border-[1.5px] border-solid text-xs font-semibold flex items-center justify-center cursor-pointer transition-all ${currentPage === pageIndex
-                      ? "bg-brand border-brand text-white"
-                      : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                    ? "bg-brand border-brand text-white"
+                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
                     }`}
                   onClick={() => goToPage(pageIndex)}
                 >
@@ -234,8 +243,8 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
 
               <button
                 className={`${pgnButtonStyle} ${currentPage === totalPages - 1
-                    ? "text-gray-300 border-gray-100 cursor-not-allowed"
-                    : "text-brand border-gray-200 cursor-pointer hover:bg-gray-50"
+                  ? "text-gray-300 border-gray-100 cursor-not-allowed"
+                  : "text-brand border-gray-200 cursor-pointer hover:bg-gray-50"
                   }`}
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages - 1}
@@ -281,7 +290,7 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
 ListingSkeleton.propTypes = {
   title: PropTypes.string,
   fields: PropTypes.arrayOf(PropTypes.string),
-  fieldLabels: PropTypes.objectOf(PropTypes.string),  
+  fieldLabels: PropTypes.objectOf(PropTypes.string),
   apis: PropTypes.shape({
     list: PropTypes.string,
     delete: PropTypes.string,
@@ -294,7 +303,7 @@ ListingSkeleton.propTypes = {
 ListingSkeleton.defaultProps = {
   title: "",
   fields: [],
-  fieldLabels: {}, 
+  fieldLabels: {},
   apis: {},
   editPathBase: "",
 };
