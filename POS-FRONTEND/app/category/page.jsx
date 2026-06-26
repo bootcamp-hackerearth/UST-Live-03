@@ -1,6 +1,7 @@
 "use client";
 
 import CommonList from "@/components/CommonList";
+import { nameValidation } from "@/validation/validation";
 
 export default function CategoryPage() {
 
@@ -74,7 +75,7 @@ export default function CategoryPage() {
           type: "text",
           placeholder:
             "Enter Category Name",
-          required: true,
+          validation: nameValidation
         },
         {
           name:

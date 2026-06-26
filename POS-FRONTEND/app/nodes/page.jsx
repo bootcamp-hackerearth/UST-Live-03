@@ -1,6 +1,7 @@
 "use client";
 
 import CommonList from "@/components/CommonList";
+import { requiredValidation } from "@/validation/validation";
 
 export default function NodeList() {
 
@@ -12,7 +13,7 @@ export default function NodeList() {
       placeholder: "Node Name",
       hardCoded: "false",
       hardCodedArray: [],
-      required: true,
+      validation: requiredValidation,
       readOnly: false,
     },
 
@@ -22,7 +23,7 @@ export default function NodeList() {
       placeholder: "/home/nodes",
       hardCoded: "false",
       hardCodedArray: [],
-      required: true,
+      validation: requiredValidation,
       readOnly: false,
     },
 
@@ -34,7 +35,7 @@ export default function NodeList() {
       hardCoded: "false",
       multiple: true,
       hardCodedArray: [],
-      required: true,
+      validation: requiredValidation,
       readOnly: false,
     },
 

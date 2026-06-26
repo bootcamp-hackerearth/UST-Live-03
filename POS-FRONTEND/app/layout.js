@@ -23,7 +23,6 @@ export default function RootLayout({ children }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [authorized, setAuthorized] = useState(false);
-  const [isPathAllowed, setIsPathAllowed] = useState(true);
 
   const hideLayout =
     pathname === "/" || pathname === "/login" || pathname === "/register";
@@ -39,55 +38,7 @@ export default function RootLayout({ children }) {
       return;
     }
 
-    if (hideLayout) {
-      setAuthorized(true);
-      setIsPathAllowed(true);
-      return;
-    }
-
-    const verifyAccess = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/node/list", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            page: 0,
-            sizePerPage: 100,
-            sortDirection: "ASC",
-            sortField: "identifier",
-          }),
-        });
-
-        const data = await response.json();
-        const nodesList = Array.isArray(data) ? data : data.dtoList || [];
-
-        const allowedPaths = [
-          "/home",
-          "/home/profile",
-          ...nodesList.map((node) => {
-            const path = node.path || "";
-            return path.startsWith("/") ? path.toLowerCase() : `/${path}`.toLowerCase();
-          }),
-        ];
-
-        const currentNormalizedPath = pathname.toLowerCase();
-        const hasAccess = allowedPaths.some((allowedPath) => 
-          currentNormalizedPath === allowedPath || currentNormalizedPath.startsWith(allowedPath + "/")
-        );
-
-        setIsPathAllowed(hasAccess);
-        setAuthorized(true);
-      } catch (error) {
-        console.error("Authorization Error:", error);
-        setAuthorized(true);
-        setIsPathAllowed(false);
-      }
-    };
-
-    verifyAccess();
+    setAuthorized(true);
   }, [pathname, hideLayout, router]);
 
   if (!authorized && !hideLayout) {
@@ -136,71 +87,7 @@ export default function RootLayout({ children }) {
                 setSidebarOpen={setSidebarOpen}
               />
 
-              {isPathAllowed ? (
-                children
-              ) : (
-                <>
-                  <style>{`
-                    .denied-container {
-                      min-height: calc(100vh - 88px);
-                      background-color: #f4f5fa;
-                      display: flex;
-                      flex-direction: column;
-                      align-items: center;
-                      justify-content: center;
-                      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                      padding: 24px;
-                      box-sizing: border-box;
-                    }
-                    .denied-box {
-                      text-align: center;
-                      max-width: 440px;
-                    }
-                    .denied-title {
-                      font-size: 38px;
-                      font-weight: 700;
-                      color: #2d2d6e;
-                      margin-bottom: 12px;
-                      letter-spacing: -0.5px;
-                    }
-                    .denied-title span {
-                      color: #e55555;
-                    }
-                    .denied-text {
-                      font-size: 14px;
-                      color: #8888a0;
-                      line-height: 1.6;
-                      margin-bottom: 24px;
-                    }
-                    .denied-btn {
-                      height: 40px;
-                      padding: 0 20px;
-                      background: #6c63ff;
-                      border: none;
-                      border-radius: 8px;
-                      color: #ffffff;
-                      font-size: 13px;
-                      font-weight: 500;
-                      cursor: pointer;
-                      transition: background-color 0.15s ease;
-                    }
-                    .denied-btn:hover {
-                      background-color: #5850ec;
-                    }
-                  `}</style>
-                  <div className="denied-container">
-                    <div className="denied-box">
-                      <h1 className="denied-title">Access <span>Denied</span></h1>
-                      <p className="denied-text">
-                        Your security profile does not have an active node allocation for this management module. Contact your primary administrator to request permission.
-                      </p>
-                      <button type="button" onClick={() => router.push("/home")} className="denied-btn">
-                        Return Home
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
+              {children}
             </div>
           </>
         )}

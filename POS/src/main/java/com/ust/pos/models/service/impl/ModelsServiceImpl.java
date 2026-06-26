@@ -1,5 +1,6 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
@@ -7,7 +8,6 @@ import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,11 +17,17 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ModelsServiceImpl implements ModelsService {
-    @Autowired
-    private ModelsRepository modelsRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+public class ModelsServiceImpl extends BaseService implements ModelsService {
+
+    public static final String MODELS_WITH_IDENTIFIER = "Models with identifier - ";
+    private final ModelsRepository modelsRepository;
+
+    private final ModelMapper modelMapper;
+
+    public ModelsServiceImpl(ModelsRepository modelsRepository, ModelMapper modelMapper) {
+        this.modelsRepository = modelsRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
@@ -33,11 +39,15 @@ public class ModelsServiceImpl implements ModelsService {
         String identifier = modelsDto.getIdentifier();
         Models existingModels = modelsRepository.findByIdentifier(identifier);
         if (existingModels != null) {
-            modelsDto.setMessage("Models with identifier - " + identifier + " already exists");
+            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " already exists");
+            if (existingModels.isDeleted()) {
+                modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " was deleted , Please Contact the Administrator to add.");
+            }
             modelsDto.setSuccess(false);
             return modelsDto;
         }
         Models models = modelMapper.map(modelsDto, Models.class);
+        setCreatedDetails(models);
         modelsRepository.save(models);
         return modelsDto;
     }
@@ -47,25 +57,29 @@ public class ModelsServiceImpl implements ModelsService {
         String identifier = modelsDto.getIdentifier();
         Models existingModels = modelsRepository.findByIdentifier(identifier);
         if (existingModels == null) {
-            modelsDto.setMessage("Models with identifier - " + identifier + " not found");
+            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " not found");
             modelsDto.setSuccess(false);
             return modelsDto;
         }
         modelMapper.map(modelsDto, existingModels);
+        setModifiedDetails(existingModels);
         modelsRepository.save(existingModels);
         return modelsDto;
     }
 
     @Transactional
+    @Override
     public void delete(String identifier) {
-        modelsRepository.deleteByIdentifier(identifier);
+        Models models = modelsRepository.findByIdentifier(identifier);
+        softDelete(models);
+        setModifiedDetails(models);
     }
 
     @Override
     public WsDto<ModelsDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
+        Page<Models> modelsPage = modelsRepository.findByIsDeletedFalse(pageable);
         WsDto<ModelsDto> modelsWsDto = new WsDto<>();
         modelsWsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
         modelsWsDto.setTotalRecords(modelsPage.getTotalElements());
@@ -81,6 +95,7 @@ public class ModelsServiceImpl implements ModelsService {
         Models models = modelsRepository.findByIdentifier(identifier);
         if (models != null) {
             models.setStatus(!models.isStatus());
+            setModifiedDetails(models);
             modelsRepository.save(models);
         }
     }

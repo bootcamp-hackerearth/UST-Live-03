@@ -97,8 +97,14 @@ class RacksServiceTest {
 
     @Test
     void deleteTest() {
+        Racks rack = new Racks();
+        rack.setIdentifier("A1");
+
+        when(racksRepository.findByIdentifier("A1")).thenReturn(rack);
+
         racksService.delete("A1");
-        verify(racksRepository).deleteByIdentifier("A1");
+
+        verify(racksRepository).findByIdentifier("A1");
     }
 
     @Test
@@ -135,15 +141,19 @@ class RacksServiceTest {
         List<Racks> racksList = List.of(new Racks(), new Racks());
         List<RacksDto> dtoList = List.of(new RacksDto(), new RacksDto());
 
-        when(racksRepository.findAll(pageable)).thenReturn(page);
+        when(racksRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(racksList);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(racksList), any(Type.class))).thenReturn(dtoList);
 
         WsDto<RacksDto> result = racksService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(racksRepository).findAll(pageable);
+        verify(racksRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(racksList), any(Type.class));
     }

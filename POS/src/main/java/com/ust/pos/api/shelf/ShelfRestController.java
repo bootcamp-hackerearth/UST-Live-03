@@ -5,20 +5,19 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/shelf")
 public class ShelfRestController extends BaseController {
 
-    @Autowired
-    private ShelfService shelfService;
+    private final ShelfService shelfService;
+
+    public ShelfRestController(ShelfService shelfService) {
+        this.shelfService = shelfService;
+    }
 
     @PostMapping("/list")
     public WsDto<ShelfDto> home(@RequestBody PaginationDto paginationDto) {
@@ -38,12 +37,12 @@ public class ShelfRestController extends BaseController {
         return shelfService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfDto updatePost(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestBody String identifier) {
         try {
             shelfService.delete(identifier);
@@ -51,5 +50,11 @@ public class ShelfRestController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public String toggleStatus(@RequestBody String identifier) {
+        shelfService.toggleStatus(identifier);
+        return identifier;
     }
 }

@@ -16,5 +16,5 @@ public class CartEntry extends CommonFields {
     private BigDecimal quantity = new BigDecimal(0);
     private BigDecimal discount;
     private String cartId;
-    private BigDecimal totalOrignalPrice;
+    private BigDecimal totalOriginalPrice;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import CommonList from "@/components/CommonList";
+import { requiredValidation, nameValidation } from "@/validation/validation";
 
 function ProductList() {
   return (
@@ -34,7 +35,7 @@ function ProductList() {
           render: (item) =>
             typeof item.category === "object"
               ? item.category?.identifier ||
-                item.category?.name
+              item.category?.name
               : item.category,
         },
         {
@@ -43,7 +44,7 @@ function ProductList() {
           render: (item) =>
             typeof item.brand === "object"
               ? item.brand?.identifier ||
-                item.brand?.name
+              item.brand?.name
               : item.brand,
         },
       ]}
@@ -52,19 +53,19 @@ function ProductList() {
           name: "identifier",
           type: "text",
           placeholder: "Enter Product Identifier",
-          required: true,
+          validation: requiredValidation
         },
         {
           name: "name",
           type: "text",
           placeholder: "Enter Product Name",
-          required: true,
+          validation: nameValidation
         },
         {
           name: "unit",
           type: "text",
           placeholder: "Enter Unit",
-          required: true,
+          validation: requiredValidation
         },
         {
           name: "category",
@@ -74,7 +75,7 @@ function ProductList() {
           hardCoded: "false",
           multiple: false,
           hardCodedArray: [],
-          required: true,
+          validation: requiredValidation,
           readOnly: false,
         },
         {
@@ -85,7 +86,7 @@ function ProductList() {
           hardCoded: "false",
           multiple: false,
           hardCodedArray: [],
-          required: true,
+          validation: requiredValidation,
           readOnly: false,
         },
       ]}

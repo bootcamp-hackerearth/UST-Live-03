@@ -1,6 +1,7 @@
 "use client";
 
 import CommonList from "@/components/CommonList";
+import { requiredValidation } from "@/validation/validation";
 
 export default function RoleList() {
 
@@ -12,7 +13,7 @@ export default function RoleList() {
       placeholder: "Role Name",
       hardCoded: "false",
       hardCodedArray: [],
-      required: true,
+      validation: requiredValidation,
       readOnly: false,
     },
 
@@ -22,7 +23,7 @@ export default function RoleList() {
       placeholder: "Role Description",
       hardCoded: "false",
       hardCodedArray: [],
-      required: true,
+      validation: requiredValidation,
       readOnly: false,
     },
 

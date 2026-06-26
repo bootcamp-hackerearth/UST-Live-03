@@ -155,8 +155,14 @@ class UserServiceTest {
 
     @Test
     void deleteTest() {
+        User user = new User();
+        user.setUsername("user1");
+
+        when(userRepository.findByUsername("user1")).thenReturn(user);
+
         userService.delete("user1");
-        verify(userRepository).deleteByUsername("user1");
+
+        verify(userRepository).findByUsername("user1");
     }
 
     @Test
@@ -167,15 +173,19 @@ class UserServiceTest {
         List<User> users = List.of(new User(), new User());
         List<UserDto> dtoList = List.of(new UserDto(), new UserDto());
 
-        when(userRepository.findAll(pageable)).thenReturn(page);
+        when(userRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(users);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(users), any(Type.class))).thenReturn(dtoList);
 
         WsDto<UserDto> result = userService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(userRepository).findAll(pageable);
+        verify(userRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(users), any(Type.class));
     }

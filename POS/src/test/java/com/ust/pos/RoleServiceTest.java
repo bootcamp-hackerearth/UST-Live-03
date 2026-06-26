@@ -98,8 +98,14 @@ class RoleServiceTest {
 
     @Test
     void deleteTestSuccess() {
+        Role role = new Role();
+        role.setIdentifier("Admin");
+
+        when(roleRepository.findByIdentifier("Admin")).thenReturn(role);
+
         roleService.delete("Admin");
-        verify(roleRepository).deleteByIdentifier("Admin");
+
+        verify(roleRepository).findByIdentifier("Admin");
     }
 
     @Test
@@ -136,8 +142,12 @@ class RoleServiceTest {
         List<Role> roles = List.of(new Role(), new Role());
         List<RoleDto> dtoList = List.of(new RoleDto(), new RoleDto());
 
-        when(roleRepository.findAll(pageable)).thenReturn(page);
+        when(roleRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(roles);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(roles), any(Type.class))).thenReturn(dtoList);
 
         WsDto<RoleDto> result = roleService.findAll(pageable);
@@ -145,7 +155,7 @@ class RoleServiceTest {
         Assertions.assertNotNull(result);
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(roleRepository).findAll(pageable);
+        verify(roleRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(roles), any(Type.class));
     }

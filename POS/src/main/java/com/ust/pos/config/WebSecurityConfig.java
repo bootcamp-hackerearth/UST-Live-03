@@ -35,11 +35,14 @@ public class WebSecurityConfig {
 
     public static final String JAVA_IN_USE_SECURITY_SCHEME = "JavaInUseSecurityScheme";
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    public WebSecurityConfig(UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userDetailsService = userDetailsService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) {
@@ -62,13 +65,10 @@ public class WebSecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/**"
                         ).permitAll()
-
                         .anyRequest().authenticated()
                 )
                 .logout(org.springframework.security.config.annotation.web.configurers.LogoutConfigurer::permitAll);
-
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
@@ -86,29 +86,16 @@ public class WebSecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOrigins(
-                Arrays.asList(
-                        "http://localhost:3000",
-                        "http://localhost:5173"
-                )
-        );
-
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000",
+                "http://localhost:5173"));
         configuration.setAllowedMethods(
-                Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        );
-
+                Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(
-                Arrays.asList("Authorization", "Content-Type")
-        );
-
+                Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
-
         source.registerCorsConfiguration("/**", configuration);
 
         return source;

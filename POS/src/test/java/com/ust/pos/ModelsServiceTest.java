@@ -97,8 +97,14 @@ class ModelsServiceTest {
 
     @Test
     void deleteTest() {
+        Models models = new Models();
+        models.setIdentifier("M1");
+
+        when(modelsRepository.findByIdentifier("M1")).thenReturn(models);
+
         modelsService.delete("M1");
-        verify(modelsRepository).deleteByIdentifier("M1");
+
+        verify(modelsRepository).findByIdentifier("M1");
     }
 
     @Test
@@ -135,15 +141,19 @@ class ModelsServiceTest {
         List<Models> list = List.of(new Models(), new Models());
         List<ModelsDto> dtoList = List.of(new ModelsDto(), new ModelsDto());
 
-        when(modelsRepository.findAll(pageable)).thenReturn(page);
+        when(modelsRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(list);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(list), any(Type.class))).thenReturn(dtoList);
 
         WsDto<ModelsDto> result = modelsService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(modelsRepository).findAll(pageable);
+        verify(modelsRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(list), any(Type.class));
     }

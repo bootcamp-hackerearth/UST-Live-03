@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
@@ -32,271 +32,69 @@ export default function Navbar() {
 
   return (
     <>
-      <style>{`
-        .navbar-wrapper {
-          position: sticky;
-          top: 0;
-          z-index: 30;
-          height: 88px;
-          padding: 0 40px;
-          background: transparent;
-          border-bottom: 1px solid #ebebf5;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          box-sizing: border-box;
-        }
-
-        .welcome-title {
-          font-size: 22px;
-          font-weight: 600;
-          color: #2d2d6e;
-          letter-spacing: -0.5px;
-          margin: 0;
-        }
-
-        .welcome-link {
-          background: none;
-          border: none;
-          padding: 0;
-          font-size: inherit;
-          font-weight: inherit;
-          font-family: inherit;
-          letter-spacing: inherit;
-          color: inherit;
-          cursor: pointer;
-          text-align: left;
-          transition: opacity 0.15s ease;
-        }
-
-        .welcome-link:hover {
-          opacity: 0.85;
-        }
-
-        .welcome-link span {
-          color: #6c63ff;
-        }
-
-        .navbar-subtitle {
-          font-size: 13px;
-          color: #8888a0;
-          margin: 4px 0 0 0;
-        }
-
-        .profile-container {
-          position: relative;
-          z-index: 50;
-        }
-
-        .avatar-trigger {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          background: #6c63ff;
-          color: #ffffff;
-          font-size: 15px;
-          font-weight: 600;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.15s ease;
-        }
-
-        .avatar-trigger:hover {
-          transform: scale(1.04);
-        }
-
-        .dropdown-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 40;
-          background: transparent;
-        }
-
-        .profile-dropdown {
-          position: absolute;
-          right: 0;
-          top: 56px;
-          width: 300px;
-          background: #ffffff;
-          border: 1px solid #ebebf5;
-          border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(45, 45, 110, 0.08);
-          padding: 24px;
-          box-sizing: border-box;
-          transition: all 0.2s ease;
-        }
-
-        .dropdown-hidden {
-          opacity: 0;
-          visibility: hidden;
-          transform: translateY(-8px);
-          pointer-events: none;
-        }
-
-        .dropdown-visible {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-        }
-
-        .dropdown-header {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #ebebf5;
-          margin-bottom: 16px;
-        }
-
-        .header-avatar {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          background: #f4f5fa;
-          color: #6c63ff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          font-weight: 700;
-        }
-
-        .header-info {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .info-name {
-          font-size: 15px;
-          font-weight: 600;
-          color: #2d2d6e;
-          margin: 0;
-        }
-
-        .info-role {
-          font-size: 12px;
-          font-weight: 500;
-          color: #6c63ff;
-          margin: 2px 0 0 0;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .info-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .stack-item {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .item-label {
-          font-size: 11px;
-          font-weight: 600;
-          color: #b0b0c8;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 2px;
-        }
-
-        .item-value {
-          font-size: 13px;
-          color: #4b4b75;
-          margin: 0;
-          word-break: break-all;
-        }
-
-        .profile-action-btn {
-          width: 100%;
-          height: 38px;
-          background: #6c63ff;
-          border: none;
-          border-radius: 8px;
-          color: #ffffff;
-          font-size: 13px;
-          font-weight: 500;
-          margin-top: 20px;
-          cursor: pointer;
-          transition: background-color 0.15s ease;
-        }
-
-        .profile-action-btn:hover {
-          background-color: #5850ec;
-        }
-      `}</style>
-
       {profileOpen && (
         <button
           type="button"
-          className="dropdown-overlay"
+          className="fixed inset-0 z-40 bg-transparent"
           onClick={() => setProfileOpen(false)}
           onKeyDown={(e) => e.key === "Escape" && setProfileOpen(false)}
           aria-label="Close profile overlay"
         />
       )}
 
-      <nav className="navbar-wrapper">
+      <nav className="sticky top-0 z-30 h-[88px] px-10 bg-transparent border-b border-[#ebebf5] flex items-center justify-between font-sans box-border">
         <button
           type="button"
           onClick={() => router.push("/home")}
-          className="welcome-button"
-          style={{
-            background: "none",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-            textAlign: "left",
-          }}
+          className="bg-transparent border-none p-0 cursor-pointer text-left transition-opacity duration-150 hover:opacity-85"
         >
-          <h1 className="welcome-title">
-            Welcome <span>{userData.name}</span>
+          <h1 className="text-[22px] font-semibold text-[#2d2d6e] tracking-tight m-0">
+            Welcome <span className="text-[#6c63ff]">{userData.name}</span>
           </h1>
-          <p className="navbar-subtitle">POS Dashboard</p>
+          <p className="text-xs text-[#8888a0] mt-1 m-0">POS Dashboard</p>
         </button>
 
-        <div className="profile-container">
+        <div className="relative z-50">
           <button
             type="button"
             onClick={() => setProfileOpen(!profileOpen)}
-            className="avatar-trigger"
+            className="w-11 h-11 rounded-full bg-[#6c63ff] text-white text-md font-semibold border-none cursor-pointer flex items-center justify-center transition-transform duration-150 hover:scale-104"
           >
             {userInitial}
           </button>
 
           <div
-            className={`profile-dropdown ${
-              profileOpen ? "dropdown-visible" : "dropdown-hidden"
-            }`}
+            className={`absolute right-0 top-14 w-[300px] bg-white border border-[#ebebf5] rounded-xl shadow-xl p-6 box-border transition-all duration-200 ${profileOpen
+                ? "opacity-100 visible translate-y-0"
+                : "opacity-0 invisible -translate-y-2 pointer-events-none"
+              }`}
           >
-            <div className="dropdown-header">
-              <div className="header-avatar">{userInitial}</div>
-              <div className="header-info">
-                <h3 className="info-name">{userData.name}</h3>
-                <span className="info-role">{userData.role}</span>
+            <div className="flex items-center gap-3.5 pb-4 border-b border-[#ebebf5] mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#f4f5fa] text-[#6c63ff] flex items-center justify-center text-lg font-bold">
+                {userInitial}
+              </div>
+              <div className="flex flex-col">
+                <h3 className="text-sm font-semibold text-[#2d2d6e] m-0">{userData.name}</h3>
+                <span className="text-[11px] font-medium text-[#6c63ff] mt-0.5 uppercase tracking-wider">
+                  {userData.role}
+                </span>
               </div>
             </div>
 
-            <div className="info-stack">
-              <div className="stack-item">
-                <span className="item-label">Email</span>
-                <p className="item-value">{userData.username}</p>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-[#b0b0c8] uppercase tracking-wider mb-0.5">Email</span>
+                <p className="text-xs text-[#4b4b75] m-0 break-all">{userData.username}</p>
               </div>
 
-              <div className="stack-item">
-                <span className="item-label">Role</span>
-                <p className="item-value">{userData.role}</p>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-[#b0b0c8] uppercase tracking-wider mb-0.5">Role</span>
+                <p className="text-xs text-[#4b4b75] m-0 break-all">{userData.role}</p>
               </div>
 
-              <div className="stack-item">
-                <span className="item-label">Phone</span>
-                <p className="item-value">{userData.phoneNo}</p>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-[#b0b0c8] uppercase tracking-wider mb-0.5">Phone</span>
+                <p className="text-xs text-[#4b4b75] m-0 break-all">{userData.phoneNo}</p>
               </div>
             </div>
 
@@ -306,7 +104,7 @@ export default function Navbar() {
                 router.push("/home/profile");
                 setProfileOpen(false);
               }}
-              className="profile-action-btn"
+              className="w-full h-[38px] bg-[#6c63ff] border-none rounded-lg text-white text-xs font-medium mt-5 cursor-pointer transition-colors duration-150 hover:bg-[#5850ec]"
             >
               Edit Profile
             </button>
@@ -316,4 +114,3 @@ export default function Navbar() {
     </>
   );
 }
-

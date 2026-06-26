@@ -22,15 +22,15 @@ const Login = () => {
     setError("");
 
     axios.post("http://localhost:8080/api/authenticate", credentials, {
-        withCredentials: true,
-      })
+      withCredentials: true,
+    })
       .then((res) => {
         if (!res.data || res.data.token === "Error") {
           setError("Incorrect username or password");
           setLoading(false);
           return;
         }
-        
+
         const fetchedRole = res.data.roles?.[0];
         const plainRoleString = typeof fetchedRole === "object" && fetchedRole !== null
           ? fetchedRole.identifier || fetchedRole.name

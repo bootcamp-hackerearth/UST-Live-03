@@ -3,7 +3,6 @@ package com.ust.pos.warehouse;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,11 +14,14 @@ public class WarehouseController {
     public static final String REDIRECT_ROLE_LIST = "redirect:/warehouse/list";
     public static final String ROLE_ADD = "warehouse/add";
 
-    @Autowired
-    private WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+
+    public WarehouseController(WarehouseService warehouseService, ProductService productService) {
+        this.warehouseService = warehouseService;
+        this.productService = productService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

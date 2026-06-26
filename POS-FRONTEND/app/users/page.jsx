@@ -2,6 +2,7 @@
 
 import React from "react";
 import CommonList from "@/components/CommonList";
+import { requiredValidation, emailValidation, passwordValidation, phoneValidation, nameValidation } from "@/validation/validation";
 
 export default function UserList() {
   const fields = [
@@ -9,25 +10,25 @@ export default function UserList() {
       name: "username",
       type: "email",
       placeholder: "Enter Email",
-      required: true,
+      validation: emailValidation,
     },
     {
       name: "name",
       type: "text",
       placeholder: "Enter Name",
-      required: true,
+      validation: nameValidation,
     },
     {
       name: "phoneNo",
       type: "text",
       placeholder: "Enter Phone Number",
-      required: true,
+      validation: phoneValidation,
     },
     {
       name: "password",
       type: "password",
       placeholder: "Enter Password",
-      required: true,
+      validation: passwordValidation,
     },
     {
       name: "roles",
@@ -36,7 +37,7 @@ export default function UserList() {
       dataKey: "roles",
       hardCoded: false,
       multiple: true,
-      required: true,
+      validation: requiredValidation,
     },
   ];
 
@@ -48,10 +49,10 @@ export default function UserList() {
     ...data,
     roles: Array.isArray(data.roles)
       ? data.roles.map((role) =>
-          typeof role === "object"
-            ? role.identifier
-            : role
-        )
+        typeof role === "object"
+          ? role.identifier
+          : role
+      )
       : [],
   });
 

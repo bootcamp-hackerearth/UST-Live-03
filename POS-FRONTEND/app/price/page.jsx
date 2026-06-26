@@ -1,6 +1,7 @@
 "use client";
 
 import CommonList from "@/components/CommonList";
+import { requiredValidation } from "@/validation/validation";
 
 export default function PriceList() {
 
@@ -14,8 +15,8 @@ export default function PriceList() {
       hardCoded: "false",
       multiple: false,
       hardCodedArray: [],
-      required: true,
       readOnly: false,
+      validation: requiredValidation
     },
 
     {
@@ -24,7 +25,7 @@ export default function PriceList() {
       placeholder: "Enter Price Amount",
       hardCoded: "false",
       hardCodedArray: [],
-      required: true,
+      validation: requiredValidation,
       readOnly: false,
     },
 
@@ -36,10 +37,10 @@ export default function PriceList() {
       multiple: false,
       hardCodedArray: [
         "Cost Price",
-        "Selling Price",
+        "Selling price",
         "MRP",
       ],
-      required: true,
+      validation: requiredValidation,
       readOnly: false,
     },
 
@@ -77,7 +78,7 @@ export default function PriceList() {
     {
       key: "product",
       label: "Product",
-  
+
     },
 
   ];

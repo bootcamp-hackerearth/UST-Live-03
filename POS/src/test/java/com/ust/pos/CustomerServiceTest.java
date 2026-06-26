@@ -160,8 +160,13 @@ class CustomerServiceTest {
 
     @Test
     void deleteTest() {
+        Customer customer = new Customer();
+        customer.setIdentifier("C1");
+        when(customerRepository.findByIdentifier("C1")).thenReturn(customer);
+
         customerService.delete("C1");
-        verify(customerRepository).deleteByIdentifier("C1");
+
+        verify(customerRepository).findByIdentifier("C1");
     }
 
     @Test
@@ -171,16 +176,19 @@ class CustomerServiceTest {
 
         List<Customer> customers = List.of(new Customer(), new Customer());
         List<CustomerDto> dtos = List.of(new CustomerDto(), new CustomerDto());
-
-        when(customerRepository.findAll(pageable)).thenReturn(page);
+        when(customerRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(customers);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(customers), any(Type.class))).thenReturn(dtos);
 
         WsDto<CustomerDto> result = customerService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(customerRepository).findAll(pageable);
+        verify(customerRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(customers), any(Type.class));
     }

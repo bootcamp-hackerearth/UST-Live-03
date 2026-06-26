@@ -28,18 +28,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PriceServiceTest {
 
+    private static final String EXPECTED_IDENTIFIER = "ProdA_Retail";
     @Mock
     private PriceRepository priceRepository;
-
     @Mock
     private ModelMapper modelMapper;
-
     @InjectMocks
     private PriceServiceImpl priceService;
-
     private Price price;
     private PriceDto priceDto;
-    private final String EXPECTED_IDENTIFIER = "ProdA_Retail";
 
     @BeforeEach
     void setUp() {
@@ -131,11 +128,11 @@ class PriceServiceTest {
 
     @Test
     void testDelete() {
-        doNothing().when(priceRepository).deleteByIdentifier(EXPECTED_IDENTIFIER);
+        when(priceRepository.findByIdentifier(EXPECTED_IDENTIFIER)).thenReturn(price);
 
         priceService.delete(EXPECTED_IDENTIFIER);
 
-        verify(priceRepository).deleteByIdentifier(EXPECTED_IDENTIFIER);
+        verify(priceRepository).findByIdentifier(EXPECTED_IDENTIFIER);
     }
 
     @Test
@@ -145,9 +142,9 @@ class PriceServiceTest {
         Page<Price> pricePage = new PageImpl<>(priceList, pageable, 1);
 
         List<PriceDto> dtoList = Collections.singletonList(priceDto);
-        Type listType = new TypeToken<List<PriceDto>>() {}.getType();
-
-        when(priceRepository.findAll(pageable)).thenReturn(pricePage);
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        when(priceRepository.findByIsDeletedFalse(pageable)).thenReturn(pricePage);
         when(modelMapper.map(pricePage.getContent(), listType)).thenReturn(dtoList);
 
         WsDto<PriceDto> result = priceService.findAll(pageable);

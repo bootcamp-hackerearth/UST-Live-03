@@ -101,8 +101,14 @@ class UnitServiceTest {
 
     @Test
     void deleteTest() {
+        Unit unit = new Unit();
+        unit.setIdentifier("Admin");
+
+        when(unitRepository.findByIdentifier("Admin")).thenReturn(unit);
+
         unitService.delete("Admin");
-        verify(unitRepository).deleteByIdentifier("Admin");
+
+        verify(unitRepository).findByIdentifier("Admin");
     }
 
     @Test
@@ -139,15 +145,19 @@ class UnitServiceTest {
         List<Unit> units = List.of(new Unit(), new Unit());
         List<UnitDto> dtoList = List.of(new UnitDto(), new UnitDto());
 
-        when(unitRepository.findAll(pageable)).thenReturn(page);
+        when(unitRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(units);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(units), any(Type.class))).thenReturn(dtoList);
 
         WsDto<UnitDto> result = unitService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(unitRepository).findAll(pageable);
+        verify(unitRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(units), any(Type.class));
     }

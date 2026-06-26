@@ -97,8 +97,14 @@ class ProductServiceTest {
 
     @Test
     void deleteTest() {
+        Product product = new Product();
+        product.setIdentifier("P1");
+
+        when(productRepository.findByIdentifier("P1")).thenReturn(product);
+
         productService.delete("P1");
-        verify(productRepository).deleteByIdentifier("P1");
+
+        verify(productRepository).findByIdentifier("P1");
     }
 
     @Test
@@ -135,15 +141,19 @@ class ProductServiceTest {
         List<Product> products = List.of(new Product(), new Product());
         List<ProductDto> dtoList = List.of(new ProductDto(), new ProductDto());
 
-        when(productRepository.findAll(pageable)).thenReturn(page);
+        when(productRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(products);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(products), any(Type.class))).thenReturn(dtoList);
 
         WsDto<ProductDto> result = productService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(productRepository).findAll(pageable);
+        verify(productRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(products), any(Type.class));
     }

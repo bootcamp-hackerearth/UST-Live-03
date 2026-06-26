@@ -97,8 +97,14 @@ class WarehouseServiceTest {
 
     @Test
     void deleteTest() {
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("W1");
+
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(warehouse);
+
         warehouseService.delete("W1");
-        verify(warehouseRepository).deleteByIdentifier("W1");
+
+        verify(warehouseRepository).findByIdentifier("W1");
     }
 
     @Test
@@ -135,15 +141,19 @@ class WarehouseServiceTest {
         List<Warehouse> warehouses = List.of(new Warehouse(), new Warehouse());
         List<WarehouseDto> dtoList = List.of(new WarehouseDto(), new WarehouseDto());
 
-        when(warehouseRepository.findAll(pageable)).thenReturn(page);
+        when(warehouseRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(warehouses);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(warehouses), any(Type.class))).thenReturn(dtoList);
 
         WsDto<WarehouseDto> result = warehouseService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(warehouseRepository).findAll(pageable);
+        verify(warehouseRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(warehouses), any(Type.class));
     }

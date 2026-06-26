@@ -190,8 +190,14 @@ class NodeServiceTest {
 
     @Test
     void deleteTest() {
+        Node node = new Node();
+        node.setIdentifier("N1");
+
+        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
+
         nodeService.delete("N1");
-        verify(nodeRepository).deleteByIdentifier("N1");
+
+        verify(nodeRepository).findByIdentifier("N1");
     }
 
     @Test
@@ -202,15 +208,19 @@ class NodeServiceTest {
         List<Node> nodes = List.of(new Node(), new Node());
         List<NodeDto> dtoList = List.of(new NodeDto(), new NodeDto());
 
-        when(nodeRepository.findAll(pageable)).thenReturn(page);
+        when(nodeRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(nodes);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(nodes), any(Type.class))).thenReturn(dtoList);
 
         WsDto<NodeDto> result = nodeService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(nodeRepository).findAll(pageable);
+        verify(nodeRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(nodes), any(Type.class));
     }

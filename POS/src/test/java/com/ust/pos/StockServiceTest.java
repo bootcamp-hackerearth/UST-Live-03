@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StockServiceImplTest {
+class StockServiceTest {
 
     @Mock
     private StockRepository stockRepository;
@@ -101,6 +101,7 @@ class StockServiceImplTest {
 
     @Test
     void testUpdate_Success() {
+
         when(stockRepository.findByIdentifier("S001")).thenReturn(stock);
 
         StockDto result = stockService.update(stockDto);
@@ -111,11 +112,14 @@ class StockServiceImplTest {
 
     @Test
     void testDelete() {
-        doNothing().when(stockRepository).deleteByIdentifier("S001");
+        Stock stockEntity = new Stock();
+        stockEntity.setIdentifier("S001");
+
+        when(stockRepository.findByIdentifier("S001")).thenReturn(stockEntity);
 
         stockService.delete("S001");
 
-        verify(stockRepository).deleteByIdentifier("S001");
+        verify(stockRepository).findByIdentifier("S001");
     }
 
     @Test
@@ -123,10 +127,10 @@ class StockServiceImplTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         List<Stock> stocks = Arrays.asList(stock);
-        Page<Stock> stockPage = new PageImpl<>(stocks);
+        Page<Stock> stockPage = new PageImpl<>(stocks, pageable, 1);
         List<StockDto> dtoList = Arrays.asList(stockDto);
 
-        when(stockRepository.findAll(pageable)).thenReturn(stockPage);
+        when(stockRepository.findByIsDeletedFalse(pageable)).thenReturn(stockPage);
 
         doReturn(dtoList).when(modelMapper)
                 .map(anyList(), any(java.lang.reflect.Type.class));

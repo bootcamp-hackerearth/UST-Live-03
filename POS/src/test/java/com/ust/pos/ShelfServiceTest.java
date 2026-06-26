@@ -145,22 +145,33 @@ class ShelfServiceTest {
         List<Shelf> shelves = List.of(new Shelf(), new Shelf());
         List<ShelfDto> dtoList = List.of(new ShelfDto(), new ShelfDto());
 
-        when(shelfRepository.findAll(pageable)).thenReturn(page);
+        when(shelfRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(shelves);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(shelves), any(Type.class))).thenReturn(dtoList);
 
         WsDto<ShelfDto> result = shelfService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
-        verify(shelfRepository).findAll(pageable);
+
+        verify(shelfRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(shelves), any(Type.class));
     }
 
     @Test
     void deleteTest() {
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("S1");
+
+        when(shelfRepository.findByIdentifier("S1")).thenReturn(shelf);
+
         shelfService.delete("S1");
-        verify(shelfRepository).deleteByIdentifier("S1");
+
+        verify(shelfRepository).findByIdentifier("S1");
     }
 
     @Test

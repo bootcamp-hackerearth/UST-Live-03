@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import PropTypes from "prop-types";
 import {
   XMarkIcon,
   ArrowLeftStartOnRectangleIcon,
   CubeIcon,
-  ShoppingCartIcon,
+  TagIcon,
+  CurrencyRupeeIcon,
   UserGroupIcon,
   ChartBarIcon,
-  ArchiveBoxIcon,
+  KeyIcon,
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 
@@ -39,7 +40,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
       const rawNodesList = Array.isArray(data) ? data : data.dtoList || [];
 
       setNodes(rawNodesList);
@@ -69,12 +71,14 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     switch (key) {
       case "dashboard":
         return ChartBarIcon;
+      case "cart":
+        return Squares2X2Icon;
       case "product":
       case "products":
         return CubeIcon;
       case "category":
       case "categories":
-        return Squares2X2Icon;
+        return TagIcon;
       case "user":
       case "users":
         return UserGroupIcon;
@@ -83,10 +87,10 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
         return Squares2X2Icon;
       case "price":
       case "prices":
-        return ShoppingCartIcon;
+        return CurrencyRupeeIcon;
       case "role":
       case "roles":
-        return ArchiveBoxIcon;
+        return KeyIcon;
       default:
         return Squares2X2Icon;
     }
@@ -94,281 +98,55 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
   return (
     <>
-      <style>{`
-        .sidebar-overlay {
-          position: fixed;
-          inset: 0;
-          background-color: rgba(0, 0, 0, 0.15);
-          backdrop-filter: blur(4px);
-          z-index: 40;
-          transition: all 0.3s ease;
-        }
-
-        .sidebar-overlay.open {
-          opacity: 1;
-          visibility: visible;
-        }
-
-        .sidebar-overlay.closed {
-          opacity: 0;
-          visibility: hidden;
-        }
-
-        @media (min-width: 1024px) {
-          .sidebar-overlay {
-            display: none;
-          }
-        }
-
-        .sidebar-aside {
-          position: fixed;
-          top: 0;
-          left: 0;
-          height: 100vh;
-          background-color: #ffffff;
-          border-right: 1px solid #ebebf5;
-          z-index: 50;
-          display: flex;
-          flex-direction: column;
-          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          box-sizing: border-box;
-        }
-
-        .sidebar-aside.open {
-          width: 260px;
-        }
-
-        .sidebar-aside.closed {
-          width: 88px;
-        }
-
-        @media (max-width: 1023px) {
-          .sidebar-aside.closed {
-            transform: translateX(-100%);
-          }
-        }
-
-        .sidebar-header {
-          height: 88px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 20px;
-          box-sizing: border-box;
-        }
-
-        .brand-trigger {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          background: none;
-          border: none;
-          padding: 0;
-          cursor: pointer;
-          text-align: left;
-        }
-
-        .brand-icon-box {
-          width: 44px;
-          height: 44px;
-          border-radius: 10px;
-          background: #6c63ff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .brand-icon-box svg {
-          width: 22px;
-          height: 22px;
-          color: #ffffff;
-        }
-
-        .brand-title {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          font-size: 18px;
-          font-weight: 700;
-          color: #2d2d6e;
-          letter-spacing: -0.5px;
-        }
-
-        .close-trigger {
-          background: #f8f8fc;
-          border: 1px solid #ebebf5;
-          border-radius: 8px;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #8888a0;
-          cursor: pointer;
-        }
-
-        @media (min-width: 1024px) {
-          .close-trigger {
-            display: none;
-          }
-        }
-
-        .sidebar-nav-container {
-          flex: 1;
-          padding: 20px 14px;
-          overflow-y: auto;
-          box-sizing: border-box;
-        }
-
-        .sidebar-nav-container::-webkit-scrollbar {
-          display: none;
-        }
-
-        .nav-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .nav-item {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 0 16px;
-          height: 48px;
-          border-radius: 10px;
-          border: none;
-          cursor: pointer;
-          box-sizing: border-box;
-          transition: all 0.2s ease;
-          text-align: left;
-          background: transparent;
-        }
-
-        .nav-item.active {
-          background: #f4f5fa;
-          color: #6c63ff;
-        }
-
-        .nav-item.inactive {
-          color: #8888a0;
-        }
-
-        .nav-item.inactive:hover {
-          background: #f8f8fc;
-          color: #2d2d6e;
-        }
-
-        .nav-icon {
-          width: 20px;
-          height: 20px;
-          flex-shrink: 0;
-          transition: color 0.2s ease;
-        }
-
-        .nav-item.active .nav-icon {
-          color: #6c63ff;
-        }
-
-        .nav-item.inactive .nav-icon {
-          color: #b0b0c8;
-        }
-
-        .nav-item.inactive:hover .nav-icon {
-          color: #6c63ff;
-        }
-
-        .nav-text {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          white-space: nowrap;
-        }
-
-        .sidebar-footer {
-          padding: 16px 14px;
-          border-top: 1px solid #ebebf5;
-          box-sizing: border-box;
-        }
-
-        .logout-btn {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 0 16px;
-          height: 48px;
-          border-radius: 10px;
-          border: none;
-          background: transparent;
-          color: #8888a0;
-          cursor: pointer;
-          box-sizing: border-box;
-          transition: all 0.2s ease;
-          text-align: left;
-        }
-
-        .logout-btn:hover {
-          background: #fff2f2;
-          color: #e55555;
-        }
-
-        .logout-icon {
-          width: 20px;
-          height: 20px;
-          flex-shrink: 0;
-          color: #b0b0c8;
-          transition: color 0.2s ease;
-        }
-
-        .logout-btn:hover .logout-icon {
-          color: #e55555;
-        }
-
-        .skeleton-item {
-          width: 100%;
-          height: 48px;
-          border-radius: 10px;
-          background: linear-gradient(90deg, #f4f5fa 25%, #ebebf5 50%, #f4f5fa 75%);
-          background-size: 200% 100%;
-          animation: loading-shimmer 1.5s infinite;
-        }
-
-        @keyframes loading-shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
-
       <button
         type="button"
         onClick={() => setSidebarOpen(false)}
         onKeyDown={(e) => e.key === "Escape" && setSidebarOpen(false)}
         aria-label="Close sidebar overlay"
-        className={`sidebar-overlay ${sidebarOpen ? "open" : "closed"}`}
+        className={`fixed inset-0 z-40 bg-black/15 backdrop-blur-xs transition-all duration-300 lg:hidden ${sidebarOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          }`}
       />
 
-      <aside className={`sidebar-aside ${sidebarOpen ? "open" : "closed"}`}>
-        <div className="sidebar-header">
-          <button type="button" onClick={() => setSidebarOpen(!sidebarOpen)} className="brand-trigger">
-            <div className="brand-icon-box">
-              <Squares2X2Icon />
+      <aside
+        className={`fixed top-0 left-0 h-screen bg-white border-r border-[#ebebf5] z-50 flex flex-col box-border transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) lg:translate-x-0 ${sidebarOpen ? "w-[260px]" : "w-[88px] max-lg:-translate-x-full"
+          }`}
+      >
+        <div className="h-[88px] flex items-center justify-between px-5 box-border">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="flex items-center gap-3.5 bg-transparent border-none p-0 cursor-pointer text-left"
+          >
+            <div className="w-11 h-11 rounded-xl bg-[#6c63ff] flex items-center justify-center shrink-0 shadow-sm shadow-[#6c63ff]/20">
+              <Squares2X2Icon className="w-5 h-5 text-white" />
             </div>
-            {sidebarOpen && <h1 className="brand-title">POSFlow</h1>}
+            {sidebarOpen && (
+              <h1 className="font-sans text-lg font-bold tracking-tight text-[#2d2d6e]">
+                POSFlow
+              </h1>
+            )}
           </button>
 
           {sidebarOpen && (
-            <button type="button" onClick={() => setSidebarOpen(false)} className="close-trigger">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(false)}
+              className="bg-[#f8f8fc] border border-[#ebebf5] rounded-lg w-8 h-8 flex items-center justify-center text-[#8888a0] hover:text-[#6c63ff] hover:border-[#6c63ff] transition-all lg:hidden"
+            >
               <XMarkIcon className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        <div className="sidebar-nav-container">
-          <nav className="nav-stack">
+
+        <div className="flex-1 px-3.5 py-5 overflow-y-auto box-border no-scrollbar">
+          <nav className="flex flex-col gap-2">
             {loading ? (
               [1, 2, 3, 4, 5].map((n) => (
-                <div key={`skeleton-${n}`} className="skeleton-item" />
+                <div
+                  key={`skeleton-${n}`}
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-[#f4f5fa] via-[#ebebf5] to-[#f4f5fa] bg-[length:200%_100%] animate-[pulse_1.5s_infinite]"
+                />
               ))
             ) : (
               nodes.map((node) => {
@@ -381,10 +159,20 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     type="button"
                     key={node.identifier || node.id}
                     onClick={() => handleNavigation(node.path)}
-                    className={`nav-item ${isActive ? "active" : "inactive"}`}
+                    className={`w-full h-12 rounded-xl px-4 flex items-center gap-3.5 border-none text-left bg-transparent cursor-pointer box-border transition-all ${isActive
+                        ? "bg-[#f4f5fa] text-[#6c63ff] font-semibold"
+                        : "text-[#8888a0] hover:bg-[#f8f8fc] hover:text-[#2d2d6e]"
+                      }`}
                   >
-                    <Icon className="nav-icon" />
-                    {sidebarOpen && <span className="nav-text">{node.identifier}</span>}
+                    <Icon
+                      className={`w-5 h-5 shrink-0 transition-colors ${isActive ? "text-[#6c63ff]" : "text-[#b0b0c8] group-hover:text-[#6c63ff]"
+                        }`}
+                    />
+                    {sidebarOpen && (
+                      <span className="font-sans text-sm tracking-wide font-medium whitespace-nowrap">
+                        {node.identifier}
+                      </span>
+                    )}
                   </button>
                 );
               })
@@ -392,17 +180,22 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
           </nav>
         </div>
 
-        <div className="sidebar-footer">
+
+        <div className="p-4 border-t border-[#ebebf5] box-border">
           <button
             type="button"
             onClick={() => {
               localStorage.clear();
               router.push("/login");
             }}
-            className="logout-btn"
+            className="w-full h-12 rounded-xl px-4 flex items-center gap-3.5 border-none bg-transparent text-[#8888a0] hover:bg-red-50/60 hover:text-[#e55555] cursor-pointer box-border transition-all group"
           >
-            <ArrowLeftStartOnRectangleIcon className="logout-icon" />
-            {sidebarOpen && <span className="nav-text">Logout</span>}
+            <ArrowLeftStartOnRectangleIcon className="w-5 h-5 shrink-0 text-[#b0b0c8] group-hover:text-[#e55555] transition-colors" />
+            {sidebarOpen && (
+              <span className="font-sans text-sm tracking-wide font-medium whitespace-nowrap">
+                Logout
+              </span>
+            )}
           </button>
         </div>
       </aside>

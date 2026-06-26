@@ -97,8 +97,14 @@ class BrandServiceTest {
 
     @Test
     void deleteTest() {
+        Brand brand = new Brand();
+        brand.setIdentifier("B1");
+
+        when(brandRepository.findByIdentifier("B1")).thenReturn(brand);
+
         brandService.delete("B1");
-        verify(brandRepository).deleteByIdentifier("B1");
+
+        verify(brandRepository).findByIdentifier("B1");
     }
 
     @Test
@@ -135,15 +141,19 @@ class BrandServiceTest {
         List<Brand> brands = List.of(new Brand(), new Brand());
         List<BrandDto> dtoList = List.of(new BrandDto(), new BrandDto());
 
-        when(brandRepository.findAll(pageable)).thenReturn(page);
+        when(brandRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(brands);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(brands), any(Type.class))).thenReturn(dtoList);
 
         WsDto<BrandDto> result = brandService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(brandRepository).findAll(pageable);
+        verify(brandRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(brands), any(Type.class));
     }

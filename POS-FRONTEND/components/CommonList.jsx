@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import axios from "axios";
@@ -33,8 +33,9 @@ function CommonList({
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedIdentifier, setSelectedIdentifier] = useState("");
+  const [toggleLoadingId, setToggleLoadingId] = useState(null);
 
-  const sizePerPage = 10;
+  const sizePerPage = 5;
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -78,6 +79,47 @@ function CommonList({
     }
   };
 
+  const handleStatusToggle = async (item) => {
+    const toggleKey = item.identifier || item.username;
+    const itemId = item.id || item.identifier;
+
+    try {
+      setToggleLoadingId(itemId);
+      const storedToken = localStorage.getItem("token") || token;
+
+      await axios.post(
+        `http://localhost:8080/api/${apiRoute}/toggle`,
+        toggleKey,
+        {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+            "Content-Type": "text/plain",
+          },
+          transformRequest: [(data) => data],
+          withCredentials: true,
+        }
+      );
+
+      setAllData((prevData) =>
+        prevData.map((row) => {
+          const isMatch =
+            (item.id !== undefined && item.id !== null && row.id === item.id) ||
+            (item.username && row.username === item.username) ||
+            (item.identifier && row.identifier === item.identifier);
+
+          return isMatch ? { ...row, status: !row.status } : row;
+        })
+      );
+
+      globalThis.dispatchEvent(new Event("nodeDataChanged"));
+    } catch (err) {
+      console.error("Toggle status error:", err);
+      alert("Failed to execute status path toggle endpoint.");
+    } finally {
+      setToggleLoadingId(null);
+    }
+  };
+
   const filteredData = allData.filter((item) =>
     searchKeys?.some((key) =>
       item[key]?.toString().toLowerCase().includes(search.toLowerCase())
@@ -101,16 +143,17 @@ function CommonList({
     const currentLoggedInUser = localStorage.getItem("username");
 
     try {
-      const response = await axios.post(deleteUrl, deleteKey, {
+      const response = await axios.delete(deleteUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "text/plain",
         },
+        data: deleteKey,
         transformRequest: [(data) => data],
         withCredentials: true,
       });
 
-      if (response.data === true) {
+      if (response.data === true || response.status === 200 || response.status === 204) {
         globalThis.dispatchEvent(new Event("nodeDataChanged"));
 
         if (currentLoggedInUser && deleteKey === currentLoggedInUser) {
@@ -135,12 +178,17 @@ function CommonList({
 
     if (start > 0) {
       pages.push(
-        <button type="button" key="page-0" onClick={() => setPage(0)} className="page-btn">
+        <button
+          type="button"
+          key="page-0"
+          onClick={() => setPage(0)}
+          className="w-9 h-9 bg-white border border-[#ebebf5] rounded-md text-[#4b4b75] text-sm font-medium cursor-pointer transition-all hover:border-[#6c63ff] hover:text-[#6c63ff]"
+        >
           1
         </button>
       );
       if (start > 1) {
-        pages.push(<span key="dots1" className="page-dots">...</span>);
+        pages.push(<span key="dots1" className="text-[#8888a0] text-sm px-1">...</span>);
       }
     }
 
@@ -150,7 +198,10 @@ function CommonList({
           type="button"
           key={`page-${i}`}
           onClick={() => setPage(i)}
-          className={`page-btn ${page === i ? "active" : ""}`}
+          className={`w-9 h-9 border rounded-md text-sm font-medium cursor-pointer transition-all ${page === i
+              ? "bg-[#6c63ff] border-[#6c63ff] text-white"
+              : "bg-white border-[#ebebf5] text-[#4b4b75] hover:border-[#6c63ff] hover:text-[#6c63ff]"
+            }`}
         >
           {i + 1}
         </button>
@@ -158,7 +209,7 @@ function CommonList({
     }
 
     if (end < totalPages - 2) {
-      pages.push(<span key="dots2" className="page-dots">...</span>);
+      pages.push(<span key="dots2" className="text-[#8888a0] text-sm px-1">...</span>);
     }
 
     if (totalPages > 1 && end < totalPages - 1) {
@@ -167,7 +218,7 @@ function CommonList({
           type="button"
           key={`page-${totalPages - 1}`}
           onClick={() => setPage(totalPages - 1)}
-          className="page-btn"
+          className="w-9 h-9 bg-white border border-[#ebebf5] rounded-md text-[#4b4b75] text-sm font-medium cursor-pointer transition-all hover:border-[#6c63ff] hover:text-[#6c63ff]"
         >
           {totalPages}
         </button>
@@ -178,419 +229,176 @@ function CommonList({
   };
 
   return (
-    <>
-      <style>{`
-        .list-wrapper {
-          min-height: 100vh;
-          background-color: #f4f5fa;
-          padding: 40px;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          box-sizing: border-box;
-        }
+    <div className="min-h-screen bg-[#f4f5fa] p-10 font-sans box-border">
 
-        .list-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          margin-bottom: 12px;
-        }
-
-        .title-text {
-          font-size: 26px;
-          font-weight: 600;
-          color: #2d2d6e;
-          letter-spacing: -0.5px;
-        }
-
-        .subtitle-text {
-          font-size: 14px;
-          color: #8888a0;
-          margin-top: 4px;
-        }
-
-        .meta-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 32px;
-          gap: 16px;
-        }
-
-        .count-badge {
-          font-size: 13px;
-          color: #8888a0;
-          background: #eef0f6;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-weight: 500;
-        }
-
-        .action-controls {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .search-container {
-          position: relative;
-          width: 240px;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 16px;
-          height: 16px;
-          color: #b0b0c8;
-        }
-
-        .search-input {
-          width: 100%;
-          height: 38px;
-          background: #ffffff;
-          border: 1.5px solid #ebebf5;
-          border-radius: 8px;
-          padding: 0 12px 0 36px;
-          font-size: 13px;
-          color: #2d2d6e;
-          outline: none;
-          box-sizing: border-box;
-          transition: border-color 0.15s ease;
-        }
-
-        .search-input:focus {
-          border-color: #6c63ff;
-        }
-
-        .search-input::placeholder {
-          color: #b0b0c8;
-        }
-
-        .add-action-btn {
-          height: 38px;
-          padding: 0 16px;
-          background: #6c63ff;
-          border: none;
-          border-radius: 8px;
-          color: #ffffff;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          transition: background-color 0.15s ease;
-        }
-
-        .add-action-btn:hover {
-          background-color: #5850ec;
-        }
-
-        .table-container {
-          width: 100%;
-          background: transparent;
-          overflow-x: auto;
-        }
-
-        .minimal-table {
-          width: 100%;
-          border-collapse: collapse;
-          text-align: left;
-        }
-
-        .minimal-table th {
-          font-size: 13px;
-          font-weight: 600;
-          color: #8888a0;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          padding: 16px 24px;
-          border-bottom: 1.5px solid #ebebf5;
-        }
-
-        .minimal-table td {
-          font-size: 14px;
-          color: #2d2d6e;
-          padding: 20px 24px;
-          border-bottom: 1px solid #ebebf5;
-          background: transparent;
-        }
-
-        .minimal-table tr:hover td {
-          background: rgba(235, 235, 245, 0.3);
-        }
-
-        .row-action-btn {
-          background: transparent;
-          border: none;
-          padding: 4px;
-          cursor: pointer;
-          color: #b0b0c8;
-          transition: color 0.15s ease;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .row-action-btn:hover.edit {
-          color: #6c63ff;
-        }
-
-        .row-action-btn:hover.delete {
-          color: #e55555;
-        }
-
-        .row-action-btn svg {
-          width: 18px;
-          height: 18px;
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: 48px 0;
-          color: #8888a0;
-          font-size: 14px;
-        }
-
-        .pagination-container {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          margin-top: 32px;
-        }
-
-        .page-nav-btn {
-          height: 36px;
-          padding: 0 14px;
-          background: #ffffff;
-          border: 1px solid #ebebf5;
-          border-radius: 6px;
-          color: #4b4b75;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-
-        .page-nav-btn:hover:not(:disabled) {
-          border-color: #6c63ff;
-          color: #6c63ff;
-        }
-
-        .page-nav-btn:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-
-        .page-btn {
-          width: 36px;
-          height: 36px;
-          background: #ffffff;
-          border: 1px solid #ebebf5;
-          border-radius: 6px;
-          color: #4b4b75;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-
-        .page-btn:hover {
-          border-color: #6c63ff;
-          color: #6c63ff;
-        }
-
-        .page-btn.active {
-          background: #6c63ff;
-          border-color: #6c63ff;
-          color: #ffffff;
-        }
-
-        .page-dots {
-          color: #8888a0;
-          font-size: 14px;
-          padding: 0 4px;
-        }
-
-        .modal-blur-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 40;
-          background: rgba(244, 245, 250, 0.7);
-          backdrop-filter: blur(4px);
-          overflow-y: auto;
-          padding: 40px 24px;
-          box-sizing: border-box;
-        }
-
-        .modal-layout-container {
-          display: flex;
-          justify-content: center;
-          width: 100%;
-        }
-
-        .modal-inner-wrapper {
-          position: relative;
-          width: 100%;
-          max-width: 920px;
-        }
-
-        .modal-close-trigger {
-          position: absolute;
-          top: 24px;
-          right: 24px;
-          z-index: 100;
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background: #ffffff;
-          border: 1px solid #ebebf5;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #2d2d6e;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-          transition: all 0.15s ease;
-        }
-
-        .modal-close-trigger:hover {
-          border-color: #6c63ff;
-          color: #6c63ff;
-        }
-      `}</style>
-
-      <div className="list-wrapper">
-        <div className="list-header">
-          <div>
-            <h1 className="title-text">{title}</h1>
-            <p className="subtitle-text">{subtitle}</p>
-          </div>
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-[#2d2d6e]">{title}</h1>
+          <p className="text-sm text-[#8888a0] mt-1">{subtitle}</p>
         </div>
-
-        <div className="meta-row">
-          <div className="count-badge">
-            {filteredData.length} active {title ? title.toLowerCase() : "items"}
-          </div>
-
-          <div className="action-controls">
-            <div className="search-container">
-              <MagnifyingGlassIcon className="search-icon" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(0);
-                }}
-                placeholder="Search..."
-                className="search-input"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowAddModal(true)}
-              className="add-action-btn"
-            >
-              <PlusIcon className="w-4 h-4" />
-              Add
-            </button>
-          </div>
-        </div>
-
-        <div className="table-container">
-          <table className="minimal-table">
-            <thead>
-              <tr>
-                {columns?.map((col) => (
-                  <th key={col.key || col.label} style={{ width: col.width || "auto" }}>
-                    {col.label}
-                  </th>
-                ))}
-                <th style={{ width: "120px" }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.length === 0 ? (
-                <tr>
-                  <td colSpan={(columns?.length || 0) + 1} className="empty-state">
-                    No Data Found
-                  </td>
-                </tr>
-              ) : (
-                paginatedData.map((item) => (
-                  <tr key={item.identifier || item.username || `row-${item.id}`}>
-                    {columns?.map((col) => (
-                      <td key={`${item.identifier || item.username || item.id}-${col.key}`}>
-                        {col.render ? col.render(item) : item[col.key]}
-                      </td>
-                    ))}
-                    <td>
-                      <div style={{ display: "flex", gap: "12px" }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedIdentifier(item.identifier || item.username);
-                            setShowEditModal(true);
-                          }}
-                          className="row-action-btn edit"
-                        >
-                          <PencilSquareIcon />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item)}
-                          className="row-action-btn delete"
-                        >
-                          <TrashIcon />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="pagination-container">
-            <button
-              type="button"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 0}
-              className="page-nav-btn"
-            >
-              Prev
-            </button>
-            {renderPagination()}
-            <button
-              type="button"
-              onClick={() => setPage(page + 1)}
-              disabled={page === totalPages - 1}
-              className="page-nav-btn"
-            >
-              Next
-            </button>
-          </div>
-        )}
       </div>
 
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="text-xs font-medium text-[#8888a0] bg-[#eef0f6] px-3 py-1 rounded-xl">
+          {filteredData.length} active {title ? title.toLowerCase() : "items"}
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="relative w-[240px]">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#b0b0c8]" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
+              placeholder="Search..."
+              className="w-full h-[38px] bg-white border border-[#ebebf5] rounded-lg pl-9 pr-3 text-xs text-[#2d2d6e] outline-none transition-all focus:border-[#6c63ff] placeholder-[#b0b0c8]"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="h-[38px] px-4 bg-[#6c63ff] hover:bg-[#5850ec] border-none rounded-lg text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-all"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Add
+          </button>
+        </div>
+      </div>
+
+      <div className="w-full overflow-x-auto">
+        <table className="w-full border-collapse text-left">
+          <thead>
+            <tr className="border-b-2 border-[#ebebf5]">
+              {columns?.map((col) => (
+                <th
+                  key={col.key || col.label}
+                  style={{ width: col.width || "auto" }}
+                  className="text-xs font-semibold text-[#8888a0] uppercase tracking-wider px-6 py-4"
+                >
+                  {col.label}
+                </th>
+              ))}
+              <th className="text-xs font-semibold text-[#8888a0] uppercase tracking-wider px-6 py-4 w-[120px]">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedData.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={(columns?.length || 0) + 1}
+                  className="text-center py-12 text-sm text-[#8888a0]"
+                >
+                  No Data Found
+                </td>
+              </tr>
+            ) : (
+              paginatedData.map((item) => (
+                <tr
+                  key={item.identifier || item.username || `row-${item.id}`}
+                  className="border-b border-[#ebebf5] group"
+                >
+                  {columns?.map((col) => {
+                    if (col.key === "status") {
+                      const isItemLoading = toggleLoadingId === (item.id || item.identifier);
+                      return (
+                        <td
+                          key={`${item.identifier || item.username || item.id}-${col.key}`}
+                          className="text-sm text-[#2d2d6e] px-6 py-5 bg-transparent transition-colors group-hover:bg-[#ebebf5]/30"
+                        >
+                          <div className="flex items-center">
+                            <button
+                              type="button"
+                              disabled={isItemLoading}
+                              onClick={() => handleStatusToggle(item)}
+                              className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${item.status ? "bg-[#6c63ff]" : "bg-zinc-200"
+                                }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${item.status ? "translate-x-5" : "translate-x-0"
+                                  }`}
+                              />
+                            </button>
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    return (
+                      <td
+                        key={`${item.identifier || item.username || item.id}-${col.key}`}
+                        className="text-sm text-[#2d2d6e] px-6 py-5 bg-transparent transition-colors group-hover:bg-[#ebebf5]/30"
+                      >
+                        {col.render ? col.render(item) : item[col.key]}
+                      </td>
+                    );
+                  })}
+                  <td className="px-6 py-5 bg-transparent transition-colors group-hover:bg-[#ebebf5]/30">
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedIdentifier(item.identifier || item.username);
+                          setShowEditModal(true);
+                        }}
+                        className="inline-flex items-center justify-center p-1 bg-transparent border-none text-[#b0b0c8] hover:text-[#6c63ff] cursor-pointer transition-all"
+                      >
+                        <PencilSquareIcon className="w-[18px] h-[18px]" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item)}
+                        className="inline-flex items-center justify-center p-1 bg-transparent border-none text-[#b0b0c8] hover:text-[#e55555] cursor-pointer transition-all"
+                      >
+                        <TrashIcon className="w-[18px] h-[18px]" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8">
+          <button
+            type="button"
+            onClick={() => setPage(page - 1)}
+            disabled={page === 0}
+            className="h-9 px-3.5 bg-white border border-[#ebebf5] rounded-md text-[#4b4b75] text-xs font-medium cursor-pointer transition-all hover:border-[#6c63ff] hover:text-[#6c63ff] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Prev
+          </button>
+          {renderPagination()}
+          <button
+            type="button"
+            onClick={() => setPage(page + 1)}
+            disabled={page === totalPages - 1}
+            className="h-9 px-3.5 bg-white border border-[#ebebf5] rounded-md text-[#4b4b75] text-xs font-medium cursor-pointer transition-all hover:border-[#6c63ff] hover:text-[#6c63ff] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
       {(showAddModal || showEditModal) && (
-        <div className="modal-blur-overlay">
-          <div className="modal-layout-container">
-            <div className="modal-inner-wrapper">
+        <div className="fixed inset-0 z-40 bg-[#f4f5fa]/70 backdrop-blur-xs overflow-y-auto px-6 py-10 box-border">
+          <div className="flex justify-center w-full">
+            <div className="relative w-full max-w-[920px]">
               <button
                 type="button"
                 onClick={() => {
                   setShowAddModal(false);
                   setShowEditModal(false);
                 }}
-                className="modal-close-trigger"
+                className="absolute top-6 right-6 z-50 w-9 h-9 bg-white border border-[#ebebf5] rounded-full flex items-center justify-center text-[#2d2d6e] shadow-xs cursor-pointer transition-all hover:border-[#6c63ff] hover:text-[#6c63ff]"
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
@@ -612,7 +420,7 @@ function CommonList({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

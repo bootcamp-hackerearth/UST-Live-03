@@ -98,8 +98,14 @@ class CategoryServiceTest {
 
     @Test
     void deleteTest() {
+        Category category = new Category();
+        category.setIdentifier("Admin");
+
+        when(categoryRepository.findByIdentifier("Admin")).thenReturn(category);
+
         categoryService.delete("Admin");
-        verify(categoryRepository).deleteByIdentifier("Admin");
+
+        verify(categoryRepository).findByIdentifier("Admin");
     }
 
     @Test
@@ -136,15 +142,19 @@ class CategoryServiceTest {
         List<Category> categories = List.of(new Category(), new Category());
         List<CategoryDto> dtoList = List.of(new CategoryDto(), new CategoryDto());
 
-        when(categoryRepository.findAll(pageable)).thenReturn(page);
+        when(categoryRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(page.getContent()).thenReturn(categories);
+        when(page.getTotalElements()).thenReturn(2L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
         when(modelMapper.map(eq(categories), any(Type.class))).thenReturn(dtoList);
 
         WsDto<CategoryDto> result = categoryService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
 
-        verify(categoryRepository).findAll(pageable);
+        verify(categoryRepository).findByIsDeletedFalse(pageable);
         verify(page).getContent();
         verify(modelMapper).map(eq(categories), any(Type.class));
     }

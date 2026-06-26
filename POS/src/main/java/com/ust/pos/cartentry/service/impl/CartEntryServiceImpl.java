@@ -1,5 +1,6 @@
 package com.ust.pos.cartentry.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
@@ -10,7 +11,6 @@ import com.ust.pos.model.CartRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -21,18 +21,21 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
-public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+public class CartEntryServiceImpl extends BaseService implements CartEntryService {
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PriceService priceService;
+    private final PriceService priceService;
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
+
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, ModelMapper modelMapper, PriceService priceService, CartRepository cartRepository) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+        this.priceService = priceService;
+        this.cartRepository = cartRepository;
+    }
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
@@ -49,7 +52,6 @@ public class CartEntryServiceImpl implements CartEntryService {
             cartEntryDto.setQuantity(cartEntryDto.getQuantity().add(existingCartEntry.getQuantity()));
         }
 
-
         cartEntryDto.setDiscount(getDiscountPriceAmount(cartEntryDto.getProduct(), cartEntryDto.getQuantity()));
         cartEntryDto.setTotalPrice(getTotalPrice(cartEntryDto.getProduct(), cartEntryDto.getQuantity()));
         cartEntryDto.setUnitPrice(getSellingPriceAmount(cartEntryDto.getProduct()));
@@ -60,6 +62,7 @@ public class CartEntryServiceImpl implements CartEntryService {
             cartEntryRepository.save(existingCartEntry);
         } else {
             CartEntry cartEntry = modelMapper.map(cartEntryDto, CartEntry.class);
+            setCreatedDetails(cartEntry);
             cartEntryRepository.save(cartEntry);
         }
         recalculate(cartEntryDto.getCartId());
@@ -108,16 +111,25 @@ public class CartEntryServiceImpl implements CartEntryService {
         BigDecimal cartEntryTotalOriginalDiscount = new BigDecimal(0);
 
         for (CartEntry cartEntry : cartEntries) {
-            cartEntryTotalPrice = cartEntryTotalPrice.add(cartEntry.getTotalPrice());
-            cartEntryTotaldiscount = cartEntryTotaldiscount.add(cartEntry.getDiscount());
-            cartEntryTotalOriginalDiscount = cartEntryTotalOriginalDiscount.add(cartEntry.getTotalOrignalPrice());
-        }
 
+            cartEntryTotalPrice = cartEntryTotalPrice.add(cartEntry.getTotalPrice() ==
+                    null ? BigDecimal.ZERO : cartEntry.getTotalPrice());
+
+            cartEntryTotaldiscount = cartEntryTotaldiscount.add(cartEntry.getDiscount()
+                    == null ? BigDecimal.ZERO : cartEntry.getDiscount());
+
+            cartEntryTotalOriginalDiscount = cartEntryTotalOriginalDiscount.add(cartEntry.getTotalOriginalPrice()
+                    == null ? BigDecimal.ZERO : cartEntry.getTotalOriginalPrice());
+        }
         Cart cart = cartRepository.findByIdentifier(cartId);
-        cart.setTotalPrice(cartEntryTotalPrice);
-        cart.setDiscount(cartEntryTotaldiscount);
-        cart.setTotalOrignalPrice(cartEntryTotalOriginalDiscount);
-        cartRepository.save(cart);
+
+        if (cart != null) {
+            cart.setTotalPrice(cartEntryTotalPrice);
+            cart.setDiscount(cartEntryTotaldiscount);
+            cart.setTotalOriginalPrice(cartEntryTotalOriginalDiscount);
+
+            cartRepository.save(cart);
+        }
     }
 
     @Override

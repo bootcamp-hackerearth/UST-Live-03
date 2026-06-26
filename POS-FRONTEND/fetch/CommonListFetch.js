@@ -1,6 +1,6 @@
 export async function CommonListFetch(url, page = 0, sizePerPage = 3) {
- 
- const token = localStorage.getItem("token");
+
+    const token = localStorage.getItem("token");
     try {
         const res = await fetch(url, {
             method: "POST",

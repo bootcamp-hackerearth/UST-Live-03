@@ -5,19 +5,18 @@ import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/models")
 public class ModelsRestController extends BaseController {
 
-    @Autowired
-    private ModelsService modelsService;
+    private final ModelsService modelsService;
+
+    public ModelsRestController(ModelsService modelsService) {
+        this.modelsService = modelsService;
+    }
 
     @PostMapping("/list")
     public WsDto<ModelsDto> home(@RequestBody PaginationDto paginationDto) {
@@ -37,12 +36,12 @@ public class ModelsRestController extends BaseController {
         return modelsService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelsDto updatePost(@RequestBody ModelsDto modelsDto) {
         return modelsService.update(modelsDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestBody String identifier) {
         try {
             modelsService.delete(identifier);
@@ -50,5 +49,11 @@ public class ModelsRestController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public String toggleStatus(@RequestBody String identifier) {
+        modelsService.toggleStatus(identifier);
+        return identifier;
     }
 }
