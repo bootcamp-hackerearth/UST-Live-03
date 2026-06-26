@@ -18,6 +18,8 @@ import java.util.List;
 @Service
 public class ShelfServiceImpl extends CommonService implements ShelfService {
     public static final String SHELF_NOT_FOUND = "Shelf not found";
+    public static final String NOT_FOUND = "' not found";
+    public static final String SHELF_WITH_ID = "Shelf with id '";
     private final ShelfRepository shelfRepository;
     private final ModelMapper modelMapper;
 
@@ -45,7 +47,7 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
     public ShelfDto updateShelf(ShelfDto shelfDto) {
         ShelfDto dto = new ShelfDto();
 
-        Shelf existing = shelfRepository.findById(shelfDto.getId()).orElseThrow(() -> new ResourceNotFoundException("Shelf with id '" + shelfDto.getId() + "' not found"));
+        Shelf existing = shelfRepository.findById(shelfDto.getId()).orElseThrow(() -> new ResourceNotFoundException(SHELF_WITH_ID + shelfDto.getId() + NOT_FOUND));
         existing.setIdentifier(shelfDto.getIdentifier());
         setAuditFields(existing, false);
         shelfRepository.save(existing);
@@ -61,7 +63,7 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
 
         ShelfDto dto = new ShelfDto();
 
-        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Shelf with id '" + id + "' not found"));
+        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(SHELF_WITH_ID + id + NOT_FOUND));
         modelMapper.map(shelf, dto);
         dto.setSuccess(true);
 
@@ -78,7 +80,7 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
 
     @Override
     public boolean deleteShelf(Long id) {
-        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Shelf with id '" + id + "' not found"));
+        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(SHELF_WITH_ID + id + NOT_FOUND));
         softDelete(shelf);
         setAuditFields(shelf, false);
         shelfRepository.save(shelf);
@@ -89,7 +91,7 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
     public ShelfDto toggleStatus(Long id) {
         ShelfDto dto = new ShelfDto();
 
-        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Shelf with id '" + id + "' not found"));
+        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(SHELF_WITH_ID + id + NOT_FOUND));
         shelf.setActive(!shelf.isActive());
         shelfRepository.save(shelf);
 

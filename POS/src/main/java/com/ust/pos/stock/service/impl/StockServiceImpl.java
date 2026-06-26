@@ -18,6 +18,8 @@ import java.util.List;
 
 @Service
 public class StockServiceImpl extends CommonService implements StockService {
+    public static final String STOCK_WITH_ID = "Stock with id '";
+    public static final String NOT_FOUND = "' not found";
     private final StockRepository stockRepository;
     private final ProductRepository productRepository;
     private final WarehouseRepository warehouseRepository;
@@ -32,8 +34,8 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public StockDto createStock(StockDto stockDto) {
-        var product = productRepository.findById(stockDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException("Product with id '" + stockDto.getProductId() + "' not found"));
-        var warehouse = warehouseRepository.findById(stockDto.getWarehouseId()).orElseThrow(() -> new ResourceNotFoundException("Warehouse with id '" + stockDto.getWarehouseId() + "' not found"));
+        var product = productRepository.findById(stockDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException("Product with id '" + stockDto.getProductId() + NOT_FOUND));
+        var warehouse = warehouseRepository.findById(stockDto.getWarehouseId()).orElseThrow(() -> new ResourceNotFoundException("Warehouse with id '" + stockDto.getWarehouseId() + NOT_FOUND));
         boolean exists = stockRepository.existsByProductIdAndWarehouseId(stockDto.getProductId(), stockDto.getWarehouseId());
         if (exists) {
             stockDto.setSuccess(false);
@@ -53,7 +55,7 @@ public class StockServiceImpl extends CommonService implements StockService {
     @Override
     public StockDto updateStockQuantity(Long stockId, Integer quantity) {
         StockDto dto = new StockDto();
-        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException("Stock with id '" + stockId + "' not found"));
+        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException(STOCK_WITH_ID + stockId + NOT_FOUND));
         stock.setQuantity(quantity);
         productRepository.findById(stock.getProductId()).ifPresent(product -> {
             stock.setProductName(product.getProductName());
@@ -69,7 +71,7 @@ public class StockServiceImpl extends CommonService implements StockService {
     @Override
     public StockDto getStock(Long productId, Long warehouseId) {
         StockDto dto = new StockDto();
-        Stock stock = stockRepository.findByProductIdAndWarehouseId(productId, warehouseId).orElseThrow(() -> new ResourceNotFoundException("Stock with productId '" + productId + "' and warehouseId '" + warehouseId + "' not found"));
+        Stock stock = stockRepository.findByProductIdAndWarehouseId(productId, warehouseId).orElseThrow(() -> new ResourceNotFoundException("Stock with productId '" + productId + "' and warehouseId '" + warehouseId + NOT_FOUND));
         modelMapper.map(stock, dto);
         productRepository.findById(stock.getProductId()).ifPresent(product -> {
             dto.setProductName(product.getProductName());
@@ -95,7 +97,7 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public boolean deleteStock(Long stockId) {
-        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException("Stock with id '" + stockId + "' not found"));
+        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException(STOCK_WITH_ID + stockId + NOT_FOUND));
         softDelete(stock);
         setAuditFields(stock, false);
         stockRepository.save(stock);
@@ -104,7 +106,7 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public void toggleStatus(Long stockId) {
-        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException("Stock with id '" + stockId + "' not found"));
+        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException(STOCK_WITH_ID + stockId + NOT_FOUND));
         stock.setStatus(!stock.isStatus());
         stockRepository.save(stock);
     }
