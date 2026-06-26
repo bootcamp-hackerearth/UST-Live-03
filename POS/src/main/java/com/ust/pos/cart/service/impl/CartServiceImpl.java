@@ -9,7 +9,6 @@ import com.ust.pos.model.CartRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,14 +21,15 @@ import java.util.List;
 @Transactional
 public class CartServiceImpl implements CartService {
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
+    private final ModelMapper modelMapper;
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    public CartServiceImpl(CartRepository cartRepository, CartEntryRepository cartEntryRepository, ModelMapper modelMapper) {
+        this.cartRepository = cartRepository;
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public List<CartDto> findAll(Pageable pageable) {
@@ -65,7 +65,6 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto recalculate(String identifier) {
-
         Cart cart = cartRepository.findByIdentifier(identifier);
 
         if (cart == null) {

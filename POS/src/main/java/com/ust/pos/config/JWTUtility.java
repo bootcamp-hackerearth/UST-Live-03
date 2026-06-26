@@ -23,7 +23,6 @@ public class JWTUtility implements Serializable {
     @Value("${jwt.secret}")
     private String secretKey;
 
-
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }

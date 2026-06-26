@@ -164,14 +164,28 @@ class UserServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(userRepository)
-                .deleteByUsername("test@mail.com");
+
+        User user = new User();
+        user.setUsername("test@mail.com");
+        user.setDeleted(false);
+
+        Mockito.when(
+                userRepository.findByUsername("test@mail.com")
+        ).thenReturn(user);
+
+        Mockito.when(
+                userRepository.save(user)
+        ).thenReturn(user);
 
         userService.delete("test@mail.com");
 
+        Assertions.assertTrue(user.isDeleted());
+
         Mockito.verify(userRepository)
-                .deleteByUsername("test@mail.com");
+                .findByUsername("test@mail.com");
+
+        Mockito.verify(userRepository)
+                .save(user);
     }
 
     @Test
@@ -187,48 +201,29 @@ class UserServiceTest {
         List<UserDto> userDtos = List.of(userDto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<User> userPage = new PageImpl<>(users);
 
-        Mockito.when(userRepository.findAll(pageable))
-                .thenReturn(userPage);
+        Page<User> userPage =
+                new PageImpl<>(users, pageable, users.size());
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(users),
-                Mockito.any(Type.class)
-        )).thenReturn(userDtos);
+        Mockito.when(
+                userRepository.findByIsDeletedFalse(pageable)
+        ).thenReturn(userPage);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(users),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(userDtos);
 
         PaginationResponseDto<UserDto> response =
                 userService.findAll(pageable);
 
+        Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
-
         Assertions.assertEquals(
                 "test@mail.com",
                 response.getDtoList().get(0).getUsername()
         );
-    }
-
-    @Test
-    void findAllWithoutPageableTest() {
-
-        User user = new User();
-        user.setUsername("test@mail.com");
-
-        UserDto userDto = new UserDto();
-        userDto.setUsername("test@mail.com");
-
-        List<User> users = List.of(user);
-        List<UserDto> userDtos = List.of(userDto);
-
-        Mockito.when(userRepository.findAll())
-                .thenReturn(users);
-
-        Mockito.when(modelMapper.map(
-                Mockito.eq(users),
-                Mockito.any(Type.class)
-        )).thenReturn(userDtos);
-
-        PaginationResponseDto<UserDto> response =
-                userService.findAll(null);
     }
 }

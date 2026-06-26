@@ -52,9 +52,10 @@ class ModelServiceTest {
         List<ModelDto> modelDtos = List.of(modelDto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Model> modelPage = new PageImpl<>(models);
+        Page<Model> modelPage =
+                new PageImpl<>(models, pageable, models.size());
 
-        when(modelRepository.findAll(pageable))
+        when(modelRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(modelPage);
 
         when(modelMapper.map(
@@ -69,37 +70,6 @@ class ModelServiceTest {
         assertEquals(1, result.getDtoList().size());
         assertEquals(
                 "MODEL1",
-                result.getDtoList().get(0).getIdentifier()
-        );
-    }
-
-    @Test
-    void findAllWithoutPageableTest() {
-
-        Model model = new Model();
-        model.setIdentifier("CUST1");
-
-        ModelDto modelDto = new ModelDto();
-        modelDto.setIdentifier("CUST1");
-
-        List<Model> models = List.of(model);
-        List<ModelDto> modelDtos = List.of(modelDto);
-
-        when(modelRepository.findAll())
-                .thenReturn(models);
-
-        when(modelMapper.map(
-                eq(models),
-                any(Type.class)
-        )).thenReturn(modelDtos);
-
-        PaginationResponseDto<ModelDto> result =
-                modelService.findAll(null);
-
-        assertNotNull(result);
-        assertEquals(1, result.getDtoList().size());
-        assertEquals(
-                "CUST1",
                 result.getDtoList().get(0).getIdentifier()
         );
     }
@@ -166,20 +136,24 @@ class ModelServiceTest {
 
     @Test
     void update_success() {
+
         ModelDto dto = new ModelDto();
         dto.setIdentifier("M1");
 
         Model model = new Model();
+        model.setIdentifier("M1");
 
-        Mockito.when(modelRepository.findByIdentifier("M1"))
-                .thenReturn(model);
+        Mockito.when(
+                modelRepository.findByIdentifier("M1")
+        ).thenReturn(model);
 
         Mockito.doNothing()
                 .when(modelMapper)
                 .map(dto, model);
 
-        Mockito.when(modelRepository.save(model))
-                .thenReturn(model);
+        Mockito.when(
+                modelRepository.save(model)
+        ).thenReturn(model);
 
         ModelDto result = modelService.update(dto);
 
@@ -187,7 +161,10 @@ class ModelServiceTest {
         Mockito.verify(modelRepository).save(model);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Model updated successfully", result.getMessage());
+        Assertions.assertEquals(
+                "Model updated successfully",
+                result.getMessage()
+        );
     }
 
     @Test
@@ -227,10 +204,27 @@ class ModelServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(modelRepository).deleteByIdentifier("M1");
+
+        Model model = new Model();
+        model.setIdentifier("M1");
+        model.setDeleted(false);
+
+        Mockito.when(
+                modelRepository.findByIdentifier("M1")
+        ).thenReturn(model);
+
+        Mockito.when(
+                modelRepository.save(model)
+        ).thenReturn(model);
 
         modelService.delete("M1");
 
-        Mockito.verify(modelRepository).deleteByIdentifier("M1");
+        Assertions.assertTrue(model.isDeleted());
+
+        Mockito.verify(modelRepository)
+                .findByIdentifier("M1");
+
+        Mockito.verify(modelRepository)
+                .save(model);
     }
 }

@@ -8,7 +8,6 @@ import com.ust.pos.rack.service.RackService;
 import com.ust.pos.shelf.service.ShelfService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,20 +21,19 @@ public class StockController extends BaseController {
     private static final String STOCK_VIEW = "stock/stock";
     private static final String REDIRECT_STOCK_LIST = "redirect:/stock/list";
 
-    @Autowired
-    private StockService stockService;
+    private final StockService stockService;
+    private final ProductService productService;
+    private final WarehouseService warehouseService;
+    private final RackService rackService;
+    private final ShelfService shelfService;
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private WarehouseService warehouseService;
-
-    @Autowired
-    private RackService rackService;
-
-    @Autowired
-    private ShelfService shelfService;
+    public StockController(StockService stockService, ProductService productService, WarehouseService warehouseService, RackService rackService, ShelfService shelfService) {
+        this.stockService = stockService;
+        this.productService = productService;
+        this.warehouseService = warehouseService;
+        this.rackService = rackService;
+        this.shelfService = shelfService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, @ModelAttribute PaginationDto paginationDto) {
@@ -60,8 +58,8 @@ public class StockController extends BaseController {
     }
 
     @GetMapping("/get")
-    public String update(@RequestParam long id, Model model) {
-        StockDto stockDto = stockService.findById(id);
+    public String update(@RequestParam String identifier, Model model) {
+        StockDto stockDto = stockService.findByIdentifier(identifier);
         model.addAttribute("products", productService.findAll(null));
         model.addAttribute("warehouses", warehouseService.findAll(null));
         model.addAttribute("stockDto", stockDto);
@@ -77,8 +75,8 @@ public class StockController extends BaseController {
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam long id) {
-        stockService.delete(id);
+    public String delete(@RequestParam String identifier) {
+        stockService.delete(identifier);
         return REDIRECT_STOCK_LIST;
     }
 }

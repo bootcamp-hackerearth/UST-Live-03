@@ -1,5 +1,6 @@
 package com.ust.pos.category.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationResponseDto;
@@ -9,7 +10,6 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,32 +19,21 @@ import java.util.List;
 
 @Transactional
 @Service
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl extends BaseService implements CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper) {
+        this.categoryRepository = categoryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PaginationResponseDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        if (pageable == null) {
-
-            List<CategoryDto> categoryDtoList =
-                    modelMapper.map(categoryRepository.findAll(), listType);
-
-            PaginationResponseDto<CategoryDto> response =
-                    new PaginationResponseDto<>();
-
-            response.setDtoList(categoryDtoList);
-            response.setTotalRecords(categoryDtoList.size());
-
-            return response;
-        }
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+        Page<Category> categoryPage = categoryRepository.findByIsDeletedFalse(pageable);
         List<CategoryDto> categoryDtoList = modelMapper.map(categoryPage.getContent(), listType);
 
         PaginationResponseDto<CategoryDto> paginationResponseDto = new PaginationResponseDto<>();
@@ -70,9 +59,16 @@ public class CategoryServiceImpl implements CategoryService {
         String identifier = categoryDto.getIdentifier();
         Category category = categoryRepository.findByIdentifier(identifier);
         if (category == null) {
-            categoryRepository.save(modelMapper.map(categoryDto, Category.class));
+            category = modelMapper.map(categoryDto, Category.class);
+            setCreatedDetails(category);
+            categoryRepository.save(category);
             categoryDto.setMessage("Successfully added the category");
             categoryDto.setSuccess(true);
+        } else if (isSoftDeleted(category)) {
+            categoryDto.setMessage(
+                    getDeletedMessage("Category", identifier)
+            );
+            categoryDto.setSuccess(false);
         } else {
             categoryDto.setMessage("Category " + identifier + " already exists");
             categoryDto.setSuccess(false);
@@ -82,17 +78,35 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto update(CategoryDto categoryDto) {
+
         String identifier = categoryDto.getIdentifier();
-        Category existingCategory = categoryRepository.findByIdentifier(identifier);
+
+        Category existingCategory =
+                categoryRepository.findByIdentifier(identifier);
+
         if (existingCategory == null) {
             categoryDto.setMessage("Category not found");
             categoryDto.setSuccess(false);
-        } else {
-            modelMapper.map(categoryDto, existingCategory);
-            categoryRepository.save(existingCategory);
-            categoryDto.setMessage("Category updated successfully");
-            categoryDto.setSuccess(true);
+            return categoryDto;
         }
+
+        if (isSoftDeleted(existingCategory)) {
+            categoryDto.setSuccess(false);
+            categoryDto.setMessage(
+                    getDeletedMessage("Category", identifier)
+            );
+            return categoryDto;
+        }
+
+        modelMapper.map(categoryDto, existingCategory);
+
+        setModifiedDetails(existingCategory);
+
+        categoryRepository.save(existingCategory);
+
+        categoryDto.setMessage("Category updated successfully");
+        categoryDto.setSuccess(true);
+
         return categoryDto;
     }
 
@@ -115,6 +129,7 @@ public class CategoryServiceImpl implements CategoryService {
             return response;
         }
 
+        setModifiedDetails(category);
         category.setStatus(status);
         response.setSuccess(true);
         response.setMessage("Status updated successfully");
@@ -124,6 +139,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void delete(String identifier) {
-        categoryRepository.deleteByIdentifier(identifier);
+        Category category = categoryRepository.findByIdentifier(identifier);
+        softDelete(category);
+        setModifiedDetails(category);
+        categoryRepository.save(category);
     }
 }

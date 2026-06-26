@@ -127,16 +127,30 @@ class RackServiceTest {
     @Test
     void deleteTest() {
 
-        Mockito.doNothing().when(rackRepository)
-                .deleteByIdentifier("Rack1");
+        Rack rack = new Rack();
+        rack.setIdentifier("Rack1");
+        rack.setDeleted(false);
+
+        Mockito.when(rackRepository.findByIdentifier("Rack1"))
+                .thenReturn(rack);
+
+        Mockito.when(rackRepository.save(rack))
+                .thenReturn(rack);
 
         rackService.delete("Rack1");
 
-        Mockito.verify(rackRepository).deleteByIdentifier("Rack1");
+        Assertions.assertTrue(rack.isDeleted());
+
+        Mockito.verify(rackRepository)
+                .findByIdentifier("Rack1");
+
+        Mockito.verify(rackRepository)
+                .save(rack);
     }
 
     @Test
     void findAllWithPageableTest() {
+
         Rack rack = new Rack();
         rack.setIdentifier("Rack1");
 
@@ -147,9 +161,11 @@ class RackServiceTest {
         List<RackDto> rackDtos = List.of(rackDto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Rack> rackPage = new PageImpl<>(racks);
 
-        Mockito.when(rackRepository.findAll(pageable))
+        Page<Rack> rackPage =
+                new PageImpl<>(racks, pageable, racks.size());
+
+        Mockito.when(rackRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(rackPage);
 
         Mockito.when(modelMapper.map(
@@ -157,35 +173,18 @@ class RackServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(rackDtos);
 
-        PaginationResponseDto<RackDto> response = rackService.findAll(pageable);
+        PaginationResponseDto<RackDto> response =
+                rackService.findAll(pageable);
 
-        Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("Rack1",
-                response.getDtoList().get(0).getIdentifier());
-    }
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
 
-    @Test
-    void findAllWithoutPageableTest() {
-        Rack rack = new Rack();
-        rack.setIdentifier("Rack1");
-
-        RackDto rackDto = new RackDto();
-        rackDto.setIdentifier("Rack1");
-
-        List<Rack> racks = List.of(rack);
-        List<RackDto> rackDtos = List.of(rackDto);
-
-        Mockito.when(rackRepository.findAll())
-                .thenReturn(racks);
-
-        Mockito.when(modelMapper.map(
-                Mockito.eq(racks),
-                Mockito.any(Type.class)
-        )).thenReturn(rackDtos);
-
-        PaginationResponseDto<RackDto> response = rackService.findAll(null);
-
-        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(
+                "Rack1",
+                response.getDtoList().get(0).getIdentifier()
+        );
     }
 
     @Test

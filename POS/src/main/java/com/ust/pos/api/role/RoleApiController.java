@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/role")
 public class RoleApiController extends BaseController {
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
+
+    public RoleApiController(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @PostMapping("/list")
     public PaginationResponseDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
@@ -28,7 +30,7 @@ public class RoleApiController extends BaseController {
         return roleService.save(roleDto);
     }
 
-    @PostMapping("/toggle")
+    @PutMapping("/toggle")
     public RoleDto toggleStatus(@RequestBody RoleDto dto) {
         return roleService.updateStatus(dto.getIdentifier(), dto.isStatus());
     }
@@ -38,12 +40,12 @@ public class RoleApiController extends BaseController {
         return roleService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RoleDto updatePost(@RequestBody RoleDto roleDto) {
         return roleService.update(roleDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             roleService.delete(identifier);

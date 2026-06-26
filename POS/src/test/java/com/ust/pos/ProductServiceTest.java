@@ -4,6 +4,7 @@ import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
+import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ class ProductServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
+    @Mock
+    private PriceService priceService;
+
     @Test
     void findAllWithPageableTest() {
 
@@ -47,9 +51,10 @@ class ProductServiceTest {
         List<ProductDto> productDtos = List.of(productDto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Product> productPage = new PageImpl<>(products);
+        Page<Product> productPage =
+                new PageImpl<>(products, pageable, products.size());
 
-        Mockito.when(productRepository.findAll(pageable))
+        Mockito.when(productRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(productPage);
 
         Mockito.when(modelMapper.map(
@@ -57,41 +62,21 @@ class ProductServiceTest {
                 Mockito.any(Type.class)
         )).thenReturn(productDtos);
 
+        Mockito.when(priceService.findByIdentifier("P1Selling"))
+                .thenReturn(null);
+
+        Mockito.when(priceService.findByIdentifier("P1Mrp"))
+                .thenReturn(null);
+
         PaginationResponseDto<ProductDto> response =
                 productService.findAll(pageable);
 
+        Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
-
         Assertions.assertEquals(
                 "P1",
                 response.getDtoList().get(0).getIdentifier()
         );
-    }
-
-    @Test
-    void findAllWithoutPageableTest() {
-
-        Product product = new Product();
-        product.setIdentifier("P1");
-
-        ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("P1");
-
-        List<Product> products = List.of(product);
-        List<ProductDto> productDtos = List.of(productDto);
-
-        Mockito.when(productRepository.findAll())
-                .thenReturn(products);
-
-        Mockito.when(modelMapper.map(
-                Mockito.eq(products),
-                Mockito.any(Type.class)
-        )).thenReturn(productDtos);
-
-        PaginationResponseDto<ProductDto> response =
-                productService.findAll(null);
-
-        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -236,10 +221,25 @@ class ProductServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(productRepository).deleteByIdentifier("P1");
+
+        Product product = new Product();
+        product.setIdentifier("P1");
+        product.setDeleted(false);
+
+        Mockito.when(productRepository.findByIdentifier("P1"))
+                .thenReturn(product);
+
+        Mockito.when(productRepository.save(product))
+                .thenReturn(product);
 
         productService.delete("P1");
 
-        Mockito.verify(productRepository).deleteByIdentifier("P1");
+        Assertions.assertTrue(product.isDeleted());
+
+        Mockito.verify(productRepository)
+                .findByIdentifier("P1");
+
+        Mockito.verify(productRepository)
+                .save(product);
     }
 }

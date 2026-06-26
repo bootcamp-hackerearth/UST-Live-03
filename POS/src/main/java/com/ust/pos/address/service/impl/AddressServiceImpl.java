@@ -1,24 +1,29 @@
 package com.ust.pos.address.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl extends BaseService implements AddressService {
 
-    @Autowired
-    private AddressRepository addressRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final AddressRepository addressRepository;
+    private final ModelMapper modelMapper;
+
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public void save(AddressDto addressDto) {
-        addressRepository.save(modelMapper.map(addressDto, Address.class));
+        Address address = modelMapper.map(addressDto, Address.class);
+        setCreatedDetails(address);
+        addressRepository.save(address);
         addressDto.setMessage("Successfully added the address");
         addressDto.setSuccess(true);
     }
@@ -32,6 +37,7 @@ public class AddressServiceImpl implements AddressService {
     public void update(AddressDto addressDto) {
         String phoneNo = addressDto.getPhoneNo();
         Address existingAddress = addressRepository.findByPhoneNoAndAddressType(phoneNo, addressDto.getAddressType());
+        setModifiedDetails(existingAddress);
         modelMapper.map(addressDto, existingAddress);
         addressRepository.save(existingAddress);
     }

@@ -10,8 +10,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class Cart extends CommonFields {
-    private BigDecimal totalPrice;//sum of all prices after discount
-    private BigDecimal totalDiscount;//
-    private BigDecimal totalOriginalPrice;//sum of og price of all entries
+    private BigDecimal totalPrice;
+    private BigDecimal totalDiscount;
+    private BigDecimal totalOriginalPrice;
     private String coupon;
 }

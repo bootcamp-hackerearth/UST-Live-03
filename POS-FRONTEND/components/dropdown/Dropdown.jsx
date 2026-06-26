@@ -8,6 +8,7 @@ const Dropdown = ({
   name,
   label,
   placeholder = "Select",
+  disabled = false,
   value,
   onChange,
   formData,
@@ -34,7 +35,6 @@ const Dropdown = ({
   const effectiveValue = value ?? formData?.[name];
   const effectiveOnChange = onChange ?? handleChange;
 
-  // Stable ref for requestBody to avoid re-fetching on every render
   const requestBodyRef = useRef(requestBody);
   useEffect(() => {
     requestBodyRef.current = requestBody;
@@ -75,7 +75,6 @@ const Dropdown = ({
 
         const responseData = response?.data;
 
-        // Handle all common response shapes
         const nextItems =
           responseData?.dtoList ??
           responseData?.content ??
@@ -93,8 +92,10 @@ const Dropdown = ({
 
     fetchData();
 
-    return () => { isMounted = false; };
-  }, [endpoint, method, disableFetch, name]);  // removed options/requestHeaders from deps — use refs instead
+    return () => {
+      isMounted = false;
+    };
+  }, [endpoint, method, disableFetch, name]);
 
   const ensureArray = (val) => {
     if (Array.isArray(val)) return val;
@@ -121,7 +122,10 @@ const Dropdown = ({
 
   return (
     <div className="w-full">
-      <label htmlFor={name} className="block mb-2 text-sm font-semibold text-gray-700">
+      <label
+        htmlFor={name}
+        className="block mb-2 text-sm font-semibold text-gray-700"
+      >
         {label}
       </label>
 
@@ -132,10 +136,9 @@ const Dropdown = ({
         onChange={handleSelectChange}
         multiple={multiple}
         className={`${selectClassName} ${errorMessage ? "border-red-400" : ""}`}
+        disabled={disabled}
       >
-        {!multiple && (
-          <option value="">{placeholder}</option>
-        )}
+        {!multiple && <option value="">{placeholder}</option>}
 
         {renderedOptions.map((item, index) => (
           <option
@@ -162,6 +165,7 @@ Dropdown.propTypes = {
   name: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   placeholder: PropTypes.string,
+  disabled: PropTypes.bool,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
   onChange: PropTypes.func,
   formData: PropTypes.object,

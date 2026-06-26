@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.rack.service.RackService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/rack")
 public class RackApiController extends BaseController {
 
-    @Autowired
-    private RackService rackService;
+    private final RackService rackService;
+
+    public RackApiController(RackService rackService) {
+        this.rackService = rackService;
+    }
 
     @PostMapping("/list")
     public PaginationResponseDto<RackDto> list(@RequestBody PaginationDto paginationDto) {
@@ -28,7 +30,7 @@ public class RackApiController extends BaseController {
         return rackService.save(rackDto);
     }
 
-    @PostMapping("/toggle")
+    @PutMapping("/toggle")
     public RackDto toggleStatus(@RequestBody RackDto rackDto) {
         return rackService.updateStatus(rackDto.getIdentifier(), rackDto.isStatus());
     }
@@ -38,12 +40,12 @@ public class RackApiController extends BaseController {
         return rackService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RackDto updatePost(@RequestBody RackDto rackDto) {
         return rackService.save(rackDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             rackService.delete(identifier);

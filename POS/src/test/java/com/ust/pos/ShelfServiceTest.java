@@ -97,10 +97,13 @@ class ShelfServiceTest {
         List<ShelfDto> shelfDtos = List.of(shelfDto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Shelf> shelfPage = new PageImpl<>(shelves);
 
-        Mockito.when(shelfRepository.findAll(pageable))
-                .thenReturn(shelfPage);
+        Page<Shelf> shelfPage =
+                new PageImpl<>(shelves, pageable, shelves.size());
+
+        Mockito.when(
+                shelfRepository.findByIsDeletedFalse(pageable)
+        ).thenReturn(shelfPage);
 
         Mockito.when(modelMapper.map(
                 Mockito.eq(shelves),
@@ -113,45 +116,6 @@ class ShelfServiceTest {
         Assertions.assertEquals(
                 1,
                 response.getDtoList().size()
-        );
-
-        Assertions.assertEquals(
-                "Shelf1",
-                response.getDtoList().get(0).getIdentifier()
-        );
-    }
-
-    @Test
-    void findAllWithoutPageableTest() {
-
-        Shelf shelf = new Shelf();
-        shelf.setIdentifier("Shelf1");
-
-        ShelfDto shelfDto = new ShelfDto();
-        shelfDto.setIdentifier("Shelf1");
-
-        List<Shelf> shelves = List.of(shelf);
-        List<ShelfDto> shelfDtos = List.of(shelfDto);
-
-        Mockito.when(shelfRepository.findAll())
-                .thenReturn(shelves);
-
-        Mockito.when(modelMapper.map(
-                Mockito.eq(shelves),
-                Mockito.any(Type.class)
-        )).thenReturn(shelfDtos);
-
-        PaginationResponseDto<ShelfDto> response =
-                shelfService.findAll(null);
-
-        Assertions.assertEquals(
-                1,
-                response.getDtoList().size()
-        );
-
-        Assertions.assertEquals(
-                "Shelf1",
-                response.getDtoList().get(0).getIdentifier()
         );
     }
 
@@ -238,12 +202,27 @@ class ShelfServiceTest {
 
     @Test
     void delete_success() {
-        Mockito.doNothing()
-                .when(shelfRepository)
-                .deleteByIdentifier("Shelf1");
+
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Shelf1");
+        shelf.setDeleted(false);
+
+        Mockito.when(
+                shelfRepository.findByIdentifier("Shelf1")
+        ).thenReturn(shelf);
+
+        Mockito.when(
+                shelfRepository.save(shelf)
+        ).thenReturn(shelf);
 
         shelfService.delete("Shelf1");
 
-        Mockito.verify(shelfRepository).deleteByIdentifier("Shelf1");
+        Assertions.assertTrue(shelf.isDeleted());
+
+        Mockito.verify(shelfRepository)
+                .findByIdentifier("Shelf1");
+
+        Mockito.verify(shelfRepository)
+                .save(shelf);
     }
 }

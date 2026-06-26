@@ -110,11 +110,26 @@ class NodeServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(nodeRepository).deleteByIdentifier("N1");
+
+        Node node = new Node();
+        node.setIdentifier("N1");
+        node.setDeleted(false);
+
+        when(nodeRepository.findByIdentifier("N1"))
+                .thenReturn(node);
+
+        when(nodeRepository.save(node))
+                .thenReturn(node);
 
         nodeService.delete("N1");
 
-        verify(nodeRepository).deleteByIdentifier("N1");
+        assertTrue(node.isDeleted());
+
+        verify(nodeRepository)
+                .findByIdentifier("N1");
+
+        verify(nodeRepository)
+                .save(node);
     }
 
     @Test
@@ -145,7 +160,7 @@ class NodeServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Node> nodePage = new PageImpl<>(nodes);
 
-        when(nodeRepository.findAll(pageable))
+        when(nodeRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(nodePage);
 
         when(modelMapper.map(
@@ -165,43 +180,12 @@ class NodeServiceTest {
     }
 
     @Test
-    void findAllWithoutPageableTest() {
-
-        Node node = new Node();
-        node.setIdentifier("CUST1");
-
-        NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("CUST1");
-
-        List<Node> nodes = List.of(node);
-        List<NodeDto> nodeDtos = List.of(nodeDto);
-
-        when(nodeRepository.findAll())
-                .thenReturn(nodes);
-
-        when(modelMapper.map(
-                eq(nodes),
-                any(Type.class)
-        )).thenReturn(nodeDtos);
-
-        PaginationResponseDto<NodeDto> result =
-                nodeService.findAll(null);
-
-        assertNotNull(result);
-        assertEquals(1, result.getDtoList().size());
-        assertEquals(
-                "CUST1",
-                result.getDtoList().get(0).getIdentifier()
-        );
-    }
-
-    @Test
     void findAllWithPageable_emptyResult() {
 
         Pageable pageable = PageRequest.of(0, 5);
         Page<Node> emptyPage = Page.empty();
 
-        when(nodeRepository.findAll(pageable))
+        when(nodeRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(emptyPage);
 
         when(modelMapper.map(

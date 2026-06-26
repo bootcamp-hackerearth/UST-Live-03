@@ -1,5 +1,6 @@
 package com.ust.pos.shelf.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
@@ -8,7 +9,6 @@ import com.ust.pos.shelf.service.ShelfService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,33 +17,22 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ShelfServiceImpl implements ShelfService {
+public class ShelfServiceImpl extends BaseService implements ShelfService {
 
-    @Autowired
-    private ShelfRepository shelfRepository;
+    private final ShelfRepository shelfRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ShelfServiceImpl(ShelfRepository shelfRepository, ModelMapper modelMapper) {
+        this.shelfRepository = shelfRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PaginationResponseDto<ShelfDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        if (pageable == null) {
 
-            List<ShelfDto> shelfDtoList =
-                    modelMapper.map(shelfRepository.findAll(), listType);
-
-            PaginationResponseDto<ShelfDto> response =
-                    new PaginationResponseDto<>();
-
-            response.setDtoList(shelfDtoList);
-            response.setTotalRecords(shelfDtoList.size());
-
-            return response;
-        }
-
-        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
+        Page<Shelf> shelfPage = shelfRepository.findByIsDeletedFalse(pageable);
 
         List<ShelfDto> shelfDtoList = modelMapper.map(shelfPage.getContent(), listType);
 
@@ -76,10 +65,16 @@ public class ShelfServiceImpl implements ShelfService {
         String identifier = shelfDto.getIdentifier();
         Shelf shelf = shelfRepository.findByIdentifier(identifier);
         if (shelf == null) {
-            shelfDto.setSuccess(true);
-            shelfRepository.save(modelMapper.map(shelfDto, Shelf.class));
+            shelf = modelMapper.map(shelfDto, Shelf.class);
+            setCreatedDetails(shelf);
+            shelfRepository.save(shelf);
             shelfDto.setMessage("Successfully added the shelf");
             shelfDto.setSuccess(true);
+        } else if (isSoftDeleted(shelf)) {
+            shelfDto.setMessage(
+                    getDeletedMessage("Shelf", identifier)
+            );
+            shelfDto.setSuccess(false);
         } else {
             shelfDto.setMessage("Shelf " + identifier + " already exists");
             shelfDto.setSuccess(false);
@@ -99,6 +94,7 @@ public class ShelfServiceImpl implements ShelfService {
             return response;
         }
 
+        setModifiedDetails(shelf);
         shelf.setStatus(status);
         response.setSuccess(true);
         response.setMessage("Status updated successfully");
@@ -108,16 +104,32 @@ public class ShelfServiceImpl implements ShelfService {
 
     @Override
     public ShelfDto update(ShelfDto shelfDto) {
+
         String identifier = shelfDto.getIdentifier();
-        Shelf existingShelf = shelfRepository.findByIdentifier(identifier);
+
+        Shelf existingShelf =
+                shelfRepository.findByIdentifier(identifier);
+
         if (existingShelf == null) {
             shelfDto.setMessage("Shelf not found");
             shelfDto.setSuccess(false);
             return shelfDto;
         }
 
+        if (isSoftDeleted(existingShelf)) {
+            shelfDto.setSuccess(false);
+            shelfDto.setMessage(
+                    getDeletedMessage("Shelf", identifier)
+            );
+            return shelfDto;
+        }
+
         modelMapper.map(shelfDto, existingShelf);
+
+        setModifiedDetails(existingShelf);
+
         shelfRepository.save(existingShelf);
+
         shelfDto.setMessage("Shelf updated successfully");
         shelfDto.setSuccess(true);
 
@@ -127,6 +139,9 @@ public class ShelfServiceImpl implements ShelfService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        shelfRepository.deleteByIdentifier(identifier);
+        Shelf shelf = shelfRepository.findByIdentifier(identifier);
+        softDelete(shelf);
+        setModifiedDetails(shelf);
+        shelfRepository.save(shelf);
     }
 }

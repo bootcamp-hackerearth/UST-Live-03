@@ -6,7 +6,10 @@ import Dropdown from "@/components/dropdown/Dropdown";
 
 const PriceTypeField = ({ formData = {}, handleChange, errors = {} }) => (
   <div className="w-full">
-    <label htmlFor="priceType" className="block mb-2 text-sm font-semibold text-gray-700">
+    <label
+      htmlFor="priceType"
+      className="block mb-2 text-sm font-semibold text-gray-700"
+    >
       Price Type
     </label>
     <select
@@ -34,7 +37,10 @@ PriceTypeField.propTypes = {
 
 const PriceValueField = ({ formData = {}, handleChange, errors = {} }) => (
   <div className="w-full">
-    <label htmlFor="priceValue" className="block mb-2 text-sm font-semibold text-gray-700">
+    <label
+      htmlFor="priceValue"
+      className="block mb-2 text-sm font-semibold text-gray-700"
+    >
       Value
     </label>
     <input
@@ -62,7 +68,7 @@ const PriceAdd = () => {
   const fields = [];
 
   const initialData = {
-    productName: "",
+    product: "",
     priceType: "",
     value: "",
   };
@@ -70,14 +76,9 @@ const PriceAdd = () => {
   const modelName = "price";
 
   return (
-    <AddPage
-      modelName={modelName}
-      fields={fields}
-      initialData={initialData}
-    >
-
+    <AddPage modelName={modelName} fields={fields} initialData={initialData}>
       <Dropdown
-        name="productName"
+        name="product"
         label="Product"
         placeholder="Select Product"
         endpoint="/product/list"

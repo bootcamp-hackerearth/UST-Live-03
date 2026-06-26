@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.rack.service.RackService;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +20,13 @@ public class ShelfController extends BaseController {
     private static final String SHELF = "shelfs";
     private static final String ACTIVE_RACKS = "racks";
 
-    @Autowired
-    private ShelfService shelfService;
+    private final ShelfService shelfService;
+    private final RackService rackService;
 
-    @Autowired
-    private RackService rackService;
+    public ShelfController(ShelfService shelfService, RackService rackService) {
+        this.shelfService = shelfService;
+        this.rackService = rackService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, @ModelAttribute PaginationDto paginationDto) {

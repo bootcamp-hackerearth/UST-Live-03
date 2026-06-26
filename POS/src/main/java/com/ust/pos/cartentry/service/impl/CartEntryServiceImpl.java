@@ -6,11 +6,12 @@ import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
+import com.ust.pos.model.Stock;
+import com.ust.pos.model.StockRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,17 +24,19 @@ import java.util.List;
 @Transactional
 public class CartEntryServiceImpl implements CartEntryService {
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    private final CartEntryRepository cartEntryRepository;
+    private final CartServiceImpl cartService;
+    private final ModelMapper modelMapper;
+    private final StockRepository stockRepository;
+    private final PriceServiceImpl priceService;
 
-    @Autowired
-    private CartServiceImpl cartService;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private PriceServiceImpl priceService;
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, CartServiceImpl cartService, PriceServiceImpl priceService, StockRepository stockRepository, ModelMapper modelMapper) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.cartService = cartService;
+        this.priceService = priceService;
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public List<CartEntryDto> findAll(Pageable pageable) {
@@ -48,7 +51,15 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
-        return modelMapper.map(cartEntryRepository.findByIdentifier(identifier), CartEntryDto.class);
+        CartEntry cartEntry =
+                cartEntryRepository.findByIdentifier(identifier);
+        if (cartEntry == null) {
+            return null;
+        }
+        return modelMapper.map(
+                cartEntry,
+                CartEntryDto.class
+        );
     }
 
     @Override
@@ -71,6 +82,8 @@ public class CartEntryServiceImpl implements CartEntryService {
                         : cartEntry.getQuantity();
 
         BigDecimal updatedQuantity = existingQuantity.add(quantity);
+
+        validateStock(product, updatedQuantity);
 
         cartEntry.setProduct(product);
         cartEntry.setQuantity(updatedQuantity);
@@ -96,40 +109,73 @@ public class CartEntryServiceImpl implements CartEntryService {
         cartEntry.setDiscount(discount);
         cartEntry.setTotalPrice(totalPrice);
 
-        CartEntry savedEntry = cartEntryRepository.save(cartEntry);
-
         if (cartService.findByIdentifier(cartId) == null) {
             cartService.save(cartId);
         }
 
+        CartEntry savedEntry = cartEntryRepository.save(cartEntry);
         cartService.recalculate(cartId);
-
         return modelMapper.map(savedEntry, CartEntryDto.class);
     }
 
     @Override
     public CartEntryDto update(CartEntryDto cartEntryDto) {
+
         String identifier = cartEntryDto.getIdentifier();
-        CartEntry cartEntry = cartEntryRepository.findByIdentifier(identifier);
+
+        CartEntry cartEntry =
+                cartEntryRepository.findByIdentifier(identifier);
+
         if (cartEntry == null) {
-            cartEntryDto.setMessage("Entry not found");
-            cartEntryDto.setSuccess(false);
-            return cartEntryDto;
-        } else {
-            String product = cartEntry.getProduct();
-            BigDecimal quantity = cartEntryDto.getQuantity();
-            BigDecimal totalPrice = quantity.multiply(cartEntry.getUnitPrice());
-            PriceDto mrpDto = priceService.findByIdentifier(product + "Mrp");
-            BigDecimal originalPrice = quantity.multiply(mrpDto.getValue());
-
-            cartEntry.setQuantity(quantity);
-            cartEntry.setTotalPrice(totalPrice);
-            cartEntry.setOriginalPrice(originalPrice);
-            cartEntry.setIdentifier(cartEntryDto.getIdentifier());
-
-            cartService.recalculate(cartEntryDto.getCart());
-            return modelMapper.map(cartEntryRepository.save(cartEntry), CartEntryDto.class);
+            CartEntryDto dto = new CartEntryDto();
+            dto.setSuccess(false);
+            dto.setMessage("Entry not found");
+            return dto;
         }
+
+        BigDecimal quantity = cartEntryDto.getQuantity();
+
+        validateStock(cartEntry.getProduct(), quantity);
+
+        if (quantity == null ||
+                quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(
+                    "Quantity must be greater than zero");
+        }
+
+        String product = cartEntry.getProduct();
+
+        PriceDto mrpDto =
+                priceService.findByIdentifier(product + "Mrp");
+
+        if (mrpDto == null) {
+            throw new IllegalArgumentException(
+                    "MRP not configured for product: " + product);
+        }
+
+        BigDecimal unitPrice = cartEntry.getUnitPrice();
+        BigDecimal mrp = mrpDto.getValue();
+
+        BigDecimal totalPrice =
+                quantity.multiply(unitPrice);
+
+        BigDecimal originalPrice =
+                quantity.multiply(mrp);
+
+        BigDecimal discount =
+                originalPrice.subtract(totalPrice);
+
+        cartEntry.setQuantity(quantity);
+        cartEntry.setTotalPrice(totalPrice);
+        cartEntry.setOriginalPrice(originalPrice);
+        cartEntry.setDiscount(discount);
+
+        CartEntry savedEntry =
+                cartEntryRepository.save(cartEntry);
+
+        cartService.recalculate(savedEntry.getCart());
+
+        return modelMapper.map(savedEntry, CartEntryDto.class);
     }
 
     @Override
@@ -145,5 +191,35 @@ public class CartEntryServiceImpl implements CartEntryService {
         }.getType();
         List<CartEntry> cartEntryList = cartEntryRepository.findByCart(cart);
         return modelMapper.map(cartEntryList, listType);
+    }
+
+    private void validateStock(
+            String product,
+            BigDecimal requiredQuantity) {
+
+        Stock stock =
+                stockRepository.findByProduct(product);
+
+        if (stock == null) {
+            throw new IllegalArgumentException(
+                    "Stock not configured for product: "
+                            + product
+            );
+        }
+
+        if (stock.getQuantity() <= 0) {
+            throw new IllegalArgumentException(
+                    "Product is out of stock"
+            );
+        }
+
+        if (BigDecimal.valueOf(stock.getQuantity())
+                .compareTo(requiredQuantity) < 0) {
+
+            throw new IllegalArgumentException(
+                    "Only " + stock.getQuantity()
+                            + " items available in stock"
+            );
+        }
     }
 }

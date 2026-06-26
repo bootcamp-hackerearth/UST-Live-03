@@ -48,7 +48,7 @@ class UnitServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Unit> unitPage = new PageImpl<>(units);
 
-        Mockito.when(unitRepository.findAll(pageable))
+        Mockito.when(unitRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(unitPage);
 
         Mockito.when(modelMapper.map(
@@ -58,36 +58,6 @@ class UnitServiceTest {
 
         PaginationResponseDto<UnitDto> response =
                 unitService.findAll(pageable);
-
-        Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals(
-                "U1",
-                response.getDtoList().get(0).getIdentifier()
-        );
-    }
-
-    @Test
-    void findAllWithoutPageableTest() {
-
-        Unit unit = new Unit();
-        unit.setIdentifier("U1");
-
-        UnitDto unitDto = new UnitDto();
-        unitDto.setIdentifier("U1");
-
-        List<Unit> units = List.of(unit);
-        List<UnitDto> unitDtos = List.of(unitDto);
-
-        Mockito.when(unitRepository.findAll())
-                .thenReturn(units);
-
-        Mockito.when(modelMapper.map(
-                Mockito.eq(units),
-                Mockito.any(Type.class)
-        )).thenReturn(unitDtos);
-
-        PaginationResponseDto<UnitDto> response =
-                unitService.findAll(null);
 
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals(
@@ -205,10 +175,15 @@ class UnitServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(unitRepository).deleteByIdentifier("U1");
+
+        Unit unit = new Unit();
+        unit.setIdentifier("U1");
+
+        Mockito.when(unitRepository.findByIdentifier("U1"))
+                .thenReturn(unit);
 
         unitService.delete("U1");
 
-        Mockito.verify(unitRepository).deleteByIdentifier("U1");
+        Mockito.verify(unitRepository).save(unit);
     }
 }

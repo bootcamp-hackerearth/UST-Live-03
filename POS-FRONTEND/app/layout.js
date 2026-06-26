@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "POS",
+  title: "COSTCO",
   description: "POS App",
 };
 
@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-          <AppShell>{children}</AppShell>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

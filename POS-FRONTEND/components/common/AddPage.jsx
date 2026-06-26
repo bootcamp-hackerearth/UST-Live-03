@@ -12,7 +12,7 @@ const AddPage = ({ modelName, fields, initialData, children }) => {
   const router = useRouter();
   const [formData, setFormData] = useState(initialData);
   const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("error"); // "success" | "error"
+  const [messageType, setMessageType] = useState("error");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +23,6 @@ const AddPage = ({ modelName, fields, initialData, children }) => {
 
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear the field error as the user types
     setErrors((prev) => {
       if (!prev[name]) return prev;
       const next = { ...prev };
@@ -57,7 +56,6 @@ const AddPage = ({ modelName, fields, initialData, children }) => {
 
       const data = res.data;
 
-      // Backend returned success: false (e.g. duplicate identifier/path)
       if (data?.success === false) {
         setMessage(data.message || "Failed to save. Please check your inputs.");
         setMessageType("error");
@@ -110,9 +108,11 @@ const AddPage = ({ modelName, fields, initialData, children }) => {
                 : "bg-green-50 text-green-700 border border-green-200"
             }`}
           >
-            {messageType === "error"
-              ? <AlertCircle size={16} className="shrink-0" />
-              : <CheckCircle size={16} className="shrink-0" />}
+            {messageType === "error" ? (
+              <AlertCircle size={16} className="shrink-0" />
+            ) : (
+              <CheckCircle size={16} className="shrink-0" />
+            )}
             {message}
           </div>
         )}
@@ -146,7 +146,9 @@ const AddPage = ({ modelName, fields, initialData, children }) => {
               )}
 
               {errors[field.name] && (
-                <p className="mt-1 text-sm text-red-500">{errors[field.name]}</p>
+                <p className="mt-1 text-sm text-red-500">
+                  {errors[field.name]}
+                </p>
               )}
             </div>
           ))}

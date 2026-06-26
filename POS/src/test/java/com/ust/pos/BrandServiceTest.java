@@ -163,58 +163,26 @@ class BrandServiceTest {
         List<BrandDto> dtos = List.of(dto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Brand> brandPage = new PageImpl<>(brands);
 
-        Mockito.when(brandRepository.findAll(pageable))
-                .thenReturn(brandPage);
+        Page<Brand> brandPage =
+                new PageImpl<>(brands, pageable, brands.size());
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(brands),
-                Mockito.any(Type.class)
-        )).thenReturn(dtos);
+        Mockito.when(
+                brandRepository.findByIsDeletedFalse(pageable)
+        ).thenReturn(brandPage);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(brands),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(dtos);
 
         PaginationResponseDto<BrandDto> response =
                 brandService.findAll(pageable);
 
-        Assertions.assertEquals(
-                1,
-                response.getDtoList().size()
-        );
-
-        Assertions.assertEquals(
-                "BR001",
-                response.getDtoList().get(0).getIdentifier()
-        );
-    }
-
-    @Test
-    void findAllWithoutPageableTest() {
-
-        Brand brand = new Brand();
-        brand.setIdentifier("BR001");
-
-        BrandDto dto = new BrandDto();
-        dto.setIdentifier("BR001");
-
-        List<Brand> brands = List.of(brand);
-        List<BrandDto> dtos = List.of(dto);
-
-        Mockito.when(brandRepository.findAll())
-                .thenReturn(brands);
-
-        Mockito.when(modelMapper.map(
-                Mockito.eq(brands),
-                Mockito.any(Type.class)
-        )).thenReturn(dtos);
-
-        PaginationResponseDto<BrandDto> response =
-                brandService.findAll(null);
-
-        Assertions.assertEquals(
-                1,
-                response.getDtoList().size()
-        );
-
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals(
                 "BR001",
                 response.getDtoList().get(0).getIdentifier()
@@ -248,13 +216,27 @@ class BrandServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(brandRepository)
-                .deleteByIdentifier("BR001");
+
+        Brand brand = new Brand();
+        brand.setIdentifier("BR001");
+        brand.setDeleted(false);
+
+        Mockito.when(
+                brandRepository.findByIdentifier("BR001")
+        ).thenReturn(brand);
+
+        Mockito.when(
+                brandRepository.save(brand)
+        ).thenReturn(brand);
 
         brandService.delete("BR001");
 
+        Assertions.assertTrue(brand.isDeleted());
+
         Mockito.verify(brandRepository)
-                .deleteByIdentifier("BR001");
+                .findByIdentifier("BR001");
+
+        Mockito.verify(brandRepository)
+                .save(brand);
     }
 }

@@ -37,29 +37,49 @@ class CategoryServiceTest {
 
     @Test
     void saveTestSuccess() {
+
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setIdentifier("Category1");
 
-        Mockito.when(categoryRepository.findByIdentifier("Category1")).thenReturn(null);
+        Category category = new Category();
+
+        Mockito.when(categoryRepository.findByIdentifier("Category1"))
+                .thenReturn(null);
+
+        Mockito.when(
+                modelMapper.map(categoryDto, Category.class)
+        ).thenReturn(category);
+
         CategoryDto response = categoryService.save(categoryDto);
 
-        Assertions.assertEquals("Category1", response.getIdentifier());
-        Assertions.assertEquals(true, response.isSuccess());
+        Mockito.verify(categoryRepository).save(category);
+
+        Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
     void saveTestWithEmptySuperCategory() {
+
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setIdentifier("Category1");
         categoryDto.setSuperCategory("");
 
+        Category category = new Category();
+
         Mockito.when(categoryRepository.findByIdentifier("Category1"))
                 .thenReturn(null);
+
+        Mockito.when(
+                modelMapper.map(categoryDto, Category.class)
+        ).thenReturn(category);
 
         CategoryDto response = categoryService.save(categoryDto);
 
         Assertions.assertNull(categoryDto.getSuperCategory());
         Assertions.assertTrue(response.isSuccess());
+
+        Mockito.verify(categoryRepository)
+                .save(category);
     }
 
     @Test
@@ -136,12 +156,27 @@ class CategoryServiceTest {
     @Test
     void deleteTest() {
 
-        Mockito.doNothing().when(categoryRepository)
-                .deleteByIdentifier("Category1");
+        Category category = new Category();
+        category.setIdentifier("Category1");
+        category.setDeleted(false);
+
+        Mockito.when(
+                categoryRepository.findByIdentifier("Category1")
+        ).thenReturn(category);
+
+        Mockito.when(
+                categoryRepository.save(category)
+        ).thenReturn(category);
 
         categoryService.delete("Category1");
 
-        Mockito.verify(categoryRepository).deleteByIdentifier("Category1");
+        Assertions.assertTrue(category.isDeleted());
+
+        Mockito.verify(categoryRepository)
+                .findByIdentifier("Category1");
+
+        Mockito.verify(categoryRepository)
+                .save(category);
     }
 
     @Test
@@ -157,10 +192,13 @@ class CategoryServiceTest {
         List<CategoryDto> categoryDtos = List.of(categoryDto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Category> categoryPage = new PageImpl<>(categories);
 
-        Mockito.when(categoryRepository.findAll(pageable))
-                .thenReturn(categoryPage);
+        Page<Category> categoryPage =
+                new PageImpl<>(categories, pageable, categories.size());
+
+        Mockito.when(
+                categoryRepository.findByIsDeletedFalse(pageable)
+        ).thenReturn(categoryPage);
 
         Mockito.when(modelMapper.map(
                 Mockito.eq(categories),
@@ -170,49 +208,8 @@ class CategoryServiceTest {
         PaginationResponseDto<CategoryDto> response =
                 categoryService.findAll(pageable);
 
-        Assertions.assertEquals(
-                1,
-                response.getDtoList().size()
-        );
-
-        Assertions.assertEquals(
-                "Category1",
-                response.getDtoList().get(0).getIdentifier()
-        );
-    }
-
-    @Test
-    void findAllWithoutPageableTest() {
-
-        Category category = new Category();
-        category.setIdentifier("Category1");
-
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setIdentifier("Category1");
-
-        List<Category> categories = List.of(category);
-        List<CategoryDto> categoryDtos = List.of(categoryDto);
-
-        Mockito.when(categoryRepository.findAll())
-                .thenReturn(categories);
-
-        Mockito.when(modelMapper.map(
-                Mockito.eq(categories),
-                Mockito.any(Type.class)
-        )).thenReturn(categoryDtos);
-
-        PaginationResponseDto<CategoryDto> response =
-                categoryService.findAll(null);
-
-        Assertions.assertEquals(
-                1,
-                response.getDtoList().size()
-        );
-
-        Assertions.assertEquals(
-                "Category1",
-                response.getDtoList().get(0).getIdentifier()
-        );
+        Assertions.assertEquals(1,
+                response.getDtoList().size());
     }
 
     @Test

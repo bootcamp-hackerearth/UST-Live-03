@@ -1,9 +1,17 @@
 package com.ust.pos.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StockRepository extends JpaRepository<Stock, Long> {
-    void deleteById(long id);
+    Stock findByIdentifier(String identifier);
+
+    void deleteByIdentifier(String identifier);
+
+    Page<Stock> findByIsDeletedFalse(Pageable pageable);
+
+    Stock findByProduct(String product);
 }

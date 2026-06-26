@@ -4,6 +4,7 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -157,12 +158,22 @@ class CustomerServiceTest {
 
     @Test
     void deleteCustomer() {
-        doNothing().when(customerRepository).deleteByIdentifier("12345");
+
+        Customer customer = new Customer();
+        customer.setIdentifier("12345");
+        customer.setDeleted(false);
+
+        when(customerRepository.findByIdentifier("12345"))
+                .thenReturn(customer);
+
         doNothing().when(addressService).delete("12345");
 
         customerService.delete("12345");
 
-        verify(customerRepository).deleteByIdentifier("12345");
+        assertTrue(customer.isDeleted());
+
+        verify(customerRepository).findByIdentifier("12345");
+        verify(customerRepository).save(customer);
         verify(addressService).delete("12345");
     }
 
@@ -179,9 +190,10 @@ class CustomerServiceTest {
         List<CustomerDto> customerDtos = List.of(customerDto);
 
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Customer> customerPage = new PageImpl<>(customers);
+        Page<Customer> customerPage =
+                new PageImpl<>(customers, pageable, customers.size());
 
-        when(customerRepository.findAll(pageable))
+        when(customerRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(customerPage);
 
         when(modelMapper.map(
@@ -189,15 +201,21 @@ class CustomerServiceTest {
                 any(Type.class)
         )).thenReturn(customerDtos);
 
-        List<CustomerDto> result = customerService.findAll(pageable);
+        PaginationResponseDto<CustomerDto> result =
+                customerService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("CUST1", result.get(0).getIdentifier());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(
+                "CUST1",
+                result.getDtoList().get(0).getIdentifier()
+        );
+        assertEquals(0, result.getPage());
+        assertEquals(1, result.getTotalRecords());
     }
 
     @Test
-    void findAllWithoutPageableTest() {
+    void findAllTest() {
 
         Customer customer = new Customer();
         customer.setIdentifier("CUST1");
@@ -208,18 +226,27 @@ class CustomerServiceTest {
         List<Customer> customers = List.of(customer);
         List<CustomerDto> customerDtos = List.of(customerDto);
 
-        when(customerRepository.findAll())
-                .thenReturn(customers);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Customer> customerPage =
+                new PageImpl<>(customers, pageable, customers.size());
+
+        when(customerRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(customerPage);
 
         when(modelMapper.map(
                 eq(customers),
                 any(Type.class)
         )).thenReturn(customerDtos);
 
-        List<CustomerDto> result = customerService.findAll(null);
+        PaginationResponseDto<CustomerDto> result =
+                customerService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("CUST1", result.get(0).getIdentifier());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(
+                "CUST1",
+                result.getDtoList().get(0).getIdentifier()
+        );
     }
 }

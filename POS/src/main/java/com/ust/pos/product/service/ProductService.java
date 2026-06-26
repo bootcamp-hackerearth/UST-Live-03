@@ -20,4 +20,6 @@ public interface ProductService {
     ProductDto updateStatus(String identifier, boolean status);
 
     void delete(String identifier);
+
+    List<ProductDto> searchProduct(String query);
 }

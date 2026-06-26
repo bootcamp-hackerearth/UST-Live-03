@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.models.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +17,11 @@ public class ModelController extends BaseController {
     private static final String MODEL_VIEW = "model/model";
     private static final String REDIRECT_MODEL_LIST = "redirect:/model/list";
 
-    @Autowired
-    private ModelService modelService;
+    private final ModelService modelService;
+
+    public ModelController(ModelService modelService) {
+        this.modelService = modelService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, @ModelAttribute PaginationDto paginationDto) {

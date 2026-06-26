@@ -5,8 +5,6 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.node.service.NodeService;
-import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,10 +14,11 @@ import java.util.List;
 @RequestMapping("/api/node")
 public class NodeApiController extends BaseController {
 
-    @Autowired
-    private NodeService nodeService;
-    @Autowired
-    private RoleService roleService;
+    private final NodeService nodeService;
+
+    public NodeApiController(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
 
     @PostMapping("/list")
     public PaginationResponseDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
@@ -38,7 +37,7 @@ public class NodeApiController extends BaseController {
         return nodeService.save(nodeDto);
     }
 
-    @PostMapping("/toggle")
+    @PutMapping("/toggle")
     public NodeDto toggleStatus(@RequestBody NodeDto dto) {
         return nodeService.updateStatus(dto.getIdentifier(), dto.isStatus());
     }
@@ -48,12 +47,12 @@ public class NodeApiController extends BaseController {
         return nodeService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
         return nodeService.update(nodeDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             nodeService.delete(identifier);

@@ -8,7 +8,6 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,20 +24,19 @@ public class ProductController extends BaseController {
     private static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
     private static final String MESSAGE = "message";
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+    private final BrandService brandService;
+    private final CategoryService categoryService;
+    private final ModelService modelService;
+    private final UnitService unitService;
 
-    @Autowired
-    private BrandService brandService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    private UnitService unitService;
+    public ProductController(ProductService productService, BrandService brandService, CategoryService categoryService, ModelService modelService, UnitService unitService) {
+        this.productService = productService;
+        this.brandService = brandService;
+        this.categoryService = categoryService;
+        this.modelService = modelService;
+        this.unitService = unitService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, @ModelAttribute PaginationDto paginationDto) {
