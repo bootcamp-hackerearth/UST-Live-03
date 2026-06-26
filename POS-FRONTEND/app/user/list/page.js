@@ -145,7 +145,7 @@ export default function ListUser() {
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    await api.get(`/user/delete?username=${encodeURIComponent(deleteTarget)}`);
+    await api.delete(`/user/delete?username=${encodeURIComponent(deleteTarget)}`);
     setDeleteTarget(null);
     refresh();
   };

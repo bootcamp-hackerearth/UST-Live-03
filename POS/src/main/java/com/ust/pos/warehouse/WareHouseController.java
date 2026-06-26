@@ -2,7 +2,6 @@ package com.ust.pos.warehouse;
 
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.warehouse.service.WareHouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +13,11 @@ public class WareHouseController {
 
     public static final String REDIRECT_WAREHOUSE_LIST = "redirect:/wareHouse/list";
 
-    @Autowired
-    private WareHouseService wareHouseService;
+    private final WareHouseService wareHouseService;
+
+    public WareHouseController(WareHouseService wareHouseService) {
+        this.wareHouseService = wareHouseService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

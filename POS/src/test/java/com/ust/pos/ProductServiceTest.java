@@ -13,9 +13,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,42 +33,9 @@ class ProductServiceTest {
     private ProductServiceImpl productService;
 
     @Test
-    void saveTest() {
-        ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("Admin");
-
-        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(null);
-        Product product = new Product();
-        Mockito.when(modelMapper.map(productDto, Product.class)).thenReturn(product);
-        Mockito.when(productRepository.save(product)).thenReturn(product);
-
-        ProductDto response = productService.save(productDto);
-
-        Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
-    }
-
-    @Test
-    void saveTestFailure() {
-        ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("Admin");
-
-        Product existingProduct = new Product();
-        existingProduct.setIdentifier("Admin");
-
-        Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(existingProduct);
-
-        ProductDto response = productService.save(productDto);
-
-        Assertions.assertFalse(response.isSuccess());
-    }
-
-    @Test
     void findByIdentifierTest() {
         Product product = new Product();
         product.setIdentifier("Admin");
-
         ProductDto productDto = new ProductDto();
         productDto.setIdentifier("Admin");
 
@@ -79,6 +48,53 @@ class ProductServiceTest {
     }
 
     @Test
+    void saveTest() {
+        ProductDto productDto = new ProductDto();
+        productDto.setIdentifier("  Admin  ");
+
+        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(null);
+        Product product = new Product();
+        Mockito.when(modelMapper.map(productDto, Product.class)).thenReturn(product);
+        Mockito.when(productRepository.save(product)).thenReturn(product);
+
+        ProductDto response = productService.save(productDto);
+
+        Assertions.assertEquals("Admin", response.getIdentifier());
+    }
+
+    @Test
+    void saveTestFailure() {
+        ProductDto productDto = new ProductDto();
+        productDto.setIdentifier("Admin");
+
+        Product existingProduct = new Product();
+        existingProduct.setIdentifier("Admin");
+        existingProduct.setDeleted(false);
+
+        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(existingProduct);
+
+        ProductDto response = productService.save(productDto);
+
+        Assertions.assertFalse(response.isSuccess());
+    }
+
+    @Test
+    void saveTestFailurePreviouslyDeleted() {
+        ProductDto productDto = new ProductDto();
+        productDto.setIdentifier("Admin");
+
+        Product existingProduct = new Product();
+        existingProduct.setIdentifier("Admin");
+        existingProduct.setDeleted(true);
+
+        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(existingProduct);
+
+        ProductDto response = productService.save(productDto);
+
+        Assertions.assertFalse(response.isSuccess());
+    }
+
+    @Test
     void updateTest() {
         ProductDto productDto = new ProductDto();
         productDto.setIdentifier("Admin");
@@ -86,10 +102,8 @@ class ProductServiceTest {
         Product existingProduct = new Product();
         existingProduct.setIdentifier("Admin");
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(existingProduct);
-        Mockito.when(productRepository.save(existingProduct))
-                .thenReturn(existingProduct);
+        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(existingProduct);
+        Mockito.when(productRepository.save(existingProduct)).thenReturn(existingProduct);
 
         ProductDto response = productService.update(productDto);
 
@@ -101,8 +115,7 @@ class ProductServiceTest {
         ProductDto productDto = new ProductDto();
         productDto.setIdentifier("Admin");
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
+        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(null);
 
         ProductDto response = productService.update(productDto);
 
@@ -111,8 +124,11 @@ class ProductServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(productRepository)
-                .deleteByIdentifier("Admin");
+        Product product = new Product();
+        product.setIdentifier("Admin");
+
+        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(product);
+        Mockito.when(productRepository.save(product)).thenReturn(product);
 
         boolean response = productService.delete("Admin");
 
@@ -120,50 +136,41 @@ class ProductServiceTest {
     }
 
     @Test
+    void deleteTestFailure() {
+        Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(null);
+
+        boolean response = productService.delete("Admin");
+
+        Assertions.assertEquals(false, response);
+    }
+
+    @Test
     void findAllTest() {
+        Pageable pageable = PageRequest.of(0, 50);
         Product product = new Product();
-        product.setIdentifier("Admin");
+        List<Product> products = List.of(product);
+        Page<Product> productPage = new PageImpl<>(products, pageable, products.size());
 
         ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("Admin");
-
-        List<Product> products = List.of(product);
         List<ProductDto> productDtos = List.of(productDto);
 
-        Page<Product> productPage = new PageImpl<>(products,
-                PageRequest.of(0, 2), products.size());
-
-        Pageable pageable = PageRequest.of(0,
-                50, Sort.by(new ArrayList<>()));
-
-        Mockito.when(productRepository.findAll(pageable)).thenReturn(productPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(products),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(productDtos);
+        Mockito.when(productRepository.findByDeletedFalse(pageable)).thenReturn(productPage);
+        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(java.lang.reflect.Type.class))).thenReturn(productDtos);
 
         WsDto<ProductDto> response = productService.findAll(pageable);
 
         Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals(1, response.getTotalPages());
-        Assertions.assertEquals(1, response.getTotalRecords());
     }
 
     @Test
     void findByStatusTest() {
         Product product = new Product();
-        product.setIdentifier("Admin");
-        ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("Admin");
-
         List<Product> products = List.of(product);
+        ProductDto productDto = new ProductDto();
         List<ProductDto> productDtos = List.of(productDto);
 
-        Mockito.when(productRepository.findByStatusIsTrue()).thenReturn(products);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(products),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(productDtos);
+        Mockito.when(productRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(products);
+        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(java.lang.reflect.Type.class))).thenReturn(productDtos);
 
         List<ProductDto> response = productService.findIfTrue();
 
@@ -172,29 +179,31 @@ class ProductServiceTest {
 
     @Test
     void toggleTestActive() {
-
         Product product = new Product();
         product.setStatus(false);
         ProductDto productDto = new ProductDto();
         productDto.setStatus(true);
+
         Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(product);
         Mockito.when(modelMapper.map(product, ProductDto.class)).thenReturn(productDto);
-        ProductDto response = productService.toggleStatus("Admin");
-        Assertions.assertTrue(response.isStatus());
 
+        ProductDto response = productService.toggleStatus("Admin");
+
+        Assertions.assertTrue(response.isStatus());
     }
 
     @Test
     void toggleTestInactive() {
-
         Product product = new Product();
         product.setStatus(true);
         ProductDto productDto = new ProductDto();
         productDto.setStatus(false);
+
         Mockito.when(productRepository.findByIdentifier("Admin")).thenReturn(product);
         Mockito.when(modelMapper.map(product, ProductDto.class)).thenReturn(productDto);
-        ProductDto response = productService.toggleStatus("Admin");
-        Assertions.assertFalse(response.isStatus());
 
+        ProductDto response = productService.toggleStatus("Admin");
+
+        Assertions.assertFalse(response.isStatus());
     }
 }

@@ -1,6 +1,7 @@
 package com.ust.pos.stocks.service;
 
 import com.ust.pos.dto.StocksDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 @Transactional
 public interface StocksService {
-    List<StocksDto> findAll(Pageable pageable);
+    WsDto<StocksDto> findAll(Pageable pageable);
 
     StocksDto save(StocksDto stocksDto);
 

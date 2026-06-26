@@ -1,12 +1,13 @@
 package com.ust.pos.racks.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.RacksService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,15 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class RacksServiceImpl implements RacksService {
+public class RacksServiceImpl extends CommonService implements RacksService {
 
-    @Autowired
-    private RacksRepository racksRepository;
+    private final RacksRepository racksRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public RacksServiceImpl(RacksRepository racksRepository, ModelMapper modelMapper) {
+        this.racksRepository = racksRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public RacksDto findByIdentifier(String identifier) {
@@ -32,6 +35,7 @@ public class RacksServiceImpl implements RacksService {
     public RacksDto toggleStatus(String identifier) {
         Racks racks = racksRepository.findByIdentifier(identifier);
         racks.setStatus(!racks.isStatus());
+        setAuditFields(racks, false);
         racksRepository.save(racks);
         return modelMapper.map(racks, RacksDto.class);
     }
@@ -42,11 +46,19 @@ public class RacksServiceImpl implements RacksService {
         String identifier = racksDto.getIdentifier();
         Racks existingRacks = racksRepository.findByIdentifier(identifier);
         if (existingRacks != null) {
+            if (existingRacks.isDeleted()) {
+                racksDto.setMessage("Racks with identifier " + identifier + " was previously deleted. " +
+                        "Please contact backend team to restore."
+                );
+                racksDto.setSuccess(false);
+                return racksDto;
+            }
             racksDto.setMessage("Racks with identifier - " + identifier + " already exists");
             racksDto.setSuccess(false);
             return racksDto;
         }
         Racks racks = modelMapper.map(racksDto, Racks.class);
+        setAuditFields(racks, true);
         racksRepository.save(racks);
         return racksDto;
     }
@@ -61,28 +73,40 @@ public class RacksServiceImpl implements RacksService {
             return racksDto;
         }
         modelMapper.map(racksDto, existingRacks);
+        setAuditFields(existingRacks, false);
         racksRepository.save(existingRacks);
         return racksDto;
     }
 
     @Override
     public boolean delete(String identifier) {
-        racksRepository.deleteByIdentifier(identifier);
+        Racks racks = racksRepository.findByIdentifier(identifier);
+        if (racks == null) return false;
+        softDelete(racks);
+        setAuditFields(racks, false);
+        racksRepository.save(racks);
         return true;
     }
 
     @Override
-    public List<RacksDto> findAll(Pageable pageable) {
+    public WsDto<RacksDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
-        Page<Racks> racksPage = racksRepository.findAll(pageable);
-        return modelMapper.map(racksPage.getContent(), listType);
+        Page<Racks> racksPage = racksRepository.findByDeletedFalse(pageable);
+        WsDto<RacksDto> racksWsDto = new WsDto<>();
+        racksWsDto.setDtoList(modelMapper.map(racksPage.getContent(), listType));
+        racksWsDto.setTotalRecords(racksPage.getTotalElements());
+        racksWsDto.setTotalPages(racksPage.getTotalPages());
+        racksWsDto.setSizePerPage(pageable.getPageSize());
+        racksWsDto.setPage(pageable.getPageNumber());
+
+        return racksWsDto;
     }
 
     @Override
     public List<RacksDto> findIfTrue() {
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
-        return modelMapper.map(racksRepository.findByStatusIsTrue(), listType);
+        return modelMapper.map(racksRepository.findByStatusIsTrueAndDeletedFalse(), listType);
     }
 }

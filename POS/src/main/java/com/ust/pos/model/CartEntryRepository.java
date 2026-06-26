@@ -11,7 +11,5 @@ public interface CartEntryRepository extends JpaRepository<CartEntry, Long> {
 
     void deleteByIdentifier(String identifier);
 
-    List<CartEntry> findByStatusIsTrue();
-
     List<CartEntry> findByCart(String cart);
 }

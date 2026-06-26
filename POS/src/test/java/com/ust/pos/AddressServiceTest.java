@@ -12,7 +12,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,38 +31,6 @@ class AddressServiceTest {
 
     @InjectMocks
     private AddressServiceImpl addressService;
-
-    @Test
-    void saveTest() {
-        AddressDto addressDto = new AddressDto();
-        addressDto.setIdentifier("Admin");
-
-        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(null);
-        Address address = new Address();
-        Mockito.when(modelMapper.map(addressDto, Address.class)).thenReturn(address);
-        Mockito.when(addressRepository.save(address)).thenReturn(address);
-
-        AddressDto response = addressService.save(addressDto);
-
-        Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
-    }
-
-    @Test
-    void saveTestFailure() {
-        AddressDto addressDto = new AddressDto();
-        addressDto.setIdentifier("Admin");
-
-        Address existingAddress = new Address();
-        existingAddress.setIdentifier("Admin");
-
-        Mockito.when(addressRepository.findByIdentifier("Admin"))
-                .thenReturn(existingAddress);
-
-        AddressDto response = addressService.save(addressDto);
-
-        Assertions.assertFalse(response.isSuccess());
-    }
 
     @Test
     void findByIdentifierTest() {
@@ -78,6 +49,55 @@ class AddressServiceTest {
     }
 
     @Test
+    void findAllByPhoneNoTest() {
+        Address address = new Address();
+        address.setIdentifier("Admin");
+
+        AddressDto addressDto = new AddressDto();
+        addressDto.setIdentifier("Admin");
+
+        List<Address> addresses = List.of(address);
+        List<AddressDto> addressDtos = List.of(addressDto);
+
+        Mockito.when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(addresses);
+        Mockito.when(modelMapper.map(Mockito.eq(addresses), Mockito.any(java.lang.reflect.Type.class))).thenReturn(addressDtos);
+
+        List<AddressDto> response = addressService.findAllByPhoneNo("9876543210");
+
+        Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void saveTest() {
+        AddressDto addressDto = new AddressDto();
+        addressDto.setIdentifier("Admin");
+
+        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(null);
+        Address address = new Address();
+        Mockito.when(modelMapper.map(addressDto, Address.class)).thenReturn(address);
+        Mockito.when(addressRepository.save(address)).thenReturn(address);
+
+        AddressDto response = addressService.save(addressDto);
+
+        Assertions.assertEquals("Admin", response.getIdentifier());
+    }
+
+    @Test
+    void saveTestFailure() {
+        AddressDto addressDto = new AddressDto();
+        addressDto.setIdentifier("Admin");
+
+        Address existingAddress = new Address();
+        existingAddress.setIdentifier("Admin");
+
+        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(existingAddress);
+
+        AddressDto response = addressService.save(addressDto);
+
+        Assertions.assertFalse(response.isSuccess());
+    }
+
+    @Test
     void updateTest() {
         AddressDto addressDto = new AddressDto();
         addressDto.setIdentifier("Admin");
@@ -85,10 +105,8 @@ class AddressServiceTest {
         Address existingAddress = new Address();
         existingAddress.setIdentifier("Admin");
 
-        Mockito.when(addressRepository.findByIdentifier("Admin"))
-                .thenReturn(existingAddress);
-        Mockito.when(addressRepository.save(existingAddress))
-                .thenReturn(existingAddress);
+        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(existingAddress);
+        Mockito.when(addressRepository.save(existingAddress)).thenReturn(existingAddress);
 
         AddressDto response = addressService.update(addressDto);
 
@@ -100,8 +118,7 @@ class AddressServiceTest {
         AddressDto addressDto = new AddressDto();
         addressDto.setIdentifier("Admin");
 
-        Mockito.when(addressRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
+        Mockito.when(addressRepository.findByIdentifier("Admin")).thenReturn(null);
 
         AddressDto response = addressService.update(addressDto);
 
@@ -111,65 +128,50 @@ class AddressServiceTest {
     @Test
     void deleteTest() {
         Address address = new Address();
-        List<Address> addressList = List.of(address);
-        Mockito.when(addressRepository.findAllByPhoneNo("8919")).thenReturn(addressList);
-        Mockito.doNothing().when(addressRepository)
-                .deleteAll(addressList);
+        address.setIdentifier("Admin");
+        List<Address> addresses = List.of(address);
 
-        boolean response = addressService.delete("8919");
+        Mockito.when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(addresses);
+        Mockito.when(addressRepository.saveAll(addresses)).thenReturn(addresses);
 
-        Assertions.assertEquals(true, response);
+        boolean response = addressService.delete("9876543210");
+
+        Assertions.assertTrue(response);
+    }
+
+    @Test
+    void deleteTestFailureNull() {
+        Mockito.when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(null);
+
+        boolean response = addressService.delete("9876543210");
+
+        Assertions.assertFalse(response);
+    }
+
+    @Test
+    void deleteTestFailureEmpty() {
+        Mockito.when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(new ArrayList<>());
+
+        boolean response = addressService.delete("9876543210");
+
+        Assertions.assertFalse(response);
     }
 
     @Test
     void findAllTest() {
+        Pageable pageable = PageRequest.of(0, 50);
         Address address = new Address();
-        address.setIdentifier("Admin");
+        List<Address> addresses = List.of(address);
+        Page<Address> addressPage = new PageImpl<>(addresses, pageable, addresses.size());
 
         AddressDto addressDto = new AddressDto();
-        addressDto.setIdentifier("Admin");
-
-        List<Address> addresss = List.of(address);
         List<AddressDto> addressDtos = List.of(addressDto);
 
-        Page<Address> addressPage = new PageImpl<>(addresss,
-                PageRequest.of(0, 2), addresss.size());
-
-        Pageable pageable = PageRequest.of(0,
-                50, Sort.by(new ArrayList<>()));
-
-        Mockito.when(addressRepository.findAll(pageable)).thenReturn(addressPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(addresss),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(addressDtos);
+        Mockito.when(addressRepository.findByDeletedFalse(pageable)).thenReturn(addressPage);
+        Mockito.when(modelMapper.map(Mockito.eq(addresses), Mockito.any(java.lang.reflect.Type.class))).thenReturn(addressDtos);
 
         List<AddressDto> response = addressService.findAll(pageable);
 
         Assertions.assertEquals(1, response.size());
     }
-
-    @Test
-    void findAllByPhoneNoTest() {
-
-        Address address = new Address();
-        address.setIdentifier("Admin");
-
-        AddressDto addressDto = new AddressDto();
-        addressDto.setIdentifier("Admin");
-
-        List<Address> addresss = List.of(address);
-        List<AddressDto> addressDtos = List.of(addressDto);
-
-        Mockito.when(addressRepository.findAllByPhoneNo("8919")).thenReturn(addresss);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(addresss),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(addressDtos);
-
-        List<AddressDto> response = addressService.findAllByPhoneNo("8919");
-
-        Assertions.assertEquals(1, response.size());
-    }
-
 }

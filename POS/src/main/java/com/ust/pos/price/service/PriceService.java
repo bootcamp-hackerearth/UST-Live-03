@@ -22,4 +22,6 @@ public interface PriceService {
     List<PriceDto> findIfTrue();
 
     PriceDto toggleStatus(String identifier);
+
+    PriceDto findByIdentifierAndDeletedFalse(String identifier);
 }

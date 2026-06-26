@@ -6,7 +6,6 @@ import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
-import com.ust.pos.price.service.PriceService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,9 +28,6 @@ class CartEntryServiceTest {
 
     @Mock
     private ModelMapper modelMapper;
-
-    @Mock
-    private PriceService priceService;
 
     @Mock
     private PriceRepository priceRepository;

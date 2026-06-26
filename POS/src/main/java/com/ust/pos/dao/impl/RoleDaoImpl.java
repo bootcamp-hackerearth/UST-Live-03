@@ -3,7 +3,6 @@ package com.ust.pos.dao.impl;
 import com.ust.pos.dao.RoleDao;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -13,8 +12,11 @@ import java.util.List;
 @Component
 public class RoleDaoImpl implements RoleDao {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public RoleDaoImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public Role save(RoleDto roleDto) {
@@ -46,7 +48,7 @@ public class RoleDaoImpl implements RoleDao {
     public Role findByIdentifier(String identifier) {
         String sql = "SELECT * FROM ROLE WHERE identifier = ?";
         List<Role> roleList = jdbcTemplate.query(sql,
-                new BeanPropertyRowMapper<>(Role.class),identifier);
+                new BeanPropertyRowMapper<>(Role.class), identifier);
         return roleList.isEmpty() ? null : roleList.get(0);
     }
 

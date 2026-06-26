@@ -1,5 +1,6 @@
 package com.ust.pos.user.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
@@ -7,7 +8,6 @@ import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -20,18 +20,19 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends CommonService implements UserService {
 
     public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UserDto findByUserName(String username) {
@@ -43,6 +44,13 @@ public class UserServiceImpl implements UserService {
         String username = userDto.getUsername();
         User existingUser = userRepository.findByUsername(username);
         if (existingUser != null) {
+            if (existingUser.isDeleted()) {
+                userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " was previously deleted. " +
+                        "Please contact backend team to restore."
+                );
+                userDto.setSuccess(false);
+                return userDto;
+            }
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() +
                     " already exists");
             userDto.setSuccess(false);
@@ -50,6 +58,7 @@ public class UserServiceImpl implements UserService {
         }
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        setAuditFields(user, true);
         userRepository.save(user);
         return userDto;
     }
@@ -74,6 +83,7 @@ public class UserServiceImpl implements UserService {
 
             }
             modelMapper.map(userDto, existingUser);
+            setAuditFields(existingUser, false);
             userRepository.save(existingUser);
         }
         return userDto;
@@ -84,27 +94,45 @@ public class UserServiceImpl implements UserService {
 
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
+
         if (authentication != null) {
             String loggedInUsername = authentication.getName();
-            User response = userRepository.findByUsername(username);
-            UserDto user = modelMapper.map(response, UserDto.class);
-            if (username.equals(loggedInUsername)) {
-                user.setMessage("Cannot delete the logged in User");
-                user.setSuccess(false);
-                return user;
+
+            User userEntity = userRepository.findByUsername(username);
+
+            if (userEntity == null) {
+                UserDto response = new UserDto();
+                response.setMessage("User not found");
+                response.setSuccess(false);
+                return response;
             }
 
-            userRepository.deleteByUsername(username);
-            return user;
+            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
+
+            if (username.equals(loggedInUsername)) {
+                userDto.setMessage("Cannot delete the logged in User");
+                userDto.setSuccess(false);
+                return userDto;
+            }
+            softDelete(userEntity);
+            setAuditFields(userEntity, false);
+            userRepository.save(userEntity);
+
+            userDto.setMessage("User deleted successfully");
+            userDto.setSuccess(true);
+
+            return userDto;
         }
+
         return null;
     }
+
 
     @Override
     public WsDto<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        Page<User> userPage = userRepository.findAll(pageable);
+        Page<User> userPage = userRepository.findByDeletedFalse(pageable);
 
         WsDto<UserDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
@@ -120,6 +148,7 @@ public class UserServiceImpl implements UserService {
     public UserDto toggleStatus(String identifier) {
         User user = userRepository.findByUsername(identifier);
         user.setStatus(!user.isStatus());
+        setAuditFields(user, false);
         userRepository.save(user);
         return modelMapper.map(user, UserDto.class);
     }
@@ -128,14 +157,20 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> findIfTrue() {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        return modelMapper.map(userRepository.findByStatusIsTrue(), listType);
+        return modelMapper.map(userRepository.findByStatusIsTrueAndDeletedFalse(), listType);
     }
 
     @Override
     public UserDto getUserDetails(String username) {
         User user = userRepository.findByUsername(username);
 
+        if (user == null) {
+            throw new IllegalArgumentException("User with username " + username + " not found");
+        }
+
         UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setIdentifier(user.getIdentifier());
         dto.setName(user.getName());
         dto.setUsername(user.getUsername());
         dto.setPhoneNo(user.getPhoneNo());

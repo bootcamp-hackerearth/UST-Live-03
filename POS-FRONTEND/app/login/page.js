@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "../components/Axios";
 
@@ -75,9 +74,8 @@ export default function Login() {
               type="text"
               placeholder="Enter your username"
               value={username}
-              className={`w-full px-3.5 py-2.5 border-[1.5px] border-solid rounded-lg text-sm outline-none transition-colors bg-[#fafaf8] ${
-                fieldErrors.username ? "border-red-500 focus:border-red-600" : "border-gray-300 focus:border-brand"
-              }`}
+              className={`w-full px-3.5 py-2.5 border-[1.5px] border-solid rounded-lg text-sm outline-none transition-colors bg-[#fafaf8] ${fieldErrors.username ? "border-red-500 focus:border-red-600" : "border-gray-300 focus:border-brand"
+                }`}
               onChange={(e) => {
                 setUsername(e.target.value);
                 if (fieldErrors.username) {
@@ -124,20 +122,12 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full p-3 text-white border-none rounded-lg text-sm font-semibold mt-2 transition-colors ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-brand hover:bg-emerald-800 cursor-pointer"
-            }`}
+            className={`w-full p-3 text-white border-none rounded-lg text-sm font-semibold mt-2 transition-colors ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-brand hover:bg-emerald-800 cursor-pointer"
+              }`}
           >
             {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>
-
-        <div className="text-center mt-5 text-sm text-gray-500">
-          Don't have an account?
-          <Link href="/register" className="text-brand font-semibold no-underline ml-1 hover:underline">
-            Create one
-          </Link>
-        </div>
       </div>
     </div>
   );

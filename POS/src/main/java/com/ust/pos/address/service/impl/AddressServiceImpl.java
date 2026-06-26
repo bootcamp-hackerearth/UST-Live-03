@@ -1,12 +1,12 @@
 package com.ust.pos.address.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,13 +15,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl extends CommonService implements AddressService {
+    private final AddressRepository addressRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private AddressRepository addressRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto findByIdentifier(String identifier) {
@@ -32,7 +33,7 @@ public class AddressServiceImpl implements AddressService {
     public List<AddressDto> findAllByPhoneNo(String phoneNo) {
         Type listType = new TypeToken<List<AddressDto>>() {
         }.getType();
-        return modelMapper.map(addressRepository.findAllByPhoneNo(phoneNo), listType);
+        return modelMapper.map(addressRepository.findAllByPhoneNoAndDeletedFalse(phoneNo), listType);
     }
 
     @Override
@@ -45,6 +46,7 @@ public class AddressServiceImpl implements AddressService {
             return addressDto;
         }
         Address address = modelMapper.map(addressDto, Address.class);
+        setAuditFields(address, true);
         addressRepository.save(address);
         return addressDto;
     }
@@ -59,14 +61,22 @@ public class AddressServiceImpl implements AddressService {
             return addressDto;
         }
         modelMapper.map(addressDto, existingAddress);
+        setAuditFields(existingAddress, false);
         addressRepository.save(existingAddress);
         return addressDto;
     }
 
     @Override
     public boolean delete(String phoneNo) {
-        List<Address> address = addressRepository.findAllByPhoneNo(phoneNo);
-        addressRepository.deleteAll(address);
+        List<Address> addresses = addressRepository.findAllByPhoneNoAndDeletedFalse(phoneNo);
+        if (addresses == null || addresses.isEmpty()) {
+            return false;
+        }
+        for (Address address : addresses) {
+            softDelete(address);
+            setAuditFields(address, false);
+        }
+        addressRepository.saveAll(addresses);
         return true;
     }
 
@@ -74,7 +84,7 @@ public class AddressServiceImpl implements AddressService {
     public List<AddressDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<AddressDto>>() {
         }.getType();
-        Page<Address> addressPage = addressRepository.findAll(pageable);
+        Page<Address> addressPage = addressRepository.findByDeletedFalse(pageable);
         return modelMapper.map(addressPage.getContent(), listType);
     }
 

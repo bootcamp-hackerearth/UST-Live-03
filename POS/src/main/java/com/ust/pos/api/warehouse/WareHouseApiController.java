@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WareHouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +14,11 @@ import java.util.List;
 @RequestMapping("/api/wareHouse")
 public class WareHouseApiController extends BaseController {
 
-    @Autowired
-    private WareHouseService wareHouseService;
+    private final WareHouseService wareHouseService;
+
+    public WareHouseApiController(WareHouseService wareHouseService) {
+        this.wareHouseService = wareHouseService;
+    }
 
     @PostMapping("/list")
     public WsDto<WareHouseDto> home(@RequestBody PaginationDto paginationDto) {
@@ -35,12 +37,12 @@ public class WareHouseApiController extends BaseController {
         return wareHouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public WareHouseDto updatePost(@RequestBody WareHouseDto wareHouseDto) {
         return wareHouseService.update(wareHouseDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             wareHouseService.delete(identifier);

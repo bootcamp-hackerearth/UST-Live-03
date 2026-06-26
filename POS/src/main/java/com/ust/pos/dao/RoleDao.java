@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public interface RoleDao {
-
     Role save(RoleDto roleDto);
 
     Role update(RoleDto roleDto);

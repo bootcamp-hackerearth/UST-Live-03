@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 public class Stocks extends CommonFields {
     private Long availableStock;
-    private Long incomingStock;
     private Long outgoingStock;
     private String productStatus;
     private String wareHouse;
