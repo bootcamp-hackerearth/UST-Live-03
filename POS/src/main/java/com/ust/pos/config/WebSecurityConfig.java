@@ -6,7 +6,6 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.DispatcherType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +15,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -34,22 +34,26 @@ public class WebSecurityConfig {
 
     private static final String SECURITY_SCHEME = "bearerAuth";
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final JwtFilter jwtFilter;
 
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    public WebSecurityConfig(
+            UserDetailsService userDetailsService,
+            BCryptPasswordEncoder bCryptPasswordEncoder,
+            JwtFilter jwtFilter) {
+        this.userDetailsService = userDetailsService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.jwtFilter = jwtFilter;
+    }
 
-    @Autowired
-    private JwtFilter jwtFilter;
-
-    // ✅ ✅ Security config
+    // Security config
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) {
 
         http
                 .cors(cors -> {
-                })   // ✅ IMPORTANT
+                })
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -67,22 +71,22 @@ public class WebSecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .logout(logout -> logout.permitAll());
+                .logout(LogoutConfigurer::permitAll);
 
-        // ✅ JWT filter
+        // JWT filter
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ✅ Authentication Manager
+    // Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) throws Exception {
+            AuthenticationConfiguration config) {
         return config.getAuthenticationManager();
     }
 
-    // ✅ ✅ CORRECT AuthenticationProvider
+    // CORRECT AuthenticationProvider
     @Bean
     public AuthenticationProvider authenticationProvider() {
 
@@ -91,7 +95,7 @@ public class WebSecurityConfig {
         return provider;
     }
 
-    // ✅ ✅ CORS FIX
+    // CORS FIX
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
@@ -108,7 +112,7 @@ public class WebSecurityConfig {
         return source;
     }
 
-    // ✅ Swagger config
+    // Swagger config
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()

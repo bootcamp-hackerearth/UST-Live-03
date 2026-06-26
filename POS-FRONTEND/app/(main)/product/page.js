@@ -17,6 +17,8 @@ const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [warehouses, setWarehouses] = useState([]);
+  const [viewProduct, setviewProduct] = useState(null);
 
   const [message , setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,20 @@ const ProductList = () => {
   // ================= EDIT =================
   const [editProduct, setEditProduct] =
     useState(null);
+
+    const fetchWarehouses = async () => {
+  try {
+    const res = await listItems("warehouse", {
+      page: 0,
+      sizePerPage: 100,
+    });
+
+    const data = res?.content || res || [];
+    setWarehouses(data);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   // ================= FETCH PRODUCTS =================
   const fetchProducts = async () => {
@@ -115,13 +131,14 @@ const ProductList = () => {
       console.log(err);
     }
   };
-  useEffect(() => {
-    fetchProducts();
-  }, [page,searchTerm]);
+useEffect(() => {
+  fetchProducts();
+}, [page, searchTerm]);
 
-  useEffect(() => {
-    fetchCategory();
-  }, []);
+useEffect(() => {
+  fetchCategory();
+  fetchWarehouses();
+}, []);
 
   // ================= ADD =================
   const handleAddProduct =
@@ -136,7 +153,7 @@ const ProductList = () => {
             setMessage(res.message);
             return false;
         }
-        setMessage("Node Added Successfully");
+        setMessage("Price Added Successfully");
         setNewProduct({
           identifier: "",
           supplierId: "",
@@ -144,7 +161,7 @@ const ProductList = () => {
           category: "",
         });
 
-        fetchProducts();
+      await fetchProducts();
 
       } catch (err) {
   setMessage(
@@ -175,7 +192,8 @@ const ProductList = () => {
           )
         );
         setEditProduct(null);
-
+        setMessage("");
+        await fetchProducts();
       } 
       catch (err) {
   console.error(err);
@@ -259,7 +277,7 @@ const ProductList = () => {
   );
 
   // REFETCH IF FAILED
-  fetchProducts();
+  await fetchProducts();
 }
     };
 
@@ -325,21 +343,33 @@ const ProductList = () => {
   // ================= ACTIONS =================
   const actions = [
     {
-      label: "✏️",
-
-      onClick: (row) =>
-        setEditProduct(row),
+      label: "👁️",
+      onClick: (row) => setviewProduct(row),
     },
+  {
+    label: "✏️",
+    onClick: (row) =>
+      setEditProduct({
+        ...row,
 
-    {
-      label: "🗑",
+        warehouseName:
+          typeof row.warehouseName === "object"
+            ? row.warehouseName?.identifier
+            : row.warehouseName || "",
 
-      onClick: (row) =>
-        handleDelete(
-          row.identifier
-        ),
-    },
-  ];
+        category:
+          typeof row.category === "object"
+            ? row.category?.identifier
+            : row.category || "",
+      }),
+  },
+
+  {
+    label: "🗑",
+    onClick: (row) =>
+      handleDelete(row.identifier),
+  },
+];
 
   // ================= ADD FIELDS =================
   const addFields = [
@@ -354,9 +384,14 @@ const ProductList = () => {
     },
 
     {
-      name: "warehouseName",
-      label: "Warehouse Name",
-    },
+  name: "warehouseName",
+  label: "Warehouse",
+  type: "select",
+  options: warehouses.map((w) => ({
+    label: w.identifier,
+    value: w.identifier,
+  })),
+},
 
     {
       name: "category",
@@ -393,10 +428,15 @@ const ProductList = () => {
     },
 
     {
-      name: "warehouseName",
-
-      label: "Warehouse Name",
-    },
+  name: "warehouseName",
+  label: "Warehouse",
+  type: "select",
+  options: warehouses.map((w) => ({
+  label: w.identifier,
+  value: w.identifier,
+  isDisabled: false,
+})),
+},
 
     {
       name: "category",
@@ -417,6 +457,7 @@ const ProductList = () => {
   ];
 
   return (
+    <>
     <CommonList
       title="Products"
 
@@ -478,6 +519,66 @@ const ProductList = () => {
 
       emptyMessage="No products found"
     />
+    {viewProduct && (
+      <div className="modalOverlay">
+        <div className="viewModal">
+          <div className="modalHeader">
+            <h3>Product Details</h3>
+
+            <button
+              className="closeBtn"
+              onClick={() =>
+                setviewProduct(null)
+              }
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="viewContent">
+            <div className="viewRow">
+              <span>Name</span>
+              <strong>
+                {viewProduct.identifier}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created By</span>
+              <strong>
+                {viewProduct.createdBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created On</span>
+              <strong>
+                {viewProduct.createdOn ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified By</span>
+              <strong>
+                {viewProduct.modifiedBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified On</span>
+              <strong>
+                {viewProduct.modifiedOn ||
+                  "-"}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

@@ -2,7 +2,6 @@ package com.ust.pos.brand;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,8 +12,11 @@ public class BrandController {
 
     public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
 
-    @Autowired
-    private BrandService brandService;
+    private final BrandService brandService;
+
+    BrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

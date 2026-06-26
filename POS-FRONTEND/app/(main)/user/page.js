@@ -13,9 +13,11 @@ import {
 const UserList = () => {
 const [roles, setRoles] = useState([]);
   const [users, setUsers] = useState([]);
-
+// message state removed; use `error` for user-facing errors
   const [loading, setLoading] =
     useState(true);
+
+  const [viewUser, setviewUser] = useState(null);
 
   const [error, setError] =
     useState("");
@@ -125,14 +127,14 @@ useEffect(() => {
       fetchUsers();
 
     } catch (err) {
-  console.error("Delete failed:", err);
+    console.error("Delete failed:", err);
 
-  setMessage(
-    err?.response?.data?.message ||
-    err?.message ||
-    "Delete failed"
-  );
-}
+    setError(
+      err?.response?.data?.message ||
+      err?.message ||
+      "Delete failed"
+    );
+  }
   };
 
   // ================= UPDATE =================
@@ -148,13 +150,15 @@ useEffect(() => {
       fetchUsers();
 
       setEditUser(null);
+      setError("");
 
     } catch (err) {
-  console.error("Delete failed:", err);
-  setMessage(
+  console.error("Update failed:", err);
+
+  setError(
     err?.response?.data?.message ||
     err?.message ||
-    "Delete failed"
+    "Update failed"
   );
 }
   };
@@ -193,6 +197,10 @@ useEffect(() => {
 
   // ================= ACTIONS =================
   const actions = [
+    {
+      label: "👁️",
+      onClick: (row) => setviewUser(row),
+    },
     {
       label: "✏️",
 
@@ -241,6 +249,7 @@ useEffect(() => {
 ];
 
   return (
+    <>
     <CommonList
       title="Users"
 
@@ -273,6 +282,66 @@ useEffect(() => {
 
       emptyMessage="No users found"
     />
+    {viewUser && (
+      <div className="modalOverlay">
+        <div className="viewModal">
+          <div className="modalHeader">
+            <h3>User Details</h3>
+
+            <button
+              className="closeBtn"
+              onClick={() =>
+                setviewUser(null)
+              }
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="viewContent">
+            <div className="viewRow">
+              <span>Name</span>
+              <strong>
+                {viewUser.username}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created By</span>
+              <strong>
+                {viewUser.createdBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created On</span>
+              <strong>
+                {viewUser.createdOn ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified By</span>
+              <strong>
+                {viewUser.modifiedBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified On</span>
+              <strong>
+                {viewUser.modifiedOn ||
+                  "-"}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

@@ -14,7 +14,7 @@ const CategoryList = () => {
   const [addCategories, setAddCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [message, setMessage] = useState("");
-
+const [viewCategory, setViewCategory] = useState(null);
   const [editCategories, setEditCategories] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -152,6 +152,7 @@ const CategoryList = () => {
       );
 
       setEditCategory(null);
+      setMessage("");
 
       await fetchCategories();
       await fetchCategoryWithNull();
@@ -210,6 +211,10 @@ const CategoryList = () => {
 
   // ================= ACTIONS =================
   const actions = [
+    {
+      label: "👁️",
+      onClick: (row) => setViewCategory(row),
+    },
     {
       label: "✏️",
 
@@ -295,6 +300,7 @@ const CategoryList = () => {
   ];
 
   return (
+    <>
     <CommonList
       title="Categories"
       data={categories}
@@ -322,6 +328,66 @@ const CategoryList = () => {
       actions={actions}
       emptyMessage="No categories found"
     />
+    {viewCategory && (
+      <div className="modalOverlay">
+        <div className="viewModal">
+          <div className="modalHeader">
+            <h3>Category Details</h3>
+
+            <button
+              className="closeBtn"
+              onClick={() =>
+                setViewCategory(null)
+              }
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="viewContent">
+            <div className="viewRow">
+              <span>Name</span>
+              <strong>
+                {viewCategory.identifier}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created By</span>
+              <strong>
+                {viewCategory.createdBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created On</span>
+              <strong>
+                {viewCategory.createdOn ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified By</span>
+              <strong>
+                {viewCategory.modifiedBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified On</span>
+              <strong>
+                {viewCategory.modifiedOn ||
+                  "-"}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

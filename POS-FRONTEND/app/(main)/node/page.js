@@ -18,7 +18,7 @@ const NodeList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const [viewNode, setViewNode] = useState(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -92,10 +92,12 @@ const NodeList = () => {
 
   // ================= INITIAL LOAD =================
   useEffect(() => {
+    console.log("fetchNodes effect");
     fetchNodes();
   }, [page , searchTerm]);
 
   useEffect(() => {
+     console.log("fetchRoles effect");
     fetchRoles();
   }, []);
 
@@ -139,6 +141,7 @@ const NodeList = () => {
       await fetchNodes();
 
       setEditNode(null);
+      setMessage("");
     } catch (err) {
       console.error(err);
       alert("Update failed");
@@ -223,6 +226,10 @@ const NodeList = () => {
   // ================= ACTIONS =================
   const actions = [
     {
+      label: "👁️",
+      onClick: (row) => setViewNode(row),
+    },
+    {
       label: "✏️",
 
       onClick: (row) =>
@@ -299,6 +306,7 @@ const NodeList = () => {
   ];
 
   return (
+    <>
     <CommonList
       title="Nodes"
       data={nodes}
@@ -331,6 +339,66 @@ const NodeList = () => {
 
       emptyMessage="No nodes found"
     />
+    {viewNode && (
+      <div className="modalOverlay">
+        <div className="viewModal">
+          <div className="modalHeader">
+            <h3>Node Details</h3>
+
+            <button
+              className="closeBtn"
+              onClick={() =>
+                setViewNode(null)
+              }
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="viewContent">
+            <div className="viewRow">
+              <span>Name</span>
+              <strong>
+                {viewNode.identifier}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created By</span>
+              <strong>
+                {viewNode.createdBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created On</span>
+              <strong>
+                {viewNode.createdOn ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified By</span>
+              <strong>
+                {viewNode.modifiedBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified On</span>
+              <strong>
+                {viewNode.modifiedOn ||
+                  "-"}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

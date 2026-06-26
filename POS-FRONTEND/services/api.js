@@ -28,7 +28,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ================= GLOBAL ERROR HANDLING =================
+// GLOBAL ERROR HANDLING 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -40,7 +40,7 @@ api.interceptors.response.use(
   }
 );
 
-// ================= DEFAULT PAGINATION =================
+// DEFAULT PAGINATION 
 const DEFAULT_PAGINATION = {
   page: 0,
   sizePerPage: 1,
@@ -48,7 +48,7 @@ const DEFAULT_PAGINATION = {
   
 };
 
-// ================= LIST =================
+// LIST 
 export const listItems = async (model, params = {}) => {
   const response = await api.post(
     `/api/${model}/list`,
@@ -68,7 +68,7 @@ export const getListItems = async (model, params = {}) => {
   return response.data;
 };
 
-// ================= ADD =================
+// ADD 
 export const addItem = async (model, data) => {
   const response = await api.post(
     `/api/${model}/add`,
@@ -78,7 +78,7 @@ export const addItem = async (model, data) => {
   return response.data;
 };
 
-// ================= GET =================
+// GET 
 export const getItem = async (model, identifier) => {
   const response = await api.get(
     `/api/${model}/get`,
@@ -90,9 +90,9 @@ export const getItem = async (model, identifier) => {
   return response.data;
 };
 
-// ================= UPDATE =================
+// UPDATE 
 export const updateItem = async (model, data) => {
-  const response = await api.post(
+  const response = await api.put(
     `/api/${model}/update`,
     data
   );
@@ -101,7 +101,7 @@ export const updateItem = async (model, data) => {
 };
 
 export const deleteItem = async (model, value, key = "identifier") => {
-  const response = await api.get(`/api/${model}/delete`, {
+  const response = await api.delete(`/api/${model}/delete`, {
     params: {
       [key]: value,
     },
@@ -109,20 +109,27 @@ export const deleteItem = async (model, value, key = "identifier") => {
 
   return response.data;
 };
-// ================= TOGGLE STATUS =================
-export const toggleItem = async (model, identifier) => {
+// TOGGLE STATUS 
+export const toggleItem = async (
+  model,
+  identifier,
+  status
+) => {
   const response = await api.post(
     `/api/${model}/toggleStatus`,
     null,
     {
-      params: { identifier },
+      params: {
+        identifier,
+        status,
+      },
     }
   );
 
   return response.data;
 };
 
-// ================= AUTH =================
+// AUTH 
 export const loginUser = async (username, password) => {
   const response = await api.post(
     "/api/authenticate",
@@ -142,7 +149,7 @@ export const registerUser = async (userData) => {
 };
 
 export const updateUser = async (userData) => {
-  const response = await api.post(
+  const response = await api.put(
     "/api/user/update",
     userData
   );
@@ -150,9 +157,5 @@ export const updateUser = async (userData) => {
   return response.data;
 };
 
-export const fetchRoles = async () => {
-  const response = await api.get("/api/role/all");
-  return response.data;
-};
 
 export default api;

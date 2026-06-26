@@ -3,7 +3,6 @@ package com.ust.pos.racks;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.racks.service.RacksService;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +14,15 @@ public class RacksController {
     public static final String REDIRECT_RACKS_LIST = "redirect:/racks/list";
     public static final String RACKS = "racks";
 
-    @Autowired
-    private RacksService racksService;
+    private final RacksService racksService;
+    private final ShelfService shelfService;
 
-    @Autowired
-    private ShelfService shelfService;
+    public RacksController(
+            RacksService racksService,
+            ShelfService shelfService) {
+        this.racksService = racksService;
+        this.shelfService = shelfService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

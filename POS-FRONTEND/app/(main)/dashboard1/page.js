@@ -13,7 +13,6 @@ const Dashboard1 = () => {
     role: "Administrator",
   });
 
-  // USER API
   const fetchUser = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -64,30 +63,40 @@ const Dashboard1 = () => {
           <p className="pageSubtitle">Welcome back</p>
         </div>
 
-        {/* USER PROFILE */}
-        <button
-          type="button"
-          className="profile"
-          onClick={() => router.push("/profile")}
-        >
-          <div className="avatar">
-            {user.name?.charAt(0)?.toUpperCase() || "A"}
-          </div>
+        {/* RIGHT ACTIONS */}
+        <div className="topbarRight">
+          
+          {/* CART BUTTON */}
+          <button
+            type="button"
+            className="cartBtn"
+            onClick={() => router.push("/cart")}
+          >
+            🛒
+          </button>
 
-          <div>
-            <h4 className="profileName">{user.name}</h4>
-            <p className="profileRole">{user.role}</p>
-          </div>
-        </button>
+          {/* USER PROFILE */}
+          <button
+            type="button"
+            className="profile"
+            onClick={() => router.push("/profile")}
+          >
+            <div className="avatar">
+              {user.name?.charAt(0)?.toUpperCase() || "A"}
+            </div>
+
+            <div>
+              <h4 className="profileName">{user.name}</h4>
+              <p className="profileRole">{user.role}</p>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* HERO */}
       <div className="heroCard">
         <div>
-          <h2 className="heroTitle">
-            Manage your POS business
-          </h2>
-
+          <h2 className="heroTitle">Manage your POS business</h2>
           <p className="heroText">
             Track sales, orders and users in one place.
           </p>

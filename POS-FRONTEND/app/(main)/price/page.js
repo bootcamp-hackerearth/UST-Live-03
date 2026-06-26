@@ -17,7 +17,7 @@ const PriceList = () => {
   const [message , setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const [viewPrice, setViewPrice] = useState(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -110,7 +110,7 @@ const PriceList = () => {
         sellingPrice: "",
       });
 
-      fetchPrices();
+     await fetchPrices();
     } catch (err) {
       err?.success?.data?.message ||
       err?.message ||
@@ -133,6 +133,8 @@ const PriceList = () => {
       );
 
       setEditPrice(null);
+      setMessage("");
+      await fetchPrices();
     } catch (err) {
       console.error(err);
       alert("Update failed");
@@ -200,6 +202,10 @@ const PriceList = () => {
   // ================= ACTIONS =================
   const actions = [
     {
+      label: "👁️",
+      onClick: (row) => setViewPrice(row),
+    },
+    {
       label: "✏️",
 
       onClick: (row) =>
@@ -264,6 +270,7 @@ const PriceList = () => {
   ];
 
   return (
+    <>
     <CommonList
       title="Prices"
       data={prices}
@@ -298,6 +305,66 @@ const PriceList = () => {
 
       emptyMessage="No prices found"
     />
+    {viewPrice && (
+      <div className="modalOverlay">
+        <div className="viewModal">
+          <div className="modalHeader">
+            <h3>Price Details</h3>
+
+            <button
+              className="closeBtn"
+              onClick={() =>
+                setViewPrice(null)
+              }
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="viewContent">
+            <div className="viewRow">
+              <span>Name</span>
+              <strong>
+                {viewPrice.identifier}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created By</span>
+              <strong>
+                {viewPrice.createdBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created On</span>
+              <strong>
+                {viewPrice.createdOn ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified By</span>
+              <strong>
+                {viewPrice.modifiedBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified On</span>
+              <strong>
+                {viewPrice.modifiedOn ||
+                  "-"}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

@@ -18,4 +18,6 @@ public interface UserService {
     List<UserDto> findAll();
 
     Page<UserDto> findAll(Pageable pageable);
+
+    Page<UserDto> findAll(Pageable pageable, String search);
 }

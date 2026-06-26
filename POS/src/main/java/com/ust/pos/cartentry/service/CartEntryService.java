@@ -19,4 +19,8 @@ public interface CartEntryService {
     List<CartEntryDto> findAll(Pageable pageable);
 
     List<CartEntryDto> findByCartId(String cart);
+
+    CartEntryDto updateQuantity(CartEntryDto cartEntryDto);
+
+    void deleteAll(String cartId);
 }

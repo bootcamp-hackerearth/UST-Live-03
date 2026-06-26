@@ -12,15 +12,15 @@ import {
  
 const RolePage = () => {
   const [roles, setRoles] = useState([]);
- 
+const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm,setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
- 
+  const [viewRole, setviewRole] = useState(null);
   const sizePerPage = 5;
- 
+
   const [newRole, setNewRole] = useState({
     identifier: "",
     description: "",
@@ -72,9 +72,11 @@ const RolePage = () => {
       });
  
       fetchRoles();
+      return true;
     } catch (err) {
       console.error(err);
-      alert("Add failed");
+      setMessage("Add failed");
+      return false;
     }
   };
  
@@ -84,6 +86,7 @@ const RolePage = () => {
  
       fetchRoles();
       setEditRole(null);
+      setMessage("");
     } catch (err) {
       console.error(err);
       alert("Update failed");
@@ -119,21 +122,25 @@ const RolePage = () => {
  
   const actions = [
     {
+      label: "👁️",
+      onClick: (row) => setviewRole(row),
+    },
+    {
       label: "✏️",
       onClick: (row) => setEditRole(row),
     },
     {
-  label: "🗑",
-  onClick: (row) => {
-    if (
-      globalThis.confirm(
-        "Are you sure you want to delete this item?"
-      )
-    ) {
-      handleDelete(row.identifier);
-    }
-  },
-}
+      label: "🗑",
+      onClick: (row) => {
+        if (
+          globalThis.confirm(
+            "Are you sure you want to delete this item?"
+          )
+        ) {
+          handleDelete(row.identifier);
+        }
+      },
+    },
   ];
  
   const addFields = [
@@ -160,6 +167,7 @@ const RolePage = () => {
   ];
  
   return (
+    <>
     <CommonList
       title="Roles"
       data={roles}
@@ -181,10 +189,72 @@ const RolePage = () => {
       handleUpdate={handleUpdate}
       editFields={editFields}
       actions={actions}
+      message={message}
+      setMessage={setMessage}
       searchTerm={searchTerm}
       setSearchTerm={setSearchTerm}
       emptyMessage="No roles found"
     />
+    {viewRole && (
+      <div className="modalOverlay">
+        <div className="viewModal">
+          <div className="modalHeader">
+            <h3>Role Details</h3>
+
+            <button
+              className="closeBtn"
+              onClick={() =>
+                setviewRole(null)
+              }
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="viewContent">
+            <div className="viewRow">
+              <span>Name</span>
+              <strong>
+                {viewRole.identifier}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created By</span>
+              <strong>
+                {viewRole.createdBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Created On</span>
+              <strong>
+                {viewRole.createdOn ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified By</span>
+              <strong>
+                {viewRole.modifiedBy ||
+                  "-"}
+              </strong>
+            </div>
+
+            <div className="viewRow">
+              <span>Modified On</span>
+              <strong>
+                {viewRole.modifiedOn ||
+                  "-"}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
  

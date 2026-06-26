@@ -10,11 +10,11 @@ html,
 body,
 #root {
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
 }
 
 body {
-  overflow-x: hidden;
+  overflow: hidden;
   background: #f8fafc;
   font-family: "Inter", sans-serif;
 }
@@ -23,8 +23,9 @@ body {
 
 .wrapper {
   display: flex;
-  min-height: 100vh;
   width: 100%;
+  height: 100vh;
+  overflow: hidden;
   background: #f8fafc;
 }
 
@@ -32,6 +33,12 @@ body {
 
 .sidebar {
   width: 260px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  height: 100vh;
 
   background: linear-gradient(
     180deg,
@@ -46,10 +53,10 @@ body {
   display: flex;
   flex-direction: column;
 
-  height: 100vh;
   overflow: hidden;
 
   box-shadow: 4px 0 16px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
 }
 
 .sidebarContent {
@@ -70,6 +77,10 @@ body {
   text-decoration: none;
   color: inherit;
   cursor: pointer;
+
+  border: none;
+  background: transparent;
+  width: 100%;
 }
 
 .logoCircle {
@@ -90,8 +101,6 @@ body {
 
   box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
 }
-
-
 
 .brand {
   font-size: 18px;
@@ -175,6 +184,8 @@ body {
   margin-top: 16px;
 
   transition: all 0.2s ease;
+
+  flex-shrink: 0;
 }
 
 .logoutBtn:hover {
@@ -186,21 +197,26 @@ body {
 .main {
   flex: 1;
 
+  margin-left: 260px;
+
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+
   padding: 30px;
 
   background: #f8fafc;
-
-  min-height: 100vh;
-  overflow-x: hidden;
 }
 
 /* ================= SCROLLBAR ================= */
 
-.sidebarContent::-webkit-scrollbar {
+.sidebarContent::-webkit-scrollbar,
+.main::-webkit-scrollbar {
   width: 6px;
 }
 
-.sidebarContent::-webkit-scrollbar-thumb {
+.sidebarContent::-webkit-scrollbar-thumb,
+.main::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 20px;
 }
@@ -208,16 +224,26 @@ body {
 /* ================= RESPONSIVE ================= */
 
 @media (max-width: 768px) {
+  body {
+    overflow: auto;
+  }
+
   .wrapper {
     flex-direction: column;
+    height: auto;
+    overflow: visible;
   }
 
   .sidebar {
+    position: relative;
     width: 100%;
     height: auto;
   }
 
   .main {
+    margin-left: 0;
+    height: auto;
+    overflow: visible;
     padding: 20px;
   }
 }

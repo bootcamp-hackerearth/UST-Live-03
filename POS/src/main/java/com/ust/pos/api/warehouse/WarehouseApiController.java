@@ -3,8 +3,9 @@ package com.ust.pos.api.warehouse;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,14 +15,28 @@ import java.util.List;
 @RequestMapping("/api/warehouse")
 public class WarehouseApiController extends BaseController {
 
-    @Autowired
-    private WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
+
+    public WarehouseApiController(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
+
+    @GetMapping("/list")
+    public List<WarehouseDto> home() {
+        return warehouseService.findAll();
+    }
 
     @PostMapping("/list")
-    public List<WarehouseDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<WarehouseDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortField());
-        return warehouseService.findAll(pageable);
+        Page<WarehouseDto> warehouseDtos = warehouseService.findAll(pageable, paginationDto.getSearch());
+        WsDto<WarehouseDto> result = new WsDto<>();
+        result.setTotalPages(warehouseDtos.getTotalPages());
+        result.setContent(warehouseDtos.getContent());
+        result.setSizePerPage(warehouseDtos.getSize());
+        result.setPage(warehouseDtos.getNumber());
+        return result;
     }
 
     @PostMapping("/add")
@@ -34,12 +49,12 @@ public class WarehouseApiController extends BaseController {
         return warehouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public WarehouseDto doupdate(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);

@@ -11,6 +11,6 @@ import java.math.BigDecimal;
 @Entity
 public class Cart extends CommonFields {
     private BigDecimal totalPrice;
-    private BigDecimal discount;
-    private String coupon;
+    private String couponCode;
+    private BigDecimal discount = BigDecimal.ZERO;
 }

@@ -3,7 +3,6 @@ package com.ust.pos;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -18,8 +17,12 @@ import javax.sql.DataSource;
 @SpringBootApplication
 @OpenAPIDefinition
 public class PosApplication {
-    @Autowired
-    Environment environment;
+
+    private final Environment environment;
+
+    PosApplication(Environment environment) {
+        this.environment = environment;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(PosApplication.class, args);

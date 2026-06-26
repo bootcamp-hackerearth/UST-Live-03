@@ -5,7 +5,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +14,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/category")
 public class CategoryApiController extends BaseController {
-    @Autowired
-    CategoryService categoryService;
+
+    private final CategoryService categoryService;
+
+    CategoryApiController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public List<CategoryDto> home() {
@@ -56,12 +59,12 @@ public class CategoryApiController extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto get(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);

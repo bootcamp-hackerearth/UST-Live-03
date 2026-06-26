@@ -33,123 +33,124 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @Mock
     private ModelMapper modelMapper;
 
-    // SAVE
-
-    @Test
-    void saveTest_Success() {
-        UserDto dto = new UserDto();
-        dto.setUsername("admin");
-        dto.setPassword("plain");
-
-        User user = new User();
-        user.setUsername("admin");
-
-        Mockito.when(userRepository.findByUsername("admin"))
-                .thenReturn(null);
-
-        Mockito.when(modelMapper.map(dto, User.class))
-                .thenReturn(user);
-
-        Mockito.when(passwordEncoder.encode("plain"))
-                .thenReturn("encoded");
-
-        Mockito.when(userRepository.save(user))
-                .thenReturn(user);
-
-        UserDto response = userService.save(dto);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("admin", response.getUsername());
-
-        Mockito.verify(userRepository).save(user);
-    }
-
-    @Test
-    void saveTest_Failure_WhenUserExists() {
-        UserDto dto = new UserDto();
-        dto.setUsername("admin");
-
-        Mockito.when(userRepository.findByUsername("admin"))
-                .thenReturn(new User());
-
-        UserDto response = userService.save(dto);
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
-
-        Mockito.verify(userRepository, Mockito.never())
-                .save(Mockito.any());
-    }
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     // FIND BY USERNAME
 
     @Test
-    void findByUserNameTest() {
+    void findByUserName_Success() {
+
         User user = new User();
         user.setUsername("admin");
 
         UserDto dto = new UserDto();
         dto.setUsername("admin");
 
-        Mockito.when(userRepository.findByUsername("admin"))
+        Mockito.when(userRepository.findByUsernameAndIsDeleteFalse("admin"))
                 .thenReturn(user);
 
         Mockito.when(modelMapper.map(user, UserDto.class))
                 .thenReturn(dto);
 
-        UserDto response = userService.findByUserName("admin");
+        UserDto result = userService.findByUserName("admin");
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("admin", response.getUsername());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("admin", result.getUsername());
     }
 
     @Test
-    void findByUserName_WhenUserNotFound() {
-        Mockito.when(userRepository.findByUsername("admin"))
+    void findByUserName_WhenNotFound_ShouldReturnNull() {
+
+        Mockito.when(userRepository.findByUsernameAndIsDeleteFalse("admin"))
                 .thenReturn(null);
 
-        UserDto response = userService.findByUserName("admin");
+        UserDto result = userService.findByUserName("admin");
 
-        Assertions.assertNull(response);
+        Assertions.assertNull(result);
+    }
+
+    // SAVE
+
+    @Test
+    void save_Success() {
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+        dto.setPassword("123");
+
+        User entity = new User();
+
+        Mockito.when(userRepository.findByUsernameAndIsDeleteFalse("admin"))
+                .thenReturn(null);
+
+        Mockito.when(modelMapper.map(dto, User.class))
+                .thenReturn(entity);
+
+        Mockito.when(passwordEncoder.encode("123"))
+                .thenReturn("ENC123");
+
+        Mockito.when(userRepository.save(entity))
+                .thenReturn(entity);
+
+        UserDto result = userService.save(dto);
+
+        Assertions.assertTrue(result.isSuccess());
+
+        Mockito.verify(passwordEncoder).encode("123");
+        Mockito.verify(userRepository).save(entity);
+    }
+
+    @Test
+    void save_WhenExists_ShouldFail() {
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+
+        Mockito.when(userRepository.findByUsernameAndIsDeleteFalse("admin"))
+                .thenReturn(new User());
+
+        UserDto result = userService.save(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("already exists"));
+
+        Mockito.verify(userRepository, Mockito.never())
+                .save(Mockito.any());
     }
 
     // UPDATE
 
     @Test
-    void updateTest_Success() {
+    void update_Success() {
+
         UserDto dto = new UserDto();
         dto.setId(1L);
         dto.setUsername("admin");
 
         User existing = new User();
-        existing.setId(1L);
         existing.setUsername("admin");
 
         Mockito.when(userRepository.findById(1L))
                 .thenReturn(Optional.of(existing));
 
-        Mockito.doNothing()
-                .when(modelMapper)
-                .map(dto, existing);
+        Mockito.doNothing().when(modelMapper).map(dto, existing);
 
         Mockito.when(userRepository.save(existing))
                 .thenReturn(existing);
 
-        UserDto response = userService.update(dto);
+        UserDto result = userService.update(dto);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("admin", response.getUsername());
+        Assertions.assertTrue(result.isSuccess());
 
         Mockito.verify(userRepository).save(existing);
     }
 
     @Test
-    void updateTest_Failure_WhenIdNotFound() {
+    void update_WhenNotFound_ShouldFail() {
+
         UserDto dto = new UserDto();
         dto.setId(1L);
         dto.setUsername("admin");
@@ -157,35 +158,67 @@ class UserServiceTest {
         Mockito.when(userRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        UserDto response = userService.update(dto);
+        UserDto result = userService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("not found"));
 
         Mockito.verify(userRepository, Mockito.never())
                 .save(Mockito.any());
     }
 
     @Test
-    void updateTest_Failure_WhenUsernameAlreadyExists() {
+    void update_WhenDuplicateUsername_ShouldFail() {
+
         UserDto dto = new UserDto();
         dto.setId(1L);
-        dto.setUsername("newname");
+        dto.setUsername("newUser");
 
         User existing = new User();
-        existing.setId(1L);
-        existing.setUsername("oldname");
+        existing.setUsername("oldUser");
 
         Mockito.when(userRepository.findById(1L))
                 .thenReturn(Optional.of(existing));
 
-        Mockito.when(userRepository.findByUsername("newname"))
+        Mockito.when(userRepository.findByUsernameAndIsDeleteFalse("newUser"))
                 .thenReturn(new User());
 
-        UserDto response = userService.update(dto);
+        UserDto result = userService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("already exists"));
+
+        Mockito.verify(userRepository, Mockito.never())
+                .save(Mockito.any());
+    }
+
+    // DELETE
+
+    @Test
+    void delete_Success() {
+
+        User user = new User();
+        user.setUsername("admin");
+
+        Mockito.when(userRepository.findByUsernameAndIsDeleteFalse("admin"))
+                .thenReturn(user);
+
+        Mockito.when(userRepository.save(user)).thenReturn(user);
+
+        userService.delete("admin");
+
+        Assertions.assertTrue(user.isDelete());
+
+        Mockito.verify(userRepository).save(user);
+    }
+
+    @Test
+    void delete_WhenNotFound_ShouldDoNothing() {
+
+        Mockito.when(userRepository.findByUsernameAndIsDeleteFalse("admin"))
+                .thenReturn(null);
+
+        userService.delete("admin");
 
         Mockito.verify(userRepository, Mockito.never())
                 .save(Mockito.any());
@@ -194,73 +227,97 @@ class UserServiceTest {
     // FIND ALL
 
     @Test
-    void findAllTest() {
-        List<User> users = List.of(new User());
+    void findAll_Success() {
+
+        List<User> entities = List.of(new User());
         List<UserDto> dtos = List.of(new UserDto());
 
-        Type listType = new TypeToken<List<UserDto>>() {
+        Type type = new TypeToken<List<UserDto>>() {
         }.getType();
 
-        Mockito.when(userRepository.findAll())
-                .thenReturn(users);
+        Mockito.when(userRepository.findByIsDeleteFalse())
+                .thenReturn(entities);
 
-        Mockito.when(modelMapper.map(users, listType))
+        Mockito.when(modelMapper.map(entities, type))
                 .thenReturn(dtos);
 
-        List<UserDto> response = userService.findAll();
+        List<UserDto> result = userService.findAll();
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-    }
-
-    // DELETE
-
-    @Test
-    void deleteTest() {
-        Mockito.doNothing()
-                .when(userRepository)
-                .deleteByUsername("admin");
-
-        userService.delete("admin");
-
-        Mockito.verify(userRepository)
-                .deleteByUsername("admin");
+        Assertions.assertEquals(1, result.size());
     }
 
     // PAGINATION
 
     @Test
-    void findAll_WithPagination_ShouldReturnUserDtos() {
+    void findAll_Pageable_NoSearch() {
 
         Pageable pageable = PageRequest.of(0, 10);
 
         User user = new User();
-        user.setId(1L);
         user.setUsername("admin");
 
         UserDto dto = new UserDto();
-        dto.setId(1L);
         dto.setUsername("admin");
 
-        Page<User> userPage = new PageImpl<>(List.of(user));
+        Page<User> page = new PageImpl<>(List.of(user));
 
-        Mockito.when(userRepository.findAll(pageable))
-                .thenReturn(userPage);
+        Mockito.when(userRepository.findByIsDeleteFalse(pageable))
+                .thenReturn(page);
 
         Mockito.when(modelMapper.map(user, UserDto.class))
                 .thenReturn(dto);
 
-        Page<UserDto> response = userService.findAll(pageable);
+        Page<UserDto> result = userService.findAll(pageable);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.getContent().size());
-        Assertions.assertEquals("admin",
-                response.getContent().get(0).getUsername());
+        Assertions.assertEquals(1, result.getContent().size());
+    }
 
-        Mockito.verify(userRepository)
-                .findAll(pageable);
+    @Test
+    void findAll_WithSearch() {
 
-        Mockito.verify(modelMapper)
-                .map(user, UserDto.class);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        User user = new User();
+        user.setUsername("admin");
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+
+        Page<User> page = new PageImpl<>(List.of(user));
+
+        Mockito.when(userRepository
+                        .findByUsernameContainingIgnoreCaseAndIsDeleteFalse("adm", pageable))
+                .thenReturn(page);
+
+        Mockito.when(modelMapper.map(user, UserDto.class))
+                .thenReturn(dto);
+
+        Page<UserDto> result = userService.findAll(pageable, "adm");
+
+        Assertions.assertEquals(1, result.getContent().size());
+    }
+
+    @Test
+    void findAll_WithBlankSearch_ShouldFallback() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        User user = new User();
+        user.setUsername("admin");
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+
+        Page<User> page = new PageImpl<>(List.of(user));
+
+        Mockito.when(userRepository.findByIsDeleteFalse(pageable))
+                .thenReturn(page);
+
+        Mockito.when(modelMapper.map(user, UserDto.class))
+                .thenReturn(dto);
+
+        Page<UserDto> result = userService.findAll(pageable, " ");
+
+        Assertions.assertEquals(1, result.getContent().size());
     }
 }

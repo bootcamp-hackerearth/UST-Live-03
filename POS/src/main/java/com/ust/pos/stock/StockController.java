@@ -4,7 +4,6 @@ import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,14 +13,18 @@ import org.springframework.web.bind.annotation.*;
 public class StockController {
     public static final String REDIRECT = "redirect:/stock/list";
     public static final String ADD_STOCK = "stock/add";
-    @Autowired
-    StockService stockService;
+    private final StockService stockService;
+    private final WarehouseService warehouseService;
+    private final ProductService productService;
 
-    @Autowired
-    WarehouseService warehouseService;
-
-    @Autowired
-    ProductService productService;
+    public StockController(
+            StockService stockService,
+            WarehouseService warehouseService,
+            ProductService productService) {
+        this.stockService = stockService;
+        this.warehouseService = warehouseService;
+        this.productService = productService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute StockDto stockDto) {

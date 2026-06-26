@@ -33,199 +33,275 @@ class AddressServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    // ================= SAVE =================
+    // ---------------- SAVE ----------------
 
     @Test
-    void saveTest_Success_WhenBothAddressesAreNew() {
-        AddressDto shippingDto = new AddressDto();
-        shippingDto.setIdentifier("SHIP1");
+    void save_ShouldSaveBothAddresses_WhenNotExists() {
 
-        AddressDto billingDto = new AddressDto();
-        billingDto.setIdentifier("BILL1");
+        AddressDto shipping = new AddressDto();
+        shipping.setIdentifier("SHIP1");
+
+        AddressDto billing = new AddressDto();
+        billing.setIdentifier("BILL1");
+
+        Address shippingEntity = new Address();
+        Address billingEntity = new Address();
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsShippingTrueAndIsDeleteFalse("SHIP1"))
+                .thenReturn(null);
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsBillingTrueAndIsDeleteFalse("BILL1"))
+                .thenReturn(null);
+
+        Mockito.when(modelMapper.map(shipping, Address.class))
+                .thenReturn(shippingEntity);
+
+        Mockito.when(modelMapper.map(billing, Address.class))
+                .thenReturn(billingEntity);
+
+        addressService.save(shipping, billing);
+
+        Mockito.verify(addressRepository).save(shippingEntity);
+        Mockito.verify(addressRepository).save(billingEntity);
+    }
+
+    @Test
+    void save_ShouldNotSaveBilling_WhenAlreadyExists() {
+
+        AddressDto shipping = new AddressDto();
+        shipping.setIdentifier("SHIP1");
+
+        AddressDto billing = new AddressDto();
+        billing.setIdentifier("BILL1");
+
+        Address existingBilling = new Address();
+        Address shippingEntity = new Address();
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsBillingTrueAndIsDeleteFalse("BILL1"))
+                .thenReturn(existingBilling);
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsShippingTrueAndIsDeleteFalse("SHIP1"))
+                .thenReturn(null);
+
+        Mockito.when(modelMapper.map(shipping, Address.class))
+                .thenReturn(shippingEntity);
+
+        addressService.save(shipping, billing);
+
+        Assertions.assertFalse(billing.isSuccess());
+        Assertions.assertTrue(billing.getMessage().contains("already exists"));
+
+        Mockito.verify(addressRepository).save(shippingEntity);
+        Mockito.verify(addressRepository, Mockito.never())
+                .save(existingBilling);
+    }
+
+    // ---------------- UPDATE ----------------
+
+    @Test
+    void update_ShouldUpdateBothAddresses() {
+
+        AddressDto shipping = new AddressDto();
+        shipping.setIdentifier("SHIP1");
+
+        AddressDto billing = new AddressDto();
+        billing.setIdentifier("BILL1");
+
+        Address shippingEntity = new Address();
+        shippingEntity.setId(1L);
+
+        Address billingEntity = new Address();
+        billingEntity.setId(2L);
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsShippingTrueAndIsDeleteFalse("SHIP1"))
+                .thenReturn(shippingEntity);
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsBillingTrueAndIsDeleteFalse("BILL1"))
+                .thenReturn(billingEntity);
+
+        addressService.update(shipping, billing);
+
+        Mockito.verify(addressRepository).save(shippingEntity);
+        Mockito.verify(addressRepository).save(billingEntity);
+    }
+
+    @Test
+    void update_ShouldReturnMessage_WhenShippingNotFound() {
+
+        AddressDto shipping = new AddressDto();
+        shipping.setIdentifier("SHIP1");
+
+        AddressDto billing = new AddressDto();
+        billing.setIdentifier("BILL1");
+
+        Address billingEntity = new Address();
+        billingEntity.setId(2L);
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsShippingTrueAndIsDeleteFalse("SHIP1"))
+                .thenReturn(null);
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsBillingTrueAndIsDeleteFalse("BILL1"))
+                .thenReturn(billingEntity);
+
+        addressService.update(shipping, billing);
+
+        Assertions.assertTrue(
+                shipping.getMessage().contains("Shipping address not found"));
+
+        Mockito.verify(addressRepository).save(billingEntity);
+    }
+
+    // ---------------- DELETE ----------------
+
+    @Test
+    void delete_ShouldSoftDeleteShippingAndBilling() {
 
         Address shipping = new Address();
         Address billing = new Address();
 
         Mockito.when(addressRepository
-                        .findByIdentifierAndIsShippingTrue("SHIP1"))
-                .thenReturn(null);
-        Mockito.when(addressRepository
-                        .findByIdentifierAndIsBillingTrue("BILL1"))
-                .thenReturn(null);
-
-        Mockito.when(modelMapper.map(shippingDto, Address.class))
+                        .findByIdentifierAndIsShippingTrueAndIsDeleteFalse("ADDR1"))
                 .thenReturn(shipping);
-        Mockito.when(modelMapper.map(billingDto, Address.class))
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsBillingTrueAndIsDeleteFalse("ADDR1"))
                 .thenReturn(billing);
 
-        addressService.save(shippingDto, billingDto);
+        addressService.delete("ADDR1");
+
+        Assertions.assertTrue(shipping.isDelete());
+        Assertions.assertTrue(billing.isDelete());
 
         Mockito.verify(addressRepository).save(shipping);
         Mockito.verify(addressRepository).save(billing);
     }
 
     @Test
-    void saveTest_Failure_WhenBillingAlreadyExists() {
-        AddressDto billingDto = new AddressDto();
-        billingDto.setIdentifier("BILL1");
-
-        AddressDto shippingDto = new AddressDto();
-        shippingDto.setIdentifier("SHIP1");
-
-        Address existingBilling = new Address();
-        Address shipping = new Address();
+    void delete_ShouldDoNothing_WhenAddressNotFound() {
 
         Mockito.when(addressRepository
-                        .findByIdentifierAndIsBillingTrue("BILL1"))
-                .thenReturn(existingBilling);
-
-        Mockito.when(addressRepository
-                        .findByIdentifierAndIsShippingTrue("SHIP1"))
-                .thenReturn(null);
-
-        Mockito.when(modelMapper.map(shippingDto, Address.class))
-                .thenReturn(shipping);
-
-        addressService.save(shippingDto, billingDto);
-
-        Assertions.assertFalse(billingDto.isSuccess());
-        Assertions.assertNotNull(billingDto.getMessage());
-        Mockito.verify(addressRepository).save(shipping);
-    }
-
-
-    // ================= UPDATE =================
-
-    @Test
-    void updateTest_Success() {
-        AddressDto shippingDto = new AddressDto();
-        shippingDto.setIdentifier("SHIP1");
-
-        AddressDto billingDto = new AddressDto();
-        billingDto.setIdentifier("BILL1");
-
-        Address existingShipping = new Address();
-        existingShipping.setId(1L);
-
-        Address existingBilling = new Address();
-        existingBilling.setId(2L);
-
-        Mockito.when(addressRepository
-                        .findByIdentifierAndIsShippingTrue("SHIP1"))
-                .thenReturn(existingShipping);
-        Mockito.when(addressRepository
-                        .findByIdentifierAndIsBillingTrue("BILL1"))
-                .thenReturn(existingBilling);
-
-        addressService.update(shippingDto, billingDto);
-
-        Mockito.verify(addressRepository).save(existingShipping);
-        Mockito.verify(addressRepository).save(existingBilling);
-    }
-
-    @Test
-    void updateTest_Failure_WhenShippingNotFound() {
-        AddressDto shippingDto = new AddressDto();
-        shippingDto.setIdentifier("SHIP1");
-
-        AddressDto billingDto = new AddressDto();
-        billingDto.setIdentifier("BILL1");
-
-        Address existingBilling = new Address();
-        existingBilling.setId(10L);   // ✅ THIS FIXES THE NPE
-
-        Mockito.when(addressRepository
-                        .findByIdentifierAndIsShippingTrue("SHIP1"))
+                        .findByIdentifierAndIsShippingTrueAndIsDeleteFalse("ADDR1"))
                 .thenReturn(null);
 
         Mockito.when(addressRepository
-                        .findByIdentifierAndIsBillingTrue("BILL1"))
-                .thenReturn(existingBilling);
+                        .findByIdentifierAndIsBillingTrueAndIsDeleteFalse("ADDR1"))
+                .thenReturn(null);
 
-        addressService.update(shippingDto, billingDto);
+        addressService.delete("ADDR1");
 
-        Assertions.assertNotNull(shippingDto.getMessage());
+        Mockito.verify(addressRepository, Mockito.never())
+                .save(Mockito.any(Address.class));
     }
 
-    // ================= FIND ALL =================
+    // ---------------- FIND ALL ----------------
 
     @Test
-    void findAllTest() {
+    void findAll_ShouldReturnMappedDtos() {
+
         List<Address> addresses = List.of(new Address());
-        List<AddressDto> addressDtos = List.of(new AddressDto());
+        List<AddressDto> dtos = List.of(new AddressDto());
 
         Type listType = new TypeToken<List<AddressDto>>() {
         }.getType();
 
         Mockito.when(addressRepository.findAll())
                 .thenReturn(addresses);
+
         Mockito.when(modelMapper.map(addresses, listType))
-                .thenReturn(addressDtos);
+                .thenReturn(dtos);
 
         List<AddressDto> response = addressService.findAll();
 
         Assertions.assertEquals(1, response.size());
     }
 
-    // ================= FIND BY IDENTIFIER =================
+    // ---------------- FIND SHIPPING ----------------
 
     @Test
-    void findByIdentifierAndShippingTest() {
+    void findShipping_ShouldReturnDto() {
+
         Address address = new Address();
         AddressDto dto = new AddressDto();
 
         Mockito.when(addressRepository
-                        .findByIdentifierAndIsShippingTrue("SHIP1"))
+                        .findByIdentifierAndIsShippingTrueAndIsDeleteFalse("SHIP1"))
                 .thenReturn(address);
+
         Mockito.when(modelMapper.map(address, AddressDto.class))
                 .thenReturn(dto);
 
-        AddressDto response =
+        AddressDto result =
                 addressService.findByIdentifierAndShipping("SHIP1");
 
-        Assertions.assertNotNull(response);
+        Assertions.assertNotNull(result);
     }
 
     @Test
-    void findByIdentifierAndBillingTest() {
+    void findShipping_ShouldReturnEmptyDto_WhenNotFound() {
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsShippingTrueAndIsDeleteFalse("SHIP1"))
+                .thenReturn(null);
+
+        AddressDto result =
+                addressService.findByIdentifierAndShipping("SHIP1");
+
+        Assertions.assertNotNull(result);
+    }
+
+    // ---------------- FIND BILLING ----------------
+
+    @Test
+    void findBilling_ShouldReturnDto() {
+
         Address address = new Address();
         AddressDto dto = new AddressDto();
 
         Mockito.when(addressRepository
-                        .findByIdentifierAndIsBillingTrue("BILL1"))
+                        .findByIdentifierAndIsBillingTrueAndIsDeleteFalse("BILL1"))
                 .thenReturn(address);
+
         Mockito.when(modelMapper.map(address, AddressDto.class))
                 .thenReturn(dto);
 
-        AddressDto response =
+        AddressDto result =
                 addressService.findByIdentifierAndBilling("BILL1");
 
-        Assertions.assertNotNull(response);
-    }
-
-    // ================= DELETE =================
-
-    @Test
-    void deleteTest() {
-        Mockito.doNothing()
-                .when(addressRepository)
-                .deleteByIdentifier("ADDR1");
-
-        addressService.delete("ADDR1");
-
-        Mockito.verify(addressRepository)
-                .deleteByIdentifier("ADDR1");
+        Assertions.assertNotNull(result);
     }
 
     @Test
-    void findAll_WithPagination_ShouldReturnMappedDtos() {
-        // Arrange
+    void findBilling_ShouldReturnEmptyDto_WhenNotFound() {
+
+        Mockito.when(addressRepository
+                        .findByIdentifierAndIsBillingTrueAndIsDeleteFalse("BILL1"))
+                .thenReturn(null);
+
+        AddressDto result =
+                addressService.findByIdentifierAndBilling("BILL1");
+
+        Assertions.assertNotNull(result);
+    }
+
+    // ---------------- PAGINATION ----------------
+
+    @Test
+    void findAll_WithPagination_ShouldReturnDtos() {
+
         Pageable pageable = PageRequest.of(0, 10);
 
         List<Address> addresses = List.of(new Address());
         Page<Address> page = new PageImpl<>(addresses);
 
-        List<AddressDto> addressDtos = List.of(new AddressDto());
+        List<AddressDto> dtos = List.of(new AddressDto());
 
         Type listType = new TypeToken<List<AddressDto>>() {
         }.getType();
@@ -234,17 +310,12 @@ class AddressServiceTest {
                 .thenReturn(page);
 
         Mockito.when(modelMapper.map(addresses, listType))
-                .thenReturn(addressDtos);
+                .thenReturn(dtos);
 
-        // Act
-        List<AddressDto> response = addressService.findAll(pageable);
+        List<AddressDto> result = addressService.findAll(pageable);
 
-        // Assert
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(1, result.size());
 
         Mockito.verify(addressRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(addresses, listType);
     }
-
 }

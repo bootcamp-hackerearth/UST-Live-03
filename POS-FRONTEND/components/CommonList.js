@@ -39,7 +39,7 @@ const CommonList = ({
 
   // ACTIONS
   actions = [],
-
+  onRowClick,
   emptyMessage = "No data found",
 }) => {
   const safeData = Array.isArray(data) ? data : [];
@@ -71,7 +71,34 @@ if (error) {
     </div>
   );
 }
+const getNestedValue = (obj, path) => {
+  return path.split(".").reduce((acc, part) => {
+    return acc ? acc[part] : "";
+  }, obj);
+};
 
+const setNestedValue = (obj, path, value) => {
+  const keys = path.split(".");
+  const lastKey = keys.pop();
+
+  const newObj = { ...obj };
+
+  let current = newObj;
+
+  keys.forEach((key) => {
+    if (current[key] && typeof current[key] === "object") {
+      current[key] = { ...current[key] };
+    } else {
+      current[key] = {};
+    }
+
+    current = current[key];
+  });
+
+  current[lastKey] = value;
+
+  return newObj;
+};
  const validateForm = () => {
   const errors = {};
 
@@ -123,9 +150,11 @@ if (error) {
       <button
         className="actionBtn"
         onClick={() => {
-          setShowAddModal(true);
-          onAdd();
-        }}
+        setShowAddModal(true);
+        setMessage(""); 
+        setValidationErrors({});
+      onAdd();
+    }}
       >
         {addButtonText}
       </button>
@@ -153,7 +182,15 @@ if (error) {
           <tbody>
   {safeData.length > 0 ? (
     safeData.map((row, rowIndex) => (
-      <tr key={row.id || row._id || rowIndex}>
+      <tr
+  key={row.id || row._id || rowIndex}
+  onClick={() => onRowClick?.(row)}
+  style={{
+    cursor: onRowClick
+      ? "pointer"
+      : "default",
+  }}
+>
         {columns.map((col, i) => (
           <td key={col.key ?? col.label ?? i}>
             {col.render
@@ -175,7 +212,10 @@ if (error) {
                       ? "deleteBtn"
                       : "editBtn"
                   }
-                  onClick={() => action.onClick(row)}
+                  onClick={(e) => {
+  e.stopPropagation();
+  action.onClick(row);
+}}
                 >
                   {action.label}
                 </button>
@@ -259,80 +299,119 @@ if (error) {
         {message}
       </div>
     )}
+{(() => {
+  const defaultFields = [];
+  const billingFields = [];
+  const shippingFields = [];
 
-    {addFields.map((field, index) => (
-      <div key={field.name || field.label || index}>
-        {field.type === "select" ? (
-          <>
-            <Select
-              options={field.options || []}
-              isMulti={field.multiple}
-              isSearchable
-              placeholder={`Select ${field.label}`}
-              value={
-                field.multiple
-                  ? (field.options || []).filter((opt) =>
-                      (newItem?.[field.name] || []).includes(opt.value)
-                    )
-                  : (field.options || []).find(
-                      (opt) => opt.value === newItem?.[field.name]
-                    ) || null
-              }
-              onChange={(selected) => {
-                const value = field.multiple
-                  ? selected?.map((item) => item.value) || []
-                  : selected?.value || "";
+  addFields.forEach((field) => {
+    if (field.name?.startsWith("billing.")) {
+      billingFields.push(field);
+    } else if (field.name?.startsWith("shipping.")) {
+      shippingFields.push(field);
+    } else {
+      defaultFields.push(field);
+    }
+  });
 
-                setNewItem({
-                  ...newItem,
-                  [field.name]: value,
-                });
+  const clearFieldError = (fieldName) => {
+    if (validationErrors[fieldName]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [fieldName]: "",
+      }));
+    }
+  };
 
-                if (validationErrors[field.name]) {
-                  setValidationErrors((prev) => ({
-                    ...prev,
-                    [field.name]: "",
-                  }));
-                }
-              }}
-            />
+  const handleSelectChange = (field, selected) => {
+    const value = field.multiple
+      ? selected?.map((item) => item.value) || []
+      : selected?.value || "";
 
-            {validationErrors[field.name] && (
-              <div className="fieldError">
-                {validationErrors[field.name]}
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <input
-              type={field.type || "text"}
-              placeholder={field.label}
-              value={newItem?.[field.name] || ""}
-              onChange={(e) => {
-                setNewItem({
-                  ...newItem,
-                  [field.name]: e.target.value,
-                });
+    setNewItem({
+      ...newItem,
+      [field.name]: value,
+    });
 
-                if (validationErrors[field.name]) {
-                  setValidationErrors((prev) => ({
-                    ...prev,
-                    [field.name]: "",
-                  }));
-                }
-              }}
-            />
+    clearFieldError(field.name);
+  };
 
-            {validationErrors[field.name] && (
-              <div className="fieldError">
-                {validationErrors[field.name]}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    ))}
+  const handleInputChange = (field, value) => {
+    setNewItem(setNestedValue(newItem, field.name, value));
+    clearFieldError(field.name);
+  };
+
+  const getSelectValue = (field) => {
+    return field.multiple
+      ? (field.options || []).filter((opt) =>
+          (newItem?.[field.name] || []).includes(opt.value)
+        )
+      : (field.options || []).find(
+          (opt) => opt.value === newItem?.[field.name]
+        ) || null;
+  };
+
+  const renderField = (field) => (
+    <div key={field.name || field.label}>
+      {field.type === "select" ? (
+        <>
+          <Select
+            options={field.options || []}
+            isMulti={field.multiple}
+            isSearchable
+            placeholder={`Select ${field.label}`}
+            value={getSelectValue(field)}
+            onChange={(selected) => handleSelectChange(field, selected)}
+          />
+
+          {validationErrors[field.name] && (
+            <div className="fieldError">
+              {validationErrors[field.name]}
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <input
+            type={field.type || "text"}
+            placeholder={field.label}
+            value={getNestedValue(newItem, field.name) || ""}
+            onChange={(e) => handleInputChange(field, e.target.value)}
+          />
+
+          {validationErrors[field.name] && (
+            <div className="fieldError">
+              {validationErrors[field.name]}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      {/* DEFAULT FIELDS */}
+      {defaultFields.map(renderField)}
+
+      {/* BILLING SECTION */}
+      {billingFields.length > 0 && (
+        <details>
+          <summary>Billing Address</summary>
+          {billingFields.map(renderField)}
+        </details>
+      )}
+
+      {/* SHIPPING SECTION */}
+      {shippingFields.length > 0 && (
+        <details>
+          <summary>Shipping Address</summary>
+          {shippingFields.map(renderField)}
+        </details>
+      )}
+    </>
+  );
+})()}
 
     <div className="modalActions">
       <button
@@ -357,6 +436,7 @@ if (error) {
         type="button"
         onClick={() => {
           setValidationErrors({});
+          setMessage("");
           setShowAddModal(false);
         }}
       >
@@ -366,7 +446,8 @@ if (error) {
   </dialog>
 )}
       {/* EDIT MODAL */}
-     {editItem && (
+  {/* EDIT MODAL */}
+{editItem && (
   <dialog
     className="modal"
     open
@@ -376,72 +457,118 @@ if (error) {
       Edit {title}
     </h2>
 
-    {editFields.map((field, index) => (
-      <div key={field.name || field.label || index}>
-        {field.type === "select" ? (
-          <Select
-            options={field.options || []}
-            isMulti={field.multiple}
-            isSearchable
-            placeholder={`Select ${field.label}`}
-            value={
-              field.multiple
-                ? (field.options || []).filter((opt) =>
-                    (editItem?.[field.name] || []).includes(
-                      opt.value
-                    )
-                  )
-                : (field.options || []).find(
-                    (opt) =>
-                      opt.value ===
-                      editItem?.[field.name]
-                  ) || null
-            }
-            onChange={(selected) => {
-              const value = field.multiple
-                ? selected?.map(
-                    (item) => item.value
-                  ) || []
-                : selected?.value || "";
-
-              setEditItem({
-                ...editItem,
-                [field.name]: value,
-              });
-            }}
-          />
-        ) : (
-          <input
-            type={field.type || "text"}
-            disabled={field.disabled}
-            value={
-              editItem?.[field.name] || ""
-            }
-            onChange={(e) =>
-              setEditItem({
-                ...editItem,
-                [field.name]:
-                  e.target.value,
-              })
-            }
-          />
-        )}
+    {message && (
+      <div className="formMessage">
+        {message}
       </div>
-    ))}
+    )}
+
+    {(() => {
+  const defaultFields = [];
+  const billingFields = [];
+  const shippingFields = [];
+
+  editFields.forEach((field) => {
+    if (field.name?.startsWith("billing.")) {
+      billingFields.push(field);
+    } else if (field.name?.startsWith("shipping.")) {
+      shippingFields.push(field);
+    } else {
+      defaultFields.push(field);
+    }
+  });
+
+  const getSelectValue = (field, item) => {
+    if (field.multiple) {
+      return (field.options || []).filter((opt) =>
+        (getNestedValue(item, field.name) || []).includes(opt.value)
+      );
+    }
+
+    return (
+      (field.options || []).find((opt) => opt.value === getNestedValue(item, field.name)) || null
+    );
+  };
+
+  const handleSelectChange = (selected, field) => {
+    const value = field.multiple
+      ? selected?.map((item) => item.value) || []
+      : selected?.value || "";
+
+    setEditItem(
+      setNestedValue(editItem, field.name, value)
+    );
+  };
+
+  const renderField = (field) => (
+    <div key={field.name || field.label}>
+      <label>{field.label}</label>
+
+      {field.type === "select" ? (
+        <Select
+          options={field.options || []}
+          isMulti={field.multiple}
+          isSearchable
+          placeholder={`Select ${field.label}`}
+          value={getSelectValue(field, editItem)}
+          onChange={(selected) => handleSelectChange(selected, field)}
+        />
+      ) : (
+        <input
+          type={field.type || "text"}
+          placeholder={field.label}
+          disabled={field.disabled}
+          value={getNestedValue(editItem, field.name) || ""}
+          onChange={(e) =>
+            setEditItem(
+              setNestedValue(editItem, field.name, e.target.value)
+            )
+          }
+        />
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      {/* DEFAULT FIELDS */}
+      {defaultFields.map(renderField)}
+
+      {/* BILLING */}
+      {billingFields.length > 0 && (
+        <details>
+          <summary>Billing Address</summary>
+          {billingFields.map(renderField)}
+        </details>
+      )}
+
+      {/* SHIPPING */}
+      {shippingFields.length > 0 && (
+        <details>
+          <summary>Shipping Address</summary>
+          {shippingFields.map(renderField)}
+        </details>
+      )}
+    </>
+  );
+})()}
 
     <div className="modalActions">
       <button
         type="button"
-        onClick={handleUpdate}
+        onClick={
+          handleUpdate
+        }
+        
       >
         Update
       </button>
 
       <button
         type="button"
-        onClick={() => {
-          setEditItem(null);
-        }}
+        onClick={() =>
+          setEditItem(null)
+        }
       >
         Cancel
       </button>
@@ -476,6 +603,7 @@ CommonList.propTypes = {
   editFields: PropTypes.array,
   actions: PropTypes.array,
   emptyMessage: PropTypes.string,
+  onRowClick: PropTypes.func,
 };
 
 export default CommonList;

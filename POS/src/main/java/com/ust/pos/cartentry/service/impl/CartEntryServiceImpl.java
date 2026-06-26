@@ -8,7 +8,6 @@ import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,14 +20,18 @@ import java.util.List;
 @Service
 @Transactional
 public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private PriceService priceService;
+    private final PriceService priceService;
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CartEntryServiceImpl(
+            PriceService priceService,
+            CartEntryRepository cartEntryRepository,
+            ModelMapper modelMapper) {
+        this.priceService = priceService;
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -58,6 +61,45 @@ public class CartEntryServiceImpl implements CartEntryService {
         modelMapper.map(cartEntryDto, cartEntry);
         cartEntryRepository.save(cartEntry);
         return cartEntryDto;
+    }
+
+    @Override
+    public CartEntryDto updateQuantity(
+            CartEntryDto cartEntryDto) {
+
+        CartEntry cartEntry = cartEntryRepository.findByIdentifier(cartEntryDto.getIdentifier());
+
+        if (cartEntry == null) {
+            return cartEntryDto;
+        }
+
+        BigDecimal quantity = cartEntryDto.getQuantity();
+
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            cartEntryRepository.delete(cartEntry);
+            return cartEntryDto;
+        }
+
+        PriceDto priceDto = priceService.findByIdentifier(cartEntry.getProduct());
+
+        BigDecimal unitPrice = priceDto.getSellingPrice();
+
+        BigDecimal discount = cartEntry.getDiscount() != null ? cartEntry.getDiscount()
+                : BigDecimal.ZERO;
+
+        cartEntry.setQuantity(quantity);
+        cartEntry.setUnitPrice(unitPrice);
+        cartEntry.setTotalPrice(unitPrice.multiply(quantity)
+                .subtract(discount.multiply(quantity)));
+        cartEntryRepository.save(cartEntry);
+
+        return modelMapper.map(cartEntry, CartEntryDto.class);
+    }
+
+    @Override
+    public void deleteAll(String cartId) {
+        List<CartEntry> cartEntryDtos = cartEntryRepository.findByCartId(cartId);
+        cartEntryRepository.deleteAll(cartEntryDtos);
     }
 
     @Override
