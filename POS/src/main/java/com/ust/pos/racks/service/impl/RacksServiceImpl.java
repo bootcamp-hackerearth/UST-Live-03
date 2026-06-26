@@ -22,7 +22,6 @@ public class RacksServiceImpl extends CommonService implements RacksService {
 
     private final RacksRepository racksRepository;
 
-
     private final ModelMapper modelMapper;
 
     public RacksServiceImpl(RacksRepository racksRepository, ModelMapper modelMapper) {

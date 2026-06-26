@@ -8,8 +8,6 @@ import com.ust.pos.order.service.OrderService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/order")
 public class OrderApiController extends BaseController {

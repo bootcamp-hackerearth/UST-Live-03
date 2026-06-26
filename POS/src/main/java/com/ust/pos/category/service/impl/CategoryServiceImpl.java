@@ -11,7 +11,6 @@ import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -104,11 +103,13 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         return modelMapper.map(categoryRepository.findByStatusTrueAndDeletedFalseAndSuperCategoryIsNot(""), listType);
     }
 
-    @Override
-    public List<CategoryDto> findByStatus() {
+    public List<CategoryDto> findAllActiveCategories() {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        return modelMapper.map(categoryRepository.findByStatusTrueAndDeletedFalse(), listType);
+        return modelMapper.map(
+                categoryRepository.findByStatusTrueAndDeletedFalse(),
+                listType
+        );
     }
 
     @Override

@@ -17,4 +17,5 @@ public class CartEntryDto extends CommonDto{
     private String couponCode;
     private String product;
     private String cart;
+
 }

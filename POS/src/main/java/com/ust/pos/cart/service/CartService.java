@@ -5,10 +5,8 @@ import com.ust.pos.dto.CartDto;
 public interface CartService {
 
     CartDto save(CartDto cartDto);
-
     CartDto recalculate(String cart);
-
     CartDto findByIdentifier(String identifier);
-
     void deleteByIdentifier(String identifier);
+
 }

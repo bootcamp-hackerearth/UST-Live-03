@@ -20,4 +20,5 @@ public class Order extends CommonFields {
     private String couponCode;
     private String paymentMode;
     private LocalDateTime orderDate;
+
 }

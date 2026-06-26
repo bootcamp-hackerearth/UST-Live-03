@@ -22,4 +22,5 @@ public class OrderEntry extends CommonFields {
     private BigDecimal totalPrice;
     private String couponCode;
     private String cart;
+
 }

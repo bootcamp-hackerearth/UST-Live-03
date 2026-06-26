@@ -4,9 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StocksDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stocks.service.StocksService;
-import com.ust.pos.warehouse.service.WareHouseService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,14 +16,8 @@ public class StocksApiController extends BaseController {
 
     private final StocksService stocksService;
 
-    private final ProductService productService;
-
-    private final WareHouseService wareHouseService;
-
-    public StocksApiController(StocksService stocksService, ProductService productService, WareHouseService wareHouseService) {
+    public StocksApiController(StocksService stocksService) {
         this.stocksService = stocksService;
-        this.productService = productService;
-        this.wareHouseService = wareHouseService;
     }
 
     @PostMapping("/list")
@@ -44,12 +36,12 @@ public class StocksApiController extends BaseController {
         return stocksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StocksDto updatePost(@RequestBody StocksDto stocksDto) {
         return stocksService.update(stocksDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             stocksService.delete(identifier);

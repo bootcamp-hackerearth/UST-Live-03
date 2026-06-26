@@ -11,4 +11,5 @@ public interface OrderEntryRepository extends JpaRepository<OrderEntry, Long> {
     OrderEntry findByIdentifier(String identifier);
 
     List<OrderEntry> findByOrderId(String orderId);
+
 }

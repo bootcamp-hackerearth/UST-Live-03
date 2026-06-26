@@ -1,19 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/api/axios";
-
-const C = {
-  primary: "#000000",
-  secondary: "#3c3c3c",
-  gray: "#d1d5db",
-  offWhite: "#f4f4f4",
-  text: "#1a1a1a",
-  muted: "#666666",
-  white: "#ffffff",
-  error: "#ff4444",
-};
+import { useSidebarOpen } from "@/components/useDropdownOptions";
+import { C, searchInputSt, listSharedStyles } from "@/components/listColors";
+import PaginationBar from "@/components/PaginationBar";
 
 const inputSt = {
   width: "100%",
@@ -36,106 +28,8 @@ const labelSt = {
   letterSpacing: "0.6px",
 };
 
-function useSidebarOpen() {
-  const [isOpen, setIsOpen] = useState(true);
-  useEffect(() => {
-    const handleToggle = (event) => setIsOpen(event.detail?.isOpen ?? true);
-    globalThis.addEventListener("sidebar-toggle", handleToggle);
-    return () => globalThis.removeEventListener("sidebar-toggle", handleToggle);
-  }, []);
-  return isOpen;
-}
-
 const styles = {
-  page: {
-    position: "fixed",
-    top: "60px",
-    right: 0,
-    bottom: 0,
-    backgroundColor: C.offWhite,
-    fontFamily: "'Segoe UI', sans-serif",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-    transition: "left 0.2s ease",
-  },
-  inner: {
-    flex: 1,
-    padding: "20px 24px",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  },
-  topRow: {
-    display: "flex",
-    alignItems: "center",
-    marginBottom: "16px",
-    flexShrink: 0,
-    position: "relative",
-  },
-  backBtn: {
-    padding: "8px 16px",
-    backgroundColor: "transparent",
-    color: C.primary,
-    border: "1px solid transparent",
-    borderRadius: "6px",
-    fontSize: "13px",
-    fontWeight: "600",
-    cursor: "pointer",
-    flexShrink: 0,
-    transition: "all 0.2s ease",
-    height: "42px",
-  },
-  title: {
-    position: "absolute",
-    left: "50%",
-    transform: "translateX(-50%)",
-    margin: 0,
-    fontSize: "19px",
-    fontWeight: "700",
-    color: C.text,
-    whiteSpace: "nowrap",
-  },
-  searchInput: {
-    padding: "10px 14px",
-    border: `1.2px solid ${C.gray}`,
-    borderRadius: "8px",
-    backgroundColor: "#ffffff",
-    color: C.text,
-    fontSize: "13px",
-    width: "260px",
-    marginLeft: "16px",
-    outline: "none",
-    boxShadow: "none",
-    height: "42px",
-  },
-  card: {
-    background: C.white,
-    borderRadius: "12px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-    border: `1px solid ${C.gray}`,
-    flex: 1,
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-  },
-  tableWrap: { overflowY: "auto", flex: 1 },
-  table: { width: "100%", borderCollapse: "collapse" },
-  th: {
-    textAlign: "left",
-    padding: "11px 14px",
-    borderBottom: `2px solid ${C.gray}`,
-    fontSize: "11px",
-    color: C.muted,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: "0.6px",
-    backgroundColor: "#ffffff",
-    position: "sticky",
-    top: 0,
-  },
-  tr: { borderBottom: `1px solid #e5e7eb`, transition: "background 0.1s" },
-  td: { padding: "11px 14px", fontSize: "13px", color: C.text },
+  ...listSharedStyles,
   actionBtn: {
     padding: "6px 12px",
     borderRadius: "6px",
@@ -231,40 +125,69 @@ export default function OrdersPage() {
   const isSidebarOpen = useSidebarOpen();
 
   const [orders, setOrders] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState("");
   const [orderSearch, setOrderSearch] = useState("");
+  const [pagination, setPagination] = useState({
+    page: 0, sizePerPage: 5, sortDirection: "DESC", sortField: "id",
+  });
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetailLoading, setOrderDetailLoading] = useState(false);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
+  const [products, setProducts] = useState([]);
 
   const today = new Date().toLocaleDateString("en-GB");
 
-  const fetchAllOrders = async () => {
+  const loadOrders = useCallback(async () => {
     setOrdersLoading(true);
     setOrdersError("");
     try {
-      const res = await api.get("/order/findAll");
-      const data = res.data;
-      setOrders(Array.isArray(data) ? data : []);
+      if (orderSearch.trim() === "") {
+        const res = await api.post("/order/list", pagination);
+        const data = res.data;
+        if (Array.isArray(data)) {
+          setOrders(data);
+          setTotalPages(1);
+        } else {
+          setOrders(data.dtoList ?? []);
+          setTotalPages(data.totalPages ?? 1);
+        }
+      } else {
+        const res = await api.post("/order/list", { ...pagination, page: 0, sizePerPage: 1000 });
+        const allData = Array.isArray(res.data) ? res.data : (res.data.dtoList ?? []);
+        const q = orderSearch.toLowerCase();
+        setOrders(allData.filter(o =>
+          (o.orderId || "").toLowerCase().includes(q) ||
+          (o.identifier || "").toLowerCase().includes(q) ||
+          (o.paymentMode || "").toLowerCase().includes(q)
+        ));
+        setTotalPages(1);
+      }
     } catch (err) {
       const status = err.response?.status;
       if (status === 401) {
         setOrdersError("Session expired. Please log in again.");
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        globalThis.location.href = "/login";
       } else if (status === 403) {
         setOrdersError("Access denied. Your account cannot access order data.");
       } else {
         setOrdersError("Failed to load orders. Please check your connection and try again.");
       }
+      setOrders([]);
+      setTotalPages(0);
     } finally {
       setOrdersLoading(false);
     }
-  };
+  }, [pagination, orderSearch]);
 
   useEffect(() => {
-    fetchAllOrders();
+    loadOrders();
+  }, [loadOrders]);
+
+  useEffect(() => {
+    api.get("/product/findByStatus").then(res => setProducts(Array.isArray(res.data) ? res.data : (res.data?.dtoList ?? []))).catch(() => {});
   }, []);
 
   const fetchOrderDetail = async (orderId) => {
@@ -278,7 +201,7 @@ export default function OrdersPage() {
       if (status === 401) {
         setOrdersError("Session expired. Please log in again.");
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        globalThis.location.href = "/login";
       } else if (status === 403) {
         setOrdersError("Access denied. You cannot view this order details.");
       } else {
@@ -294,9 +217,18 @@ export default function OrdersPage() {
     const orderTotal = Number(order.totalPrice || 0).toFixed(2);
     const orderMode = order.paymentMode || "—";
     const orderTime = order.orderDate ? new Date(order.orderDate).toLocaleString("en-GB") : today;
+    const itemsHtml = (order.entryDtoList || []).map(entry => {
+      const prod = products.find(p => p.identifier === entry.product);
+      const prodName = prod?.name || entry.product;
+      const qty = entry.quantity || 1;
+      const price = Number(entry.sellingPrice ?? 0).toFixed(2);
+      const total = Number(entry.totalPrice ?? 0).toFixed(2);
+      return `<div style="margin-bottom:8px;"><div style="font-weight:600;">${prodName}</div><div class="flex-space"><span>${qty} x Rs. ${price}</span><span>Rs. ${total}</span></div></div>`;
+    }).join("");
     const winPrint = window.open("", "", "left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0");
     if (!winPrint) return;
-    winPrint.document.write(`
+    const htmlContent = `
+      <!DOCTYPE html>
       <html>
         <head>
           <title>Print Order Invoice</title>
@@ -317,25 +249,31 @@ export default function OrdersPage() {
             <div class="flex-space"><span>Customer:</span><span>${order.identifier || "—"}</span></div>
             <div class="flex-space"><span>Payment:</span><span>${orderMode}</span></div>
             <div class="dashed-line"></div>
+            <div style="font-weight:700; margin-bottom:8px;">ITEMS</div>
+            ${itemsHtml}
+            <div class="dashed-line"></div>
             <div class="flex-space" style="font-size: 15px; font-weight: 700;"><span>Amount Paid:</span><span>Rs. ${orderTotal}</span></div>
             <div class="dashed-line"></div>
             <div class="center-text" style="font-style: italic; margin-top: 16px;">Thank you for your purchase!</div>
           </div>
         </body>
       </html>
-    `);
+    `;
+    winPrint.document.open();
     winPrint.document.close();
-    winPrint.focus();
-    winPrint.print();
-    winPrint.close();
+    winPrint.document.documentElement.innerHTML = htmlContent;
+    setTimeout(() => {
+      winPrint.focus();
+      winPrint.print();
+      winPrint.close();
+    }, 250);
   };
 
-  const filteredOrders = orders.filter((o) => {
-    return !orderSearch.trim() ||
-      (o.orderId || "").toLowerCase().includes(orderSearch.toLowerCase()) ||
-      (o.identifier || "").toLowerCase().includes(orderSearch.toLowerCase()) ||
-      (o.paymentMode || "").toLowerCase().includes(orderSearch.toLowerCase());
-  });
+  function goToPage(pageIndex) {
+    setPagination(prev => ({ ...prev, page: pageIndex }));
+  }
+
+  const currentPage = pagination.page;
 
   return (
     <div style={{ ...styles.page, left: isSidebarOpen ? "220px" : "55px" }}>
@@ -344,7 +282,7 @@ export default function OrdersPage() {
           <button style={styles.backBtn} onClick={() => router.push("/home")}>⮜ Home</button>
           <h2 style={styles.title}>Orders</h2>
           <input
-            style={styles.searchInput}
+            style={searchInputSt}
             type="text"
             placeholder="Search by Order ID, Customer, Payment..."
             value={orderSearch}
@@ -353,45 +291,43 @@ export default function OrdersPage() {
         </div>
 
         <div style={styles.card}>
-          {filteredOrders.length > 0 && (
+          {orders.length > 0 && (
             <div style={styles.statsBar}>
               <div style={styles.statItem}>
                 <div style={labelSt}>Total Orders</div>
                 <div style={{ fontSize: "18px", fontWeight: "700", color: C.text }}>
-                  {filteredOrders.length}
+                  {orders.length}
                 </div>
               </div>
               <div style={styles.statItem}>
                 <div style={labelSt}>Total Revenue</div>
                 <div style={{ fontSize: "18px", fontWeight: "700", color: C.text }}>
-                  ₹{filteredOrders.reduce((sum, o) => sum + Number(o.totalPrice ?? 0), 0).toFixed(2)}
+                  ₹{orders.reduce((sum, o) => sum + Number(o.totalPrice ?? 0), 0).toFixed(2)}
                 </div>
               </div>
             </div>
           )}
 
           <div style={styles.tableWrap}>
-            {ordersLoading ? (
-              <div style={styles.emptyRow}>Loading orders...</div>
-            ) : ordersError ? (
-              <div style={{ ...styles.emptyRow, color: C.error }}>{ordersError}</div>
-            ) : filteredOrders.length === 0 ? (
-              <div style={styles.emptyRow}>No order records found.</div>
-            ) : (
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.th}>Order ID</th>
-                    <th style={styles.th}>Customer</th>
-                    <th style={styles.th}>Date</th>
-                    <th style={styles.th}>Method</th>
-                    <th style={{ ...styles.th, textAlign: "center" }}>Items</th>
-                    <th style={{ ...styles.th, textAlign: "right" }}>Amount</th>
-                    <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders.map((order, idx) => (
+            {(() => {
+              if (ordersLoading) return <div style={styles.emptyRow}>Loading orders...</div>;
+              if (ordersError) return <div style={{ ...styles.emptyRow, color: C.error }}>{ordersError}</div>;
+              if (orders.length === 0) return <div style={styles.emptyRow}>No order records found.</div>;
+              return (
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Order ID</th>
+                      <th style={styles.th}>Customer</th>
+                      <th style={styles.th}>Date</th>
+                      <th style={styles.th}>Method</th>
+                      <th style={{ ...styles.th, textAlign: "center" }}>Items</th>
+                      <th style={{ ...styles.th, textAlign: "right" }}>Amount</th>
+                      <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {orders.map((order, idx) => (
                     <tr key={`${order.orderId || order.identifier || "order"}-${idx}`} style={styles.tr}>
                       <td style={styles.td}>{order.orderId}</td>
                       <td style={styles.td}>{order.identifier}</td>
@@ -430,8 +366,13 @@ export default function OrdersPage() {
                   ))}
                 </tbody>
               </table>
-            )}
+              );
+            })()}
           </div>
+
+          {!ordersError && orderSearch.trim() === "" && (
+            <PaginationBar currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+          )}
         </div>
       </div>
 
@@ -495,26 +436,29 @@ export default function OrdersPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(selectedOrder.entryDtoList || []).map((entry, idx) => (
-                        <tr key={entry.identifier || idx} style={{ borderBottom: `1px solid ${C.gray}`, color: C.text }}>
-                          <td style={{ padding: "10px 6px" }}>
-                            <div style={{ fontWeight: "600" }}>{entry.product}</div>
-                            <div style={{ fontSize: "11px", color: C.muted }}>ID: {entry.identifier}</div>
-                          </td>
-                          <td style={{ padding: "10px 6px", textAlign: "center", fontWeight: "600" }}>
-                            {entry.quantity}
-                          </td>
-                          <td style={{ padding: "10px 6px", textAlign: "right" }}>
-                            ₹{Number(entry.sellingPrice ?? 0).toFixed(2)}
-                          </td>
-                          <td style={{ padding: "10px 6px", textAlign: "right", color: C.error }}>
-                            -₹{Number(entry.discount ?? 0).toFixed(2)}
-                          </td>
-                          <td style={{ padding: "10px 6px", textAlign: "right", fontWeight: "700" }}>
-                            ₹{Number(entry.totalPrice ?? 0).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
+                      {(selectedOrder.entryDtoList || []).map((entry, idx) => {
+                        const entryProd = products.find(p => p.identifier === entry.product);
+                        return (
+                          <tr key={entry.identifier || idx} style={{ borderBottom: `1px solid ${C.gray}`, color: C.text }}>
+                            <td style={{ padding: "10px 6px" }}>
+                              <div style={{ fontWeight: "600" }}>{entryProd?.name || entry.product}</div>
+                              <div style={{ fontSize: "11px", color: C.muted }}>ID: {entry.product}</div>
+                            </td>
+                            <td style={{ padding: "10px 6px", textAlign: "center", fontWeight: "600" }}>
+                              {entry.quantity}
+                            </td>
+                            <td style={{ padding: "10px 6px", textAlign: "right" }}>
+                              ₹{Number(entry.sellingPrice ?? 0).toFixed(2)}
+                            </td>
+                            <td style={{ padding: "10px 6px", textAlign: "right", color: C.error }}>
+                              -₹{Math.abs(Number(entry.discount ?? 0)).toFixed(2)}
+                            </td>
+                            <td style={{ padding: "10px 6px", textAlign: "right", fontWeight: "700" }}>
+                              ₹{Number(entry.totalPrice ?? 0).toFixed(2)}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                     <tfoot>
                       <tr style={{ borderTop: `1px solid ${C.gray}` }}>

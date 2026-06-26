@@ -7,7 +7,7 @@ export default function AddShelfs() {
     <AddFormSkeleton
       title="Shelfs"
       apiPath="shelfs"
-      extraFields={[]} // No extra fields required
+      extraFields={[]} 
       extraData={{}}
     />
   );

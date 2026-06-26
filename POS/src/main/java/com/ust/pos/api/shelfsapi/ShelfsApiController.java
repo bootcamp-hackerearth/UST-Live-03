@@ -36,12 +36,12 @@ public class ShelfsApiController extends BaseController {
         return shelfsService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfsDto updatePost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.update(shelfsDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfsService.delete(identifier);

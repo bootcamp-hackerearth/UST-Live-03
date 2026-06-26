@@ -15,7 +15,7 @@ export default function ListModels() {
       addPath="/models/add"
       editPathBase="/models/edit/"
       paramKey="identifier"
-      deleteStyle="param" // <--- ADD THIS
+      deleteStyle="param" 
     />
   );
 }

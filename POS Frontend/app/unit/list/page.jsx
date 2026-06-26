@@ -6,7 +6,7 @@ export default function ListUnit() {
   return (
     <ListingSkeleton
       title="Units"
-      fields={[]} // Add specific fields here if UnitDto has more than just identifier
+      fields={[]}
       apis={{
         list: "/unit/list",
         delete: "/unit/delete",

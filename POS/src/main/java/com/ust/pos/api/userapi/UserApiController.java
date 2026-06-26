@@ -38,12 +38,12 @@ public class UserApiController extends BaseController {
         return userService.findByUserName(username);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String username) {
         try {
             userService.delete(username);

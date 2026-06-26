@@ -24,6 +24,7 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -33,25 +34,24 @@ api.interceptors.response.use(
     if (!isAuthEndpoint && (status === 401 || status === 403)) {
       const token = localStorage.getItem("token");
  
-      // Only redirect if token is actually missing/expired
-      // NOT for permission errors on specific endpoints
       if (!token) {
         globalThis.location.href = "/login";
         return Promise.reject(error);
       }
  
-      // If 401 specifically — token expired, force re-login
       if (status === 401) {
         localStorage.removeItem("token");
         globalThis.location.href = "/login";
         return Promise.reject(error);
       }
- 
-      // 403 = forbidden (role/permission issue) — DON'T redirect to login
-      // just silently fail so the page still loads
+
+      const permissionError = new Error("Permission denied");
+      permissionError.response = { status: 403 };
+      return Promise.reject(permissionError);
     }
  
     return Promise.reject(error);
   }
 );
+
 export default api;

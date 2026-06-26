@@ -5,7 +5,6 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.shelfs.service.ShelfsService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +17,8 @@ public class CustomerApiController extends BaseController {
 
     private final CustomerService customerService;
 
-    private final ShelfsService shelfsService;
-
-    public CustomerApiController(CustomerService customerService, ShelfsService shelfsService) {
+    public CustomerApiController(CustomerService customerService) {
         this.customerService = customerService;
-        this.shelfsService = shelfsService;
     }
 
     @PostMapping("/list")
@@ -41,12 +37,12 @@ public class CustomerApiController extends BaseController {
         return customerService.findByIdentifierWithAddressDto(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(Model model, @RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             customerService.delete(identifier);

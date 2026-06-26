@@ -13,10 +13,11 @@ export default function AddCategory() {
       key: "superCategory",
       type: "custom",
       label: "Super Category",
+      optional: true,
       component: (
         <SingleDropdown
-          label="Super Category"
-          apiUrl="/category/getBySuperCategoryNotNull"
+          label="Super Category (optional)"
+          apiUrl="/category/getAllActiveCategories"
           valueField="identifier"
           labelField="identifier"
           selectedValue={superCategory}
@@ -32,7 +33,7 @@ export default function AddCategory() {
       apiPath="category"
       identifierLabel="Category Name"
       extraFields={extraFields}
-      extraData={{ superCategory }}
+      extraData={{ ...(superCategory ? { superCategory } : {}) }}
     />
   );
 }

@@ -18,6 +18,7 @@ export default function EditUser() {
       key: "phoneNo",
       label: "Phone Number",
       type: "text",
+      validate: (val) => /^\d{10}$/.test(val) ? "" : "Phone number must be exactly 10 digits.",
     },
     {
       key: "roles",

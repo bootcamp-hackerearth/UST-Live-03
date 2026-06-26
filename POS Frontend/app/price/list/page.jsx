@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/api/axios";
-import StatusToggle from "@/components/StatusToggle"; 
+import StatusToggle from "@/components/StatusToggle";
+import { deleteModalSt } from "@/components/listColors";
 
 const C = {
   navy: "#000000", mid: "#1a1a1a", light: "#333333",
@@ -187,28 +188,8 @@ const styles = {
   },
   pageArrowDisabled: { color: "#d1d5db", borderColor: C.gray, cursor: "not-allowed" },
   pageInfo: { fontSize: "12px", color: C.muted, padding: "0 8px", whiteSpace: "nowrap" },
-  modalOverlay: {
-    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.4)", display: "flex",
-    alignItems: "center", justifyContent: "center", zIndex: 1000,
-    fontFamily: "'Segoe UI', sans-serif",
-  },
-  modalBox: {
-    backgroundColor: "#fff", padding: "24px", borderRadius: "12px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.15)", width: "100%", maxWidth: "400px",
-    textAlign: "center",
-  },
-  modalTitle: { margin: "0 0 10px 0", fontSize: "18px", fontWeight: "700", color: C.navy },
-  modalText: { margin: "0 0 20px 0", fontSize: "14px", color: C.text, lineHeight: "1.5" },
-  modalBtns: { display: "flex", gap: "12px", justifyContent: "center" },
-  modalCancel: {
-    padding: "9px 18px", backgroundColor: C.gray, color: C.text,
-    border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "600",
-  },
-  modalConfirm: {
-    padding: "9px 18px", backgroundColor: "#dc2626", color: "#fff",
-    border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "600",
-  },
+  ...deleteModalSt,
+  modalCancel: { ...deleteModalSt.modalCancel, backgroundColor: C.gray },
 };
 
 function formatCurrency(value) {
@@ -251,7 +232,7 @@ export default function ListPrice() {
 
   async function confirmDelete() {
     if (!deleteTarget) return;
-    await api.get(`/price/delete?identifier=${encodeURIComponent(deleteTarget)}`);
+    await api.delete("/price/delete", { params: { identifier: deleteTarget } });
     setDeleteTarget(null);
     loadList();
   }

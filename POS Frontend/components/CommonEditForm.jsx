@@ -16,6 +16,7 @@ const styles = {
     cursor: "not-allowed", outline: "none",
   },
   loadingText: { textAlign: "center", color: C.muted, fontSize: "14px", padding: "40px 0" },
+  noEditNote: { fontSize: "12px", color: "#9ca3af", marginTop: "10px" },
   
   metadataOuterWrapper: {
     marginTop: "28px",
@@ -78,7 +79,7 @@ function formatAuditDate(dateString) {
   if (!dateString) return "—";
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "—";
+    if (Number.isNaN(date.getTime())) return "—";
     
     const day = String(date.getDate()).padStart(2, "0");
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -89,7 +90,7 @@ function formatAuditDate(dateString) {
     const minutes = String(date.getMinutes()).padStart(2, "0");
     const ampm = hours >= 12 ? "pm" : "am";
     hours = hours % 12;
-    hours = hours ? hours : 12;
+    hours = hours || 12;
     
     return `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
   } catch {
@@ -110,6 +111,16 @@ function AuditCard({ heading, rows }) {
     </div>
   );
 }
+
+AuditCard.propTypes = {
+  heading: PropTypes.string.isRequired,
+  rows: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    })
+  ).isRequired,
+};
 
 export default function EditFormSkeleton({
   title, apiPath,
@@ -158,8 +169,16 @@ export default function EditFormSkeleton({
         });
         setExtraData(prefilled);
         Object.entries(setters).forEach(([key, setter]) => { if (data[key] !== undefined) setter(data[key]); });
-      } catch {
-        setError("Could not load data. Please go back and try again.");
+      } catch (err) {
+        const status = err.response?.status;
+        const errorMsg = err.response?.data?.message || err.message || "Unknown error";
+        if (status === 403) {
+          setError("You do not have permission to access this record.");
+        } else if (status === 404) {
+          setError(errorMsg || "Record not found. Please check the identifier and try again.");
+        } else {
+          setError("Could not load data. Please go back and try again.");
+        }
       } finally {
         setLoading(false);
       }
@@ -196,7 +215,13 @@ export default function EditFormSkeleton({
         if ((extraData[field.key] || []).length === 0) errors[field.key] = `${field.label} is required.`;
         return;
       }
-      if (!String(extraData[field.key] || "").trim()) errors[field.key] = `${field.label} is required.`;
+      const val = String(extraData[field.key] || "").trim();
+      if (!val) {
+        errors[field.key] = `${field.label} is required.`;
+      } else if (field.validate) {
+        const msg = field.validate(val);
+        if (msg) errors[field.key] = msg;
+      }
     });
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -214,7 +239,7 @@ export default function EditFormSkeleton({
         ...externalExtraData,
       };
       if (recordId != null) payload.id = recordId;
-      const res = await api.post(`/${apiPath}/update`, payload);
+      const res = await api.put(`/${apiPath}/update`, payload);
       const data = res.data;
       if (data?.[identifierField]) {
         setSuccess(`${title} updated successfully`);
@@ -297,7 +322,7 @@ export default function EditFormSkeleton({
     <div style={styles.page}>
       <div style={styles.inner}>
         <div style={styles.topRow}>
-          <button style={styles.backBtn} onClick={() => router.back()}>⮜ Back</button>
+          <button style={styles.backBtn} onClick={() => router.push(`/${apiPath}/list`)}>⮜ Back</button>
           <h2 style={styles.pageTitle}>Edit {title}</h2>
         </div>
         <div style={styles.cardWrap}>
@@ -308,6 +333,15 @@ export default function EditFormSkeleton({
             {success && <div style={styles.successBox}>{success}</div>}
             {loading ? <p style={styles.loadingText}>Loading {title} data…</p> : (
               <>
+                {extraFields.length === 0 ? (
+                  <>
+                    <div style={styles.field}>
+                      <label htmlFor="editform-identifier" style={styles.label}>Identifier</label>
+                      <input id="editform-identifier" style={styles.inputDisabled} type="text" value={identifierDisplay} disabled />
+                    </div>
+                    <p style={styles.noEditNote}>The identifier cannot be edited. This record has no other fields to update.</p>
+                  </>
+                ) : (
                 <form onSubmit={handleSubmit} style={styles.form}>
                   <div style={styles.field}>
                     <label htmlFor="editform-identifier" style={styles.label}>Identifier</label>
@@ -321,7 +355,7 @@ export default function EditFormSkeleton({
                   ))}
 
                   <div style={styles.buttonRow}>
-                    <button type="button" style={styles.cancelBtn} onClick={() => router.back()}>Cancel</button>
+                    <button type="button" style={styles.cancelBtn} onClick={() => router.push(`/${apiPath}/list`)}>Cancel</button>
                     <button
                       type="submit"
                       style={{ ...styles.submitBtn, ...(submitting ? styles.submitBtnDisabled : {}) }}
@@ -331,6 +365,7 @@ export default function EditFormSkeleton({
                     </button>
                   </div>
                 </form>
+                )}
 
                 <div style={styles.metadataOuterWrapper}>
                   <AuditCard

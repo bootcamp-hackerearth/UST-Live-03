@@ -14,11 +14,11 @@ import java.util.List;
 @RequestMapping("/api/category")
 public class CategoryApiController extends BaseController {
 
-    private final CategoryService categoryService;
-
     public CategoryApiController(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
+
+    private final CategoryService categoryService;
 
     @PostMapping("/list")
     public WsDto<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
@@ -36,12 +36,12 @@ public class CategoryApiController extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -51,19 +51,18 @@ public class CategoryApiController extends BaseController {
         return true;
     }
 
-    @GetMapping("/findByStatus")
-    public List<CategoryDto> findByStatus() {
-        return categoryService.findByStatus();
-    }
-
     @GetMapping("/getBySuperCategoryNotNull")
     public List<CategoryDto> superCategoryNotNull() {
         return categoryService.findBySuperCategoryNotNull();
+    }
+
+    @GetMapping("/getAllActiveCategories")
+    public List<CategoryDto> getAllActiveCategories() {
+        return categoryService.findAllActiveCategories();
     }
 
     @PostMapping("/toggle-status")
     public CategoryDto toggle(@RequestParam String identifier) {
         return categoryService.toggleStatus(identifier);
     }
-
 }

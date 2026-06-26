@@ -80,7 +80,7 @@ export const authSharedStyles = {
     outline: "none",
     boxSizing: "border-box",
   },
-  inputError: { borderColor: "#ff4444", backgroundColor: "#fff9f9" },
+  inputError: { border: "1px solid #ff4444", backgroundColor: "#fff9f9" },
   errorText: { fontSize: "12px", color: "#ff4444", marginTop: "4px" },
   button: {
     width: "100%",

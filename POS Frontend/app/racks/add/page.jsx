@@ -2,18 +2,27 @@
 
 import { useState } from "react";
 import AddFormSkeleton from "@/components/CommonAddForm";
+import MultiDropDown from "@/components/dropdowns/CommonMultiDropDown";
 
 export default function AddRacks() {
   const [shelfs, setShelfs] = useState([]);
 
-  // Replace this static array with fetched data if needed
-  const shelfOptions = [
-    { value: "shelf1", label: "Shelf 1" },
-    { value: "shelf2", label: "Shelf 2" },
-  ];
-
   const extraFields = [
-    { key: "shelfs", label: "Shelfs", type: "multiselect", options: shelfOptions },
+    {
+      key: "shelfs",
+      type: "custom",
+      label: "Shelfs",
+      component: (
+        <MultiDropDown
+          label="Shelfs"
+          apiUrl="/shelfs/findByStatus"
+          valueField="identifier"
+          labelField="identifier"
+          selectedValues={shelfs}
+          onChange={(val) => setShelfs(val)}
+        />
+      ),
+    },
   ];
 
   return (

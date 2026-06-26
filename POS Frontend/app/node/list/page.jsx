@@ -15,6 +15,7 @@ export default function ListNode() {
       addPath="/node/add"
       editPathBase="/node/edit/"
       paramKey="identifier"
+      deleteStyle="param"
     />
   );
 }

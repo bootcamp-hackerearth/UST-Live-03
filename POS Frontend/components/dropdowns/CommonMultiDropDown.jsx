@@ -142,4 +142,8 @@ MultiDropDown.propTypes = {
   onChange: PropTypes.func.isRequired,
   valueField: PropTypes.string,
   labelField: PropTypes.string,
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    label: PropTypes.string,
+  })),
 };

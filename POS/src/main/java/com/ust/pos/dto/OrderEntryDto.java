@@ -18,4 +18,5 @@ public class OrderEntryDto extends CommonDto {
     private BigDecimal totalPrice;
     private String couponCode;
     private String cart;
+
 }

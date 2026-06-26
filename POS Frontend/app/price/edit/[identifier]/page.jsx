@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import api from "@/api/axios";
+import AuditCard, { formatDateTime, metadataOuterSt } from "@/components/AuditCard";
 
 const C = {
   navy: "#000000", mid: "#1a1a1a", light: "#333333",
@@ -111,83 +112,7 @@ const styles = {
   loadingText: { textAlign: "center", color: C.muted, fontSize: "14px", padding: "40px 0" },
 };
 
-const metadataOuterSt = {
-    marginTop: "28px",
-    padding: "20px",
-    background: "#ffffff",
-    border: `1px solid ${C.gray}`,
-    borderRadius: "8px",
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "32px",
-    boxSizing: "border-box",
-};
-
-const metadataCardSt = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-};
-
-const metadataCardTitleSt = {
-    margin: 0,
-    fontSize: "12px",
-    fontWeight: "600",
-    color: "#6b7280",
-    letterSpacing: "0.5px",
-    textTransform: "uppercase",
-    marginBottom: "4px",
-};
-
-const metadataRowSt = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    fontSize: "13px",
-    color: "#1f2937",
-    lineHeight: "1.6",
-    gap: "16px",
-};
-
-const metadataLabelSt = {
-    color: "#6b7280",
-    fontWeight: "500",
-    fontSize: "13px",
-};
-
-const metadataValueSt = {
-    fontWeight: "500",
-    color: "#1a1a1a",
-    textAlign: "right",
-    fontSize: "13px",
-};
-
-function formatDateTime(value) {
-    if (!value) return "—";
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return value;
-    return d.toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-}
-
-function AuditCard({ heading, rows }) {
-    return (
-        <div style={metadataCardSt}>
-            <p style={metadataCardTitleSt}>{heading}</p>
-            {rows.map(({ label, value }) => (
-                <div key={label} style={metadataRowSt}>
-                    <span style={metadataLabelSt}>{label}</span>
-                    <span style={metadataValueSt}>{value || "—"}</span>
-                </div>
-            ))}
-        </div>
-    );
-}
+const auditBorderSt = { ...metadataOuterSt, border: `1px solid ${C.gray}` };
 
 export default function EditPrice() {
   const router = useRouter();
@@ -268,7 +193,7 @@ export default function EditPrice() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const res = await api.post("/price/update", {
+      const res = await api.put("/price/update", {
         identifier,
         mrp: form.mrp,
         sellingPrice: form.sellingPrice,
@@ -360,7 +285,7 @@ export default function EditPrice() {
             )}
 
             {!fetching && (
-              <div style={metadataOuterSt}>
+              <div style={auditBorderSt}>
                   <AuditCard
                       heading="Created"
                       rows={[

@@ -36,12 +36,12 @@ public class ModelsApiController extends BaseController {
         return modelsService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelsDto updatePost(@RequestBody ModelsDto modelsDto) {
         return modelsService.update(modelsDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelsService.delete(identifier);

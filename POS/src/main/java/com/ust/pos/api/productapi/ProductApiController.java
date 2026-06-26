@@ -38,12 +38,12 @@ public class ProductApiController extends BaseController {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete/{identifier}")
+    @DeleteMapping("/delete/{identifier}")
     public boolean delete(@PathVariable String identifier) {
         try {
             productService.delete(identifier);

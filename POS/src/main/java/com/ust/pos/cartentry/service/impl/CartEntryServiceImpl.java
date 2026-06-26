@@ -3,7 +3,6 @@ package com.ust.pos.cartentry.service.impl;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.*;
-import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Repository;
@@ -19,20 +18,13 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     private final ModelMapper modelMapper;
 
-    private final PriceService priceService;
-
     private final PriceRepository priceRepository;
 
-    private final CartRepository cartRepository;
 
-
-
-    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, ModelMapper modelMapper, PriceService priceService, PriceRepository priceRepository, CartRepository cartRepository) {
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, ModelMapper modelMapper, PriceRepository priceRepository) {
         this.cartEntryRepository = cartEntryRepository;
         this.modelMapper = modelMapper;
-        this.priceService = priceService;
         this.priceRepository = priceRepository;
-        this.cartRepository = cartRepository;
     }
 
     @Override

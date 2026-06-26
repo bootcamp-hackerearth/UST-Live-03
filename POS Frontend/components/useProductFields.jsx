@@ -2,13 +2,12 @@
 
 import { useState, useMemo } from "react";
 import SingleDropdown from "@/components/dropdowns/CommonSingleDropdown";
-import MultiDropDown from "@/components/dropdowns/CommonMultiDropDown";
 
 export function useProductFields() {
   const [brand,    setBrand]    = useState("");
   const [unit,     setUnit]     = useState("");
   const [model,    setModel]    = useState("");
-  const [category, setCategory] = useState([]);
+  const [category, setCategory] = useState("");
 
   const extraFields = useMemo(() => [
     {
@@ -61,12 +60,12 @@ export function useProductFields() {
       type: "custom",
       label: "Category",
       component: (
-        <MultiDropDown
+        <SingleDropdown
           label="Category"
           apiUrl="/category/getBySuperCategoryNotNull"
           valueField="identifier"
           labelField="identifier"
-          selectedValues={category}
+          selectedValue={category}
           onChange={(val) => setCategory(val)}
         />
       ),

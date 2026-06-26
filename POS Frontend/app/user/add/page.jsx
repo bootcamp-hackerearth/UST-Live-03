@@ -14,6 +14,7 @@ export default function AddUser() {
       label: "Username",
       type: "text",
       required: true,
+      validate: (val) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val) ? "" : "Please enter a valid email address.",
     },
     {
       key: "name",
@@ -26,6 +27,7 @@ export default function AddUser() {
       label: "Phone Number",
       type: "text",
       required: true,
+      validate: (val) => /^\d{10}$/.test(val) ? "" : "Phone number must be exactly 10 digits.",
     },
     {
       key: "password",

@@ -8,6 +8,38 @@ import { sharedStyles } from "./formSkeletonShared";
 
 const styles = { ...sharedStyles };
 
+const popupStyles = {
+  overlay: {
+    position: "fixed", inset: 0,
+    background: "rgba(0,0,0,0.45)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    zIndex: 9999,
+  },
+  card: {
+    background: "#ffffff", borderRadius: "12px",
+    padding: "36px 40px", maxWidth: "380px", width: "90%",
+    textAlign: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+  },
+  iconCircle: {
+    width: "56px", height: "56px", borderRadius: "50%",
+    background: "#ffebee", color: "#d32f2f",
+    fontSize: "26px", fontWeight: "700",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    margin: "0 auto 18px",
+  },
+  title: { fontSize: "18px", fontWeight: "700", color: "#1a1a1a", margin: "0 0 10px" },
+  message: { fontSize: "13px", color: "#666666", margin: "0 0 24px", lineHeight: "1.5" },
+  okBtn: {
+    padding: "10px 40px", background: "#000000", color: "#ffffff",
+    border: "none", borderRadius: "7px", fontSize: "13px",
+    fontWeight: "600", cursor: "pointer",
+  },
+};
+
+function isCustomFieldEmpty(val) {
+  return val === undefined || val === null || val === "" || (Array.isArray(val) && val.length === 0);
+}
+
 function TextField({ fieldKey, label, type, value, hasError, onChange }) {
   const inputId = `field-${fieldKey}`;
   return (
@@ -143,6 +175,7 @@ export default function AddFormSkeleton({
   const [identifierError, setIdentifierError] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [activeDropdownKey, setActiveDropdownKey] = useState(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   function handleExtraChange(key, value) {
     setExtraData(prev => ({ ...prev, [key]: value }));
@@ -165,22 +198,29 @@ export default function AddFormSkeleton({
     if (fieldErrors.identifier) setFieldErrors(prev => ({ ...prev, identifier: "" }));
   }
 
+  function validateField(field, errors) {
+    if (field.type === "custom") {
+      if (field.optional) return;
+      const val = externalExtraData[field.key];
+      if (isCustomFieldEmpty(val))
+        errors[field.key] = `${field.label || field.key} is required.`;
+    } else if (field.type === "multiselect") {
+      if ((extraData[field.key] || []).length === 0) errors[field.key] = `${field.label} is required.`;
+    } else {
+      const val = String(extraData[field.key] || "").trim();
+      if (!val) {
+        errors[field.key] = `${field.label} is required.`;
+      } else if (field.validate) {
+        const msg = field.validate(val);
+        if (msg) errors[field.key] = msg;
+      }
+    }
+  }
+
   function validate() {
     const errors = {};
     if (showIdentifier && !identifier.trim()) errors.identifier = "Identifier is required.";
-
-    extraFields.forEach(field => {
-      if (field.type === "custom") {
-        const val = externalExtraData[field.key];
-        if (val === undefined || val === null || val === "" || (Array.isArray(val) && val.length === 0))
-          errors[field.key] = `${field.label || field.key} is required.`;
-      } else if (field.type === "multiselect") {
-        if ((extraData[field.key] || []).length === 0) errors[field.key] = `${field.label} is required.`;
-      } else if (!String(extraData[field.key] || "").trim()) {
-        errors[field.key] = `${field.label} is required.`;
-      }
-    });
-
+    extraFields.forEach(field => validateField(field, errors));
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -209,14 +249,36 @@ export default function AddFormSkeleton({
       } else {
         setError("Failed to add. Please try again.");
       }
-    } catch {
-      setError("Unable to connect to server. Please try again.");
+    } catch (err) {
+      if (err.response?.status === 403) {
+        setAccessDenied(true);
+      } else {
+        setError("Unable to connect to server. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   }
 
   return (
+    <>
+    {accessDenied && (
+      <div style={popupStyles.overlay}>
+        <div style={popupStyles.card}>
+          <div style={popupStyles.iconCircle}>!</div>
+          <h3 style={popupStyles.title}>Access Denied</h3>
+          <p style={popupStyles.message}>
+            You do not have permission to perform this action.
+          </p>
+          <button
+            style={popupStyles.okBtn}
+            onClick={() => router.push(`/${apiPath}/list`)}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    )}
     <div style={styles.page}>
       <div style={styles.inner}>
         <div style={styles.topRow}>
@@ -271,6 +333,7 @@ export default function AddFormSkeleton({
         </div>
       </div>
     </div>
+    </>
   );
 }
 

@@ -4,6 +4,7 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class AddressApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public List<AddressDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<AddressDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return addressService.findAll(pageable);
     }
@@ -35,12 +36,12 @@ public class AddressApiController extends BaseController {
         return addressService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public AddressDto updatePost(@RequestBody AddressDto addressDto) {
         return addressService.update(addressDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             addressService.delete(identifier);

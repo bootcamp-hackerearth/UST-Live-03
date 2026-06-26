@@ -7,7 +7,7 @@ export default function EditShelfs() {
     <EditFormSkeleton
       title="Shelfs"
       apiPath="shelfs"
-      extraFields={[]} // No extra fields required
+      extraFields={[]} 
       extraData={{}}
       setters={{}}
     />

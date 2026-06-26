@@ -6,7 +6,7 @@ export default function ListShelfs() {
   return (
     <ListingSkeleton
       title="Shelfs"
-      fields={[]} // Empty array since only identifier is needed
+      fields={[]} 
       apis={{
         list: "/shelfs/list",
         delete: "/shelfs/delete",

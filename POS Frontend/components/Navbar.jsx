@@ -1,6 +1,6 @@
 "use client";
  
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import api from "@/api/axios";
@@ -27,9 +27,9 @@ export default function Navbar() {
     setProfileOpen((open) => !open);
   }
  
-  useEffect(() => {
+  useLayoutEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("token"));
-  }, [pathname]); 
+  }, [pathname]);
 
   async function loadProfile() {
     setProfileError("");
@@ -40,8 +40,17 @@ export default function Navbar() {
       const username = profile?.username || profile?.name || "";
       setDisplayName((username || "Account").split(" ")[0]);
       setProfileData(profile);
-    } catch {
-      setProfileError("Unable to load profile details.");
+    } catch (err) {
+      const status = err.response?.status;
+      if (status === 401) {
+        setProfileError("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        globalThis.location.href = "/login";
+      } else if (status === 403) {
+        setProfileError("Unable to access profile details.");
+      } else {
+        setProfileError("Unable to load profile details.");
+      }
     } finally {
       setProfileLoading(false);
     }

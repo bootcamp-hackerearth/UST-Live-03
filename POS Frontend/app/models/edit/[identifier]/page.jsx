@@ -3,7 +3,6 @@
 import EditFormSkeleton from "@/components/CommonEditForm";
 
 export default function EditModels() {
-  // Empty this array to remove all additional fields
   const extraFields = []; 
 
   return (
@@ -11,7 +10,7 @@ export default function EditModels() {
       title="Models"
       apiPath="models"
       extraFields={extraFields}
-      extraData={{}} // Pass empty objects as there are no extra fields
+      extraData={{}} 
       setters={{}}
     />
   );

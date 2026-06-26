@@ -18,4 +18,5 @@ public class OrderDto extends CommonDto {
     private String paymentMode;
     private LocalDateTime orderDate;
     private List<OrderEntryDto> entryDtoList;
+
 }

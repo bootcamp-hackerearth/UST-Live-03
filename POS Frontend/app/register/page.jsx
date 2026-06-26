@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/api/axios";
@@ -48,7 +48,7 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
   },
-  dropdownBoxError: { borderColor: "#ff4444", backgroundColor: "#fff9f9" },
+  dropdownBoxError: { border: "1px solid #ff4444", backgroundColor: "#fff9f9" },
   dropdownMenu: {
     border: "1px solid #d0d8e0",
     borderRadius: "4px",
@@ -97,7 +97,9 @@ export default function Register() {
   const [rolesLoading, setRolesLoading] = useState(true);
   const [rolesError, setRolesError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [hoveredRole, setHoveredRole] = useState(null);
+  const dropdownRef = useRef(null);
+  const boxRef = useRef(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     async function fetchRoles() {
@@ -114,6 +116,25 @@ export default function Register() {
     }
     fetchRoles();
   }, []);
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  function recalculate() {
+    if (boxRef.current) {
+      const r = boxRef.current.getBoundingClientRect();
+      const estimatedHeight = Math.min(roles.length * 38 || 38, 114);
+      const spaceBelow = window.innerHeight - r.bottom;
+      setMenuPos({ top: spaceBelow < estimatedHeight ? r.top - estimatedHeight : r.bottom, left: r.left, width: r.width });
+    }
+  }
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -137,9 +158,10 @@ export default function Register() {
   function validate() {
     const errors = {};
     if (!form.name.trim()) errors.name = "Full name is required.";
-    if (!form.username.trim()) errors.username = "Username is required.";
+    if (!form.username.trim()) errors.username = "Email ID is required.";
+    else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.username.trim())) errors.username = "Please enter a valid email address.";
     if (!form.phoneNo.trim()) errors.phoneNo = "Phone number is required.";
-    else if (!/^\d{7,15}$/.test(form.phoneNo.trim())) errors.phoneNo = "Phone must be 7–15 digits only.";
+    else if (!/^\d{10}$/.test(form.phoneNo.trim())) errors.phoneNo = "Phone number must be exactly 10 digits.";
     if (selectedRoles.length === 0) errors.roles = "Please select at least one role.";
     if (!form.password) errors.password = "Password is required.";
     else if (form.password.length < 4) errors.password = "Password must be at least 4 characters.";
@@ -204,64 +226,98 @@ export default function Register() {
               {fieldErrors.name && <p style={styles.errorText}>{fieldErrors.name}</p>}
             </div>
             <div style={styles.field}>
-              <label style={styles.label} htmlFor="username">Username</label>
-              <input id="username" name="username" type="text"
+              <label style={styles.label} htmlFor="username">Email ID</label>
+              <input id="username" name="username" type="email"
                 style={{ ...styles.input, ...(fieldErrors.username ? styles.inputError : {}) }}
-                placeholder="e.g. johnsmith" value={form.username}
-                onChange={handleChange} autoComplete="username" />
+                placeholder="e.g. john@example.com" value={form.username}
+                onChange={handleChange} autoComplete="email" />
               {fieldErrors.username && <p style={styles.errorText}>{fieldErrors.username}</p>}
             </div>
             <div style={styles.field}>
               <label style={styles.label} htmlFor="phoneNo">Phone Number</label>
               <input id="phoneNo" name="phoneNo" type="tel"
                 style={{ ...styles.input, ...(fieldErrors.phoneNo ? styles.inputError : {}) }}
-                placeholder="7-15 digits" value={form.phoneNo} onChange={handleChange} />
+                placeholder="10-digit phone number" value={form.phoneNo} onChange={handleChange} />
               {fieldErrors.phoneNo && <p style={styles.errorText}>{fieldErrors.phoneNo}</p>}
             </div>
-            <div style={styles.dropdownWrapper}>
-              <label style={styles.label} htmlFor="roles-dropdown">Assign Role(s)</label>
+            <style>{`
+              .sd2-wrap { width: 100%; position: relative; font-family: "Segoe UI", sans-serif; margin-bottom: 16px; }
+              .sd2-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 0; margin-top: 0; display: block; letter-spacing: 0.2px; }
+              .sd2-box {
+                width: 100%; padding: 9px 12px;
+                background: #fafafa; border: 1.5px solid #e8e8e8;
+                border-radius: 7px; cursor: pointer;
+                box-sizing: border-box; font-size: 13px;
+                color: #1a1a1a; transition: border-color 0.15s;
+                display: flex; align-items: center; justify-content: space-between;
+              }
+              .sd2-box:hover { border-color: #000000; }
+              .sd2-box.open { border-color: #1a1a1a; }
+              .sd2-box.error { border-color: #ff4444; background-color: #fff9f9; }
+              .sd2-chevron { font-size: 10px; color: #999999; transition: transform 0.2s; }
+              .sd2-chevron.open { transform: rotate(180deg); }
+              .sd2-menu {
+                position: fixed;
+                background: #ffffff; border: 1.5px solid #e8e8e8;
+                border-radius: 8px; margin-top: 4px;
+                max-height: 114px; overflow-y: auto;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+                z-index: 99999;
+              }
+              .sd2-item {
+                width: 100%; padding: 9px 12px; display: flex;
+                align-items: center; gap: 9px;
+                cursor: pointer; border: none; border-bottom: 1px solid #f3f4f6;
+                background: transparent;
+                transition: background 0.1s; font-size: 13px; color: #374151;
+                text-align: left;
+              }
+              .sd2-item:last-child { border-bottom: none; }
+              .sd2-item:hover { background: #f5f5f5; }
+              .sd2-item.selected { background: rgba(0,0,0,0.06); color: #000000; font-weight: 500; }
+            `}</style>
+            <div className="sd2-wrap" ref={dropdownRef}>
+              <label className="sd2-label" htmlFor="roles-dropdown">Assign Role(s)</label>
               <button
+                ref={boxRef}
                 type="button"
                 id="roles-dropdown"
                 aria-expanded={dropdownOpen}
-                aria-controls="roles-dropdown-list"
-                aria-label="Assign roles"
-                style={{ ...styles.dropdownBox, ...(fieldErrors.roles ? styles.dropdownBoxError : {}) }}
-                onClick={() => setDropdownOpen(o => !o)}
+                aria-haspopup="listbox"
+                className={`sd2-box${dropdownOpen ? " open" : ""}${fieldErrors.roles ? " error" : ""}`}
+                onClick={() => { if (!dropdownOpen) { recalculate(); } setDropdownOpen(o => !o); }}
               >
-                <span style={{ color: selectedRoles.length === 0 ? "#999" : "#1a1a1a", fontSize: "13px" }}>
+                <span style={{ color: selectedRoles.length === 0 ? "#9ca3af" : "#1a1a1a" }}>
                   {selectedRoles.length === 0 ? "Select role(s)…" : `${selectedRoles.length} role(s) selected`}
                 </span>
-                <span style={{ fontSize: "11px", color: "#999" }}>{dropdownOpen ? "▲" : "▼"}</span>
+                <span className={`sd2-chevron${dropdownOpen ? " open" : ""}`}>▼</span>
               </button>
               {dropdownOpen && (
-                <div id="roles-dropdown-list" style={styles.dropdownMenu} aria-multiselectable="true">
-                  {rolesLoading && <div style={styles.rolesLoading}>Loading roles…</div>}
-                  {rolesError && <div style={{ ...styles.rolesLoading, color: "#ff4444" }}>{rolesError}</div>}
-                  {!rolesLoading && !rolesError && roles.map(role => (
-                    <button
-                      key={role.identifier}
-                      type="button"
-                      aria-pressed={selectedRoles.includes(role.identifier)}
-                      style={{
-                        ...styles.dropdownItem,
-                        ...(hoveredRole === role.identifier ? styles.dropdownItemHover : {}),
-                      }}
-                      onClick={() => toggleRole(role.identifier)}
-                      onMouseEnter={() => setHoveredRole(role.identifier)}
-                      onMouseLeave={() => setHoveredRole(null)}
-                    >
-                      <input
-                        type="checkbox"
-                        style={styles.checkBox}
-                        checked={selectedRoles.includes(role.identifier)}
-                        onChange={() => toggleRole(role.identifier)}
-                        onClick={e => e.stopPropagation()}
-                        tabIndex={-1}
-                      />
-                      {role.identifier}
-                    </button>
-                  ))}
+                <div
+                  className="sd2-menu"
+                  style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
+                  aria-multiselectable="true"
+                  aria-label="Assign roles"
+                >
+                  {rolesLoading && <div className="sd2-item">Loading roles…</div>}
+                  {rolesError && <div className="sd2-item" style={{ color: "#ff4444" }}>{rolesError}</div>}
+                  {!rolesLoading && !rolesError && roles.map(role => {
+                    const isSelected = selectedRoles.includes(role.identifier);
+                    return (
+                      <button
+                        key={role.identifier}
+                        type="button"
+                        className={`sd2-item${isSelected ? " selected" : ""}`}
+                        aria-pressed={isSelected}
+                        onClick={() => toggleRole(role.identifier)}
+                      >
+                        <span style={{ width: 18, display: "inline-block", textAlign: "center" }}>
+                          {isSelected ? "✓" : ""}
+                        </span>
+                        {role.identifier}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
               {selectedRoles.length > 0 && (

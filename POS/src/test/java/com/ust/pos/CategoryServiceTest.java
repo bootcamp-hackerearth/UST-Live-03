@@ -115,7 +115,6 @@ class CategoryServiceTest {
         Assertions.assertEquals(1, response.getTotalPages());
         Assertions.assertEquals(50, response.getSizePerPage());
         Assertions.assertEquals(0, response.getPage());
-
     }
 
     @Test
@@ -144,5 +143,17 @@ class CategoryServiceTest {
                 .thenReturn(List.of(category));
         List<CategoryDto> response = categoryService.findBySuperCategoryNotNull();
         Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void findAllActiveCategoriesTest() {
+        Category category1 = new Category();
+        category1.setIdentifier("Admin");
+        Category category2 = new Category();
+        category2.setIdentifier("User");
+        Mockito.when(categoryRepository.findByStatusTrueAndDeletedFalse())
+                .thenReturn(List.of(category1, category2));
+        List<CategoryDto> response = categoryService.findAllActiveCategories();
+        Assertions.assertEquals(2, response.size());
     }
 }

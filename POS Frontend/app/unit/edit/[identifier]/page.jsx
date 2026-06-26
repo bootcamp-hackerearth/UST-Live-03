@@ -3,7 +3,7 @@
 import EditFormSkeleton from "@/components/CommonEditForm";
 
 export default function EditUnit() {
-  const extraFields = []; // Include extra fields if necessary
+  const extraFields = []; 
 
   return (
     <EditFormSkeleton

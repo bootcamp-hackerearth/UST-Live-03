@@ -17,6 +17,7 @@ import java.util.List;
 
 @Service
 public class BrandServiceImpl extends CommonService implements BrandService {
+
     private static final String BRAND_WITH_IDENTIFIER ="Brand with identifier " ;
 
     public BrandServiceImpl(BrandRepository brandRepository, ModelMapper modelMapper) {

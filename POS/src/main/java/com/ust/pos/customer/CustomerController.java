@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.shelfs.service.ShelfsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +16,8 @@ public class CustomerController extends BaseController {
 
     private final CustomerService customerService;
 
-    private final ShelfsService shelfsService;
-
-    public CustomerController(CustomerService customerService, ShelfsService shelfsService) {
+    public CustomerController(CustomerService customerService) {
         this.customerService = customerService;
-        this.shelfsService = shelfsService;
     }
 
     @GetMapping("/list")

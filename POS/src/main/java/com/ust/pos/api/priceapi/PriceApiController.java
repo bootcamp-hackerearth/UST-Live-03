@@ -37,12 +37,12 @@ public class PriceApiController extends BaseController {
         return priceService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public PriceDto updatePost(@RequestBody PriceDto priceDto) {
         return priceService.update(priceDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             priceService.delete(identifier);

@@ -5,7 +5,6 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
-import com.ust.pos.role.service.RoleService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,12 +14,9 @@ import java.util.List;
 @RequestMapping("/api/node")
 public class NodeApiController extends BaseController {
 
-    private final RoleService roleService;
-
     private final NodeService nodeService;
 
-    public NodeApiController(RoleService roleService, NodeService nodeService) {
-        this.roleService = roleService;
+    public NodeApiController(NodeService nodeService) {
         this.nodeService = nodeService;
     }
 
@@ -40,12 +36,12 @@ public class NodeApiController extends BaseController {
         return nodeService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
         return nodeService.update(nodeDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             nodeService.delete(identifier);
