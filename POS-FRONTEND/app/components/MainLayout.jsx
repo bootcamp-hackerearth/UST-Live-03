@@ -27,11 +27,8 @@ const MainLayout = ({ children }) => {
       );
 
       console.log("MENU DATA:", res.data);
+      setMenu(res.data || []);
 
-      setMenu((res.data || []).filter(item =>
-        ["User List", "Role List", "Node List", "Price List", "Product List", "Category List"]
-        .includes(item.identifier)
-      ));
     } catch (err) {
       console.error("MENU ERROR:", err);
       setMenu([]);
@@ -42,6 +39,23 @@ const MainLayout = ({ children }) => {
 
   useEffect(() => {
     fetchMenu();
+
+    const refreshMenu = () => {
+      fetchMenu();
+    };
+
+    globalThis.addEventListener(
+      "menuUpdated",
+      refreshMenu
+    );
+
+    return () => {
+      globalThis.removeEventListener(
+        "menuUpdated",
+        refreshMenu
+      );
+    };
+
   }, [fetchMenu]);
 
   const menuContent = (() => {

@@ -9,7 +9,6 @@ export default function AccessGuard({
   requiredPath,
 }) {
   const router = useRouter();
-
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {

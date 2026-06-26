@@ -1,0 +1,182 @@
+.pageContainer {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 20px;
+}
+
+.paymentSection {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 16px;
+
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 14px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  color: #374151;
+  font-size: 14px;
+}
+
+.totalAmount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #006E74;
+}
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.methodBtn {
+  height: 60px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.methodBtn:hover {
+  border-color: #006E74;
+}
+
+.methodSelected {
+  background: #006E74;
+  color: white;
+  border-color: #006E74;
+}
+
+.input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+}
+
+.input:focus {
+  border-color: #006E74;
+}
+
+.changeBox {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f2f7f8;
+  color: #006E74;
+  font-weight: 600;
+}
+
+.orderPanel {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.orderTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.orderItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.orderName {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.orderPrice {
+  font-size: 14px;
+  color: #374151;
+}
+
+.summaryTotal {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+
+  display: flex;
+  justify-content: space-between;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  color: #006E74;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancelBtn,
+.completeBtn {
+  flex: 1;
+  height: 44px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background: #fef2f2;
+  color: #ba2020;
+  border: 1px solid #fecaca;
+}
+
+.completeBtn {
+  background: #006E74;
+  color: white;
+}
+
+.completeBtn:hover {
+  background: #00575c;
+}

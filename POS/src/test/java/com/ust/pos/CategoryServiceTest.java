@@ -40,7 +40,7 @@ class CategoryServiceTest {
 
         Category category = new Category();
 
-        Mockito.when(categoryRepository.findByIdentifier("C1"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("C1"))
                 .thenReturn(null);
 
         Mockito.when(modelMapper.map(categoryDto, Category.class))
@@ -50,7 +50,8 @@ class CategoryServiceTest {
 
         Assertions.assertEquals("C1", response.getIdentifier());
 
-        Mockito.verify(categoryRepository).save(category);
+        Mockito.verify(categoryRepository)
+                .save(category);
     }
 
     @Test
@@ -60,7 +61,7 @@ class CategoryServiceTest {
 
         Category existing = new Category();
 
-        Mockito.when(categoryRepository.findByIdentifier("C1"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("C1"))
                 .thenReturn(existing);
 
         CategoryDto response = categoryService.save(categoryDto);
@@ -80,7 +81,7 @@ class CategoryServiceTest {
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("C1");
 
-        Mockito.when(categoryRepository.findByIdentifier("C1"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("C1"))
                 .thenReturn(category);
 
         Mockito.when(modelMapper.map(category, CategoryDto.class))
@@ -93,7 +94,7 @@ class CategoryServiceTest {
 
     @Test
     void findByIdentifierNullTest() {
-        Mockito.when(categoryRepository.findByIdentifier("C1"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("C1"))
                 .thenReturn(null);
 
         Mockito.when(modelMapper.map(null, CategoryDto.class))
@@ -111,7 +112,7 @@ class CategoryServiceTest {
 
         Category existing = new Category();
 
-        Mockito.when(categoryRepository.findByIdentifier("C1"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("C1"))
                 .thenReturn(existing);
 
         CategoryDto response = categoryService.update(categoryDto);
@@ -130,7 +131,7 @@ class CategoryServiceTest {
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setIdentifier("C1");
 
-        Mockito.when(categoryRepository.findByIdentifier("C1"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("C1"))
                 .thenReturn(null);
 
         CategoryDto response = categoryService.update(categoryDto);
@@ -144,14 +145,17 @@ class CategoryServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(categoryRepository)
-                .deleteByIdentifier("C1");
+        Category category = new Category();
+
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("C1"))
+                .thenReturn(category);
 
         categoryService.delete("C1");
 
+        Assertions.assertTrue(category.isDeleted());
+
         Mockito.verify(categoryRepository)
-                .deleteByIdentifier("C1");
+                .save(category);
     }
 
     @Test
@@ -168,7 +172,7 @@ class CategoryServiceTest {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
 
-        Mockito.when(categoryRepository.findAll())
+        Mockito.when(categoryRepository.findByDeletedFalse())
                 .thenReturn(categories);
 
         Mockito.when(modelMapper.map(categories, listType))
@@ -197,7 +201,7 @@ class CategoryServiceTest {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
 
-        Mockito.when(categoryRepository.findBySuperCategoryIsNot(""))
+        Mockito.when(categoryRepository.findBySuperCategoryIsNotAndDeletedFalse(""))
                 .thenReturn(categories);
 
         Mockito.when(modelMapper.map(categories, listType))
@@ -226,7 +230,7 @@ class CategoryServiceTest {
         Page<Category> categoryPage =
                 new PageImpl<>(List.of(category));
 
-        Mockito.when(categoryRepository.findAll(pageable))
+        Mockito.when(categoryRepository.findByDeletedFalse(pageable))
                 .thenReturn(categoryPage);
 
         Mockito.when(modelMapper.map(category, CategoryDto.class))
@@ -242,7 +246,8 @@ class CategoryServiceTest {
                 response.getContent().get(0).getIdentifier()
         );
 
-        Mockito.verify(categoryRepository).findAll(pageable);
+        Mockito.verify(categoryRepository)
+                .findByDeletedFalse(pageable);
     }
 
     @Test
@@ -259,7 +264,7 @@ class CategoryServiceTest {
                 new PageImpl<>(List.of(category));
 
         Mockito.when(
-                categoryRepository.findByIdentifierContainingIgnoreCase(
+                categoryRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(
                         "C1",
                         pageable
                 )
@@ -282,7 +287,7 @@ class CategoryServiceTest {
         );
 
         Mockito.verify(categoryRepository)
-                .findByIdentifierContainingIgnoreCase(
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
                         "C1",
                         pageable
                 );

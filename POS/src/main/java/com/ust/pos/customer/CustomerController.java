@@ -4,10 +4,13 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/customer")
@@ -15,11 +18,16 @@ public class CustomerController {
 
     public static final String REDIRECT_CUSTOMER_LIST = "redirect:/customer/list";
 
-    @Autowired
-    private AddressService addressService;
+    private final AddressService addressService;
+    private final CustomerService customerService;
 
-    @Autowired
-    private CustomerService customerService;
+    public CustomerController(
+            AddressService addressService,
+            CustomerService customerService
+    ) {
+        this.addressService = addressService;
+        this.customerService = customerService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

@@ -8,7 +8,6 @@ const api = axios.create({
   },
 });
  
-// ================= TOKEN INTERCEPTOR =================
 api.interceptors.request.use(
   (config) => {
     const token = getToken();
@@ -23,19 +22,35 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
  
-// ================= GLOBAL ERROR HANDLING =================
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      globalThis.location.href = "/login";
+    const status = error?.response?.status;
+ 
+    if (typeof globalThis !== "undefined") {
+      switch (status) {
+        case 401:
+          localStorage.removeItem("token");
+          globalThis.location.replace("/login");
+          break;
+ 
+        case 404:
+          globalThis.location.replace("/not-found");
+          break;
+ 
+        case 500:
+          globalThis.location.replace("/server-error");
+          break;
+ 
+        default:
+          break;
+      }
     }
+ 
     return Promise.reject(error);
   }
 );
  
-// ================= DEFAULT PAGINATION =================
 const DEFAULT_PAGINATION = {
   page: 0,
   sizePerPage: 10,
@@ -43,7 +58,6 @@ const DEFAULT_PAGINATION = {
   sortField: "identifier",
 };
  
-// ================= LIST =================
 export const listItems = async (model, params = {}) => {
   const response = await api.post(
     `/api/${model}/list`,
@@ -56,7 +70,6 @@ export const listItems = async (model, params = {}) => {
   return response.data;
 };
 
-// ================= GET ALL =================
 export const getAllItems = async (model) => {
   const response = await api.get(
     `/api/${model}/all`
@@ -64,8 +77,15 @@ export const getAllItems = async (model) => {
 
   return response.data;
 };
+
+export const getActiveShelves = async () => {
+  const response = await api.get(
+    "/api/shelf/active"
+  );
+
+  return response.data;
+};
  
-// ================= ADD =================
 export const addItem = async (model, data) => {
   const response = await api.post(
     `/api/${model}/add`,
@@ -75,7 +95,6 @@ export const addItem = async (model, data) => {
   return response.data;
 };
  
-// ================= GET =================
 export const getItem = async (model, identifier) => {
   const response = await api.get(
     `/api/${model}/get`,
@@ -87,9 +106,8 @@ export const getItem = async (model, identifier) => {
   return response.data;
 };
  
-// ================= UPDATE =================
 export const updateItem = async (model, data) => {
-  const response = await api.post(
+  const response = await api.put(
     `/api/${model}/update`,
     data
   );
@@ -98,7 +116,7 @@ export const updateItem = async (model, data) => {
 };
  
 export const deleteItem = async (model, value, key = "identifier") => {
-  const response = await api.get(`/api/${model}/delete`, {
+  const response = await api.delete(`/api/${model}/delete`, {
     params: {
       [key]: value,
     },
@@ -107,7 +125,6 @@ export const deleteItem = async (model, value, key = "identifier") => {
   return response.data;
 };
  
-// ================= TOGGLE STATUS =================
 export const toggleItem = async (model, identifier) => {
   const response = await api.post(
     `/api/${model}/toggleStatus`,
@@ -120,7 +137,6 @@ export const toggleItem = async (model, identifier) => {
   return response.data;
 };
 
-// ================= GET SUBCATEGORIES =================
 export const getSubCategories = async () => {
   const response = await api.get(
     "/api/category/subcategories"
@@ -129,7 +145,6 @@ export const getSubCategories = async () => {
   return response.data;
 };
 
-// ================= AUTH =================
 export const loginUser = async (username, password) => {
   const response = await api.post(
     "/api/authenticate",
@@ -142,20 +157,6 @@ export const loginUser = async (username, password) => {
 export const registerUser = async (userData) => {
   const response = await api.post(
     "/register",
-    userData
-  );
- 
-  return response.data;
-};
- 
-export const getCurrentUser = async () => {
-  const response = await api.get("/api/user/me");
-  return response.data;
-};
- 
-export const updateUser = async (userData) => {
-  const response = await api.post(
-    "/api/user/update",
     userData
   );
  
@@ -175,4 +176,66 @@ export const getAuthorizedNodes = async () => {
   return response.data;
 };
 
+export const addToCart = async (payload) => {
+    const response = await api.post(
+      "/api/cartentry/add",
+      payload
+    );
+
+    return response.data;
+  };
+
 export default api;
+
+export const clearCart = async (cartId) => {
+  const response = await api.get(
+    "/api/cartentry/clear",
+    {
+      params: { cartId },
+    }
+  );
+
+  return response.data;
+};
+
+export const getCartItems = async (cartId) => {
+  const response = await api.post(
+    "/api/cartentry/getByCartId",
+    {
+      cartId,
+    }
+  );
+
+  return response.data;
+};
+
+export const updateOrderStatus = async (
+  orderId,
+  status
+) => {
+  const response = await api.put(
+    "/api/order/updateStatus",
+    null,
+    {
+      params: {
+        orderId,
+        status,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const getOrderItems = async (orderIdentifier) => {
+  const res = await api.get(
+    "/api/orderitem/getByOrder",
+    {
+      params: {
+        orderIdentifier,
+      },
+    }
+  );
+
+  return res.data;
+};

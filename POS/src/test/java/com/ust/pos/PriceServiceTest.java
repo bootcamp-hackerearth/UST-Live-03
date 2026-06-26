@@ -37,38 +37,32 @@ class PriceServiceTest {
     @Test
     void saveTestSuccess() {
         PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1");
+        dto.setIdentifier("Admin");
         dto.setCostPrice(BigDecimal.valueOf(100));
         dto.setSellingPrice(BigDecimal.valueOf(150));
 
-        Price entity = new Price();
+        Price price = new Price();
 
-        Mockito.when(priceRepository.findByIdentifier("P1"))
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
 
         Mockito.when(modelMapper.map(dto, Price.class))
-                .thenReturn(entity);
-
-        Mockito.when(priceRepository.save(entity))
-                .thenReturn(entity);
+                .thenReturn(price);
 
         PriceDto response = priceService.save(dto);
 
-        Assertions.assertEquals("P1", response.getIdentifier());
-        Assertions.assertEquals(
-                BigDecimal.valueOf(50),
-                response.getDifference()
-        );
+        Assertions.assertEquals("Admin", response.getIdentifier());
+        Assertions.assertEquals(BigDecimal.valueOf(50), response.getDifference());
 
-        Mockito.verify(priceRepository).save(entity);
+        Mockito.verify(priceRepository).save(price);
     }
 
     @Test
     void saveTestFailureWhenAlreadyExists() {
         PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1");
+        dto.setIdentifier("Admin");
 
-        Mockito.when(priceRepository.findByIdentifier("P1"))
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(new Price());
 
         PriceDto response = priceService.save(dto);
@@ -83,28 +77,22 @@ class PriceServiceTest {
     @Test
     void updateTestSuccess() {
         PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1");
+        dto.setIdentifier("Admin");
         dto.setCostPrice(BigDecimal.valueOf(200));
         dto.setSellingPrice(BigDecimal.valueOf(300));
 
         Price existing = new Price();
         Price mapped = new Price();
 
-        Mockito.when(priceRepository.findByIdentifier("P1"))
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(existing);
 
         Mockito.when(modelMapper.map(dto, Price.class))
                 .thenReturn(mapped);
 
-        Mockito.when(priceRepository.save(mapped))
-                .thenReturn(mapped);
-
         PriceDto response = priceService.update(dto);
 
-        Assertions.assertEquals(
-                BigDecimal.valueOf(100),
-                response.getDifference()
-        );
+        Assertions.assertEquals(BigDecimal.valueOf(100), response.getDifference());
 
         Mockito.verify(priceRepository).save(mapped);
     }
@@ -112,9 +100,9 @@ class PriceServiceTest {
     @Test
     void updateTestFailureWhenNotFound() {
         PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1");
+        dto.setIdentifier("Admin");
 
-        Mockito.when(priceRepository.findByIdentifier("P1"))
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
 
         PriceDto response = priceService.update(dto);
@@ -128,46 +116,48 @@ class PriceServiceTest {
 
     @Test
     void findByIdentifierTest() {
-        Price entity = new Price();
-        entity.setIdentifier("P1");
+        Price price = new Price();
+        price.setIdentifier("Admin");
 
         PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1");
+        dto.setIdentifier("Admin");
 
-        Mockito.when(priceRepository.findByIdentifier("P1"))
-                .thenReturn(entity);
-        Mockito.when(modelMapper.map(entity, PriceDto.class))
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("Admin"))
+                .thenReturn(price);
+
+        Mockito.when(modelMapper.map(price, PriceDto.class))
                 .thenReturn(dto);
 
-        PriceDto response = priceService.findByIdentifier("P1");
+        PriceDto response = priceService.findByIdentifier("Admin");
 
-        Assertions.assertEquals("P1", response.getIdentifier());
+        Assertions.assertEquals("Admin", response.getIdentifier());
     }
 
     @Test
     void findByIdentifierNullTest() {
-        Mockito.when(priceRepository.findByIdentifier("P1"))
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
 
         Mockito.when(modelMapper.map(null, PriceDto.class))
                 .thenReturn(null);
 
-        PriceDto response = priceService.findByIdentifier("P1");
+        PriceDto response = priceService.findByIdentifier("Admin");
 
         Assertions.assertNull(response);
     }
 
     @Test
     void findAllTest() {
-        List<Price> entities = List.of(new Price());
+        List<Price> prices = List.of(new Price());
         List<PriceDto> dtos = List.of(new PriceDto());
 
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
 
-        Mockito.when(priceRepository.findAll())
-                .thenReturn(entities);
-        Mockito.when(modelMapper.map(entities, listType))
+        Mockito.when(priceRepository.findByDeletedFalse())
+                .thenReturn(prices);
+
+        Mockito.when(modelMapper.map(prices, listType))
                 .thenReturn(dtos);
 
         List<PriceDto> response = priceService.findAll();
@@ -177,14 +167,17 @@ class PriceServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(priceRepository)
-                .deleteByIdentifier("P1");
+        Price price = new Price();
+        price.setIdentifier("Admin");
 
-        priceService.delete("P1");
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("Admin"))
+                .thenReturn(price);
 
-        Mockito.verify(priceRepository)
-                .deleteByIdentifier("P1");
+        priceService.delete("Admin");
+
+        Assertions.assertTrue(price.isDeleted());
+
+        Mockito.verify(priceRepository).save(price);
     }
 
     @Test
@@ -192,36 +185,27 @@ class PriceServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Price price = new Price();
-        price.setIdentifier("P1");
+        price.setIdentifier("Admin");
 
         PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1");
+        dto.setIdentifier("Admin");
 
-        Page<Price> page =
-                new PageImpl<>(List.of(price));
+        Page<Price> page = new PageImpl<>(List.of(price));
 
-        Mockito.when(priceRepository.findAll(pageable))
+        Mockito.when(priceRepository.findByDeletedFalse(pageable))
                 .thenReturn(page);
 
         Mockito.when(modelMapper.map(price, PriceDto.class))
                 .thenReturn(dto);
 
-        Page<PriceDto> response =
-                priceService.findAll(pageable, null);
+        Page<PriceDto> response = priceService.findAll(pageable, null);
 
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(
-                1,
-                response.getContent().size()
-        );
-
-        Assertions.assertEquals(
-                "P1",
-                response.getContent().get(0).getIdentifier()
-        );
+        Assertions.assertEquals(1, response.getContent().size());
+        Assertions.assertEquals("Admin", response.getContent().get(0).getIdentifier());
 
         Mockito.verify(priceRepository)
-                .findAll(pageable);
+                .findByDeletedFalse(pageable);
     }
 
     @Test
@@ -229,41 +213,27 @@ class PriceServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Price price = new Price();
-        price.setIdentifier("P1");
+        price.setIdentifier("Admin");
 
         PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1");
+        dto.setIdentifier("Admin");
 
-        Page<Price> page =
-                new PageImpl<>(List.of(price));
+        Page<Price> page = new PageImpl<>(List.of(price));
 
-        Mockito.when(
-                priceRepository.findByIdentifierContainingIgnoreCase(
-                        "P1",
-                        pageable
-                )
-        ).thenReturn(page);
+        Mockito.when(priceRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                        "Admin", pageable))
+                .thenReturn(page);
 
         Mockito.when(modelMapper.map(price, PriceDto.class))
                 .thenReturn(dto);
 
-        Page<PriceDto> response =
-                priceService.findAll(pageable, "P1");
+        Page<PriceDto> response = priceService.findAll(pageable, "Admin");
 
-        Assertions.assertEquals(
-                1,
-                response.getContent().size()
-        );
-
-        Assertions.assertEquals(
-                "P1",
-                response.getContent().get(0).getIdentifier()
-        );
+        Assertions.assertEquals(1, response.getContent().size());
+        Assertions.assertEquals("Admin", response.getContent().get(0).getIdentifier());
 
         Mockito.verify(priceRepository)
-                .findByIdentifierContainingIgnoreCase(
-                        "P1",
-                        pageable
-                );
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                        "Admin", pageable);
     }
 }

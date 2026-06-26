@@ -34,22 +34,21 @@ const Dashboard1 = () => {
 				name: res.data?.name || username
 			});
 		} catch (err) {
-		console.error("USER FETCH ERROR:", err);
+			console.error("USER FETCH ERROR:", err);
 
-		if (err.response?.status === 401 || err.response?.status === 403) {
-			localStorage.removeItem("token");
-			localStorage.removeItem("username");
+			if (err.response?.status === 401 || err.response?.status === 403) {
+				localStorage.removeItem("token");
+				localStorage.removeItem("username");
 
-			router.push("/login");
-			return;
+				router.push("/login");
+				return;
+			}
+
+			const username = localStorage.getItem("username");
+			setUser({
+				name: username
+			});
 		}
-
-		const username = localStorage.getItem("username");
-
-		setUser({
-			name: username
-		});
-	}
 	}, [router]);
 
 	useEffect(() => {
@@ -58,7 +57,7 @@ const Dashboard1 = () => {
 
 	return (
 		<div style={styles.page}>
-			
+
 			{/* TOPBAR */}
 			<div style={styles.topbar}>
 
@@ -104,6 +103,49 @@ const Dashboard1 = () => {
 						Track sales, orders and users in one place.
 					</p>
 				</div>
+			</div>
+			{/* QUICK ACTIONS */}
+			<div style={styles.quickGrid}>
+
+				<button
+					style={styles.quickCard}
+					onClick={() => router.push("/cart")}
+				>
+					<div style={styles.icon}>
+						🛒
+					</div>
+
+					<div>
+						<h3 style={styles.cardTitle}>
+							New Sale
+						</h3>
+
+						<p style={styles.cardText}>
+							Create and manage cart items
+						</p>
+					</div>
+				</button>
+
+
+				<button
+					style={styles.quickCard}
+					onClick={() => router.push("/orders")}
+				>
+					<div style={styles.icon}>
+						📦
+					</div>
+
+					<div>
+						<h3 style={styles.cardTitle}>
+							Orders
+						</h3>
+
+						<p style={styles.cardText}>
+							View and track orders
+						</p>
+					</div>
+				</button>
+
 			</div>
 
 		</div>
@@ -200,5 +242,43 @@ const styles = {
 		color: "rgba(255,255,255,0.9)",
 		lineHeight: "1.6",
 		maxWidth: "500px",
+	},
+
+	quickGrid: {
+		display: "grid",
+		gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+		gap: "20px",
+		marginTop: "28px",
+	},
+
+	quickCard: {
+		display: "flex",
+		alignItems: "center",
+		gap: "18px",
+		background: "#ffffff",
+		border: "none",
+		borderRadius: "18px",
+		padding: "22px",
+		cursor: "pointer",
+		textAlign: "left",
+		boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+		transition: "0.2s ease",
+	},
+
+	icon: {
+		fontSize: "32px",
+	},
+
+	cardTitle: {
+		margin: 0,
+		fontSize: "18px",
+		color: "#111827",
+		fontWeight: "700",
+	},
+
+	cardText: {
+		margin: "6px 0 0",
+		fontSize: "13px",
+		color: "#6b7280",
 	},
 };

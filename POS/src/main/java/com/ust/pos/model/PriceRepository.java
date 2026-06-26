@@ -5,11 +5,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface PriceRepository extends JpaRepository<Price, Long> {
+    Price findByIdentifierAndDeletedFalse(String identifier);
+
     Price findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String identifier);
+    Page<Price> findByDeletedFalse(Pageable pageable);
 
-    Page<Price> findByIdentifierContainingIgnoreCase(String identifier, Pageable pageable);
+    Page<Price> findByIdentifierContainingIgnoreCaseAndDeletedFalse(String identifier, Pageable pageable);
+
+    List<Price> findByDeletedFalse();
 }

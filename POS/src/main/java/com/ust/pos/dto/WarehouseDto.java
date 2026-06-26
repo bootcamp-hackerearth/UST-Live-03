@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 public class WarehouseDto extends CommonDto {
     private String country;
-    private int pincode;
+    private Integer pincode;
     private String address;
 }

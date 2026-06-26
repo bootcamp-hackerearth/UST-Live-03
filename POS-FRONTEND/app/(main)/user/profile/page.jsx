@@ -6,7 +6,6 @@ import api from "@/services/api";
 
 export default function UserProfile() {
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
 
   const [user, setUser] = useState({
@@ -29,7 +28,7 @@ export default function UserProfile() {
 
       const res = await api.get(
         `/api/user/get?username=${username}`
-        );
+      );
 
       setUser({
         name: res.data?.name || "-",
@@ -39,10 +38,7 @@ export default function UserProfile() {
         roles: res.data?.roles || [],
       });
     } catch (err) {
-      console.error(
-        "PROFILE FETCH ERROR:",
-        err
-      );
+      console.error("PROFILE FETCH ERROR:", err);
     } finally {
       setLoading(false);
     }

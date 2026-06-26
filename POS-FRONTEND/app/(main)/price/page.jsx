@@ -5,6 +5,7 @@ import CommonList from "@/app/components/CommonList/CommonList";
 import AccessGuard from "@/app/components/AccessGuard";
 
 import {
+  getAllItems,
   listItems,
   deleteItem,
   updateItem,
@@ -12,23 +13,14 @@ import {
 } from "@/services/api";
 
 const PricePage = () => {
-  const [prices, setPrices] =
-    useState([]);
+  const [prices, setPrices] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
-
-  const [page, setPage] =
-    useState(0);
-
-  const [totalPages, setTotalPages] =
-    useState(1);
-
-  const [searchTerm, setSearchTerm] =
-    useState("");
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const sizePerPage = 5;
 
@@ -39,63 +31,55 @@ const PricePage = () => {
       sellingPrice: "",
     });
 
-  const [products, setProducts] =
-    useState([]);
+  const [products, setProducts] = useState([]);
 
-  const [editPrice, setEditPrice] =
-    useState(null);
+  const [editPrice, setEditPrice] = useState(null);
+  const [viewPrice, setViewPrice] = useState(null);
 
   const fetchPrices = async () => {
-  try {
-    if (prices.length === 0) {
-      setLoading(true);
-    }
-
-    setError("");
-
-    const res = await listItems(
-      "price",
-      {
-        page,
-        sizePerPage,
-        sortField: "id",
-        search: searchTerm,
-      }
-    );
-
-    setPrices(
-      res?.content || res || []
-    );
-
-    setTotalPages(
-      res?.totalPages || 1
-    );
-
-  } catch (err) {
-    console.error(err);
-
-    setError(
-      "Failed to load prices"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const fetchProducts = async () => {
     try {
-      const res =
-        await listItems("product");
+      if (prices.length === 0) {
+        setLoading(true);
+      }
 
-      setProducts(
+      setError("");
+
+      const res = await listItems(
+        "price",
+        {
+          page,
+          sizePerPage,
+          sortField: "id",
+          search: searchTerm,
+        }
+      );
+
+      setPrices(
         res?.content || res || []
       );
 
-    } catch (err) {
-      console.error(
-        "Failed to load products",
-        err
+      setTotalPages(
+        res?.totalPages || 1
       );
+
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        "Failed to load prices"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const res = await getAllItems("product");
+      setProducts(res?.content || res || []);
+
+    } catch (err) {
+      console.error("Failed to load products", err);
     }
   };
 
@@ -166,7 +150,6 @@ const PricePage = () => {
       );
 
       setEditPrice(null);
-
       fetchPrices();
 
     } catch (err) {
@@ -213,6 +196,13 @@ const PricePage = () => {
 
   const actions = [
     {
+      label: "👁 View",
+      type: "view",
+      onClick: (row) =>
+        setViewPrice(row),
+    },
+
+    {
       label: "✏️ Edit",
       onClick: openEdit,
     },
@@ -239,7 +229,7 @@ const PricePage = () => {
         setPage={setPage}
         sizePerPage={sizePerPage}
         totalPages={totalPages}
-        
+
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
 
@@ -285,6 +275,9 @@ const PricePage = () => {
         setEditItem={setEditPrice}
         handleUpdate={handleUpdate}
 
+        viewItem={viewPrice}
+        setViewItem={setViewPrice}
+
         editFields={[
           {
             name: "identifier",
@@ -306,7 +299,7 @@ const PricePage = () => {
         actions={actions}
         emptyMessage="No prices found"
       />
-    </AccessGuard>  
+    </AccessGuard>
   );
 };
 

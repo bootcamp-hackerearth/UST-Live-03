@@ -12,25 +12,16 @@ import {
 } from "@/services/api";
 
 const RolePage = () => {
-  const [roles, setRoles] =
-    useState([]);
+  const [roles, setRoles] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
-
-  const [page, setPage] =
-    useState(0);
-
-  const [totalPages, setTotalPages] =
-    useState(1);
-
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1);
   const sizePerPage = 5;
 
-  const [searchTerm, setSearchTerm] =
-   useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [newRole, setNewRole] =
     useState({
@@ -38,8 +29,8 @@ const RolePage = () => {
       description: "",
     });
 
-  const [editRole, setEditRole] =
-    useState(null);
+  const [editRole, setEditRole] = useState(null);
+  const [viewRole, setViewRole] = useState(null);
 
   const fetchRoles = async () => {
     try {
@@ -58,19 +49,14 @@ const RolePage = () => {
         }
       );
 
-      setRoles(
-        res?.content || []
-      );
+      setRoles(res?.content || []);
+      setTotalPages(res?.totalPages || 1);
 
-      setTotalPages(
-        res?.totalPages || 1
-      );
     } catch (err) {
-      console.error(err);
 
-      setError(
-        "Failed to load roles"
-      );
+      console.error(err);
+      setError("Failed to load roles");
+
     } finally {
       setLoading(false);
     }
@@ -85,24 +71,21 @@ const RolePage = () => {
   }, [searchTerm]);
 
   const handleAddRole = async () => {
-    const response = await addItem(
-        "role",
-        newRole
-    );
+    const response = await addItem("role", newRole);
 
     if (response?.success === false) {
-        throw new Error(response.message);
+      throw new Error(response.message);
     }
 
     setNewRole({
-        identifier: "",
-        description: "",
+      identifier: "",
+      description: "",
     });
 
     fetchRoles();
 
     return true;
-    };
+  };
 
   const handleDelete = async (
     identifier
@@ -115,33 +98,24 @@ const RolePage = () => {
     if (!confirmDelete) return;
 
     try {
-      await deleteItem(
-        "role",
-        identifier
-      );
-
+      await deleteItem("role", identifier);
       fetchRoles();
     } catch (err) {
       console.error(err);
-
       alert("Delete failed");
     }
   };
 
   const handleUpdate = async () => {
-    const response = await updateItem(
-        "role",
-        editRole
-    );
+    const response = await updateItem("role", editRole);
 
     if (response?.success === false) {
-        throw new Error(response.message);
+      throw new Error(response.message);
     }
 
     fetchRoles();
-
     return true;
-    };
+  };
 
   const columns = [
     {
@@ -151,7 +125,7 @@ const RolePage = () => {
         index
       ) =>
         page *
-          sizePerPage +
+        sizePerPage +
         index +
         1,
     },
@@ -169,6 +143,13 @@ const RolePage = () => {
 
   const actions = [
     {
+      label: "👁 View",
+      type: "view",
+      onClick: (role) =>
+        setViewRole(role),
+    },
+
+    {
       label: "✏️ Edit",
       onClick: (role) =>
         setEditRole(role),
@@ -177,11 +158,8 @@ const RolePage = () => {
     {
       label: "🗑 Delete",
       type: "delete",
-
       onClick: (row) =>
-        handleDelete(
-          row.identifier
-        ),
+        handleDelete(row.identifier),
     },
   ];
 
@@ -202,7 +180,7 @@ const RolePage = () => {
         setSearchTerm={setSearchTerm}
         emptyMessage="No roles found"
 
-        onAdd={() => {}}
+        onAdd={() => { }}
         addButtonText="+ Add Role"
 
         addFields={[
@@ -225,6 +203,9 @@ const RolePage = () => {
         editItem={editRole}
         setEditItem={setEditRole}
         handleUpdate={handleUpdate}
+
+        viewItem={viewRole}
+        setViewItem={setViewRole}
 
         editFields={[
           {

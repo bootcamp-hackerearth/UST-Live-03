@@ -10,42 +10,36 @@
     toggleItem,
     updateItem,
     addItem,
-    getSubCategories
+    getSubCategories,
+    getAllItems,
   } from "@/services/api";
 
   const ProductPage = () => {
-    const [products, setProducts] =
-      useState([]);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const [loading, setLoading] =
-      useState(true);
-
-    const [error, setError] =
-      useState("");
-
-    const [page, setPage] =
-      useState(0);
-
-    const [totalPages, setTotalPages] =
-      useState(1);
-
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
     const sizePerPage = 5;
 
     const [newProduct, setNewProduct] =
       useState({
         identifier: "",
         supplierID: "",
+        brand: "",
+        unit: "",
         categories: [],
       });
 
-    const [categoriesList, setCategoriesList] =
-      useState([]);
+    const [categoriesList, setCategoriesList] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [units, setUnits] = useState([]);
 
-    const [searchTerm, setSearchTerm] =
-      useState("");
+    const [searchTerm, setSearchTerm] = useState("");
 
-    const [editProduct, setEditProduct] =
-      useState(null);
+    const [editProduct, setEditProduct] = useState(null);
+    const [viewProduct, setViewProduct] = useState(null);
 
     const fetchProducts = async () => {
       try {
@@ -77,17 +71,13 @@
           );
 
         setProducts(normalized);
-
-        setTotalPages(
-          res?.totalPages || 1
-        );
+        setTotalPages(res?.totalPages || 1);
 
       } catch (err) {
-        console.error(err);
 
-        setError(
-          "Failed to load products"
-        );
+        console.error(err);
+        setError("Failed to load products");
+
       } finally {
         setLoading(false);
       }
@@ -95,23 +85,33 @@
 
     const fetchCategories = async () => {
       try {
-        const res =
-          await getSubCategories("category");
 
-        console.log(
-          "CATEGORY RESPONSE:",
-          res
-        );
-
-        setCategoriesList(
-          res?.content || res || []
-        );
+        const res = await getSubCategories("category");
+        console.log("CATEGORY RESPONSE:", res);
+        setCategoriesList(res?.content || res || []);
 
       } catch (err) {
-        console.error(
-          "Failed to load categories",
-          err
-        );
+        console.error("Failed to load categories", err);
+      }
+    };
+
+    const fetchBrands = async () => {
+      try {
+        const res = await getAllItems("brand");
+
+        setBrands(res?.content || res || []);
+      } catch (err) {
+        console.error("Failed to load brands", err);
+      }
+    };
+
+    const fetchUnits = async () => {
+      try {
+        const res = await getAllItems("unit");
+        
+        setUnits(res?.content || res || []);
+      } catch (err) {
+        console.error("Failed to load units", err);
       }
     };
 
@@ -121,6 +121,8 @@
 
     useEffect(() => {
       fetchCategories();
+      fetchBrands();
+      fetchUnits();
     }, []);
 
     useEffect(() => {
@@ -142,6 +144,8 @@
       setNewProduct({
         identifier: "",
         supplierID: "",
+        brand: "",
+        unit: "",
         categories: [],
       });
 
@@ -239,6 +243,16 @@
       },
 
       {
+        label: "Brand",
+        key: "brand",
+      },
+
+      {
+        label: "Unit",
+        key: "unit",
+      },
+
+      {
         label: "Categories",
         render: (p) =>
           Array.isArray(p.categories)
@@ -269,6 +283,13 @@
 
     const actions = [
       {
+        label: "👁 View",
+        type: "view",
+        onClick: (row) =>
+          setViewProduct(row),
+      },
+
+      {
         label: "✏️ Edit",
         onClick: openEdit,
       },
@@ -277,10 +298,60 @@
         label: "🗑 Delete",
         type: "delete",
         onClick: (row) =>
-          handleDelete(
-            row.identifier
-          ),
+          handleDelete(row.identifier),
+      }
+    ];
+
+    const commonProductFields = [
+      {
+        name: "supplierID",
+        label: "Supplier ID",
       },
+      {
+        name: "brand",
+        label: "Brand",
+        type: "select",
+        options: brands.map((brand) => ({
+          label: brand.identifier,
+          value: brand.identifier,
+        })),
+      },
+      {
+        name: "unit",
+        label: "Unit",
+        type: "select",
+        options: units.map((unit) => ({
+          label: unit.identifier,
+          value: unit.identifier,
+        })),
+      },
+      {
+        name: "categories",
+        label: "Categories",
+        type: "select",
+        multiple: true,
+        options: categoriesList.map((cat) => ({
+          label: cat.identifier,
+          value: cat.identifier,
+        })),
+      },
+    ];
+
+    const addFields = [
+      {
+        name: "identifier",
+        label: "Product Name",
+      },
+      ...commonProductFields,
+    ];
+
+    const editFields = [
+      {
+        name: "identifier",
+        label: "Product Name",
+        disabled: true,
+      },
+      ...commonProductFields,
     ];
 
     return (
@@ -301,62 +372,26 @@
 
           onAdd={() =>
             setNewProduct({
-              identifier: "",
-              supplierID: "",
-              categories: [],
-            })
+            identifier: "",
+            supplierID: "",
+            brand: "",
+            unit: "",
+            categories: [],
+          })
           }
           addButtonText="+ Add Product"
           newItem={newProduct}
           setNewItem={setNewProduct}
           handleAdd={handleAddProduct}
-
-          addFields={[
-            {
-              name: "identifier",
-              label: "Product Name",
-            },
-            {
-              name: "supplierID",
-              label: "Supplier ID",
-            },
-            {
-              name: "categories",
-              label: "Categories",
-              type: "select",
-              multiple: true,
-              options: categoriesList.map((cat) => ({
-                label: cat.identifier,
-                value: cat.identifier,
-              })),
-            },
-          ]}
+          addFields={addFields}
 
           editItem={editProduct}
           setEditItem={setEditProduct}
           handleUpdate={handleUpdate}
+          editFields={editFields}
 
-          editFields={[
-            {
-              name: "identifier",
-              label: "Product Name",
-              disabled: true,
-            },
-            {
-              name: "supplierID",
-              label: "Supplier ID",
-            },
-            {
-              name: "categories",
-              label: "Categories",
-              type: "select",
-              multiple: true,
-              options: categoriesList.map((cat) => ({
-                label: cat.identifier,
-                value: cat.identifier,
-              })),
-            },
-          ]}
+          viewItem={viewProduct}
+          setViewItem={setViewProduct}
 
           actions={actions}
           emptyMessage="No products found"

@@ -1,7 +1,5 @@
 package com.ust.pos;
 
-import java.util.Arrays;
-
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
@@ -24,10 +22,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class NodeServiceTest {
@@ -52,47 +50,51 @@ class NodeServiceTest {
 
     @Test
     void getNodesForRolesTest() {
-        UserDetails springUser =
+        org.springframework.security.core.userdetails.User springUser =
                 new org.springframework.security.core.userdetails.User(
-                        "admin", "pwd", new ArrayList<>());
+                        "admin",
+                        "password",
+                        new ArrayList<>()
+                );
 
-        Mockito.when(authentication.getPrincipal()).thenReturn(springUser);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.getPrincipal())
+                .thenReturn(springUser);
+
+        Mockito.when(securityContext.getAuthentication())
+                .thenReturn(authentication);
+
         SecurityContextHolder.setContext(securityContext);
 
         User user = new User();
         user.setUsername("admin");
-
-        List<String> roles = new ArrayList<>();
-        roles.add("ADMIN");
-        user.setRoles(roles);
+        user.setRoles(List.of("ADMIN"));
 
         Mockito.when(userRepository.findByUsername("admin"))
                 .thenReturn(user);
 
-        Node node1 = new Node();
-        node1.setIdentifier("NODE1");
-        node1.setRoles(Arrays.asList("ADMIN"));
+        Node node = new Node();
+        node.setIdentifier("NODE1");
+        node.setRoles(List.of("ADMIN"));
 
-        Node node2 = new Node();
-        node2.setIdentifier("NODE2");
-        node2.setRoles(Arrays.asList("USER"));
+        Mockito.when(nodeRepository.findByDeletedFalse())
+                .thenReturn(List.of(node));
 
-        Mockito.when(nodeRepository.findAll())
-                .thenReturn(Arrays.asList(node1, node2));
-        Mockito.when(nodeRepository.findByIdentifier("NODE1"))
-                .thenReturn(node1);
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("NODE1"))
+                .thenReturn(node);
 
-        NodeDto nodeDto = new NodeDto();
-        nodeDto.setIdentifier("NODE1");
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("NODE1");
 
-        Mockito.when(modelMapper.map(node1, NodeDto.class))
-                .thenReturn(nodeDto);
+        Mockito.when(modelMapper.map(node, NodeDto.class))
+                .thenReturn(dto);
 
-        List<NodeDto> result = nodeService.getNodesForRoles();
+        List<NodeDto> response = nodeService.getNodesForRoles();
 
-        Assertions.assertEquals(1, result.size());
-        Assertions.assertEquals("NODE1", result.get(0).getIdentifier());
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(
+                "NODE1",
+                response.get(0).getIdentifier()
+        );
 
         SecurityContextHolder.clearContext();
     }
@@ -102,19 +104,26 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        Node entity = new Node();
+        Node node = new Node();
 
-        Mockito.when(nodeRepository.findByIdentifier("N1"))
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(null);
+
         Mockito.when(modelMapper.map(dto, Node.class))
-                .thenReturn(entity);
-        Mockito.when(nodeRepository.save(entity))
-                .thenReturn(entity);
+                .thenReturn(node);
+
+        Mockito.when(nodeRepository.save(node))
+                .thenReturn(node);
 
         NodeDto response = nodeService.save(dto);
 
-        Assertions.assertEquals("N1", response.getIdentifier());
-        Mockito.verify(nodeRepository).save(entity);
+        Assertions.assertEquals(
+                "N1",
+                response.getIdentifier()
+        );
+
+        Mockito.verify(nodeRepository)
+                .save(node);
     }
 
     @Test
@@ -122,7 +131,7 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        Mockito.when(nodeRepository.findByIdentifier("N1"))
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(new Node());
 
         NodeDto response = nodeService.save(dto);
@@ -140,19 +149,23 @@ class NodeServiceTest {
         dto.setIdentifier("N1");
 
         Node existing = new Node();
-        existing.setIdentifier("N1");
 
-        Mockito.when(nodeRepository.findByIdentifier("N1"))
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(existing);
+
         Mockito.doNothing()
-                .when(modelMapper).map(dto, existing);
-        Mockito.when(nodeRepository.save(existing))
-                .thenReturn(existing);
+                .when(modelMapper)
+                .map(dto, existing);
 
         NodeDto response = nodeService.update(dto);
 
-        Assertions.assertEquals("N1", response.getIdentifier());
-        Mockito.verify(nodeRepository).save(existing);
+        Assertions.assertEquals(
+                "N1",
+                response.getIdentifier()
+        );
+
+        Mockito.verify(nodeRepository)
+                .save(existing);
     }
 
     @Test
@@ -160,31 +173,16 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        Mockito.when(nodeRepository.findByIdentifier("N1"))
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(null);
 
         NodeDto response = nodeService.update(dto);
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
-    }
 
-    @Test
-    void findAllTest() {
-        List<Node> entities = List.of(new Node());
-        List<NodeDto> dtos = List.of(new NodeDto());
-
-        Type listType = new TypeToken<List<NodeDto>>() {
-        }.getType();
-
-        Mockito.when(nodeRepository.findAll())
-                .thenReturn(entities);
-        Mockito.when(modelMapper.map(entities, listType))
-                .thenReturn(dtos);
-
-        List<NodeDto> response = nodeService.findAll();
-
-        Assertions.assertEquals(1, response.size());
+        Mockito.verify(nodeRepository, Mockito.never())
+                .save(Mockito.any());
     }
 
     @Test
@@ -195,26 +193,69 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        Mockito.when(nodeRepository.findByIdentifier("N1"))
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(node);
+
         Mockito.when(modelMapper.map(node, NodeDto.class))
                 .thenReturn(dto);
 
         NodeDto response = nodeService.findByIdentifier("N1");
 
-        Assertions.assertEquals("N1", response.getIdentifier());
+        Assertions.assertEquals(
+                "N1",
+                response.getIdentifier()
+        );
+    }
+
+    @Test
+    void findByIdentifierNullTest() {
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
+                .thenReturn(null);
+
+        Mockito.when(modelMapper.map(null, NodeDto.class))
+                .thenReturn(null);
+
+        NodeDto response = nodeService.findByIdentifier("N1");
+
+        Assertions.assertNull(response);
     }
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(nodeRepository)
-                .deleteByIdentifier("N1");
+        Node node = new Node();
+        node.setIdentifier("N1");
+
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
+                .thenReturn(node);
 
         nodeService.delete("N1");
 
+        Assertions.assertTrue(node.isDeleted());
+
         Mockito.verify(nodeRepository)
-                .deleteByIdentifier("N1");
+                .save(node);
+    }
+
+    @Test
+    void findAllTest() {
+        List<Node> nodes = List.of(new Node());
+        List<NodeDto> dtos = List.of(new NodeDto());
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+
+        Mockito.when(nodeRepository.findByDeletedFalse())
+                .thenReturn(nodes);
+
+        Mockito.when(modelMapper.map(nodes, listType))
+                .thenReturn(dtos);
+
+        List<NodeDto> response = nodeService.findAll();
+
+        Assertions.assertEquals(
+                1,
+                response.size()
+        );
     }
 
     @Test
@@ -227,9 +268,10 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        Page<Node> page = new PageImpl<>(List.of(node));
+        Page<Node> page =
+                new PageImpl<>(List.of(node));
 
-        Mockito.when(nodeRepository.findAll(pageable))
+        Mockito.when(nodeRepository.findByDeletedFalse(pageable))
                 .thenReturn(page);
 
         Mockito.when(modelMapper.map(node, NodeDto.class))
@@ -239,13 +281,19 @@ class NodeServiceTest {
                 nodeService.findAll(pageable, null);
 
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.getContent().size());
+
+        Assertions.assertEquals(
+                1,
+                response.getContent().size()
+        );
+
         Assertions.assertEquals(
                 "N1",
                 response.getContent().get(0).getIdentifier()
         );
 
-        Mockito.verify(nodeRepository).findAll(pageable);
+        Mockito.verify(nodeRepository)
+                .findByDeletedFalse(pageable);
     }
 
     @Test
@@ -258,10 +306,11 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        Page<Node> page = new PageImpl<>(List.of(node));
+        Page<Node> page =
+                new PageImpl<>(List.of(node));
 
         Mockito.when(
-                nodeRepository.findByIdentifierContainingIgnoreCase(
+                nodeRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(
                         "N1",
                         pageable
                 )
@@ -284,22 +333,9 @@ class NodeServiceTest {
         );
 
         Mockito.verify(nodeRepository)
-                .findByIdentifierContainingIgnoreCase(
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
                         "N1",
                         pageable
                 );
-    }
-
-    @Test
-    void findByIdentifierNullTest() {
-        Mockito.when(nodeRepository.findByIdentifier("N1"))
-                .thenReturn(null);
-
-        Mockito.when(modelMapper.map(null, NodeDto.class))
-                .thenReturn(null);
-
-        NodeDto response = nodeService.findByIdentifier("N1");
-
-        Assertions.assertNull(response);
     }
 }

@@ -1,14 +1,13 @@
 package com.ust.pos.cartentry.service.impl;
 
+import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
-import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,14 +21,19 @@ import java.util.List;
 @Transactional
 public class CartEntryServiceImpl implements CartEntryService {
 
-    @Autowired
-    private PriceService priceService;
+    private final PriceService priceService;
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CartEntryServiceImpl(
+            PriceService priceService,
+            CartEntryRepository cartEntryRepository,
+            ModelMapper modelMapper
+    ) {
+        this.priceService = priceService;
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -109,9 +113,14 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     @Override
     public List<CartEntryDto> findByCartId(String cart) {
-        Type listOfType = new TypeToken<List<CartEntryDto>>(){
+        Type listOfType = new TypeToken<List<CartEntryDto>>() {
         }.getType();
-        List<CartEntry> cartEntryList= cartEntryRepository.findByCartId(cart);
-        return modelMapper.map(cartEntryList , listOfType);
+        List<CartEntry> cartEntryList = cartEntryRepository.findByCartId(cart);
+        return modelMapper.map(cartEntryList, listOfType);
+    }
+
+    @Override
+    public void deleteByCartId(String cartId) {
+        cartEntryRepository.deleteByCartId(cartId);
     }
 }

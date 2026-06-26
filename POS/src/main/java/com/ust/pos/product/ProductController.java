@@ -3,8 +3,6 @@ package com.ust.pos.product;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.product.service.ProductService;
-import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,14 +17,14 @@ public class ProductController {
 
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private WarehouseService warehouseService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public ProductController(ProductService productService,
+                             CategoryService categoryService) {
+        this.productService = productService;
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

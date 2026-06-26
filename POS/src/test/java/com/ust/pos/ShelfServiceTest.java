@@ -39,19 +39,19 @@ class ShelfServiceTest {
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
 
-        Shelf entity = new Shelf();
+        Shelf shelf = new Shelf();
 
-        Mockito.when(shelfRepository.findByIdentifier("S1"))
+        Mockito.when(shelfRepository.findByIdentifierAndDeletedFalse("S1"))
                 .thenReturn(null);
         Mockito.when(modelMapper.map(dto, Shelf.class))
-                .thenReturn(entity);
-        Mockito.when(shelfRepository.save(entity))
-                .thenReturn(entity);
+                .thenReturn(shelf);
+        Mockito.when(shelfRepository.save(shelf))
+                .thenReturn(shelf);
 
         ShelfDto response = shelfService.save(dto);
 
         Assertions.assertEquals("S1", response.getIdentifier());
-        Mockito.verify(shelfRepository).save(entity);
+        Mockito.verify(shelfRepository).save(shelf);
     }
 
     @Test
@@ -59,7 +59,7 @@ class ShelfServiceTest {
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
 
-        Mockito.when(shelfRepository.findByIdentifier("S1"))
+        Mockito.when(shelfRepository.findByIdentifierAndDeletedFalse("S1"))
                 .thenReturn(new Shelf());
 
         ShelfDto response = shelfService.save(dto);
@@ -83,15 +83,13 @@ class ShelfServiceTest {
         Mockito.when(shelfRepository.findById(1L))
                 .thenReturn(Optional.of(existing));
 
-        Mockito.doNothing()
-                .when(modelMapper).map(dto, existing);
-
         Mockito.when(shelfRepository.save(existing))
                 .thenReturn(existing);
 
         ShelfDto response = shelfService.update(dto);
 
         Assertions.assertTrue(response.isSuccess());
+        Mockito.verify(modelMapper).map(dto, existing);
         Mockito.verify(shelfRepository).save(existing);
     }
 
@@ -107,6 +105,7 @@ class ShelfServiceTest {
         ShelfDto response = shelfService.update(dto);
 
         Assertions.assertFalse(response.isSuccess());
+
         Mockito.verify(shelfRepository, Mockito.never())
                 .save(Mockito.any());
     }
@@ -122,7 +121,7 @@ class ShelfServiceTest {
 
         Mockito.when(shelfRepository.findById(1L))
                 .thenReturn(Optional.of(existing));
-        Mockito.when(shelfRepository.findByIdentifier("NEW"))
+        Mockito.when(shelfRepository.findByIdentifierAndDeletedFalse("NEW"))
                 .thenReturn(new Shelf());
 
         ShelfDto response = shelfService.update(dto);
@@ -139,7 +138,7 @@ class ShelfServiceTest {
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
 
-        Mockito.when(shelfRepository.findByIdentifier("S1"))
+        Mockito.when(shelfRepository.findByIdentifierAndDeletedFalse("S1"))
                 .thenReturn(shelf);
         Mockito.when(modelMapper.map(shelf, ShelfDto.class))
                 .thenReturn(dto);
@@ -151,15 +150,15 @@ class ShelfServiceTest {
 
     @Test
     void findAllTest() {
-        List<Shelf> entities = List.of(new Shelf());
+        List<Shelf> shelves = List.of(new Shelf());
         List<ShelfDto> dtos = List.of(new ShelfDto());
 
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
 
-        Mockito.when(shelfRepository.findAll())
-                .thenReturn(entities);
-        Mockito.when(modelMapper.map(entities, listType))
+        Mockito.when(shelfRepository.findByDeletedFalse())
+                .thenReturn(shelves);
+        Mockito.when(modelMapper.map(shelves, listType))
                 .thenReturn(dtos);
 
         List<ShelfDto> response = shelfService.findAll();
@@ -168,13 +167,11 @@ class ShelfServiceTest {
     }
 
     @Test
-    void updateStatusOnlyTest() {
+    void toggleStatusTest() {
         Shelf shelf = new Shelf();
         shelf.setStatus(false);
 
-        Mockito.when(shelfRepository.findByIdentifier("S1"))
-                .thenReturn(shelf);
-        Mockito.when(shelfRepository.save(shelf))
+        Mockito.when(shelfRepository.findByIdentifierAndDeletedFalse("S1"))
                 .thenReturn(shelf);
 
         shelfService.toggleStatus("S1");
@@ -186,22 +183,18 @@ class ShelfServiceTest {
     @Test
     void findActiveTest() {
         Shelf shelf = new Shelf();
-        shelf.setIdentifier("S1");
         shelf.setStatus(true);
 
-        ShelfDto dto = new ShelfDto();
-        dto.setIdentifier("S1");
-
         List<Shelf> shelves = List.of(shelf);
-        List<ShelfDto> dtos = List.of(dto);
+        List<ShelfDto> dtos = List.of(new ShelfDto());
 
-        Mockito.when(shelfRepository.findByStatusIs(true))
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
+
+        Mockito.when(shelfRepository.findByStatusIsAndDeletedFalse(true))
                 .thenReturn(shelves);
-
-        Mockito.when(modelMapper.map(
-                Mockito.any(),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(dtos);
+        Mockito.when(modelMapper.map(shelves, listType))
+                .thenReturn(dtos);
 
         List<ShelfDto> response = shelfService.findActive();
 
@@ -210,38 +203,43 @@ class ShelfServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(shelfRepository)
-                .deleteByIdentifier("S1");
+        Shelf shelf = new Shelf();
+
+        Mockito.when(shelfRepository.findByIdentifierAndDeletedFalse("S1"))
+                .thenReturn(shelf);
 
         shelfService.delete("S1");
 
-        Mockito.verify(shelfRepository)
-                .deleteByIdentifier("S1");
+        Assertions.assertTrue(shelf.isDeleted());
+        Mockito.verify(shelfRepository).save(shelf);
     }
 
     @Test
-    void findAllWithPaginationShouldReturnShelfDtos() {
+    void findAllWithPaginationTest() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Shelf> shelves = List.of(new Shelf());
-        Page<Shelf> page = new PageImpl<>(shelves);
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("S1");
 
-        List<ShelfDto> shelfDtos = List.of(new ShelfDto());
+        ShelfDto dto = new ShelfDto();
+        dto.setIdentifier("S1");
 
-        Type listType = new TypeToken<List<ShelfDto>>() {
-        }.getType();
+        Page<Shelf> page = new PageImpl<>(List.of(shelf));
 
-        Mockito.when(shelfRepository.findAll(pageable))
+        Mockito.when(shelfRepository.findByDeletedFalse(pageable))
                 .thenReturn(page);
-        Mockito.when(modelMapper.map(shelves, listType))
-                .thenReturn(shelfDtos);
+        Mockito.when(modelMapper.map(shelf, ShelfDto.class))
+                .thenReturn(dto);
 
-        List<ShelfDto> response = shelfService.findAll(pageable);
+        Page<ShelfDto> response = shelfService.findAll(pageable, null);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Mockito.verify(shelfRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(shelves, listType);
+        Assertions.assertEquals(1, response.getContent().size());
+        Assertions.assertEquals(
+                "S1",
+                response.getContent().get(0).getIdentifier()
+        );
+
+        Mockito.verify(shelfRepository)
+                .findByDeletedFalse(pageable);
     }
 }

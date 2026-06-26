@@ -8,7 +8,6 @@ import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,25 +20,30 @@ import java.util.List;
 @Transactional
 public class CustomerServiceImpl implements CustomerService {
 
-    @Autowired
-    CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
+    private final ModelMapper modelMapper;
+    private final AddressService addressService;
 
-    @Autowired
-    ModelMapper modelMapper;
-
-    @Autowired
-    AddressService addressService;
+    public CustomerServiceImpl(
+            CustomerRepository customerRepository,
+            ModelMapper modelMapper,
+            AddressService addressService
+    ) {
+        this.customerRepository = customerRepository;
+        this.modelMapper = modelMapper;
+        this.addressService = addressService;
+    }
 
     @Override
     public CustomerDto save(CustomerDto customerDto) {
         String identifier = customerDto.getIdentifier();
-        Customer existingcustomer = customerRepository.findByIdentifier(identifier);
+        Customer existingcustomer = customerRepository.findByIdentifierAndDeletedFalse(identifier);
 
         AddressDto billing = customerDto.getBilling();
         AddressDto shipping = customerDto.getShipping();
 
         if (existingcustomer != null) {
-            customerDto.setMessage("Customer already exists");
+            customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
             customerDto.setSuccess(false);
             return customerDto;
         }
@@ -56,7 +60,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDto update(CustomerDto customerDto) {
         String identifier = customerDto.getIdentifier();
-        Customer existingcustomer = customerRepository.findByIdentifier(identifier);
+        Customer existingcustomer = customerRepository.findByIdentifierAndDeletedFalse(identifier);
 
         AddressDto billing = customerDto.getBilling();
         AddressDto shipping = customerDto.getShipping();
@@ -79,7 +83,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto findByIdentifier(String identifier) {
-        Customer customer = customerRepository.findByIdentifier(identifier);
+        Customer customer = customerRepository.findByIdentifierAndDeletedFalse(identifier);
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
 
         customerDto.setBilling(addressService.findByIdentifierAndBilling(identifier));
@@ -89,23 +93,40 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
-        Type listtype = new TypeToken<List<CustomerDto>>() {
-        }.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listtype);
+    public Page<CustomerDto> findAll(Pageable pageable, String search) {
+        Page<Customer> customers;
+        if (search != null && !search.trim().isEmpty()) {
+            customers = customerRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+        } else {
+            customers = customerRepository.findByDeletedFalse(pageable);
+        }
+
+        return customers.map(customer -> {
+            CustomerDto dto = modelMapper.map(customer, CustomerDto.class);
+
+            dto.setBilling(addressService.findByIdentifierAndBilling(customer.getIdentifier()));
+            dto.setShipping(addressService.findByIdentifierAndShipping(customer.getIdentifier()));
+
+            return dto;
+        });
     }
 
     @Override
     public void deleteByIdentifier(String identifier) {
         addressService.delete(identifier);
-        customerRepository.deleteByIdentifier(identifier);
+
+        Customer customer = customerRepository.findByIdentifierAndDeletedFalse(identifier);
+
+        if (customer != null) {
+            customer.setDeleted(true);
+            customerRepository.save(customer);
+        }
     }
 
     @Override
     public List<CustomerDto> findAll() {
         Type listtype = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        return modelMapper.map(customerRepository.findAll(), listtype);
+        return modelMapper.map(customerRepository.findByDeletedFalse(), listtype);
     }
 }

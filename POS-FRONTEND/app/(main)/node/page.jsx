@@ -16,25 +16,16 @@ const NodePage = () => {
   const [nodes, setNodes] =
     useState([]);
 
-  const [roles, setRoles] =
-    useState([]);
+  const [roles, setRoles] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
-
-  const [page, setPage] =
-    useState(0);
-  
-  const [totalPages, setTotalPages] =
-    useState(1);
-
-  const [searchTerm, setSearchTerm] =
-    useState("");
-
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const sizePerPage = 5;
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [newNode, setNewNode] =
     useState({
@@ -43,8 +34,8 @@ const NodePage = () => {
       roles: [],
     });
 
-  const [editNode, setEditNode] =
-    useState(null);
+  const [editNode, setEditNode] = useState(null);
+  const [viewNode, setViewNode] = useState(null);
 
   const fetchNodes = async () => {
     try {
@@ -62,19 +53,14 @@ const NodePage = () => {
         }
       );
 
-      setNodes(
-        res?.content || []
-      );
+      setNodes(res?.content || []);
+      setTotalPages(res?.totalPages || 1);
 
-      setTotalPages(
-        res?.totalPages || 1
-      );
     } catch (err) {
-      console.error(err);
 
-      setError(
-        "Failed to load nodes"
-      );
+      console.error(err);
+      setError("Failed to load nodes");
+
     } finally {
       setLoading(false);
     }
@@ -87,10 +73,7 @@ const NodePage = () => {
 
       setRoles(res || []);
     } catch (err) {
-      console.error(
-        "Failed to load roles",
-        err
-      );
+      console.error("Failed to load roles", err);
     }
   };
 
@@ -124,23 +107,31 @@ const NodePage = () => {
 
     fetchNodes();
 
+    globalThis.dispatchEvent(
+      new Event("menuUpdated")
+    );
+
     return true;
   };
 
-    const handleUpdate = async () => {
-      const response = await updateItem(
-        "node",
-        editNode
-      );
+  const handleUpdate = async () => {
+    const response = await updateItem(
+      "node",
+      editNode
+    );
 
-      if (response?.success === false) {
-        throw new Error(response.message);
-      }
+    if (response?.success === false) {
+      throw new Error(response.message);
+    }
 
-      fetchNodes();
+    fetchNodes();
 
-      return true;
-    };
+    globalThis.dispatchEvent(
+      new Event("menuUpdated")
+    );
+
+    return true;
+  };
 
   const handleDelete =
     async (identifier) => {
@@ -152,12 +143,13 @@ const NodePage = () => {
         return;
 
       try {
-        await deleteItem(
-          "node",
-          identifier
-        );
+        await deleteItem("node", identifier);
 
         fetchNodes();
+
+        globalThis.dispatchEvent(
+          new Event("menuUpdated")
+        );
       } catch (err) {
         console.error(err);
 
@@ -201,6 +193,13 @@ const NodePage = () => {
 
   const actions = [
     {
+      label: "👁 View",
+      type: "view",
+      onClick: (row) =>
+        setViewNode(row),
+    },
+
+    {
       label: "✏️ Edit",
       onClick: (row) =>
         setEditNode(row),
@@ -235,7 +234,7 @@ const NodePage = () => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
 
-        onAdd={() => {}}
+        onAdd={() => { }}
         addButtonText="+ Add Node"
 
         newItem={newNode}
@@ -265,6 +264,26 @@ const NodePage = () => {
         editItem={editNode}
         setEditItem={setEditNode}
         handleUpdate={handleUpdate}
+
+        viewItem={viewNode}
+        setViewItem={setViewNode}
+
+        viewFields={[
+          {
+            name: "identifier",
+            label: "Node Name",
+          },
+
+          {
+            name: "path",
+            label: "Node Path",
+          },
+
+          {
+            name: "roles",
+            label: "Roles",
+          },
+        ]}
 
         editFields={[
           {

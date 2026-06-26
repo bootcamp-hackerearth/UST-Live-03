@@ -12,30 +12,20 @@ import {
 } from "@/services/api";
 
 const UserPage = () => {
-  const [users, setUsers] =
-    useState([]);
+  const [users, setUsers] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
-
-  const [page, setPage] =
-    useState(0);
-
-  const [totalPages, setTotalPages] =
-    useState(1);
-
-  const [rolesList, setRolesList] = useState([]);
-
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const sizePerPage = 5;
 
-  const [searchTerm, setSearchTerm] =
-   useState("");
+  const [rolesList, setRolesList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [editUser, setEditUser] =
-    useState(null);
+  const [editUser, setEditUser] = useState(null);
+  const [viewUser, setViewUser] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -55,23 +45,14 @@ const UserPage = () => {
         }
       );
 
-      console.log(
-        "USER RESPONSE:",
-        res
-      );
+      console.log("USER RESPONSE:", res);
 
       setUsers(res?.content || []);
-
-      setTotalPages(
-        res?.totalPages || 1
-      );
+      setTotalPages(res?.totalPages || 1);
 
     } catch (err) {
       console.error(err);
-
-      setError(
-        "Failed to load users"
-      );
+      setError("Failed to load users");
 
     } finally {
       setLoading(false);
@@ -138,7 +119,6 @@ const UserPage = () => {
       );
 
       setEditUser(null);
-
       fetchUsers();
 
     } catch (err) {
@@ -193,6 +173,9 @@ const UserPage = () => {
           setEditItem={setEditUser}
           handleUpdate={handleUpdate}
 
+          viewItem={viewUser}
+          setViewItem={setViewUser}
+
           editFields={[
             {
               name: "username",
@@ -206,6 +189,8 @@ const UserPage = () => {
             {
               name: "phoneNo",
               label: "Phone Number",
+              pattern: /^\d{10}$/,
+              errorMessage: "Enter exactly 10 digits",
             },
             {
               name: "roles",
@@ -221,6 +206,12 @@ const UserPage = () => {
 
           actions={[
             {
+              label: "👁 View",
+              type: "view",
+              onClick: (row) =>
+                setViewUser(row),
+            },
+            {
               label: "✏️ Edit",
               onClick: openEdit,
             },
@@ -234,7 +225,7 @@ const UserPage = () => {
         />
 
       </div>
-    </AccessGuard> 
+    </AccessGuard>
   );
 };
 

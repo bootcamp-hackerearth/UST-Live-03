@@ -13,24 +13,14 @@ import {
 } from "@/services/api";
 
 const CategoryPage = () => {
-  const [categories, setCategories] =
-    useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
-
-  const [page, setPage] =
-    useState(0);
-
-  const [totalPages, setTotalPages] =
-    useState(1);
-
-  const [searchTerm, setSearchTerm] =
-   useState("");  
-
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const sizePerPage = 5;
 
   const [newCategory, setNewCategory] =
@@ -39,18 +29,10 @@ const CategoryPage = () => {
       superCategory: "",
     });
 
-  const [editCategory, setEditCategory] =
-    useState(null);
-
-  const [
-    addCategoryOptions,
-    setAddCategoryOptions,
-  ] = useState([]);
-
-  const [
-    editCategoryOptions,
-    setEditCategoryOptions,
-  ] = useState([]);
+  const [editCategory, setEditCategory] = useState(null);
+  const [addCategoryOptions, setAddCategoryOptions,] = useState([]);
+  const [editCategoryOptions, setEditCategoryOptions,] = useState([]);
+  const [viewCategory, setViewCategory] = useState(null);
 
   const fetchCategories = async () => {
     try {
@@ -70,18 +52,10 @@ const CategoryPage = () => {
         }
       );
 
-      console.log(
-        "CATEGORY RESPONSE:",
-        res
-      );
+      console.log("CATEGORY RESPONSE:", res);
 
-      setCategories(
-        res?.content || []
-      );
-
-      setTotalPages(
-        res?.totalPages || 1
-      );
+      setCategories(res?.content || []);
+      setTotalPages(res?.totalPages || 1);
 
     } catch (err) {
       console.error(err);
@@ -99,19 +73,12 @@ const CategoryPage = () => {
     async () => {
       try {
         const res =
-          await getAllItems(
-            "category"
-          );
+          await getAllItems("category");
 
-        setAddCategoryOptions(
-          res || []
-        );
+        setAddCategoryOptions(res || []);
 
       } catch (err) {
-        console.error(
-          "Failed to load category list",
-          err
-        );
+        console.error("Failed to load category list", err);
       }
     };
 
@@ -128,10 +95,7 @@ const CategoryPage = () => {
   }, [searchTerm]);
 
   const handleAddCategory = async () => {
-    const response = await addItem(
-      "category",
-      newCategory
-    );
+    const response = await addItem("category", newCategory);
 
     if (response?.success === false) {
       throw new Error(response.message);
@@ -142,8 +106,8 @@ const CategoryPage = () => {
       superCategory: "",
     });
 
-    fetchCategories();
-
+    await fetchCategories();
+    await fetchAddCategories();
     return true;
   };
 
@@ -158,16 +122,11 @@ const CategoryPage = () => {
     if (!confirmDelete) return;
 
     try {
-      await deleteItem(
-        "category",
-        identifier
-      );
-
+      await deleteItem("category", identifier);
       fetchCategories();
 
     } catch (err) {
       console.error(err);
-
       alert("Delete failed");
     }
   };
@@ -176,10 +135,7 @@ const CategoryPage = () => {
     category
   ) => {
     try {
-      const res =
-        await getAllItems(
-          "category"
-        );
+      const res = await getAllItems("category");
 
       const filtered =
         (res || []).filter(
@@ -188,10 +144,7 @@ const CategoryPage = () => {
             category.identifier
         );
 
-      setEditCategoryOptions(
-        filtered
-      );
-
+      setEditCategoryOptions(filtered);
       setEditCategory(category);
 
     } catch (err) {
@@ -200,17 +153,13 @@ const CategoryPage = () => {
   };
 
   const handleUpdate = async () => {
-    const response = await updateItem(
-      "category",
-      editCategory
-    );
+    const response = await updateItem("category", editCategory);
 
     if (response?.success === false) {
       throw new Error(response.message);
     }
 
     fetchCategories();
-
     return true;
   };
 
@@ -239,7 +188,7 @@ const CategoryPage = () => {
         index
       ) =>
         page *
-          sizePerPage +
+        sizePerPage +
         index +
         1,
     },
@@ -256,6 +205,13 @@ const CategoryPage = () => {
   ];
 
   const actions = [
+    {
+      label: "👁 View",
+      type: "view",
+      onClick: (row) =>
+        setViewCategory(row),
+    },
+
     {
       label: "✏️ Edit",
       onClick: openEdit,
@@ -314,26 +270,13 @@ const CategoryPage = () => {
         ]}
 
         newItem={newCategory}
-
-        setNewItem={
-          setNewCategory
-        }
-
-        handleAdd={
-          handleAddCategory
-        }
-
-        editItem={
-          editCategory
-        }
-
-        setEditItem={
-          setEditCategory
-        }
-
-        handleUpdate={
-          handleUpdate
-        }
+        setNewItem={setNewCategory}
+        handleAdd={handleAddCategory}
+        editItem={editCategory}
+        setEditItem={setEditCategory}
+        handleUpdate={handleUpdate}
+        viewItem={viewCategory}
+        setViewItem={setViewCategory}
 
         editFields={[
           {
@@ -348,6 +291,18 @@ const CategoryPage = () => {
             type: "select",
             options: editOptions,
             required: false,
+          },
+        ]}
+
+        viewFields={[
+          {
+            name: "identifier",
+            label: "Category Name",
+          },
+
+          {
+            name: "superCategory",
+            label: "Super Category",
           },
         ]}
       />

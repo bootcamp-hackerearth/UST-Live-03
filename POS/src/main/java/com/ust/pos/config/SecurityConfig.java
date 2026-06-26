@@ -24,7 +24,7 @@ public class SecurityConfig {
                     .csrf(csrf -> csrf.disable())
                     .authorizeHttpRequests(auth -> auth
                             .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
-                            .requestMatchers("/login", "/register","/api/**").permitAll()
+                            .requestMatchers("/login", "/register", "/api/**").permitAll()
                             .anyRequest().authenticated()
                     )
                     .formLogin(form -> form

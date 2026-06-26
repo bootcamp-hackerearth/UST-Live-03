@@ -3,11 +3,14 @@ package com.ust.pos.api.racks;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,14 +22,28 @@ import java.util.List;
 @RequestMapping("/api/racks")
 public class RacksControllerApi extends BaseController {
 
-    @Autowired
-    private RacksService racksService;
+    private final RacksService racksService;
+
+    public RacksControllerApi(RacksService racksService) {
+        this.racksService = racksService;
+    }
+
+    @GetMapping("/all")
+    public List<RacksDto> all() {
+        return racksService.findAll();
+    }
 
     @PostMapping("/list")
-    public List<RacksDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
-        return racksService.findAll(pageable);
+    public WsDto<RacksDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(),
+                paginationDto.getSizePerPage(), paginationDto.getSortField());
+        Page<RacksDto> pageResult = racksService.findAll(pageable, paginationDto.getSearch());
+        WsDto<RacksDto> response = new WsDto<>();
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+        return response;
     }
 
     @PostMapping("/add")
@@ -39,12 +56,12 @@ public class RacksControllerApi extends BaseController {
         return racksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RacksDto updatePost(@RequestBody RacksDto racksDto) {
         return racksService.update(racksDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);
@@ -55,7 +72,7 @@ public class RacksControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestBody String identifier) {
+    public boolean toggleStatus(@RequestParam String identifier) {
         try {
             racksService.toggleStatus(identifier);
         } catch (Exception e) {

@@ -9,6 +9,6 @@ import lombok.Setter;
 @Getter
 public class Warehouse extends CommonFields {
     private String country;
-    private int pincode;
+    private Integer pincode;
     private String address;
 }
