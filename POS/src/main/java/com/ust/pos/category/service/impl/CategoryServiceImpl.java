@@ -1,12 +1,12 @@
 package com.ust.pos.category.service.impl;
 
 import com.ust.pos.category.service.CategoryService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.*;
 import com.ust.pos.model.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,44 +14,90 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.util.List;
 @Service
-public class CategoryServiceImpl implements CategoryService {
-    @Autowired
-    private CategoryRepository categoryRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+public class CategoryServiceImpl extends CommonService implements CategoryService {
+
+    public static final String CATEGORY_WITH_IDENTIFIER = "Category with identifier - ";
+    private final CategoryRepository categoryRepository;
+
+    private final ModelMapper modelMapper;
+
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper) {
+        this.categoryRepository = categoryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CategoryDto save(CategoryDto categoryDto) {
-        String identifier =categoryDto .getIdentifier();
-        Category existingProduct =categoryRepository.findByIdentifier(identifier);
-        if (existingProduct != null) {
-           categoryDto .setMessage("Product with identifier - " + identifier + " already exists");
-           categoryDto .setSuccess(false);
-            return categoryDto ;
+
+        String identifier = categoryDto.getIdentifier();
+
+        Category existingCategory =
+                categoryRepository.findByIdentifier(identifier);
+
+        if (existingCategory != null) {
+
+            if (Boolean.TRUE.equals(existingCategory.getDeleted())) {
+
+                categoryDto.setMessage(
+                        CATEGORY_WITH_IDENTIFIER + identifier +
+                                " has been soft deleted. Restore it by changing status."
+                );
+
+                categoryDto.setSuccess(false);
+                return categoryDto;
+            }
+
+            categoryDto.setMessage(
+                    CATEGORY_WITH_IDENTIFIER + identifier +
+                            " already exists"
+            );
+
+            categoryDto.setSuccess(false);
+            return categoryDto;
         }
-        Category category= modelMapper.map(categoryDto, Category.class);
-       categoryRepository.save(category);
-        return categoryDto ;
+
+        Category category = modelMapper.map(categoryDto, Category.class);
+
+        category.setDeleted(false);
+        category.setStatus(true);
+
+        setAuditFields(category, true);
+
+        categoryRepository.save(category);
+
+        return categoryDto;
     }
 
     @Override
     public CategoryDto update(CategoryDto categoryDto) {
         String identifier = categoryDto.getIdentifier();
-        Category existingRole = categoryRepository.findByIdentifier(identifier);
-        if (existingRole == null) {
-            categoryDto.setMessage("Role with identifier - " + identifier + " not found");
+        Category existingCategory = categoryRepository.findByIdentifier(identifier);
+        if (existingCategory == null) {
+            categoryDto.setMessage(CATEGORY_WITH_IDENTIFIER + identifier + " not found");
             categoryDto.setSuccess(false);
             return categoryDto;
         }
-        modelMapper.map(categoryDto, existingRole);
-        categoryRepository.save(existingRole);
+        modelMapper.map(categoryDto, existingCategory);
+        setAuditFields(existingCategory,false);
+        categoryRepository.save(existingCategory);
         return categoryDto;
     }
 
     @Override
     @Transactional
     public boolean delete(String identifier) {
-        categoryRepository.deleteByIdentifier(identifier);
+
+        Category category = categoryRepository.findByIdentifier(identifier);
+
+        if (category == null) {
+            return false;
+        }
+
+        softDelete(category);
+        setAuditFields(category, false);
+
+        categoryRepository.save(category);
+
         return true;
     }
 
@@ -59,7 +105,7 @@ public class CategoryServiceImpl implements CategoryService {
     public PageDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+        Page<Category> categoryPage = categoryRepository.findByDeletedFalse(pageable);
         PageDto<CategoryDto> pageDto = new PageDto<>();
         pageDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
         pageDto.setTotalRecords(categoryPage.getTotalElements());
@@ -93,7 +139,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDto> findActiveCategories() {
-        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
         return modelMapper.map(categoryRepository.findByStatusTrue(),listType);
     }
 }

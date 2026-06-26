@@ -6,17 +6,19 @@ import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AddressServiceImpl implements AddressService {
 
-    @Autowired
-    private AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto save(AddressDto addressDto) {

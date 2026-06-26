@@ -35,7 +35,7 @@ export default function ProfilePage() {
     queueMicrotask(() => setUsername(storedUsername));
     const fetchProfile = async () => {
       try {
-        const response = await axiosInstance.get("/user/update", {
+        const response = await axiosInstance.get("/user/identifier", {
           params: { username: storedUsername },
         });
         const data = response.data || {};

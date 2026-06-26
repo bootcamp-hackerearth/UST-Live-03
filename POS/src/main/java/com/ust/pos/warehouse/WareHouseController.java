@@ -3,7 +3,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.warehouse.service.WareHouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/warehouse")
 public class WareHouseController extends BaseController {
     public static final String REDIRECT_WAREHOUSE_LIST = "redirect:/warehouse/list";
-    @Autowired
-    private WareHouseService wareHouseService;
+
+    private final WareHouseService wareHouseService;
+
+    public WareHouseController(WareHouseService wareHouseService){
+        this.wareHouseService=wareHouseService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

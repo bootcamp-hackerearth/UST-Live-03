@@ -7,8 +7,4 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     Address findByPhoneNoAndAddressType(String phoneNo, String addressType);
 
     void deleteByPhoneNo(String phoneNo);
-
-    Address findByPhoneNo(String phoneNo);
-
-
 }

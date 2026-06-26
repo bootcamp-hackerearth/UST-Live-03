@@ -29,7 +29,6 @@ export default function CategoryEdit() {
       </div>
     );
   }
-
   return (
     <CommonUpdateTemplate
       title="Category"

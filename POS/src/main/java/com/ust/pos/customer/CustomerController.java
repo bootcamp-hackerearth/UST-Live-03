@@ -2,7 +2,6 @@ package com.ust.pos.customer;
 
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.customer.service.CustomerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,8 +12,12 @@ import org.springframework.web.bind.annotation.*;
 public class CustomerController {
 
     public static final String REDIRECT_CUSTOMER_LIST = "redirect:/customer/list";
-    @Autowired
-    private CustomerService customerService;
+
+    private final CustomerService customerService;
+
+    public CustomerController(CustomerService customerService){
+        this.customerService=customerService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

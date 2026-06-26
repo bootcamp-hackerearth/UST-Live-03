@@ -1,12 +1,11 @@
 package com.ust.pos.node.service;
 
 import com.ust.pos.dto.NodeDto;
-
 import com.ust.pos.dto.PageDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
+
 @Transactional
 public interface NodeService {
     List<NodeDto> getNodesForRoles();

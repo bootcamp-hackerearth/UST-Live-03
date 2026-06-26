@@ -6,7 +6,6 @@ import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WareHouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +17,17 @@ public class StockController extends BaseController {
     public static final String PRODUCTS = "products";
     public static final String WAREHOUSES = "warehouses";
 
-    @Autowired
-    private StockService stockService;
-    @Autowired
-    private WareHouseService wareHouseService;
-    @Autowired
-    private ProductService productService;
+    private final StockService stockService;
+
+    private final WareHouseService wareHouseService;
+
+    private final ProductService productService;
+
+    public StockController(StockService stockService,WareHouseService wareHouseService,ProductService productService){
+        this.stockService=stockService;
+        this.wareHouseService=wareHouseService;
+        this.productService=productService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -81,6 +85,7 @@ public class StockController extends BaseController {
         stockService.delete(identifier);
         return REDIRECT_STOCK_LIST;
     }
+
     @GetMapping("/toggleStatus")
     public String toggleStatus(@RequestParam String identifier) {
         stockService.toggleStatus(identifier);

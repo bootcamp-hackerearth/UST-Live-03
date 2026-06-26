@@ -52,7 +52,7 @@ export default function UserEdit() {
       apiPath="user"
       recordId={username}
       recordParam="username"
-      recordGetEndpoint="update"
+      recordGetEndpoint="identifier"
       identifierKey="username"
       identifierLabel="Username"
       extraFields={extraFields}

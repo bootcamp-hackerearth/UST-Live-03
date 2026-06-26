@@ -4,7 +4,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.racks.service.RacksService;
 import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +14,15 @@ import org.springframework.web.bind.annotation.*;
 public class RacksController extends BaseController {
     public static final String REDIRECT_RACKS_LIST= "redirect:/racks/list";
     public static final String SHELFS = "shelfs";
-    @Autowired
-    private RacksService racksService;
-    @Autowired
-    private ShelfsService shelfsService;
+
+    private final RacksService racksService;
+
+    private final ShelfsService shelfsService;
+
+    public RacksController(RacksService racksService,ShelfsService shelfsService){
+        this.racksService=racksService;
+        this.shelfsService=shelfsService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -68,6 +72,7 @@ public class RacksController extends BaseController {
         racksService.delete(identifier);
         return REDIRECT_RACKS_LIST;
     }
+
     @GetMapping("/toggleStatus")
     public String toggleStatus(@RequestParam String identifier) {
         racksService.toggleStatus(identifier);

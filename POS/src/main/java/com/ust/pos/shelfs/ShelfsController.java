@@ -3,11 +3,9 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 
 
 @Controller
@@ -15,8 +13,12 @@ import org.springframework.web.bind.annotation.*;
 public class ShelfsController extends BaseController {
     public static final String REDIRECT_SHELFS_LIST= "redirect:/shelfs/list";
     public static final String SHELFS_DTO = "shelfsDto";
-    @Autowired
-    private ShelfsService shelfsService;
+
+    private final ShelfsService shelfsService;
+
+    public ShelfsController(ShelfsService shelfsService){
+        this.shelfsService=shelfsService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -64,6 +66,7 @@ public class ShelfsController extends BaseController {
         shelfsService.delete(identifier);
         return REDIRECT_SHELFS_LIST;
     }
+
     @GetMapping("/toggleStatus")
     public String toggleStatus(@RequestParam String identifier) {
         shelfsService.toggleStatus(identifier);

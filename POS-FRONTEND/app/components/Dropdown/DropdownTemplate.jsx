@@ -6,7 +6,7 @@ import axiosInstance from "../../api/axiosInstance";
 const SELECT_CLS =
   "rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100";
 
-function useDropdownOptions({ apiPath, apiEndpoint, label }) {
+function useDropdownOptions({ apiPath, apiEndpoint, label, labelKey, valueKey }) {
   const [apiOptions, setApiOptions] = useState([]);
   const [loading, setLoading] = useState(Boolean(apiPath || apiEndpoint));
 
@@ -25,8 +25,8 @@ function useDropdownOptions({ apiPath, apiEndpoint, label }) {
         setApiOptions(
           Array.isArray(list)
             ? list.map((item) => ({
-                value: item.identifier || item.id || item.name,
-                label: item.name || item.productname || item.identifier || item.id,
+                value: item[valueKey] ?? item.identifier ?? item.id ?? item.name,
+                label: item[labelKey] ?? item.name ?? item.productname ?? item.identifier ?? item.id,
               }))
             : []
         );
@@ -37,7 +37,7 @@ function useDropdownOptions({ apiPath, apiEndpoint, label }) {
       }
     };
     fetchOptions();
-  }, [apiPath, apiEndpoint, label]);
+  }, [apiPath, apiEndpoint, label, labelKey, valueKey]);
 
   return { apiOptions, loading };
 }
@@ -118,8 +118,10 @@ export default function DropdownTemplate({
   multiple = false,
   required = false,
   helperText,
+  labelKey = "name",
+  valueKey = "identifier",
 }) {
-  const { apiOptions, loading } = useDropdownOptions({ apiPath, apiEndpoint, label });
+  const { apiOptions, loading } = useDropdownOptions({ apiPath, apiEndpoint, label, labelKey, valueKey });
   const dropdownOptions = apiPath || apiEndpoint ? apiOptions : options;
 
   if (loading) {
@@ -169,4 +171,6 @@ DropdownTemplate.propTypes = {
   multiple: PropTypes.bool,
   required: PropTypes.bool,
   helperText: PropTypes.string,
+  labelKey: PropTypes.string,
+  valueKey: PropTypes.string,
 };

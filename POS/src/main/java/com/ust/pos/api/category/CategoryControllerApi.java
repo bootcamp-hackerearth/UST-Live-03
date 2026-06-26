@@ -4,7 +4,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,11 @@ import java.util.List;
 @RequestMapping("api/category")
 public class CategoryControllerApi extends BaseController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryControllerApi(CategoryService categoryService){
+        this.categoryService=categoryService;
+    }
 
     @PostMapping("/list")
     public PageDto<CategoryDto> category(@RequestBody PaginationDto paginationDto) {
@@ -28,7 +30,6 @@ public class CategoryControllerApi extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-
     @GetMapping("/subcategory")
     public List<CategoryDto> getCategoriesBySubCategory() {
         return categoryService.findBySubCategory();
@@ -40,13 +41,12 @@ public class CategoryControllerApi extends BaseController {
         return categoryService.save(categoryDto);
     }
 
-
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -56,10 +56,12 @@ public class CategoryControllerApi extends BaseController {
         }
         return true;
     }
-    @GetMapping("/toggleStatus")
+
+    @PostMapping("/toggleStatus")
     public void toggleStatus(@RequestParam String identifier) {
         categoryService.toggleStatus(identifier);
     }
+
     @GetMapping("/findByStatus")
     public List<CategoryDto> findByStatus() {
         return categoryService.findActiveCategories();

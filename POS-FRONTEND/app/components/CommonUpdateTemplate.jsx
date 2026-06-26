@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import PropTypes from "prop-types";
 import axiosInstance from "../api/axiosInstance";
+import AuditCard from "./AuditCard";
 import {
   INPUT_CLS,
   FieldWrapper,
@@ -27,6 +28,7 @@ function CommonUpdateTemplate({
   onSuccessPath,
   showDescription = true,
   identifierEditable = true,
+  updateMethod = "put",
 }) {
   const router = useRouter();
   const params = useParams();
@@ -41,6 +43,11 @@ function CommonUpdateTemplate({
   const [pageLoading, setPageLoading] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  const [createdBy, setCreatedBy] = useState(null);
+  const [createdAt, setCreatedAt] = useState(null);
+  const [modifiedBy, setModifiedBy] = useState(null);
+  const [modifiedAt, setModifiedAt] = useState(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -49,17 +56,20 @@ function CommonUpdateTemplate({
           { params: { [recordParam]: recordIdentifier } }
         );
         const data = response.data || {};
-        console.log("Loaded Data:", data);
         setId(data.id || null);
         setIdentifier(data[identifierKey] || data.identifier || "");
         setDescription(data.description || "");
+        setCreatedBy(data.createdBy || null);
+        setCreatedAt(data.createdAt || null);
+        setModifiedBy(data.modifiedBy || null);
+        setModifiedAt(data.modifiedAt || null);
         const nextValues = {};
         extraFields.forEach((field) => {
           const value = data[field.key];
           nextValues[field.key] =
             field.asArray && Array.isArray(value) && field.type !== "multiselect"
               ? value[0] || ""
-              : value ?? "";
+              : (value ?? "");
         });
         setValues(nextValues);
       } catch (err) {
@@ -91,8 +101,11 @@ function CommonUpdateTemplate({
         extraFields,
         extraData,
       });
-      console.log("Update Payload:", payload);
-      const response = await axiosInstance.post(`/${apiPath}/update`, payload);
+      const response = await axiosInstance({
+        method: updateMethod,
+        url: `/${apiPath}/update`,
+        data: payload,
+      });
       if (response.data?.success === false) {
         setError(response.data.message || `Failed to update ${title}`);
         return;
@@ -117,14 +130,17 @@ function CommonUpdateTemplate({
   return (
     <div className="mx-auto w-full max-w-3xl">
       <div className="mb-6">
-        <h2 className="text-2xl font-black tracking-tight text-slate-950">Update {title}</h2>
+        <h2 className="text-2xl font-black tracking-tight text-slate-950">
+          Update {title}
+        </h2>
         <p className="mt-1 text-sm font-medium text-slate-500">
-          Update the details of the {title.toLowerCase()}.
+          Update the details below
         </p>
       </div>
+
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm md:p-8"
+        className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"
       >
         {error && <ErrorBanner message={error} />}
 
@@ -136,7 +152,7 @@ function CommonUpdateTemplate({
               onChange={(e) => setIdentifier(e.target.value)}
               disabled={!identifierEditable}
               required
-              className={`disabled:bg-slate-100 disabled:text-slate-500 ${INPUT_CLS}`}
+              className={`disabled:bg-slate-100 disabled:text-slate-400 ${INPUT_CLS}`}
             />
           </FieldWrapper>
 
@@ -151,6 +167,19 @@ function CommonUpdateTemplate({
             extraFields={extraFields}
             values={values}
             handleChange={handleChange}
+          />
+
+          <AuditCard
+            title="Created"
+            byValue={createdBy}
+            atValue={createdAt}
+            active={false}
+          />
+          <AuditCard
+            title="Last Modified"
+            byValue={modifiedBy}
+            atValue={modifiedAt}
+            active={true}
           />
         </div>
 
@@ -177,6 +206,7 @@ CommonUpdateTemplate.propTypes = {
   onSuccessPath: PropTypes.string,
   showDescription: PropTypes.bool,
   identifierEditable: PropTypes.bool,
+  updateMethod: PropTypes.oneOf(["post", "put"]),
 };
 
 export default CommonUpdateTemplate;

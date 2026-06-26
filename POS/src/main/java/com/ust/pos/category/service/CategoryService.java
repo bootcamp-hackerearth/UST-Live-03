@@ -17,10 +17,11 @@ public interface CategoryService {
 
     PageDto<CategoryDto> findAll(Pageable pageable);
 
-   CategoryDto findByIdentifier(String identifier);
+    CategoryDto findByIdentifier(String identifier);
 
    List<CategoryDto> findBySubCategory();
 
     void toggleStatus(String identifier);
+
     List<CategoryDto> findActiveCategories();
 }

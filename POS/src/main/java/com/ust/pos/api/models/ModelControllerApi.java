@@ -4,7 +4,6 @@ import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.models.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,12 @@ import java.util.List;
 @RestController
 @RequestMapping("api/model")
 public class ModelControllerApi extends BaseController {
-    @Autowired
-    private ModelService modelService;
+
+    private final ModelService modelService;
+
+    public ModelControllerApi(ModelService modelService){
+        this.modelService=modelService;
+    }
 
     @PostMapping("/list")
     public PageDto<ModelDto> model(@RequestBody PaginationDto paginationDto) {
@@ -34,13 +37,13 @@ public class ModelControllerApi extends BaseController {
 
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelDto updatePost(@RequestBody ModelDto modelDto) {
         return modelService.update(modelDto);
 
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.delete(identifier);
@@ -52,7 +55,7 @@ public class ModelControllerApi extends BaseController {
 
     }
 
-    @GetMapping("/toggleStatus")
+    @PostMapping("/toggleStatus")
     public void toggleStatus(@RequestParam String identifier) {
         modelService.toggleStatus(identifier);
     }

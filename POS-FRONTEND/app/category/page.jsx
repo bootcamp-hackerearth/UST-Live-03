@@ -17,7 +17,6 @@ export default function CategoryList() {
       field: "status",
     },
   ];
-
   return (
     <ListTemplate
       title="Category Management"

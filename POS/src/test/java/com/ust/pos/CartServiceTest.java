@@ -129,4 +129,16 @@ class CartServiceTest {
         Mockito.verify(cartRepository).findByIdentifier(identifier);
         Mockito.verify(cartEntryService).findAllEntriesForCart(identifier);
     }
+    @Test
+    void deleteByIdentifierTest() {
+        String identifier = "CART1";
+
+        Mockito.doNothing().when(cartRepository).deleteByIdentifier(identifier);
+        Mockito.doNothing().when(cartEntryService).deleteAllByCart(identifier);
+
+        cartService.deleteByIdentifier(identifier);
+
+        Mockito.verify(cartRepository).deleteByIdentifier(identifier);
+        Mockito.verify(cartEntryService).deleteAllByCart(identifier);
+    }
 }

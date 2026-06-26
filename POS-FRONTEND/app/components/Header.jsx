@@ -22,7 +22,7 @@ function Header() {
 
     const fetchName = async () => {
       try {
-        const response = await axiosInstance.get("/user/update", {
+        const response = await axiosInstance.get("/user/identifier", {
           params: { username: storedUsername },
         });
 

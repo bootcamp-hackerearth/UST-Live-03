@@ -29,6 +29,8 @@ export const extraFieldShape = PropTypes.shape({
   options: PropTypes.array,
   asArray: PropTypes.bool,
   valueType: PropTypes.string,
+  labelKey: PropTypes.string,
+  valueKey: PropTypes.string,
   pattern: PropTypes.string,
   maxLength: PropTypes.number,
   title: PropTypes.string,
@@ -46,6 +48,8 @@ export function renderField(field, values, handleChange) {
         apiPath={field.apiPath}
         apiEndpoint={field.apiEndpoint}
         options={field.options}
+        labelKey={field.labelKey}
+        valueKey={field.valueKey}
         value={values[field.key] || ""}
         placeholder={field.placeholder || `Select ${field.label}`}
         required={field.required}

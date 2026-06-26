@@ -1,19 +1,18 @@
 package com.ust.pos.node.service.impl;
 
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,15 +20,20 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class NodeServiceImpl implements NodeService {
-    @Autowired
-    private UserRepository userRepository;
+public class NodeServiceImpl extends CommonService implements NodeService {
 
-    @Autowired
-    private NodeRepository nodeRepository;
+    public static final String NODE_WITH_IDENTIFIER = "Node with identifier - ";
+    private final UserRepository userRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final NodeRepository nodeRepository;
+
+    private final ModelMapper modelMapper;
+
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+        this.nodeRepository = nodeRepository;
+    }
 
     @Override
     public List<NodeDto> getNodesForRoles() {
@@ -92,11 +96,19 @@ public class NodeServiceImpl implements NodeService {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode != null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
+            if (Boolean.TRUE.equals(existingNode.getDeleted())){
+                nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " has been soft deleted. Restore it by changing status.");
+                nodeDto.setSuccess(false);
+                return nodeDto;
+            }
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " already exists");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
         Node node = modelMapper.map(nodeDto, Node.class);
+        node.setDeleted(false);
+        node.setStatus(true);
+        setAuditFields(node,true);
         nodeRepository.save(node);
         return nodeDto;
     }
@@ -106,18 +118,28 @@ public class NodeServiceImpl implements NodeService {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode == null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " not found");
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " not found");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
         modelMapper.map(nodeDto, existingNode);
+        setAuditFields(existingNode,false);
         nodeRepository.save(existingNode);
         return nodeDto;
     }
 
     @Override
     public boolean delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
+
+        Node node = nodeRepository.findByIdentifier(identifier);
+
+        if (node == null) {
+            return false;
+        }
+
+        softDelete(node);
+        setAuditFields(node, false);
+        nodeRepository.save(node);
         return true;
     }
 
@@ -125,7 +147,7 @@ public class NodeServiceImpl implements NodeService {
     public PageDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        Page<Node> nodePage = nodeRepository.findByDeletedFalse(pageable);
         PageDto<NodeDto> pageDto = new PageDto<>();
         pageDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
         pageDto.setTotalRecords(nodePage.getTotalElements());

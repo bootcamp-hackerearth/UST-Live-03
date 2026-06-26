@@ -3,9 +3,11 @@ package com.ust.pos.shelfs.service;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.ShelfsDto;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Transactional
 public interface ShelfsService {
     ShelfsDto save(ShelfsDto shelfsDto);
 

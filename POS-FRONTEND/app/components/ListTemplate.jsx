@@ -12,14 +12,12 @@ const renderStatusCell = (item, rowKey, togglingIds, toggleStatus) => {
       type="button"
       onClick={(e) => { e.preventDefault(); toggleStatus(key, !item.status); }}
       disabled={isToggling}
-      className={`relative inline-flex h-7 w-16 items-center rounded-full transition ${
-        item.status ? "bg-emerald-500" : "bg-slate-300"
-      } ${isToggling ? "cursor-wait opacity-80" : "hover:ring-4 hover:ring-slate-200"}`}
+      className={`relative inline-flex h-7 w-16 items-center rounded-full transition ${item.status ? "bg-emerald-500" : "bg-slate-300"
+        } ${isToggling ? "cursor-wait opacity-80" : "hover:ring-4 hover:ring-slate-200"}`}
     >
       <span
-        className={`absolute left-1 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
-          item.status ? "translate-x-8" : "translate-x-0"
-        } ${isToggling ? "animate-pulse" : ""}`}
+        className={`absolute left-1 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${item.status ? "translate-x-8" : "translate-x-0"
+          } ${isToggling ? "animate-pulse" : ""}`}
       />
       <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[0.55rem] font-bold uppercase tracking-wide text-slate-900">
         {item.status ? "On" : "Off"}
@@ -55,6 +53,7 @@ const ListTemplate = ({
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");        
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(pageSize);
   const [totalPages, setTotalPages] = useState(0);
@@ -77,6 +76,7 @@ const ListTemplate = ({
   const fetchData = useCallback(async (currentPage = 0) => {
     await Promise.resolve();
     setLoading(true);
+    setError("");                                  
     try {
       const res = await axiosInstance.post(`/${urlName}/list`, {
         page: currentPage,
@@ -94,7 +94,12 @@ const ListTemplate = ({
       setTotalPages(responseData.totalPages ?? 0);
       setTotalRecords(responseData.totalRecords ?? normalizedList.length);
     } catch (err) {
-      console.error("Fetch Error:", err);
+      if (err?.response?.status === 403) {        
+        setError("Access Denied: You do not have permission to view this.");
+      } else {
+        setError("Failed to load records. Please try again.");
+      }
+      console.log("Fetch Error:", err);
     } finally {
       setLoading(false);
     }
@@ -104,51 +109,45 @@ const ListTemplate = ({
     queueMicrotask(() => fetchData(page));
   }, [fetchData, page]);
 
- const deleteItem = async (item) => {
-  const id = item[deleteKey];
+  const deleteItem = async (item) => {
+    const id = item[deleteKey];
 
-  if (!globalThis.confirm("Delete this item?")) {
-    return;
-  }
-
-  const loggedInUsername = localStorage.getItem("username");
-
-  const deletingUsername =
-    item.username || item.identifier || String(id);
-
-  const params = new URLSearchParams();
-  params.set(deleteParam, id);
-
-  if (deleteParam !== "username") {
-    params.set("username", item.username || id);
-  }
-
-  if (deleteParam !== "identifier") {
-    params.set("identifier", item.identifier || id);
-  }
-
-  try {
-    await axiosInstance.get(
-      `/${urlName}/delete?${params.toString()}`
-    );
-    if (
-      urlName === "user" &&
-      loggedInUsername &&
-      loggedInUsername === deletingUsername
-    ) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("username");
-      localStorage.removeItem("name");
-
-      router.replace("/login");
+    if (!globalThis.confirm("Delete this item?")) {
       return;
     }
 
-    fetchData(page);
-  } catch (err) {
-    console.error("Delete Error:", err);
-  }
-};
+    const loggedInUsername = localStorage.getItem("username");
+    const deletingUsername = item.username || item.identifier || String(id);
+
+    const params = new URLSearchParams();
+    params.set(deleteParam, id);
+
+    if (deleteParam !== "username") {
+      params.set("username", item.username || id);
+    }
+
+    if (deleteParam !== "identifier") {
+      params.set("identifier", item.identifier || id);
+    }
+
+    try {
+      await axiosInstance.delete(`/${urlName}/delete?${params.toString()}`);
+      if (
+        urlName === "user" &&
+        loggedInUsername &&
+        loggedInUsername === deletingUsername
+      ) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        localStorage.removeItem("name");
+        router.replace("/login");
+        return;
+      }
+      fetchData(page);
+    } catch (err) {
+      console.error("Delete Error:", err);
+    }
+  };
 
   const toggleStatus = async (identifier, newStatus) => {
     setTogglingIds((prev) => { const s = new Set(prev); s.add(String(identifier)); return s; });
@@ -160,9 +159,9 @@ const ListTemplate = ({
     );
     try {
       if (["price", "product", "category"].includes(urlName)) {
-        await axiosInstance.post(`/${urlName}/update`, { identifier, status: newStatus });
+        await axiosInstance.put(`/${urlName}/update`, { identifier, status: newStatus });
       } else {
-        await axiosInstance.get(`/${urlName}/toggleStatus?identifier=${identifier}`);
+        await axiosInstance.post(`/${urlName}/toggleStatus?identifier=${identifier}`);
       }
     } catch (err) {
       console.error("Toggle Error:", err);
@@ -191,7 +190,7 @@ const ListTemplate = ({
             onClick={() => router.push(`/${urlName}/add`)}
             className="inline-flex items-center justify-center rounded-lg bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-200/70 transition hover:bg-cyan-700"
           >
-           + Add {addButtonLabel || (title.endsWith(" Management") ? title.slice(0, -" Management".length) : title)}
+            + Add {addButtonLabel || (title.endsWith(" Management") ? title.slice(0, -" Management".length) : title)}
           </button>
         )}
       </div>
@@ -206,17 +205,27 @@ const ListTemplate = ({
         />
       </div>
 
+      {/* ← 4. error banner */}
+      {error && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-11.25a.75.75 0 011.5 0v4.5a.75.75 0 01-1.5 0v-4.5zm.75 7.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+          </svg>
+          {error}
+        </div>
+      )}
+
       {loading && (
         <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-sm">
           Loading records...
         </div>
       )}
-      {!loading && filteredData.length === 0 && (
+      {!loading && !error && filteredData.length === 0 && (
         <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-sm">
           No records available.
         </div>
       )}
-      {!loading && filteredData.length > 0 && (
+      {!loading && !error && filteredData.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
           <table className="min-w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-950 text-white">
@@ -226,7 +235,7 @@ const ListTemplate = ({
                     {col.label}
                   </th>
                 ))}
-                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wide whitespace-nowrap">
                   Actions
                 </th>
               </tr>
@@ -238,30 +247,32 @@ const ListTemplate = ({
                   className="border-t border-slate-100 hover:bg-cyan-50/40"
                 >
                   {columns.map((col) => (
-                    <td key={col.field} className="px-4 py-4 align-top font-medium">
+                    <td key={col.field} className="px-4 py-4 align-middle font-medium">
                       {renderCell(col, item, rowKey, togglingIds, toggleStatus, showStatus)}
                     </td>
                   ))}
-                  <td className="space-x-2 px-4 py-4 text-right align-top">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const editPath = editUseQuery
-                          ? `/${urlName}/edit?${editKey}=${item[editKey]}`
-                          : `/${urlName}/edit/${item[editKey]}`;
-                        router.push(editPath);
-                      }}
-                      className="rounded-lg bg-amber-400 px-3 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-500"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteItem(item)}
-                      className="rounded-lg bg-rose-500 px-3 py-2 text-sm font-bold text-white transition hover:bg-rose-600"
-                    >
-                      Delete
-                    </button>
+                  <td className="px-4 py-4 align-middle whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const editPath = editUseQuery
+                            ? `/${urlName}/edit?${editKey}=${item[editKey]}`
+                            : `/${urlName}/edit/${item[editKey]}`;
+                          router.push(editPath);
+                        }}
+                        className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-500"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteItem(item)}
+                        className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-rose-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -270,7 +281,7 @@ const ListTemplate = ({
         </div>
       )}
 
-      {!loading && filteredData.length > 0 && (
+      {!loading && !error && filteredData.length > 0 && (
         <div className="mt-6 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold text-slate-600">
             Page {Math.min(page + 1, Math.max(totalPages, 1))} of {Math.max(totalPages, 1)}

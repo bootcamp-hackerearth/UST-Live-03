@@ -4,11 +4,9 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.*;
-import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -18,24 +16,23 @@ import java.util.List;
 
 @Repository
 public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private PriceService priceService;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PriceRepository priceRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final PriceRepository priceRepository;
 
-    @Lazy
-    @Autowired
-    CartService cartService;
+
+   private final CartService cartService;
+
+   public CartEntryServiceImpl(CartEntryRepository cartEntryRepository,ModelMapper modelMapper,PriceRepository priceRepository,@Lazy CartService cartService){
+       this.cartEntryRepository = cartEntryRepository;
+       this.modelMapper = modelMapper;
+       this.priceRepository = priceRepository;
+       this.cartService = cartService;
+   }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {

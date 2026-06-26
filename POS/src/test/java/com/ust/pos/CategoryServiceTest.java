@@ -3,9 +3,9 @@ package com.ust.pos;
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PageDto;
-import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
@@ -17,10 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
@@ -35,187 +32,287 @@ class CategoryServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void saveTest_WhenCategoryAlreadyExists() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setIdentifier("CAT001");
+    void saveTestSuccess() {
 
-        Category existingCategory = new Category();
-
-        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
-                .thenReturn(existingCategory);
-
-        CategoryDto response = categoryService.save(categoryDto);
-
-        assertFalse(response.isSuccess());
-        assertTrue(response.getMessage().contains("already exists"));
-    }
-
-    @Test
-    void saveTest_WhenNewCategory() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setIdentifier("CAT001");
-
-        Category category = new Category();
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT001");
 
         Mockito.when(categoryRepository.findByIdentifier("CAT001"))
                 .thenReturn(null);
 
-        Mockito.when(modelMapper.map(categoryDto, Category.class))
+        Category category = new Category();
+
+        Mockito.when(modelMapper.map(dto, Category.class))
                 .thenReturn(category);
 
         Mockito.when(categoryRepository.save(category))
                 .thenReturn(category);
 
-        CategoryDto response = categoryService.save(categoryDto);
+        CategoryDto response = categoryService.save(dto);
 
-        assertNotNull(response);
-        Mockito.verify(categoryRepository).save(category);
-    }
+        Assertions.assertNotNull(response);
 
-    @Test
-    void updateTest_WhenCategoryNotFound() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setIdentifier("CAT001");
-
-        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
-                .thenReturn(null);
-
-        CategoryDto response = categoryService.update(categoryDto);
-
-        assertFalse(response.isSuccess());
-        assertTrue(response.getMessage().contains("not found"));
-    }
-
-    @Test
-    void updateTest_WhenCategoryExists() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setIdentifier("CAT001");
-
-        Category existingCategory = new Category();
-
-        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
-                .thenReturn(existingCategory);
-
-        CategoryDto response = categoryService.update(categoryDto);
-
-        assertNotNull(response);
-        Mockito.verify(modelMapper).map(categoryDto, existingCategory);
-        Mockito.verify(categoryRepository).save(existingCategory);
-    }
-
-    @Test
-    void deleteTest() {
-        boolean result = categoryService.delete("CAT001");
-
-        assertTrue(result);
-        Mockito.verify(categoryRepository)
-                .deleteByIdentifier("CAT001");
-    }
-
-    @Test
-    void findAllTest() {
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Category category = new Category();
-        List<Category> categoryList = Arrays.asList(category);
-
-        Page<Category> page =
-                new PageImpl<>(categoryList, pageable, categoryList.size());
-
-        List<CategoryDto> dtoList =
-                Arrays.asList(new CategoryDto());
-
-        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
-
-        Mockito.when(categoryRepository.findAll(pageable))
-                .thenReturn(page);
-
-        Mockito.when(modelMapper.map(page.getContent(), listType))
-                .thenReturn(dtoList);
-
-        PageDto<CategoryDto> result =
-                categoryService.findAll(pageable);
-
-        assertNotNull(result);
-        assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
-
-        Mockito.verify(categoryRepository)
-                .findAll(pageable);
-    }
-
-    @Test
-    void findByIdentifierTest() {
-        String identifier = "CAT001";
-
-        Category category = new Category();
-        CategoryDto categoryDto = new CategoryDto();
-
-        Mockito.when(categoryRepository.findByIdentifier(identifier))
-                .thenReturn(category);
-
-        Mockito.when(modelMapper.map(category, CategoryDto.class))
-                .thenReturn(categoryDto);
-
-        CategoryDto response =
-                categoryService.findByIdentifier(identifier);
-
-        assertNotNull(response);
-
-        Mockito.verify(categoryRepository)
-                .findByIdentifier(identifier);
-    }
-
-    @Test
-    void findBySubCategoryTest() {
-        Category category1 = new Category();
-        Category category2 = new Category();
-
-        List<Category> categories =
-                Arrays.asList(category1, category2);
-
-        Mockito.when(categoryRepository.findBySupercategoryIsNot(""))
-                .thenReturn(categories);
-
-        Mockito.when(modelMapper.map(Mockito.any(Category.class),
-                        Mockito.eq(CategoryDto.class)))
-                .thenReturn(new CategoryDto());
-
-        List<CategoryDto> result =
-                categoryService.findBySubCategory();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-
-        Mockito.verify(categoryRepository)
-                .findBySupercategoryIsNot("");
-    }
-
-    @Test
-    void toggleStatusTest_WhenCategoryExists() {
-        String identifier = "CAT001";
-
-        Category category = new Category();
-        category.setStatus(true);
-
-        Mockito.when(categoryRepository.findByIdentifier(identifier))
-                .thenReturn(category);
-
-        categoryService.toggleStatus(identifier);
-
-        assertFalse(category.getStatus());
         Mockito.verify(categoryRepository)
                 .save(category);
     }
 
     @Test
-    void toggleStatusTest_WhenCategoryNotFound() {
-        String identifier = "CAT001";
+    void saveTestFailure_CategoryAlreadyExists() {
 
-        Mockito.when(categoryRepository.findByIdentifier(identifier))
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT001");
+
+        Category existing = new Category();
+        existing.setDeleted(false);
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
+                .thenReturn(existing);
+
+        CategoryDto response = categoryService.save(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+
+        Assertions.assertEquals(
+                "Category with identifier - CAT001 already exists",
+                response.getMessage());
+
+        Mockito.verify(categoryRepository, Mockito.never())
+                .save(Mockito.any());
+    }
+
+    @Test
+    void saveTestFailure_SoftDeletedCategory() {
+
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT001");
+
+        Category existing = new Category();
+        existing.setDeleted(true);
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
+                .thenReturn(existing);
+
+        CategoryDto response = categoryService.save(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+
+        Assertions.assertEquals(
+                "Category with identifier - CAT001 has been soft deleted. Restore it by changing status.",
+                response.getMessage());
+
+        Mockito.verify(categoryRepository, Mockito.never())
+                .save(Mockito.any());
+    }
+
+    @Test
+    void updateTestSuccess() {
+
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT001");
+        dto.setSuccess(true);
+
+        Category category = new Category();
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
+                .thenReturn(category);
+
+        Mockito.when(categoryRepository.save(category))
+                .thenReturn(category);
+
+        CategoryDto response = categoryService.update(dto);
+
+        Assertions.assertTrue(response.isSuccess());
+
+        Mockito.verify(modelMapper)
+                .map(dto, category);
+
+        Mockito.verify(categoryRepository)
+                .save(category);
+    }
+
+    @Test
+    void updateTestFailure() {
+
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT001");
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
                 .thenReturn(null);
 
-        categoryService.toggleStatus(identifier);
+        CategoryDto response = categoryService.update(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+
+        Assertions.assertEquals(
+                "Category with identifier - CAT001 not found",
+                response.getMessage());
+
+        Mockito.verify(categoryRepository, Mockito.never())
+                .save(Mockito.any());
+    }
+
+    @Test
+    void deleteTestSuccess() {
+
+        Category category = new Category();
+        category.setIdentifier("CAT001");
+        category.setDeleted(false);
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
+                .thenReturn(category);
+
+        Mockito.when(categoryRepository.save(category))
+                .thenReturn(category);
+
+        boolean result = categoryService.delete("CAT001");
+
+        Assertions.assertTrue(result);
+
+        Assertions.assertTrue(category.getDeleted());
+
+        Mockito.verify(categoryRepository)
+                .save(category);
+    }
+
+    @Test
+    void deleteTestFailure() {
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
+                .thenReturn(null);
+
+        boolean result = categoryService.delete("CAT001");
+
+        Assertions.assertFalse(result);
+
+        Mockito.verify(categoryRepository, Mockito.never())
+                .save(Mockito.any());
+    }
+
+    @Test
+    void findByIdentifierTest() {
+
+        Category category = new Category();
+        category.setIdentifier("CAT001");
+
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT001");
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
+                .thenReturn(category);
+
+        Mockito.when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(dto);
+
+        CategoryDto response =
+                categoryService.findByIdentifier("CAT001");
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                "CAT001",
+                response.getIdentifier());
+    }
+
+    @Test
+    void findAllPaginationTest() {
+
+        Category category = new Category();
+        category.setIdentifier("CAT001");
+
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT001");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Category> page =
+                new PageImpl<>(List.of(category), pageable, 1);
+
+        Mockito.when(categoryRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        Type listType =
+                new TypeToken<List<CategoryDto>>() {
+                }.getType();
+
+        Mockito.when(
+                        modelMapper.map(
+                                Mockito.eq(page.getContent()),
+                                Mockito.eq(listType)))
+                .thenReturn(List.of(dto));
+
+        PageDto<CategoryDto> response =
+                categoryService.findAll(pageable);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size());
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords());
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages());
+
+        Assertions.assertEquals(
+                10,
+                response.getSizePerPage());
+
+        Assertions.assertEquals(
+                0,
+                response.getPage());
+    }
+
+    @Test
+    void findBySubCategoryTest() {
+
+        Category category1 = new Category();
+        Category category2 = new Category();
+
+        Mockito.when(categoryRepository.findBySupercategoryIsNot(""))
+                .thenReturn(List.of(category1, category2));
+
+        Mockito.when(
+                        modelMapper.map(
+                                Mockito.any(Category.class),
+                                Mockito.eq(CategoryDto.class)))
+                .thenReturn(new CategoryDto());
+
+        List<CategoryDto> response =
+                categoryService.findBySubCategory();
+
+        Assertions.assertEquals(2, response.size());
+    }
+
+    @Test
+    void toggleStatusTest() {
+
+        Category category = new Category();
+        category.setIdentifier("CAT001");
+        category.setStatus(true);
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
+                .thenReturn(category);
+
+        Mockito.when(categoryRepository.save(category))
+                .thenReturn(category);
+
+        categoryService.toggleStatus("CAT001");
+
+        Assertions.assertFalse(category.getStatus());
+
+        Mockito.verify(categoryRepository)
+                .save(category);
+    }
+
+    @Test
+    void toggleStatusTestFailure() {
+
+        Mockito.when(categoryRepository.findByIdentifier("CAT001"))
+                .thenReturn(null);
+
+        categoryService.toggleStatus("CAT001");
 
         Mockito.verify(categoryRepository, Mockito.never())
                 .save(Mockito.any());
@@ -223,27 +320,39 @@ class CategoryServiceTest {
 
     @Test
     void findActiveCategoriesTest() {
-        List<Category> categories =
-                Arrays.asList(new Category());
 
-        List<RoleDto> mappedList =
-                Arrays.asList(new RoleDto());
+        Category category = new Category();
+        category.setIdentifier("CAT001");
+        category.setStatus(true);
 
-        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT001");
+
+        List<Category> categoryList =
+                List.of(category);
+
+        Type listType =
+                new TypeToken<List<CategoryDto>>() {
+                }.getType();
 
         Mockito.when(categoryRepository.findByStatusTrue())
-                .thenReturn(categories);
+                .thenReturn(categoryList);
 
-        Mockito.when(modelMapper.map(categories, listType))
-                .thenReturn(mappedList);
+        Mockito.when(
+                        modelMapper.map(
+                                Mockito.eq(categoryList),
+                                Mockito.eq(listType)))
+                .thenReturn(List.of(dto));
 
-        List<?> result =
+        List<CategoryDto> response =
                 categoryService.findActiveCategories();
 
-        assertNotNull(result);
-        assertEquals(1, result.size());
+        Assertions.assertNotNull(response);
 
-        Mockito.verify(categoryRepository)
-                .findByStatusTrue();
+        Assertions.assertEquals(1, response.size());
+
+        Assertions.assertEquals(
+                "CAT001",
+                response.get(0).getIdentifier());
     }
 }

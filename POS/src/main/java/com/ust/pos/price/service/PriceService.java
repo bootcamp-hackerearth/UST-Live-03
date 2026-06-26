@@ -3,6 +3,8 @@ import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PriceDto;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface PriceService {
     PriceDto save(PriceDto priceDto);
 
@@ -13,4 +15,8 @@ public interface PriceService {
     PageDto<PriceDto> findAll(Pageable pageable);
 
     PriceDto  findByIdentifier(String identifier);
+
+    void toggleStatus(String identifier);
+
+    List<PriceDto> findActivePrices();
 }

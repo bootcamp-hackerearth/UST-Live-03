@@ -5,16 +5,20 @@ import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.price.service.PriceService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/price")
 public class PriceControllerApi extends BaseController {
 
-    @Autowired
-    private PriceService priceService;
+    private final PriceService priceService;
+
+    public PriceControllerApi(PriceService priceService){
+        this.priceService=priceService;
+    }
 
     @PostMapping("/list")
     public PageDto<PriceDto> price(PaginationDto paginationDto) {
@@ -32,12 +36,13 @@ public class PriceControllerApi extends BaseController {
         return priceService.save(priceDto);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public PriceDto updatePost(@RequestBody PriceDto priceDto) {
         return priceService.update(priceDto );
 
     }
-    @GetMapping("/delete")
+
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             priceService.delete(identifier);
@@ -46,5 +51,15 @@ public class PriceControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggleStatus")
+    public void toggleStatus(@RequestParam String identifier) {
+        priceService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/findByStatus")
+    public List<PriceDto> findByStatus() {
+        return priceService.findActivePrices();
     }
 }

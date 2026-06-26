@@ -16,6 +16,7 @@ axiosInstance.interceptors.request.use((config) => {
     "/user/add",
     "/role/findByStatus",
     "/role/findAllActive",
+    "/customer/identifier",
   ];
 
   const isPublic = publicPaths.some((path) => url.includes(path));

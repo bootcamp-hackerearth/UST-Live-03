@@ -4,17 +4,22 @@ import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
 @RequestMapping("api/shelfs")
 public class ShelfsControllerApi extends BaseController {
     public static final String REDIRECT_SHELFS_LIST= "redirect:/shelfs/list";
-    @Autowired
-    private ShelfsService shelfsService;
+
+    private final ShelfsService shelfsService;
+
+    public ShelfsControllerApi(ShelfsService shelfsService){
+        this.shelfsService=shelfsService;
+    }
 
     @PostMapping("/list")
     public PageDto<ShelfsDto> home(@RequestBody PaginationDto paginationDto) {
@@ -22,19 +27,23 @@ public class ShelfsControllerApi extends BaseController {
       return shelfsService.findAll(pageable);
     }
 
+    @GetMapping("/identifier")
+    public ShelfsDto getShelfsByIdentifier(@RequestParam String identifier) {
+        return shelfsService.findByIdentifier(identifier);
+    }
+
     @PostMapping("/add")
     public ShelfsDto addPost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.save(shelfsDto);
     }
 
-
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfsDto updatePost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.update(shelfsDto);
 
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfsService.delete(identifier);
@@ -45,8 +54,14 @@ public class ShelfsControllerApi extends BaseController {
         return true;
     }
 
-    @GetMapping("/toggleStatus")
+    @PostMapping("/toggleStatus")
     public void toggleStatus(@RequestParam String identifier) {
         shelfsService.toggleStatus(identifier);
     }
+
+    @GetMapping("/findByStatus")
+    public List<ShelfsDto> findByStatus() {
+        return shelfsService.findActiveShelves();
+    }
 }
+

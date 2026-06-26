@@ -3,6 +3,8 @@ package com.ust.pos.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class CommonDto {
@@ -12,4 +14,9 @@ public class CommonDto {
     private boolean success = true;
     private String description;
     private Boolean status=true;
+    private String createdBy;
+    private String modifiedBy;
+    private LocalDateTime createdAt;
+    private LocalDateTime modifiedAt;
+    private boolean deleted=false;
 }

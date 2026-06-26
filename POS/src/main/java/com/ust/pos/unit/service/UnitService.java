@@ -3,11 +3,12 @@ package com.ust.pos.unit.service;
 
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.UnitDto;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-
+@Transactional
 public interface UnitService {
     UnitDto save(UnitDto unitDto);
 

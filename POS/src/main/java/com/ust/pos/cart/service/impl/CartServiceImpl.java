@@ -7,7 +7,6 @@ import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -17,15 +16,18 @@ import java.util.List;
 @Service
 public class CartServiceImpl implements CartService {
     private static final String CART_WITH_IDENTIFIER = "Cart with identifier - " ;
-    @Autowired
-    private CartRepository cartRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CartRepository cartRepository;
 
-    @Autowired
-    private CartEntryService cartEntryService;
+    private final ModelMapper modelMapper;
 
+    private final CartEntryService cartEntryService;
+
+    public CartServiceImpl(CartRepository cartRepository,CartEntryService cartEntryService, ModelMapper modelMapper) {
+        this.cartEntryService=cartEntryService;
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartDto save(CartDto cartDto) {

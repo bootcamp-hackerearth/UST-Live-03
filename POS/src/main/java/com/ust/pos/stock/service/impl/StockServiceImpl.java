@@ -1,13 +1,12 @@
 package com.ust.pos.stock.service.impl;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
-import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,21 +14,35 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.util.List;
 @Service
-public class StockServiceImpl implements StockService {
-    @Autowired
-    private StockRepository stockRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+public class StockServiceImpl extends CommonService implements StockService {
+
+    private final StockRepository stockRepository;
+
+    private final ModelMapper modelMapper;
+
+    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper) {
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
+
     @Override
     public StockDto save(StockDto stockDto) {
         String identifier = stockDto.getIdentifier();
         Stock existingStock =stockRepository.findByIdentifier(identifier);
         if (existingStock != null) {
+            if (Boolean.TRUE.equals(existingStock.getDeleted())) {
+                stockDto.setMessage("Shelfs with identifier - " + identifier + " has been soft deleted. Restore it by changing status.");
+                stockDto.setSuccess(false);
+                return stockDto;
+            }
             stockDto.setMessage("Stock with identifier - " + identifier + " already exists");
             stockDto.setSuccess(false);
             return stockDto;
         }
         Stock stock= modelMapper.map(stockDto, Stock.class);
+        stock.setDeleted(false);
+        stock.setStatus(true);
+        setAuditFields(stock,true);
         stockRepository.save(stock);
         return stockDto;
     }
@@ -44,22 +57,30 @@ public class StockServiceImpl implements StockService {
             return stockDto;
         }
         modelMapper.map(stockDto, existingStock);
+        setAuditFields(existingStock,false);
        stockRepository.save(existingStock);
         return stockDto;
     }
 
     @Override
-    @Transactional
-    public void delete(String identifier) {
-      stockRepository.deleteByIdentifier(identifier);
+    public boolean delete(String identifier) {
 
+        Stock stock = stockRepository.findByIdentifier(identifier);
+
+        if (stock == null) {
+            return false;
+        }
+        softDelete(stock);
+        setAuditFields(stock, false);
+        stockRepository.save(stock);
+        return true;
     }
 
     @Override
     public PageDto<StockDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
+        Page<Stock> stockPage = stockRepository.findByDeletedFalse(pageable);
         PageDto<StockDto> pageDto = new PageDto<>();
         pageDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
         pageDto.setTotalRecords(stockPage.getTotalElements());
@@ -83,5 +104,11 @@ public class StockServiceImpl implements StockService {
 
             stockRepository.save(stock);
         }
+    }
+
+    @Override
+    public List<StockDto> findActiveStocks() {
+        Type listType = new TypeToken<List<StockDto>>() {}.getType();
+        return modelMapper.map(stockRepository.findByStatusTrue(),listType);
     }
 }

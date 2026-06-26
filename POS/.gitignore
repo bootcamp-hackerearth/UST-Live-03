@@ -33,3 +33,7 @@ build/
 
 ### VS Code ###
 .vscode/
+/htmlReport/
+/.scannerwork/
+/src/main/resources/
+/app.log*

@@ -7,7 +7,6 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,20 +17,23 @@ public class ProductController extends BaseController {
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
     public static final String CATEGORIES = "categories";
 
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private CategoryService categoryService;
+    private final ProductService productService;
 
-    @Autowired
-    private BrandService brandService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private ModelService modelService;
+    private final BrandService brandService;
 
-    @Autowired
-    private UnitService unitService;
+    private final ModelService modelService;
 
+    private final UnitService unitService;
+
+    public ProductController(ProductService productService,CategoryService categoryService,BrandService brandService,ModelService modelService,UnitService unitService){
+        this.productService=productService;
+        this.categoryService=categoryService;
+        this.brandService=brandService;
+        this.modelService=modelService;
+        this.unitService=unitService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

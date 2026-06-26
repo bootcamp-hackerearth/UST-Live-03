@@ -2,8 +2,8 @@ package com.ust.pos.api.customer;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,11 +13,14 @@ import java.util.List;
 @RequestMapping("api/customer")
 public class CustomerControllerApi extends BaseController {
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
+
+    public CustomerControllerApi(CustomerService customerService){
+        this.customerService=customerService;
+    }
 
     @PostMapping("/list")
-    public List<CustomerDto> customer(@RequestBody PaginationDto paginationDto) {
+    public PageDto<CustomerDto> customer(@RequestBody PaginationDto paginationDto) {
         Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
         return customerService.findAll(pageable);
     }
@@ -32,13 +35,12 @@ public class CustomerControllerApi extends BaseController {
         return customerService.save(customerDto);
     }
 
-
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);
@@ -47,6 +49,15 @@ public class CustomerControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
 
+    @PostMapping("/toggleStatus")
+    public void toggleStatus(@RequestParam String identifier) {
+        customerService.toggleStatus(identifier);
+    }
+
+    @GetMapping("/findByStatus")
+    public List<CustomerDto> findByStatus() {
+        return customerService.findActiveCustomers();
     }
 }

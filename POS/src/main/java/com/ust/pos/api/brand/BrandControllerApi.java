@@ -4,19 +4,24 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("api/brand")
-public class BrandControllerApi  extends BaseController {
-    @Autowired
-    private BrandService brandService;
+public class BrandControllerApi extends BaseController {
+
+    private final BrandService brandService;
+
+    public BrandControllerApi(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public PageDto<BrandDto> brand(@RequestBody PaginationDto paginationDto) {
         Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
         return brandService.findAll(pageable);
@@ -27,19 +32,19 @@ public class BrandControllerApi  extends BaseController {
         return brandService.findByIdentifier(identifier);
     }
 
-
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public BrandDto addPost(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
     }
 
-
-    @PostMapping("/update")
+    @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -51,7 +56,7 @@ public class BrandControllerApi  extends BaseController {
 
     }
 
-    @GetMapping("/toggleStatus")
+    @PostMapping("/toggleStatus")
     public void toggleStatus(@RequestParam String identifier) {
         brandService.toggleStatus(identifier);
     }

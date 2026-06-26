@@ -4,7 +4,6 @@ import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,14 +14,22 @@ import java.util.List;
 @RequestMapping("api/unit")
 public class UnitControllerApi extends BaseController {
     public static final String REDIRECT_UNIT_LIST= "redirect:/unit/list";
-    @Autowired
-    private UnitService unitService;
+
+    private final UnitService unitService;
+
+    public UnitControllerApi(UnitService unitService){
+        this.unitService=unitService;
+    }
 
     @PostMapping("/list")
     public PageDto<UnitDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
        return unitService.findAll(pageable);
+    }
 
+    @GetMapping("/identifier")
+    public UnitDto getModelByIdentifier(@RequestParam String identifier) {
+        return unitService.findByIdentifier(identifier);
     }
 
     @PostMapping("/add")
@@ -30,12 +37,12 @@ public class UnitControllerApi extends BaseController {
         return unitService.save(unitDto);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
@@ -44,9 +51,9 @@ public class UnitControllerApi extends BaseController {
             return false;
         }
         return true;
-
     }
-    @GetMapping("/toggleStatus")
+
+    @PostMapping("/toggleStatus")
     public void toggleStatus(@RequestParam String identifier) {
         unitService.toggleStatus(identifier);
     }

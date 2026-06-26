@@ -35,6 +35,7 @@ export default function RoleEdit() {
       apiPath="role"
       recordId={identifier}
       recordParam="identifier"
+      recordGetEndpoint="get"
       identifierKey="identifier"
       identifierLabel="Identifier"
       extraFields={extraFields}

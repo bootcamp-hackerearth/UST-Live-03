@@ -36,6 +36,7 @@ class ProductServiceTest {
 
         ProductDto productDto = new ProductDto();
         productDto.setIdentifier("Product1");
+        productDto.setSuccess(true);
 
         Product product = new Product();
 
@@ -45,12 +46,15 @@ class ProductServiceTest {
         Mockito.when(modelMapper.map(productDto, Product.class))
                 .thenReturn(product);
 
+        Mockito.when(productRepository.save(product))
+                .thenReturn(product);
+
         ProductDto response = productService.save(productDto);
 
         Assertions.assertEquals("Product1", response.getIdentifier());
+        Assertions.assertTrue(response.isSuccess());
 
-        Mockito.verify(productRepository)
-                .save(product);
+        Mockito.verify(productRepository).save(product);
     }
 
     @Test
@@ -59,14 +63,38 @@ class ProductServiceTest {
         ProductDto productDto = new ProductDto();
         productDto.setIdentifier("Product1");
 
+        Product existingProduct = new Product();
+
         Mockito.when(productRepository.findByIdentifier("Product1"))
-                .thenReturn(new Product());
+                .thenReturn(existingProduct);
 
         ProductDto response = productService.save(productDto);
 
-        Assertions.assertEquals("Product1", response.getIdentifier());
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
+
+        Mockito.verify(productRepository, Mockito.never())
+                .save(Mockito.any());
+    }
+
+    @Test
+    void saveTestSoftDeletedFailure() {
+
+        ProductDto productDto = new ProductDto();
+        productDto.setIdentifier("Product1");
+
+        Product existingProduct = new Product();
+        existingProduct.setDeleted(true);
+
+        Mockito.when(productRepository.findByIdentifier("Product1"))
+                .thenReturn(existingProduct);
+
+        ProductDto response = productService.save(productDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(
+                response.getMessage().contains("soft deleted")
+        );
     }
 
     @Test
@@ -98,11 +126,15 @@ class ProductServiceTest {
 
         ProductDto productDto = new ProductDto();
         productDto.setIdentifier("Product1");
+        productDto.setSuccess(true);
 
         Product existingProduct = new Product();
         existingProduct.setIdentifier("Product1");
 
         Mockito.when(productRepository.findByIdentifier("Product1"))
+                .thenReturn(existingProduct);
+
+        Mockito.when(productRepository.save(existingProduct))
                 .thenReturn(existingProduct);
 
         ProductDto response =
@@ -136,17 +168,36 @@ class ProductServiceTest {
     @Test
     void deleteTest() {
 
-        Mockito.doNothing()
-                .when(productRepository)
-                .deleteByIdentifier("Product1");
+        Product product = new Product();
+        product.setIdentifier("Product1");
+        product.setDeleted(false);
+
+        Mockito.when(productRepository.findByIdentifier("Product1"))
+                .thenReturn(product);
 
         boolean result =
                 productService.delete("Product1");
 
         Assertions.assertTrue(result);
+        Assertions.assertTrue(product.getDeleted());
 
         Mockito.verify(productRepository)
-                .deleteByIdentifier("Product1");
+                .save(product);
+    }
+
+    @Test
+    void deleteTestFailure() {
+
+        Mockito.when(productRepository.findByIdentifier("Product1"))
+                .thenReturn(null);
+
+        boolean result =
+                productService.delete("Product1");
+
+        Assertions.assertFalse(result);
+
+        Mockito.verify(productRepository, Mockito.never())
+                .save(Mockito.any());
     }
 
     @Test
@@ -196,7 +247,7 @@ class ProductServiceTest {
         Page<Product> productPage =
                 new PageImpl<>(List.of(product), pageable, 1);
 
-        Mockito.when(productRepository.findAll(pageable))
+        Mockito.when(productRepository.findByDeletedFalse(pageable))
                 .thenReturn(productPage);
 
         Type listType =
@@ -214,26 +265,11 @@ class ProductServiceTest {
                 productService.findAll(pageable);
 
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(
-                1,
-                response.getDtoList().size()
-        );
-        Assertions.assertEquals(
-                1,
-                response.getTotalRecords()
-        );
-        Assertions.assertEquals(
-                1,
-                response.getTotalPages()
-        );
-        Assertions.assertEquals(
-                10,
-                response.getSizePerPage()
-        );
-        Assertions.assertEquals(
-                0,
-                response.getPage()
-        );
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -249,12 +285,12 @@ class ProductServiceTest {
         List<Product> products =
                 List.of(product);
 
-        Mockito.when(productRepository.findByStatusTrue())
-                .thenReturn(products);
-
         Type listType =
                 new TypeToken<List<ProductDto>>() {
                 }.getType();
+
+        Mockito.when(productRepository.findByStatusTrue())
+                .thenReturn(products);
 
         Mockito.when(
                 modelMapper.map(

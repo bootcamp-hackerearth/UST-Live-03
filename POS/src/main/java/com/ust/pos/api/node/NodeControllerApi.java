@@ -5,7 +5,6 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +14,11 @@ import java.util.List;
 @RequestMapping("api/node")
 public class NodeControllerApi extends BaseController {
 
-    @Autowired
-    private NodeService nodeService;
+    private final NodeService nodeService;
+
+    public NodeControllerApi(NodeService nodeService){
+        this.nodeService=nodeService;
+    }
 
     @PostMapping("/list")
     public PageDto  <NodeDto> node(@RequestBody PaginationDto paginationDto) {
@@ -34,12 +36,12 @@ public class NodeControllerApi extends BaseController {
         return nodeService.save(nodeDto);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
         return nodeService.update(nodeDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             nodeService.delete(identifier);
@@ -49,15 +51,17 @@ public class NodeControllerApi extends BaseController {
         }
         return true;
     }
+
     @GetMapping("/nodeforroles")
     public List<NodeDto> getNodesForRoles() {
         return nodeService.getNodesForRoles();
     }
 
-    @GetMapping("/toggleStatus")
+    @PostMapping("/toggleStatus")
     public void toggleStatus(@RequestParam String identifier) {
         nodeService.toggleStatus(identifier);
     }
+
     @GetMapping("/findByStatus")
     public List<NodeDto> findByStatus() {
         return nodeService.findActiveNodes();
