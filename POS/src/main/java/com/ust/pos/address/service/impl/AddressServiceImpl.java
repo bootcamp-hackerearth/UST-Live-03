@@ -70,5 +70,4 @@ public class AddressServiceImpl extends BaseService implements AddressService {
         }.getType();
         return modelMapper.map(addressRepository.findAllByDeletedFalse(), listType);
     }
-
 }
