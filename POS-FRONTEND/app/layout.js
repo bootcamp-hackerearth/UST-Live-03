@@ -7,6 +7,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
+import RouteGuard from "@/components/RouteGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,16 +79,17 @@ export default function RootLayout({ children }) {
             />
 
             <div
-              className={`transition-all duration-300 ${
-                sidebarOpen ? "ml-[260px]" : "ml-[88px]"
-              }`}
+              className={`transition-all duration-300 ${sidebarOpen ? "ml-[260px]" : "ml-[88px]"
+                }`}
             >
               <Navbar
                 sidebarOpen={sidebarOpen}
                 setSidebarOpen={setSidebarOpen}
               />
 
-              {children}
+              <RouteGuard>
+                {children}
+              </RouteGuard>
             </div>
           </>
         )}

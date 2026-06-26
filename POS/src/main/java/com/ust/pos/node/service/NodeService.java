@@ -19,4 +19,6 @@ public interface NodeService {
 
     NodeDto findByIdentifier(String identifier);
 
+    boolean hasAccess(String path);
+
 }

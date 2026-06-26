@@ -26,7 +26,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await fetch("http://localhost:8080/api/node/list", {
+      const response = await fetch("http://localhost:8080/api/node/getnodesforroles", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,9 +42,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
       const text = await response.text();
       const data = text ? JSON.parse(text) : {};
-      const rawNodesList = Array.isArray(data) ? data : data.dtoList || [];
-
-      setNodes(rawNodesList);
+      const nodeList = Array.isArray(data) ? data : [];
+      setNodes(nodeList);
     } catch (error) {
       console.error("Failed fetching nodes:", error);
     } finally {
@@ -160,8 +159,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     key={node.identifier || node.id}
                     onClick={() => handleNavigation(node.path)}
                     className={`w-full h-12 rounded-xl px-4 flex items-center gap-3.5 border-none text-left bg-transparent cursor-pointer box-border transition-all ${isActive
-                        ? "bg-[#f4f5fa] text-[#6c63ff] font-semibold"
-                        : "text-[#8888a0] hover:bg-[#f8f8fc] hover:text-[#2d2d6e]"
+                      ? "bg-[#f4f5fa] text-[#6c63ff] font-semibold"
+                      : "text-[#8888a0] hover:bg-[#f8f8fc] hover:text-[#2d2d6e]"
                       }`}
                   >
                     <Icon

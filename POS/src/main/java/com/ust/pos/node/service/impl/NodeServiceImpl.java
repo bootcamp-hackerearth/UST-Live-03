@@ -133,4 +133,27 @@ public class NodeServiceImpl extends BaseService implements NodeService {
 
         return nodeWsDto;
     }
+
+    @Override
+    public boolean hasAccess(String path) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        User currentUser = userRepository.findByUsername(authentication.getName());
+        if (currentUser == null) {
+            return false;
+        }
+        Node node = nodeRepository.findAll()
+                .stream()
+                .filter(n -> path.equals(n.getPath()))
+                .findFirst()
+                .orElse(null);
+        if (node == null || node.getRoles() == null) {
+            return false;
+        }
+        return currentUser.getRoles()
+                .stream()
+                .anyMatch(role -> node.getRoles().contains(role));
+    }
 }

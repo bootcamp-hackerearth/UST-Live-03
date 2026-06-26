@@ -3,6 +3,7 @@ package com.ust.pos.warehouse.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -33,7 +34,7 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
     public WarehouseDto findByIdentifier(String identifier) {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier.trim());
         if (warehouse == null) {
-            return null;
+            throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
         }
         return modelMapper.map(warehouse, WarehouseDto.class);
     }
@@ -76,6 +77,9 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
     @Transactional
     public void delete(String identifier) {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
+        if (warehouse == null) {
+            throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
+        }
         softDelete(warehouse);
         setModifiedDetails(warehouse);
     }
@@ -94,4 +98,5 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
 
         return warehouseWsDto;
     }
+
 }

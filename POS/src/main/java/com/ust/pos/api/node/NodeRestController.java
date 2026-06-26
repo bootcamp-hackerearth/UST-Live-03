@@ -3,6 +3,7 @@ package com.ust.pos.api.node;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.PathDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import org.springframework.data.domain.Pageable;
@@ -56,5 +57,10 @@ public class NodeRestController extends BaseController {
     @PostMapping("/getnodesforroles")
     public List<NodeDto> getNodesForRoles() {
         return nodeService.getNodesForRoles();
+    }
+
+    @PostMapping("/checkaccess")
+    public boolean checkAccess(@RequestBody PathDto pathDto) {
+        return nodeService.hasAccess(pathDto.getPath());
     }
 }
