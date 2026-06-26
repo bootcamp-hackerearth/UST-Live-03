@@ -16,7 +16,7 @@ public interface CategoryService {
 
     WsDto<CategoryDto> findAll(Pageable pageable);
 
-    void deleteById(Long id);
+    void delete(String identifier);
 
     List<CategoryDto> findSubCategories();
 

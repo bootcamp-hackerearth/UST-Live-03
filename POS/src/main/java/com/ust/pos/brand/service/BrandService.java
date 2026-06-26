@@ -16,7 +16,7 @@ public interface BrandService {
 
     BrandDto update(BrandDto brandDto);
 
-    void deleteById(Long id);
+    void delete(String identifier);
 
     BrandDto findByIdentifier(String identifier);
 

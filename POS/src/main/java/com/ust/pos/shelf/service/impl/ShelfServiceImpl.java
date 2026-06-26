@@ -1,5 +1,6 @@
 package com.ust.pos.shelf.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
@@ -7,7 +8,6 @@ import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,24 +16,33 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ShelfServiceImpl implements ShelfService {
+public class ShelfServiceImpl extends CommonService implements ShelfService {
 
-    @Autowired
-    private ShelfRepository shelfRepository;
+    private final ShelfRepository shelfRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public ShelfServiceImpl(ShelfRepository shelfRepository, ModelMapper modelMapper) {
+        this.shelfRepository = shelfRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ShelfDto save(ShelfDto shelfDto) {
 
         Shelf existing = shelfRepository.findByIdentifier(shelfDto.getIdentifier());
         if (existing != null) {
+            if (existing.isDeleted()) {
+                shelfDto.setMessage("Shelf with identifier - " + existing + "has been soft deleted.(Rollback by changing status");
+                shelfDto.setSuccess(false);
+                return shelfDto;
+            }
             shelfDto.setMessage("Shelf Already Exist!");
             shelfDto.setSuccess(false);
             return shelfDto;
         }
         Shelf shelf = modelMapper.map(shelfDto, Shelf.class);
+        setAuditFields(shelf, true);
         shelfRepository.save(shelf);
         shelfDto.setSuccess(true);
         return shelfDto;
@@ -50,6 +59,7 @@ public class ShelfServiceImpl implements ShelfService {
         }
 
         modelMapper.map(shelfDto, shelf);
+        setAuditFields(shelf, false);
         shelfRepository.save(shelf);
         shelfDto.setSuccess(true);
         return shelfDto;
@@ -67,7 +77,7 @@ public class ShelfServiceImpl implements ShelfService {
 
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
+        Page<Shelf> shelfPage = shelfRepository.findByDeletedFalse(pageable);
         WsDto<ShelfDto> shelfWsDto = new WsDto<>();
         shelfWsDto.setDtoList(modelMapper.map(shelfPage.getContent(), listType));
         shelfWsDto.setTotalRecords(shelfPage.getTotalElements());
@@ -80,8 +90,11 @@ public class ShelfServiceImpl implements ShelfService {
     }
 
     @Override
-    public void deleteById(Long id) {
-        shelfRepository.deleteById(id);
+    public void delete(String identifier) {
+        Shelf shelf = shelfRepository.findByIdentifier(identifier);
+        softDelete(shelf);
+        setAuditFields(shelf, false);
+        shelfRepository.save(shelf);
     }
 
     @Override

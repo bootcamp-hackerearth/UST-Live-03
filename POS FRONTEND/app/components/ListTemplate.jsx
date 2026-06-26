@@ -96,7 +96,7 @@ const ListTemplate = ({
     }
 
     try {
-      const res = await axiosInstance.get(`/${urlName}/delete?${deleteParam}=${id}`);
+      const res = await axiosInstance.delete(`/${urlName}/delete?${deleteParam}=${id}`);
       if (res.data?.success === false) {
         setDeleteError(res.data.message || "Cannot delete this record.");
         return;
@@ -119,12 +119,11 @@ const ListTemplate = ({
     }
   };
 
-  const cleanTitle = (title || "Record").replace(" Management", "").trim();
+  const cleanTitle = (title || "Record").replaceAll(" Management", "").trim();
   const finalButtonLabel = addButtonLabel || `Add ${cleanTitle}`;
 
   return (
     <div className="w-full max-w-full">
-      {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">{title || "Management"}</h2>
@@ -132,7 +131,6 @@ const ListTemplate = ({
             Browse and manage records for your POS system.
           </p>
         </div>
-        {/* Forces button visualization if true or explicitly missing */}
         {showAddButton !== false && (
           <button
             onClick={() => router.push(`/${urlName}/add`)}
@@ -143,7 +141,6 @@ const ListTemplate = ({
         )}
       </div>
 
-      {/* Delete Error Message */}
       {deleteError && (
         <div className="mb-4 flex items-center justify-between rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm font-medium text-rose-600">
           <span>{deleteError}</span>
@@ -156,7 +153,6 @@ const ListTemplate = ({
         </div>
       )}
 
-      {/* Search Bar */}
       <div className="flex items-center gap-2 mb-4">
         <input
           type="text"
@@ -175,21 +171,18 @@ const ListTemplate = ({
         )}
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
           Loading records...
         </div>
       )}
 
-      {/* Empty */}
       {!loading && filteredData.length === 0 && (
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
           {searchTerm ? `No results for "${searchTerm}".` : "No records available."}
         </div>
       )}
 
-      {/* Table */}
       {!loading && filteredData.length > 0 && (
         <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
           <table className="min-w-full text-left text-sm text-slate-700">
@@ -248,7 +241,6 @@ const ListTemplate = ({
         </div>
       )}
 
-      {/* Pagination */}
       {!loading && filteredData.length > 0 && (
         <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-600">

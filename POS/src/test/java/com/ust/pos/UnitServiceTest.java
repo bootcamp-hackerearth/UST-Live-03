@@ -108,7 +108,7 @@ class UnitServiceTest {
 
         Page<Unit> page = new PageImpl<>(List.of(unit));
 
-        Mockito.when(unitRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(unitRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<UnitDto>>() {
@@ -192,11 +192,18 @@ class UnitServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(unitRepository).deleteById(1L);
+    void deleteTest_softDeletesAndSaves() {
+        Unit unit = new Unit();
+        unit.setIdentifier("Unit");
+        unit.setStatus(true);
+        unit.setDeleted(false);
 
-        unitService.delete(1L);
+        Mockito.when(unitRepository.findByIdentifier("Unit")).thenReturn(unit);
 
-        Mockito.verify(unitRepository, Mockito.times(1)).deleteById(1L);
+        unitService.delete("Unit");
+
+        Assertions.assertTrue(unit.isDeleted());
+        Assertions.assertFalse(unit.isStatus());
+        Mockito.verify(unitRepository, Mockito.times(1)).save(unit);
     }
 }

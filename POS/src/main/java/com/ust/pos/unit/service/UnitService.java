@@ -13,7 +13,7 @@ public interface UnitService {
 
     WsDto<UnitDto> findAll(Pageable pageable);
 
-    void delete(Long id);
+    void delete(String identifier);
 
     UnitDto update(UnitDto unitDto);
 

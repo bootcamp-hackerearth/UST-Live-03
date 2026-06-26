@@ -13,7 +13,7 @@ public interface RacksService {
 
     WsDto<RacksDto> findAll(Pageable pageable);
 
-    void deleteById(Long id);
+    void delete(String identifier);
 
     RacksDto findByIdentifier(String identifier);
 

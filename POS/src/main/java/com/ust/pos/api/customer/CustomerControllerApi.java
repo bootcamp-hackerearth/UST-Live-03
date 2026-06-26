@@ -1,12 +1,10 @@
 package com.ust.pos.api.customer;
 
-import com.ust.pos.address.service.AddressService;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,10 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerControllerApi extends BaseController {
-    @Autowired
-    CustomerService customerService;
-    @Autowired
-    AddressService addressService;
+
+    private final CustomerService customerService;
+
+    public CustomerControllerApi(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
     @PostMapping("/list")
     public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
@@ -34,24 +34,22 @@ public class CustomerControllerApi extends BaseController {
 
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
-            customerService.deleteByIdentifier(identifier);
+            customerService.delete(identifier);
         } catch (Exception e) {
             return false;
         }
         return true;
-
     }
 
     @GetMapping("/update")
     public CustomerDto update(@RequestParam String identifier) {
         return customerService.findByIdentifier(identifier);
-
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto update(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }

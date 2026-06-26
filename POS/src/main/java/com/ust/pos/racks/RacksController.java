@@ -3,7 +3,6 @@ package com.ust.pos.racks;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.racks.service.RacksService;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,13 +13,18 @@ import org.springframework.web.bind.annotation.*;
 public class RacksController {
     public static final String SHELF_LIST = "shelfList";
     public static final String REDIRECT_RACKS_LIST = "redirect:/racks/list";
-    @Autowired
-    RacksService racksService;
-    @Autowired
-    ShelfService shelfService;
+
+    private final RacksService racksService;
+
+    private final ShelfService shelfService;
+
+    public RacksController(RacksService racksService, ShelfService shelfService) {
+        this.racksService = racksService;
+        this.shelfService = shelfService;
+    }
 
     @GetMapping("/list")
-    public String listCategories(Model model, Pageable pageable) {
+    public String list(Model model, Pageable pageable) {
         model.addAttribute("racks", racksService.findAll(pageable));
         model.addAttribute(SHELF_LIST, shelfService.findActiveShelf());
         return "racks/list";
@@ -59,8 +63,8 @@ public class RacksController {
     }
 
     @GetMapping("/delete")
-    public String deleteRacks(@RequestParam Long id) {
-        racksService.deleteById(id);
+    public String deleteRacks(@RequestParam String identifier) {
+        racksService.delete(identifier);
         return REDIRECT_RACKS_LIST;
     }
 

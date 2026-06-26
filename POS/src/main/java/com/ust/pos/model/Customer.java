@@ -16,6 +16,4 @@ public class Customer extends CommonFields {
     private String username;
     private Double creditLimit;
     private String address;
-
-
 }

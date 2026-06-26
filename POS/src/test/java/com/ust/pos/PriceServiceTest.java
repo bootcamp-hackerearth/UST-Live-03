@@ -162,7 +162,7 @@ class PriceServiceTest {
 
         Page<Price> page = new PageImpl<>(List.of(price));
 
-        Mockito.when(priceRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(priceRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<PriceDto>>() {
@@ -178,15 +178,19 @@ class PriceServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing()
-                .when(priceRepository)
-                .deleteByIdentifier("Admin");
+    void deleteTest_softDeletesAndSaves() {
+        Price price = new Price();
+        price.setIdentifier("Admin");
+        price.setStatus(true);
+        price.setDeleted(false);
+
+        Mockito.when(priceRepository.findByIdentifier("Admin")).thenReturn(price);
 
         priceService.delete("Admin");
 
-        Mockito.verify(priceRepository, Mockito.times(1))
-                .deleteByIdentifier("Admin");
+        Assertions.assertTrue(price.isDeleted());
+        Assertions.assertFalse(price.isStatus());
+        Mockito.verify(priceRepository, Mockito.times(1)).save(price);
     }
 
     @Test
@@ -240,6 +244,24 @@ class PriceServiceTest {
                 response.getMessage()
         );
 
+        Mockito.verify(priceRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void saveTestFailure_softDeletedRecord() {
+        PriceDto priceDto = new PriceDto();
+        priceDto.setIdentifier("PRICE1");
+
+        Price existingPrice = new Price();
+        existingPrice.setIdentifier("PRICE1");
+        existingPrice.setDeleted(true);
+
+        Mockito.when(priceRepository.findByIdentifier("PRICE1"))
+                .thenReturn(existingPrice);
+
+        PriceDto response = priceService.save(priceDto);
+
+        Assertions.assertFalse(response.isSuccess());
         Mockito.verify(priceRepository, Mockito.never()).save(Mockito.any());
     }
 }

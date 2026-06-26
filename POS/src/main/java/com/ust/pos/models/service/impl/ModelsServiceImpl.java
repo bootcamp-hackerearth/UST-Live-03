@@ -1,5 +1,6 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
@@ -7,7 +8,6 @@ import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,22 +16,33 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ModelsServiceImpl implements ModelsService {
-    @Autowired
-    ModelsRepository modelsRepository;
-    @Autowired
-    ModelMapper modelMapper;
+public class ModelsServiceImpl extends CommonService implements ModelsService {
+
+    private final ModelsRepository modelsRepository;
+
+    private final ModelMapper modelMapper;
+
+    public ModelsServiceImpl(ModelsRepository modelsRepository, ModelMapper modelMapper) {
+        this.modelsRepository = modelsRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ModelsDto save(ModelsDto modelsDto) {
 
         Models existingModels = modelsRepository.findByIdentifier(modelsDto.getIdentifier());
         if (existingModels != null) {
+            if (existingModels.isDeleted()) {
+                modelsDto.setMessage("Models with identifier - " + existingModels + "has been soft deleted.(Rollback by changing status");
+                modelsDto.setSuccess(false);
+                return modelsDto;
+            }
             modelsDto.setSuccess(false);
             modelsDto.setMessage("Models with Identifier" + modelsDto.getIdentifier() + "already exist!");
             return modelsDto;
         }
         Models models = modelMapper.map(modelsDto, Models.class);
+        setAuditFields(models, true);
         modelsRepository.save(models);
         return modelsDto;
 
@@ -50,7 +61,7 @@ public class ModelsServiceImpl implements ModelsService {
 
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
+        Page<Models> modelsPage = modelsRepository.findByDeletedFalse(pageable);
         WsDto<ModelsDto> modelsWsDto = new WsDto<>();
         modelsWsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
         modelsWsDto.setTotalRecords(modelsPage.getTotalElements());
@@ -62,8 +73,11 @@ public class ModelsServiceImpl implements ModelsService {
     }
 
     @Override
-    public void deleteById(Long id) {
-        modelsRepository.deleteById(id);
+    public void delete(String identifier) {
+        Models models = modelsRepository.findByIdentifier(identifier);
+        softDelete(models);
+        setAuditFields(models, false);
+        modelsRepository.save(models);
     }
 
     @Override
@@ -75,6 +89,7 @@ public class ModelsServiceImpl implements ModelsService {
             return modelsDto;
         }
         modelMapper.map(modelsDto, models);
+        setAuditFields(models, false);
         modelsRepository.save(models);
         modelsDto.setSuccess(true);
         return modelsDto;

@@ -82,6 +82,29 @@ class UserServiceTest {
     }
 
     @Test
+    void saveTestFailure_SoftDeletedUser() {
+        UserDto userDto = new UserDto();
+        userDto.setUsername("admin@test.com");
+
+        User existing = new User();
+        existing.setUsername("admin@test.com");
+        existing.setDeleted(true);
+
+        Mockito.when(userRepository.findByUsername("admin@test.com"))
+                .thenReturn(existing);
+
+        UserDto response = userService.save(userDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals(
+                UserServiceImpl.USER_WITH_USERNAME_EMAIL
+                        + "admin@test.com  has been soft deleted(Rollback by changing status)",
+                response.getMessage()
+        );
+        Mockito.verify(userRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
     void findByUsernameTest() {
         User user = new User();
         user.setUsername("admin@test.com");
@@ -177,15 +200,20 @@ class UserServiceTest {
         Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        Mockito.doNothing().when(userRepository).deleteByUsername("admin@test.com");
+        User existingUser = new User();
+        existingUser.setUsername("admin@test.com");
+        existingUser.setStatus(true);
+        existingUser.setDeleted(false);
+
+        Mockito.when(userRepository.findByUsername("admin@test.com"))
+                .thenReturn(existingUser);
 
         UserDto response = userService.delete("admin@test.com");
 
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("User deleted", response.getMessage());
-
-        Mockito.verify(userRepository, Mockito.times(1))
-                .deleteByUsername("admin@test.com");
+        Assertions.assertTrue(existingUser.isDeleted());
+        Assertions.assertFalse(existingUser.isStatus());
     }
 
     @Test
@@ -198,7 +226,7 @@ class UserServiceTest {
 
         Page<User> page = new PageImpl<>(List.of(user));
 
-        Mockito.when(userRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(userRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<UserDto>>() {

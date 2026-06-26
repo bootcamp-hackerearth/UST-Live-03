@@ -1,4 +1,7 @@
+"use client";
+
 import ListTemplate from "../components/ListTemplate";
+import { auditColumns } from "../components/auditColumns";
 
 export default function NodeList() {
   const columns = [
@@ -6,6 +9,7 @@ export default function NodeList() {
     { label: "Identifier", field: "identifier" },
     { label: "Path", field: "path" },
     { label: "Status", field: "status" },
+    ...auditColumns(),
   ];
 
   return (

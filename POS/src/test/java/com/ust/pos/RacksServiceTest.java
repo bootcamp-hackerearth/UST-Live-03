@@ -109,12 +109,19 @@ class RacksServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(racksRepository).deleteById(1L);
+    void deleteTest_softDeletesAndSaves() {
+        Racks racks = new Racks();
+        racks.setIdentifier("Rack");
+        racks.setStatus(true);
+        racks.setDeleted(false);
 
-        racksService.deleteById(1L);
+        Mockito.when(racksRepository.findByIdentifier("Rack")).thenReturn(racks);
 
-        Mockito.verify(racksRepository, times(1)).deleteById(1L);
+        racksService.delete("Rack");
+
+        Assertions.assertTrue(racks.isDeleted());
+        Assertions.assertFalse(racks.isStatus());
+        Mockito.verify(racksRepository, times(1)).save(racks);
     }
 
     @Test
@@ -127,7 +134,7 @@ class RacksServiceTest {
 
         Page<Racks> page = new PageImpl<>(List.of(racks));
 
-        Mockito.when(racksRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(racksRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<RacksDto>>() {

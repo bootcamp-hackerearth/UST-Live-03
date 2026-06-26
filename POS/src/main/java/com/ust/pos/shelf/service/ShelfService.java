@@ -16,7 +16,7 @@ public interface ShelfService {
 
     WsDto<ShelfDto> findAll(Pageable pageable);
 
-    void deleteById(Long id);
+    void delete(String identifier);
 
     ShelfDto findByIdentifier(String identifier);
 

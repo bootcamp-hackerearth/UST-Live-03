@@ -5,7 +5,6 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,11 +14,14 @@ import java.util.List;
 @RequestMapping("/api/brand")
 public class BrandControllerApi extends BaseController {
 
-    @Autowired
-    BrandService brandService;
+    private final BrandService brandService;
+
+    public BrandControllerApi(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @PostMapping("/list")
-    public WsDto<BrandDto> listCategories(@RequestBody PaginationDto paginationDto) {
+    public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return brandService.findAll(pageable);
@@ -33,24 +35,23 @@ public class BrandControllerApi extends BaseController {
 
     }
 
-
     @GetMapping("/update")
     public BrandDto showEditPage(@RequestParam String identifier) {
 
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public BrandDto saveEditedBrand(@RequestBody BrandDto brandDto) {
 
         return brandService.update(brandDto);
     }
 
 
-    @GetMapping("/delete")
-    public boolean deleteBrand(@RequestParam Long id) {
+    @DeleteMapping("/delete")
+    public boolean deleteBrand(@RequestParam String identifier) {
         try {
-            brandService.deleteById(id);
+            brandService.delete(identifier);
         } catch (Exception e) {
             return false;
         }

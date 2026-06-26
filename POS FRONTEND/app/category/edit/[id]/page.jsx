@@ -13,6 +13,7 @@ export default function CategoryUpdate() {
       showIdentifier={true}
       identifierLabel="Identifier"
       identifierReadOnly={true}
+      showAuditSummary={true}
     />
   );
 }

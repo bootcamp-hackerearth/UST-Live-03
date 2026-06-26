@@ -14,7 +14,7 @@ public interface ModelsService {
 
     WsDto<ModelsDto> findAll(Pageable pageable);
 
-    void deleteById(Long id);
+    void delete(String identifier);
 
     ModelsDto update(ModelsDto modelsDto);
 

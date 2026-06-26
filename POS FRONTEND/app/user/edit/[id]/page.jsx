@@ -35,6 +35,7 @@ export default function UserUpdate() {
       showIdentifierFallback={true}
       extraFields={extraFields}
       onSuccessPath="/user"
+      showAuditSummary={true}
     />
   );
 }

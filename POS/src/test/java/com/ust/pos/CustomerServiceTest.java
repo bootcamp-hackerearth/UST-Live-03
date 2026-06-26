@@ -81,6 +81,23 @@ class CustomerServiceTest {
     }
 
     @Test
+    void saveCustomerSoftDeletedRecord() {
+        Customer existing = new Customer();
+        existing.setDeleted(true);
+
+        Mockito.when(customerRepository.findByPhoneNum("111"))
+                .thenReturn(existing);
+
+        CustomerDto dto = new CustomerDto();
+        dto.setPhoneNum("111");
+
+        CustomerDto response = customerService.save(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Mockito.verify(customerRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
     void findByIdentifierSuccess() {
         Customer customer = new Customer();
 
@@ -148,7 +165,7 @@ class CustomerServiceTest {
     void findAllCustomers() {
         Page<Customer> page = new PageImpl<>(List.of(new Customer()));
 
-        Mockito.when(customerRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(customerRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<CustomerDto>>() {
@@ -265,14 +282,19 @@ class CustomerServiceTest {
     }
 
     @Test
-    void deleteByIdentifier() {
-        Mockito.doNothing()
-                .when(customerRepository)
-                .deleteByIdentifier("123");
+    void deleteSoftDeletesAndSaves() {
+        Customer customer = new Customer();
+        customer.setIdentifier("123");
+        customer.setStatus(true);
+        customer.setDeleted(false);
 
-        customerService.deleteByIdentifier("123");
+        Mockito.when(customerRepository.findByIdentifier("123"))
+                .thenReturn(customer);
 
-        Mockito.verify(customerRepository, Mockito.times(1))
-                .deleteByIdentifier("123");
+        customerService.delete("123");
+
+        Assertions.assertTrue(customer.isDeleted());
+        Assertions.assertFalse(customer.isStatus());
+        Mockito.verify(customerRepository, Mockito.times(1)).save(customer);
     }
 }

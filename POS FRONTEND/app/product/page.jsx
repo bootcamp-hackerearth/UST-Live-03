@@ -1,5 +1,6 @@
 "use client";
 import ListTemplate from "../components/ListTemplate";
+import { auditColumns } from "../components/auditColumns";
 
 export default function ProductList() {
   const columns = [
@@ -22,6 +23,7 @@ export default function ProductList() {
     { label: "Model", field: "model" },
     { label: "Name", field: "productName" },
     { label: "Status", field: "status" },
+    ...auditColumns(),
   ];
 
   return (
@@ -30,9 +32,10 @@ export default function ProductList() {
       columns={columns}
       urlName="product"
       showStatus={true}
+      statusKey="identifier"
       editKey="id"
-      deleteKey="id"
-      deleteParam="id"
+      deleteKey="identifier"
+      deleteParam="identifier"
       addButtonLabel="Product"
       pageSize={10}
     />

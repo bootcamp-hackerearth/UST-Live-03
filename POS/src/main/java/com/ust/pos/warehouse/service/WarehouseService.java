@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface WarehouseService {
 
-
     WarehouseDto save(WarehouseDto warehouseDto);
 
     WarehouseDto update(WarehouseDto warehouseDto);
@@ -17,13 +16,11 @@ public interface WarehouseService {
 
     WarehouseDto findById(Long id);
 
-    void delete(Long id);
+    void delete(String identifier);
 
     List<WarehouseDto> findAllActiveWarehouse();
 
     WarehouseDto changeWarehouseStatus(String identifier, boolean status);
 
     WarehouseDto findByIdentifier(String identifier);
-
-
 }

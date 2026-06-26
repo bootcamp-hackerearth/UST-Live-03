@@ -10,6 +10,7 @@ export default function RoleUpdate() {
       extraFields={[STATUS_FIELD]}
       onSuccessPath="/role"
       showDescription={false}
+      showAuditSummary={true}
     />
   );
 }

@@ -1,4 +1,7 @@
+"use client";
+
 import ListTemplate from "../components/ListTemplate";
+import { auditColumns } from "../components/auditColumns";
 
 export default function CategoryList() {
   const columns = [
@@ -6,6 +9,7 @@ export default function CategoryList() {
     { label: "Identifier", field: "identifier" },
     { label: "Supercategory", field: "supercategory" },
     { label: "Status", field: "status" },
+    ...auditColumns(),
   ];
 
   return (
@@ -15,10 +19,12 @@ export default function CategoryList() {
       urlName="category"
       showStatus={true}
       editKey="id"
-      deleteKey="id"
-      deleteParam="id"
+      deleteKey="identifier"
+      deleteParam="identifier"
+      statusKey="identifier"
       addButtonLabel="Category"
       pageSize={3}
     />
   );
 }
+

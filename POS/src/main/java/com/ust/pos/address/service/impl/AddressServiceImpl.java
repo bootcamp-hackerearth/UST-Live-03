@@ -5,16 +5,20 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 @Service
 public class AddressServiceImpl implements AddressService {
-    @Autowired
-    AddressRepository addressRepository;
-    @Autowired
-    ModelMapper modelMapper;
+
+    private final AddressRepository addressRepository;
+
+    private final ModelMapper modelMapper;
+
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto save(AddressDto addressDto) {

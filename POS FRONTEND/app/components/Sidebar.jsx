@@ -49,6 +49,41 @@ const ICON_MAP = {
       <path d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-7-4h.01M12 16h.01" />
     </svg>
   ),
+  cart: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  ),
+  cartentry: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+  ),
+  order: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 6h13M9 12h13M9 18h13M4 6h.01M4 12h.01M4 18h.01" />
+    </svg>
+  ),
+  models: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+    </svg>
+  ),
+  unit: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+    </svg>
+  ),
+  warehouse: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><path d="M9 22V12h6v10" />
+    </svg>
+  ),
+  stock: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-9 5H7m6 0h2" /><path d="M16 3h-2a2 2 0 00-2 2v2h6V5a2 2 0 00-2-2zM8 3H6a2 2 0 00-2 2v2h6V5a2 2 0 00-2-2z" />
+    </svg>
+  ),
 };
 
 const DEFAULT_ICON = (
@@ -86,10 +121,10 @@ function Sidebar() {
   };
 
   return (
-    <aside style={{ width: "260px", minHeight: "100vh", flexShrink: 0 }} className="flex flex-col bg-slate-900 shadow-xl">
+    <aside style={{ width: "260px", height: "100%", flexShrink: 0 }} className="flex flex-col overflow-hidden bg-slate-900 shadow-xl">
 
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-6 border-b border-slate-700">
+   
+      <div className="flex shrink-0 items-center gap-3 px-5 py-6 border-b border-slate-700">
         <div className="flex items-center justify-center rounded-xl bg-blue-600 text-white text-xs font-black shadow-lg" style={{ width: "40px", height: "40px", flexShrink: 0 }}>
           POS
         </div>
@@ -99,8 +134,8 @@ function Sidebar() {
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 py-4 px-3">
+      
+      <nav className="flex-1 overflow-y-auto py-4 px-3">
         <p className="px-2 mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">
           Main Menu
         </p>
@@ -129,8 +164,8 @@ function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-slate-700 px-5 py-4">
+    
+      <div className="shrink-0 border-t border-slate-700 px-5 py-4">
         <p className="text-xs text-slate-500">© {new Date().getFullYear()} RetailPOS</p>
       </div>
 

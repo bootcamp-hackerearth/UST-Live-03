@@ -1,10 +1,14 @@
+"use client";
+
 import ListTemplate from "../components/ListTemplate";
+import { auditColumns } from "../components/auditColumns";
 
 export default function RoleList() {
   const columns = [
     { label: "ID", field: "id" },
     { label: "Identifier", field: "identifier" },
     { label: "Status", field: "status" },
+    ...auditColumns(),
   ];
 
   return (

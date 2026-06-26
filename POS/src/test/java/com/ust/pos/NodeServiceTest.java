@@ -118,12 +118,19 @@ class NodeServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(nodeRepository).deleteByIdentifier("Admin");
+    void deleteTest_softDeletesAndSaves() {
+        Node node = new Node();
+        node.setIdentifier("Admin");
+        node.setStatus(true);
+        node.setDeleted(false);
+
+        Mockito.when(nodeRepository.findByIdentifier("Admin")).thenReturn(node);
 
         nodeService.delete("Admin");
 
-        Mockito.verify(nodeRepository, times(1)).deleteByIdentifier("Admin");
+        Assertions.assertTrue(node.isDeleted());
+        Assertions.assertFalse(node.isStatus());
+        Mockito.verify(nodeRepository, times(1)).save(node);
     }
 
     @Test
@@ -136,7 +143,7 @@ class NodeServiceTest {
 
         Page<Node> page = new PageImpl<>(List.of(node));
 
-        Mockito.when(nodeRepository.findAll(Mockito.any(Pageable.class))).thenReturn(page);
+        Mockito.when(nodeRepository.findByDeletedFalse(Mockito.any(Pageable.class))).thenReturn(page);
 
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();

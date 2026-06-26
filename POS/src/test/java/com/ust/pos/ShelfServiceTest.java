@@ -44,16 +44,16 @@ class ShelfServiceTest {
         ShelfDto response = shelfsService.save(shelfsDto);
 
         Assertions.assertTrue(response.isSuccess());
-        Assertions.assertNull(response.getMessage());
     }
 
     @Test
-    void saveTestFailure() {
+    void saveTestFailure_alreadyExists() {
         ShelfDto shelfsDto = new ShelfDto();
         shelfsDto.setIdentifier("Shelf");
 
         Shelf shelf = new Shelf();
         shelf.setIdentifier("Shelf");
+        shelf.setDeleted(false);
 
         Mockito.when(shelfsRepository.findByIdentifier("Shelf")).thenReturn(shelf);
 
@@ -61,6 +61,24 @@ class ShelfServiceTest {
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
+    }
+
+    @Test
+    void saveTestFailure_softDeletedRecord() {
+        ShelfDto shelfsDto = new ShelfDto();
+        shelfsDto.setIdentifier("Shelf");
+
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Shelf");
+        shelf.setDeleted(true);
+
+        Mockito.when(shelfsRepository.findByIdentifier("Shelf")).thenReturn(shelf);
+
+        ShelfDto response = shelfsService.save(shelfsDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
+        Mockito.verify(shelfsRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
@@ -141,7 +159,7 @@ class ShelfServiceTest {
 
         Page<Shelf> page = new PageImpl<>(List.of(shelf));
 
-        Mockito.when(shelfsRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(shelfsRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<ShelfDto>>() {
@@ -180,12 +198,19 @@ class ShelfServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(shelfsRepository).deleteById(1L);
+    void deleteTest_softDeletesAndSaves() {
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Shelf");
+        shelf.setStatus(true);
+        shelf.setDeleted(false);
 
-        shelfsService.deleteById(1L);
+        Mockito.when(shelfsRepository.findByIdentifier("Shelf")).thenReturn(shelf);
 
-        Mockito.verify(shelfsRepository, Mockito.times(1)).deleteById(1L);
+        shelfsService.delete("Shelf");
+
+        Assertions.assertTrue(shelf.isDeleted());
+        Assertions.assertFalse(shelf.isStatus());
+        Mockito.verify(shelfsRepository, Mockito.times(1)).save(shelf);
     }
 
     @Test

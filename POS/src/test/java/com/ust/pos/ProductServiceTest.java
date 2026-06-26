@@ -67,6 +67,34 @@ class ProductServiceTest {
     }
 
     @Test
+    void saveTestFailure_softDeletedRecord() {
+        ProductDto productDto = new ProductDto();
+        productDto.setIdentifier("PROD-1");
+
+        Product existing = new Product();
+        existing.setIdentifier("PROD-1");
+        existing.setDeleted(true);
+
+        Mockito.when(productRepository.findByIdentifier("PROD-1"))
+                .thenReturn(existing);
+
+        ProductDto response = productService.save(productDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Mockito.verify(productRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findByIdTest_NotFound_returnsNull() {
+        Mockito.when(productRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        ProductDto response = productService.findById(99L);
+
+        Assertions.assertNull(response);
+    }
+
+    @Test
     void findAllTest() {
         Product product = new Product();
         product.setIdentifier("PROD-1");
@@ -76,7 +104,7 @@ class ProductServiceTest {
 
         Page<Product> page = new PageImpl<>(List.of(product));
 
-        Mockito.when(productRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(productRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<ProductDto>>() {
@@ -162,13 +190,19 @@ class ProductServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(productRepository).deleteById(1L);
+    void deleteTest_softDeletesAndSaves() {
+        Product product = new Product();
+        product.setIdentifier("PROD-1");
+        product.setStatus(true);
+        product.setDeleted(false);
 
-        productService.delete(1L);
+        Mockito.when(productRepository.findByIdentifier("PROD-1")).thenReturn(product);
 
-        Mockito.verify(productRepository, Mockito.times(1))
-                .deleteById(1L);
+        productService.delete("PROD-1");
+
+        Assertions.assertTrue(product.isDeleted());
+        Assertions.assertFalse(product.isStatus());
+        Mockito.verify(productRepository, Mockito.times(1)).save(product);
     }
 
     @Test

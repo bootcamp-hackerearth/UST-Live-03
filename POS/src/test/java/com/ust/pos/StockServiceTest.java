@@ -57,6 +57,46 @@ class StockServiceTest {
     }
 
     @Test
+    void saveTestFailure_AlreadyExists() {
+        StockDto stockDto = new StockDto();
+        stockDto.setIdentifier("STOCK-1");
+
+        Stock existingStock = new Stock();
+        existingStock.setIdentifier("STOCK-1");
+        existingStock.setDeleted(false);
+
+        Mockito.when(stockRepository.findByIdentifier("STOCK-1"))
+                .thenReturn(existingStock);
+
+        StockDto response = stockService.save(stockDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals(
+                "Stock with Identifier STOCK-1 already exists!",
+                response.getMessage()
+        );
+        Mockito.verify(stockRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void saveTestFailure_SoftDeletedRecord() {
+        StockDto stockDto = new StockDto();
+        stockDto.setIdentifier("STOCK-1");
+
+        Stock existingStock = new Stock();
+        existingStock.setIdentifier("STOCK-1");
+        existingStock.setDeleted(true);
+
+        Mockito.when(stockRepository.findByIdentifier("STOCK-1"))
+                .thenReturn(existingStock);
+
+        StockDto response = stockService.save(stockDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Mockito.verify(stockRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
     void updateTestSuccess() {
         StockDto stockDto = new StockDto();
         stockDto.setId(1L);
@@ -98,14 +138,19 @@ class StockServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(stockRepository)
-                .deleteById(1L);
+    void deleteTest_softDeletesAndSaves() {
+        Stock stock = new Stock();
+        stock.setIdentifier("STOCK-1");
+        stock.setStatus(true);
+        stock.setDeleted(false);
 
-        stockService.delete(1L);
+        Mockito.when(stockRepository.findByIdentifier("STOCK-1")).thenReturn(stock);
 
-        Mockito.verify(stockRepository, Mockito.times(1))
-                .deleteById(1L);
+        stockService.delete("STOCK-1");
+
+        Assertions.assertTrue(stock.isDeleted());
+        Assertions.assertFalse(stock.isStatus());
+        Mockito.verify(stockRepository, Mockito.times(1)).save(stock);
     }
 
     @Test
@@ -118,7 +163,7 @@ class StockServiceTest {
 
         Page<Stock> page = new PageImpl<>(List.of(stock));
 
-        Mockito.when(stockRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(stockRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<StockDto>>() {

@@ -112,7 +112,7 @@ class BrandServiceTest {
 
         Page<Brand> page = new PageImpl<>(List.of(brand));
 
-        Mockito.when(brandRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(brandRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<BrandDto>>() {
@@ -161,12 +161,37 @@ class BrandServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(brandRepository).deleteById(1L);
+    void deleteTest_softDeletesAndSaves() {
+        Brand brand = new Brand();
+        brand.setIdentifier("Nike");
+        brand.setStatus(true);
+        brand.setDeleted(false);
 
-        brandService.deleteById(1L);
+        Mockito.when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
 
-        Mockito.verify(brandRepository, Mockito.times(1)).deleteById(1L);
+        brandService.delete("Nike");
+
+        Assertions.assertTrue(brand.isDeleted());
+        Assertions.assertFalse(brand.isStatus());
+        Mockito.verify(brandRepository, Mockito.times(1)).save(brand);
+    }
+
+    @Test
+    void saveTestFailure_softDeletedRecord() {
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("Nike");
+
+        Brand existingBrand = new Brand();
+        existingBrand.setIdentifier("Nike");
+        existingBrand.setDeleted(true);
+
+        Mockito.when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(existingBrand);
+
+        BrandDto response = brandService.save(brandDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Mockito.verify(brandRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
@@ -218,30 +243,28 @@ class BrandServiceTest {
         Assertions.assertNull(response);
         Mockito.verify(brandRepository, Mockito.never()).save(Mockito.any());
     }
+
     @Test
     void findActiveBrandTest() {
         Brand brand = new Brand();
         brand.setIdentifier("Nike");
         brand.setStatus(true);
 
-        BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Nike");
-        brandDto.setStatus(true);
-
-        List<Brand> brandList = List.of(brand);
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("Nike");
+        dto.setStatus(true);
 
         Mockito.when(brandRepository.findByStatusTrue(true))
-                .thenReturn(brandList);
+                .thenReturn(List.of(brand));
 
-        Type listType = new TypeToken<List<BrandDto>>() {}.getType();
-        Mockito.when(modelMapper.map(brandList, listType))
-                .thenReturn(List.of(brandDto));
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(List.of(brand), listType))
+                .thenReturn(List.of(dto));
 
         List<BrandDto> response = brandService.findActiveBrand();
 
-        Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("Nike", response.get(0).getIdentifier());
         Assertions.assertTrue(response.get(0).isStatus());
     }
 }

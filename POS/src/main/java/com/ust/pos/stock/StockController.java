@@ -4,7 +4,6 @@ import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,16 +13,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/stock")
 public class StockController {
     public static final String STOCK_DTO = "stockDto";
-    @Autowired
-    StockService stockService;
-    @Autowired
-    WarehouseService warehouseService;
-    @Autowired
-    ProductService productService;
+
+    private final StockService stockService;
+
+    private final WarehouseService warehouseService;
+
+    private final ProductService productService;
+
+    public StockController(StockService stockService, WarehouseService warehouseService, ProductService productService) {
+        this.stockService = stockService;
+        this.warehouseService = warehouseService;
+        this.productService = productService;
+    }
 
 
     @GetMapping("/list")
-    public String listStocks(Model model, Pageable pageable) {
+    public String list(Model model, Pageable pageable) {
         model.addAttribute("stockList", stockService.findAll(pageable));
         return "stock/list";
     }
@@ -47,8 +52,8 @@ public class StockController {
     }
 
     @GetMapping("/delete")
-    public String delete(@RequestParam Long id) {
-        stockService.delete(id);
+    public String delete(@RequestParam String identifier) {
+        stockService.delete(identifier);
         return "redirect:/stock/list";
     }
 

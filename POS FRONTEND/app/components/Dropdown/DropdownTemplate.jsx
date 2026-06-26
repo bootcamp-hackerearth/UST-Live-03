@@ -67,6 +67,7 @@ const DropdownTemplate = ({
   };
 
   const dropdownOptions = apiPath || apiEndpoint ? apiOptions : options;
+  const selectValue = multiple ? (value ?? []) : String(value ?? "");
 
   if (loading) {
     return <p className="text-sm text-gray-400">Loading {label}...</p>;
@@ -77,7 +78,7 @@ const DropdownTemplate = ({
       <label className="text-sm font-semibold text-gray-600">{label}</label>
       <select
         name={name}
-        value={value ?? (multiple ? [] : "")}
+        value={selectValue}
         onChange={multiple ? handleMultipleChange : handleSingleChange}
         multiple={multiple}
         size={multiple ? 4 : 1}

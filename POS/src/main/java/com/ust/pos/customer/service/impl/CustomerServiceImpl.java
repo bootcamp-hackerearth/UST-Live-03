@@ -1,6 +1,7 @@
 package com.ust.pos.customer.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
@@ -12,7 +13,6 @@ import com.ust.pos.model.CustomerRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,17 +21,24 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends CommonService implements CustomerService {
     public static final String SHIPPING_ADDRESS = "Shipping Address";
     public static final String BILLING_ADDRESS = "Billing Address";
-    @Autowired
-    CustomerRepository customerRepository;
-    @Autowired
-    ModelMapper modelMapper;
-    @Autowired
-    AddressRepository addressRepository;
-    @Autowired
-    AddressService addressService;
+
+    private final CustomerRepository customerRepository;
+
+    private final ModelMapper modelMapper;
+
+    private final AddressRepository addressRepository;
+
+    private final AddressService addressService;
+
+    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, AddressRepository addressRepository, AddressService addressService) {
+        this.customerRepository = customerRepository;
+        this.modelMapper = modelMapper;
+        this.addressRepository = addressRepository;
+        this.addressService = addressService;
+    }
 
     @Override
     public CustomerDto save(CustomerDto customerDto) {
@@ -39,6 +46,11 @@ public class CustomerServiceImpl implements CustomerService {
         String phoneNum = customerDto.getPhoneNum();
         Customer customer = customerRepository.findByPhoneNum(phoneNum);
         if (customer != null) {
+            if (customer.isDeleted()) {
+                customerDto.setMessage("Customer with identifier - " + customerDto.getPhoneNum() + "has been soft deleted.(Rollback by changing status)");
+                customerDto.setSuccess(false);
+                return customerDto;
+            }
             customerDto.setMessage("Customer with Phone Number" + customerDto.getPhoneNum() + "already exist!");
             customerDto.setSuccess(false);
             return customerDto;
@@ -47,6 +59,7 @@ public class CustomerServiceImpl implements CustomerService {
         modelMapper.map(customerDto, currentCustomer);
         String identifier = customerDto.getPhoneNum();
         currentCustomer.setIdentifier(identifier);
+        setAuditFields(currentCustomer, true);
         customerRepository.save(currentCustomer);
 
         Address addressBilling = new Address();
@@ -89,8 +102,11 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public void deleteByIdentifier(String identifier) {
-        customerRepository.deleteByIdentifier(identifier);
+    public void delete(String identifier) {
+        Customer customer = customerRepository.findByIdentifier(identifier);
+        softDelete(customer);
+        setAuditFields(customer, false);
+        customerRepository.save(customer);
     }
 
     @Override
@@ -108,7 +124,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
+        Page<Customer> customerPage = customerRepository.findByDeletedFalse(pageable);
         WsDto<CustomerDto> customerWsDto = new WsDto<>();
         customerWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
         customerWsDto.setTotalRecords(customerPage.getTotalElements());
@@ -129,6 +145,7 @@ public class CustomerServiceImpl implements CustomerService {
             return customerDto;
         }
         modelMapper.map(customerDto, existingCustomer);
+        setAuditFields(existingCustomer, false);
         customerRepository.save(existingCustomer);
         //Billing
         AddressDto billingAddress = addressService.findByIdentifierAndAddressType(customerDto.getIdentifier(), BILLING_ADDRESS);

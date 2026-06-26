@@ -4,7 +4,6 @@ package com.ust.pos.price;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +13,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/price")
 public class PriceController {
     public static final String PRICE_DTO = "priceDto";
-    @Autowired
-    PriceService priceService;
+
+    private final PriceService priceService;
+
+    public PriceController(PriceService priceService) {
+        this.priceService = priceService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {

@@ -1,4 +1,7 @@
+"use client";
+
 import ListTemplate from "../components/ListTemplate";
+import { auditColumns } from "../components/auditColumns";
 
 export default function PriceList() {
   const columns = [
@@ -9,6 +12,7 @@ export default function PriceList() {
     { label: "Selling Price", field: "sellingPrice" },
     { label: "MRP", field: "mrp" },
     { label: "Status", field: "status" },
+    ...auditColumns(),
   ];
 
   return (

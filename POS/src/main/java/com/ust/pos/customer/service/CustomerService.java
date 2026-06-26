@@ -19,6 +19,6 @@ public interface CustomerService {
 
     CustomerDto findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String identifier);
+    void delete(String identifier);
 
 }

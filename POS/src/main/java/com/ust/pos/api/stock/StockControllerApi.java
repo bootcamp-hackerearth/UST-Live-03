@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.stock.service.StockService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/stock")
 public class StockControllerApi extends BaseController {
-    @Autowired
-    StockService stockService;
+
+    private final StockService stockService;
+
+    public StockControllerApi(StockService stockService) {
+        this.stockService = stockService;
+    }
 
     @PostMapping("/list")
     public WsDto<StockDto> listStock(@RequestBody PaginationDto paginationDto) {
@@ -25,19 +28,17 @@ public class StockControllerApi extends BaseController {
     @PostMapping("/add")
     public StockDto saveStock(@RequestBody StockDto stockDto) {
         return stockService.save(stockDto);
-
     }
 
 
     @GetMapping("/update")
     public StockDto showEditPage(@RequestParam String identifier) {
 
-        // stock being edited
         return stockService.findByIdentifier(identifier);
 
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StockDto saveEditedStock(@RequestBody StockDto stockDto) {
 
         return stockService.update(stockDto);
@@ -45,16 +46,16 @@ public class StockControllerApi extends BaseController {
 
 
     @GetMapping("/delete")
-    public boolean deleteStock(@RequestParam Long id) {
+    public boolean deleteStock(@RequestParam String identifier) {
         try {
-            stockService.delete(id);
+            stockService.delete(identifier);
         } catch (Exception e) {
             return false;
         }
         return true;
     }
 
-    @GetMapping("/toggle")
+    @DeleteMapping("/toggle")
     public boolean toggle(@RequestParam String identifier, boolean status) {
         try {
             stockService.changeStockStatus(identifier, status);

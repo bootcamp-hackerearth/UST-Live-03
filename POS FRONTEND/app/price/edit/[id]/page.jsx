@@ -13,6 +13,7 @@ export default function PriceUpdate() {
       showIdentifier={true}
       identifierLabel="Identifier"
       identifierReadOnly={true}
+      showAuditSummary={true}
     />
   );
 }

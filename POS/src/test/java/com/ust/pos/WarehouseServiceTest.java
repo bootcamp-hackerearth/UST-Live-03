@@ -64,6 +64,23 @@ class WarehouseServiceTest {
     }
 
     @Test
+    void saveTestFailure_softDeletedRecord() {
+        WarehouseDto warehouseDto = new WarehouseDto();
+        warehouseDto.setIdentifier("Admin");
+
+        Warehouse existing = new Warehouse();
+        existing.setIdentifier("Admin");
+        existing.setDeleted(true);
+
+        Mockito.when(warehouseRepository.findByIdentifier("Admin")).thenReturn(existing);
+
+        WarehouseDto response = warehouseService.save(warehouseDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Mockito.verify(warehouseRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
     void findByIdentifierTest() {
         Warehouse warehouse = new Warehouse();
         warehouse.setIdentifier("Admin");
@@ -108,12 +125,19 @@ class WarehouseServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(warehouseRepository).deleteById(1L);
+    void deleteTest_softDeletesAndSaves() {
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("Admin");
+        warehouse.setStatus(true);
+        warehouse.setDeleted(false);
 
-        warehouseService.delete(1L);
+        Mockito.when(warehouseRepository.findByIdentifier("Admin")).thenReturn(warehouse);
 
-        Mockito.verify(warehouseRepository, Mockito.times(1)).deleteById(1L);
+        warehouseService.delete("Admin");
+
+        Assertions.assertTrue(warehouse.isDeleted());
+        Assertions.assertFalse(warehouse.isStatus());
+        Mockito.verify(warehouseRepository, Mockito.times(1)).save(warehouse);
     }
 
     @Test
@@ -126,7 +150,7 @@ class WarehouseServiceTest {
 
         Page<Warehouse> page = new PageImpl<>(List.of(warehouse));
 
-        Mockito.when(warehouseRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(warehouseRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<WarehouseDto>>() {

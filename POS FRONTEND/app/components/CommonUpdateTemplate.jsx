@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import axiosInstance from "../api/axiosInstance";
 import FormShell from "./FormShell";
-import { applyFieldTransforms } from "../lib/fieldUtils";
+import { applyFieldTransforms, formatAuditDate } from "../lib/fieldUtils";
 
 function CommonUpdateTemplate({
   title,
@@ -18,6 +18,7 @@ function CommonUpdateTemplate({
   identifierLabel,
   identifierReadOnly,
   showIdentifierFallback,
+  showAuditSummary,
 }) {
   const router = useRouter();
   const params = useParams();
@@ -27,6 +28,7 @@ function CommonUpdateTemplate({
   const [identifier, setIdentifier] = useState("");
   const [description, setDescription] = useState("");
   const [values, setValues] = useState({});
+  const [recordData, setRecordData] = useState(null);
   const [error, setError] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -38,13 +40,18 @@ function CommonUpdateTemplate({
           params: { [recordParam]: recordId },
         });
         const data = response.data || {};
+        setRecordData(data);
         setEntityId(data.id || null);
         setIdentifier(data.identifier || "");
         setDescription(data.description || "");
 
         const nextValues = {};
         extraFields.forEach((field) => {
-          const value = data[field.key];
+          let value = data[field.key];
+          if (value !== null && value !== undefined && typeof value === "object" && !Array.isArray(value)) {
+            const extractKey = field.optionValue ?? "identifier";
+            value = value[extractKey] ?? value.id ?? "";
+          }
           nextValues[field.key] =
             field.asArray && Array.isArray(value) && field.type !== "multiselect"
               ? value[0] || ""
@@ -82,7 +89,7 @@ function CommonUpdateTemplate({
     setError("");
     setLoading(true);
     try {
-      const response = await axiosInstance.post(`/${apiPath}/update`, buildPayload());
+      const response = await axiosInstance.put(`/${apiPath}/update`, buildPayload());
       if (response.data.success === false) {
         setError(response.data.message || `Failed to update ${title}`);
         return;
@@ -157,21 +164,64 @@ function CommonUpdateTemplate({
     );
   }
 
+  const auditCards = [
+    { label: "Created By", value: recordData?.createdBy },
+    { label: "Created On", value: formatAuditDate(recordData?.createdOn) },
+    { label: "Modified By", value: recordData?.modifiedBy },
+    { label: "Modified On", value: formatAuditDate(recordData?.modifiedOn) },
+  ];
+
   return (
-    <FormShell
-      title={title}
-      mode="update"
-      error={error}
-      onSubmit={handleSubmit}
-      loading={loading}
-      showDescription={showDescription}
-      description={description}
-      onDescriptionChange={setDescription}
-      extraFields={extraFields}
-      values={values}
-      onChange={handleChange}
-      identifierSlot={renderIdentifierField()}
-    />
+    <div className="w-full max-w-3xl mx-auto space-y-6">
+      <FormShell
+        title={title}
+        mode="update"
+        error={error}
+        onSubmit={handleSubmit}
+        loading={loading}
+        showDescription={showDescription}
+        description={description}
+        onDescriptionChange={setDescription}
+        extraFields={extraFields}
+        values={values}
+        onChange={handleChange}
+        identifierSlot={renderIdentifierField()}
+      />
+
+      {showAuditSummary && (
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
+                Audit Trail
+              </p>
+              <h3 className="mt-2 text-xl font-bold text-slate-900">
+                Created and modified metadata
+              </h3>
+            </div>
+            <p className="text-sm text-slate-500">
+              These fields are set automatically by the backend service.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {auditCards.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  {item.label}
+                </p>
+                <p className="mt-2 break-words text-sm font-semibold text-slate-900">
+                  {item.value || "-"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
   );
 }
 
@@ -187,6 +237,7 @@ CommonUpdateTemplate.propTypes = {
   identifierLabel: PropTypes.string,
   identifierReadOnly: PropTypes.bool,
   showIdentifierFallback: PropTypes.bool,
+  showAuditSummary: PropTypes.bool,
 };
 
 CommonUpdateTemplate.defaultProps = {
@@ -199,6 +250,7 @@ CommonUpdateTemplate.defaultProps = {
   identifierLabel: "Identifier",
   identifierReadOnly: false,
   showIdentifierFallback: false,
+  showAuditSummary: false,
 };
 
 export default CommonUpdateTemplate;

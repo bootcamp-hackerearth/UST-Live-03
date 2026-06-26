@@ -8,8 +8,8 @@ import java.util.List;
 @Getter
 @Setter
 public class StockDto extends CommonDto {
-
     private List<String> warehouse;
     private Integer quantity;
     private Double unitPrice;
+    private String product;
 }

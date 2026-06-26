@@ -1,5 +1,6 @@
 "use client";
 import ListTemplate from "../components/ListTemplate";
+import { auditColumns } from "../components/auditColumns";
 
 function checkPreDelete(username) {
   const loggedIn = localStorage.getItem("username");
@@ -18,6 +19,7 @@ export default function UserList() {
       render: (item) => item.roles?.join(", ") || "-",
     },
     { label: "Status", field: "status" },
+    ...auditColumns(),
   ];
 
   return (

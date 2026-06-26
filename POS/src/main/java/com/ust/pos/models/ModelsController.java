@@ -2,7 +2,6 @@ package com.ust.pos.models;
 
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.models.service.ModelsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,11 +11,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/models")
 public class ModelsController {
     public static final String REDIRECT_MODELS_LIST = "redirect:/models/list";
-    @Autowired
-    ModelsService modelsService;
+
+    private final ModelsService modelsService;
+
+    public ModelsController(ModelsService modelsService) {
+        this.modelsService = modelsService;
+    }
 
     @GetMapping("/list")
-    public String listCategories(Model model, Pageable pageable) {
+    public String listmodels(Model model, Pageable pageable) {
         model.addAttribute("Models", modelsService.findAll(pageable));
         return "models/list";
     }
@@ -37,10 +40,8 @@ public class ModelsController {
     @GetMapping("/save")
     public String showEditPage(@RequestParam Long id, Model model, Pageable pageable) {
 
-        // models being edited
         model.addAttribute("modelsDto", modelsService.findById(id));
 
-        // list used to populate Super Models dropdown
         model.addAttribute("categories", modelsService.findAll(pageable));
 
         return "models/models";
@@ -61,8 +62,8 @@ public class ModelsController {
     }
 
     @GetMapping("/delete")
-    public String deleteModels(@RequestParam Long id) {
-        modelsService.deleteById(id);
+    public String deleteModels(@RequestParam String identifier) {
+        modelsService.delete(identifier);
         return REDIRECT_MODELS_LIST;
     }
 }

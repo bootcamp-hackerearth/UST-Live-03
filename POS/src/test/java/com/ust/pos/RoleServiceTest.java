@@ -66,6 +66,24 @@ class RoleServiceTest {
     }
 
     @Test
+    void saveTestFailure_softDeletedRecord() {
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("Admin");
+
+        Role existingRole = new Role();
+        existingRole.setIdentifier("Admin");
+        existingRole.setDeleted(true);
+
+        Mockito.when(roleRepository.findByIdentifier("Admin"))
+                .thenReturn(existingRole);
+
+        RoleDto response = roleService.save(roleDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Mockito.verify(roleRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
     void findByIdentifierTest() {
         Role role = new Role();
         role.setIdentifier("Admin");
@@ -110,12 +128,19 @@ class RoleServiceTest {
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(roleRepository).deleteByIdentifier("Admin");
+    void deleteTest_softDeletesAndSaves() {
+        Role role = new Role();
+        role.setIdentifier("Admin");
+        role.setStatus(true);
+        role.setDeleted(false);
+
+        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(role);
 
         roleService.delete("Admin");
 
-        Mockito.verify(roleRepository, times(1)).deleteByIdentifier("Admin");
+        Assertions.assertTrue(role.isDeleted());
+        Assertions.assertFalse(role.isStatus());
+        Mockito.verify(roleRepository, times(1)).save(role);
     }
 
     @Test
@@ -128,7 +153,7 @@ class RoleServiceTest {
 
         Page<Role> page = new PageImpl<>(List.of(role));
 
-        Mockito.when(roleRepository.findAll(Mockito.any(Pageable.class)))
+        Mockito.when(roleRepository.findByDeletedFalse(Mockito.any(Pageable.class)))
                 .thenReturn(page);
 
         Type listType = new TypeToken<List<RoleDto>>() {

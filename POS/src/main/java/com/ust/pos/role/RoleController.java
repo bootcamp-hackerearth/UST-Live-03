@@ -2,7 +2,6 @@ package com.ust.pos.role;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,11 +13,15 @@ public class RoleController {
 
     public static final String REDIRECT_ROLE_LIST1 = "redirect:/role/list";
     public static final String REDIRECT_ROLE_LIST = REDIRECT_ROLE_LIST1;
-    @Autowired
-    private RoleService roleService;
+
+    private final RoleService roleService;
+
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
-    public String home(Model model, Pageable pageable) {
+    public String list(Model model, Pageable pageable) {
         model.addAttribute("roles", roleService.findAll(pageable));
         return "role/list";
     }

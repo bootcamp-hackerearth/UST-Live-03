@@ -13,6 +13,7 @@ export default function ProductUpdate() {
       showIdentifier={true}
       identifierLabel="Identifier"
       identifierReadOnly={true}
+      showAuditSummary={true}
     />
   );
 }

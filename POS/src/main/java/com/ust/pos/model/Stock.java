@@ -10,8 +10,8 @@ import java.util.List;
 @Getter
 @Setter
 public class Stock extends CommonFields {
-
     private List<String> warehouse;
     private Integer quantity;
     private Double unitPrice;
+    private String product;
 }

@@ -16,7 +16,7 @@ public interface ProductService {
 
     ProductDto findById(Long id);
 
-    void delete(Long id);
+    void delete(String identifier);
 
     ProductDto changeProductStatus(String identifier, boolean status);
 

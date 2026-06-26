@@ -12,6 +12,7 @@ const modules = [
   { label: "Products", href: "/product", description: "Manage SKUs, pricing, and stock." },
   { label: "Categories", href: "/category", description: "Organize your catalog." },
   { label: "Price Lists", href: "/price", description: "Update selling prices quickly." },
+  { label: "Orders", href: "/order", description: "Create orders and review receipts." },
   { label: "Users", href: "/user", description: "Staff, roles, and access." },
   { label: "Nodes", href: "/node", description: "Route permissions and menus." },
 ];

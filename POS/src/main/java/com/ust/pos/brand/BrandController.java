@@ -2,7 +2,6 @@ package com.ust.pos.brand;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +13,11 @@ public class BrandController {
     public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
     public static final String BRANDS = "brands";
 
-    @Autowired
-    BrandService brandService;
+    private final BrandService brandService;
+
+    public BrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @GetMapping("/list")
     public String listCategories(Model model, Pageable pageable) {
@@ -52,9 +54,9 @@ public class BrandController {
 
 
     @GetMapping("/delete")
-    public String deleteBrand(@RequestParam Long id) {
+    public String deleteBrand(@RequestParam String identifier) {
 
-        brandService.deleteById(id);
+        brandService.delete(identifier);
         return REDIRECT_BRAND_LIST;
     }
 

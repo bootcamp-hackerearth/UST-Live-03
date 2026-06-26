@@ -3,7 +3,6 @@ package com.ust.pos;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,11 +12,14 @@ import java.security.Principal;
 @Controller
 public class HomeController {
 
-    @Autowired
-    private NodeService nodeService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public HomeController(NodeService nodeService, UserService userService) {
+        this.nodeService = nodeService;
+        this.userService = userService;
+    }
 
     @GetMapping("/")
     public String home(Model model, Principal principal) {

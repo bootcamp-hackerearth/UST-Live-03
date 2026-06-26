@@ -7,6 +7,21 @@ const axiosInstance = axios.create({
   },
 });
 
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replaceAll("-", "+").replaceAll("_", "/")));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
+function clearAuthAndRedirect() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  globalThis.location.href = "/Login";
+}
+
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   const url = config.url || "";
@@ -19,14 +34,13 @@ axiosInstance.interceptors.request.use((config) => {
 
   const isPublic = publicPaths.some((path) => url.includes(path));
 
-  if (!token && !isPublic) {
-    if (globalThis.window !== undefined) {
-      globalThis.location.href = "/Login";
+  if (!isPublic) {
+    if (!token || isTokenExpired(token)) {
+      if (globalThis.window !== undefined) {
+        clearAuthAndRedirect();
+      }
+      return Promise.reject(new Error("Authentication required"));
     }
-    return Promise.reject(new Error("Authentication required"));
-  }
-
-  if (token && !isPublic) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -37,7 +51,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && globalThis.window !== undefined) {
-      globalThis.location.href = "/Login";
+      clearAuthAndRedirect();
     }
     return Promise.reject(error);
   }

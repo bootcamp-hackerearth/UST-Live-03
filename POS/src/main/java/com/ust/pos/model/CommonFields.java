@@ -7,6 +7,8 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @MappedSuperclass
@@ -16,4 +18,9 @@ public class CommonFields {
     private Long id;
     private String identifier;
     private boolean status = true;
+    private String createdBy;
+    private LocalDateTime createdOn;
+    private String modifiedBy;
+    private LocalDateTime modifiedOn;
+    private boolean deleted = false;
 }

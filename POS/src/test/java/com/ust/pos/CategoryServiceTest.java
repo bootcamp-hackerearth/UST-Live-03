@@ -118,7 +118,7 @@ class CategoryServiceTest {
     void findAll_shouldReturnList() {
         Page<Category> page = new PageImpl<>(List.of(category));
 
-        when(categoryRepository.findAll(any(Pageable.class))).thenReturn(page);
+        when(categoryRepository.findByDeletedFalse(any(Pageable.class))).thenReturn(page);
 
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
@@ -133,12 +133,17 @@ class CategoryServiceTest {
     }
 
     @Test
-    void deleteById_shouldDeleteCategory() {
-        doNothing().when(categoryRepository).deleteById(1L);
+    void delete_shouldSoftDeleteCategory() {
+        category.setStatus(true);
+        category.setDeleted(false);
 
-        categoryService.deleteById(1L);
+        when(categoryRepository.findByIdentifier("FOOD")).thenReturn(category);
 
-        verify(categoryRepository, times(1)).deleteById(1L);
+        categoryService.delete("FOOD");
+
+        assertTrue(category.isDeleted());
+        assertFalse(category.isStatus());
+        verify(categoryRepository, times(1)).save(category);
     }
 
     @Test
@@ -181,20 +186,38 @@ class CategoryServiceTest {
     }
 
     @Test
+    void save_shouldFail_whenSoftDeletedRecord() {
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("FOOD");
+
+        Category existing = new Category();
+        existing.setIdentifier("FOOD");
+        existing.setDeleted(true);
+
+        when(categoryRepository.findByIdentifier("FOOD"))
+                .thenReturn(existing);
+
+        CategoryDto result = categoryService.save(dto);
+
+        assertFalse(result.isSuccess());
+        verify(categoryRepository, never()).save(any());
+    }
+
+    @Test
     void changeCategoryStatusTest() {
-        Category category = new Category();
-        category.setIdentifier("FOOD");
-        category.setStatus(false);
+        Category category1 = new Category();
+        category1.setIdentifier("FOOD");
+        category1.setStatus(false);
 
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("FOOD");
         dto.setStatus(true);
 
         when(categoryRepository.findByIdentifier("FOOD"))
-                .thenReturn(category);
-        when(categoryRepository.save(category))
-                .thenReturn(category);
-        when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(category1);
+        when(categoryRepository.save(category1))
+                .thenReturn(category1);
+        when(modelMapper.map(category1, CategoryDto.class))
                 .thenReturn(dto);
 
         CategoryDto result = categoryService.changeCategoryStatus("FOOD", true);
@@ -203,7 +226,7 @@ class CategoryServiceTest {
         assertTrue(result.isStatus());
         assertEquals("FOOD", result.getIdentifier());
 
-        verify(categoryRepository, times(1)).save(category);
+        verify(categoryRepository, times(1)).save(category1);
     }
 
     @Test

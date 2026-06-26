@@ -2,7 +2,6 @@ package com.ust.pos.category;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,8 +12,12 @@ import org.springframework.web.bind.annotation.*;
 public class CategoryController {
     public static final String CATEGORIES = "categories";
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
-    @Autowired
-    CategoryService categoryService;
+
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String listCategories(Model model, Pageable pageable) {
@@ -52,8 +55,8 @@ public class CategoryController {
     }
 
     @GetMapping("/delete")
-    public String deleteCategory(@RequestParam Long id) {
-        categoryService.deleteById(id);
+    public String deleteCategory(@RequestParam String identifier) {
+        categoryService.delete(identifier);
         return REDIRECT_CATEGORY_LIST;
     }
 }

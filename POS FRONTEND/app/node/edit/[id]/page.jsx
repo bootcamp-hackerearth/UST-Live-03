@@ -10,6 +10,7 @@ export default function NodeUpdate() {
       extraFields={nodeFields}
       onSuccessPath="/node"
       showDescription={false}
+      showAuditSummary={true}
     />
   );
 }
