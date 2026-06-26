@@ -1,26 +1,23 @@
 package com.ust.pos.api.customer;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
+import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/customer")
 public class CustomerApiController extends BaseController {
 
-    @Autowired
-    private CustomerService customerService;
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private AddressService addressService;
+    private final CustomerService customerService;
+    private final AddressService addressService;
 
     @PostMapping("/list")
     public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
@@ -34,19 +31,23 @@ public class CustomerApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    public CustomerDto update(@RequestParam String identifier) {
-        CustomerDto response = customerService.findByIdentifier(identifier);
-        response.setBillingAddress(addressService.findByPhoneNoAndAddressType(response.getPhoneNumber(), "BILLING"));
-        response.setShippingAddress(addressService.findByPhoneNoAndAddressType(response.getPhoneNumber(), "SHIPPING"));
-        return response;
+    public CustomerDto get(@RequestParam String identifier) {
+        CustomerDto customerDto = customerService.findByIdentifier(identifier);
+        AddressDto billingAddress = addressService.findByPhoneNoAndAddressType(
+                customerDto.getPhoneNumber(), "Billing");
+        AddressDto shippingAddress = addressService.findByPhoneNoAndAddressType(
+                customerDto.getPhoneNumber(), "Shipping");
+        customerDto.setBillingAddress(billingAddress);
+        customerDto.setShippingAddress(shippingAddress);
+        return customerDto;
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);
@@ -57,6 +58,5 @@ public class CustomerApiController extends BaseController {
     }
 
 }
-
 
 

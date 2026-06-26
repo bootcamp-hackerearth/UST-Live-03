@@ -1,25 +1,22 @@
 package com.ust.pos.api.rack;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.rack.service.RackService;
-import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/api/rack")
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/rack")
 public class RackApiController extends BaseController {
 
-    @Autowired
-    private RackService rackService;
-    @Autowired
-    private ShelfService shelfService;
+    private final RackService rackService;
 
     @PostMapping("/list")
     public WsDto<RackDto> list(@RequestBody PaginationDto paginationDto) {
@@ -37,12 +34,12 @@ public class RackApiController extends BaseController {
         return rackService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RackDto updatePost(@RequestBody RackDto rackDto) {
         return rackService.update(rackDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             rackService.delete(identifier);
@@ -52,13 +49,13 @@ public class RackApiController extends BaseController {
         return true;
     }
 
-    @GetMapping("/toggle")
+    @PatchMapping("/toggle")
     public RackDto toggle(@RequestParam String identifier) {
         return rackService.toggleStatus(identifier);
     }
 
     @GetMapping("/active")
-    public List<RackDto> findActiveRacksDto() {
+    public List<RackDto> findActiveRacks() {
         return rackService.findActiveRacks();
     }
 

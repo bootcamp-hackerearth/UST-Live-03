@@ -2,19 +2,18 @@ package com.ust.pos.category;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/category")
 @Controller
+@RequestMapping("/category")
 public class CategoryController {
 
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
     public static final String CATEGORIES = "categories";
-    @Autowired
+
     private CategoryService categoryService;
 
     @GetMapping("/list")
@@ -78,4 +77,5 @@ public class CategoryController {
         categoryService.toggleStatus(identifier);
         return REDIRECT_CATEGORY_LIST;
     }
+
 }

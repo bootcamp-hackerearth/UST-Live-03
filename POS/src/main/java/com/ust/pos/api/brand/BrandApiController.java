@@ -1,23 +1,22 @@
 package com.ust.pos.api.brand;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/brand")
 public class BrandApiController extends BaseController {
 
-    @Autowired
-    private BrandService brandService;
+    private final BrandService brandService;
 
     @PostMapping("/list")
     public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
@@ -35,12 +34,12 @@ public class BrandApiController extends BaseController {
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public BrandDto update(Model model, @ModelAttribute BrandDto brandDto) {
+    @PutMapping("/update")
+    public BrandDto update(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -50,7 +49,7 @@ public class BrandApiController extends BaseController {
         return true;
     }
 
-    @GetMapping("/toggle")
+    @PatchMapping("/toggle")
     public BrandDto toggle(@RequestParam String identifier) {
         return brandService.toggleStatus(identifier);
     }

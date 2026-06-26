@@ -16,7 +16,7 @@ function Home() {
     const username = localStorage.getItem("username");
 
     if (!token) {
-      router.push("/login");
+      router.push("/login");  
       return;
     }
 

@@ -3,25 +3,21 @@ package com.ust.pos.customer;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/customer")
 public class CustomerController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/customer/list";
 
-    @Autowired
-    private CustomerService customerService;
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private AddressService addressService;
+    private final CustomerService customerService;
+    private final AddressService addressService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -31,7 +27,6 @@ public class CustomerController {
 
     @GetMapping("/add")
     public String add(Model model, Pageable pageable) {
-
         model.addAttribute("customers", customerService.findAll(pageable));
         model.addAttribute("customerDto", new CustomerDto());
         return "customer/add";
@@ -49,12 +44,10 @@ public class CustomerController {
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
-
         CustomerDto response = customerService.findByIdentifier(identifier);
         response.setBillingAddress(addressService.findByPhoneNoAndAddressType(response.getPhoneNumber(), "BILLING"));
         response.setShippingAddress(addressService.findByPhoneNoAndAddressType(response.getPhoneNumber(), "SHIPPING"));
         model.addAttribute("customerDto", response);
-
         return "customer/customer";
     }
 

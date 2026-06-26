@@ -1,22 +1,22 @@
 package com.ust.pos.api.category;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/api/category")
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/category")
 public class CategoryApiController extends BaseController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     @PostMapping("/list")
     public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
@@ -34,12 +34,12 @@ public class CategoryApiController extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -54,7 +54,7 @@ public class CategoryApiController extends BaseController {
         return categoryService.findChildCategories();
     }
 
-    @GetMapping("/toggle")
+    @PatchMapping("/toggle")
     public CategoryDto toggle(@RequestParam String identifier) {
         return categoryService.toggleStatus(identifier);
     }

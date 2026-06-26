@@ -17,6 +17,7 @@ function DynamicList({
   formFields = [],
   formTitle = "",
   uniqueFields = [],
+  showAddToCart = false,
 }) {
   const router = useRouter();
 
@@ -62,11 +63,7 @@ function DynamicList({
   const matchesSearchValue = (value, search, displayKey) => {
     if (Array.isArray(value)) {
       return value.some((v) =>
-        String(
-          typeof v === "object"
-            ? v[displayKey || "identifier"]
-            : v
-        )
+        String(typeof v === "object" ? v[displayKey || "identifier"] : v)
           .toLowerCase()
           .includes(search.toLowerCase())
       );
@@ -152,16 +149,7 @@ function DynamicList({
     if (!globalThis.confirm("Delete this record?")) return;
 
     try {
-      const response = await commonApi.delete(
-        routeName,
-        "identifier",
-        identifier
-      );
-
-      if (!response.data) {
-        alert("Cannot delete category. It is used as a super category.");
-        return;
-      }
+      await commonApi.delete(routeName, "identifier", identifier);
 
       const loggedInIdentifier = localStorage.getItem("username");
 
@@ -175,7 +163,6 @@ function DynamicList({
       fetchData();
     } catch (err) {
       console.log(err);
-      alert("Failed to delete record.");
     }
   };
 
@@ -185,12 +172,40 @@ function DynamicList({
       const updatedItem = response.data;
 
       setAllData((prev) =>
-        prev.map((row) =>
-          row.identifier === identifier ? updatedItem : row
-        )
+        prev.map((row) => (row.identifier === identifier ? updatedItem : row))
       );
     } catch (err) {
       console.log(err);
+    }
+  };
+
+  const handleAddToCart = async (item) => {
+    try {
+      let cartIdentifier = localStorage.getItem("cartIdentifier");
+
+      if (!cartIdentifier) {
+        cartIdentifier = `CART-${Date.now()}`;
+
+        await commonApi.add("cart", {
+          identifier: cartIdentifier,
+          originalPrice: 0,
+          discount: 0,
+          totalPrice: 0,
+        });
+
+        localStorage.setItem("cartIdentifier", cartIdentifier);
+      }
+
+      await commonApi.add("cartentry", {
+        cartIdentifier,
+        productIdentifier: item.identifier,
+        quantity: 1,
+      });
+
+      alert("Product added to cart");
+    } catch (err) {
+      console.log(err);
+      alert("Failed to add product");
     }
   };
 
@@ -310,17 +325,18 @@ function DynamicList({
                 {columns.map((column, index) => (
                   <th
                     key={column.key || index}
-                    className={`px-6 py-4 text-sm font-semibold text-gray-700 ${column.type === "toggle" ||
-                        column.type === "stockStatus"
+                    className={`px-6 py-4 text-sm font-semibold text-gray-700 ${
+                      column.type === "toggle" ||
+                      column.type === "stockStatus"
                         ? "text-center min-w-[120px]"
                         : "text-left min-w-[220px]"
-                      }`}
+                    }`}
                   >
                     {column.label}
                   </th>
                 ))}
 
-                <th className="min-w-[100px] px-6 py-4 text-center text-sm font-semibold text-gray-700">
+                <th className="min-w-[160px] px-6 py-4 text-center text-sm font-semibold text-gray-700">
                   Action
                 </th>
               </tr>
@@ -330,7 +346,11 @@ function DynamicList({
               {data.length > 0 ? (
                 data.map((item, rowIndex) => (
                   <tr
-                    key={item && (item.identifier || item.id) ? (item.identifier || item.id) : `row-${rowIndex}`}
+                    key={
+                      item && (item.identifier || item.id)
+                        ? item.identifier || item.id
+                        : `row-${rowIndex}`
+                    }
                     className="border-t hover:bg-gray-50 transition-colors"
                   >
                     <td className="min-w-[70px] px-6 py-5 text-center text-sm text-gray-700 align-top">
@@ -343,11 +363,12 @@ function DynamicList({
                       return (
                         <td
                           key={column.key || colIndex}
-                          className={`px-6 py-5 text-sm text-gray-700 align-top ${column.type === "toggle" ||
-                              column.type === "stockStatus"
+                          className={`px-6 py-5 text-sm text-gray-700 align-top ${
+                            column.type === "toggle" ||
+                            column.type === "stockStatus"
                               ? "text-center min-w-[120px]"
                               : "text-left min-w-[220px]"
-                            }`}
+                          }`}
                         >
                           {(!column.type || column.type === "text") && (
                             <div className="whitespace-normal break-words leading-6">
@@ -358,7 +379,7 @@ function DynamicList({
                           {column.type === "list" && (
                             <div className="flex flex-wrap gap-2">
                               {Array.isArray(item[column.key]) &&
-                                item[column.key].length > 0 ? (
+                              item[column.key].length > 0 ? (
                                 item[column.key].map((value, i) => (
                                   <span
                                     key={
@@ -391,16 +412,18 @@ function DynamicList({
                             <div className="flex justify-center items-center">
                               <button
                                 onClick={() => handleToggle(item.identifier)}
-                                className={`relative inline-flex items-center w-11 h-6 rounded-full overflow-hidden transition-colors duration-300 ${isActive(item[column.key])
+                                className={`relative inline-flex items-center w-11 h-6 rounded-full overflow-hidden transition-colors duration-300 ${
+                                  isActive(item[column.key])
                                     ? "bg-red-600"
                                     : "bg-gray-300"
-                                  }`}
+                                }`}
                               >
                                 <span
-                                  className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${isActive(item[column.key])
+                                  className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${
+                                    isActive(item[column.key])
                                       ? "translate-x-5"
                                       : "translate-x-0"
-                                    }`}
+                                  }`}
                                 />
                               </button>
                             </div>
@@ -409,13 +432,24 @@ function DynamicList({
                       );
                     })}
 
-                    <td className="min-w-[100px] px-6 py-5 text-center align-top">
-                      <button
-                        onClick={(e) => handleMenuToggle(e, rowIndex)}
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-600"
-                      >
-                        <MoreVertical size={18} />
-                      </button>
+                    <td className="min-w-[160px] px-6 py-5 text-center align-top">
+                      <div className="flex items-center justify-center gap-2">
+                        {showAddToCart && (
+                          <button
+                            onClick={() => handleAddToCart(item)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm"
+                          >
+                            Add To Cart
+                          </button>
+                        )}
+
+                        <button
+                          onClick={(e) => handleMenuToggle(e, rowIndex)}
+                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600"
+                        >
+                          <MoreVertical size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -543,6 +577,7 @@ DynamicList.propTypes = {
   formFields: PropTypes.array,
   formTitle: PropTypes.string,
   uniqueFields: PropTypes.arrayOf(PropTypes.string),
+  showAddToCart: PropTypes.bool,
 };
 
 export default DynamicList;

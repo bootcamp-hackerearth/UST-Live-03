@@ -22,4 +22,6 @@ public interface ProductService {
 
     List<ProductDto> findActiveProducts();
 
+    List<ProductDto> findActiveProductsWithStock();
+
 }

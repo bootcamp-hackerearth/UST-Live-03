@@ -5,16 +5,16 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.product.service.ProductService;
-import com.ust.pos.shelf.service.ShelfService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/product")
 @Controller
+@RequiredArgsConstructor
+@RequestMapping("/product")
 public class ProductController {
 
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
@@ -24,19 +24,11 @@ public class ProductController {
     public static final String CATEGORIES = "categories";
     public static final String UNIT = "unit";
 
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private CategoryService categoryService;
-    @Autowired
-    private ShelfService shelfService;
-    @Autowired
-    private BrandService brandService;
-    @Autowired
-    private ModelsService modelsService;
-    @Autowired
-    private UnitService unitService;
-
+    private final ProductService productService;
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final ModelsService modelsService;
+    private final UnitService unitService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -112,3 +104,4 @@ public class ProductController {
         return REDIRECT_PRODUCT_LIST;
     }
 }
+

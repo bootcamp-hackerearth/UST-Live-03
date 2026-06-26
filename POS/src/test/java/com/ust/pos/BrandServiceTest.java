@@ -5,12 +5,10 @@ import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -22,6 +20,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -35,154 +34,207 @@ class BrandServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void saveTest() {
-        BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Admin");
+    void testFindByIdentifier_Success() {
+        String identifier = "BRAND-001";
 
         Brand brand = new Brand();
-        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(null);
-        Mockito.when(modelMapper.map(brandDto, Brand.class)).thenReturn(brand);
-        BrandDto response = brandServiceImpl.save(brandDto);
+        brand.setIdentifier(identifier);
 
-        Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertNull(response.getMessage());
-        assertTrue(response.isSuccess());
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier(identifier);
+
+        when(brandRepository.findByIdentifierAndDeletedFalse(identifier))
+                .thenReturn(brand);
+        when(modelMapper.map(brand, BrandDto.class))
+                .thenReturn(brandDto);
+
+        BrandDto result = brandServiceImpl.findByIdentifier(identifier);
+
+        assertEquals(identifier, result.getIdentifier());
     }
 
     @Test
-    void saveTestFailure() {
+    void testSave_Success() {
         BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Admin");
+        brandDto.setIdentifier("BRAND-001");
 
         Brand brand = new Brand();
-        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(brand);
-        BrandDto response = brandServiceImpl.save(brandDto);
+        brand.setIdentifier("BRAND-001");
 
-        Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertNotNull(response.getMessage());
-        assertFalse(response.isSuccess());
+        when(brandRepository.findByIdentifier("BRAND-001")).thenReturn(null);
+        when(modelMapper.map(brandDto, Brand.class)).thenReturn(brand);
 
+        BrandDto result = brandServiceImpl.save(brandDto);
+
+        assertNotNull(result);
+        verify(brandRepository).save(brand);
     }
 
     @Test
-    void findByIdentifierTest() {
-        Brand brand = new Brand();
-        brand.setIdentifier("Admin");
-
+    void testSave_AlreadyExists() {
         BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Admin");
-
-        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(brand);
-        Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);
-
-        BrandDto response = brandServiceImpl.findByIdentifier("Admin");
-        Assertions.assertEquals("Admin", response.getIdentifier());
-    }
-
-    @Test
-    void updateTest() {
-        BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Admin");
+        brandDto.setIdentifier("BRAND-001");
 
         Brand existingBrand = new Brand();
-        existingBrand.setIdentifier("Admin");
+        existingBrand.setDeleted(false);
 
-        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(existingBrand);
-        Mockito.when(brandRepository.save(existingBrand)).thenReturn(existingBrand);
+        when(brandRepository.findByIdentifier("BRAND-001")).thenReturn(existingBrand);
 
-        BrandDto response = brandServiceImpl.update(brandDto);
-        assertTrue(response.isSuccess());
+        BrandDto result = brandServiceImpl.save(brandDto);
+
+        assertFalse(result.isSuccess());
+        assertEquals("Brand with identifier - BRAND-001 already exists", result.getMessage());
+        verify(brandRepository, never()).save(any(Brand.class));
     }
 
     @Test
-    void updateTestFailure() {
+    void testSave_DeletedBrandExists() {
         BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Admin");
+        brandDto.setIdentifier("BRAND-001");
 
-        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(null);
+        Brand existingBrand = new Brand();
+        existingBrand.setDeleted(true);
 
-        BrandDto response = brandServiceImpl.update(brandDto);
-        assertFalse(response.isSuccess());
+        when(brandRepository.findByIdentifier("BRAND-001")).thenReturn(existingBrand);
+
+        BrandDto result = brandServiceImpl.save(brandDto);
+
+        assertFalse(result.isSuccess());
+        assertEquals(
+                "Brand with identifier - BRAND-001 was deleted and cannot be created again.",
+                result.getMessage()
+        );
+        verify(brandRepository, never()).save(any(Brand.class));
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(brandRepository).deleteByIdentifier("Admin");
+    void testUpdate_Success() {
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("BRAND-001");
 
-        brandServiceImpl.delete("Admin");
-        Mockito.verify(brandRepository).deleteByIdentifier("Admin");
+        Brand existingBrand = new Brand();
+        existingBrand.setIdentifier("BRAND-001");
+
+        when(brandRepository.findByIdentifier("BRAND-001"))
+                .thenReturn(existingBrand);
+
+        BrandDto result = brandServiceImpl.update(brandDto);
+
+        assertNotNull(result);
+        verify(modelMapper).map(brandDto, existingBrand);
+        verify(brandRepository).save(existingBrand);
     }
 
     @Test
-    void findAllTest() {
-        Pageable pageable = PageRequest.of(0, 5);
+    void testUpdate_NotFound() {
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("BRAND-001");
+
+        when(brandRepository.findByIdentifier("BRAND-001")).thenReturn(null);
+
+        BrandDto result = brandServiceImpl.update(brandDto);
+
+        assertFalse(result.isSuccess());
+        assertEquals("Brand with identifier - BRAND-001 not found", result.getMessage());
+        verify(brandRepository, never()).save(any(Brand.class));
+    }
+
+    @Test
+    void testDelete_Success() {
+        String identifier = "BRAND-001";
+
         Brand brand = new Brand();
-        brand.setIdentifier("B1");
-        List<Brand> brandList = List.of(brand);
-        Page<Brand> brandPage = new PageImpl<>(brandList);
+        brand.setIdentifier(identifier);
+        brand.setDeleted(false);
 
-        Mockito.when(brandRepository.findAll(pageable)).thenReturn(brandPage);
+        when(brandRepository.findByIdentifierAndDeletedFalse(identifier))
+                .thenReturn(brand);
+
+        brandServiceImpl.delete(identifier);
+
+        assertTrue(brand.getDeleted());
+        verify(brandRepository).save(brand);
+    }
+
+    @Test
+    void testDelete_NotFound() {
+        String identifier = "BRAND-001";
+
+        when(brandRepository.findByIdentifierAndDeletedFalse(identifier))
+                .thenReturn(null);
+
+        brandServiceImpl.delete(identifier);
+
+        verify(brandRepository, never()).save(any(Brand.class));
+    }
+
+    @Test
+    void testFindAll_Success() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Brand brand = new Brand();
+        brand.setIdentifier("BRAND-001");
+
+        Page<Brand> brandPage = new PageImpl<>(List.of(brand), pageable, 1);
 
         BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("B1");
-        List<BrandDto> brandDtoList = List.of(brandDto);
+        brandDto.setIdentifier("BRAND-001");
 
-        Mockito.when(modelMapper.map(Mockito.eq(brandPage.getContent()), Mockito.any(Type.class))).thenReturn(brandDtoList);
+        when(brandRepository.findAllByDeletedFalse(pageable))
+                .thenReturn(brandPage);
+
+        when(modelMapper.map(anyList(), any(Type.class)))
+                .thenReturn(List.of(brandDto));
+
         WsDto<BrandDto> result = brandServiceImpl.findAll(pageable);
 
-        Assertions.assertEquals(1, result.getDtoList().size());
-        Assertions.assertEquals("B1", result.getDtoList().get(0).getIdentifier());
-        Mockito.verify(brandRepository).findAll(pageable);
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
     }
 
     @Test
-    void toggleStatusTest_TrueToFalse() {
+    void testToggleStatus_Success() {
+        String identifier = "BRAND-001";
+
         Brand brand = new Brand();
-        brand.setIdentifier("M1");
+        brand.setIdentifier(identifier);
         brand.setStatus(true);
 
-        Mockito.when(brandRepository.findByIdentifier("M1")).thenReturn(brand);
-        brandServiceImpl.toggleStatus("M1");
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier(identifier);
+
+        when(brandRepository.findByIdentifier(identifier)).thenReturn(brand);
+        when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);
+
+        BrandDto result = brandServiceImpl.toggleStatus(identifier);
+
         assertFalse(brand.isStatus());
-        Mockito.verify(brandRepository).save(brand);
+        assertNotNull(result);
+        verify(brandRepository).save(brand);
     }
 
     @Test
-    void toggleStatusTest_FalseToTrue() {
+    void testFindActiveBrands_Success() {
         Brand brand = new Brand();
-        brand.setIdentifier("M1");
-        brand.setStatus(false);
+        brand.setIdentifier("BRAND-001");
 
-        Mockito.when(brandRepository.findByIdentifier("M1")).thenReturn(brand);
-        brandServiceImpl.toggleStatus("M1");
-        assertTrue(brand.isStatus());
-        Mockito.verify(brandRepository).save(brand);
-    }
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("BRAND-001");
 
-    @Test
-    void toggleStatusTest_NotFound() {
-        Mockito.when(brandRepository.findByIdentifier("M1")).thenReturn(null);
-        assertThrows(NullPointerException.class, () -> brandServiceImpl.toggleStatus("M1"));
-    }
+        when(brandRepository.findByStatusTrueAndDeletedFalse())
+                .thenReturn(List.of(brand));
 
-    @Test
-    void findActiveBrandTest() {
-        Brand model = new Brand();
-        model.setIdentifier("M1");
-        model.setStatus(true);
+        when(modelMapper.map(anyList(), any(Type.class)))
+                .thenReturn(List.of(brandDto));
 
-        BrandDto dto = new BrandDto();
-        dto.setIdentifier("M1");
-        List<Brand> brandList = List.of(model);
-        List<BrandDto> dtoList = List.of(dto);
+        List<BrandDto> result = brandServiceImpl.findActiveBrands();
 
-        Mockito.when(brandRepository.findByStatusTrue()).thenReturn(brandList);
-        Mockito.when(modelMapper.map(Mockito.eq(brandList), Mockito.any(java.lang.reflect.Type.class))).thenReturn(dtoList);
-        List<BrandDto> response = brandServiceImpl.findActiveBrands();
-
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("M1", response.get(0).getIdentifier());
-        Mockito.verify(brandRepository).findByStatusTrue();
+        assertEquals(1, result.size());
+        assertEquals("BRAND-001", result.get(0).getIdentifier());
     }
 
 

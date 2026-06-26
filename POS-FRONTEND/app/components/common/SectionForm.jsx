@@ -26,7 +26,13 @@ function SectionForm({
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const allFields = sections.flatMap((section) => section.fields || []);
+  const auditKeys = new Set(["createdBy", "createdOn", "modifiedBy", "modifiedOn"]);
+
+  const allFields = sections
+    .flatMap((section) => section.fields || [])
+    .filter((field) => !auditKeys.has(field.key));
+
+  const isEdit = !!initialValues?.identifier;
 
   const buildInitialState = () => {
     const state = { ...initialValues };
@@ -46,6 +52,64 @@ function SectionForm({
   useEffect(() => {
     setFormData(buildInitialState());
   }, [initialValues, sections]);
+
+  const formatDateTime = (value) => {
+    if (!value) return "-";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleString();
+  };
+
+  const renderAuditDetails = () => {
+    if (!isEdit) return null;
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm border">
+        <div className="grid grid-cols-2 gap-6 p-4">
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+              Created Details
+            </h4>
+
+            <div className="space-y-1 text-[12px] text-gray-700">
+              <p>
+                <span className="font-semibold">Created By :</span>{" "}
+                {formData.createdBy || "-"}
+              </p>
+
+              <p>
+                <span className="font-semibold">Created On :</span>{" "}
+                {formatDateTime(formData.createdOn)}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2 text-right">
+              Modified Details
+            </h4>
+
+            <div className="space-y-1 text-[12px] text-gray-700 text-right">
+              <p>
+                <span className="font-semibold">Modified By :</span>{" "}
+                {formData.modifiedBy || "-"}
+              </p>
+
+              <p>
+                <span className="font-semibold">Modified On :</span>{" "}
+                {formatDateTime(formData.modifiedOn)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const validateRequired = (field, value) => {
     if (
@@ -73,23 +137,23 @@ function SectionForm({
   };
 
   const validateEmail = (value) => {
-  if (!value || value.length > 254) {
-    return "Please enter a valid email address";
-  }
+    if (!value || value.length > 254) {
+      return "Please enter a valid email address";
+    }
 
-  const atIndex = value.indexOf("@");
-  const dotIndex = value.lastIndexOf(".");
+    const atIndex = value.indexOf("@");
+    const dotIndex = value.lastIndexOf(".");
 
-  const isValid =
-    atIndex > 0 &&
-    dotIndex > atIndex + 1 &&
-    dotIndex < value.length - 1 &&
-    !value.includes(" ") &&
-    !value.includes("\t") &&
-    !value.includes("\n");
+    const isValid =
+      atIndex > 0 &&
+      dotIndex > atIndex + 1 &&
+      dotIndex < value.length - 1 &&
+      !value.includes(" ") &&
+      !value.includes("\t") &&
+      !value.includes("\n");
 
-  return isValid ? "" : "Please enter a valid email address";
-};
+    return isValid ? "" : "Please enter a valid email address";
+  };
 
   const validatePassword = (value) => {
     if (value.length < 6) {
@@ -123,6 +187,8 @@ function SectionForm({
   };
 
   const validateField = (field, value) => {
+    if (field.disabled) return "";
+
     let error = validateRequired(field, value);
     if (error) return error;
 
@@ -217,47 +283,42 @@ function SectionForm({
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+  if (!validate()) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const payload = buildCustomPayload
-        ? buildCustomPayload(formData)
-        : buildPayload();
+    const payload = buildCustomPayload
+      ? buildCustomPayload(formData)
+      : buildPayload();
 
-      console.log("PAYLOAD:", JSON.stringify(payload, null, 2));
+    console.log("PAYLOAD:", JSON.stringify(payload, null, 2));
 
-      const response = await axiosInstance.post(submitUrl, payload);
+    const response = isEdit
+      ? await axiosInstance.put(submitUrl, payload)
+      : await axiosInstance.post(submitUrl, payload);
 
-      alert("Saved Successfully");
+    console.log("RESPONSE:", response.data);
 
-      if (onSuccess) {
-        onSuccess(response.data);
-      } else {
-        router.push(backUrl);
-      }
-    } catch (err) {
-      console.log(err);
-
-      if (err.response?.status === 409) {
-        uniqueFields.forEach((key) => {
-          setErrors((prev) => ({
-            ...prev,
-            [key]: "This value already exists",
-          }));
-        });
-
-        alert("Duplicate entry — this record already exists.");
-      } else if (err.response?.status === 403) {
-        alert("Access denied — check role permission for this API.");
-      } else {
-        alert("Something went wrong");
-      }
-    } finally {
-      setLoading(false);
+    if (response.data?.success === false) {
+      alert(response.data?.message || "Save failed");
+      return;
     }
-  };
+
+    alert(response.data?.message || "Saved Successfully");
+
+    if (onSuccess) {
+      onSuccess(response.data);
+    } else {
+      router.push(backUrl);
+    }
+  } catch (err) {
+    console.log(err);
+    alert(err.response?.data?.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCopyFrom = (targetSection) => {
     const sourceSection = sections.find(
@@ -300,6 +361,8 @@ function SectionForm({
   };
 
   const renderField = (field, sectionIndex, fieldIndex) => {
+    if (auditKeys.has(field.key)) return null;
+
     const fieldKey = `section-${sectionIndex}-field-${fieldIndex}-${
       field.key || "field"
     }`;
@@ -328,7 +391,7 @@ function SectionForm({
         )}
 
         {field.type === "select" && (
-          <React.Fragment key={`${fieldKey}-select`}>
+          <>
             <SingleSelect
               label={field.label}
               value={formData[field.key]}
@@ -344,11 +407,11 @@ function SectionForm({
                 {errors[field.key]}
               </span>
             )}
-          </React.Fragment>
+          </>
         )}
 
         {field.type === "multiselect" && (
-          <React.Fragment key={`${fieldKey}-multiselect`}>
+          <>
             <MultiSelect
               label={field.label}
               selectedValues={
@@ -374,7 +437,7 @@ function SectionForm({
                 {errors[field.key]}
               </span>
             )}
-          </React.Fragment>
+          </>
         )}
       </div>
     );
@@ -405,6 +468,8 @@ function SectionForm({
         </div>
       </div>
 
+      {renderAuditDetails()}
+
       {sections.map((section, sectionIndex) => {
         let gridColsClass = "grid-cols-1 md:grid-cols-2";
 
@@ -415,6 +480,10 @@ function SectionForm({
         if (section.columns === 3) {
           gridColsClass = "grid-cols-1 md:grid-cols-3";
         }
+
+        const sectionFields = (section.fields || []).filter(
+  (field) => !auditKeys.has(field.key)
+);
 
         return (
           <div
@@ -450,7 +519,7 @@ function SectionForm({
             )}
 
             <div className={`p-6 grid gap-6 ${gridColsClass}`}>
-              {(section.fields || []).map((field, fieldIndex) =>
+              {sectionFields.map((field, fieldIndex) =>
                 renderField(field, sectionIndex, fieldIndex)
               )}
             </div>

@@ -2,7 +2,7 @@ package com.ust.pos.brand;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/brand")
+@RequiredArgsConstructor
 public class BrandController {
 
     public static final String REDIRECT_LIST = "redirect:/brand/list";
     public static final String BRAND = "brand";
 
-    @Autowired
-    private BrandService brandService;
+    private final BrandService brandService;
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
@@ -39,7 +39,6 @@ public class BrandController {
             model.addAttribute("message", response.getMessage());
             return "brand/add";
         }
-
         return REDIRECT_LIST;
     }
 

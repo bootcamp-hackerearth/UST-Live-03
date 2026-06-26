@@ -25,6 +25,10 @@ function DynamicForm({
 
   const isEdit = !!initialValues?.identifier;
 
+  const auditKeys = new Set(["createdBy", "createdOn", "modifiedBy", "modifiedOn"]);
+
+  const formFields = fields.filter((field) => !auditKeys.has(field.key));
+
   let buttonLabel = "Save";
   if (loading) {
     buttonLabel = "Saving...";
@@ -47,7 +51,9 @@ function DynamicForm({
   const validate = () => {
     const newErrors = {};
 
-    fields.forEach((field) => {
+    formFields.forEach((field) => {
+      if (field.disabled) return;
+
       const value = formData[field.key];
 
       if (field.required !== false) {
@@ -85,60 +91,133 @@ function DynamicForm({
     return value ?? "";
   };
 
-  const buildPayload = () => {
-    const payload = {};
+  const formatDateTime = (value) => {
+    if (!value) return "-";
 
-    fields.forEach((field) => {
-      const value = formData[field.key];
+    const date = new Date(value);
 
-      if (field.type === "multiselect") {
-        payload[field.key] = Array.isArray(value)
-          ? value.map((item) =>
-              typeof item === "object"
-                ? item[field.optionValue || "identifier"]
-                : item
-            )
-          : [];
-      } else {
-        payload[field.key] = formatValue(value);
-      }
-    });
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
 
-    console.log("FINAL PAYLOAD:", payload);
-    return payload;
+    return date.toLocaleString();
   };
+
+  const buildPayload = () => {
+  const payload = {};
+
+  formFields.forEach((field) => {
+    const value = formData[field.key];
+
+    if (field.disabled && !field.readOnlyOnEdit) return;
+
+    if (field.type === "multiselect") {
+      payload[field.key] = Array.isArray(value)
+        ? value.map((item) =>
+            typeof item === "object"
+              ? item[field.optionValue || "identifier"]
+              : item
+          )
+        : [];
+    } else {
+      payload[field.key] = formatValue(value);
+    }
+  });
+
+  if (isEdit) {
+    payload.identifier = initialValues.identifier;
+  }
+
+  console.log("FINAL PAYLOAD:", payload);
+  return payload;
+};
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validate()) return;
+  if (!validate()) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const payload = buildPayload();
+    const payload = buildPayload();
 
-      const response = isEdit
-        ? await commonApi.update(routeName, payload)
-        : await commonApi.add(routeName, payload);
+    const response = isEdit
+      ? await commonApi.update(routeName, payload)
+      : await commonApi.add(routeName, payload);
 
-      alert(isEdit ? "Updated Successfully" : "Saved Successfully");
+    const result = response?.data || response;
 
-      if (onSuccess) {
-        onSuccess(response.data);
-      }
-    } catch (err) {
-      console.log(err);
-
-      if (err.response?.status === 409) {
-        alert("Duplicate entry already exists");
-      } else {
-        alert("Something went wrong");
-      }
-    } finally {
-      setLoading(false);
+    if (result?.success === false) {
+      alert(result.message || "Operation failed");
+      return;
     }
-  };
+
+    alert(result?.message || (isEdit ? "Updated Successfully" : "Saved Successfully"));
+
+    if (onSuccess) {
+      onSuccess(result);
+    }
+  } catch (err) {
+    console.log(err);
+
+    if (err.response?.data?.message) {
+      alert(err.response.data.message);
+    } else if (err.response?.status === 409) {
+      alert("Duplicate entry already exists");
+    } else {
+      alert("Something went wrong");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const renderAuditDetails = () => {
+  if (!isEdit) return null;
+
+  return (
+    <div className="px-6 pt-5">
+      <div className="grid grid-cols-2 gap-6 border rounded-xl bg-gray-50 p-3">
+        <div>
+          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+            Created Details
+          </h4>
+
+          <div className="space-y-1 text-[12px] text-gray-700">
+            <p>
+              <span className="font-semibold">Created By :</span>{" "}
+              {formData.createdBy || "-"}
+            </p>
+
+            <p>
+              <span className="font-semibold">Created On :</span>{" "}
+              {formatDateTime(formData.createdOn)}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2 text-right">
+            Modified Details
+          </h4>
+
+          <div className="space-y-1 text-[12px] text-gray-700 text-right">
+            <p>
+              <span className="font-semibold">Modified By :</span>{" "}
+              {formData.modifiedBy || "-"}
+            </p>
+
+            <p>
+              <span className="font-semibold">Modified On :</span>{" "}
+              {formatDateTime(formData.modifiedOn)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   const renderField = (field) => {
     const isReadOnly = field.disabled || (isEdit && field.readOnlyOnEdit);
@@ -209,8 +288,10 @@ function DynamicForm({
   if (isModal) {
     return (
       <form onSubmit={handleSubmit} className="flex flex-col">
+        {renderAuditDetails()}
+
         <div className="px-6 py-6 flex flex-col gap-5">
-          {fields.map((field) => (
+          {formFields.map((field) => (
             <div key={field.key}>{renderField(field)}</div>
           ))}
         </div>
@@ -245,8 +326,10 @@ function DynamicForm({
       )}
 
       <form onSubmit={handleSubmit}>
+        {renderAuditDetails()}
+
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {fields.map((field) => (
+          {formFields.map((field) => (
             <div
               key={field.key}
               className={field.fullWidth ? "md:col-span-2" : ""}

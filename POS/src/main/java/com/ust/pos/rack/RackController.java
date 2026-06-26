@@ -3,24 +3,23 @@ package com.ust.pos.rack;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.rack.service.RackService;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/rack")
 @Controller
+@RequiredArgsConstructor
+@RequestMapping("/rack")
 public class RackController {
 
     public static final String REDIRECT_RACK_LIST = "redirect:/rack/list";
     public static final String SHELF = "shelf";
     public static final String RACKS = "racks";
 
-    @Autowired
-    private RackService rackService;
-    @Autowired
-    private ShelfService shelfService;
+    private final RackService rackService;
+    private final ShelfService shelfService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

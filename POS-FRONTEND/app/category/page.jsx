@@ -26,6 +26,11 @@ function CategoryList() {
       label: "Super Category",
       type: "text",
     },
+    {
+      key: "status",
+      label: "Status",
+      type: "toggle",
+    },
   ];
 
   const formFields = [
@@ -46,6 +51,48 @@ function CategoryList() {
       optionValue: "identifier",
       required: false,
     },
+    {
+      key: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        {
+          label: "Active",
+          value: true,
+        },
+        {
+          label: "Inactive",
+          value: false,
+        },
+      ],
+      optionLabel: "label",
+      optionValue: "value",
+      required: true,
+    },
+    {
+      key: "createdBy",
+      label: "Created By",
+      type: "text",
+      required: false,
+    },
+    {
+      key: "createdOn",
+      label: "Created On",
+      type: "text",
+      required: false,
+    },
+    {
+      key: "modifiedBy",
+      label: "Modified By",
+      type: "text",
+      required: false,
+    },
+    {
+      key: "modifiedOn",
+      label: "Modified On",
+      type: "text",
+      required: false,
+    }
   ];
 
   return (

@@ -41,8 +41,8 @@ function MultiSelect({
 
     const updated = isSelected(option)
       ? selectedValues.filter(
-          (item) => item[optionValue] !== option[optionValue]
-        )
+        (item) => item[optionValue] !== option[optionValue]
+      )
       : [...selectedValues, option];
 
     onChange(updated);
@@ -123,9 +123,8 @@ function MultiSelect({
         >
           <ChevronDown
             size={18}
-            className={`flex-shrink-0 transition-transform duration-200 ${
-              open ? "rotate-180" : ""
-            }`}
+            className={`flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""
+              }`}
           />
         </button>
       </div>
@@ -164,20 +163,18 @@ function MultiSelect({
                   className={`
                     px-3 py-2 text-sm cursor-pointer flex items-center gap-2
                     transition-colors outline-none focus:bg-gray-100
-                    ${
-                      selected
-                        ? "bg-red-50 text-red-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
+                    ${selected
+                      ? "bg-red-50 text-red-700 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
                     }
                   `}
                 >
                   <span
                     className={`
                       w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center
-                      ${
-                        selected
-                          ? "bg-red-600 border-red-600"
-                          : "border-gray-300"
+                      ${selected
+                        ? "bg-red-600 border-red-600"
+                        : "border-gray-300"
                       }
                     `}
                   >

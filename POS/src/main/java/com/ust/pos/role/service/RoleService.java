@@ -12,7 +12,7 @@ public interface RoleService {
 
     void delete(String identifier);
 
-    WsDto<RoleDto>findAll(Pageable pageable);
+    WsDto<RoleDto> findAll(Pageable pageable);
 
     RoleDto findByIdentifier(String identifier);
 

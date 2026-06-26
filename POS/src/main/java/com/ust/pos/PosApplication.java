@@ -1,9 +1,9 @@
 package com.ust.pos;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -19,10 +19,10 @@ import javax.sql.DataSource;
 @SpringBootApplication
 @OpenAPIDefinition
 @ComponentScan({"com.ust.pos.web.controller", "com.ust.pos"})
+@RequiredArgsConstructor
 public class PosApplication {
 
-    @Autowired
-    Environment environment;
+    final Environment environment;
 
     public static void main(String[] args) {
         SpringApplication.run(PosApplication.class, args);

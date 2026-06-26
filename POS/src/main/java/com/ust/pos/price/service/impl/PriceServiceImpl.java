@@ -1,13 +1,14 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,16 +18,15 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class PriceServiceImpl implements PriceService {
+@RequiredArgsConstructor
+public class PriceServiceImpl extends BaseService implements PriceService {
 
-    @Autowired
-    private PriceRepository priceRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final PriceRepository priceRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-        Price price = priceRepository.findByIdentifier(identifier);
+        Price price = priceRepository.findByIdentifierAndDeletedFalse(identifier);
         if (price == null) {
             return null;
         }
@@ -39,11 +39,17 @@ public class PriceServiceImpl implements PriceService {
         String identifier = priceDto.getIdentifier();
         Price existingPrice = priceRepository.findByIdentifier(identifier);
         if (existingPrice != null) {
+            if (Boolean.TRUE.equals(existingPrice.getDeleted())) {
+                priceDto.setMessage("Price with identifier - " + identifier + " was deleted and cannot be created again.");
+                priceDto.setSuccess(false);
+                return priceDto;
+            }
             priceDto.setMessage("Price with identifier - " + identifier + " already exists");
             priceDto.setSuccess(false);
             return priceDto;
         }
         Price price = modelMapper.map(priceDto, Price.class);
+        setCreatedDetails(price);
         priceRepository.save(price);
         return priceDto;
     }
@@ -51,7 +57,7 @@ public class PriceServiceImpl implements PriceService {
     @Override
     public PriceDto update(PriceDto priceDto) {
         String oldIdentifier = priceDto.getIdentifier();
-        Price existingPrice = priceRepository.findByIdentifier(oldIdentifier);
+        Price existingPrice = priceRepository.findByIdentifierAndDeletedFalse(oldIdentifier);
         if (existingPrice == null) {
             priceDto.setMessage("Price not found for Product '"
                     + priceDto.getProductIdentifier() + "' with Price Type '"
@@ -62,7 +68,7 @@ public class PriceServiceImpl implements PriceService {
         String product = existingPrice.getProductIdentifier().split(",")[0]; // clean once
         String newIdentifier = product + "_" + priceDto.getPriceType();
         existingPrice.setProductIdentifier(product);
-        Price duplicate = priceRepository.findByIdentifier(newIdentifier);
+        Price duplicate = priceRepository.findByIdentifierAndDeletedFalse(newIdentifier);
         if (duplicate != null && !duplicate.getId().equals(existingPrice.getId())) {
             priceDto.setMessage("Another price already exists for this Product + Price Type");
             priceDto.setSuccess(false);
@@ -71,6 +77,7 @@ public class PriceServiceImpl implements PriceService {
         existingPrice.setPriceAmount(priceDto.getPriceAmount());
         existingPrice.setPriceType(priceDto.getPriceType());
         existingPrice.setIdentifier(newIdentifier);
+        setModifiedDetails(existingPrice);
         priceRepository.save(existingPrice);
         priceDto.setIdentifier(newIdentifier);
         return priceDto;
@@ -79,14 +86,17 @@ public class PriceServiceImpl implements PriceService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        priceRepository.deleteByIdentifier(identifier);
+        Price price = priceRepository.findByIdentifierAndDeletedFalse(identifier);
+        softDelete(price);
+        setModifiedDetails(price);
+        priceRepository.save(price);
     }
 
     @Override
     public WsDto<PriceDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<PriceDto>>() {
         }.getType();
-        Page<Price> pricePage = priceRepository.findAll(pageable);
+        Page<Price> pricePage = priceRepository.findAllByDeletedFalse(pageable);
         WsDto<PriceDto> priceDto = new WsDto<>();
         priceDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
         priceDto.setTotalRecords(pricePage.getTotalElements());

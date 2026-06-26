@@ -9,37 +9,56 @@ import commonApi from "../../../services/commonApi";
 
 function ProductEdit() {
   const params = useParams();
-  const identifier = params.identifier;
+  const identifier = decodeURIComponent(params.identifier);
 
   const [initialValues, setInitialValues] = useState(null);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
   const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProduct();
-    fetchDropdowns();
+    fetchPageData();
   }, []);
 
-  const fetchProduct = async () => {
-    const res = await commonApi.get("product", "identifier", identifier);
-    setInitialValues(res.data);
+  const fetchPageData = async () => {
+    try {
+      setLoading(true);
+
+      const [productRes, categoryRes, brandRes, modelRes, unitRes] =
+        await Promise.all([
+          commonApi.get("product", "identifier", identifier),
+          commonApi.active("category"),
+          commonApi.active("brand"),
+          commonApi.active("model"),
+          commonApi.active("unit"),
+        ]);
+
+      const product = productRes.data;
+
+      setInitialValues({
+        ...product,
+        categories: Array.isArray(product.categories)
+          ? product.categories.map((item) =>
+              typeof item === "object" ? item.identifier : item
+            )
+          : [],
+      });
+
+      setCategories(categoryRes.data || []);
+      setBrands(brandRes.data || []);
+      setModels(modelRes.data || []);
+      setUnits(unitRes.data || []);
+    } catch (err) {
+      console.log(err);
+      alert("Failed to load product details");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchDropdowns = async () => {
-    const categoryRes = await commonApi.active("category");
-    const brandRes = await commonApi.active("brand");
-    const modelRes = await commonApi.active("model");
-    const unitRes = await commonApi.active("unit");
-
-    setCategories(categoryRes.data || []);
-    setBrands(brandRes.data || []);
-    setModels(modelRes.data || []);
-    setUnits(unitRes.data || []);
-  };
-
-  if (!initialValues) {
+  if (loading || !initialValues) {
     return <POSLayout>Loading...</POSLayout>;
   }
 
@@ -70,7 +89,6 @@ function ProductEdit() {
           optionLabel: "identifier",
           optionValue: "identifier",
           required: true,
-        
         },
         {
           key: "brand",
@@ -106,23 +124,17 @@ function ProductEdit() {
           required: true,
         },
         {
-      key: "status",
-      label: "Status",
-      type: "select",
-      options: [
-        {
-          label: "Active",
-          value: true,
+          key: "status",
+          label: "Status",
+          type: "select",
+          options: [
+            { label: "Active", value: true },
+            { label: "Inactive", value: false },
+          ],
+          optionLabel: "label",
+          optionValue: "value",
+          required: true,
         },
-        {
-          label: "Inactive",
-          value: false,
-        },
-      ],
-      optionLabel: "label",
-      optionValue: "value",
-      required: true,
-    },
       ],
     },
   ];

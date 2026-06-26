@@ -2,20 +2,20 @@ package com.ust.pos.unit;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/unit")
 public class UnitController {
 
     public static final String REDIRECT_LIST = "redirect:/unit/list";
 
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
@@ -50,7 +50,7 @@ public class UnitController {
     public String update(Model model, @ModelAttribute UnitDto unitDto) {
         UnitDto response = unitService.update(unitDto);
         if (!response.isSuccess()) {
-            model.addAttribute("unit",unitDto);
+            model.addAttribute("unit", unitDto);
             model.addAttribute("message", response.getMessage());
             return "unit/unit";
         }

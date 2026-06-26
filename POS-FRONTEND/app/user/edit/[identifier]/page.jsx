@@ -96,6 +96,30 @@ const identifier = decodeURIComponent(
           optionValue: "identifier",
           required: true,
         },
+         {
+  key: "createdBy",
+  label: "Created By",
+  type: "text",
+  required: false,
+},
+{
+  key: "createdOn",
+  label: "Created On",
+  type: "text",
+  required: false,
+},
+{
+  key: "modifiedBy",
+  label: "Modified By",
+  type: "text",
+  required: false,
+},
+{
+  key: "modifiedOn",
+  label: "Modified On",
+  type: "text",
+  required: false,
+}
       ],
     },
   ];

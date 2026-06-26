@@ -1,22 +1,22 @@
 package com.ust.pos.api.unit;
 
-import com.ust.pos.api.BaseController;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/unit")
 public class UnitApiController extends BaseController {
 
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
 
     @PostMapping("/list")
     public WsDto<UnitDto> list(@RequestBody PaginationDto paginationDto) {
@@ -34,12 +34,12 @@ public class UnitApiController extends BaseController {
         return unitService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UnitDto update(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
@@ -49,7 +49,7 @@ public class UnitApiController extends BaseController {
         return true;
     }
 
-    @GetMapping("/toggle")
+    @PatchMapping("/toggle")
     public UnitDto toggle(@RequestParam String identifier) {
         return unitService.toggleStatus(identifier);
     }

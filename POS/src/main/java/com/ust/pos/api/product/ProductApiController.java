@@ -1,25 +1,22 @@
 package com.ust.pos.api.product;
 
-import com.ust.pos.api.BaseController;
-import com.ust.pos.category.service.CategoryService;
+import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/api/product")
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/product")
 public class ProductApiController extends BaseController {
 
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private CategoryService categoryService;
+    private final ProductService productService;
 
     @PostMapping("/list")
     public WsDto<ProductDto> list(@RequestBody PaginationDto paginationDto) {
@@ -37,12 +34,12 @@ public class ProductApiController extends BaseController {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             productService.delete(identifier);
@@ -52,7 +49,7 @@ public class ProductApiController extends BaseController {
         return true;
     }
 
-    @GetMapping("/toggle")
+    @PatchMapping("/toggle")
     public ProductDto toggle(@RequestParam String identifier) {
         return productService.toggleStatus(identifier);
     }
@@ -60,6 +57,11 @@ public class ProductApiController extends BaseController {
     @GetMapping("/active")
     public List<ProductDto> findActiveProducts() {
         return productService.findActiveProducts();
+    }
+
+    @GetMapping("/in-stock")
+    public List<ProductDto> findActiveProductsWithStock() {
+        return productService.findActiveProductsWithStock();
     }
 
 }

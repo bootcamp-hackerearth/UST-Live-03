@@ -12,7 +12,7 @@ function PriceAdd() {
 
   useEffect(() => {
     fetchPrices();
-    fetchProducts();
+    fetchActiveProducts();
   }, []);
 
   const fetchPrices = async () => {
@@ -31,21 +31,14 @@ function PriceAdd() {
     }
   };
 
-  const fetchProducts = async () => {
-    try {
-      const res = await commonApi.list("product", {
-        page: 0,
-        sizePerPage: 1000,
-        sortDirection: "ASC",
-        sortField: "id",
-        search: "",
-      });
-
-      setProducts(res.data.dtoList || []);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+ const fetchActiveProducts = async () => {
+  try {
+    const res = await commonApi.active("product");
+    setProducts(res.data || []);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
  const sections = [
   {

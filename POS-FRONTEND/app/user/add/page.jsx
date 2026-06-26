@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import POSLayout from "../../components/PosLayout";
 import SectionForm from "../../components/common/SectionForm";
 import commonApi from "../../services/commonApi";
+import { defaultListPayload } from "../../constants/pagination";
 
 function UserAdd() {
   const [roles, setRoles] = useState([]);
@@ -15,37 +16,24 @@ function UserAdd() {
     fetchUsers();
   }, []);
 
-  const fetchRoles = async () => {
-    try {
-      const res = await commonApi.list("role", {
-        page: 0,
-        sizePerPage: 1000,
-        sortDirection: "ASC",
-        sortField: "id",
-        search: "",
-      });
 
-      setRoles(res.data.dtoList || []);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+const fetchRoles = async () => {
+  try {
+    const res = await commonApi.list("role", defaultListPayload);
+    setRoles(res.data.dtoList || []);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
-  const fetchUsers = async () => {
-    try {
-      const res = await commonApi.list("user", {
-        page: 0,
-        sizePerPage: 1000,
-        sortDirection: "ASC",
-        sortField: "id",
-        search: "",
-      });
-
-      setExistingUsers(res.data.dtoList || []);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+ const fetchUsers = async () => {
+  try {
+    const res = await commonApi.list("user", defaultListPayload);
+    setExistingUsers(res.data.dtoList || []);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   const sections = [
     {
