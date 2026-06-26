@@ -148,6 +148,7 @@ export const crudConfigs = {
     ]);
     config.idKey = "id";
     config.pageSize = 2;
+    config.toggleEndpoint = null;
     config.loadOptions = async () => {
       try {
         const data = await fetchWithAuth("/api/racks/shelves");
@@ -169,9 +170,7 @@ export const crudConfigs = {
 
   shelves: () => {
     const config = makeBaseConfig("shelves", "Shelf", [
-      { key: "identifier", label: "Shelf Number", type: "text", required: true, readOnlyOnEdit: true },
-      { key: "rackNumber", label: "Rack Number", type: "text" },
-      { key: "capacity", label: "Capacity", type: "number" },
+      { key: "identifier", label: "Shelf Name", type: "text", required: true, readOnlyOnEdit: true },
     ]);
     config.idKey = "id";
     return config;
@@ -208,14 +207,16 @@ export const crudConfigs = {
       },
       customUpdateRecord: async (stockId, payload) => {
         return fetchWithAuth(`/api/stocks/update-quantity/${stockId}?quantity=${payload.quantity}`, {
-          method: "POST",
+          method: "PUT",
           body: JSON.stringify({}),
         });
       },
       fields: [
         { key: "id", label: "ID", hideInForm: true, hideInList: true },
-        { key: "productId", label: "Product", type: "select", required: true, options: [] },
-        { key: "warehouseId", label: "Warehouse", type: "select", required: true, options: [] },
+        { key: "productName", label: "Product", hideInForm: true },
+        { key: "warehouseName", label: "Warehouse", hideInForm: true },
+        { key: "productId", label: "Product", type: "select", required: true, options: [], hideInList: true },
+        { key: "warehouseId", label: "Warehouse", type: "select", required: true, options: [], hideInList: true },
         { key: "quantity", label: "Quantity", type: "number", required: true, min: "0" },
         ...auditFields,
       ],
@@ -229,9 +230,9 @@ export const crudConfigs = {
 
   warehouses: () => makeBaseConfig("warehouses", "Warehouse", [
     { key: "identifier", label: "Warehouse Name", type: "text", required: true, readOnlyOnEdit: true },
-    { key: "location", label: "Location", type: "text" },
-    { key: "manager", label: "Manager", type: "text" },
-  ]),
+    { key: "location", label: "Location", type: "text", required: true },
+    { key: "manager", label: "Manager", type: "text", required: true },
+]),
 
   users: () => {
     const config = {

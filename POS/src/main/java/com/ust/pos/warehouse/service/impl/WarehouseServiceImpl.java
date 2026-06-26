@@ -84,7 +84,7 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
     public List<WarehouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
-        Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
+        Page<Warehouse> warehousePage = warehouseRepository.findByDeletedFalse(pageable);
         return modelMapper.map(warehousePage.getContent(), listType);
     }
 
