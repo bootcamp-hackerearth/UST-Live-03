@@ -6,7 +6,6 @@ import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,16 +17,19 @@ import java.util.List;
 @Transactional
 public class CategoryServiceImpl implements CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper) {
+        this.categoryRepository = categoryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CategoryDto save(CategoryDto categoryDto) {
         String identifier = categoryDto.getIdentifier();
-        Category existingCategory = categoryRepository.findByIdentifier(identifier);
+        Category existingCategory = categoryRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingCategory != null) {
             categoryDto.setMessage("Category with identifier - " + identifier + " already exists");
             categoryDto.setSuccess(false);
@@ -41,7 +43,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto update(CategoryDto categoryDto) {
         String identifier = categoryDto.getIdentifier();
-        Category existingCategory = categoryRepository.findByIdentifier(identifier);
+        Category existingCategory = categoryRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingCategory == null) {
             categoryDto.setMessage("Category with identifier - " + identifier + " is not found");
             categoryDto.setSuccess(false);
@@ -54,38 +56,42 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void delete(String identifier) {
-        categoryRepository.deleteByIdentifier(identifier);
+        Category category = categoryRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (category != null) {
+            category.setDeleted(true);
+            categoryRepository.save(category);
+        }
     }
 
     @Override
     public List<CategoryDto> findAll() {
         Type listOfType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        return modelMapper.map(categoryRepository.findAll(), listOfType);
+        return modelMapper.map(categoryRepository.findByDeletedFalse(), listOfType);
     }
 
     @Override
     public Page<CategoryDto> findAll(Pageable pageable , String search) {
         Page<Category> categories;
         if(search!= null && !search.trim().isEmpty()){
-            categories = categoryRepository.findByIdentifierContainingIgnoreCase(search , pageable);
+            categories = categoryRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search , pageable);
         }
         else {
-            categories = categoryRepository.findAll(pageable);
+            categories = categoryRepository.findByDeletedFalse(pageable);
         }
         return categories.map(category -> modelMapper.map(category , CategoryDto.class));
     }
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-        return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
+        return modelMapper.map(categoryRepository.findByIdentifierAndDeletedFalse(identifier), CategoryDto.class);
     }
 
     @Override
     public List<CategoryDto> findAllWithoutNull() {
         Type listOfType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-        List<CategoryDto> categoryDtos = modelMapper.map(categoryRepository.findAll(), listOfType);
+        List<CategoryDto> categoryDtos = modelMapper.map(categoryRepository.findByDeletedFalse(), listOfType);
         return categoryDtos.stream().filter(c -> c.getSuperCategory() != null)
                 .toList();
     }

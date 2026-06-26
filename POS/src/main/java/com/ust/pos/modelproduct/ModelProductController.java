@@ -2,7 +2,6 @@ package com.ust.pos.modelproduct;
 
 import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.modelproduct.service.ModelProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,8 +12,12 @@ public class ModelProductController {
 
     public static final String REDIRECT_MODEL_LIST = "redirect:/model/list";
     public static final String MODELS = "models";
-    @Autowired
-    private ModelProductService modelProductService;
+
+    private final ModelProductService modelProductService;
+
+    public ModelProductController(ModelProductService modelProductService) {
+        this.modelProductService = modelProductService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -47,7 +50,7 @@ public class ModelProductController {
         return "model/model";
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public String updatePost(Model model, @ModelAttribute ModelProductDto modelProductDto) {
         ModelProductDto modelProductDto1 = modelProductService.update(modelProductDto);
         if (!modelProductDto1.isSuccess()) {
@@ -58,7 +61,7 @@ public class ModelProductController {
         return REDIRECT_MODEL_LIST;
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         modelProductService.delete(identifier);
         return REDIRECT_MODEL_LIST;

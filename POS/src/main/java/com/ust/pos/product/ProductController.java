@@ -3,7 +3,6 @@ package com.ust.pos.product;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,11 +11,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/product")
 public class ProductController {
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
-    @Autowired
-    private ProductService productService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final ProductService productService;
+
+    private final CategoryService categoryService;
+
+    public ProductController(ProductService productService, CategoryService categoryService) {
+        this.productService = productService;
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -48,7 +51,7 @@ public class ProductController {
         return "product/product";
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public String doupdate(Model model, @ModelAttribute ProductDto productDto) {
         ProductDto productDto1 = productService.update(productDto);
         if (!productDto1.isSuccess()) {
@@ -59,7 +62,7 @@ public class ProductController {
         return REDIRECT_PRODUCT_LIST;
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         productService.delete(identifier);
         return REDIRECT_PRODUCT_LIST;

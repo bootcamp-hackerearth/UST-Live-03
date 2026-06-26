@@ -5,24 +5,27 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
 
+const saveUserSession = (token, username) => {
+  localStorage.setItem("token", token);
+  localStorage.setItem("username", username);
+};
+
 const Login = () => {
   const router = useRouter();
 
-  const [credentials, setCredentials] =
-    useState({
-      username: "",
-      password: "",
-    });
+  const [credentials, setCredentials] = useState({
+    username: "",
+    password: "",
+  });
 
   const [error, setError] = useState("");
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setCredentials({
-      ...credentials,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = ({ target }) => {
+    setCredentials((prev) => ({
+      ...prev,
+      [target.name]: target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -52,13 +55,8 @@ const Login = () => {
         data.token &&
         data.token !== "Error"
       ) {
-        localStorage.setItem(
-          "token",
-          data.token
-        );
-
-        localStorage.setItem(
-          "username",
+        saveUserSession(
+          data.token,
           credentials.username
         );
 
@@ -68,12 +66,12 @@ const Login = () => {
           "Incorrect username or password ❌"
         );
       }
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.error(err);
       setError("Server error ❗");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -135,6 +133,12 @@ const Login = () => {
 
 export default Login;
 
+const circleBase = {
+  position: "absolute",
+  borderRadius: "50%",
+  filter: "blur(30px)",
+};
+
 const styles = {
   container: {
     minHeight: "100vh",
@@ -149,27 +153,23 @@ const styles = {
   },
 
   bgCircle1: {
-    position: "absolute",
+    ...circleBase,
     width: "350px",
     height: "350px",
-    borderRadius: "50%",
     background:
       "rgba(99,102,241,0.15)",
     top: "-120px",
     left: "-100px",
-    filter: "blur(30px)",
   },
 
   bgCircle2: {
-    position: "absolute",
+    ...circleBase,
     width: "300px",
     height: "300px",
-    borderRadius: "50%",
     background:
       "rgba(139,92,246,0.15)",
     bottom: "-100px",
     right: "-80px",
-    filter: "blur(30px)",
   },
 
   card: {

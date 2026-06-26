@@ -8,7 +8,6 @@ import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,14 +19,17 @@ import java.util.List;
 @Service
 @Transactional
 public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private PriceService priceService;
+    private final PriceService priceService;
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public CartEntryServiceImpl(PriceService priceService, CartEntryRepository cartEntryRepository, ModelMapper modelMapper) {
+        this.priceService = priceService;
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -44,7 +46,7 @@ public class CartEntryServiceImpl implements CartEntryService {
                 : BigDecimal.ZERO;
         cartEntryDto.setQuantity(requestQty.add(existingQty));
         PriceDto priceDto = priceService.findByIdentifier(cartEntryDto.getProduct());
-        cartEntryDto.setUnitPrice(BigDecimal.valueOf(priceDto.getSellingPrice()));
+        cartEntryDto.setUnitPrice(priceDto.getSellingPrice());
         BigDecimal discount = cartEntryDto.getDiscount() != null
                 ? cartEntryDto.getDiscount()
                 : BigDecimal.ZERO;
@@ -90,11 +92,15 @@ public class CartEntryServiceImpl implements CartEntryService {
     }
 
     @Override
-    public List<CartEntryDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<CartEntryDto>>() {
-        }.getType();
-        Page<CartEntry> cartEntryPage = cartEntryRepository.findAll(pageable);
-        return modelMapper.map(cartEntryPage.getContent(), listOfType);
+    public Page<CartEntryDto> findAll(Pageable pageable, String search) {Page<CartEntry> cartEntryPage;
+        if (search != null && !search.trim().isEmpty()) {
+            cartEntryPage = cartEntryRepository.findByProductContainingIgnoreCase(search, pageable);
+        } else {
+            cartEntryPage = cartEntryRepository.findAll(pageable);
+        }
+        return cartEntryPage.map(entry -> modelMapper.map(entry, CartEntryDto.class
+                )
+        );
     }
 
     @Override
@@ -103,5 +109,20 @@ public class CartEntryServiceImpl implements CartEntryService {
         }.getType();
         List<CartEntry> cartEntryList = cartEntryRepository.findByCartId(cart);
         return modelMapper.map(cartEntryList, listOfType);
+    }
+
+    public CartEntryDto decreaseQuantity(
+            String identifier) {CartEntry cartEntry = cartEntryRepository.findByIdentifier(identifier);
+        if (cartEntry == null) {return null;}
+        BigDecimal quantity = cartEntry.getQuantity();
+        if (quantity.compareTo(BigDecimal.ONE) <= 0) {
+            cartEntryRepository.delete(cartEntry);
+            return null;
+        }
+        quantity = quantity.subtract(BigDecimal.ONE);
+        cartEntry.setQuantity(quantity);
+        cartEntry.setTotalPrice(cartEntry.getUnitPrice().multiply(quantity));
+        cartEntryRepository.save(cartEntry);
+        return modelMapper.map(cartEntry, CartEntryDto.class);
     }
 }

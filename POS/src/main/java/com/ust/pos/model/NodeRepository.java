@@ -11,9 +11,14 @@ import java.util.List;
 public interface NodeRepository extends JpaRepository<Node, Long> {
     Node findByIdentifier(String identifier);
 
-    List<Node> findByRoles(List<String> roles);
+    Node findByIdentifierAndDeletedFalse(String identifier);
 
     void deleteByIdentifier(String identifier);
 
-    Page<Node> findByIdentifierContainingIgnoreCase(String search, Pageable pageable);
+    List<Node> findByDeletedFalse();
+
+    Page<Node> findByIdentifierContainingIgnoreCaseAndDeletedFalse(String search, Pageable pageable);
+
+    Page<Node> findByDeletedFalse(Pageable pageable);
+
 }

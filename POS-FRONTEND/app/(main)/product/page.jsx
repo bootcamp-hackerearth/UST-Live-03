@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import CommonList from "@/app/components/CommonList";
-
 import {
   listItems,
   deleteItem,
@@ -20,19 +19,23 @@ const ProductList = () => {
 
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-
   const sizePerPage = 5;
 
- const [addError, setAddError] = useState("");
+  const [addError, setAddError] = useState("");
 
- const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
+  const [brands, setBrands] = useState([]);
+  const [units, setUnits] = useState([]);
+
+  const [viewItem, setViewItem] = useState(null);
   // ================= ADD =================
 
   const [newProduct, setNewProduct] = useState({
     identifier: "",
     supplierId: "",
-    warehouseName: "",
+    brand: "",
+    unit: "",
     category: "",
   });
 
@@ -69,11 +72,11 @@ const ProductList = () => {
 
       setTotalPages(
         res?.totalPages ||
-          Math.ceil(
-            (res?.totalElements || data.length) /
-              sizePerPage
-          ) ||
-          1
+        Math.ceil(
+          (res?.totalElements || data.length) /
+          sizePerPage
+        ) ||
+        1
       );
     } catch (err) {
       console.error(err);
@@ -94,11 +97,6 @@ const ProductList = () => {
         sortField: "identifier",
       });
 
-      console.log(
-        "CATEGORY RESPONSE:",
-        res
-      );
-
       setCategories(
         res?.content || res || []
       );
@@ -116,66 +114,108 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchCategory();
+    fetchBrands();
+    fetchUnits();
   }, []);
 
+  // ================= FETCH BRAND =================
+
+  const fetchBrands = async () => {
+    try {
+      const res = await listItems("brand", {
+        page: 0,
+        sizePerPage: 100,
+        sortField: "identifier",
+      });
+
+      console.log("BRAND RESPONSE:", res);
+
+      setBrands(res?.content || res || []);
+    } catch (err) {
+      console.error("Failed to load brands", err);
+    }
+  };
+
+  // ================= FETCH UNITS =================
+  const fetchUnits = async () => {
+    try {
+      const res = await listItems("unit", {
+        page: 0,
+        sizePerPage: 100,
+        sortField: "identifier",
+      });
+
+      console.log("UNIT RESPONSE:", res);
+
+      setUnits(res?.content || res || []);
+    } catch (err) {
+      console.error("Failed to load units", err);
+    }
+  };
+
   // ================= ADD =================
-const handleAddProduct = async () => {
-  try {
-    setAddError("");
 
-    const response = await addItem(
-      "product",
-      newProduct
-    );
+  const handleAddProduct = async () => {
+    try {
+      setAddError("");
 
-    if (response?.success === false) {
+      const response = await addItem(
+        "product",
+        newProduct
+      );
+
+      if (response?.success === false) {
+        setAddError(
+          response.message ||
+          "Product already exists"
+        );
+        return false;
+      }
+
+      setNewProduct({
+        identifier: "",
+        supplierId: "",
+        brand: "",
+        unit: "",
+        category: "",
+      });
+
+      await fetchProducts();
+      return true;
+    } catch (err) {
+      console.error(err);
+
       setAddError(
-        response.message || "Product already exists"
+        err.response?.data?.message ||
+        "Add failed"
       );
       return false;
     }
+  };
 
-    setNewProduct({
-      identifier: "",
-      supplierId: "",
-      warehouseName: "",
-      category: "",
-    });
+  const brandOptions = brands.map((brand) => ({
+    label: brand.identifier,
+    value: brand.identifier,
+  }));
 
-    await fetchProducts();
-    return true;
-  } catch (err) {
-    console.error(err);
-
-    setAddError(
-      err.response?.data?.message ||
-      "Add failed"
-    );
-    return false;
-  }
-};
+  const unitOptions = units.map((unit) => ({
+    label: unit.identifier,
+    value: unit.identifier,
+  }));
 
   // ================= UPDATE =================
 
   const handleUpdate = async () => {
     try {
-      await updateItem(
-        "product",
-        editProduct
-      );
+      console.log("Updating Product:", editProduct);
 
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.identifier ===
-          editProduct.identifier
-            ? editProduct
-            : p
-        )
-      );
+      await updateItem("product", editProduct);
 
+      await fetchProducts();
       setEditProduct(null);
     } catch (err) {
-      console.error(err);
+      console.error("UPDATE ERROR:", err);
+      console.error("Response:", err.response?.data);
 
       alert("Update failed");
     }
@@ -220,11 +260,11 @@ const handleAddProduct = async () => {
       setProducts((prev) =>
         prev.map((p) =>
           p.identifier ===
-          identifier
+            identifier
             ? {
-                ...p,
-                status: !p.status,
-              }
+              ...p,
+              status: !p.status,
+            }
             : p
         )
       );
@@ -242,7 +282,6 @@ const handleAddProduct = async () => {
         fetchProducts();
       }
     };
-
   // ================= COLUMNS =================
 
   const columns = [
@@ -251,18 +290,21 @@ const handleAddProduct = async () => {
       render: (row, index) =>
         page * sizePerPage + index + 1,
     },
-   
     {
       label: "Identifier",
       key: "identifier",
     },
     {
-      label: "Supplier",
+      label: "Supplier ID",
       key: "supplierId",
     },
     {
-      label: "Warehouse",
-      key: "warehouseName",
+      label: "Brand",
+      key: "brand",
+    },
+    {
+      label: "Unit",
+      key: "unit",
     },
     {
       label: "Category",
@@ -270,35 +312,40 @@ const handleAddProduct = async () => {
     },
     {
       label: "Status",
-
       render: (p) => (
         <label className="switch">
           <input
-          type="checkbox"
-          checked={p.status}
-          aria-label={`Toggle status for ${p.identifier}`}
-          onChange={() => handleToggleStatus(p.identifier)}
+            type="checkbox"
+            checked={p.status}
+            aria-label={`Toggle status for ${p.identifier}`}
+            onChange={() =>
+              handleToggleStatus(
+                p.identifier
+              )
+            }
           />
           <span className="slider"></span>
-          </label>
-          ),
-        },
-      ];
+        </label>
+      ),
+    },
+  ];
 
   // ================= ACTIONS =================
 
   const actions = [
     {
-      label: "✏️",
+      label: "View 👁️",
+      onClick: (row) => setViewItem(row),
+    },
+    {
+      label: "Edit ✏️",
       onClick: (row) =>
         setEditProduct(row),
     },
     {
-      label: "🗑",
+      label: "Delete 🗑",
       onClick: (row) =>
-        handleDelete(
-          row.identifier
-        ),
+        handleDelete(row.identifier),
     },
   ];
 
@@ -310,26 +357,44 @@ const handleAddProduct = async () => {
       value: cat.identifier,
     }));
 
+  // ================= ADD FIELDS =================
+
   const addFields = [
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
     {
       name: "supplierId",
       label: "Supplier ID",
+      type: "number",
+       required: true,
     },
     {
-      name: "warehouseName",
-      label: "Warehouse Name",
+      name: "brand",
+      label: "Brand",
+      type: "select",
+      options: brandOptions,
+       required: true,
+    },
+    {
+      name: "unit",
+      label: "Unit",
+      type: "select",
+      options: unitOptions,
+       required: true,
     },
     {
       name: "category",
       label: "Category",
       type: "select",
       options: categoryOptions,
+       required: true,
     },
   ];
+
+  // ================= EDIT FIELDS =================
 
   const editFields = [
     {
@@ -340,10 +405,19 @@ const handleAddProduct = async () => {
     {
       name: "supplierId",
       label: "Supplier ID",
+      type: "number",
     },
     {
-      name: "warehouseName",
-      label: "Warehouse Name",
+      name: "brand",
+      label: "Brand",
+      type: "select",
+      options: brandOptions,
+    },
+    {
+      name: "unit",
+      label: "Unit",
+      type: "select",
+      options: unitOptions,
     },
     {
       name: "category",
@@ -353,10 +427,8 @@ const handleAddProduct = async () => {
     },
   ];
 
-  console.log(
-    "Categories:",
-    categories
-  );
+  console.log("Brands:", brands);
+  console.log("Units:", units);
 
   return (
     <CommonList
@@ -370,7 +442,9 @@ const handleAddProduct = async () => {
       setPage={setPage}
       sizePerPage={sizePerPage}
       totalPages={totalPages}
-      onAdd={() => {setAddError("");}}
+      onAdd={() => {
+        setAddError("");
+      }}
       addButtonText="+ Add Product"
       newItem={newProduct}
       setNewItem={setNewProduct}
@@ -381,9 +455,11 @@ const handleAddProduct = async () => {
       handleUpdate={handleUpdate}
       editFields={editFields}
       actions={actions}
+      viewItem={viewItem}
+      setViewItem={setViewItem}
       emptyMessage="No products found"
       searchTerm={searchTerm}
-  setSearchTerm={setSearchTerm}
+      setSearchTerm={setSearchTerm}
     />
   );
 };

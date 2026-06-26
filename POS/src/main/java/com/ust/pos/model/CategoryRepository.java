@@ -11,9 +11,14 @@ import java.util.List;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     Category findByIdentifier(String identifier);
 
+    Category findByIdentifierAndDeletedFalse(String identifier);
+
     void deleteByIdentifier(String identifier);
 
-    List<Category> findBySuperCategoryIsNot(String category);
+    List<Category> findByDeletedFalse();
 
-    Page<Category> findByIdentifierContainingIgnoreCase(String search, Pageable pageable);
+    Page<Category> findByIdentifierContainingIgnoreCaseAndDeletedFalse(String search, Pageable pageable);
+
+    Page<Category> findByDeletedFalse(Pageable pageable);
+
 }

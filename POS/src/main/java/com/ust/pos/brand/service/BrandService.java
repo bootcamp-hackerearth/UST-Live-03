@@ -1,6 +1,7 @@
 package com.ust.pos.brand.service;
 
 import com.ust.pos.dto.BrandDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 
@@ -13,9 +14,9 @@ public interface BrandService {
 
     List<BrandDto> findAll();
 
-    List<BrandDto> findAll(Pageable pageable);
+    Page<BrandDto> findAll(Pageable pageable, String search);
 
     BrandDto findByIdentifier(String identifier);
 
-    void toggleStatus(String identifier);
+    BrandDto toggleStatus(String identifier);
 }

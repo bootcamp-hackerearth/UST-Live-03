@@ -1,6 +1,7 @@
 package com.ust.pos.unit.service;
 
 import com.ust.pos.dto.UnitDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public interface UnitService {
 
     List<UnitDto> findAll();
 
-    List<UnitDto> findAll(Pageable pageable);
+    Page<UnitDto> findAll(Pageable pageable, String search);
 
     void delete(String identifier);
 

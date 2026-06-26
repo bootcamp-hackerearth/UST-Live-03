@@ -4,7 +4,6 @@ import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,14 +12,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/stock")
 public class StockController {
     public static final String REDIRECT_STOCK_LIST = "redirect:/stock/list";
-    @Autowired
-    private StockService stockService;
 
-    @Autowired
-    private ProductService productService;
+    private final StockService stockService;
 
-    @Autowired
-    private WarehouseService warehouseService;
+    private final ProductService productService;
+
+    private final WarehouseService warehouseService;
+
+    public StockController(StockService stockService, ProductService productService, WarehouseService warehouseService) {
+        this.stockService = stockService;
+        this.productService = productService;
+        this.warehouseService = warehouseService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -54,7 +57,7 @@ public class StockController {
         return "stock/stock";
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public String updatePost(Model model, @ModelAttribute StockDto userDto) {
         StockDto response = stockService.update(userDto);
         if (!response.isSuccess()) {
@@ -64,7 +67,7 @@ public class StockController {
         return REDIRECT_STOCK_LIST;
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         stockService.delete(identifier);
         return REDIRECT_STOCK_LIST;

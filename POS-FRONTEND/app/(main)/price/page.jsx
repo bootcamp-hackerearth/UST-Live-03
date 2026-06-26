@@ -24,6 +24,8 @@ const PriceList = () => {
   const [addError, setAddError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [viewItem, setViewItem] = useState(null);
   // ================= ADD =================
   const [newPrice, setNewPrice] = useState({
     identifier: "",
@@ -72,11 +74,11 @@ const PriceList = () => {
 
       setTotalPages(
         res?.totalPages ||
-          Math.ceil(
-            (res?.totalElements || data.length) /
-              sizePerPage
-          ) ||
-          1
+        Math.ceil(
+          (res?.totalElements || data.length) /
+          sizePerPage
+        ) ||
+        1
       );
     } catch (err) {
       console.error(err);
@@ -91,55 +93,47 @@ const PriceList = () => {
   }, [page, searchTerm]);
 
   // ================= ADD =================
-const handleAddPrice = async () => {
-  try {
-    setAddError("");
+  const handleAddPrice = async () => {
+    try {
+      setAddError("");
 
-    const response = await addItem(
-      "price",
-      newPrice
-    );
+      const response = await addItem(
+        "price",
+        newPrice
+      );
 
-    if (response?.success === false) {
+      if (response?.success === false) {
+        setAddError(
+          response.message ||
+          "Price already exists"
+        );
+        return false;
+      }
+
+      setNewPrice({
+        identifier: "",
+        costPrice: "",
+        sellingPrice: "",
+      });
+
+      await fetchPrices();
+      return true;
+    } catch (err) {
+      console.error(err);
+
       setAddError(
-        response.message ||
-        "Price already exists"
+        err.response?.data?.message ||
+        "Add failed"
       );
       return false;
     }
-
-    setNewPrice({
-      identifier: "",
-      costPrice: "",
-      sellingPrice: "",
-    });
-
-    await fetchPrices();
-    return true;
-  } catch (err) {
-    console.error(err);
-
-    setAddError(
-      err.response?.data?.message ||
-      "Add failed"
-    );
-    return false;
-  }
-};
+  };
 
   // ================= UPDATE =================
   const handleUpdate = async () => {
     try {
       await updateItem("price", editPrice);
-
-      setPrices((prev) =>
-        prev.map((p) =>
-          p.identifier === editPrice.identifier
-            ? editPrice
-            : p
-        )
-      );
-
+      await fetchPrices();
       setEditPrice(null);
     } catch (err) {
       console.error(err);
@@ -171,12 +165,12 @@ const handleAddPrice = async () => {
 
   // ================= COLUMNS =================
   const columns = [
-     {
+    {
       label: "Sl No",
       render: (row, index) =>
         page * sizePerPage + index + 1,
     },
-    
+
     {
       label: "Identifier",
       key: "identifier",
@@ -198,11 +192,15 @@ const handleAddPrice = async () => {
   // ================= ACTIONS =================
   const actions = [
     {
-      label: "✏️",
+      label: "View 👁️",
+      onClick: (row) => setViewItem(row),
+    },
+    {
+      label: "Edit ✏️",
       onClick: (row) => setEditPrice(row),
     },
     {
-      label: "🗑",
+      label: "Delete 🗑",
       onClick: (row) =>
         handleDelete(row.identifier),
     },
@@ -218,16 +216,19 @@ const handleAddPrice = async () => {
         label: p.identifier,
         value: p.identifier,
       })),
+      required: true,
     },
     {
       name: "costPrice",
       label: "Cost Price",
       type: "number",
+       required: true,
     },
     {
       name: "sellingPrice",
       label: "Selling Price",
       type: "number",
+       required: true,
     },
   ];
 
@@ -263,7 +264,7 @@ const handleAddPrice = async () => {
       sizePerPage={sizePerPage}
       totalPages={totalPages}
       // ADD
-      onAdd={() => {setAddError("");}}
+      onAdd={() => { setAddError(""); }}
       addButtonText="+ Add Price"
       newItem={newPrice}
       setNewItem={setNewPrice}
@@ -276,10 +277,13 @@ const handleAddPrice = async () => {
       editFields={editFields}
       // ACTIONS
       actions={actions}
+      viewItem={viewItem}
+      setViewItem={setViewItem}
       emptyMessage="No prices found"
 
       searchTerm={searchTerm}
-  setSearchTerm={setSearchTerm}
+      setSearchTerm={setSearchTerm}
+
     />
   );
 };

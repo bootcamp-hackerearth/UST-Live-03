@@ -1,8 +1,8 @@
 package com.ust.pos.modelproduct.service;
 
 import com.ust.pos.dto.ModelProductDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 
 public interface ModelProductService {
@@ -14,7 +14,7 @@ public interface ModelProductService {
 
     List<ModelProductDto> findAll();
 
-    List<ModelProductDto> findAll(Pageable pageable);
+    Page<ModelProductDto> findAll(Pageable pageable, String search);
 
     void delete(String identifier);
 

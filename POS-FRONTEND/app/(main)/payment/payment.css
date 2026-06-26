@@ -1,0 +1,471 @@
+/* ================= PAGE ================= */
+
+.paymentPage {
+  min-height: 100vh;
+  background: #f4f7fa;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.paymentCard {
+  width: 100%;
+  max-width: 1000px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.paymentCard h1 {
+  color: rgb(0, 60, 81);
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+/* ================= ORDER SUMMARY ================= */
+
+.summaryBox {
+  background: #fafcff;
+  border: 1px solid #e7edf3;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.row span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.row strong {
+  color: #111827;
+  font-size: 15px;
+}
+
+.summaryTotals {
+  margin-top: 18px;
+}
+
+.grandTotal {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid #e5e7eb;
+  font-size: 20px;
+  font-weight: 700;
+  color: rgb(0, 60, 81);
+}
+
+/* ================= TABLE ================= */
+
+.summaryTableWrapper {
+  width: 100%;
+  margin: 20px 0;
+}
+
+.summaryTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.summaryTable th {
+  background: rgb(0, 60, 81);
+  color: white;
+  padding: 14px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.summaryTable td {
+  padding: 14px;
+  border-bottom: 1px solid #edf2f7;
+  color: #374151;
+}
+
+.summaryTable th:first-child,
+.summaryTable td:first-child {
+  text-align: left;
+}
+
+.summaryTable tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.summaryTable tr:hover {
+  background: #f1f5f9;
+}
+
+/* ================= PAYMENT METHODS ================= */
+
+.paymentMethods {
+  margin-top: 32px;
+}
+
+.paymentMethods h3 {
+  color: rgb(0, 60, 81);
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+
+.paymentOptions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.paymentOption {
+  border: 2px solid #dbe3e8;
+  background: white;
+  color: #334155;
+  padding: 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.paymentOption:hover {
+  border-color: rgb(0, 60, 81);
+  transform: translateY(-2px);
+}
+
+.paymentOption.active {
+  background: rgb(0, 60, 81);
+  color: white;
+  border-color: rgb(0, 60, 81);
+}
+
+/* ================= PAYMENT DETAILS ================= */
+
+.paymentDetails {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.paymentDetails input,
+.paymentDetails select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 14px;
+  background: #fff;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.paymentDetails input:focus,
+.paymentDetails select:focus {
+  border-color: rgb(0, 60, 81);
+  box-shadow: 0 0 0 3px rgba(0, 60, 81, 0.1);
+  outline: none;
+}
+
+/* ================= BUTTONS ================= */
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.cancelBtn,
+.payBtn,
+.homeBtn,
+.ordersBtn {
+  border: none;
+  padding: 14px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.cancelBtn {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.cancelBtn:hover {
+  background: #d1d5db;
+}
+
+.payBtn,
+.homeBtn,
+.ordersBtn {
+  background: rgb(0, 60, 81);
+  color: white;
+}
+
+.payBtn:hover,
+.homeBtn:hover,
+.ordersBtn:hover {
+  background: rgb(0, 78, 105);
+  transform: translateY(-2px);
+}
+/* ================= SUCCESS MODAL ================= */
+
+.successOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 999;
+}
+
+.successModal {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  animation: popupFade 0.25s ease;
+}
+
+.successIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #047857;
+  color: white;
+  font-size: 30px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.successModal h2 {
+  color: rgb(0, 60, 81);
+  font-size: 24px;
+  margin-bottom: 18px;
+}
+
+.successCard {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-top: 16px;
+}
+
+.successRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.successRow:last-child {
+  border-bottom: none;
+}
+
+.successRow span {
+  color: #64748b;
+}
+
+.successRow strong {
+  color: #111827;
+}
+
+.totalAmount {
+  color: #10b981;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.successActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.successActions button {
+  flex: 1;
+}
+
+.homeBtn,
+.ordersBtn {
+  padding: 12px 18px;
+}
+
+/* ================= ORDER SUMMARY MODAL ================= */
+
+.orderSummaryModal {
+  width: 90%;
+  max-width: 600px; /* smaller popup */
+  padding: 18px;
+}
+
+.orderSummaryModal h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.orderSummaryModal .successCard {
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+
+.orderSummaryModal .successRow {
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.orderSummaryModal .summaryTableWrapper {
+  margin: 12px 0;
+}
+
+.orderSummaryModal .summaryTable {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.orderSummaryModal .summaryTable th,
+.orderSummaryModal .summaryTable td {
+  padding: 8px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.orderSummaryModal .summaryTable th:nth-child(2),
+.orderSummaryModal .summaryTable td:nth-child(2),
+.orderSummaryModal .summaryTable th:nth-child(3),
+.orderSummaryModal .summaryTable td:nth-child(3),
+.orderSummaryModal .summaryTable th:nth-child(4),
+.orderSummaryModal .summaryTable td:nth-child(4) {
+  text-align: center;
+}
+
+.orderSummaryModal .successActions {
+  margin-top: 14px;
+}
+
+.orderSummaryModal .homeBtn,
+.orderSummaryModal .ordersBtn {
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+/* ================= SUMMARY HEADER ================= */
+
+.summaryHeader {
+  text-align: left;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.summaryHeader p {
+  margin: 4px 0;
+}
+
+/* ================= ANIMATION ================= */
+
+@keyframes popupFade {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ================= SCROLLBAR ================= */
+
+.summaryTableWrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.summaryTableWrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 20px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 992px) {
+  .paymentOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .paymentCard {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .paymentPage {
+    padding: 12px;
+  }
+
+  .paymentCard {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .paymentCard h1 {
+    font-size: 24px;
+  }
+
+  .buttonRow {
+    flex-direction: column;
+  }
+
+  .buttonRow button {
+    width: 100%;
+  }
+
+  .successModal {
+    max-width: 95%;
+    padding: 18px;
+  }
+
+  .successActions {
+    flex-direction: column;
+  }
+
+  .successActions button {
+    width: 100%;
+  }
+
+  .successRow {
+    font-size: 13px;
+  }
+
+  .orderSummaryModal {
+    width: 95%;
+    padding: 14px;
+  }
+
+  .orderSummaryModal .summaryTable th,
+  .orderSummaryModal .summaryTable td {
+    font-size: 12px;
+    padding: 6px;
+  }
+}

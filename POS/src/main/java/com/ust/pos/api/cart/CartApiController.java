@@ -2,15 +2,20 @@ package com.ust.pos.api.cart;
 
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartApiController {
-    @Autowired
-    private CartService cartService;
+
+    private final CartService cartService;
+
+    public CartApiController(CartService cartService) {
+        this.cartService = cartService;
+    }
 
     @PostMapping("/add")
     public CartDto add(@RequestBody CartDto cartDto) {
@@ -25,5 +30,24 @@ public class CartApiController {
             return false;
         }
         return true;
+    }
+    @GetMapping("/list")
+    public List<CartDto> list() {
+        return cartService.findAll();
+    }
+
+    @PutMapping("/update")
+    public CartDto update(
+            @RequestBody CartDto cartDto) {
+        return cartService.update(cartDto);
+    }
+    @PutMapping("/updateCustomer")
+    public CartDto updateCustomer(
+            @RequestParam String cartId,
+            @RequestParam String customerId) {
+        return cartService.updateCustomer(
+                cartId,
+                customerId
+        );
     }
 }

@@ -4,12 +4,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Product findByIdentifier(String identifier);
 
+    Product findByIdentifierAndDeletedFalse(String identifier);
+
     void deleteByIdentifier(String identifier);
 
-    Page<Product> findByIdentifierContainingIgnoreCase(String search, Pageable pageable);
+    List<Product> findByDeletedFalse();
+
+    Page<Product> findByIdentifierContainingIgnoreCaseAndDeletedFalse(String search, Pageable pageable);
+
+    Page<Product> findByDeletedFalse(Pageable pageable);
+
+
+
 }

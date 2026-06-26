@@ -24,7 +24,8 @@ const RolePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [addError, setAddError] = useState("");
- 
+  const [viewItem, setViewItem] = useState(null);
+
   const [newRole, setNewRole] = useState({
     identifier: "",
     description: "",
@@ -105,7 +106,7 @@ const RolePage = () => {
     try {
       await updateItem("role", editRole);
  
-      fetchRoles();
+      await fetchRoles();
       setEditRole(null);
     } catch (err) {
       console.error(err);
@@ -125,11 +126,12 @@ const RolePage = () => {
   };
  
   const columns = [
-    {
-      label: "ID",
-      render: (row, index) =>
-        page * sizePerPage + index + 1,
-    },
+  {
+    key: "serialNo",
+    label: "S.No",
+    render: (row, rowIndex) =>
+      page * sizePerPage + rowIndex + 1,
+  },
     {
       label: "Identifier",
       key: "identifier",
@@ -142,24 +144,30 @@ const RolePage = () => {
  
   const actions = [
     {
-      label: "✏️",
-      onClick: (row) => setEditRole(row),
+    label: "View 👁️",
+    onClick: (row) => setViewItem(row),
     },
-    {
-      label: "🗑",
-      onClick: (row) =>
-        handleDelete(row.identifier),
-    },
-  ];
+  {
+    label: "Edit ✏️",
+    onClick: (row) => setEditRole(row),
+  },
+  {
+    label: "Delete 🗑",
+    onClick: (row) =>
+      handleDelete(row.identifier),
+  },
+];
  
   const addFields = [
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
     {
       name: "description",
       label: "Description",
+       required: true,
     },
   ];
  
@@ -198,6 +206,8 @@ const RolePage = () => {
       handleUpdate={handleUpdate}
       editFields={editFields}
       actions={actions}
+      viewItem={viewItem}
+      setViewItem={setViewItem}
       emptyMessage="No roles found"
      searchTerm={searchTerm}
   setSearchTerm={setSearchTerm}

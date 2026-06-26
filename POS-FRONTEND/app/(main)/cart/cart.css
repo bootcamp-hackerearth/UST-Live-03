@@ -1,0 +1,465 @@
+/* ==========================
+   PAGE LAYOUT
+========================== */
+.cartLayout {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background: #eef1f5;
+  min-height: 100vh;
+  align-items: flex-start;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* ==========================
+   LEFT PANEL
+========================== */
+.leftPanel {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+}
+
+.leftPanel .card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ==========================
+   RIGHT PANEL
+========================== */
+.rightPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ==========================
+   CARD
+========================== */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.cardHeader {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.cartTableCard {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Make Products card take full height */
+.productCardContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ==========================
+   QUICK ACTION
+========================== */
+.quickActionCard {
+  position: sticky;
+  top: 20px;
+  z-index: 10;
+}
+
+.customerSelect {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+}
+
+.dateInput {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.customerSelect:focus,
+.dateInput:focus {
+  border-color: #2563eb;
+}
+
+/* ==========================
+   SEARCH
+========================== */
+.searchBox {
+  margin-bottom: 12px;
+}
+
+.search {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.search:focus {
+  border-color: #2563eb;
+}
+
+/* ==========================
+   PRODUCT SCROLL AREA
+========================== */
+.productScroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 6px;
+}
+
+.productScroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.productScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.productScroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 20px;
+}
+
+.productScroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ==========================
+   PRODUCT LIST
+========================== */
+.productList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ==========================
+   PRODUCT CARD
+========================== */
+.productCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.productCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+.productName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+/* ==========================
+   ADD BUTTON
+========================== */
+.addBtn {
+  margin-top: 6px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.addBtn:hover {
+  background: #000;
+}
+
+/* ==========================
+   CART TABLE
+========================== */
+.cartTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cartTable th {
+  background: #f9fafb;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.cartTable th,
+.cartTable td {
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.cartTable td {
+  font-size: 14px;
+  color: #111827;
+}
+
+/* ==========================
+   QUANTITY CONTROL
+========================== */
+.qtyBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.qtyBox button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #e5e7eb;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.qtyBox button:hover {
+  background: #d1d5db;
+}
+
+/* ==========================
+   DELETE BUTTON
+========================== */
+.removeBtn {
+  border: none;
+  background: #b91c1c;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.removeBtn:hover {
+  background: #dc2626;
+}
+
+/* ==========================
+   TOTAL BAR
+========================== */
+.totalBar {
+  margin-top: 15px;
+  text-align: right;
+  font-size: 16px;
+  font-weight: bold;
+  color: #111827;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+@media (max-width: 900px) {
+  .cartLayout {
+    flex-direction: column;
+    height: auto;
+    overflow: auto;
+  }
+
+  .rightPanel {
+    min-height: 500px;
+  }
+
+  .productScroll {
+    max-height: 500px;
+  }
+}
+
+/* ==========================
+   SALE SUMMARY
+========================== */
+
+.saleSummaryCard {
+  position: sticky;
+  bottom: 20px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #111827;
+}
+
+.summaryRow .value {
+  font-weight: 700;
+}
+
+.summaryInput {
+  width: 120px;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  text-align: right;
+  outline: none;
+}
+
+.summaryInput:focus {
+  border-color: #2563eb;
+}
+
+.totalRow {
+  font-weight: 700;
+  font-size: 15px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.saleBtn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: #dc2626;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.saleBtn:hover {
+  background: #b91c1c;
+}
+
+.clearCartBtn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #b91c1c;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clearCartBtn:hover {
+  background: #dc2626;
+}
+
+.customerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.addCustomerBtn {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #111827;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s ease;
+}
+
+.addCustomerBtn:hover {
+  background: #000000;
+  transform: translateY(-1px);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.customerModal {
+  width: 450px;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.customerModal input,
+.customerModal select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.modalBtns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.saveBtn {
+  background: #198754;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+}
+
+.cancelBtn {
+  background: #dc3545;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+}
+
+.tableWrapper {
+  max-height: 500px;
+  overflow-y: auto;
+}

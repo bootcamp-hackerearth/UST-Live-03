@@ -25,6 +25,8 @@ const NodePage = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [viewItem, setViewItem] = useState(null);
+
   const sizePerPage = 5;
 
   // ADD
@@ -70,11 +72,11 @@ const NodePage = () => {
 
       setTotalPages(
         res?.totalPages ||
-          Math.ceil(
-            (res?.totalElements || data.length) /
-              sizePerPage
-          ) ||
-          1
+        Math.ceil(
+          (res?.totalElements || data.length) /
+          sizePerPage
+        ) ||
+        1
       );
     } catch (err) {
       console.error(err);
@@ -122,15 +124,7 @@ const NodePage = () => {
   const handleUpdate = async () => {
     try {
       await updateItem("node", editNode);
-
-      setNodes((prev) =>
-        prev.map((n) =>
-          n.identifier === editNode.identifier
-            ? editNode
-            : n
-        )
-      );
-
+      await fetchNodes();
       setEditNode(null);
     } catch (err) {
       console.error(err);
@@ -163,9 +157,10 @@ const NodePage = () => {
   // COLUMNS
   const columns = [
     {
-      label: "ID",
-      render: (row, index) =>
-        page * sizePerPage + index + 1,
+      key: "serialNo",
+      label: "S.No",
+      render: (row, rowIndex) =>
+        page * sizePerPage + rowIndex + 1,
     },
     {
       label: "Identifier",
@@ -187,11 +182,15 @@ const NodePage = () => {
   // ACTIONS
   const actions = [
     {
-      label: "✏️",
+      label: "View 👁️",
+      onClick: (row) => setViewItem(row),
+    },
+    {
+      label: "Edit ✏️",
       onClick: (row) => setEditNode(row),
     },
     {
-      label: "🗑",
+      label: "Delete 🗑",
       onClick: (row) =>
         handleDelete(row.identifier),
     },
@@ -202,10 +201,12 @@ const NodePage = () => {
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
     {
       name: "path",
       label: "Path",
+       required: true,
     },
     {
       name: "roles",
@@ -272,10 +273,12 @@ const NodePage = () => {
       editFields={editFields}
 
       actions={actions}
+      viewItem={viewItem}
+      setViewItem={setViewItem}
       emptyMessage="No nodes found"
 
       searchTerm={searchTerm}
-  setSearchTerm={setSearchTerm}
+      setSearchTerm={setSearchTerm}
     />
   );
 };

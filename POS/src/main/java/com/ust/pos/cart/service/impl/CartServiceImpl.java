@@ -6,10 +6,8 @@ import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
 import com.ust.pos.cart.service.CartService;
-import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,17 +19,18 @@ import java.util.List;
 @Service
 @Transactional
 public class CartServiceImpl implements CartService {
-    @Autowired
-    private CartEntryService cartEntryService;
 
-    @Autowired
-    private PriceService priceService;
+    private final CartEntryService cartEntryService;
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public CartServiceImpl(CartEntryService cartEntryService,CartRepository cartRepository, ModelMapper modelMapper) {
+        this.cartEntryService = cartEntryService;
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartDto save(CartDto cartDto) {
@@ -101,10 +100,32 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public List<CartDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<CartDto>>() {
-        }.getType();
-        Page<Cart> cartPage = cartRepository.findAll(pageable);
-        return modelMapper.map(cartPage.getContent(), listOfType);
+    public Page<CartDto> findAll(Pageable pageable, String search) {
+        Page<Cart> cartPage;
+        if (search != null && !search.trim().isEmpty()) {
+            cartPage = cartRepository.findByIdentifierContainingIgnoreCase(search, pageable);
+        } else {
+            cartPage = cartRepository.findAll(pageable);
+        }
+        return cartPage.map(cart -> modelMapper.map(cart, CartDto.class)
+        );
+    }
+    @Override
+    public CartDto updateCustomer(
+            String cartId,
+            String customerId) {
+
+        Cart cart = cartRepository.findByIdentifier(cartId);
+
+        if (cart == null) {
+            cart = new Cart();
+            cart.setIdentifier(cartId);
+        }
+
+        cart.setCustomerId(customerId);
+
+        cartRepository.save(cart);
+
+        return modelMapper.map(cart, CartDto.class);
     }
 }

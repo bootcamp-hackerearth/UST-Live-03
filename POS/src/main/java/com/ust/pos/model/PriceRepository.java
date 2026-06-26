@@ -6,11 +6,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface PriceRepository extends JpaRepository<Price, Long> {
     Price findByIdentifier(String identifier);
 
+    Price findByIdentifierAndDeletedFalse(String identifier);
+
     void deleteByIdentifier(String identifier);
 
-    Page<Price> findByIdentifierContainingIgnoreCase(String search, Pageable pageable);
+    List<Price> findByDeletedFalse();
+
+    Page<Price> findByIdentifierContainingIgnoreCaseAndDeletedFalse(String search, Pageable pageable);
+
+    Page<Price> findByDeletedFalse(Pageable pageable);
+
 }

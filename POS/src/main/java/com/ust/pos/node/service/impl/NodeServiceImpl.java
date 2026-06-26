@@ -6,7 +6,6 @@ import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -22,14 +21,18 @@ import java.util.Set;
 @Service
 @Transactional
 public class NodeServiceImpl implements NodeService {
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    private NodeRepository nodeRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final NodeRepository nodeRepository;
+
+    private final ModelMapper modelMapper;
+
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.nodeRepository = nodeRepository;
+        this.modelMapper = modelMapper;
+    }
 
     public List<NodeDto> getNodesForRoles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -44,7 +47,7 @@ public class NodeServiceImpl implements NodeService {
     private void findEligibleNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesString = new HashSet<>();
-        List<Node> nodes = nodeRepository.findAll();
+        List<Node> nodes = nodeRepository.findByDeletedFalse();
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
                 if (node.getRoles() != null && node.getRoles().contains(role)) {
@@ -53,19 +56,19 @@ public class NodeServiceImpl implements NodeService {
             }
         }
         for (String nodeStr : nodesString) {
-            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
+            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifierAndDeletedFalse(nodeStr), NodeDto.class));
         }
     }
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+        return modelMapper.map(nodeRepository.findByIdentifierAndDeletedFalse(identifier), NodeDto.class);
     }
 
     @Override
     public NodeDto save(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
-        Node existingNode = nodeRepository.findByIdentifier(identifier);
+        Node existingNode = nodeRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingNode != null) {
             nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
             nodeDto.setSuccess(false);
@@ -79,7 +82,7 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public NodeDto update(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
-        Node existingNode = nodeRepository.findByIdentifier(identifier);
+        Node existingNode = nodeRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingNode == null) {
             nodeDto.setMessage("Node with identifier - " + identifier + " not found");
             nodeDto.setSuccess(false);
@@ -92,25 +95,27 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public void delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
-    }
+        Node node = nodeRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (node != null) {
+            node.setDeleted(true);
+            nodeRepository.save(node);
+        }    }
 
     @Override
     public List<NodeDto> findAll() {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        return modelMapper.map(nodeRepository.findAll(), listType);
+        return modelMapper.map(nodeRepository.findByDeletedFalse(), listType);
     }
 
     @Override
     public Page<NodeDto> findAll(Pageable pageable ,String search ) {
         Page<Node> nodePage;
         if(search !=null && !search.trim().isEmpty()){
-            nodePage = nodeRepository.findByIdentifierContainingIgnoreCase
-                    (search,pageable);
+            nodePage = nodeRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search,pageable);
         }
         else {
-            nodePage = nodeRepository.findAll(pageable);
+            nodePage = nodeRepository.findByDeletedFalse(pageable);
         }
         return nodePage.map(node ->modelMapper.map(node , NodeDto.class));
     }

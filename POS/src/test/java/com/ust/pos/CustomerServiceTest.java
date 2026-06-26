@@ -46,7 +46,7 @@ class CustomerServiceTest {
         AddressDto shipping = new AddressDto();
         dto.setBilling(billing);
         dto.setShipping(shipping);
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
         Mockito.doNothing()
                 .when(addressService).save(shipping, billing);
@@ -57,6 +57,8 @@ class CustomerServiceTest {
                 .thenReturn(customer);
         CustomerDto response = customerService.save(dto);
         Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Admin", billing.getIdentifier());
+        Assertions.assertEquals("Admin", shipping.getIdentifier());
         Mockito.verify(addressService).save(shipping, billing);
         Mockito.verify(customerRepository).save(customer);
     }
@@ -65,11 +67,15 @@ class CustomerServiceTest {
     void saveTest_Failure_WhenCustomerExists() {
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("Admin");
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(new Customer());
         CustomerDto response = customerService.save(dto);
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
+        Assertions.assertEquals(
+                "Customer already exists",
+                response.getMessage()
+        );
         Mockito.verify(customerRepository, Mockito.never()).save(Mockito.any());
         Mockito.verify(addressService, Mockito.never()).save(Mockito.any(), Mockito.any());
     }
@@ -82,7 +88,7 @@ class CustomerServiceTest {
         AddressDto shipping = new AddressDto();
         dto.setBilling(billing);
         dto.setShipping(shipping);
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(new Customer());
         Customer mappedCustomer = new Customer();
         Mockito.when(modelMapper.map(dto, Customer.class))
@@ -93,6 +99,8 @@ class CustomerServiceTest {
                 .when(addressService).update(shipping, billing);
         CustomerDto response = customerService.update(dto);
         Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Admin", billing.getIdentifier());
+        Assertions.assertEquals("Admin", shipping.getIdentifier());
         Mockito.verify(addressService).update(shipping, billing);
         Mockito.verify(customerRepository).save(mappedCustomer);
     }
@@ -101,11 +109,14 @@ class CustomerServiceTest {
     void updateTest_Failure_WhenNotFound() {
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("Admin");
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
         CustomerDto response = customerService.update(dto);
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertEquals(
+                "Customer not found",
+                response.getMessage()
+        );
         Mockito.verify(customerRepository, Mockito.never()).save(Mockito.any());
         Mockito.verify(addressService, Mockito.never()).update(Mockito.any(), Mockito.any());
     }
@@ -116,7 +127,7 @@ class CustomerServiceTest {
         customer.setIdentifier("Admin");
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("Admin");
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(customer);
         Mockito.when(modelMapper.map(customer, CustomerDto.class))
                 .thenReturn(dto);
@@ -134,7 +145,7 @@ class CustomerServiceTest {
 
     @Test
     void findAllTest() {
-        Mockito.when(customerRepository.findAll())
+        Mockito.when(customerRepository.findByDeletedFalse())
                 .thenReturn(List.of(new Customer()));
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
@@ -146,30 +157,70 @@ class CustomerServiceTest {
 
     @Test
     void deleteTest() {
+        Customer customer = new Customer();
+        customer.setIdentifier("Admin");
+        customer.setDeleted(false);
         Mockito.doNothing()
-                .when(addressService).delete("Admin");
-        Mockito.doNothing()
-                .when(customerRepository).deleteByIdentifier("Admin");
+                .when(addressService)
+                .delete("Admin");
+        Mockito.when(customerRepository
+                        .findByIdentifierAndDeletedFalse("Admin"))
+                .thenReturn(customer);
         customerService.deleteByIdentifier("Admin");
-        Mockito.verify(addressService).delete("Admin");
-        Mockito.verify(customerRepository).deleteByIdentifier("Admin");
+        Assertions.assertTrue(customer.isDeleted());
+        Mockito.verify(addressService)
+                .delete("Admin");
+        Mockito.verify(customerRepository)
+                .save(customer);
+    }
+    @Test
+    void deleteTest_WhenCustomerNotFound() {
+        Mockito.when(customerRepository
+                        .findByIdentifierAndDeletedFalse("Admin"))
+                .thenReturn(null);
+        customerService.deleteByIdentifier("Admin");
+        Mockito.verify(addressService)
+                .delete("Admin");
+        Mockito.verify(customerRepository, Mockito.never())
+                .save(Mockito.any());
     }
 
     @Test
-    void findAll_WithPagination_ShouldReturnCustomerDtos() {
+    void findAll_WithPagination_NoSearch() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Customer> customers = List.of(new Customer());
-        Page<Customer> customerPage = new PageImpl<>(customers);
-        List<CustomerDto> customerDtos = List.of(new CustomerDto());
-        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
-        Mockito.when(customerRepository.findAll(pageable))
-                .thenReturn(customerPage);
-        Mockito.when(modelMapper.map(customers, listType))
-                .thenReturn(customerDtos);
-        List<CustomerDto> response = customerService.findAll(pageable);
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Mockito.verify(customerRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(customers, listType);
+        Customer customer = new Customer();
+        Page<Customer> page =
+                new PageImpl<>(List.of(customer));
+        Mockito.when(customerRepository
+                        .findByDeletedFalse(pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(
+                        Mockito.any(Customer.class),
+                        Mockito.eq(CustomerDto.class)))
+                .thenReturn(new CustomerDto());
+
+        Page<CustomerDto> result =
+                customerService.findAll(pageable, null);
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+    }
+
+    @Test
+    void findAll_WithPagination_Search() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Customer customer = new Customer();
+        Page<Customer> page =
+                new PageImpl<>(List.of(customer));
+        Mockito.when(customerRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse("Admin", pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(
+                        Mockito.any(Customer.class),
+                        Mockito.eq(CustomerDto.class)))
+                .thenReturn(new CustomerDto());
+        Page<CustomerDto> result = customerService.findAll(pageable, "Admin");
+        Assertions.assertEquals(1, result.getContent().size()
+        );
     }
 }

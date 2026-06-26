@@ -24,7 +24,9 @@ const CategoryPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [addError, setAddError] = useState("");
-  
+
+  const [viewItem, setViewItem] = useState(null);
+
 
   // ================= ADD =================
   const [newCategory, setNewCategory] = useState({
@@ -55,11 +57,11 @@ const CategoryPage = () => {
 
       setTotalPages(
         res?.totalPages ||
-          Math.ceil(
-            (res?.totalElements || data.length) /
-              sizePerPage
-          ) ||
-          1
+        Math.ceil(
+          (res?.totalElements || data.length) /
+          sizePerPage
+        ) ||
+        1
       );
     } catch (err) {
       console.error(err);
@@ -74,59 +76,59 @@ const CategoryPage = () => {
   }, [page, searchTerm]);
 
 
-// ================= fetchCategoryOptions =================
+  // ================= fetchCategoryOptions =================
   const fetchCategoryOptions = async () => {
-  try {
-    const res = await listItems("category", {
-      page: 0,
-      sizePerPage: 1000,
-      sortField: "identifier",
-    });
+    try {
+      const res = await listItems("category", {
+        page: 0,
+        sizePerPage: 1000,
+        sortField: "identifier",
+      });
 
-    setCategoryOptions(res?.content || []);
-  } catch (err) {
-    console.error(err);
-  }
-};
+      setCategoryOptions(res?.content || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-useEffect(() => {
-  fetchCategoryOptions();
-}, []);
+  useEffect(() => {
+    fetchCategoryOptions();
+  }, []);
   // ================= ADD =================
- const handleAddCategory = async () => {
-  try {
-    setAddError("");
+  const handleAddCategory = async () => {
+    try {
+      setAddError("");
 
-    const response = await addItem(
-      "category",
-      newCategory
-    );
+      const response = await addItem(
+        "category",
+        newCategory
+      );
 
-    if (response?.success === false) {
+      if (response?.success === false) {
+        setAddError(
+          response.message ||
+          "Category already exists"
+        );
+        return false;
+      }
+
+      setNewCategory({
+        identifier: "",
+        superCategory: "",
+      });
+
+      await fetchCategories();
+      return true;
+    } catch (err) {
+      console.error(err);
+
       setAddError(
-        response.message ||
-        "Category already exists"
+        err.response?.data?.message ||
+        "Add failed"
       );
       return false;
     }
-
-    setNewCategory({
-      identifier: "",
-      superCategory: "",
-    });
-
-    await fetchCategories();
-    return true;
-  } catch (err) {
-    console.error(err);
-
-    setAddError(
-      err.response?.data?.message ||
-      "Add failed"
-    );
-    return false;
-  }
-};
+  };
 
   // ================= UPDATE =================
   const handleUpdate = async () => {
@@ -201,13 +203,15 @@ useEffect(() => {
   // ================= ACTIONS =================
   const actions = [
     {
-      label: "✏️",
-      onClick: (row) =>
-        setEditCategory(row),
+      label: "View 👁️",
+      onClick: (row) => setViewItem(row),
     },
-
     {
-      label: "🗑 ",
+      label: "Edit ✏️",
+      onClick: (row) => setEditCategory(row),
+    },
+    {
+      label: "Delete 🗑",
       onClick: (row) =>
         handleDelete(row.identifier),
     },
@@ -218,6 +222,7 @@ useEffect(() => {
     {
       name: "identifier",
       label: "Category",
+      required: true,
     },
 
     {
@@ -284,7 +289,7 @@ useEffect(() => {
       setPage={setPage}
       sizePerPage={sizePerPage}
       totalPages={totalPages}
-      onAdd={() => {setAddError("");}}
+      onAdd={() => { setAddError(""); }}
       addButtonText="+ Add Category"
       newItem={newCategory}
       setNewItem={setNewCategory}
@@ -295,9 +300,11 @@ useEffect(() => {
       handleUpdate={handleUpdate}
       editFields={editFields}
       actions={actions}
+      viewItem={viewItem}
+      setViewItem={setViewItem}
       emptyMessage="No categories found"
       searchTerm={searchTerm}
-setSearchTerm={setSearchTerm}
+      setSearchTerm={setSearchTerm}
     />
   );
 };

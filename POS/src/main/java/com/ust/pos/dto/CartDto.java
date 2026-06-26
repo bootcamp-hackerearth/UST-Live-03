@@ -13,4 +13,5 @@ public class CartDto extends CommonDto {
     private BigDecimal discount;
     private String coupon;
     private List<CartEntryDto> cartEntries;
+    private String customerId;
 }

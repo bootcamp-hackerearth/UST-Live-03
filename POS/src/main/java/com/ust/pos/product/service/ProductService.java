@@ -19,5 +19,5 @@ public interface ProductService {
 
     ProductDto findByIdentifier(String identifier);
 
-    void toggleStatus(String identifier);
+    ProductDto toggleStatus(String identifier);
 }

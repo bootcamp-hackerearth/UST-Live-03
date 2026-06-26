@@ -1,28 +1,28 @@
 "use client";
- 
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
- 
+
 const Dashboard1 = () => {
   const router = useRouter();
- 
+
   const [user, setUser] = useState({
     name: "Admin",
     role: "Administrator",
   });
- 
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = globalThis?.localStorage?.getItem("token");
         const username = globalThis?.localStorage?.getItem("username");
- 
+
         if (!token || !username) {
           router.push("/login");
           return;
         }
- 
+
         const res = await axios.get(
           `http://localhost:8080/api/user/get?username=${username}`,
           {
@@ -31,35 +31,35 @@ const Dashboard1 = () => {
             },
           }
         );
- 
+
         setUser({
           name: res.data?.name || username,
           role: res.data?.role || "Administrator",
         });
       } catch (err) {
         console.error("USER FETCH ERROR:", err);
- 
+
         const username = globalThis?.localStorage?.getItem("username");
- 
+
         setUser({
           name: username || "Admin",
           role: "Administrator",
         });
       }
     };
- 
+
     fetchUser();
   }, [router]);
- 
+
   return (
     <div style={styles.main}>
       {/* TOPBAR */}
       <div style={styles.topbar}>
         <div>
           <h1 style={styles.pageTitle}>Dashboard</h1>
-          <p style={styles.pageSubtitle}>Welcome back</p>
+          <p style={styles.pageSubtitle}>Welcome</p>
         </div>
- 
+
         {/* PROFILE */}
         <button
           type="button"
@@ -70,25 +70,25 @@ const Dashboard1 = () => {
           <div style={styles.avatar}>
             {user.name?.charAt(0)?.toUpperCase() || "A"}
           </div>
- 
+
           <div>
             <h4 style={styles.profileName}>
               {user.name}
             </h4>
- 
+
             <p style={styles.profileRole}>
               {user.role}
             </p>
           </div>
         </button>
       </div>
- 
+
       {/* HERO SECTION */}
       <div style={styles.heroCard}>
         <h2 style={styles.heroTitle}>
           Manage your POS business
         </h2>
- 
+
         <p style={styles.heroText}>
           Track sales, orders and users in one place.
         </p>
@@ -96,7 +96,7 @@ const Dashboard1 = () => {
     </div>
   );
 };
- 
+
 export default Dashboard1;
 
 const styles = {
@@ -106,7 +106,7 @@ const styles = {
     background: "#f8fafc",
     fontFamily: "Inter, sans-serif",
   },
- 
+
   topbar: {
     display: "flex",
     justifyContent: "space-between",
@@ -115,20 +115,20 @@ const styles = {
     gap: "20px",
     flexWrap: "wrap",
   },
- 
+
   pageTitle: {
     margin: 0,
     fontSize: "42px",
     color: "#111827",
     fontWeight: "800",
   },
- 
+
   pageSubtitle: {
     marginTop: "6px",
     color: "#4b5563",
     fontSize: "16px",
   },
- 
+
   profile: {
     display: "flex",
     alignItems: "center",
@@ -139,7 +139,7 @@ const styles = {
     boxShadow: "0 4px 18px rgba(0,0,0,0.05)",
     cursor: "pointer",
   },
- 
+
   avatar: {
     width: "50px",
     height: "50px",
@@ -152,38 +152,38 @@ const styles = {
     fontWeight: "700",
     fontSize: "20px",
   },
- 
+
   profileName: {
     margin: 0,
     fontSize: "15px",
     color: "#111827",
   },
- 
+
   profileRole: {
     margin: 0,
     fontSize: "13px",
     color: "#4b5563",
   },
-heroCard: {
-  background: "#111827",
-  borderRadius: "24px",
-  padding: "42px",
-  color: "#fff",
-  marginTop: "20px",
-  boxShadow: "0 10px 24px rgba(0,0,0,0.15)",
-},
- 
-heroTitle: {
-  margin: 0,
-  fontSize: "34px", // reduced
-  fontWeight: "700",
-  lineHeight: "1.2",
-},
- 
-heroText: {
-  marginTop: "10px",
-  color: "rgba(255,255,255,0.8)",
-  fontSize: "15px", // reduced
-  lineHeight: "1.5",
-},
+  heroCard: {
+    background: "#111827",
+    borderRadius: "24px",
+    padding: "42px",
+    color: "#fff",
+    marginTop: "20px",
+    boxShadow: "0 10px 24px rgba(0,0,0,0.15)",
+  },
+
+  heroTitle: {
+    margin: 0,
+    fontSize: "34px", // reduced
+    fontWeight: "700",
+    lineHeight: "1.2",
+  },
+
+  heroText: {
+    marginTop: "10px",
+    color: "rgba(255,255,255,0.8)",
+    fontSize: "15px", // reduced
+    lineHeight: "1.5",
+  },
 };

@@ -141,7 +141,7 @@
             </form:select>
         </div>
 
-        <!-- ✅ Billing Address -->
+        <!--  Billing Address -->
         <details>
             <summary>Billing Address</summary>
             <input type="text"   name="billing.addressLine" placeholder="Address Line"/>
@@ -151,7 +151,7 @@
             <input type="text"   name="billing.country"     placeholder="Country"/>
         </details>
 
-        <!-- ✅ Shipping Address -->
+        <!--  Shipping Address -->
         <details>
             <summary>Shipping Address</summary>
             <input type="text"   name="shipping.addressLine" placeholder="Address Line"/>

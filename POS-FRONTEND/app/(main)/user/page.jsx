@@ -6,10 +6,10 @@ import {
   listItems,
   deleteItem,
   updateItem,
+  getListItems,
 } from "@/services/api";
 
 // ================= OUTSIDE COMPONENT (Sonar fix) =================
-
 const getColumns = (page, sizePerPage) => [
   {
     label: "S.No",
@@ -26,16 +26,20 @@ const getColumns = (page, sizePerPage) => [
 
 const getActions = (setEditUser, handleDelete) => [
   {
-    label: "✏️",
+    label: "View 👁️",
+    onClick: (row) => setViewItem(row),
+    },
+  {
+    label: "Edit ✏️",
     onClick: (row) => setEditUser(row),
   },
   {
-    label: "🗑",
+    label: "Delete 🗑",
     onClick: (row) => handleDelete(row.username),
   },
 ];
 
-const getEditFields = (setEditItem) => [
+const getEditFields = (roles) => [
   {
     name: "username",
     label: "Username",
@@ -49,22 +53,15 @@ const getEditFields = (setEditItem) => [
     name: "phoneNo",
     label: "Phone Number",
   },
-  {
-    name: "roles",
-    label: "Roles",
-    customRender: (editItem, setEditItem) => (
-      <input
-        type="text"
-        value={(editItem.roles || []).join(", ")}
-        onChange={(e) =>
-          setEditItem({
-            ...editItem,
-            roles: e.target.value.split(",").map((r) => r.trim()),
-          })
-        }
-      />
-    ),
-  },
+{
+  name: "roles",
+  label: "Roles",
+  type: "multiselect",
+  options: roles.map((role) => ({
+    value: role.identifier,
+    label: role.identifier,
+  })),
+},
 ];
 
 // ================= COMPONENT =================
@@ -78,6 +75,7 @@ const UserList = () => {
   const sizePerPage = 5;
   const [searchTerm, setSearchTerm] = useState("");
   const [editUser, setEditUser] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
 
   // ================= FETCH USERS =================
   const fetchUsers = useCallback(async () => {
@@ -117,9 +115,24 @@ const UserList = () => {
     }
   }, [page, searchTerm]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+const [roles, setRoles] = useState([]);
+
+useEffect(() => {
+  fetchUsers();
+}, [fetchUsers]);
+
+useEffect(() => {
+  const fetchRoles = async () => {
+    try {
+      const response = await getListItems("role");
+      setRoles(response || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchRoles();
+}, []);
 
   // ================= DELETE =================
   const handleDelete = useCallback(async (username) => {
@@ -142,7 +155,7 @@ const UserList = () => {
   const handleUpdate = useCallback(async () => {
     try {
       await updateItem("user", editUser);
-      fetchUsers();
+      await fetchUsers();
       setEditUser(null);
     } catch (err) {
       console.error(err);
@@ -162,9 +175,9 @@ const UserList = () => {
   );
 
   const editFields = useMemo(
-    () => getEditFields(setEditUser),
-    []
-  );
+  () => getEditFields(roles),
+  [roles]
+);
 
   // ================= RENDER =================
   return (
@@ -179,6 +192,8 @@ const UserList = () => {
       sizePerPage={sizePerPage}
       columns={columns}
       actions={actions}
+      viewItem={viewItem}
+      setViewItem={setViewItem}
       editItem={editUser}
       setEditItem={setEditUser}
       handleUpdate={handleUpdate}

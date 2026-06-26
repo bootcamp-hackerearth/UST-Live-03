@@ -1,12 +1,12 @@
 package com.ust.pos.shelf.service.impl;
 
+import com.ust.pos.dto.CommonDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,16 +19,19 @@ import java.util.Optional;
 @Service
 @Transactional
 public class ShelfServiceImpl implements ShelfService {
-    @Autowired
-    private ShelfRepository shelfRepository;
+    private final ShelfRepository shelfRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public ShelfServiceImpl(ShelfRepository shelfRepository, ModelMapper modelMapper) {
+        this.shelfRepository = shelfRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ShelfDto save(ShelfDto shelfDto) {
         String identifier = shelfDto.getIdentifier();
-        Shelf existingShelf = shelfRepository.findByIdentifier(identifier);
+        Shelf existingShelf = shelfRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingShelf != null) {
             shelfDto.setMessage("Shelf with identifier - " + identifier + " already exists");
             shelfDto.setSuccess(false);
@@ -63,40 +66,47 @@ public class ShelfServiceImpl implements ShelfService {
 
     @Override
     public void delete(String identifier) {
-        shelfRepository.deleteByIdentifier(identifier);
-    }
+        Shelf shelf = shelfRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (shelf != null) {
+            shelf.setDeleted(true);
+            shelfRepository.save(shelf);
+        }    }
 
     @Override
     public List<ShelfDto> findAll() {
         Type listOfType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        return modelMapper.map(shelfRepository.findAll(), listOfType);
+        return modelMapper.map(shelfRepository.findByDeletedFalse(), listOfType);
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
-        Type listtype = new TypeToken<List<ShelfDto>>() {
-        }.getType();
-        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
-        return modelMapper.map(shelfPage.getContent(), listtype);
+    public Page<ShelfDto> findAll(Pageable pageable , String search) {
+        Page<Shelf> shelfPage;
+        if(search!= null && !search.trim().isEmpty()){
+            shelfPage = shelfRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search , pageable);
+        }
+        else {
+            shelfPage = shelfRepository.findByDeletedFalse(pageable);
+        }
+        return shelfPage.map(shelf -> modelMapper.map(shelf , ShelfDto.class));
     }
 
     @Override
     public ShelfDto findByIdentifier(String identifier) {
-        return modelMapper.map(shelfRepository.findByIdentifier(identifier), ShelfDto.class);
+        return modelMapper.map(shelfRepository.findByIdentifierAndDeletedFalse(identifier), ShelfDto.class);
     }
 
     @Override
     public List<ShelfDto> findAllByStatus() {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        List<ShelfDto> shelfDtos = modelMapper.map(shelfRepository.findAll(), listType);
-        return shelfDtos.stream().filter(s -> s.isStatus()).toList();
+        List<ShelfDto> shelfDtos = modelMapper.map(shelfRepository.findByDeletedFalse(), listType);
+        return shelfDtos.stream().filter(CommonDto::isStatus).toList();
     }
 
     @Override
     public void toggleStatus(String identifier) {
-        Shelf shelf = shelfRepository.findByIdentifier(identifier);
+        Shelf shelf = shelfRepository.findByIdentifierAndDeletedFalse(identifier);
         shelf.setStatus(!shelf.isStatus());
         shelfRepository.save(shelf);
     }

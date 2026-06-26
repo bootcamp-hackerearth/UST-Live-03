@@ -36,10 +36,28 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      globalThis.location.href = "/login";
+    const status = error?.response?.status;
+ 
+    if (typeof globalThis !== "undefined") {
+      switch (status) {
+        case 401:
+          localStorage.removeItem("token");
+          globalThis.location.replace("/login");
+          break;
+ 
+        case 404:
+          globalThis.location.replace("/not-found");
+          break;
+ 
+        case 500:
+          globalThis.location.replace("/server-error");
+          break;
+ 
+        default:
+          break;
+      }
     }
+ 
     return Promise.reject(error);
   }
 );
@@ -49,7 +67,7 @@ const DEFAULT_PAGINATION = {
   page: 0,
   sizePerPage: 1,
   sortField: "identifier",
-};
+};  
  
 // ================= LIST =================
 export const listItems = async (model, params = {}) => {
@@ -102,7 +120,7 @@ export const getItem = async (model, value) => {
  
 // ================= UPDATE =================
 export const updateItem = async (model, data) => {
-  const response = await api.post(
+  const response = await api.put(
     `/api/${model}/update`,
     data
   );
@@ -111,7 +129,7 @@ export const updateItem = async (model, data) => {
 };
  
 export const deleteItem = async (model, value, key = "identifier") => {
-  const response = await api.get(`/api/${model}/delete`, {
+  const response = await api.delete(`/api/${model}/delete`, {
     params: {
       [key]: value,
     },
@@ -123,12 +141,14 @@ export const deleteItem = async (model, value, key = "identifier") => {
 export const toggleItem = async (model, identifier) => {
   const response = await api.post(
     `/api/${model}/toggleStatus`,
-    null,
+    identifier, // 👈 send raw string
     {
-      params: { identifier },
+      headers: {
+        "Content-Type": "text/plain",
+      },
     }
   );
- 
+
   return response.data;
 };
  

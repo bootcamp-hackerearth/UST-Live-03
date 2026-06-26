@@ -2,7 +2,6 @@ package com.ust.pos.warehouse;
 
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,12 @@ import org.springframework.web.bind.annotation.*;
 public class WarehouseController {
 
     public static final String REDIRECT_WAREHOUSE_LIST = "redirect:/warehouse/list";
-    @Autowired
-    private WarehouseService warehouseService;
+
+    private final WarehouseService warehouseService;
+
+    public WarehouseController(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -43,7 +46,7 @@ public class WarehouseController {
         return "warehouse/warehouse";
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public String doupdate(Model model, @ModelAttribute WarehouseDto warehouseDto) {
         WarehouseDto warehouseDto1 = warehouseService.update(warehouseDto);
         if (!warehouseDto1.isSuccess()) {
@@ -53,7 +56,7 @@ public class WarehouseController {
         return REDIRECT_WAREHOUSE_LIST;
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         warehouseService.delete(identifier);
         return REDIRECT_WAREHOUSE_LIST;
