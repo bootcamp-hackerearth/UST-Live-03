@@ -3,7 +3,6 @@ package com.ust.pos.models;
 
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.models.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +13,12 @@ import org.springframework.web.bind.annotation.*;
 public class ModelsController {
 
     public static final String REDIRECT_MODEL_LIST = "redirect:/models/list";
-    @Autowired
-    private ModelService modelsService;
+
+    private final ModelService modelsService;
+
+    public ModelsController(ModelService modelsService) {
+        this.modelsService = modelsService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

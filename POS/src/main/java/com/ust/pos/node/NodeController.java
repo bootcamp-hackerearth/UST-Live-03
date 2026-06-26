@@ -3,7 +3,6 @@ package com.ust.pos.node;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,11 +14,15 @@ public class NodeController {
 
     public static final String MESSAGE = "message";
     public static final String MESSAGE1 = "message";
-    @Autowired
-    private NodeService nodeService;
 
-    @Autowired
-    private RoleService roleService;
+    private final NodeService nodeService;
+
+    private final RoleService roleService;
+
+    public NodeController(NodeService nodeService, RoleService roleService) {
+        this.nodeService = nodeService;
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

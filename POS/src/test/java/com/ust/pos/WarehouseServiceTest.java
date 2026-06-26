@@ -5,7 +5,6 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,16 +19,14 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class WarehouseServiceTest {
 
     @InjectMocks
-    private WarehouseServiceImpl warehouseService;
+    private WarehouseServiceImpl service;
 
     @Mock
     private WarehouseRepository warehouseRepository;
@@ -38,133 +35,157 @@ class WarehouseServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void saveTestSuccess() {
-        WarehouseDto dto = new WarehouseDto();
-        dto.setIdentifier("WH1");
+    void findAllTest() {
+        Pageable pageable = PageRequest.of(0, 2);
 
-        Warehouse warehouse = new Warehouse();
+        Page<Warehouse> page = new PageImpl<>(List.of(new Warehouse()), pageable, 1);
 
-        when(warehouseRepository.findByIdentifier("WH1"))
-                .thenReturn(null);
+        when(warehouseRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(new WarehouseDto()));
 
-        when(modelMapper.map(dto, Warehouse.class))
-                .thenReturn(warehouse);
+        WsDto<WarehouseDto> result = service.findAll(pageable);
 
-        WarehouseDto response = warehouseService.save(dto);
-
-        Assertions.assertEquals("WH1", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertNull(response.getMessage());
-
-        verify(warehouseRepository).save(warehouse);
+        assertEquals(1, result.getContent().size());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(2, result.getSizePerPage());
+        assertEquals(0, result.getPage());
     }
 
     @Test
-    void saveTestFailure() {
+    void findByIdentifierTest() {
+        Warehouse entity = new Warehouse();
         WarehouseDto dto = new WarehouseDto();
-        dto.setIdentifier("WH1");
 
-        when(warehouseRepository.findByIdentifier("WH1"))
-                .thenReturn(new Warehouse());
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(entity);
+        when(modelMapper.map(entity, WarehouseDto.class)).thenReturn(dto);
 
-        WarehouseDto response = warehouseService.save(dto);
+        WarehouseDto result = service.findByIdentifier("W1");
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        assertNotNull(result);
     }
 
     @Test
-    void updateTestSuccess() {
+    void saveSuccessTest() {
         WarehouseDto dto = new WarehouseDto();
-        dto.setIdentifier("WH1");
+        dto.setIdentifier("W1");
+
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(null);
+        when(modelMapper.map(dto, Warehouse.class)).thenReturn(new Warehouse());
+
+        WarehouseDto result = service.save(dto);
+
+        assertTrue(result.isSuccess());
+        verify(warehouseRepository).save(any());
+    }
+
+    @Test
+    void saveDuplicateActiveTest() {
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("W1");
+
+        Warehouse existing = new Warehouse();
+        existing.setDeleted(false);
+
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(existing);
+
+        WarehouseDto result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("already exists"));
+        verify(warehouseRepository, never()).save(any());
+    }
+
+    @Test
+    void saveDuplicateDeletedTest() {
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("W1");
+
+        Warehouse existing = new Warehouse();
+        existing.setDeleted(true);
+
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(existing);
+
+        WarehouseDto result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("deleted"));
+    }
+
+    @Test
+    void updateSuccessTest() {
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("W1");
 
         Warehouse existing = new Warehouse();
 
-        when(warehouseRepository.findByIdentifier("WH1"))
-                .thenReturn(existing);
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(existing);
 
-        WarehouseDto response = warehouseService.update(dto);
+        WarehouseDto result = service.update(dto);
 
-        Assertions.assertEquals("WH1", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertNull(response.getMessage());
-
-        verify(modelMapper).map(dto, existing);
+        assertTrue(result.isSuccess());
         verify(warehouseRepository).save(existing);
     }
 
     @Test
-    void updateTestFailure() {
+    void updateNotFoundTest() {
         WarehouseDto dto = new WarehouseDto();
-        dto.setIdentifier("WH1");
+        dto.setIdentifier("W1");
 
-        when(warehouseRepository.findByIdentifier("WH1"))
-                .thenReturn(null);
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(null);
 
-        WarehouseDto response = warehouseService.update(dto);
+        WarehouseDto result = service.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("not found"));
+        verify(warehouseRepository, never()).save(any());
     }
 
     @Test
     void deleteTest() {
-        warehouseService.delete("WH1");
-
-        verify(warehouseRepository).deleteByIdentifier("WH1");
-    }
-
-    @Test
-    void findByIdentifierSuccessTest() {
         Warehouse warehouse = new Warehouse();
-        WarehouseDto dto = new WarehouseDto();
+        warehouse.setDeleted(false);
 
-        when(warehouseRepository.findByIdentifier("WH1"))
-                .thenReturn(warehouse);
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(warehouse);
 
-        when(modelMapper.map(warehouse, WarehouseDto.class))
-                .thenReturn(dto);
+        service.delete("W1");
 
-        WarehouseDto response = warehouseService.findByIdentifier("WH1");
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(dto, response);
+        assertTrue(warehouse.isDeleted());
     }
 
     @Test
-    void findByIdentifierFailureTest() {
-        when(warehouseRepository.findByIdentifier("WH1"))
-                .thenReturn(null);
+    void toggleStatusTrueToFalseTest() {
+        Warehouse warehouse = new Warehouse();
+        warehouse.setStatus(true);
 
-        WarehouseDto response = warehouseService.findByIdentifier("WH1");
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(warehouse);
 
-        Assertions.assertNull(response);
+        service.toggleStatus("W1");
+
+        assertFalse(warehouse.isStatus());
+        verify(warehouseRepository).save(warehouse);
     }
 
     @Test
-    void findAllTest() {
-        Pageable pageable = PageRequest.of(0, 10);
+    void toggleStatusFalseToTrueTest() {
+        Warehouse warehouse = new Warehouse();
+        warehouse.setStatus(false);
 
-        List<Warehouse> warehouses = List.of(new Warehouse());
-        Page<Warehouse> page = new PageImpl<>(warehouses);
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(warehouse);
 
-        List<WarehouseDto> dtoList = List.of(new WarehouseDto());
+        service.toggleStatus("W1");
 
-        when(warehouseRepository.findAll(pageable))
-                .thenReturn(page);
+        assertTrue(warehouse.isStatus());
+        verify(warehouseRepository).save(warehouse);
+    }
 
-        when(modelMapper.map(
-                any(),
-                any(Type.class)
-        )).thenReturn(dtoList);
+    @Test
+    void toggleStatusNotFoundTest() {
+        when(warehouseRepository.findByIdentifier("W1")).thenReturn(null);
 
-        WsDto<WarehouseDto> response = warehouseService.findAll(pageable);
+        service.toggleStatus("W1");
 
-        Assertions.assertNotNull(response);
-        Assertions.assertNotNull(response.getContent());
-        Assertions.assertEquals(1, response.getContent().size());
-
-        verify(warehouseRepository).findAll(pageable);
-        verify(modelMapper).map(any(), any(Type.class));
+        verify(warehouseRepository, never()).save(any());
     }
 }

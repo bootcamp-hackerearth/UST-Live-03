@@ -19,4 +19,6 @@ public interface CategoryService {
     void delete(String identifier);
 
     List<CategoryDto> findAllCategoriesWithNoSuper();
+
+    void toggleStatus(String identifier);
 }

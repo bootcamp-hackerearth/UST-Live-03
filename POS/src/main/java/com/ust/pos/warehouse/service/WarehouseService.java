@@ -4,8 +4,6 @@ import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface WarehouseService {
     WsDto<WarehouseDto> findAll(Pageable pageable);
 
@@ -16,4 +14,6 @@ public interface WarehouseService {
     WarehouseDto update(WarehouseDto warehouseDto);
 
     void delete(String identifier);
+
+    void toggleStatus(String identifier);
 }

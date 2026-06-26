@@ -5,18 +5,18 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerRestController extends BaseController {
 
-    @Autowired
-    CustomerService customerService;
+    private final CustomerService customerService;
+
+    public CustomerRestController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
     @PostMapping("/list")
     public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
@@ -37,12 +37,12 @@ public class CustomerRestController extends BaseController {
         return customerService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);
@@ -50,5 +50,15 @@ public class CustomerRestController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PutMapping("/toggle-status")
+    public boolean toggleStatus(@RequestParam String identifier) {
+        try {
+            customerService.toggleStatus(identifier);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

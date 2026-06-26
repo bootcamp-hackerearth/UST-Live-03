@@ -14,52 +14,52 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    setLoading(true);
-    setError("");
+    try {
+      setLoading(true);
+      setError("");
 
-    const res = await fetch("http://localhost:8080/api/authenticate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ username, password })
-    });
+      const res = await fetch("http://localhost:8080/api/authenticate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password })
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok || !data.token) {
-      throw new Error("Invalid username or password");
+      if (!res.ok || !data.token) {
+        throw new Error("Invalid username or password");
+      }
+
+      const cookieRes = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          token: data.token
+        })
+      });
+
+      if (!cookieRes.ok) {
+        throw new Error("Failed to set cookie");
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("username", username);
+
+      router.push("/dashboard");
+
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
-
-    const cookieRes = await fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        token: data.token
-      })
-    });
-
-    if (!cookieRes.ok) {
-      throw new Error("Failed to set cookie");
-    }
-
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("username", username);
-
-    router.push("/dashboard");
-
-  } catch (err) {
-    console.error(err);
-    setError(err.message || "Login failed");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 flex">

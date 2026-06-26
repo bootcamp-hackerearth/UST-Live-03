@@ -25,4 +25,10 @@ public interface CartentryService {
     BigDecimal getSellingPrice(String product);
 
     BigDecimal getDiscount(CartEntryDto cartEntryDto);
+
+    BigDecimal getTotalPrice(String product, BigDecimal quantity);
+
+    CartEntryDto updateQuantity(CartEntryDto cartEntryDto);
+
+    List<CartEntryDto> findByCartId(String cartId);
 }

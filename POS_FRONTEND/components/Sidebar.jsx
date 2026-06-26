@@ -22,7 +22,9 @@ export default function Sidebar() {
 
   useEffect(() => {
     axios.get("/node/getNodesForRoles")
-      .then(res => setNodes(res.data || []));
+      .then(res =>
+        setNodes((res.data || []).filter(node => node.status === true))
+      );
   }, []);
 
   const iconMap = {

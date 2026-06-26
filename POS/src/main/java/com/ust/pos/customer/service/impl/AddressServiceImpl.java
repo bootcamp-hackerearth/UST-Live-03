@@ -1,30 +1,34 @@
 package com.ust.pos.customer.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class AddressServiceImpl implements AddressService {
-    @Autowired
-    AddressRepository addressRepository;
+public class AddressServiceImpl extends BaseService implements AddressService {
 
-    @Autowired
-    ModelMapper modelMapper;
+    private final AddressRepository addressRepository;
+
+    private final ModelMapper modelMapper;
+
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public List<AddressDto> findAll() {
         Type listType = new TypeToken<List<AddressDto>>() {
         }.getType();
-        return modelMapper.map(addressRepository.findAll(), listType);
+        return modelMapper.map(addressRepository.findByIsDeletedFalse(), listType);
     }
 
     @Override
@@ -35,13 +39,30 @@ public class AddressServiceImpl implements AddressService {
                         addressDto.getPhoneNo(),
                         addressDto.getAddressType()
                 );
-        if (existingAddress == null) {
-            existingAddress = new Address();
+
+        if (existingAddress != null) {
+
+            if (existingAddress.isDeleted()) {
+                addressDto.setMessage(
+                        "Address - " + addressDto.getPhoneNo() + " (" + addressDto.getAddressType() +
+                                ") already exists but was deleted, Please contact Administrator"
+                );
+                addressDto.setSuccess(false);
+                return addressDto;
+            }
+
+            modelMapper.map(addressDto, existingAddress);
+            setModifiedDetails(existingAddress);
+            addressRepository.save(existingAddress);
+
+        } else {
+            Address newAddress = new Address();
+            modelMapper.map(addressDto, newAddress);
+            setCreatedDetails(newAddress);
+            addressRepository.save(newAddress);
         }
 
-        modelMapper.map(addressDto, existingAddress);
-        addressRepository.save(existingAddress);
-
+        addressDto.setSuccess(true);
         return addressDto;
     }
 
@@ -56,6 +77,7 @@ public class AddressServiceImpl implements AddressService {
             return addressDto;
         }
         modelMapper.map(addressDto, existingAddress);
+        setModifiedDetails(existingAddress);
         addressRepository.save(existingAddress);
         return addressDto;
     }
@@ -75,6 +97,8 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public void deleteByPhoneNo(String phoneNo) {
-        addressRepository.deleteByPhoneNo(phoneNo);
+        Address address = addressRepository.findByPhoneNo(phoneNo);
+        setModifiedDetails(address);
+        softDelete(address);
     }
 }

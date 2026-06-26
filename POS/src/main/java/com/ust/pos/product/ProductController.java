@@ -6,7 +6,6 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,19 +18,24 @@ public class ProductController {
     public static final String PRODUCT_LIST = "product/list";
     public static final String PRODUCTS = "products";
     public static final String MESSAGE = "message";
-    @Autowired
-    ProductService productService;
-    @Autowired
-    CategoryService categoryService;
 
-    @Autowired
-    BrandService brandService;
+    private final ProductService productService;
 
-    @Autowired
-    UnitService unitService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    ModelService modelService;
+    private final BrandService brandService;
+
+    private final UnitService unitService;
+
+    private final ModelService modelService;
+
+    public ProductController(ProductService productService, CategoryService categoryService, BrandService brandService, UnitService unitService, ModelService modelService) {
+        this.productService = productService;
+        this.categoryService = categoryService;
+        this.brandService = brandService;
+        this.unitService = unitService;
+        this.modelService = modelService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

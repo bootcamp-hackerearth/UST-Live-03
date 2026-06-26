@@ -2,7 +2,6 @@ package com.ust.pos.brand;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +13,12 @@ public class BrandController {
     public static final String BRANDS = "brands";
     public static final String BRAND_LIST = "brand/list";
     public static final String MESSAGE = "message";
-    @Autowired
-    BrandService brandService;
+
+    private final BrandService brandService;
+
+    public BrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

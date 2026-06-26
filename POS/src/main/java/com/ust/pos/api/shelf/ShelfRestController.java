@@ -5,20 +5,19 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@Controller
+@RestController
 @RequestMapping("/api/shelf")
 public class ShelfRestController extends BaseController {
 
-    @Autowired
-    ShelfService shelfService;
+    private final ShelfService shelfService;
+
+    public ShelfRestController(ShelfService shelfService) {
+        this.shelfService = shelfService;
+    }
 
     @PostMapping("/list")
     public WsDto<ShelfDto> home(@RequestBody PaginationDto paginationDto) {
@@ -27,11 +26,6 @@ public class ShelfRestController extends BaseController {
                 paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return shelfService.findAll(pageable);
-    }
-
-    @GetMapping("/add")
-    public ShelfDto add(@RequestParam String identifier) {
-        return shelfService.findByIdentifier(identifier);
     }
 
     @PostMapping("/add")
@@ -44,12 +38,12 @@ public class ShelfRestController extends BaseController {
         return shelfService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfDto updatePost(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             shelfService.delete(identifier);
@@ -57,5 +51,15 @@ public class ShelfRestController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PutMapping("/toggle-status")
+    public boolean toggleStatus(@RequestParam String identifier) {
+        try {
+            shelfService.toggleStatus(identifier);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -20,7 +20,8 @@ export default function CategoryEditPage() {
       label: "Super Categories",
       type: "select",
       multiple: true,
-      api: "/category/list"
+      api: "/category/list",
+      required: true
     }
   ];
 

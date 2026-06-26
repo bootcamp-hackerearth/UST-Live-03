@@ -18,4 +18,6 @@ public interface NodeService {
     NodeDto update(NodeDto nodeDto);
 
     void delete(String identifier);
+
+    void toggleStatus(String identifier);
 }

@@ -1,14 +1,13 @@
 package com.ust.pos.cartentry.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.cartentry.service.CartentryService;
-import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,18 +17,22 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-public class CartentryServiceImpl implements CartentryService {
-    @Autowired
-    CartEntryRepository cartEntryRepository;
+public class CartentryServiceImpl extends BaseService implements CartentryService {
 
-    @Autowired
-    PriceRepository priceRepository;
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    CartRepository cartRepository;
+    private final PriceRepository priceRepository;
 
-    @Autowired
-    ModelMapper modelMapper;
+    private final CartRepository cartRepository;
+
+    private final ModelMapper modelMapper;
+
+    public CartentryServiceImpl(CartEntryRepository cartEntryRepository, PriceRepository priceRepository, CartRepository cartRepository, ModelMapper modelMapper) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.priceRepository = priceRepository;
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public WsDto<CartEntryDto> findAll(Pageable pageable) {
@@ -68,6 +71,15 @@ public class CartentryServiceImpl implements CartentryService {
         CartEntry existingCart = cartEntryRepository.findByIdentifier(identifier);
 
         if (existingCart != null) {
+
+
+            if (existingCart.isDeleted()) {
+                cartEntryDto.setMessage(
+                        "CartEntry - " + identifier + " already exists but was deleted, Please contact Administrator"
+                );
+                return cartEntryDto;
+            }
+
             cartEntryDto.setQuantity(cartEntryDto.getQuantity().add(existingCart.getQuantity()));
         }
 
@@ -77,9 +89,11 @@ public class CartentryServiceImpl implements CartentryService {
 
         if (existingCart != null) {
             modelMapper.map(cartEntryDto, existingCart);
+            setModifiedDetails(existingCart);
             cartEntryRepository.save(existingCart);
         } else {
             CartEntry cartEntry = modelMapper.map(cartEntryDto, CartEntry.class);
+            setCreatedDetails(cartEntry);
             cartEntryRepository.save(cartEntry);
         }
 
@@ -140,5 +154,49 @@ public class CartentryServiceImpl implements CartentryService {
         BigDecimal sellingPrice = getSellingPrice(cartEntryDto.getProduct());
         BigDecimal discount = mrp.subtract(sellingPrice);
         return discount.multiply(cartEntryDto.getQuantity());
+    }
+
+    @Override
+    public BigDecimal getTotalPrice(String product, BigDecimal quantity) {
+        return getSellingPrice(product).multiply(quantity);
+    }
+
+    @Override
+    public CartEntryDto updateQuantity(CartEntryDto cartEntryDto) {
+
+        String product = cartEntryDto.getProduct();
+        String cartId = cartEntryDto.getCartId();
+
+        cartEntryDto.setIdentifier(product + "_" + cartId);
+        cartEntryDto.setUnitPrice(getSellingPrice(cartEntryDto.getProduct()));
+
+        String identifier = cartEntryDto.getIdentifier();
+        CartEntry existingCart = cartEntryRepository.findByIdentifier(identifier);
+
+        cartEntryDto.setDiscount(getDiscount(cartEntryDto));
+        cartEntryDto.setOriginalPrice(cartEntryDto.getUnitPrice().multiply(cartEntryDto.getQuantity()));
+        cartEntryDto.setTotalPrice(getSellingPrice(product).multiply(cartEntryDto.getQuantity()));
+
+        if (existingCart != null) {
+            modelMapper.map(cartEntryDto, existingCart);
+            cartEntryRepository.save(existingCart);
+        } else {
+            CartEntry cartEntry = modelMapper.map(cartEntryDto, CartEntry.class);
+            cartEntryRepository.save(cartEntry);
+        }
+
+        recalculate(cartId);
+        return cartEntryDto;
+    }
+
+    @Override
+    public List<CartEntryDto> findByCartId(String cartId) {
+
+        List<CartEntry> cartEntries = cartEntryRepository.findByCartId(cartId);
+
+        Type listType = new TypeToken<List<CartEntryDto>>() {
+        }.getType();
+
+        return modelMapper.map(cartEntries, listType);
     }
 }

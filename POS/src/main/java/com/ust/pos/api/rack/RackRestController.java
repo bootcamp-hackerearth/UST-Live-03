@@ -3,26 +3,21 @@ package com.ust.pos.api.rack;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
-import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.rack.service.RackService;
-import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@Controller
+@RestController
 @RequestMapping("/api/rack")
 public class RackRestController extends BaseController {
-    @Autowired
-    RackService rackService;
 
-    @Autowired
-    ShelfService shelfService;
+    private final RackService rackService;
+
+    public RackRestController(RackService rackService) {
+        this.rackService = rackService;
+    }
 
     @PostMapping("/list")
     public WsDto<RackDto> home(@RequestBody PaginationDto paginationDto) {
@@ -31,11 +26,6 @@ public class RackRestController extends BaseController {
                 paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return rackService.findAll(pageable);
-    }
-
-    @GetMapping("/add")
-    public List<ShelfDto> add(Model model, @ModelAttribute RackDto rackDto) {
-        return shelfService.findActiveStatus();
     }
 
     @PostMapping("/add")
@@ -48,12 +38,12 @@ public class RackRestController extends BaseController {
         return rackService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RackDto updatePost(Model model, @ModelAttribute RackDto rackDto) {
         return rackService.update(rackDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             rackService.delete(identifier);
@@ -61,6 +51,16 @@ public class RackRestController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PutMapping("/toggle-status")
+    public boolean toggleStatus(@RequestParam String identifier) {
+        try {
+            rackService.toggleStatus(identifier);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
 

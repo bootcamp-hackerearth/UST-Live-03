@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +17,11 @@ public class RoleRestController extends BaseController {
     public static final String MESSAGE1 = "message";
     public static final String MESSAGE2 = "message";
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
+
+    public RoleRestController(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @PostMapping("/list")
     public WsDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
@@ -41,12 +43,12 @@ public class RoleRestController extends BaseController {
         return roleService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RoleDto updatePost(@RequestBody RoleDto roleDto) {
         return roleService.update(roleDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             roleService.delete(identifier);
@@ -54,5 +56,15 @@ public class RoleRestController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PutMapping("/toggle-status")
+    public boolean toggleStatus(@RequestParam String identifier) {
+        try {
+            roleService.toggleStatus(identifier);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

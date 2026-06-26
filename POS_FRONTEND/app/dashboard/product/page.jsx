@@ -3,12 +3,28 @@
 import { useEffect, useState } from "react";
 import axios from "@/config/axiosConfig";
 import CommonList from "@/components/CommonList";
+import Toggle from "@/components/Toggle";
 import { useRouter } from "next/navigation";
 
 export default function ProductPage() {
 
   const [data, setData] = useState([]);
   const router = useRouter();
+
+  const normalizeProducts = (rows = []) => {
+    const seen = new Set();
+
+    return rows.filter((item) => {
+      const key = item?.identifier ?? item?.name ?? item?.id ?? JSON.stringify(item);
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  };
 
   const fetchProducts = async () => {
     try {
@@ -19,7 +35,7 @@ export default function ProductPage() {
         sortDirection: "DESC"
       });
 
-      setData(res.data?.content || []);
+      setData(normalizeProducts(res.data?.content || []));
 
     } catch (err) {
       console.log("Product fetch error:", err);
@@ -30,45 +46,68 @@ export default function ProductPage() {
     fetchProducts();
   }, []);
 
+  const toggleStatus = async (row) => {
+    try {
+      await axios.put(
+        `/product/toggle-status?identifier=${row.identifier}`
+      );
+
+      setData(prev =>
+        prev.map(item =>
+          item.identifier === row.identifier
+            ? { ...item, status: !item.status }
+            : item
+        )
+      );
+
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const columns = [
     {
       header: "ID",
       accessor: "id"
     },
-
     {
       header: "Identifier",
       accessor: "identifier"
     },
-
     {
       header: "Product",
       accessor: "name"
     },
-
     {
       header: "Brand",
       accessor: "brand"
     },
-
     {
       header: "Model",
       accessor: "model"
     },
-
     {
       header: "Unit",
       accessor: "unit"
     },
-
     {
       header: "Price",
       accessor: "price"
     },
-
     {
       header: "Category",
       accessor: "category"
+    },
+
+    {
+      header: "Status",
+      accessor: "status",
+      render: (row) => (
+        <Toggle
+          active={Boolean(row.status)}
+          onToggle={() => toggleStatus(row)}
+        />
+      )
     }
   ];
 
@@ -86,6 +125,7 @@ export default function ProductPage() {
             Manage products
           </p>
         </div>
+
         <div className="flex gap-3">
           <button
             onClick={() =>
@@ -95,6 +135,7 @@ export default function ProductPage() {
           >
             + Add Product
           </button>
+
           <button
             onClick={() => router.push("/")}
             className="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300"
@@ -102,6 +143,7 @@ export default function ProductPage() {
             Back
           </button>
         </div>
+
       </div>
 
       <CommonList
@@ -113,10 +155,9 @@ export default function ProductPage() {
           )
         }
         onDelete={async (row) => {
-          await axios.get(
+          await axios.delete(
             `/product/delete?identifier=${row.identifier || row.name}`
           );
-
           fetchProducts();
         }}
       />

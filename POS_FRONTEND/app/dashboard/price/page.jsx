@@ -64,7 +64,7 @@ export default function PricePage() {
           )
         }
         onDelete={async (row) => {
-          await axios.get(
+          await axios.delete(
             `/price/delete?identifier=${row.identifier}`
           );
 

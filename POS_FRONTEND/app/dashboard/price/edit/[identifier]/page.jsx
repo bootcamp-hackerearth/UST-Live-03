@@ -11,7 +11,8 @@ export default function PriceEditPage() {
       name: "product",
       label: "Product",
       type: "select",
-      api: "/product/list"
+      api: "/product/list",
+      required: true
     },
 
     {
@@ -29,7 +30,8 @@ export default function PriceEditPage() {
         { identifier: "COST_PRICE" },
         { identifier: "SELLING_PRICE" },
         { identifier: "MRP" }
-      ]
+      ],
+      required: true
     }
   ];
 

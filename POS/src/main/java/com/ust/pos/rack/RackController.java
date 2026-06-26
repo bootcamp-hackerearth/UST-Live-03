@@ -3,7 +3,6 @@ package com.ust.pos.rack;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.rack.service.RackService;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +15,14 @@ public class RackController {
     public static final String RACK_LIST = "rack/list";
     public static final String MESSAGE = "message";
 
-    @Autowired
-    RackService rackService;
+    private final RackService rackService;
 
-    @Autowired
-    ShelfService shelfService;
+    private final ShelfService shelfService;
+
+    public RackController(RackService rackService, ShelfService shelfService) {
+        this.rackService = rackService;
+        this.shelfService = shelfService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

@@ -17,15 +17,24 @@ export default function CommonList({
   const pageSize = 5;
 
   const filteredData = data.filter((row) =>
-    columns.some((col) =>
-      String(
-        col.render
-          ? col.render(row)
-          : row[col.accessor] || ""
-      )
+    columns.some((col) => {
+
+      let value = "";
+
+      if (col.accessor) {
+        value = row[col.accessor];
+      } else {
+        value = JSON.stringify(row);
+      }
+
+      if (typeof value === "boolean") {
+        value = value ? "active" : "inactive";
+      }
+
+      return String(value || "")
         .toLowerCase()
-        .includes(search.toLowerCase())
-    )
+        .includes(search.toLowerCase());
+    })
   );
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -39,7 +48,6 @@ export default function CommonList({
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
 
       <div className="flex justify-end items-center p-3">
-
         <input
           type="text"
           placeholder="Search..."
@@ -50,38 +58,30 @@ export default function CommonList({
           }}
           className="border px-3 py-1 rounded-md text-sm"
         />
-
       </div>
 
       <div className="overflow-x-auto">
-
         <table className="w-full text-sm">
 
           <thead className="bg-slate-50 border-b border-slate-200">
-
             <tr>
 
               {columns.map((col) => (
                 <th
                   key={col.accessor || col.header}
-                  className="
-                    text-left
-                    px-4
-                    py-3
-                    text-slate-600
-                    font-medium
-                  "
+                  className="px-4 py-3 text-left text-slate-600 font-medium"
                 >
                   {col.header}
                 </th>
               ))}
 
-              <th className="px-4 py-3 text-right text-slate-600 font-medium">
-                Actions
-              </th>
+              {(onEdit || onDelete) && (
+                <th className="px-4 py-3 text-right text-slate-600 font-medium">
+                  Actions
+                </th>
+              )}
 
             </tr>
-
           </thead>
 
           <tbody>
@@ -89,18 +89,12 @@ export default function CommonList({
             {paginatedData.length === 0 ? (
 
               <tr>
-
                 <td
-                  colSpan={columns.length + 1}
-                  className="
-                    text-center
-                    py-10
-                    text-slate-400
-                  "
+                  colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                  className="text-center py-10 text-slate-400"
                 >
                   No data found
                 </td>
-
               </tr>
 
             ) : (
@@ -114,62 +108,57 @@ export default function CommonList({
                     row.name ||
                     JSON.stringify(row)
                   }
-                  className="
-                    border-b
-                    border-slate-100
-                    hover:bg-slate-50
-                    transition
-                  "
+                  className="border-b border-slate-100 hover:bg-slate-50 transition"
                 >
 
-                  {columns.map((col) => (
+                  {columns.map((col) => {
 
-                    <td
-                      key={col.accessor || col.header}
-                      className="
-                        px-4
-                        py-3
-                        text-slate-700
-                      "
-                    >
-                      {col.render
-                        ? col.render(row)
-                        : row[col.accessor]}
+                    let value;
+
+                    if (col.render) {
+                      value = col.render(row);
+                    } else if (col.cell) {
+                      value = col.cell(row);
+                    } else {
+                      value = row[col.accessor];
+                    }
+
+                    return (
+                      <td
+                        key={col.accessor || col.header}
+                        className="px-4 py-3 text-slate-700"
+                      >
+                        {value}
+                      </td>
+                    );
+
+                  })}
+
+                  {(onEdit || onDelete) && (
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
+
+                        {onEdit && (
+                          <button
+                            onClick={() => onEdit(row)}
+                            className="p-2 rounded-md hover:bg-blue-50 text-blue-600"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
+
+                        {onDelete && (
+                          <button
+                            onClick={() => onDelete(row)}
+                            className="p-2 rounded-md hover:bg-red-50 text-red-600"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+
+                      </div>
                     </td>
-
-                  ))}
-
-                  <td className="px-4 py-3">
-
-                    <div className="flex justify-end gap-2">
-
-                      <button
-                        onClick={() => onEdit(row)}
-                        className="
-                          p-2
-                          rounded-md
-                          hover:bg-blue-50
-                          text-blue-600
-                        "
-                      >
-                        <Edit size={16} />
-                      </button>
-
-                      <button
-                        onClick={() => onDelete(row)}
-                        className="
-                          p-2
-                          rounded-md
-                          hover:bg-red-50
-                          text-red-600
-                        "
-                      >
-                        <Trash2 size={16} />
-                      </button>
-
-                    </div>
-
-                  </td>
+                  )}
 
                 </tr>
 
@@ -180,24 +169,14 @@ export default function CommonList({
           </tbody>
 
         </table>
-
       </div>
 
       <div className="flex justify-center items-center gap-3 p-4">
 
         <button
-          onClick={() =>
-            setPage((p) => Math.max(p - 1, 0))
-          }
+          onClick={() => setPage((p) => Math.max(p - 1, 0))}
           disabled={page === 0}
-          className="
-            bg-gray-400
-            text-white
-            px-3
-            py-1
-            rounded
-            disabled:opacity-50
-          "
+          className="bg-gray-400 text-white px-3 py-1 rounded disabled:opacity-50"
         >
           Prev
         </button>
@@ -208,22 +187,10 @@ export default function CommonList({
 
         <button
           onClick={() =>
-            setPage((p) =>
-              Math.min(
-                p + 1,
-                totalPages - 1
-              )
-            )
+            setPage((p) => Math.min(p + 1, totalPages - 1))
           }
           disabled={page >= totalPages - 1}
-          className="
-            bg-blue-500
-            text-white
-            px-3
-            py-1
-            rounded
-            disabled:opacity-50
-          "
+          className="bg-blue-500 text-white px-3 py-1 rounded disabled:opacity-50"
         >
           Next
         </button>

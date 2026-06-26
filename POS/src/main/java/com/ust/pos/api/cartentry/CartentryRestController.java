@@ -5,17 +5,18 @@ import com.ust.pos.cartentry.service.CartentryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/cartEntry")
 public class CartentryRestController extends BaseController {
-    @Autowired
-    CartentryService cartEntryService;
+
+    private final CartentryService cartEntryService;
+
+    public CartentryRestController(CartentryService cartEntryService) {
+        this.cartEntryService = cartEntryService;
+    }
 
     @PostMapping("/list")
     public WsDto<CartEntryDto> home(@RequestBody PaginationDto paginationDto) {
@@ -36,7 +37,7 @@ public class CartentryRestController extends BaseController {
         return cartEntryService.findByIdentifier(identifier);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier, String cartId) {
         try {
             cartEntryService.delete(identifier, cartId);
@@ -46,7 +47,7 @@ public class CartentryRestController extends BaseController {
         return true;
     }
 
-    @GetMapping("/clearCart")
+    @DeleteMapping("/clearCart")
     public boolean deleteAll(@RequestParam String cartId) {
         try {
             cartEntryService.deleteAllByCartId(cartId);
@@ -55,4 +56,10 @@ public class CartentryRestController extends BaseController {
             return false;
         }
     }
+
+    @PutMapping("/updateQuantity")
+    public CartEntryDto update(@RequestBody CartEntryDto cartEntryDto) {
+        return cartEntryService.updateQuantity(cartEntryDto);
+    }
+
 }

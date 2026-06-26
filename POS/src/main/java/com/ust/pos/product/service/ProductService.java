@@ -15,4 +15,6 @@ public interface ProductService {
     ProductDto update(ProductDto productDto);
 
     void delete(String identifier);
+
+    void toggleStatus(String identifier);
 }

@@ -1,16 +1,14 @@
 package com.ust.pos.stock.service.impl;
 
-import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Category;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,13 +17,16 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class StockServiceImpl implements StockService {
+public class StockServiceImpl extends BaseService implements StockService {
 
-    @Autowired
-    StockRepository stockRepository;
+    private final StockRepository stockRepository;
 
-    @Autowired
-    ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper) {
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public WsDto<StockDto> findAll(Pageable pageable) {
@@ -33,7 +34,7 @@ public class StockServiceImpl implements StockService {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
 
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
+        Page<Stock> stockPage = stockRepository.findByIsDeletedFalse(pageable);
 
         WsDto<StockDto> dto = new WsDto<>();
 
@@ -53,23 +54,44 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public StockDto save(StockDto stockDto) {
+
         stockDto.setIdentifier(stockDto.getProduct() + stockDto.getWarehouse());
-        String product = stockDto.getIdentifier();
-        Stock existingProduct = stockRepository.findByIdentifier(product);
-        if (existingProduct != null) {
-            stockDto.setMessage("Product - " + product + " already exists");
+        String identifier = stockDto.getIdentifier();
+
+        Stock existingStock = stockRepository.findByIdentifier(identifier);
+
+        if (existingStock != null) {
+            stockDto.setMessage(
+                    existingStock.isDeleted()
+                            ? "Stock - " + identifier + " already exists but was deleted, Please contact Administrator"
+                            : "Stock - " + identifier + " already exists"
+            );
             stockDto.setSuccess(false);
             return stockDto;
         }
+
+        if (stockDto.getQuantity() < 1) {
+            stockDto.setStockStatus("OUT_OF_STOCK");
+        } else if (stockDto.getQuantity() <= 5) {
+            stockDto.setStockStatus("LIMITED_STOCK");
+        } else {
+            stockDto.setStockStatus("AVAILABLE");
+        }
         Stock stock = modelMapper.map(stockDto, Stock.class);
+
+        setCreatedDetails(stock);
         stockRepository.save(stock);
+
+        stockDto.setSuccess(true);
         return stockDto;
     }
 
     @Transactional
     @Override
     public void delete(String identifier) {
-        stockRepository.deleteByIdentifier(identifier);
+        Stock stock = stockRepository.findByIdentifier(identifier);
+        setModifiedDetails(stock);
+        softDelete(stock);
     }
 
     @Override
@@ -82,7 +104,25 @@ public class StockServiceImpl implements StockService {
             return stockDto;
         }
         modelMapper.map(stockDto, existingProduct);
+        setModifiedDetails(existingProduct);
+
+        if (stockDto.getQuantity() < 1) {
+            existingProduct.setStockStatus("OUT_OF_STOCK");
+        } else if (stockDto.getQuantity() <= 5) {
+            existingProduct.setStockStatus("LIMITED_STOCK");
+        } else {
+            existingProduct.setStockStatus("AVAILABLE");
+        }
         stockRepository.save(existingProduct);
         return stockDto;
+    }
+
+    @Override
+    public void toggleStatus(String identifier) {
+        Stock stock = stockRepository.findByIdentifier(identifier);
+        if (stock != null) {
+            stock.setStatus(!stock.isStatus());
+            stockRepository.save(stock);
+        }
     }
 }

@@ -4,37 +4,80 @@ import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { useRouter } from "next/navigation";
 import axios from "@/config/axiosConfig";
+import { ChevronDown } from "lucide-react";
+import NotFound from "@/components/NotFound";
+import AccessDenied from "@/components/AccessDenied";
 
-const hasFieldValue = (field, value) => {
-  if (field.type === "select") {
-    if (Array.isArray(value)) {
-      return value.length > 0;
-    }
-
-    return Boolean(value);
-  }
-
-  return String(value ?? "").trim().length > 0;
+const isEmptyValue = (value) => {
+  return value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
 };
 
-const applyRule = (rule, field, value, form) => {
-  if (rule.type === "pattern" && rule.value && !rule.value.test(String(value ?? ""))) {
-    return rule.message || `${field.label || field.name} is invalid`;
+const isPhoneField = (field) => {
+  const fieldName = field.name?.toLowerCase() || "";
+  return field.type === "tel" || fieldName.includes("phone") || fieldName.includes("contactnumber");
+};
+
+const normalizeFieldData = (data) => {
+  const normalizedData = { ...data };
+
+  Object.keys(normalizedData).forEach((key) => {
+    if (Array.isArray(normalizedData[key])) {
+      normalizedData[key] = normalizedData[key].map((item) =>
+        typeof item === "object" ? item.identifier || item.name : item
+      );
+    }
+  });
+
+  return normalizedData;
+};
+
+const validateRule = (rule, value) => {
+  if (rule.type === "minLength") {
+    return String(value || "").length < rule.value ? rule.message : "";
   }
 
-  if (rule.type === "minLength" && String(value ?? "").length < rule.value) {
-    return rule.message || `${field.label || field.name} must be at least ${rule.value} characters`;
+  if (rule.type === "maxLength") {
+    return String(value || "").length > rule.value ? rule.message : "";
   }
 
-  if (rule.type === "maxLength" && String(value ?? "").length > rule.value) {
-    return rule.message || `${field.label || field.name} must be at most ${rule.value} characters`;
+  if (rule.type === "pattern") {
+    return value && !rule.value.test(String(value)) ? rule.message : "";
   }
 
-  if (rule.type === "custom" && typeof rule.validator === "function") {
-    return rule.validator(value, form) || "";
+  if (rule.type === "custom") {
+    return rule.validator?.(value) || "";
   }
 
   return "";
+};
+
+const validateField = (field, value) => {
+  if (field.required && isEmptyValue(value)) {
+    return `${field.label} is required`;
+  }
+
+  if (isPhoneField(field) && value && !/^\d{10}$/.test(value)) {
+    return `${field.label} must contain exactly 10 digits`;
+  }
+
+  if (!field.rules?.length) {
+    return "";
+  }
+
+  for (const rule of field.rules) {
+    const error = validateRule(rule, value);
+    if (error) {
+      return error;
+    }
+  }
+
+  return "";
+};
+
+const toggleMultiSelectValue = (currentValues, valueToToggle) => {
+  return currentValues.includes(valueToToggle)
+    ? currentValues.filter((value) => value !== valueToToggle)
+    : [...currentValues, valueToToggle];
 };
 
 export default function CommonForm({
@@ -50,18 +93,15 @@ export default function CommonForm({
   const [dropdownData, setDropdownData] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
+  const [notFound, setNotFound] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const getListRoute = () => {
     if (!api) return "/dashboard";
-
     const parts = api.split("/").filter(Boolean);
-    const filtered = parts.filter(p => p !== "api");
-    const module = filtered[filtered.length - 1] || "dashboard";
-
-    return `/dashboard/${module}`;
+    return `/dashboard/${parts[parts.length - 1]}`;
   };
 
   useEffect(() => {
@@ -76,15 +116,25 @@ export default function CommonForm({
     if (mode === "edit" && identifier) {
       axios
         .get(`${api}/get?${identifierParam}=${identifier}`)
-        .then(res => setForm(res.data || {}))
-        .catch(console.log);
+        .then((res) => {
+          setForm(normalizeFieldData(res.data || {}));
+          setNotFound(false);
+        })
+        .catch((err) => {
+          if (err.response?.status === 404) {
+            setNotFound(true);
+          } else if (err.response?.status === 403) {
+            setAccessDenied(true);
+          } else {
+            console.log(err);
+          }
+        });
     }
   }, [mode, identifier, api, identifierParam]);
 
   useEffect(() => {
     const load = async () => {
       const temp = {};
-
       for (const f of fields) {
         if (f.api) {
           try {
@@ -92,65 +142,35 @@ export default function CommonForm({
               page: 0,
               sizePerPage: 50
             });
-
-            let data = res.data?.content || res.data;
-            temp[f.name] = Array.isArray(data) ? data : [];
-          } catch {
+            temp[f.name] = res.data?.content || [];
+          } catch (err) {
+            if (err.response?.status === 403) {
+              setAccessDenied(true);
+            }
             temp[f.name] = [];
           }
         }
       }
-
       setDropdownData(temp);
     };
-
     load();
   }, [fields]);
 
   const handleChange = (name, value) => {
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const normalizeArray = (value) => {
-    if (!value) return [];
-    if (Array.isArray(value)) return value;
-    return [value];
-  };
-
-  const validateField = (field, value) => {
-    if (field.required && !hasFieldValue(field, value)) {
-      return `${field.label || field.name} is required`;
-    }
-
-    const rules = field.rules || [];
-
-    for (const rule of rules) {
-      const ruleMessage = applyRule(rule, field, value, form);
-
-      if (ruleMessage) {
-        return ruleMessage;
-      }
-    }
-
-    if (field.name === "phoneNo" && value && !/^\d{10}$/.test(String(value))) {
-      return "Phone must be 10 digits";
-    }
-
-    if (field.name === "password" && value && String(value).length < 6) {
-      return "Password must be at least 6 characters";
-    }
-
-    return "";
+  const handleMultipleSelectChange = (name, currentValues, valueToToggle) => {
+    handleChange(name, toggleMultiSelectValue(currentValues, valueToToggle));
   };
 
   const validate = () => {
     const temp = {};
 
     fields.forEach((field) => {
-      const message = validateField(field, form[field.name]);
-
-      if (message) {
-        temp[field.name] = message;
+      const error = validateField(field, form[field.name]);
+      if (error) {
+        temp[field.name] = error;
       }
     });
 
@@ -160,7 +180,6 @@ export default function CommonForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setServerError("");
 
     if (!validate()) return;
 
@@ -172,46 +191,29 @@ export default function CommonForm({
           ? `${api}/update`
           : `${api}/add`;
 
-      const res = await axios.post(url, form);
+      const res =
+        mode === "edit"
+          ? await axios.put(url, form)
+          : await axios.post(url, form);
 
       if (res.data?.success === false) {
         setServerError(res.data.message);
         return;
       }
 
-      if (
-        api === "/user" &&
-        mode === "edit"
-      ) {
-        const oldUsername =
-          localStorage.getItem("username");
-
-        if (
-          form.username &&
-          oldUsername !== form.username
-        ) {
-          alert(
-            "Email updated successfully. Please login with your new email."
-          );
-
-          localStorage.clear();
-
-          router.push("/login");
-
-          return;
-        }
-      }
-
       alert(
-        mode === "add"
-          ? "Created successfully"
-          : "Updated successfully"
+        mode === "edit"
+          ? "Updated successfully"
+          : "Created successfully"
       );
 
       router.push(getListRoute());
 
     } catch (err) {
-      console.log(err);
+      if (err.response?.status === 403) {
+        setAccessDenied(true);
+        return;
+      }
       setServerError("Something went wrong");
     } finally {
       setLoading(false);
@@ -221,19 +223,17 @@ export default function CommonForm({
   const renderField = (field) => {
     const value = form[field.name] ?? (field.multiple ? [] : "");
 
-    if (field.type === "text") {
+    if (field.type === "text" || field.type === "password" || field.type === "email" || field.type === "tel") {
       return (
         <>
           <input
-            id={field.name}
-            value={value || ""}
+            type={field.type}
+            value={value}
             onChange={(e) => handleChange(field.name, e.target.value)}
-            readOnly={field.readOnly || (mode === "edit" && field.name === "identifier")}
-            className={`w-full px-3 py-2 border rounded-lg ${field.readOnly || (mode === "edit" && field.name === "identifier")
-              ? "bg-gray-100 text-gray-700 cursor-not-allowed"
-              : "bg-white text-black"
-              }`}
+            readOnly={field.readOnly}
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-black focus:border-black"
           />
+
           {errors[field.name] && (
             <p className="text-red-500 text-sm mt-1">
               {errors[field.name]}
@@ -244,154 +244,107 @@ export default function CommonForm({
     }
 
     if (field.type === "select") {
-      const options = field.options || dropdownData[field.name] || [];
-      const isMultiple = Boolean(field.multiple);
-      const isOpen = openDropdown === field.name;
-      const selected = normalizeArray(form[field.name]);
+      const options = (field.options || dropdownData[field.name] || [])
+        .filter(opt => opt.status === true);
 
-      if (!isMultiple) {
+      if (!field.multiple) {
         return (
-          <>
-            <select
-              id={field.name}
-              value={form[field.name] ?? ""}
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg bg-white text-black"
-            >
-              <option value="">Select</option>
-              {options.map((opt) => {
-                const value = opt.identifier || opt.name || "";
-                return (
-                  <option key={value} value={value}>
-                    {opt.name || opt.identifier || value}
-                  </option>
-                );
-              })}
-            </select>
-            {errors[field.name] && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors[field.name]}
-              </p>
-            )}
-          </>
+          <select
+            value={value}
+            onChange={(e) => handleChange(field.name, e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg"
+          >
+            <option value="">Select</option>
+            {options.map(opt => (
+              <option key={opt.identifier} value={opt.identifier}>
+                {opt.name || opt.identifier}
+              </option>
+            ))}
+          </select>
         );
       }
 
-      const toggle = (val) => {
-        const updated = selected.includes(val)
-          ? selected.filter(v => v !== val)
-          : [...selected, val];
-
-        handleChange(field.name, updated);
-      };
+      const selected = value || [];
+      const isOpen = openDropdown === field.name;
 
       return (
         <div className="relative">
-
           <button
-            id={field.name}
             type="button"
             onClick={() => setOpenDropdown(isOpen ? null : field.name)}
-            className="w-full border rounded-lg px-3 py-2 bg-white cursor-pointer flex justify-between text-left"
+            className="w-full border rounded-lg px-3 py-2 bg-white flex justify-between"
           >
             <span>
-              {selected.length > 0 ? selected.join(", ") : "Select"}
+              {selected.length ? selected.join(", ") : "Select"}
             </span>
-            <span>▾</span>
+            <span><ChevronDown size={18} /></span>
           </button>
 
           {isOpen && (
-            <div className="absolute z-50 mt-2 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
-
-              {options.map((opt) => {
-                const val = opt.identifier || opt.name;
+            <div className="absolute z-50 mt-2 w-full bg-white border rounded-lg shadow max-h-60 overflow-auto">
+              {options.map(opt => {
+                const val = opt.identifier;
                 const checked = selected.includes(val);
 
                 return (
-                  <button
-                    key={val || opt.name || opt.identifier}
-                    type="button"
-                    onClick={() => toggle(val)}
-                    className="w-full px-3 py-2 hover:bg-gray-100 flex gap-2 cursor-pointer text-left"
-                  >
-                    <input type="checkbox" checked={checked} readOnly />
-                    <span>{opt.name || opt.identifier}</span>
-                  </button>
+                  <label key={val} className="flex gap-2 px-3 py-2 hover:bg-gray-100">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handleMultipleSelectChange(field.name, selected, val)}
+                    />
+                    {opt.name || opt.identifier}
+                  </label>
                 );
               })}
-
             </div>
-          )}
-
-          {errors[field.name] && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors[field.name]}
-            </p>
           )}
         </div>
       );
     }
 
-    if (field.type === "password") {
-      return (
-        <>
-          <input
-            id={field.name}
-            type="password"
-            value={value || ""}
-            onChange={(e) => handleChange(field.name, e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg bg-white text-black"
-          />
-
-          {errors[field.name] && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors[field.name]}
-            </p>
-          )}
-        </>
-      );
-    }
     return null;
   };
 
+  if (notFound) {
+    return <NotFound />;
+  }
+
+  if (accessDenied) {
+    return <AccessDenied />;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-5">
-
-      {serverError && (
-        <div className="col-span-2 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg">
-          {serverError}
-        </div>
-      )}
-
-      {fields.map((f) => (
-        <div key={f.name || f.label} className="flex flex-col gap-1">
-          <label htmlFor={f.name} className="text-sm text-gray-600">
-            {f.label}
-          </label>
+      {fields.map(f => (
+        <div key={f.name} className="flex flex-col">
+          <label className="text-sm">{f.label}</label>
           {renderField(f)}
         </div>
       ))}
 
-      <div className="col-span-2 flex justify-end gap-3 mt-6 pt-4 border-t">
+      {serverError && (
+        <div className="col-span-2 text-red-500">{serverError}</div>
+      )}
 
-        <button
-          type="button"
-          onClick={() => router.push(getListRoute())}
-          className="px-5 py-2 rounded-lg bg-gray-200"
-        >
+      {mode === "edit" && (
+        <div className="col-span-2 mt-6 bg-gray-50 p-4 rounded text-xs grid grid-cols-2 gap-4">
+          <div>Created By: {form.createdBy || "-"}</div>
+          <div>Created On: {form.createdOn ? new Date(form.createdOn).toLocaleString() : "-"}</div>
+          <div>Modified By: {form.modifiedBy || "-"}</div>
+          <div>Modified On: {form.modifiedOn ? new Date(form.modifiedOn).toLocaleString() : "-"}</div>
+        </div>
+      )}
+
+      <div className="col-span-2 flex justify-end gap-3 mt-4">
+        <button type="button" onClick={() => router.back()} className="px-4 py-2 bg-gray-200 rounded">
           Cancel
         </button>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-5 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-50"
-        >
+        <button type="submit" disabled={loading} className="px-4 py-2 bg-black text-white rounded">
           {loading ? "Saving..." : "Save"}
         </button>
-
       </div>
-
     </form>
   );
 }
@@ -401,24 +354,5 @@ CommonForm.propTypes = {
   mode: PropTypes.oneOf(["add", "edit"]),
   identifier: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   identifierParam: PropTypes.string,
-  fields: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      label: PropTypes.string,
-      type: PropTypes.string,
-      required: PropTypes.bool,
-      readonly: PropTypes.bool,
-      multiple: PropTypes.bool,
-      api: PropTypes.string,
-      options: PropTypes.array,
-      rules: PropTypes.arrayOf(
-        PropTypes.shape({
-          type: PropTypes.oneOf(["pattern", "minLength", "maxLength", "custom"]).isRequired,
-          value: PropTypes.oneOfType([PropTypes.number, PropTypes.instanceOf(RegExp)]),
-          message: PropTypes.string,
-          validator: PropTypes.func,
-        })
-      ),
-    })
-  ),
+  fields: PropTypes.array
 };

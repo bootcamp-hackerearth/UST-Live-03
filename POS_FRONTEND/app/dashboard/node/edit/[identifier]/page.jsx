@@ -26,7 +26,8 @@ export default function NodeEditPage() {
       label: "Roles",
       type: "select",
       multiple: true,
-      api: "/role/list"
+      api: "/role/list",
+      required: true
     }
   ];
 

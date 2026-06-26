@@ -5,7 +5,6 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/node")
 public class NodeRestController extends BaseController {
-    @Autowired
-    NodeService nodeService;
+
+    private final NodeService nodeService;
+
+    public NodeRestController(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
 
     @PostMapping("/list")
     public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
@@ -36,12 +39,12 @@ public class NodeRestController extends BaseController {
         return nodeService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
         return nodeService.update(nodeDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             nodeService.delete(identifier);
@@ -54,5 +57,15 @@ public class NodeRestController extends BaseController {
     @GetMapping("/getNodesForRoles")
     public List<NodeDto> getNodesForRoles(NodeDto nodeDto) {
         return nodeService.getNodesForRoles();
+    }
+
+    @PutMapping("/toggle-status")
+    public boolean toggleStatus(@RequestParam String identifier) {
+        try {
+            nodeService.toggleStatus(identifier);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

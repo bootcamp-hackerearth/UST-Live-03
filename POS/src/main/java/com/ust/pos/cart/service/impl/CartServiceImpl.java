@@ -1,14 +1,16 @@
 package com.ust.pos.cart.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
-import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.*;
+import com.ust.pos.model.Cart;
+import com.ust.pos.model.CartEntry;
+import com.ust.pos.model.CartEntryRepository;
+import com.ust.pos.model.CartRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,16 +21,19 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-public class CartServiceImpl implements CartService {
+public class CartServiceImpl extends BaseService implements CartService {
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public CartServiceImpl(CartRepository cartRepository, CartEntryRepository cartEntryRepository, ModelMapper modelMapper) {
+        this.cartRepository = cartRepository;
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartDto findByIdentifier(String identifier) {
@@ -80,11 +85,24 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartDto save(CartDto cartDto) {
 
+        Cart existingCart = cartRepository.findByIdentifier(cartDto.getIdentifier());
+
+        if (existingCart != null) {
+            cartDto.setMessage(
+                    existingCart.isDeleted()
+                            ? "Cart - " + cartDto.getIdentifier() + " already exists but was deleted, Please contact Administrator"
+                            : "Cart - " + cartDto.getIdentifier() + " already exists"
+            );
+            return cartDto;
+        }
+
         cartDto.setCartEntryDtoList(getAllCartEntriesByCartId(cartDto.getIdentifier()));
         cartDto.setTotalPrice(findTotalPrice(cartDto.getCartEntryDtoList()));
         cartDto.setDiscount(getDiscount(cartDto.getCartEntryDtoList()));
 
-        cartRepository.save(modelMapper.map(cartDto, Cart.class));
+        Cart cart = modelMapper.map(cartDto, Cart.class);
+        setCreatedDetails(cart);
+        cartRepository.save(cart);
 
         return cartDto;
     }
@@ -94,6 +112,7 @@ public class CartServiceImpl implements CartService {
     public void delete(String identifier) {
 
         cartRepository.deleteByIdentifier(identifier);
+
     }
 
     @Override

@@ -5,17 +5,18 @@ import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/model")
 public class ModelsRestController extends BaseController {
-    @Autowired
-    ModelService modelService;
+
+    private final ModelService modelService;
+
+    public ModelsRestController(ModelService modelService) {
+        this.modelService = modelService;
+    }
 
     @PostMapping("/list")
     public WsDto<ModelsDto> home(@RequestBody PaginationDto paginationDto) {
@@ -36,12 +37,12 @@ public class ModelsRestController extends BaseController {
         return modelService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelsDto updatePost(@RequestBody ModelsDto modelsDto) {
         return modelService.update(modelsDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.delete(identifier);

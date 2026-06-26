@@ -103,7 +103,7 @@ export default function UserListPage() {
         }
         onDelete={async (row) => {
           try {
-            await axios.get(
+            await axios.delete(
               `/user/delete?username=${row.username}`
             );
             fetchUsers();

@@ -2,7 +2,6 @@ package com.ust.pos.role;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,8 +15,11 @@ public class RoleController {
     public static final String MESSAGE1 = "message";
     public static final String MESSAGE2 = "message";
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
+
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

@@ -3,11 +3,27 @@
 import { useEffect, useState } from "react";
 import axios from "@/config/axiosConfig";
 import CommonList from "@/components/CommonList";
+import Toggle from "@/components/Toggle";
 import { useRouter } from "next/navigation";
 
 export default function NodePage() {
   const [data, setData] = useState([]);
   const router = useRouter();
+
+  const normalizeNodes = (rows = []) => {
+    const seen = new Set();
+
+    return rows.filter((item) => {
+      const key = item?.identifier ?? item?.path ?? item?.id ?? JSON.stringify(item);
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  };
 
   const fetchNodes = async () => {
     try {
@@ -18,7 +34,7 @@ export default function NodePage() {
         sortDirection: "DESC"
       });
 
-      setData(res.data?.content || []);
+      setData(normalizeNodes(res.data?.content || []));
     } catch (err) {
       console.log(err);
     }
@@ -27,6 +43,25 @@ export default function NodePage() {
   useEffect(() => {
     fetchNodes();
   }, []);
+
+  const toggleStatus = async (row) => {
+    try {
+      await axios.put(
+        `/node/toggle-status?identifier=${row.identifier}`
+      );
+
+      setData(prev =>
+        prev.map(item =>
+          item.identifier === row.identifier
+            ? { ...item, status: !item.status }
+            : item
+        )
+      );
+
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const columns = [
     { header: "Path", accessor: "path" },
@@ -38,6 +73,17 @@ export default function NodePage() {
         Array.isArray(row.roles)
           ? row.roles.join(", ")
           : row.roles
+    },
+
+    {
+      header: "Status",
+      accessor: "status",
+      render: (row) => (
+        <Toggle
+          active={Boolean(row.status)}
+          onToggle={() => toggleStatus(row)}
+        />
+      )
     }
   ];
 
@@ -82,7 +128,7 @@ export default function NodePage() {
           router.push(`/dashboard/node/edit/${row.identifier}`)
         }
         onDelete={async (row) => {
-          await axios.get(`/node/delete?identifier=${row.identifier}`);
+          await axios.delete(`/node/delete?identifier=${row.identifier}`);
           fetchNodes();
         }}
       />

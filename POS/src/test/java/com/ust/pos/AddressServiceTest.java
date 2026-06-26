@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,133 +20,136 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AddressServiceTest {
 
+    @InjectMocks
+    private AddressServiceImpl service;
+
     @Mock
     private AddressRepository addressRepository;
 
     @Mock
     private ModelMapper modelMapper;
 
-    @InjectMocks
-    private AddressServiceImpl addressService;
-
     @Test
-    void testFindAll() {
+    void findAllTest() {
+        when(addressRepository.findByIsDeletedFalse()).thenReturn(List.of(new Address()));
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(new AddressDto()));
 
-        List<Address> addresses = Arrays.asList(new Address(), new Address());
-        List<AddressDto> dtoList = Arrays.asList(new AddressDto(), new AddressDto());
+        List<AddressDto> result = service.findAll();
 
-        when(addressRepository.findAll()).thenReturn(addresses);
-        when(modelMapper.map(eq(addresses), any(Type.class))).thenReturn(dtoList);
-
-        List<AddressDto> result = addressService.findAll();
-
-        assertEquals(2, result.size());
-        verify(addressRepository).findAll();
+        assertEquals(1, result.size());
     }
 
     @Test
-    void testSaveExistingAddress() {
-
+    void saveNewTest() {
         AddressDto dto = new AddressDto();
         dto.setPhoneNo("123");
-        dto.setAddressType("BILLING");
+        dto.setAddressType("HOME");
+
+        when(addressRepository.findByPhoneNoAndAddressType("123", "HOME")).thenReturn(null);
+
+        AddressDto result = service.save(dto);
+
+        assertTrue(result.isSuccess());
+        verify(addressRepository).save(any());
+    }
+
+    @Test
+    void saveExistingUpdateTest() {
+        AddressDto dto = new AddressDto();
+        dto.setPhoneNo("123");
+        dto.setAddressType("HOME");
 
         Address existing = new Address();
+        existing.setDeleted(false);
 
-        when(addressRepository.findByPhoneNoAndAddressType("123", "BILLING"))
-                .thenReturn(existing);
+        when(addressRepository.findByPhoneNoAndAddressType("123", "HOME")).thenReturn(existing);
 
-        AddressDto result = addressService.save(dto);
+        AddressDto result = service.save(dto);
 
-        assertNotNull(result);
+        assertTrue(result.isSuccess());
         verify(addressRepository).save(existing);
     }
 
     @Test
-    void testSaveNewAddress() {
-
+    void saveExistingDeletedTest() {
         AddressDto dto = new AddressDto();
         dto.setPhoneNo("123");
-        dto.setAddressType("SHIPPING");
+        dto.setAddressType("HOME");
 
-        when(addressRepository.findByPhoneNoAndAddressType("123", "SHIPPING"))
-                .thenReturn(null);
+        Address existing = new Address();
+        existing.setDeleted(true);
 
-        doNothing().when(modelMapper).map(eq(dto), any(Address.class));
+        when(addressRepository.findByPhoneNoAndAddressType("123", "HOME")).thenReturn(existing);
 
-        AddressDto result = addressService.save(dto);
+        AddressDto result = service.save(dto);
 
-        assertNotNull(result);
-
-        verify(addressRepository).save(any(Address.class));
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("deleted"));
     }
 
     @Test
-    void testUpdateSuccess() {
-
+    void updateSuccessTest() {
         AddressDto dto = new AddressDto();
         dto.setPhoneNo("123");
-        dto.setAddressType("BILLING");
+        dto.setAddressType("HOME");
 
         Address existing = new Address();
 
-        when(addressRepository.findByPhoneNoAndAddressType("123", "BILLING"))
-                .thenReturn(existing);
+        when(addressRepository.findByPhoneNoAndAddressType("123", "HOME")).thenReturn(existing);
 
-        AddressDto result = addressService.update(dto);
+        AddressDto result = service.update(dto);
 
-        assertNotNull(result);
+        assertTrue(result.isSuccess());
         verify(addressRepository).save(existing);
     }
 
     @Test
-    void testUpdateNotFound() {
-
+    void updateNotFoundTest() {
         AddressDto dto = new AddressDto();
         dto.setPhoneNo("123");
-        dto.setAddressType("SHIPPING");
+        dto.setAddressType("HOME");
 
-        when(addressRepository.findByPhoneNoAndAddressType("123", "SHIPPING"))
-                .thenReturn(null);
+        when(addressRepository.findByPhoneNoAndAddressType("123", "HOME")).thenReturn(null);
 
-        AddressDto result = addressService.update(dto);
+        AddressDto result = service.update(dto);
 
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("not found"));
+        verify(addressRepository, never()).save(any());
     }
 
     @Test
-    void testFindByPhoneAndTypeFound() {
-
+    void findByPhoneNoAndAddressTypeFoundTest() {
         Address address = new Address();
         AddressDto dto = new AddressDto();
 
-        when(addressRepository.findByPhoneNoAndAddressType("123", "BILLING"))
-                .thenReturn(address);
-
+        when(addressRepository.findByPhoneNoAndAddressType("123", "HOME")).thenReturn(address);
         when(modelMapper.map(address, AddressDto.class)).thenReturn(dto);
 
-        AddressDto result = addressService.findByPhoneNoAndAddressType("123", "BILLING");
+        AddressDto result = service.findByPhoneNoAndAddressType("123", "HOME");
 
         assertNotNull(result);
     }
 
     @Test
-    void testFindByPhoneAndTypeNotFound() {
+    void findByPhoneNoAndAddressTypeNotFoundTest() {
+        when(addressRepository.findByPhoneNoAndAddressType("123", "HOME")).thenReturn(null);
 
-        when(addressRepository.findByPhoneNoAndAddressType("123", "BILLING"))
-                .thenReturn(null);
-
-        AddressDto result = addressService.findByPhoneNoAndAddressType("123", "BILLING");
+        AddressDto result = service.findByPhoneNoAndAddressType("123", "HOME");
 
         assertNotNull(result);
     }
 
     @Test
-    void testDeleteByPhoneNo() {
+    void deleteByPhoneNoTest() {
+        Address address = new Address();
+        address.setDeleted(false);
 
-        addressService.deleteByPhoneNo("123");
+        when(addressRepository.findByPhoneNo("123")).thenReturn(address);
 
-        verify(addressRepository).deleteByPhoneNo("123");
+        service.deleteByPhoneNo("123");
+
+        assertTrue(address.isDeleted());
     }
 }

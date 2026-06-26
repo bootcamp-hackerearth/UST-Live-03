@@ -5,21 +5,23 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouse")
 public class WarehouseRestController extends BaseController {
 
-    @Autowired
-    WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
+
+    public WarehouseRestController(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public WsDto<WarehouseDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
@@ -29,6 +31,7 @@ public class WarehouseRestController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
@@ -38,12 +41,12 @@ public class WarehouseRestController extends BaseController {
         return warehouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);
@@ -51,6 +54,16 @@ public class WarehouseRestController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PutMapping("/toggle-status")
+    public boolean toggleStatus(@RequestParam String identifier) {
+        try {
+            warehouseService.toggleStatus(identifier);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
 

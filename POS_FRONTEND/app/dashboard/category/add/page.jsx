@@ -16,7 +16,8 @@ export default function CategoryAddPage() {
       label: "Super Categories",
       type: "select",
       multiple: true,
-      api: "/category/list"
+      api: "/category/list",
+      required: true
     }
   ];
 

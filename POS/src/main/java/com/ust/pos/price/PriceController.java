@@ -5,7 +5,6 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,13 +14,19 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/price")
 public class PriceController {
+
     public static final String PRICES = "prices";
     public static final String MESSAGE = "message";
     public static final String PRICE_LIST = "price/list";
-    @Autowired
-    ProductService productService;
-    @Autowired
-    PriceService priceService;
+
+    private final ProductService productService;
+
+    private final PriceService priceService;
+
+    public PriceController(ProductService productService, PriceService priceService) {
+        this.productService = productService;
+        this.priceService = priceService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

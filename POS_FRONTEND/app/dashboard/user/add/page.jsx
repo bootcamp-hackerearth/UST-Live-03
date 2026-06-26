@@ -58,7 +58,7 @@ export default function AddUserPage() {
     {
       name: "password",
       label: "Password",
-      type: "password",
+      type: "text",
       required: true,
       rules: [
         {

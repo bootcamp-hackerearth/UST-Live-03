@@ -5,19 +5,4 @@ const instance = axios.create({
   withCredentials: true,
 });
 
-instance.interceptors.request.use((config) => {
-  if (globalThis.window === undefined) {
-    return config;
-  }
-
-  const token = localStorage.getItem("token");
-
-  if (token && !config.url?.includes("/authenticate")) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
 export default instance;

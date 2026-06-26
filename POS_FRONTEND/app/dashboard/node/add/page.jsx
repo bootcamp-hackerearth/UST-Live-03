@@ -22,7 +22,8 @@ export default function NodeAddPage() {
       label: "Roles",
       type: "select",
       multiple: true,
-      api: "/role/list"
+      api: "/role/list",
+      required: true
     }
   ];
 

@@ -29,6 +29,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
+    @InjectMocks
+    private UserServiceImpl service;
+
     @Mock
     private UserRepository userRepository;
 
@@ -38,132 +41,172 @@ class UserServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @InjectMocks
-    private UserServiceImpl userService;
-
     @Test
     void findByUserNameTest() {
         User user = new User();
         UserDto dto = new UserDto();
 
-        when(userRepository.findByUsername("admin")).thenReturn(user);
+        when(userRepository.findByUsername("u1")).thenReturn(user);
         when(modelMapper.map(user, UserDto.class)).thenReturn(dto);
 
-        assertNotNull(userService.findByUserName("admin"));
+        assertNotNull(service.findByUserName("u1"));
     }
 
     @Test
     void saveSuccessTest() {
         UserDto dto = new UserDto();
-        dto.setUsername("admin");
-        dto.setPassword("123");
+        dto.setUsername("u1");
+        dto.setPassword("pwd");
 
-        User user = new User();
+        User mapped = new User();
 
-        when(userRepository.findByUsername("admin")).thenReturn(null);
-        when(modelMapper.map(dto, User.class)).thenReturn(user);
-        when(passwordEncoder.encode("123")).thenReturn("encoded");
+        when(userRepository.findByUsername("u1")).thenReturn(null);
+        when(modelMapper.map(dto, User.class)).thenReturn(mapped);
+        when(passwordEncoder.encode("pwd")).thenReturn("encoded");
 
-        UserDto result = userService.save(dto);
+        UserDto result = service.save(dto);
 
         assertTrue(result.isSuccess());
-        verify(userRepository).save(user);
+        verify(userRepository).save(mapped);
     }
 
     @Test
-    void saveDuplicateTest() {
+    void saveDuplicateActiveTest() {
         UserDto dto = new UserDto();
-        dto.setUsername("admin");
-
-        when(userRepository.findByUsername("admin")).thenReturn(new User());
-
-        UserDto result = userService.save(dto);
-
-        assertFalse(result.isSuccess());
-    }
-
-    @Test
-    void updateUserNotFoundTest() {
-        UserDto dto = new UserDto();
-        dto.setId(1L);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        UserDto result = userService.update(dto);
-
-        assertFalse(result.isSuccess());
-    }
-
-    @Test
-    void updateDuplicateUsernameTest() {
-        UserDto dto = new UserDto();
-        dto.setId(1L);
-        dto.setUsername("new");
+        dto.setUsername("u1");
 
         User existing = new User();
-        existing.setUsername("old");
+        existing.setDeleted(false);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
-        when(userRepository.findByUsername("new")).thenReturn(new User());
+        when(userRepository.findByUsername("u1")).thenReturn(existing);
 
-        UserDto result = userService.update(dto);
+        UserDto result = service.save(dto);
 
         assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("already exists"));
+    }
+
+    @Test
+    void saveDuplicateDeletedTest() {
+        UserDto dto = new UserDto();
+        dto.setUsername("u1");
+
+        User existing = new User();
+        existing.setDeleted(true);
+
+        when(userRepository.findByUsername("u1")).thenReturn(existing);
+
+        UserDto result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("deleted"));
     }
 
     @Test
     void updateSuccessTest() {
         UserDto dto = new UserDto();
         dto.setId(1L);
-        dto.setUsername("admin");
+        dto.setUsername("u1");
 
         User existing = new User();
-        existing.setUsername("admin");
+        existing.setUsername("u1");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
 
-        UserDto result = userService.update(dto);
+        UserDto result = service.update(dto);
 
         assertTrue(result.isSuccess());
-        verify(modelMapper).map(dto, existing);
         verify(userRepository).save(existing);
     }
 
     @Test
-    void testDelete() {
-        userService.delete("testUser");
-        verify(userRepository).deleteByUsername("testUser");
+    void updateUserNotFoundTest() {
+        UserDto dto = new UserDto();
+        dto.setId(1L);
+        dto.setUsername("u1");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        UserDto result = service.update(dto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("not found"));
     }
 
     @Test
-    void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
+    void updateDuplicateUsernameTest() {
+        UserDto dto = new UserDto();
+        dto.setId(1L);
+        dto.setUsername("newUser");
 
-        List<User> users = List.of(new User());
-        Page<User> page = new PageImpl<>(users);
+        User existing = new User();
+        existing.setUsername("oldUser");
 
-        when(userRepository.findAll(pageable)).thenReturn(page);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(userRepository.findByUsername("newUser")).thenReturn(new User());
+
+        UserDto result = service.update(dto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("already exists"));
+    }
+
+    @Test
+    void deleteTest() {
+        User user = new User();
+        user.setDeleted(false);
+
+        when(userRepository.findByUsername("u1")).thenReturn(user);
+
+        service.delete("u1");
+
+        assertTrue(user.isDeleted());
+    }
+
+    @Test
+    void findAllTest() {
+        Pageable pageable = PageRequest.of(0, 2);
+
+        Page<User> page = new PageImpl<>(List.of(new User()), pageable, 1);
+
+        when(userRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(List.of(new UserDto()));
 
-        WsDto<UserDto> result = userService.findAll(pageable);
+        WsDto<UserDto> result = service.findAll(pageable);
 
-        assertNotNull(result);
-        assertNotNull(result.getContent());
         assertEquals(1, result.getContent().size());
-
-        verify(userRepository).findAll(pageable);
+        assertEquals(1, result.getTotalRecords());
     }
 
     @Test
-    void testGetCurrentUser_NullAuth() {
-        SecurityContextHolder.clearContext();
+    void getCurrentUserSuccessTest() {
+        Authentication auth = mock(Authentication.class);
 
-        assertFalse(userService.getCurrentUser("user"));
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getName()).thenReturn("u1");
+        when(auth.getPrincipal()).thenReturn("u1");
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        assertTrue(service.getCurrentUser("u1"));
     }
 
     @Test
-    void testGetCurrentUser_Anonymous() {
+    void getCurrentUserMismatchTest() {
+        Authentication auth = mock(Authentication.class);
+
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getName()).thenReturn("u1");
+        when(auth.getPrincipal()).thenReturn("u1");
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        assertFalse(service.getCurrentUser("u2"));
+    }
+
+    @Test
+    void getCurrentUserAnonymousTest() {
         Authentication auth = mock(Authentication.class);
 
         when(auth.isAuthenticated()).thenReturn(true);
@@ -171,32 +214,13 @@ class UserServiceTest {
 
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        assertFalse(userService.getCurrentUser("user"));
+        assertFalse(service.getCurrentUser("u1"));
     }
 
     @Test
-    void testGetCurrentUser_Match() {
-        Authentication auth = mock(Authentication.class);
+    void getCurrentUserNullAuthTest() {
+        SecurityContextHolder.clearContext();
 
-        when(auth.isAuthenticated()).thenReturn(true);
-        when(auth.getPrincipal()).thenReturn("user");
-        when(auth.getName()).thenReturn("user");
-
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        assertTrue(userService.getCurrentUser("user"));
-    }
-
-    @Test
-    void testGetCurrentUser_NotMatch() {
-        Authentication auth = mock(Authentication.class);
-
-        when(auth.isAuthenticated()).thenReturn(true);
-        when(auth.getPrincipal()).thenReturn("user");
-        when(auth.getName()).thenReturn("anotherUser");
-
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        assertFalse(userService.getCurrentUser("user"));
+        assertFalse(service.getCurrentUser("u1"));
     }
 }

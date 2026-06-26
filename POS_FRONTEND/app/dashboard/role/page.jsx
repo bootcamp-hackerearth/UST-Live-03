@@ -3,11 +3,27 @@
 import { useEffect, useState } from "react";
 import axios from "@/config/axiosConfig";
 import CommonList from "@/components/CommonList";
+import Toggle from "@/components/Toggle";
 import { useRouter } from "next/navigation";
 
 export default function RolePage() {
   const [data, setData] = useState([]);
   const router = useRouter();
+
+  const normalizeRoles = (rows = []) => {
+    const seen = new Set();
+
+    return rows.filter((item) => {
+      const key = item?.identifier ?? item?.id ?? JSON.stringify(item);
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  };
 
   const fetchRoles = async () => {
     try {
@@ -18,7 +34,7 @@ export default function RolePage() {
         sortDirection: "DESC"
       });
 
-      setData(res.data?.content || []);
+      setData(normalizeRoles(res.data?.content || []));
     } catch (err) {
       console.log("Role fetch error:", err);
     }
@@ -27,6 +43,25 @@ export default function RolePage() {
   useEffect(() => {
     fetchRoles();
   }, []);
+
+  const toggleStatus = async (row) => {
+    try {
+      await axios.put(
+        `/role/toggle-status?identifier=${row.identifier}`
+      );
+
+      setData(prev =>
+        prev.map(item =>
+          item.identifier === row.identifier
+            ? { ...item, status: !item.status }
+            : item
+        )
+      );
+
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const columns = [
     {
@@ -40,6 +75,17 @@ export default function RolePage() {
     {
       header: "Description",
       accessor: "description"
+    },
+
+    {
+      header: "Status",
+      accessor: "status",
+      render: (row) => (
+        <Toggle
+          active={Boolean(row.status)}
+          onToggle={() => toggleStatus(row)}
+        />
+      )
     }
   ];
 
@@ -56,7 +102,9 @@ export default function RolePage() {
             Manage system roles and permissions
           </p>
         </div>
+
         <div className="flex gap-3">
+
           <button
             onClick={() => router.push("/dashboard/role/add")}
             className="bg-[#2B2B2B] text-white px-4 py-2 rounded-lg hover:bg-black"
@@ -70,6 +118,7 @@ export default function RolePage() {
           >
             Back
           </button>
+
         </div>
 
       </div>
@@ -81,7 +130,7 @@ export default function RolePage() {
           router.push(`/dashboard/role/edit/${row.identifier}`)
         }
         onDelete={async (row) => {
-          await axios.get(`/role/delete?identifier=${row.identifier}`);
+          await axios.delete(`/role/delete?identifier=${row.identifier}`);
           fetchRoles();
         }}
       />

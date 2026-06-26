@@ -14,4 +14,6 @@ public interface RoleService {
     WsDto<RoleDto> findAll(Pageable pageable);
 
     RoleDto findByIdentifier(String identifier);
+
+    void toggleStatus(String identifier);
 }
