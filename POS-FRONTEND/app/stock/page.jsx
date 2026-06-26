@@ -46,10 +46,12 @@ const stockValidate = (formData) => {
     errors.product = "Product is required";
   }
 
+ const qty = Number(formData.quantity);
+
   if (!formData.quantity?.toString().trim()) {
     errors.quantity = "Quantity is required";
-  } else if (Number(formData.quantity) <= 0) {
-    errors.quantity = "Quantity must be greater than 0";
+  } else if (Number.isNaN(qty) || !Number.isInteger(qty) || qty < 0) {
+    errors.quantity = "Quantity must be a whole number greater than or equal to0";
   }
 
   if (!formData.status) {

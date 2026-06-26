@@ -17,6 +17,7 @@ const CommonList = ({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("add");
   const [editData, setEditData] = useState(null);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   const [search, setSearch] = useState("");
 
@@ -25,35 +26,44 @@ const CommonList = ({
   }, [routeName, page]);
 
   const fetchData = async () => {
+  try {
+    setPermissionDenied(false);
 
-    try {
-      const res = await fetch(`http://localhost:8080/api/${routeName}/list`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ page, sizePerPage: 3 }),
-      });
+    const res = await fetch(`http://localhost:8080/api/${routeName}/list`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ page, sizePerPage: 3 }),
+    });
 
-      if (!res.ok) {
-        throw new Error("Request failed");
-      }
-
-      const text = await res.text();
-      const result = text ? JSON.parse(text) : {};
-
-      setData(result.content || []);
-      setTotalPages(result.totalPages || 1);
+    if (res.status === 403) {
+      setPermissionDenied(true);
+      setData([]);
+      return;
     }
-    catch (error) {
-      console.error("Fetch data failed:", error);
 
+    if (res.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("username");
       globalThis.location.href = "/login";
+      return;
     }
-  };
+
+    if (!res.ok) {
+      throw new Error("Request failed");
+    }
+
+    const text = await res.text();
+    const result = text ? JSON.parse(text) : {};
+
+    setData(result.content || []);
+    setTotalPages(result.totalPages || 1);
+  } catch (error) {
+    console.error("Fetch data failed:", error);
+  }
+};
 
   const deleteData = async (identifier) => {
     const confirmDelete = globalThis.confirm("Delete this item?");
@@ -245,6 +255,21 @@ const CommonList = ({
     setOpen(false);
     fetchData();
   };
+
+  if (permissionDenied) {
+  return (
+    <div className="flex items-center justify-center h-80">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-red-600">
+          Permission Denied
+        </h2>
+        <p className="mt-2 text-gray-600">
+          You are not authorized to access this page.
+        </p>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="bg-gray-100 shadow-lg rounded-xl w-full p-4">

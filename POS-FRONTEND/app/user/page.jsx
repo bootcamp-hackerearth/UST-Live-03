@@ -57,17 +57,20 @@ const validate = (formData, mode) => {
     errors.roles = "Select at least one role";
   }
 
-  if (mode === "add") {
-    if (!formData.password?.trim()) {
-      errors.password = VALIDATION_MESSAGES.CREDENTIALS_REQUIRED;
-    } else if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-        formData.password
-      )
-    ) {
-      errors.password = VALIDATION_MESSAGES.CREDENTIALS_INVALID;
-    }
+ const CREDENTIALS_REQUIRED_MSG = "Password is required";
+const CREDENTIALS_STRENGTH_MSG = "Password must be stronger";
+
+if (mode === "add") {
+  if (!formData.password?.trim()) {
+    errors.password = CREDENTIALS_REQUIRED_MSG;
+  } else if (
+    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+      formData.password
+    )
+  ) {
+    errors.password = CREDENTIALS_STRENGTH_MSG;
   }
+}
 
   return errors;
 };

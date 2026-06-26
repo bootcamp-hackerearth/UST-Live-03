@@ -3,6 +3,25 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
+const getOptionValue = (opt) => {
+  if (opt && typeof opt === "object") {
+    return opt.identifier ?? opt.value ?? opt.name ?? opt;
+  }
+  return opt;
+};
+
+const getOptionLabel = (opt) => {
+  if (opt && typeof opt === "object") {
+    return opt.identifier ?? opt.label ?? opt.name ?? opt;
+  }
+  return opt;
+};
+
+const renderFieldError = (errors, fieldName) =>
+  errors?.[fieldName] ? (
+    <p className="text-red-500 text-[10px]">{errors[fieldName]}</p>
+  ) : null;
+
 async function fetchFieldOptions(field) {
   const res = await fetch(field.apiUrl, {
     method: "POST",
@@ -23,10 +42,9 @@ async function fetchFieldOptions(field) {
   }
 
   const result = await res.json();
-
   const list = result.content || result.dtoList || result.data || result || [];
 
-  return Array.isArray(list) ? list.filter((item) => item.status === true) : [];
+  return Array.isArray(list) ? list.filter((item) => item.status !== false) : [];
 }
 
 function SelectField({ f, formData, options, handleChange, disabled, errors }) {
@@ -53,18 +71,16 @@ function SelectField({ f, formData, options, handleChange, disabled, errors }) {
         <option value="">Select</option>
 
         {selectOptions.map((opt) => {
-          const optionValue = opt.value ?? opt.identifier ?? opt;
+          const optionValue = getOptionValue(opt);
           return (
             <option key={optionValue} value={optionValue}>
-              {opt.label ?? opt.identifier ?? opt}
+              {getOptionLabel(opt)}
             </option>
           );
         })}
       </select>
 
-      {errors[f.name] && (
-        <p className="text-red-500 text-[10px]">{errors[f.name]}</p>
-      )}
+      {renderFieldError(errors, f.name)}
     </div>
   );
 }
@@ -84,6 +100,7 @@ SelectField.propTypes = {
 
 function MultiSelectField({ f, formData, options, handleChange, disabled, errors }) {
   const fieldId = `common-form-${f.name}`;
+  const selectOptions = options[f.name] || [];
 
   return (
     <div key={f.name}>
@@ -103,19 +120,17 @@ function MultiSelectField({ f, formData, options, handleChange, disabled, errors
           (disabled ? " bg-gray-200 cursor-not-allowed" : "")
         }
       >
-        {(options[f.name] || []).map((opt) => {
-          const optionValue = opt.identifier ?? opt;
+        {selectOptions.map((opt) => {
+          const optionValue = getOptionValue(opt);
           return (
             <option key={optionValue} value={optionValue}>
-              {opt.identifier ?? opt}
+              {getOptionLabel(opt)}
             </option>
           );
         })}
       </select>
 
-      {errors[f.name] && (
-        <p className="text-red-500 text-[10px]">{errors[f.name]}</p>
-      )}
+      {renderFieldError(errors, f.name)}
     </div>
   );
 }
@@ -200,14 +215,17 @@ export default function CommonForm({
 
       if (f.type === "multiselect") {
         init[f.name] = Array.isArray(data?.[f.name])
-          ? data[f.name].map((x) =>
-            typeof x === "object" ? x.identifier : x
-          )
+          ? data[f.name].map((x) => {
+              if (x && typeof x === "object") {
+                return x.identifier ?? x.value ?? x.name ?? "";
+              }
+              return x ?? "";
+            })
           : [];
       } else if (f.type === "select") {
         init[f.name] =
           typeof data?.[f.name] === "object"
-            ? data[f.name]?.identifier
+            ? (data[f.name]?.identifier ?? data[f.name]?.value ?? data[f.name]?.name)
             : data?.[f.name] ?? "";
       } else {
         init[f.name] = data?.[f.name] ?? "";
@@ -258,7 +276,7 @@ export default function CommonForm({
   const submit = async (e) => {
     e.preventDefault();
     if (validate) {
-      const err = validate(formData);
+      const err = validate(formData, mode);
       setErrors(err || {});
       if (err && Object.keys(err).length > 0) return;
     }

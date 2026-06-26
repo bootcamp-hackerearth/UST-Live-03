@@ -118,10 +118,11 @@ export default function Cart() {
 
   const handleClearCart = async () => {
     await fetch(`${baseUrl}/cartentry/clearCart`, {
-      method: "POST",
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include",
       body: JSON.stringify({ cartId: selectedCustomerId })
     });
     setCartEntries([]);
@@ -182,6 +183,7 @@ export default function Cart() {
         headers: {
           "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify(orderPayload)
       });
       if (!clearOrderResponse.ok) {
@@ -189,10 +191,11 @@ export default function Cart() {
       }
 
       const clearCartResponse = await fetch(`${baseUrl}/cartentry/clearCart`, {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify({ cartId: selectedCart?.identifier || currentCustomerIdBackup })
       });
       if (!clearCartResponse.ok) {
