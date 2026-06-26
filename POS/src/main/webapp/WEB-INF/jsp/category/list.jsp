@@ -147,6 +147,28 @@
         .btn-add:hover {
             transform: scale(1.05);
         }
+
+        .home-link {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b6cb7;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: rgba(75, 108, 183, 0.08);
+            transition: all 0.25s ease;
+        }
+
+        .home-link:hover {
+            background: #4b6cb7;
+            color: #ffffff;
+            box-shadow: 0 8px 18px rgba(75, 108, 183, 0.35);
+            transform: translateY(-2px);
+        }
+
     </style>
 </head>
 
@@ -155,12 +177,13 @@
 <div class="card-container">
 
     <a href="/" class="back-icon">←</a>
+    <a href="/" class="home-link">Home</a>
 
     <h2>List of Categories</h2>
 
     <c:if test="${empty categories}">
         <div class="alert alert-warning">
-            No categorys found
+            No category found
         </div>
     </c:if>
 
@@ -168,6 +191,7 @@
         <table>
             <thead>
             <tr>
+                <th>S.No.</th>
                 <th>Category</th>
                 <th>Super Category</th>
                 <th>Action</th>
@@ -175,17 +199,18 @@
             </thead>
 
             <tbody>
-            <c:forEach var="categories" items="${categories}">
+            <c:forEach var="category" items="${categories}" varStatus="stats">
                 <tr>
-                    <td>${categories.identifier}</td>
-                    <td>${categories.superCategory}</td>
+                    <td>${stats.count}</td>
+                    <td>${category.identifier}</td>
+                    <td>${category.superCategory}</td>
 
                     <td>
-                        <a href="/category/get?identifier=${categories.identifier}"
+                        <a href="/category/get?identifier=${category.identifier}"
                            class="action-icon"
                            title="Edit">✏️</a>
 
-                        <a href="/category/delete?identifier=${categories.identifier}"
+                        <a href="/category/delete?identifier=${category.identifier}"
                            class="action-icon"
                            title="Delete"
                            onclick="return confirm('Are you sure you want to delete this category?');">
@@ -199,8 +224,7 @@
     </c:if>
 
     <div class="footer-actions">
-        <a href="/" class="btn btn-home">Home</a>
-        <a href="/category/add" class="btn btn-add">+ Add New Product</a>
+        <a href="/category/add" class="btn btn-add">+ Add New Category</a>
     </div>
 
 </div>

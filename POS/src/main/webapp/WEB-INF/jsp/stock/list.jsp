@@ -6,8 +6,7 @@
 <head>
     <title>Stock List</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -48,6 +47,7 @@
             font-size: 20px;
             color: #4b6cb7;
             text-decoration: none;
+            font-weight: 600;
             background: rgba(75, 108, 183, 0.08);
             border-radius: 50%;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
@@ -80,6 +80,7 @@
             border-bottom: 1px solid #eee;
             font-size: 14px;
             color: #333;
+            word-break: break-word;
         }
 
         tr:hover {
@@ -125,6 +126,8 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
+            display: inline-block;
+            transition: 0.25s ease;
         }
 
         .btn-home {
@@ -153,20 +156,21 @@
 
     <a href="/" class="back-icon">←</a>
 
-    <h2>Stock List</h2>
+    <h2>List of Stocks</h2>
 
-    <c:if test="${empty stock}">
+    <c:if test="${empty stocks}">
         <div class="alert alert-warning">
-            No stock available
+            No Stocks found
         </div>
     </c:if>
 
-    <c:if test="${not empty stock}">
+    <c:if test="${not empty stocks}">
         <table>
             <thead>
             <tr>
+                <th>ID</th>
+                <th>Product Name</th>
                 <th>Warehouse Name</th>
-                <th>Stock</th>
                 <th>Quantity</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -174,18 +178,27 @@
             </thead>
 
             <tbody>
-            <c:forEach items="${stock}" var="s">
+            <c:forEach var="stock" items="${stocks}">
                 <tr>
-                    <td>${s.warehouseName}</td>
-                    <td>${s.identifier}</td>
-                    <td>${s.quantity}</td>
-                    <td>${s.stockStatus}</td>
+                    <td>${stock.id}</td>
+                    <td>${stock.identifier}</td>
+                    <td>${stock.warehouseName}</td>
+                    <td>${stock.quantity}</td>
+                    <td><c:choose>
+                                <c:when test="${stock.status == true}">
+                                    IN_STOCK
+                                </c:when>
+                                <c:otherwise>
+                                    OUT_OF_STOCK
+                                </c:otherwise>
+                            </c:choose></td>
+
                     <td>
-                        <a href="/stock/get?identifier=${s.identifier}"
+                        <a href="/stock/get?identifier=${stock.identifier}"
                            class="action-icon"
                            title="Edit">✏️</a>
 
-                        <a href="/stock/delete?identifier=${s.identifier}"
+                        <a href="/stock/delete?identifier=${stock.identifier}"
                            class="action-icon"
                            title="Delete"
                            onclick="return confirm('Are you sure you want to delete this stock?');">
@@ -200,7 +213,7 @@
 
     <div class="footer-actions">
         <a href="/" class="btn btn-home">Home</a>
-        <a href="/stock/add" class="btn btn-add">+ Add Stock</a>
+        <a href="/stock/add" class="btn btn-add">+ Add New Stock</a>
     </div>
 
 </div>

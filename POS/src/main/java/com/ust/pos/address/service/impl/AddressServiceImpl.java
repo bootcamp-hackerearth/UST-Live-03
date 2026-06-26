@@ -7,9 +7,6 @@ import com.ust.pos.model.AddressRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -18,19 +15,22 @@ import java.util.List;
 @Service
 @Transactional
 public class AddressServiceImpl implements AddressService {
-    @Autowired
     private AddressRepository addressRepository;
 
-    @Autowired
     private ModelMapper modelMapper;
 
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
+
     @Override
-    public void save(AddressDto shipping, AddressDto billing) {
+    public void save(AddressDto shipping , AddressDto billing) {
         String shippingIdentifier = shipping.getIdentifier();
         String billingIdentifier = billing.getIdentifier();
 
-        Address existingShipping = addressRepository.findByIdentifierAndIsShippingTrue(shippingIdentifier);
-        Address existingBilling = addressRepository.findByIdentifierAndIsBillingTrue(billingIdentifier);
+        Address existingShipping = addressRepository.findByIdentifierAndIsShippingTrueAndDeletedFalse(shippingIdentifier);
+        Address existingBilling = addressRepository.findByIdentifierAndIsBillingTrueAndDeletedFalse(billingIdentifier);
         if (existingBilling != null) {
             billing.setMessage("Address with identifier - " + billingIdentifier + " already exists");
             billing.setSuccess(false);
@@ -38,6 +38,7 @@ public class AddressServiceImpl implements AddressService {
             Address address = modelMapper.map(billing, Address.class);
             address.setIsBilling(true);
             address.setIsShipping(false);
+            address.setDeleted(false);
             addressRepository.save(address);
         }
         if (existingShipping != null) {
@@ -47,6 +48,7 @@ public class AddressServiceImpl implements AddressService {
             Address address = modelMapper.map(shipping, Address.class);
             address.setIsShipping(true);
             address.setIsBilling(false);
+            address.setDeleted(false);
             addressRepository.save(address);
         }
     }
@@ -55,8 +57,8 @@ public class AddressServiceImpl implements AddressService {
     public void update(AddressDto shipping, AddressDto billing) {
         String shippingIdentifier = shipping.getIdentifier();
         String billingIdentifier = billing.getIdentifier();
-        Address existingShipping = addressRepository.findByIdentifierAndIsShippingTrue(shippingIdentifier);
-        Address existingBilling = addressRepository.findByIdentifierAndIsBillingTrue(billingIdentifier);
+        Address existingShipping = addressRepository.findByIdentifierAndIsShippingTrueAndDeletedFalse(shippingIdentifier);
+        Address existingBilling = addressRepository.findByIdentifierAndIsBillingTrueAndDeletedFalse(billingIdentifier);
 
         if (existingBilling == null) {
             billing.setMessage(
@@ -83,33 +85,39 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public void delete(String identifier) {
-        addressRepository.deleteByIdentifier(identifier);
+
+        Address billing =
+                addressRepository.findByIdentifierAndIsBillingTrueAndDeletedFalse(identifier);
+
+        if (billing != null) {
+            billing.setDeleted(true);
+            addressRepository.save(billing);
+        }
+
+        Address shipping =
+                addressRepository.findByIdentifierAndIsShippingTrueAndDeletedFalse(identifier);
+
+        if (shipping != null) {
+            shipping.setDeleted(true);
+            addressRepository.save(shipping);
+        }
     }
 
     @Override
     public List<AddressDto> findAll() {
-        Type listOfType = new TypeToken<List<AddressDto>>() {
-        }.getType();
-        return modelMapper.map(addressRepository.findAll(), listOfType);
+        Type listOfType = new TypeToken<List<AddressDto>>(){}.getType();
+        return modelMapper.map(addressRepository.findByDeletedFalse(), listOfType);
     }
 
     @Override
     public AddressDto findByIdentifierAndShipping(String identifier) {
         return modelMapper.map(addressRepository.
-                findByIdentifierAndIsShippingTrue(identifier), AddressDto.class);
+                findByIdentifierAndIsShippingTrueAndDeletedFalse(identifier) , AddressDto.class);
     }
 
     @Override
     public AddressDto findByIdentifierAndBilling(String identifier) {
         return modelMapper.map(addressRepository.
-                findByIdentifierAndIsBillingTrue(identifier), AddressDto.class);
-    }
-
-    @Override
-    public List<AddressDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<AddressDto>>() {
-        }.getType();
-        Page<Address> brandPage = addressRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listOfType);
+                findByIdentifierAndIsBillingTrueAndDeletedFalse(identifier) , AddressDto.class);
     }
 }

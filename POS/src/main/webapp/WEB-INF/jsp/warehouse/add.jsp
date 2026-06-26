@@ -177,13 +177,9 @@
 
         <div class="form-group">
             <label>Pincode</label>
-            <form:input path="pincode"
-                        cssClass="form-control"
-                        placeholder="Enter 6-digit pincode"
-                        maxlength="6"
-                        pattern="[0-9]{6}"
-                        title="Pincode must be exactly 6 digits"
-                        required="true"/>
+            <form:input path="Pincode"
+                           cssClass="form-control"
+                           placeholder="Enter pincode" />
         </div>
 
         <div class="form-group">

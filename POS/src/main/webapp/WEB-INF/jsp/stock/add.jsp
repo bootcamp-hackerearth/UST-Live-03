@@ -1,11 +1,14 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8"%>
+
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Add Stock</title>
+    <meta charset="UTF-8">
+    <title>Add Role</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -22,7 +25,7 @@
 
         .card-container {
             position: relative;
-            width: 520px;
+            width: 500px;
             background: rgba(255, 255, 255, 0.95);
             padding: 35px 40px;
             border-radius: 16px;
@@ -48,6 +51,7 @@
             font-size: 20px;
             color: #4b6cb7;
             text-decoration: none;
+            font-weight: 600;
             background: rgba(75, 108, 183, 0.08);
             border-radius: 50%;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
@@ -60,60 +64,75 @@
             transform: translateX(-4px) scale(1.05);
         }
 
-        label {
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 6px;
-            color: #333;
-            display: block;
+        .form-group {
+            margin-bottom: 18px;
         }
 
-        input, select {
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-control {
             width: 100%;
             padding: 10px 12px;
             border-radius: 10px;
             border: 1px solid #ccc;
+            font-family: 'Poppins', sans-serif;
             font-size: 14px;
+        }
+
+        .form-control:focus {
             outline: none;
-            transition: 0.2s ease;
-        }
-
-        input:focus, select:focus {
             border-color: #4b6cb7;
-            box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.15);
+            box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.2);
         }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .alert-success {
-            background: #e6fffa;
-            color: #065f46;
+        .alert {
             padding: 10px;
-            border-radius: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
             text-align: center;
-            margin-bottom: 18px;
             font-size: 14px;
+            background: #d4edda;
+            color: #155724;
         }
 
         .btn-submit {
             width: 100%;
             padding: 12px;
-            margin-top: 10px;
             border-radius: 12px;
             border: none;
-            font-size: 15px;
-            font-weight: 600;
-            color: white;
             cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
             background: linear-gradient(135deg, #4b6cb7, #182848);
+            color: white;
             transition: 0.25s ease;
         }
 
         .btn-submit:hover {
-            transform: scale(1.04);
+            transform: scale(1.05);
         }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #777;
+        }
+         .error-message {
+                    padding: 10px;
+                    border-radius: 8px;
+                    margin-bottom: 15px;
+                    text-align: center;
+                    font-size: 14px;
+                    background: rgba(220, 53, 69, 0.12);
+                    border: 1px solid #dc3545;
+                    color: #dc3545;
+                }
     </style>
 </head>
 
@@ -123,51 +142,62 @@
 
     <a href="/stock/list" class="back-icon">←</a>
 
-    <h2>Add Stock</h2>
+    <h2>Add New Stock</h2>
 
-    <!-- ✅ Success Message -->
-    <c:if test="${not empty message}">
-        <div class="alert-success">
-            ${message}
+    <c:if test="${not empty stock}">
+        <div class="alert">
+            ${stock}
         </div>
     </c:if>
 
-    <form:form method="post" modelAttribute="stockDto">
+     <!-- ✅ Error / Info Message -->
+        <c:if test="${not empty message}">
+            <div class="error-message">
+                ${message}
+            </div>
+        </c:if>
 
-        <div class="form-group">
-                    <label>Product Name</label>
-                    <form:select path="identifier" cssClass="form-control">
-                        <form:option value="" label="-- Select Product --" />
-                        <c:forEach items="${product}" var="product">
+    <form:form method="post"
+               action="/stock/add"
+               modelAttribute="stockDto">
+
+        <label>Product</label>
+        <form:select path="identifier" cssClass="form-control">
+                    <form:option value="" label="-- Select Product --" />
+                    <c:forEach items="${products}" var="product">
                             <form:option value="${product.identifier}">
                                 ${product.identifier}
                             </form:option>
-                        </c:forEach>
-                    </form:select>
-                </div>
-       <div class="form-group">
-                           <label>Warehouse Name</label>
-                           <form:select path="warehouseName" cssClass="form-control">
-                               <form:option value="" label="-- Select Warehouse --" />
-                               <c:forEach items="${warehouse}" var="warehouse">
-                                   <form:option value="${warehouse.identifier}">
-                                       ${warehouse.identifier}
-                                   </form:option>
-                               </c:forEach>
-                           </form:select>
-                       </div>
+                    </c:forEach>
+                </form:select>
+
+        <label>Warehouse Name</label>
+        <form:select path="warehouseName" cssClass="form-control">
+            <form:option value="" label="-- Select Warehouse --" />
+            <c:forEach items="${warehouses}" var="warehouse">
+                    <form:option value="${warehouse.identifier}">
+                        ${warehouse.identifier}
+                    </form:option>
+            </c:forEach>
+        </form:select>
+
         <div class="form-group">
-                   <label>Quantity</label>
-                   <form:input path="quantity" type="number" min="0" required="true"/>
+            <label>Quantity</label>
+            <form:input path="quantity"
+                           cssClass="form-control"
+                           placeholder="Enter quantity" />
         </div>
 
         <button type="submit" class="btn-submit">
-            Save Stock
+            Add Stock
         </button>
 
     </form:form>
 
-</div>
+    <div class="footer-text">
+        POS Management System
+    </div>
 
+</div>
 </body>
 </html>

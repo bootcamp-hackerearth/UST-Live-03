@@ -89,6 +89,13 @@
         <label>Description</label>
         <textarea name="description" rows="4">${brandDto.description}</textarea>
 
+        <!-- Status (editable) -->
+        <label>Status</label>
+        <select name="status">
+            <option value="true" ${brandDto.status ? 'selected' : ''}>Active</option>
+            <option value="false" ${!brandDto.status ? 'selected' : ''}>Inactive</option>
+        </select>
+
         <div class="btn-group">
             <button type="submit" class="btn btn-save">Update</button>
             <a href="/brand/list" class="btn-cancel">Cancel</a>
@@ -96,5 +103,6 @@
 
     </form>
 </div>
+
 </body>
 </html>

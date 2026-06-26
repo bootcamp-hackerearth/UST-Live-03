@@ -1,12 +1,11 @@
 package com.ust.pos;
 
-import com.ust.pos.cart.service.impl.CartServiceImpl;
-import com.ust.pos.cartentry.service.CartEntryService;
+import com.ust.pos.cart.impl.CartServiceImpl;
+import com.ust.pos.cartentry.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
-import com.ust.pos.price.service.PriceService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -34,97 +34,100 @@ class CartServiceTest {
     private CartRepository cartRepository;
 
     @Mock
-    private CartEntryService cartEntryService;
-
-    @Mock
-    private PriceService priceService;
-
-    @Mock
     private ModelMapper modelMapper;
 
-    @Test
-    void saveTest() {
+    @Mock
+    private CartEntryService cartEntryService;
 
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART1");
+    @Test
+    void saveCartSuccess() {
+
+        CartDto dto = new CartDto();
+        dto.setIdentifier("CART1");
 
         Cart cart = new Cart();
-        cart.setIdentifier("CART1");
 
-        Mockito.when(modelMapper.map(cartDto, Cart.class))
-                .thenReturn(cart);
+        Mockito.when(
+                modelMapper.map(dto, Cart.class)
+        ).thenReturn(cart);
 
-        Mockito.when(cartRepository.save(cart))
-                .thenReturn(cart);
+        CartDto response = cartService.save(dto);
 
-        CartDto response = cartService.save(cartDto);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(
-                "CART1",
-                response.getIdentifier()
-        );
+        Assertions.assertEquals("CART1", response.getIdentifier());
 
         Mockito.verify(cartRepository)
                 .save(cart);
     }
 
     @Test
-    void recalculateCart_WhenCartExists() {
+    void recalculateCartExistingCartSuccess() {
 
         Cart cart = new Cart();
         cart.setIdentifier("CART1");
-        cart.setDiscount(BigDecimal.TEN);
+        cart.setDiscount(BigDecimal.valueOf(10));
 
         CartEntryDto entry1 = new CartEntryDto();
-        entry1.setTotalPrice(new BigDecimal("100"));
+        entry1.setTotalPrice(BigDecimal.valueOf(100));
 
         CartEntryDto entry2 = new CartEntryDto();
-        entry2.setTotalPrice(new BigDecimal("50"));
+        entry2.setTotalPrice(BigDecimal.valueOf(50));
 
-        CartDto cartDto = new CartDto();
+        List<CartEntryDto> entries =
+                List.of(entry1, entry2);
 
-        Mockito.when(cartRepository.findByIdentifier("CART1"))
-                .thenReturn(cart);
+        CartDto mappedDto = new CartDto();
 
-        Mockito.when(cartEntryService.findByCartId("CART1"))
-                .thenReturn(List.of(entry1, entry2));
+        Mockito.when(
+                cartRepository.findByIdentifier("CART1")
+        ).thenReturn(cart);
 
-        Mockito.when(modelMapper.map(cart, CartDto.class))
-                .thenReturn(cartDto);
+        Mockito.when(
+                cartEntryService.findByCartId("CART1")
+        ).thenReturn(entries);
+
+        Mockito.when(
+                modelMapper.map(cart, CartDto.class)
+        ).thenReturn(mappedDto);
 
         CartDto response =
-                cartService.recalulateCart("CART1");
+                cartService.recalculateCart("CART1");
 
-        Assertions.assertNotNull(response);
+        Assertions.assertEquals(
+                BigDecimal.valueOf(140),
+                cart.getTotalPrice()
+        );
+
+        Assertions.assertEquals(
+                2,
+                response.getCartEntries().size()
+        );
 
         Mockito.verify(cartRepository)
                 .save(cart);
-
-        Assertions.assertEquals(
-                new BigDecimal("140"),
-                cart.getTotalPrice()
-        );
     }
 
     @Test
-    void recalculateCart_WhenCartDoesNotExist() {
+    void recalculateCartNewCartSuccess() {
 
-        CartDto cartDto = new CartDto();
+        CartEntryDto entry = new CartEntryDto();
+        entry.setTotalPrice(BigDecimal.valueOf(100));
 
-        Mockito.when(cartRepository.findByIdentifier("CART2"))
-                .thenReturn(null);
+        CartDto mappedDto = new CartDto();
 
-        Mockito.when(cartEntryService.findByCartId("CART2"))
-                .thenReturn(List.of());
+        Mockito.when(
+                cartRepository.findByIdentifier("CART1")
+        ).thenReturn(null);
 
-        Mockito.when(modelMapper.map(
-                Mockito.any(Cart.class),
-                Mockito.eq(CartDto.class)
-        )).thenReturn(cartDto);
+        Mockito.when(
+                cartEntryService.findByCartId("CART1")
+        ).thenReturn(List.of(entry));
+
+        Mockito.when(
+                modelMapper.map(Mockito.any(Cart.class), Mockito.eq(CartDto.class))
+        ).thenReturn(mappedDto);
 
         CartDto response =
-                cartService.recalulateCart("CART2");
+                cartService.recalculateCart("CART1");
 
         Assertions.assertNotNull(response);
 
@@ -133,63 +136,58 @@ class CartServiceTest {
     }
 
     @Test
-    void updateTest() {
+    void updateCartSuccess() {
 
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART1");
+        CartDto dto = new CartDto();
+        dto.setIdentifier("CART1");
 
         Cart existingCart = new Cart();
-        existingCart.setIdentifier("CART1");
 
         Cart mappedCart = new Cart();
-        mappedCart.setIdentifier("CART1");
 
-        Mockito.when(cartRepository.findByIdentifier("CART1"))
-                .thenReturn(existingCart);
+        Mockito.when(
+                cartRepository.findByIdentifier("CART1")
+        ).thenReturn(existingCart);
 
-        Mockito.when(modelMapper.map(cartDto, Cart.class))
-                .thenReturn(mappedCart);
+        Mockito.when(
+                modelMapper.map(dto, Cart.class)
+        ).thenReturn(mappedCart);
 
-        Mockito.when(cartRepository.save(mappedCart))
-                .thenReturn(mappedCart);
+        CartDto response =
+                cartService.update(dto);
 
-        CartDto response = cartService.update(cartDto);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(
-                "CART1",
-                response.getIdentifier()
-        );
+        Assertions.assertNull(response.getMessage());
 
         Mockito.verify(cartRepository)
                 .save(mappedCart);
     }
 
     @Test
-    void updateTestFailure() {
+    void updateCartNotFound() {
 
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART1");
+        CartDto dto = new CartDto();
+        dto.setIdentifier("CART1");
 
-        Mockito.when(cartRepository.findByIdentifier("CART1"))
-                .thenReturn(null);
+        Mockito.when(
+                cartRepository.findByIdentifier("CART1")
+        ).thenReturn(null);
 
-        CartDto response = cartService.update(cartDto);
+        CartDto response =
+                cartService.update(dto);
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+
+        Assertions.assertEquals(
+                "Cart with identifier - CART1 not found",
+                response.getMessage()
+        );
 
         Mockito.verify(cartRepository,
-                        Mockito.never())
-                .save(Mockito.any(Cart.class));
+                Mockito.never()).save(Mockito.any());
     }
 
     @Test
-    void deleteTest() {
-
-        Mockito.doNothing()
-                .when(cartRepository)
-                .deleteByIdentifier("CART1");
+    void deleteCartTest() {
 
         cartService.delete("CART1");
 
@@ -198,16 +196,29 @@ class CartServiceTest {
     }
 
     @Test
-    void deleteAllTest() {
+    void findAllCartsTest() {
 
-        Mockito.doNothing()
-                .when(cartRepository)
-                .deleteAll();
+        List<Cart> carts =
+                List.of(new Cart(), new Cart());
 
-        cartService.deletAll();
+        List<CartDto> dtoList =
+                List.of(new CartDto(), new CartDto());
 
-        Mockito.verify(cartRepository)
-                .deleteAll();
+        Mockito.when(
+                cartRepository.findAll()
+        ).thenReturn(carts);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(carts),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(dtoList);
+
+        List<CartDto> response =
+                cartService.findAll();
+
+        Assertions.assertEquals(2, response.size());
     }
 
     @Test
@@ -216,55 +227,23 @@ class CartServiceTest {
         Cart cart = new Cart();
         cart.setIdentifier("CART1");
 
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART1");
+        CartDto dto = new CartDto();
+        dto.setIdentifier("CART1");
 
-        Mockito.when(cartRepository.findByIdentifier("CART1"))
-                .thenReturn(cart);
+        Mockito.when(
+                cartRepository.findByIdentifier("CART1")
+        ).thenReturn(cart);
 
-        Mockito.when(modelMapper.map(cart, CartDto.class))
-                .thenReturn(cartDto);
+        Mockito.when(
+                modelMapper.map(cart, CartDto.class)
+        ).thenReturn(dto);
 
         CartDto response =
                 cartService.findByIdentifier("CART1");
 
-        Assertions.assertNotNull(response);
         Assertions.assertEquals(
                 "CART1",
                 response.getIdentifier()
-        );
-    }
-
-    @Test
-    void findAllTest() {
-
-        Cart cart = new Cart();
-        cart.setIdentifier("CART1");
-
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART1");
-
-        List<Cart> carts = List.of(cart);
-        List<CartDto> cartDtos = List.of(cartDto);
-
-        Type listType =
-                new org.modelmapper.TypeToken<List<CartDto>>() {
-                }.getType();
-
-        Mockito.when(cartRepository.findAll())
-                .thenReturn(carts);
-
-        Mockito.when(modelMapper.map(carts, listType))
-                .thenReturn(cartDtos);
-
-        List<CartDto> response =
-                cartService.findAll();
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals(
-                "CART1",
-                response.get(0).getIdentifier()
         );
     }
 
@@ -274,47 +253,32 @@ class CartServiceTest {
         Pageable pageable =
                 PageRequest.of(0, 10);
 
-        Cart cart = new Cart();
-        cart.setIdentifier("CART1");
-
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART1");
+        List<Cart> carts =
+                List.of(new Cart());
 
         Page<Cart> cartPage =
-                new PageImpl<>(List.of(cart));
+                new PageImpl<>(carts);
 
-        List<CartDto> cartDtos =
-                List.of(cartDto);
+        List<CartDto> dtoList =
+                List.of(new CartDto());
 
         Type listType =
-                new org.modelmapper.TypeToken<List<CartDto>>() {
-                }.getType();
-
-        Mockito.when(cartRepository.findAll(pageable))
-                .thenReturn(cartPage);
+                new TypeToken<List<CartDto>>() {}.getType();
 
         Mockito.when(
-                modelMapper.map(
-                        cartPage.getContent(),
-                        listType
-                )
-        ).thenReturn(cartDtos);
+                cartRepository.findAll(pageable)
+        ).thenReturn(cartPage);
+
+        Mockito.when(
+                modelMapper.map(carts, listType)
+        ).thenReturn(dtoList);
 
         List<CartDto> response =
                 cartService.findAll(pageable);
 
-        Assertions.assertNotNull(response);
         Assertions.assertEquals(
                 1,
                 response.size()
         );
-
-        Assertions.assertEquals(
-                "CART1",
-                response.get(0).getIdentifier()
-        );
-
-        Mockito.verify(cartRepository)
-                .findAll(pageable);
     }
 }

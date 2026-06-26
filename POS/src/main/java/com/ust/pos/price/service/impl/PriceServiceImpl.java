@@ -1,12 +1,12 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,24 +18,28 @@ import java.util.List;
 @Service
 @Transactional
 public class PriceServiceImpl implements PriceService {
+    private final PriceRepository priceRepository;
 
-    @Autowired
-    private PriceRepository priceRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public PriceServiceImpl(PriceRepository priceRepository, ModelMapper modelMapper) {
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PriceDto save(PriceDto priceDto) {
         String identifier = priceDto.getIdentifier();
-        Price existingPrice = priceRepository.findByIdentifier(identifier);
-        if (existingPrice != null) {
-            priceDto.setMessage("Price with identifier - " + identifier + " already exists");
+        Price existingPrice = priceRepository.findByIdentifierAndDeletedFalse(identifier);
+        if(existingPrice != null)
+        {
+            priceDto.setMessage("Price for product - "+identifier+" already exists");
             priceDto.setSuccess(false);
             return priceDto;
         }
-        priceDto.setDifference(priceDto.getSellingPrice().subtract(priceDto.getCostPrice()));
+        priceDto.setDifference(priceDto.getCostPrice().subtract(priceDto.getSellingPrice()));
         Price price = modelMapper.map(priceDto, Price.class);
+        price.setDeleted(false);
         priceRepository.save(price);
         return priceDto;
     }
@@ -43,44 +47,67 @@ public class PriceServiceImpl implements PriceService {
     @Override
     public PriceDto update(PriceDto priceDto) {
         String identifier = priceDto.getIdentifier();
-        Price existingPrice = priceRepository.findByIdentifier(identifier);
-        if (existingPrice == null) {
-            priceDto.setMessage("Price with identifier - " + identifier + " is not found");
+        Price existingPrice = priceRepository.findByIdentifierAndDeletedFalse(identifier);
+        if(existingPrice == null)
+        {
+            priceDto.setMessage("Price for product - "+identifier+" not defined");
             priceDto.setSuccess(false);
             return priceDto;
         }
-        priceDto.setDifference(priceDto.getSellingPrice().subtract(priceDto.getCostPrice()));
-        Price price = modelMapper.map(priceDto, Price.class);
-        priceRepository.save(price);
+        existingPrice.setDifference(priceDto.getCostPrice().subtract(priceDto.getSellingPrice()));
+        modelMapper.map(priceDto, existingPrice);
+        priceRepository.save(existingPrice);
         return priceDto;
     }
 
     @Override
     public void delete(String identifier) {
-        priceRepository.deleteByIdentifier(identifier);
+        Price price = priceRepository.findByIdentifierAndDeletedFalse(identifier);
+        if(price != null)
+        {
+            price.setDeleted(true);
+            priceRepository.save(price);
+        }
     }
 
     @Override
     public List<PriceDto> findAll() {
-        Type listOfType = new TypeToken<List<PriceDto>>() {
-        }.getType();
-        return modelMapper.map(priceRepository.findAll(), listOfType);
+        Type listType = new TypeToken<List<PriceDto>>(){}.getType();
+        return modelMapper.map(priceRepository.findByDeletedFalse(), listType);
+    }
+
+    @Override
+    public WsDto<PriceDto> findAll(Pageable pageable)
+    {
+        Type listtype = new TypeToken<List<PriceDto>>(){}.getType();
+        Page<Price> pricePage = priceRepository.findByDeletedFalse(pageable);
+
+        WsDto<PriceDto> priceDtoWsDto = new WsDto<>();
+        priceDtoWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listtype));
+        priceDtoWsDto.setTotalRecords(pricePage.getTotalElements());
+        priceDtoWsDto.setTotalPage(pricePage.getTotalPages());
+        priceDtoWsDto.setSizePerPage(pageable.getPageSize());
+        priceDtoWsDto.setPage(pageable.getPageNumber());
+
+        return priceDtoWsDto;
+    }
+
+    @Override
+    public Page<PriceDto> findAll(String search, Pageable pageable) {
+        Page<Price> rolePage;
+        if(search != null && !search.trim().isEmpty())
+        {
+            rolePage = priceRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+        }
+        else
+        {
+            rolePage = priceRepository.findByDeletedFalse(pageable);
+        }
+        return rolePage.map(price -> modelMapper.map(price, PriceDto.class));
     }
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-        return modelMapper.map(priceRepository.findByIdentifier(identifier), PriceDto.class);
+        return modelMapper.map(priceRepository.findByIdentifierAndDeletedFalse(identifier), PriceDto.class);
     }
-
-    @Override
-    public Page<PriceDto> findAll(Pageable pageable, String search) {
-        Page<Price> pricePage;
-        if (search != null && !search.trim().isEmpty()) {
-            pricePage = priceRepository.findByIdentifierContainingIgnoreCase(pageable, search);
-        } else {
-            pricePage = priceRepository.findAll(pageable);
-        }
-        return pricePage.map(price -> modelMapper.map(price, PriceDto.class));
-    }
-
 }

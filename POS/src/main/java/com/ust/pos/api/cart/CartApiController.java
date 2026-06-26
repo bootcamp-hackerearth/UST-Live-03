@@ -1,23 +1,24 @@
 package com.ust.pos.api.cart;
 
 
-import com.ust.pos.cart.service.CartService;
+import com.ust.pos.cart.CartService;
 import com.ust.pos.dto.CartDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartApiController {
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
 
-    @PostMapping("/add")
-    public CartDto add(@RequestBody CartDto cartDto) {
-        return cartService.save(cartDto);
+    public CartApiController(CartService cartService) {
+        this.cartService = cartService;
     }
 
+    @PostMapping("/add")
+    public CartDto add(@RequestBody CartDto cartDto){
+        return cartService.save(cartDto);
+    }
     @GetMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
@@ -27,14 +28,19 @@ public class CartApiController {
         }
         return true;
     }
-
-    @GetMapping("/deleteAll")
-    public boolean deleteAll(Model model, @RequestParam String identifier) {
-        try {
-            cartService.deletAll();
-        } catch (Exception e) {
-            return false;
-        }
-        return true;
+    @GetMapping("/get")
+    public CartDto get(@RequestParam String identifier)
+    {
+        return cartService.findByIdentifier(identifier);
+    }
+    @GetMapping("/recalculate")
+    public CartDto recalculate(@RequestParam String cartId)
+    {
+        return cartService.recalculateCart(cartId);
+    }
+    @PostMapping("/update")
+    public CartDto update(@RequestBody CartDto cartDto)
+    {
+        return cartService.update(cartDto);
     }
 }

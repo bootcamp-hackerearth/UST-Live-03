@@ -2,8 +2,8 @@ package com.ust.pos.customer;
 
 import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
+import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,20 +14,29 @@ public class CustomerController {
 
     public static final String REDIRECT_CUSTOMER_LIST = "redirect:/customer/list";
 
-    @Autowired
-    private AddressService addressService;
+    private final AddressService addressService;
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
+
+    public CustomerController(AddressService addressService, CustomerService customerService) {
+        this.addressService = addressService;
+        this.customerService = customerService;
+    }
 
     @GetMapping("/list")
-    public String home(Model model) {
+    public String home(Model model)
+    {
         model.addAttribute("customers", customerService.findAll());
         return "customer/list";
     }
 
+
+
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute CustomerDto customerDto) {
+    public String add(Model model, @ModelAttribute("customerDto") CustomerDto customerDto ,
+                      @ModelAttribute("billing") AddressDto billing,
+                      @ModelAttribute("shipping") AddressDto shipping)
+    {
         return "customer/add";
     }
 
@@ -43,16 +52,19 @@ public class CustomerController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier) {
+    public String update(Model model, @RequestParam String identifier)
+    {
         CustomerDto customerDto = customerService.findByIdentifier(identifier);
         model.addAttribute("customerDto", customerDto);
         return "customer/customer";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute CustomerDto customerDto) {
+    public String updatePost(Model model, @ModelAttribute CustomerDto customerDto)
+    {
         CustomerDto customerDto1 = customerService.update(customerDto);
-        if (!customerDto1.isSuccess()) {
+        if(!customerDto1.isSuccess())
+        {
             model.addAttribute("message", customerDto1.getMessage());
             model.addAttribute("customerDto", customerDto);
             return "customer/customer";
@@ -61,7 +73,8 @@ public class CustomerController {
     }
 
     @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String identifier) {
+    public String delete(Model model, @RequestParam String identifier)
+    {
         customerService.deleteByIdentifier(identifier);
         addressService.delete(identifier);
         return REDIRECT_CUSTOMER_LIST;

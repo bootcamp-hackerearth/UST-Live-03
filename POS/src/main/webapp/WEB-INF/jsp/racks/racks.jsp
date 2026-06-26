@@ -60,7 +60,7 @@
         }
 
         .btn-submit {
-            margin-top: 14px;
+            margin-top: 12px;
             width: 100%;
             padding: 13px;
             background: linear-gradient(135deg, #4b6cb7, #182848);
@@ -70,10 +70,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-        }
-
-        .btn-submit:hover {
-            transform: scale(1.03);
         }
 
         .btn-cancel {
@@ -86,10 +82,6 @@
             border-radius: 10px;
             text-decoration: none;
             font-size: 14px;
-        }
-
-        .btn-cancel:hover {
-            background: #e2e2e2;
         }
 
         .error-message {
@@ -112,17 +104,16 @@
 
     <h2>Edit Rack</h2>
 
-    <!-- Error Message -->
     <c:if test="${not empty message}">
         <div class="error-message">${message}</div>
     </c:if>
 
-    <!-- ✅ Edit Rack Form -->
+    <!-- ✅ Rack Edit Form -->
     <form:form method="post"
-               action="/racks/update"
+               action="${pageContext.request.contextPath}/racks/update"
                modelAttribute="racksDto">
 
-        <!-- Rack Identifier (readonly) -->
+        <!-- Rack Name (readonly, identifier should not change) -->
         <div class="form-group">
             <label>Rack Name</label>
             <form:input path="identifier" readonly="true"/>
@@ -130,17 +121,23 @@
 
         <!-- Shelf Multi Select -->
         <div class="form-group">
-            <label>Shelves</label>
+            <label>Shelf Name</label>
             <form:select path="shelfs" multiple="true">
-                <form:options items="${shelf}"
-                              itemValue="identifier"
-                              itemLabel="identifier"/>
+                <c:forEach var="s" items="${shelf}">
+                    <form:option value="${s.identifier}">
+                        ${s.identifier}
+                    </form:option>
+                </c:forEach>
             </form:select>
+            <small style="font-size:11px;color:#666;">
+                Hold Ctrl (Windows) / Cmd (Mac) to select multiple shelves
+            </small>
         </div>
 
         <input type="submit" value="Update Rack" class="btn-submit"/>
-
-        <a href="/racks/list" class="btn-cancel">Cancel</a>
+        <a href="${pageContext.request.contextPath}/racks/list" class="btn-cancel">
+            Cancel
+        </a>
 
     </form:form>
 

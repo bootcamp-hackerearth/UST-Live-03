@@ -6,23 +6,29 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 
 @Component
 public class JWTUtility implements Serializable {
     public static final long JWT_TOKEN_VALIDITY = 5L * 60 * 60;
-    private static final long serialVersionUID = 234234523523L;
     @Value("${jwt.secret}")
     private String secretKey;
 
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(
+                secretKey.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
     // retrieve username from jwt token
     public String getUsernameFromToken(String token) {
-
         return getClaimFromToken(token, Claims::getSubject);
     }
 
@@ -38,7 +44,7 @@ public class JWTUtility implements Serializable {
 
     // for retrieving any information from token we will need the secret key
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
     }
 
     // check if the token has expired
@@ -59,11 +65,11 @@ public class JWTUtility implements Serializable {
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
-                .signWith(SignatureAlgorithm.HS512, secretKey).compact();
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512).compact();
     }
 
     // validate token
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

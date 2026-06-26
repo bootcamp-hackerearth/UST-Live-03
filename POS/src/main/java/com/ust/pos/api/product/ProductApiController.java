@@ -1,76 +1,71 @@
 package com.ust.pos.api.product;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
-import com.ust.pos.stock.service.StockService;
-import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/product")
 public class ProductApiController extends BaseController {
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
 
-    @Autowired
-    private StockService stockService;
 
-    @Autowired
-    private WarehouseService warehouseService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public ProductApiController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping("/list")
-    public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortField());
-        Page<ProductDto> pageResult = productService.findAll(pageable, paginationDto.getSearch());
+    public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto)
+    {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Page<ProductDto> pageResult = productService.findAll(paginationDto.getSearch(), pageable);
+
         WsDto<ProductDto> response = new WsDto<>();
-        response.setContent(pageResult.getContent());
+
+        response.setDtoList(pageResult.getContent());
         response.setPage(pageResult.getNumber());
         response.setSizePerPage(pageResult.getSize());
-        response.setTotalPages(pageResult.getTotalPages());
+        response.setTotalPage(pageResult.getTotalPages());
+        response.setTotalRecords(pageResult.getTotalElements());
+
         return response;
     }
 
+    @GetMapping("/list")
+    public List<ProductDto> dropdown()
+    {
+        return productService.findAll();
+    }
     @PostMapping("/add")
-    public ProductDto addPost(@RequestBody ProductDto productDto) {
+    public ProductDto addPost(@RequestBody ProductDto productDto)
+    {
         return productService.save(productDto);
     }
 
-
     @GetMapping("/get")
-    public ProductDto update(@RequestParam String identifier) {
+    public ProductDto update(@RequestParam String identifier)
+    {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public ProductDto doupdate(@RequestBody ProductDto productDto) {
+    @PutMapping("/update")
+    public ProductDto doupdate(@RequestBody ProductDto productDto)
+    {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public Boolean delete(@RequestParam String identifier)
+    {
         try {
             productService.delete(identifier);
-        } catch (Exception e) {
-            return false;
-        }
-        return true;
-    }
-
-    @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestParam String identifier) {
-        try {
-            productService.toggleStatus(identifier);
         } catch (Exception e) {
             return false;
         }

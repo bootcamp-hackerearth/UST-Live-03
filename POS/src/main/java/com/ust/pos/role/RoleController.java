@@ -2,7 +2,6 @@ package com.ust.pos.role;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 public class RoleController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
+
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -22,13 +24,13 @@ public class RoleController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute RoleDto roleDto) {
+    public String add(Model model, @ModelAttribute RoleDto userDto) {
         return "role/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute RoleDto roleDto) {
-        RoleDto response = roleService.save(roleDto);
+    public String addPost(Model model, @ModelAttribute RoleDto userDto) {
+        RoleDto response = roleService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
         }
@@ -43,11 +45,10 @@ public class RoleController {
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute RoleDto roleDto) {
-        RoleDto response = roleService.update(roleDto);
+    public String updatePost(Model model, @ModelAttribute RoleDto userDto) {
+        RoleDto response = roleService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            return "/role/role";
         }
         return REDIRECT_ROLE_LIST;
     }

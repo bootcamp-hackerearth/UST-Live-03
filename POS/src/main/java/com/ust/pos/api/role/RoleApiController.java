@@ -5,41 +5,40 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/role")
 public class RoleApiController extends BaseController {
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
 
-    @GetMapping("/list")
-    public List<RoleDto> home() {
-        return roleService.findAll();
+    public RoleApiController(RoleService roleService) {
+        this.roleService = roleService;
     }
 
     @PostMapping("/list")
     public WsDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortField());
-        Page<RoleDto> role = roleService.findAll(pageable, paginationDto.getSearch());
-        WsDto<RoleDto> result = new WsDto<>();
-        result.setTotalPages(role.getTotalPages());
-        result.setContent(role.getContent());
-        result.setSizePerPage(role.getSize());
-        result.setPage(role.getNumber());
-        return result;
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Page<RoleDto> pageResult = roleService.findAll(paginationDto.getSearch(), pageable);
+
+        WsDto<RoleDto> response = new WsDto<>();
+
+        response.setDtoList(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPage(pageResult.getTotalPages());
+        response.setTotalRecords(pageResult.getTotalElements());
+
+        return response;
     }
 
     @PostMapping("/add")
-    public RoleDto addPost(@RequestBody RoleDto roleDto) {
-        return roleService.save(roleDto);
+    public RoleDto addPost(@RequestBody RoleDto userDto) {
+        return roleService.save(userDto);
     }
 
     @GetMapping("/get")
@@ -47,16 +46,17 @@ public class RoleApiController extends BaseController {
         return roleService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public RoleDto updatePost(@RequestBody RoleDto roleDto) {
-        return roleService.update(roleDto);
+    @PutMapping("/update")
+    public RoleDto updatePost(@RequestBody RoleDto userDto) {
+        return roleService.update(userDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
-        try {
+    @DeleteMapping("/delete")
+    public Boolean delete(@RequestParam String identifier) {
+        try{
             roleService.delete(identifier);
-        } catch (Exception e) {
+        }catch(Exception e)
+        {
             return false;
         }
         return true;

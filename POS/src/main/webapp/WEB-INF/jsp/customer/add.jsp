@@ -1,12 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>Add Customer</title>
-
     <style>
         body {
             margin: 0;
@@ -17,7 +15,6 @@
             justify-content: center;
             align-items: center;
         }
-
         .card-container {
             width: 440px;
             padding: 35px 40px;
@@ -25,22 +22,18 @@
             background: #fff;
             box-shadow: 0 25px 50px rgba(0,0,0,0.25);
         }
-
         h2 {
             text-align: center;
             color: #4b6cb7;
             margin-bottom: 25px;
         }
-
         .form-group { margin-bottom: 16px; }
-
         label {
             font-size: 13px;
             font-weight: 500;
             display: block;
             margin-bottom: 6px;
         }
-
         input, select {
             width: 100%;
             padding: 11px 14px;
@@ -50,7 +43,6 @@
             margin-bottom: 8px;
             box-sizing: border-box;
         }
-
         details {
             margin-top: 15px;
             border: 1px solid #ccc;
@@ -58,14 +50,12 @@
             padding: 12px;
             background: #fafafa;
         }
-
         summary {
             font-weight: 600;
             color: #4b6cb7;
             cursor: pointer;
             margin-bottom: 12px;
         }
-
         .btn-submit {
             margin-top: 20px;
             width: 100%;
@@ -78,7 +68,6 @@
             font-weight: 600;
             cursor: pointer;
         }
-
         .btn-cancel {
             margin-top: 10px;
             display: block;
@@ -89,7 +78,6 @@
             border-radius: 10px;
             text-decoration: none;
         }
-
         .error-message {
             margin-bottom: 16px;
             padding: 10px;
@@ -100,25 +88,19 @@
         }
     </style>
 </head>
-
 <body>
-
 <div class="card-container">
     <h2>Add Customer</h2>
-
     <c:if test="${not empty message}">
         <div class="error-message">${message}</div>
     </c:if>
-
     <!-- ✅ ONE form → customerDto -->
     <form:form action="/customer/add" method="post" modelAttribute="customerDto">
-
         <!-- Customer -->
         <div class="form-group">
             <label>Customer Name</label>
             <form:input path="identifier"/>
         </div>
-
         <div class="form-group">
             <label>Phone Number</label>
             <form:input path="phoneno"/>
@@ -140,9 +122,8 @@
                 <form:option value="Supplier" label="Supplier"/>
             </form:select>
         </div>
-
         <!-- ✅ Billing Address -->
-        <details open>
+        <details>
             <summary>Billing Address</summary>
             <input type="text"   name="billing.addressLine" placeholder="Address Line"/>
             <input type="text"   name="billing.city"        placeholder="City"/>
@@ -150,7 +131,6 @@
             <input type="number" name="billing.pincode"     placeholder="Pincode"/>
             <input type="text"   name="billing.country"     placeholder="Country"/>
         </details>
-
         <!-- ✅ Shipping Address -->
         <details>
             <summary>Shipping Address</summary>
@@ -160,12 +140,9 @@
             <input type="number" name="shipping.pincode"     placeholder="Pincode"/>
             <input type="text"   name="shipping.country"     placeholder="Country"/>
         </details>
-
         <input type="submit" value="Add Customer" class="btn-submit"/>
         <a href="/customer/list" class="btn-cancel">Cancel</a>
-
     </form:form>
 </div>
-
 </body>
 </html>

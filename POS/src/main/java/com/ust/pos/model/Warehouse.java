@@ -7,7 +7,7 @@ import lombok.Setter;
 @Entity
 @Setter
 @Getter
-public class Warehouse extends CommonFields {
+public class Warehouse extends CommonFields{
     private String country;
     private int pincode;
     private String address;

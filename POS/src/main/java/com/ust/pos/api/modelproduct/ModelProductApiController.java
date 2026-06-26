@@ -3,61 +3,84 @@ package com.ust.pos.api.modelproduct;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.modelproduct.service.ModelProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/model")
 public class ModelProductApiController extends BaseController {
 
-    @Autowired
-    private ModelProductService modelProductService;
+    private final ModelProductService modelProductService;
 
-    @PostMapping("/list")
-    public List<ModelProductDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortField());
-        return modelProductService.findAll(pageable);
+
+    public ModelProductApiController(ModelProductService modelProductService) {
+        this.modelProductService = modelProductService;
     }
 
+    @PostMapping("/list")
+    public WsDto<ModelProductDto> home(@RequestBody PaginationDto paginationDto)
+    {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Page<ModelProductDto> pageResult = modelProductService.findAll(paginationDto.getSearch(), pageable);
+
+        WsDto<ModelProductDto> response = new WsDto<>();
+
+        response.setDtoList(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPage(pageResult.getTotalPages());
+        response.setTotalRecords(pageResult.getTotalElements());
+
+        return response;
+    }
+    @GetMapping("/toggleStatus")
+    public Boolean toggleStatus(@RequestParam String identifier)
+    {
+        try
+        {
+            modelProductService.toggleStatus(identifier);
+            return true;
+        }
+        catch(Exception e)
+        {
+            return false;
+        }
+    }
+
+
     @PostMapping("/add")
-    public ModelProductDto addModel(@RequestBody ModelProductDto modelProductDto) {
+    public ModelProductDto addModel(@RequestBody ModelProductDto modelProductDto)
+    {
         return modelProductService.save(modelProductDto);
     }
 
     @GetMapping("/get")
-    public ModelProductDto update(@RequestParam String identifier) {
+    public ModelProductDto update(@RequestParam String identifier)
+    {
         return modelProductService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public ModelProductDto updatePost(@RequestBody ModelProductDto modelProductDto) {
+    @PutMapping("/update")
+    public ModelProductDto updatePost(@RequestBody ModelProductDto modelProductDto)
+    {
         return modelProductService.update(modelProductDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
-        try {
+    @DeleteMapping("/delete")
+    public Boolean delete(@RequestParam String identifier)
+    {
+        try
+        {
             modelProductService.delete(identifier);
-        } catch (Exception e) {
+        }
+        catch(Exception e)
+        {
             return false;
         }
         return true;
     }
-
-    @PostMapping("/status")
-    public boolean updateStatus(
-            @RequestParam String identifier, Boolean status) {
-        try {
-            modelProductService.updateStatusOnly(identifier, status);
-        } catch (Exception e) {
-            return false;
-        }
-        return true;
-    }
-
 }

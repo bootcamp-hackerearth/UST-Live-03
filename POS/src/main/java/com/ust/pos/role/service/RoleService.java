@@ -1,21 +1,24 @@
 package com.ust.pos.role.service;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface RoleService {
-    RoleDto save(RoleDto nodeDto);
+    RoleDto save(RoleDto userDto);
 
-    RoleDto update(RoleDto nodeDto);
+    RoleDto update(RoleDto userDto);
 
     void delete(String username);
 
+    Page<RoleDto> findAll(String search, Pageable pageable);
+
     List<RoleDto> findAll();
 
-    RoleDto findByIdentifier(String identifier);
+    WsDto<RoleDto> findAll(Pageable pageable);
 
-    Page<RoleDto> findAll(Pageable pageable, String search);
+    RoleDto findByIdentifier(String identifier);
 }

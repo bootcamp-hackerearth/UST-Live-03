@@ -8,7 +8,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Add Product</title>
+    <title>Add Role</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -165,20 +165,30 @@
             <label>Product Name</label>
             <form:input path="identifier"
                         cssClass="form-control"
-                        placeholder="Enter Product name" />
-        <div class="form-group">
-                                           <label>Super Category </label>
-                                           <form:select path="category" cssClass="form-control">
-                                               <form:option value="" label="-- Select categories --" />
-                                               <c:forEach items="${categories}" var="categories">
-                                                   <form:option value="${categories.identifier}">
-                                                       ${categories.identifier}
-                                                   </form:option>
-                                               </c:forEach>
-                                           </form:select>
-                                       </div>
-        <div class="form-group">
+                        placeholder="Enter product name" />
+        </div>
 
+        <label>Warehouse Name</label>
+        <form:select path="warehouseName" cssClass="form-control">
+            <form:option value="" label="-- Select Warehouse --" />
+            <c:forEach items="${warehouses}" var="warehouse">
+                    <form:option value="${warehouse.identifier}">
+                        ${warehouse.identifier}
+                    </form:option>
+            </c:forEach>
+        </form:select>
+
+        <label>Category</label>
+                <form:select path="category" cssClass="form-control">
+                    <form:option value="" label="-- Select Category --" />
+                    <c:forEach items="${products}" var="category">
+                            <form:option value="${category.identifier}">
+                                ${category.identifier}
+                            </form:option>
+                    </c:forEach>
+                </form:select>
+
+        <div class="form-group">
             <label>Supplier ID</label>
             <form:input path="supplierId"
                            cssClass="form-control"

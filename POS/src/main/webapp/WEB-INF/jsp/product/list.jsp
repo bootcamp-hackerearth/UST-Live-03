@@ -170,8 +170,9 @@
             <tr>
                 <th>ID</th>
                 <th>Product Name</th>
-                <th>Category</th>
+                <th>Warehouse Name</th>
                 <th>Supplier ID</th>
+                <th>Category</th>
                 <th>Action</th>
             </tr>
             </thead>
@@ -181,9 +182,9 @@
                 <tr>
                     <td>${product.id}</td>
                     <td>${product.identifier}</td>
-                    <td>${product.category}</td>
+                    <td>${product.warehouseName}</td>
                     <td>${product.supplierId}</td>
-
+                    <td>${product.category}</td>
                     <td>
                         <a href="/product/get?identifier=${product.identifier}"
                            class="action-icon"

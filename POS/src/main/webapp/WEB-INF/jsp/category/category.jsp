@@ -7,148 +7,136 @@
 <head>
     <title>Edit Category</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #eef2f7, #ffffff);
+            background: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .card {
-            width: 480px;
-            background: #ffffff;
-            padding: 32px 36px;
-            border-radius: 20px;
-            box-shadow: 0 22px 45px rgba(0, 0, 0, 0.18);
+        .card-container {
+            position: relative;
+            width: 430px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 35px 40px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         }
 
-        h4 {
+        h2 {
             text-align: center;
-            margin-bottom: 26px;
-            color: #243a6e;
+            margin-bottom: 25px;
+            color: #4b6cb7;
             font-weight: 600;
         }
 
-        .form-label {
-            font-weight: 500;
-            font-size: 14px;
-            margin-bottom: 6px;
-            color: #333;
+        .form-group {
+            margin-bottom: 16px;
         }
 
-        .form-control {
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
             padding: 11px 14px;
-            border-radius: 12px;
+            border-radius: 8px;
             border: 1px solid #ccc;
             font-size: 14px;
-            transition: border-color .25s, box-shadow .25s;
         }
 
-        .form-control:focus {
-            border-color: #4b6cb7;
-            box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.15);
-        }
-
-        .btn-primary {
-            padding: 11px 26px;
-            border-radius: 14px;
-            font-weight: 600;
+        .btn-submit {
+            margin-top: 12px;
+            width: 100%;
+            padding: 13px;
             background: linear-gradient(135deg, #4b6cb7, #182848);
+            color: white;
             border: none;
-            transition: transform .15s ease, box-shadow .15s ease;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 22px rgba(75, 108, 183, 0.35);
-        }
-
-        .btn-outline-secondary {
-            border-radius: 14px;
-            font-weight: 500;
-            padding: 11px 26px;
-        }
-
-        .alert {
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 18px;
-            text-align: center;
+        .btn-cancel {
+            margin-top: 10px;
+            width: 100%;
+            padding: 11px;
+            background: #f1f1f1;
+            color: #333;
+            border: none;
+            border-radius: 10px;
             font-size: 14px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 28px;
+        .alert-danger {
+            background: #fdecea;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
 
-<div class="card shadow-lg">
-    <div class="card-body">
+<div class="card-container">
 
-        <h4>Edit Category</h4>
+    <h2>Edit Category</h2>
 
-        <c:if test="${empty categories}">
-            <div class="alert alert-danger">
-                Category record not found
+    <c:if test="${empty categoryDto}">
+        <div class="alert-danger">Category not found</div>
+    </c:if>
+
+    <c:if test="${not empty categoryDto}">
+        <form:form action="/category/update"
+                   method="post"
+                   modelAttribute="categoryDto">
+
+            <form:hidden path="id"/>
+
+            <!-- Category (Readonly) -->
+            <div class="form-group">
+                <label>Category</label>
+                <form:input path="identifier" readonly="true"/>
             </div>
-        </c:if>
 
-        <c:if test="${not empty categories}">
-            <form:form action="/category/update"
-                       method="post"
-                       modelAttribute="categories">
+            <!-- Super Category Dropdown -->
+            <div class="form-group">
+                <label>Super Category</label>
+                <form:select path="superCategory">
+                    <form:option value="">-- Select Super Category --</form:option>
+                    <c:forEach items="${categories}" var="cat">
+                        <%-- Only display if it's NOT the category currently being edited --%>
+                        <c:if test="${cat.identifier != categoryDto.identifier}">
+                            <form:option value="${cat.identifier}">${cat.identifier}</form:option>
+                        </c:if>
+                    </c:forEach>
+                </form:select>
+            </div>
 
-                <form:hidden path="id"/>
+            <input type="submit" value="Update Category" class="btn-submit"/>
+            <a href="/category/list" class="btn-cancel">Cancel</a>
 
-                <div class="mb-4">
-                    <label class="form-label">Category Identifier</label>
-                    <form:input path="identifier"
-                                cssClass="form-control"
-                                readonly="true"/>
-                </div>
+        </form:form>
+    </c:if>
 
-                <div class="mb-4">
-                    <label class="form-label">Super Category</label>
-                    <form:select path="superCategory"
-                                 cssClass="form-control"
-                                 required="true">
-
-                        <form:option value="" label="-- Select Category --"/>
-                        <form:options items="${category}"
-                                      itemValue="identifier"
-                                      itemLabel="identifier"/>
-                    </form:select>
-                </div>
-
-                <div class="actions">
-                    <a href="/category/list" class="btn btn-outline-secondary">
-                        Cancel
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        Update
-                    </button>
-                </div>
-
-            </form:form>
-        </c:if>
-
-    </div>
 </div>
 
 </body>

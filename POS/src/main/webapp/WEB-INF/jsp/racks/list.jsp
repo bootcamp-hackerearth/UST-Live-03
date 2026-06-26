@@ -158,8 +158,8 @@
 
 <div class="card-container">
 
-    <a href="/" class="back-icon">←</a>
-    <a href="/" class="home-link">Home</a>
+    <a href="${pageContext.request.contextPath}/racks/list" class="back-icon">←</a>
+    <a href="${pageContext.request.contextPath}/" class="home-link">Home</a>
 
     <h2>List of Racks</h2>
 
@@ -203,10 +203,10 @@
                     </td>
 
                     <td>
-                        <a href="/racks/get?identifier=${rack.identifier}"
+                        <a href="${pageContext.request.contextPath}/racks/get?identifier=${rack.identifier}"
                            class="action-icon" title="Edit">✏️</a>
 
-                        <a href="/racks/delete?identifier=${rack.identifier}"
+                        <a href="${pageContext.request.contextPath}/racks/delete?identifier=${rack.identifier}"
                            class="action-icon"
                            title="Delete"
                            onclick="return confirm('Are you sure you want to delete this rack?');">🗑</a>
@@ -219,7 +219,7 @@
     </c:if>
 
     <div class="footer-actions">
-        <a href="/racks/add" class="btn-add">
+        <a href="${pageContext.request.contextPath}/racks/add" class="btn-add">
             + Add New Rack
         </a>
     </div>

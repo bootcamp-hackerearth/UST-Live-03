@@ -117,24 +117,31 @@ ${message}
                 <form:hidden path="id" value="${product.id}"/>
                 <div class="mb-4">
                 <label class="form-label"></label>
-                <form:input path="identifier"
+                <form:input path="identifier" type="hidden"
                  cssClass="form-control"
                  placeholder="Enter"
                  required="true"/>
                                 </div>
 
-                    <div class="mb-4">
-                            <label class="form-label">Category</label>
-                            <form:select path="category"
-                                         cssClass="form-control"
-                                         required="true">
+                <label class="form-label">Warehouse Name</label>
+                <form:select path="warehouseName" cssClass="form-control">
+                            <form:option value="" label="-- Select Warehouse --" />
+                            <c:forEach items="${warehouses}" var="warehouse">
+                                    <form:option value="${warehouse.identifier}">
+                                        ${warehouse.identifier}
+                                    </form:option>
+                            </c:forEach>
+                        </form:select>
 
-                                <form:option value="" label="-- Select category --"/>
-
-                                <form:options items="${categories}"
-                                              itemValue="identifier"
-                                              itemLabel="identifier"/>
-                            </form:select>
+                <label>Category</label>
+                                <form:select path="category" cssClass="form-control">
+                                    <form:option value="" label="-- Select Category --" />
+                                    <c:forEach items="${products}" var="category">
+                                            <form:option value="${category.identifier}">
+                                                ${category.identifier}
+                                            </form:option>
+                                    </c:forEach>
+                                </form:select>
 
                 <div class="mb-4">
                     <label class="form-label">Supplier ID</label>

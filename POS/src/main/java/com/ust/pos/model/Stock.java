@@ -4,11 +4,10 @@ import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
+@Entity
 @Getter
 @Setter
-@Entity
-public class Stock extends CommonFields {
+public class Stock extends CommonFields{
     private String warehouseName;
-    private String stockStatus;
-    private long quantity;
+    private Long quantity;
 }

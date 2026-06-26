@@ -117,7 +117,7 @@
 </head>
 
 <body>
-
+${message}
 <div class="card-container">
 
     <h2>Edit Model</h2>

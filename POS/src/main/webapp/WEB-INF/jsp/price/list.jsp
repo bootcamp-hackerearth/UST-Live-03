@@ -168,6 +168,7 @@
         <table>
             <thead>
             <tr>
+                <th>S.No.</th>
                 <th>Product Name</th>
                 <th>Cost Price</th>
                 <th>Selling Price</th>
@@ -177,8 +178,9 @@
             </thead>
 
             <tbody>
-            <c:forEach var="price" items="${prices}">
+            <c:forEach var="price" items="${prices}" varStatus="status">
                 <tr>
+                    <td>${status.count}</td>
                     <td>${price.identifier}</td>
                     <td>${price.costPrice}</td>
                     <td>${price.sellingPrice}</td>
@@ -191,7 +193,7 @@
                         <a href="/price/delete?identifier=${price.identifier}"
                            class="action-icon"
                            title="Delete"
-                           onclick="return confirm('Are you sure you want to delete this price?');">
+                           onclick="return confirm('Are you sure you want to delete this product?');">
                             🗑
                         </a>
                     </td>
@@ -203,7 +205,7 @@
 
     <div class="footer-actions">
         <a href="/" class="btn btn-home">Home</a>
-        <a href="/price/add" class="btn btn-add">+ Add New Product</a>
+        <a href="/price/add" class="btn btn-add">+ Add New Price</a>
     </div>
 
 </div>

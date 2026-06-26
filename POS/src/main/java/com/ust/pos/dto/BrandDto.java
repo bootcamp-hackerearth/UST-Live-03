@@ -6,6 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
-public class BrandDto extends CommonDto {
+public class BrandDto extends CommonDto{
     private MultipartFile icon;
 }

@@ -1,6 +1,7 @@
 package com.ust.pos.product.service;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -15,10 +16,11 @@ public interface ProductService {
 
     List<ProductDto> findAll();
 
+    WsDto<ProductDto> findAll(Pageable pageable);
+
+    Page<ProductDto> findAll(String search, Pageable pageable);
+
     ProductDto findByIdentifier(String identifier);
 
-    Page<ProductDto> findAll(Pageable pageable, String search);
-
-    void toggleStatus(String identifier);
-
+    List<ProductDto> listOfCategories();
 }

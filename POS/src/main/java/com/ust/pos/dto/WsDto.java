@@ -5,8 +5,8 @@ import lombok.Setter;
 
 import java.util.List;
 
-@Getter
 @Setter
+@Getter
 public class WsDto<T> extends PaginationDto {
-    private List<T> content;
+    List<T> dtoList;
 }

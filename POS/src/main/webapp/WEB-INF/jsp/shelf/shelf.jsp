@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
@@ -21,7 +21,6 @@
         }
 
         .card-container {
-            position: relative;
             width: 430px;
             background: rgba(255, 255, 255, 0.95);
             padding: 35px 40px;
@@ -38,28 +37,6 @@
 
         .form-group {
             margin-bottom: 16px;
-        }
-
-        input[type="text"],
-        input[type="password"],
-        select {
-            width: 100%;
-            padding: 11px 14px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            box-sizing: border-box; /* Prevents padding from breaking width */
-        }
-
-        input[type="text"],
-        select {
-            width: 100%;
-            padding: 11px 14px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            box-sizing: border-box;
-            background-color: white; /* Ensures dropdown is visible */
         }
 
         label {
@@ -93,25 +70,26 @@
 
         .btn-cancel {
             margin-top: 10px;
-            width: 100%;
+            display: block;
+            text-align: center;
             padding: 11px;
             background: #f1f1f1;
             color: #333;
-            border: none;
             border-radius: 10px;
-            font-size: 14px;
-            text-align: center;
             text-decoration: none;
-            display: inline-block;
+            font-size: 14px;
         }
 
-        .alert-danger {
-            background: #fdecea;
-            color: #c62828;
+        .error-message {
+            margin-bottom: 16px;
             padding: 10px;
+            background: rgba(220, 53, 69, 0.12);
+            border: 1px solid #dc3545;
+            color: #dc3545;
             border-radius: 8px;
-            margin-bottom: 15px;
             text-align: center;
+            font-size: 13px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -122,27 +100,33 @@
 
     <h2>Edit Shelf</h2>
 
-    <c:if test="${empty shelfs}">
-        <div class="alert-danger">Shelf not found</div>
+    <c:if test="${not empty message}">
+        <div class="error-message">${message}</div>
     </c:if>
 
-    <c:if test="${not empty shelfs}">
-        <form:form action="/shelf/update"
-                   method="post"
-                   modelAttribute="shelfs">
-            <form:hidden path="id"/>
+    <!-- ✅ CORRECTLY OPENED form -->
+    <form:form method="post"
+               action="/shelf/update"
+               modelAttribute="shelfDto">
 
+        <div class="form-group">
+            <label>Shelf Identifier</label>
+            <form:input path="identifier" readonly="true"/>
+        </div>
 
-            <div class="form-group">
-                <label>Shelf Name</label>
-                <form:input path="identifier"/>
-            </div>
+        <div class="form-group">
+            <label>Status</label>
+            <form:select path="status">
+                <form:option value="true">Active</form:option>
+                <form:option value="false">Inactive</form:option>
+            </form:select>
+        </div>
 
-            <input type="submit" value="Update Shelf" class="btn-submit"/>
-            <a href="/shelf/list" class="btn-cancel">Cancel</a>
+        <input type="submit" value="Update Shelf" class="btn-submit"/>
+        <a href="/shelf/list" class="btn-cancel">Cancel</a>
 
-        </form:form>
-    </c:if>
+    </form:form>
+    <!-- ✅ CORRECTLY CLOSED form -->
 
 </div>
 

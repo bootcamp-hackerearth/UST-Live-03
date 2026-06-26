@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class Address extends CommonFields {
+public class Address extends CommonFields{
     private String addressLine;
     private String city;
     private String state;

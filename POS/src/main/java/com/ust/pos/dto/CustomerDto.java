@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CustomerDto extends CommonDto {
+public class CustomerDto extends CommonDto{
     private String address;
     private Long phoneno;
     private String email;

@@ -3,31 +3,36 @@ package com.ust.pos.api.racks;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
-import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/racks")
 public class RacksApiController extends BaseController {
 
-    public static final String REDIRECT_RACKS_LIST = "redirect:/racks/list";
+    private final RacksService racksService;
 
-    @Autowired
-    private RacksService racksService;
-
-    @Autowired
-    private ShelfService shelfService;
+    public RacksApiController(RacksService racksService) {
+        this.racksService = racksService;
+    }
 
     @PostMapping("/list")
-    public List<RacksDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortField());
-        return racksService.findAll(pageable);
+    public WsDto<RacksDto> home(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Page<RacksDto> pageResult = racksService.findAll(paginationDto.getSearch(), pageable);
+
+        WsDto<RacksDto> response = new WsDto<>();
+
+        response.setDtoList(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPage(pageResult.getTotalPages());
+        response.setTotalRecords(pageResult.getTotalElements());
+
+        return response;
     }
 
     @PostMapping("/add")
@@ -40,28 +45,33 @@ public class RacksApiController extends BaseController {
         return racksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RacksDto updatePost(@RequestBody RacksDto racksDto) {
         return racksService.update(racksDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public Boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             return false;
         }
         return true;
     }
 
-    @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestParam String identifier) {
+    @GetMapping("/toggleStatus")
+    public Boolean toggleStatus(@RequestParam String identifier) {
         try {
             racksService.toggleStatus(identifier);
-        } catch (Exception e) {
+            return true;
+        }
+        catch (Exception e)
+        {
             return false;
         }
-        return true;
     }
+
 }

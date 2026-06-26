@@ -1,17 +1,17 @@
 package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
-import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -22,34 +22,34 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UserDto findByUserName(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            return null;
-        }
-        return modelMapper.map(user, UserDto.class);
+        return modelMapper.map(userRepository.findByUsernameAndDeletedFalse(username), UserDto.class);
     }
 
     @Override
     public UserDto save(UserDto userDto) {
         String username = userDto.getUsername();
-        User existingUser = userRepository.findByUsername(username);
+        User existingUser = userRepository.findByUsernameAndDeletedFalse(username);
         if (existingUser != null) {
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
             userDto.setSuccess(false);
             return userDto;
         }
         User user = modelMapper.map(userDto, User.class);
+        user.setDeleted(false);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         userRepository.save(user);
         return userDto;
@@ -66,11 +66,10 @@ public class UserServiceImpl implements UserService {
             return userDto;
         } else {
             User existingUser = userOptional.get();
-            if (!username.equalsIgnoreCase(existingUser.getUsername()) && userRepository.findByUsername(username) != null) {
-
-                userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
-                userDto.setSuccess(false);
-                return userDto;
+            if (!username.equalsIgnoreCase(existingUser.getUsername()) && (userRepository.findByUsernameAndDeletedFalse(username) != null)) {
+                    userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
+                    userDto.setSuccess(false);
+                    return userDto;
             }
             modelMapper.map(userDto, existingUser);
             userRepository.save(existingUser);
@@ -80,20 +79,46 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(String username) {
-        userRepository.deleteByUsername(username);
+        User user = userRepository.findByUsernameAndDeletedFalse(username);
+        if(user != null)
+        {
+            user.setDeleted(true);
+            userRepository.save(user);
+        }
     }
 
     @Override
     public List<UserDto> findAll() {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        return modelMapper.map(userRepository.findAll(), listType);
+        return modelMapper.map(userRepository.findByDeletedFalse(), listType);
     }
 
     @Override
-    public Page<UserDto> findAll(Pageable pageable) {
-        Page<User> userPage = userRepository.findAll(pageable);
-        return userPage.map(product ->
-                modelMapper.map(product, UserDto.class));
+    public Page<UserDto> findAll(String search, Pageable pageable) {
+        Page<User> userPage;
+        if(search != null && !search.trim().isEmpty())
+        {
+            userPage = userRepository.findByNameContainingIgnoreCaseAndDeletedFalse(search, pageable);
+        }
+        else
+        {
+            userPage = userRepository.findByDeletedFalse(pageable);
+        }
+        return userPage.map(user -> modelMapper.map(user, UserDto.class));
+    }
+
+    @Override
+    public WsDto<UserDto> findAll(Pageable pageable) {
+        Type listtype = new TypeToken<List<UserDto>>(){}.getType();
+        Page<User> userPage = userRepository.findByDeletedFalse(pageable);
+
+        WsDto<UserDto> userDtoWsDto = new WsDto<>();
+        userDtoWsDto.setDtoList(modelMapper.map(userPage.getContent(), listtype));
+        userDtoWsDto.setTotalRecords(userPage.getTotalElements());
+        userDtoWsDto.setTotalPage(userPage.getTotalPages());
+        userDtoWsDto.setPage(pageable.getPageNumber());
+
+        return userDtoWsDto;
     }
 }

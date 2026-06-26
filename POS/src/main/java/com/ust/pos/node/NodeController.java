@@ -3,7 +3,6 @@ package com.ust.pos.node;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -11,11 +10,16 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/node")
 public class NodeController {
-    @Autowired
-    private RoleService roleService;
 
-    @Autowired
-    private NodeService nodeService;
+    public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
+    private final NodeService nodeService;
+
+    private final RoleService roleService;
+
+    public NodeController(NodeService nodeService, RoleService roleService) {
+        this.nodeService = nodeService;
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -24,41 +28,41 @@ public class NodeController {
     }
 
     @GetMapping("/add")
-    public String add(Model model, @ModelAttribute NodeDto nodeDto) {
+    public String add(Model model, @ModelAttribute NodeDto userDto) {
         model.addAttribute("roles", roleService.findAll());
         return "node/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute NodeDto nodeDto) {
-        NodeDto response = nodeService.save(nodeDto);
+    public String addPost(Model model, @ModelAttribute NodeDto userDto) {
+        NodeDto response = nodeService.save(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
         }
-        return "node/add";
+        return REDIRECT_NODE_LIST;
     }
 
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
         NodeDto response = nodeService.findByIdentifier(identifier);
-        model.addAttribute("roles", roleService.findAll());
         model.addAttribute("node", response);
+        model.addAttribute("roles", roleService.findAll());
         return "node/node";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute NodeDto nodeDto) {
-        NodeDto response = nodeService.update(nodeDto);
+    public String updatePost(Model model, @ModelAttribute NodeDto userDto) {
+        NodeDto response = nodeService.update(userDto);
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());
-            model.addAttribute("node", nodeDto);   // ✅ IMPORTANT
+            model.addAttribute("node", userDto);
         }
-        return "redirect:/node/list";
+        return REDIRECT_NODE_LIST;
     }
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         nodeService.delete(identifier);
-        return "redirect:/node/list";
+        return REDIRECT_NODE_LIST;
     }
 }

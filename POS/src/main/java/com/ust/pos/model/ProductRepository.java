@@ -1,10 +1,10 @@
 package com.ust.pos.model;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -12,5 +12,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     void deleteByIdentifier(String identifier);
 
-    Page<Product> findByIdentifierContainingIgnoreCase(Pageable pageable, String search);
+    List<Product> findByDeletedFalse();
+
+    Page<Product> findByDeletedFalse(Pageable pageable);
+
+    Page<Product> findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+            String identifier, Pageable pageable
+    );
+
+    Product findByIdentifierAndDeletedFalse(String identifier);
 }

@@ -6,13 +6,12 @@
 <head>
     <title>Role List</title>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
         body {
-            background: #ffffff;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             background: #ffffff;
             display: flex;
@@ -20,7 +19,11 @@
             align-items: center;
         }
 
-        .card {
+        .card-container {
+            position: relative;
+            width: 750px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 35px 40px;
             border-radius: 16px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         }
@@ -32,13 +35,39 @@
             font-weight: 600;
         }
 
-        .card-header {
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
+        .back-icon {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #4b6cb7;
+            text-decoration: none;
+            font-weight: 600;
+            background: rgba(75, 108, 183, 0.08);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            transition: all 0.25s ease;
         }
 
-        table th {
-            background-color: #0d6efd;
+        .back-icon:hover {
+            background: #4b6cb7;
+            color: #ffffff;
+            transform: translateX(-4px) scale(1.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            background: #4b6cb7;
             color: white;
             padding: 12px;
             font-size: 14px;
@@ -50,6 +79,9 @@
             border-bottom: 1px solid #eee;
             font-size: 14px;
             color: #333;
+
+            /* ✅ FIX: Prevent vertical wrapping */
+            white-space: nowrap;
         }
 
         tr:hover {
@@ -61,6 +93,8 @@
             margin: 0 6px;
             text-decoration: none;
             color: #4b6cb7;
+            display: inline-flex;
+            align-items: center;
             transition: 0.2s ease;
         }
 
@@ -116,90 +150,14 @@
         .btn-add:hover {
             transform: scale(1.05);
         }
-
-        /* ✅ REMOVE UNDERLINE FROM ICON LINKS */
-        .action-link {
-            text-decoration: none;
-            font-size: 18px;
-            margin: 0 6px;
-        }
-
-        .action-link:hover {
-            text-decoration: none;
-            opacity: 0.8;
-        }
     </style>
 </head>
 
 <body>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+<div class="card-container">
 
-            <div class="card shadow-lg">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4 class="mb-0">List of Roles</h4>
-                </div>
-
-                <div class="card-body">
-
-                    <c:if test="${empty roles}">
-                        <div class="alert alert-warning text-center">
-                            No roles found
-                        </div>
-                    </c:if>
-
-                    <c:if test="${not empty roles}">
-                        <table class="table table-bordered table-hover text-center align-middle">
-                            <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Role</th>
-                                <th>Description</th>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
-
-                            <tbody>
-                            <c:forEach var="role" items="${roles}">
-                                <tr>
-                                    <td>${role.id}</td>
-                                    <td>${role.identifier}</td>
-                                    <td>${role.description}</td>
-                                    <td>
-                                        <!-- ✏️ Edit -->
-                                        <a href="/role/get?identifier=${role.identifier}"
-                                           class="action-link"
-                                           title="Edit">
-                                            ✏️
-                                        </a>
-
-                                        <!-- 🗑 Delete -->
-                                        <a href="/role/delete?identifier=${role.identifier}"
-                                           class="action-link"
-                                           title="Delete"
-                                           onclick="return confirm('Are you sure you want to delete this role?');">
-                                            🗑
-                                        </a>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                            </tbody>
-                        </table>
-                    </c:if>
-
-                </div>
-
-                <div class="card-footer text-center bg-light d-flex justify-content-center gap-3">
-                    <a href="/" class="btn btn-secondary">
-                        Home
-                    </a>
-                    <a href="/role/add" class="btn btn-success">
-                        Add New Role
-                    </a>
-                </div>
-            </div>
+    <a href="/" class="back-icon">←</a>
 
     <h2>List of Roles</h2>
 
@@ -226,7 +184,6 @@
                     <td>${role.id}</td>
                     <td>${role.identifier}</td>
                     <td>${role.description}</td>
-
                     <td>
                         <a href="/role/get?identifier=${role.identifier}"
                            class="action-icon"

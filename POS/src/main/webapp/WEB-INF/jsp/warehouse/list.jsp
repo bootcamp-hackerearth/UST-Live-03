@@ -204,7 +204,7 @@
 
     <div class="footer-actions">
         <a href="/" class="btn btn-home">Home</a>
-        <a href="/warehouse/add" class="btn btn-add">+ Add New Node</a>
+        <a href="/warehouse/add" class="btn btn-add">+ Add New Warehouse</a>
     </div>
 
 </div>

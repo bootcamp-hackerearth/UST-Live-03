@@ -4,7 +4,6 @@ import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,67 +11,79 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/stock")
 public class StockController {
-    public static final String REDIRECT = "redirect:/stock/list";
-    public static final String ADD_STOCK = "stock/add";
-    @Autowired
-    StockService stockService;
 
-    @Autowired
-    WarehouseService warehouseService;
+    private final StockService stockService;
 
-    @Autowired
-    ProductService productService;
+    private final ProductService productService;
+
+    private final WarehouseService warehouseService;
+
+    public StockController(StockService stockService, ProductService productService, WarehouseService warehouseService) {
+        this.stockService = stockService;
+        this.productService = productService;
+        this.warehouseService = warehouseService;
+    }
+
+    private static final String WAREHOUSES = "warehouses";
+    private static final String PRODUCTS = "products";
+    private static final String REDIRECT_STOCK_LIST = "redirect:/stock/list";
+
+
+    @GetMapping("/list")
+    public String home(Model model) {
+        model.addAttribute("stocks", stockService.findAll());
+        return "stock/list";
+    }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute StockDto stockDto) {
-        model.addAttribute("product", productService.findAll());
-        model.addAttribute("warehouse", warehouseService.findAll());
-        return ADD_STOCK;
+        model.addAttribute(WAREHOUSES, warehouseService.findAll());
+        model.addAttribute(PRODUCTS, productService.findAll());
+        return "stock/add";
     }
 
     @PostMapping("/add")
-    public String addPost(Model model, @ModelAttribute StockDto stockDto) {
-        StockDto result = stockService.save(stockDto);
-        if (!result.isSuccess()) {
-            model.addAttribute("message", result.getMessage());
-            return ADD_STOCK;
+    public String addStock(Model model, @ModelAttribute StockDto stockDto) {
+        model.addAttribute(WAREHOUSES, warehouseService.findAll());
+        model.addAttribute(PRODUCTS, productService.findAll());
+        stockDto.setStatus(stockDto.getQuantity() != 0);
+        StockDto stockDto1 = stockService.save(stockDto);
+        if (!stockDto1.isSuccess()) {
+            model.addAttribute("message", stockDto1.getMessage());
+            stockDto1.setStatus(false);
+            return "stock/add";
         }
-        return ADD_STOCK;
+        stockDto1.setStatus(true);
+        return REDIRECT_STOCK_LIST;
     }
 
     @GetMapping("/get")
-    public String get(Model model, @RequestParam String identifier) {
-        StockDto response = stockService.findByIdentifier(identifier);
-        model.addAttribute("warehouse", warehouseService.findAll());
-        model.addAttribute("stock", response);
-        return ("stock/stock");
+    public String update(Model model, @RequestParam String identifier) {
+        model.addAttribute(WAREHOUSES, warehouseService.findAll());
+        model.addAttribute(PRODUCTS, productService.findAll());
+        StockDto stockDto = stockService.findByIdentifier(identifier);
+        model.addAttribute("stock", stockDto);
+        return "stock/stock";
     }
 
     @PostMapping("/update")
-    public String update(Model model, @ModelAttribute StockDto stockDto) {
-        StockDto response = stockService.update(stockDto);
-        if (!response.isSuccess()) {
-            model.addAttribute("message", response.getMessage());
-            return REDIRECT;
+    public String updatePost(Model model, @ModelAttribute StockDto stockDto) {
+        model.addAttribute(WAREHOUSES, warehouseService.findAll());
+        model.addAttribute(PRODUCTS, productService.findAll());
+        stockDto.setStatus(stockDto.getQuantity() != 0);
+        StockDto stockDto1 = stockService.update(stockDto);
+        if (!stockDto1.isSuccess()) {
+            model.addAttribute("message", stockDto1.getMessage());
+            stockDto1.setStatus(false);
+            return "stock/update";
         }
-        return REDIRECT;
+        stockDto1.setStatus(true);
+        return REDIRECT_STOCK_LIST;
     }
 
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         stockService.delete(identifier);
-        return REDIRECT;
-    }
-
-    @GetMapping("/list")
-    public String list(Model model) {
-        model.addAttribute("stock", stockService.findAll());
-        return ("stock/list");
-    }
-
-    @PostMapping("status")
-    public String updateStatus(Model model, @RequestParam String identifier, boolean status) {
-        stockService.updateStatusOnly(identifier, status);
-        return "redirect:/shelf/list";
+        return REDIRECT_STOCK_LIST;
     }
 }
