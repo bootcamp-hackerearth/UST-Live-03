@@ -12,7 +12,7 @@ public interface ModelService {
 
     ModelDto update(ModelDto modelDto);
 
-    void delete(String identifier);
+    ModelDto delete(String identifier);
 
     PaginatedResponseDto<ModelDto> findAll(Pageable pageable);
 

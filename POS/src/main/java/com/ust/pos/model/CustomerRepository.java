@@ -1,5 +1,7 @@
 package com.ust.pos.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +12,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     Customer findByIdentifier(String identifier);
 
+    Customer findByPhoneNo(long phoneNo);
+
     void deleteByIdentifier(String identifier);
 
-    List<Customer> findByStatus(boolean status);
+    List<Customer> findByStatusAndIsDeleted(boolean status, boolean isDeleted);
+
+    Page<Customer> findByIsDeleted(boolean isDeleted, Pageable pageable);
 }

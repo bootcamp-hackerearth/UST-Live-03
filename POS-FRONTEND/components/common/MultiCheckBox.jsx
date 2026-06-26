@@ -2,11 +2,7 @@
 
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-
-import {
-  listItems,
-  fetchActiveRoles
-} from "@/services/api";
+import { fetchActiveItems } from "@/services/api";
 
 export default function MultiCheckBox({
   label,
@@ -36,25 +32,17 @@ export default function MultiCheckBox({
     setLoading(true);
     setError("");
 
-    let response;
+    const response = await fetchActiveItems(model);
 
-    if (model === "role") {
-      response = await fetchActiveRoles();
+    console.log(response);
 
-      setOptions(response || []);
-    } else {
-      response = await listItems(model);
-
-      console.log(response);
-
-      setOptions(
-        Array.isArray(response)
-          ? response
-          : response.items || []
-      );
-    }
-  } catch (error) {
-    console.log(error);
+    setOptions(
+      Array.isArray(response)
+        ? response
+        : response?.items || []
+    );
+      } catch (error) {
+        console.log(error);
 
     setError(`Failed to load ${label}`);
   } finally {
@@ -91,9 +79,9 @@ export default function MultiCheckBox({
 
   return (
     <div>
-      <label className="block mb-2 text-sm font-medium text-[#475467]">
+      <p className="block mb-2 text-sm font-medium text-[#475467]">
         {label}
-      </label>
+      </p>
 
       <div
         className={`bg-white border rounded-2xl p-4 space-y-3 transition-all ${

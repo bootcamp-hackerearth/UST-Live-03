@@ -12,7 +12,7 @@ public interface PriceService {
 
     PriceDto update(PriceDto priceDto);
 
-    void delete(String identifier);
+    PriceDto delete(String identifier);
 
     PaginatedResponseDto<PriceDto> findAll(Pageable pageable);
 
@@ -21,6 +21,4 @@ public interface PriceService {
     List<PriceDto> findAllActive();
 
     void changeStatus(String identifier, boolean status);
-
 }
-

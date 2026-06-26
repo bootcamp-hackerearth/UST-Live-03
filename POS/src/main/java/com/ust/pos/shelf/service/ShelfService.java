@@ -12,7 +12,7 @@ public interface ShelfService {
 
     ShelfDto update(ShelfDto shelfDto);
 
-    void delete(String identifier);
+    ShelfDto delete(String identifier);
 
     PaginatedResponseDto<ShelfDto> findAll(Pageable pageable);
 
@@ -21,5 +21,4 @@ public interface ShelfService {
     List<ShelfDto> findAllActive();
 
     void changeStatus(String identifier, boolean status);
-
 }

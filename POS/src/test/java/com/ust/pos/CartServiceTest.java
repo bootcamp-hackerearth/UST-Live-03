@@ -53,16 +53,17 @@ class CartServiceTest {
                 .thenReturn(savedCart)
                 .thenReturn(savedCart);
 
+        Mockito.when(cartEntryRepository.findByCartId("CART001"))
+                .thenReturn(List.of());
+
         Mockito.when(modelMapper.map(savedCart, CartDto.class))
                 .thenReturn(cartDto);
 
         CartDto response = cartService.save(cartDto);
 
-        Assertions.assertEquals("CART001",
-                response.getIdentifier());
+        Assertions.assertEquals("CART001", response.getIdentifier());
 
-        Mockito.verify(cartRepository, Mockito.atLeastOnce())
-                .save(Mockito.any(Cart.class));
+        Mockito.verify(cartRepository, Mockito.atLeastOnce()).save(Mockito.any(Cart.class));
     }
 
     @Test
@@ -90,21 +91,35 @@ class CartServiceTest {
 
         Assertions.assertEquals("CART001", response.getIdentifier());
 
-        Mockito.verify(cartRepository, Mockito.atLeastOnce())
-                .save(existingCart);
+        Mockito.verify(cartRepository, Mockito.atLeastOnce()).save(existingCart);
+    }
+
+    @Test
+    void saveNullIdentifierTest() {
+
+        CartDto cartDto = new CartDto();
+        cartDto.setIdentifier(null);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> cartService.save(cartDto));
+    }
+
+    @Test
+    void saveBlankIdentifierTest() {
+
+        CartDto cartDto = new CartDto();
+        cartDto.setIdentifier("   ");
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> cartService.save(cartDto));
     }
 
     @Test
     void deleteTest() {
 
-        Mockito.doNothing()
-                .when(cartRepository)
-                .deleteByIdentifier("CART001");
+        Mockito.doNothing().when(cartRepository).deleteByIdentifier("CART001");
 
         cartService.delete("CART001");
 
-        Mockito.verify(cartRepository)
-                .deleteByIdentifier("CART001");
+        Mockito.verify(cartRepository).deleteByIdentifier("CART001");
     }
 
     @Test
@@ -116,16 +131,12 @@ class CartServiceTest {
         CartDto cartDto = new CartDto();
         cartDto.setIdentifier("CART001");
 
-        Mockito.when(cartRepository.findByIdentifier("CART001"))
-                .thenReturn(cart);
-
-        Mockito.when(modelMapper.map(cart, CartDto.class))
-                .thenReturn(cartDto);
+        Mockito.when(cartRepository.findByIdentifier("CART001")).thenReturn(cart);
+        Mockito.when(modelMapper.map(cart, CartDto.class)).thenReturn(cartDto);
 
         CartDto response = cartService.findByIdentifier("CART001");
 
-        Assertions.assertEquals("CART001",
-                response.getIdentifier());
+        Assertions.assertEquals("CART001", response.getIdentifier());
     }
 
     @Test
@@ -142,18 +153,16 @@ class CartServiceTest {
 
         Page<Cart> cartPage = new PageImpl<>(carts);
 
-        Mockito.when(cartRepository.findAll(Mockito.any(Pageable.class)))
-                .thenReturn(cartPage);
+        Mockito.when(cartRepository.findAll(Mockito.any(Pageable.class))).thenReturn(cartPage);
+        Mockito.when(modelMapper.map(Mockito.anyList(), Mockito.any(Type.class))).thenReturn(cartDtos);
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(carts),
-                Mockito.any(Type.class)
-        )).thenReturn(cartDtos);
-
-        PaginatedResponseDto<CartDto> response =
-                cartService.findAll(PageRequest.of(0, 10));
+        PaginatedResponseDto<CartDto> response = cartService.findAll(PageRequest.of(0, 10));
 
         Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -165,33 +174,25 @@ class CartServiceTest {
         CartEntry entry1 = new CartEntry();
         entry1.setTotalPrice(new BigDecimal("100"));
         entry1.setDiscount(new BigDecimal("10"));
+        entry1.setOriginalPrice(new BigDecimal("110"));
 
         CartEntry entry2 = new CartEntry();
         entry2.setTotalPrice(new BigDecimal("200"));
         entry2.setDiscount(new BigDecimal("20"));
+        entry2.setOriginalPrice(new BigDecimal("220"));
 
         List<CartEntry> entries = List.of(entry1, entry2);
 
-        Mockito.when(cartRepository.findByIdentifier("CART001"))
-                .thenReturn(cart);
-
-        Mockito.when(cartEntryRepository.findByCartId("CART001"))
-                .thenReturn(entries);
+        Mockito.when(cartRepository.findByIdentifier("CART001")).thenReturn(cart);
+        Mockito.when(cartEntryRepository.findByCartId("CART001")).thenReturn(entries);
 
         cartService.recalculate("CART001");
 
-        Assertions.assertEquals(
-                new BigDecimal("300"),
-                cart.getTotalPrice()
-        );
+        Assertions.assertEquals(new BigDecimal("300"), cart.getTotalPrice());
+        Assertions.assertEquals(new BigDecimal("30"), cart.getDiscount());
+        Assertions.assertEquals(new BigDecimal("330"), cart.getOriginalPrice());
 
-        Assertions.assertEquals(
-                new BigDecimal("30"),
-                cart.getDiscount()
-        );
-
-        Mockito.verify(cartRepository)
-                .save(cart);
+        Mockito.verify(cartRepository).save(cart);
     }
 
     @Test
@@ -200,25 +201,42 @@ class CartServiceTest {
         Cart cart = new Cart();
         cart.setIdentifier("CART001");
 
-        Mockito.when(cartRepository.findByIdentifier("CART001"))
-                .thenReturn(cart);
-
-        Mockito.when(cartEntryRepository.findByCartId("CART001"))
-                .thenReturn(List.of());
+        Mockito.when(cartRepository.findByIdentifier("CART001")).thenReturn(cart);
+        Mockito.when(cartEntryRepository.findByCartId("CART001")).thenReturn(List.of());
 
         cartService.recalculate("CART001");
 
-        Assertions.assertEquals(
-                BigDecimal.ZERO,
-                cart.getTotalPrice()
-        );
+        Assertions.assertEquals(BigDecimal.ZERO, cart.getTotalPrice());
+        Assertions.assertEquals(BigDecimal.ZERO, cart.getDiscount());
+        Assertions.assertEquals(BigDecimal.ZERO, cart.getOriginalPrice());
 
-        Assertions.assertEquals(
-                BigDecimal.ZERO,
-                cart.getDiscount()
-        );
+        Mockito.verify(cartRepository).save(cart);
+    }
 
-        Mockito.verify(cartRepository)
-                .save(cart);
+    @Test
+    void clearCartTest() {
+
+        Cart cart = new Cart();
+        cart.setIdentifier("CART001");
+
+        Mockito.when(cartRepository.findByIdentifier("CART001")).thenReturn(cart);
+        Mockito.doNothing().when(cartEntryRepository).deleteByCartId("CART001");
+
+        cartService.clearCart("CART001");
+
+        Assertions.assertEquals(BigDecimal.ZERO, cart.getTotalPrice());
+        Assertions.assertEquals(BigDecimal.ZERO, cart.getOriginalPrice());
+        Assertions.assertEquals(BigDecimal.ZERO, cart.getDiscount());
+
+        Mockito.verify(cartEntryRepository).deleteByCartId("CART001");
+        Mockito.verify(cartRepository).save(cart);
+    }
+
+    @Test
+    void clearCartNotFoundTest() {
+
+        Mockito.when(cartRepository.findByIdentifier("CART001")).thenReturn(null);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> cartService.clearCart("CART001"));
     }
 }

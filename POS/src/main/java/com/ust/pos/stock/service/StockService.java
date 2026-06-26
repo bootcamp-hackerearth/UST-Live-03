@@ -14,7 +14,7 @@ public interface StockService {
 
     StockDto update(StockDto stockDto);
 
-    void delete(String identifier);
+    StockDto delete(String identifier);
 
     PaginatedResponseDto<StockDto> findAll(Pageable pageable);
 

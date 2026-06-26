@@ -3,7 +3,7 @@ package com.ust.pos.user;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,13 +13,11 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private RoleService roleService;
+    private final UserService userService;
+    private final RoleService roleService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

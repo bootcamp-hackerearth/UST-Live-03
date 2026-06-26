@@ -14,6 +14,7 @@ export default function AuthInput({
 
     <div>
       <label
+        htmlFor={`auth-input-${label}`}
         className="block text-lg font-medium text-gray-700 mb-3"
       >
 
@@ -22,6 +23,7 @@ export default function AuthInput({
       </label>
 
       <input
+        id={`auth-input-${label}`}
         type={type}
         value={value}
         onChange={onChange}

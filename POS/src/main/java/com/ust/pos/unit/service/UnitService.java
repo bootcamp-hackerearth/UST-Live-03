@@ -12,7 +12,7 @@ public interface UnitService {
 
     UnitDto update(UnitDto unitDto);
 
-    void delete(String identifier);
+    UnitDto delete(String identifier);
 
     PaginatedResponseDto<UnitDto> findAll(Pageable pageable);
 

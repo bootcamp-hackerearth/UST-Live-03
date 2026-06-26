@@ -14,7 +14,7 @@ public interface NodeService {
 
     NodeDto update(NodeDto nodeDto);
 
-    void delete(String identifier);
+    NodeDto delete(String identifier);
 
     PaginatedResponseDto<NodeDto> findAll(Pageable pageable);
 

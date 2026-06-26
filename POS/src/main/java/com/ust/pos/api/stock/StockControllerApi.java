@@ -5,20 +5,19 @@ import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.stock.service.StockService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/stock")
+@RequiredArgsConstructor
 public class StockControllerApi extends BaseController {
 
-    @Autowired
-    private StockService stockService;
+    private final StockService stockService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<StockDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return stockService.findAll(pageable);
@@ -30,22 +29,24 @@ public class StockControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public StockDto update(@RequestParam String identifier) {
+    public StockDto get(@RequestParam String identifier) {
         return stockService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
-    @GetMapping("/delete")
-    public Boolean delete(@RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public StockDto delete(@RequestBody StockDto stockDto) {
         try {
-            stockService.delete(identifier);
+            return stockService.delete(stockDto.getIdentifier());
         } catch (Exception e) {
-            return false;
+            StockDto errorDto = new StockDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
         }
-        return true;
     }
 }

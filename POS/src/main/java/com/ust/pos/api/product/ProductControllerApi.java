@@ -1,12 +1,11 @@
 package com.ust.pos.api.product;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.category.service.CategoryService;
+import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
-import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,17 +13,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/product")
+@RequiredArgsConstructor
 public class ProductControllerApi extends BaseController {
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private CategoryService categoryService;
+    private final ProductService productService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return productService.findAll(pageable);
@@ -36,26 +31,28 @@ public class ProductControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public ProductDto update(@RequestParam String identifier) {
+    public ProductDto get(@RequestParam String identifier) {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
-    @PostMapping("/delete")
-    public Boolean delete(@RequestBody ProductDto productDto) {
+    @DeleteMapping("/delete")
+    public ProductDto delete(@RequestBody ProductDto productDto) {
         try {
-            productService.delete(productDto.getIdentifier());
+            return productService.delete(productDto.getIdentifier());
         } catch (Exception e) {
-            return false;
+            ProductDto errorDto = new ProductDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
         }
-        return true;
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public boolean changeStatus(@RequestBody ProductDto productDto) {
         try {
             productService.changeStatus(productDto.getIdentifier(), productDto.getStatus());

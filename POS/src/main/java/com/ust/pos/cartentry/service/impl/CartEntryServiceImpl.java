@@ -1,14 +1,14 @@
 package com.ust.pos.cartentry.service.impl;
 
-import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.cart.service.CartService;
+import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.model.*;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,22 +19,14 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class CartEntryServiceImpl implements CartEntryService {
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private PriceRepository priceRepository;
-
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartService cartService;
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
+    private final PriceRepository priceRepository;
+    private final CartRepository cartRepository;
+    private final CartService cartService;
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -46,6 +38,14 @@ public class CartEntryServiceImpl implements CartEntryService {
 
         if (existingCartEntry != null) {
             quantity = existingCartEntry.getQuantity().add(quantity);
+        }
+
+        if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            if (existingCartEntry != null) {
+                cartEntryRepository.delete(existingCartEntry);
+                cartService.recalculate(cartEntryDto.getCartId());
+            }
+            return new CartEntryDto();
         }
 
         Price sellingPrice = priceRepository.findByProductAndPriceType(cartEntryDto.getProduct(), "SP");
@@ -68,7 +68,7 @@ public class CartEntryServiceImpl implements CartEntryService {
 
         CartEntry cartEntry;
 
-        if(existingCartEntry != null) {
+        if (existingCartEntry != null) {
             cartEntry = existingCartEntry;
         } else {
             cartEntry = new CartEntry();
@@ -87,7 +87,7 @@ public class CartEntryServiceImpl implements CartEntryService {
 
         Cart cart = cartRepository.findByIdentifier(cartEntryDto.getCartId());
 
-        if(cart == null) {
+        if (cart == null) {
 
             cart = new Cart();
             cart.setIdentifier(cartEntryDto.getCartId());
@@ -100,13 +100,21 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     @Override
     public void delete(String identifier) {
-        cartEntryRepository.deleteByIdentifier(identifier);
+
+        CartEntry cartEntry = cartEntryRepository.findByIdentifier(identifier);
+        if (cartEntry == null) {
+            return;
+        }
+        String cartId = cartEntry.getCartId();
+        cartEntryRepository.delete(cartEntry);
+        cartService.recalculate(cartId);
     }
 
     @Override
     public PaginatedResponseDto<CartEntryDto> findAll(Pageable pageable) {
 
-        Type listType = new TypeToken<List<CartEntryDto>>(){}.getType();
+        Type listType = new TypeToken<List<CartEntryDto>>() {
+        }.getType();
         Page<CartEntry> cartEntryPage = cartEntryRepository.findAll(pageable);
 
         List<CartEntryDto> items = modelMapper.map(cartEntryPage.getContent(), listType);
@@ -124,5 +132,14 @@ public class CartEntryServiceImpl implements CartEntryService {
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
         return modelMapper.map(cartEntryRepository.findByIdentifier(identifier), CartEntryDto.class);
+    }
+
+    @Override
+    public List<CartEntryDto> findByCartId(String cartId) {
+
+        Type listType = new TypeToken<List<CartEntryDto>>() {
+        }.getType();
+        List<CartEntry> entries = cartEntryRepository.findByCartId(cartId);
+        return modelMapper.map(entries, listType);
     }
 }

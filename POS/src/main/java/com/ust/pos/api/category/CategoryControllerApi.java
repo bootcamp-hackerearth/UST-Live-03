@@ -5,20 +5,21 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/category")
+@RequiredArgsConstructor
 public class CategoryControllerApi extends BaseController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return categoryService.findAll(pageable);
@@ -30,26 +31,28 @@ public class CategoryControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public CategoryDto update(@RequestParam String identifier) {
+    public CategoryDto get(@RequestParam String identifier) {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @PostMapping("/delete")
-    public boolean delete(@RequestBody CategoryDto categoryDto) {
+    @DeleteMapping("/delete")
+    public CategoryDto delete(@RequestBody CategoryDto categoryDto) {
         try {
-            categoryService.delete(categoryDto.getIdentifier());
-            return true;
-        } catch (IllegalStateException e) {
-            return false;
+            return categoryService.delete(categoryDto.getIdentifier());
+        } catch (Exception e) {
+            CategoryDto errorDto = new CategoryDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
         }
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public boolean changeStatus(@RequestBody CategoryDto categoryDto) {
         try {
             categoryService.changeStatus(categoryDto.getIdentifier(), categoryDto.getStatus());
@@ -57,5 +60,10 @@ public class CategoryControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @GetMapping("/active")
+    public List<CategoryDto> getActiveCategorys() {
+        return categoryService.findAllActive();
     }
 }

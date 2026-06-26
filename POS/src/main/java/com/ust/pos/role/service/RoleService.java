@@ -12,7 +12,7 @@ public interface RoleService {
 
     RoleDto update(RoleDto roleDto);
 
-    void delete(String username);
+    RoleDto delete(String identifier);
 
     PaginatedResponseDto<RoleDto> findAll(Pageable pageable);
 

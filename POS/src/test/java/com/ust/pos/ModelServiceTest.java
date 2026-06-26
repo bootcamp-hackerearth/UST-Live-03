@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,23 +33,31 @@ class ModelServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-
     @Test
     void saveTest() {
 
         ModelDto modelDto = new ModelDto();
         modelDto.setIdentifier("Admin");
 
-        Mockito.when(modelRepository.findByIdentifier("Admin")).thenReturn(null);
+        Mockito.when(modelRepository.findByIdentifier("Admin"))
+                .thenReturn(null);
+
         Model model = new Model();
-        Mockito.when(modelMapper.map(modelDto, Model.class)).thenReturn(model);
-        Mockito.when(modelRepository.save(model)).thenReturn(model);
+
+        Mockito.when(modelMapper.map(modelDto, Model.class))
+                .thenReturn(model);
+
+        Mockito.when(modelRepository.save(model))
+                .thenReturn(model);
+
         ModelDto response = modelService.save(modelDto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertNull(response.getMessage());
         Assertions.assertTrue(response.isSuccess());
 
+        Mockito.verify(modelRepository).save(model);
+        Assertions.assertFalse(model.getIsDeleted());
     }
 
     @Test
@@ -56,16 +65,38 @@ class ModelServiceTest {
 
         ModelDto modelDto = new ModelDto();
         modelDto.setIdentifier("Admin");
-        Model model = new Model();
 
-        Mockito.when(modelRepository.findByIdentifier("Admin")).thenReturn(model);
+        Model model = new Model();
+        model.setIsDeleted(false);
+
+        Mockito.when(modelRepository.findByIdentifier("Admin"))
+                .thenReturn(model);
+
         ModelDto response = modelService.save(modelDto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertNotNull(response.getMessage(), "Message cannot be null");
+        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertFalse(response.isSuccess());
+    }
 
-        Assertions.assertEquals(false, response.isSuccess());
+    @Test
+    void saveDeletedModelFailureTest() {
 
+        ModelDto modelDto = new ModelDto();
+        modelDto.setIdentifier("Admin");
+
+        Model model = new Model();
+        model.setIsDeleted(true);
+
+        Mockito.when(modelRepository.findByIdentifier("Admin"))
+                .thenReturn(model);
+
+        ModelDto response = modelService.save(modelDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(
+                response.getMessage().contains("was deleted")
+        );
     }
 
     @Test
@@ -77,8 +108,11 @@ class ModelServiceTest {
         ModelDto modelDto = new ModelDto();
         modelDto.setIdentifier("Admin");
 
-        Mockito.when(modelRepository.findByIdentifier("Admin")).thenReturn(model);
-        Mockito.when(modelMapper.map(model, ModelDto.class)).thenReturn(modelDto);
+        Mockito.when(modelRepository.findByIdentifier("Admin"))
+                .thenReturn(model);
+
+        Mockito.when(modelMapper.map(model, ModelDto.class))
+                .thenReturn(modelDto);
 
         ModelDto response = modelService.findByIdentifier("Admin");
 
@@ -96,12 +130,19 @@ class ModelServiceTest {
 
         Mockito.when(modelRepository.findByIdentifier("Admin"))
                 .thenReturn(existingModel);
+
         Mockito.when(modelRepository.save(existingModel))
                 .thenReturn(existingModel);
 
         ModelDto response = modelService.update(modelDto);
 
         Assertions.assertTrue(response.isSuccess());
+
+        Mockito.verify(modelMapper)
+                .map(modelDto, existingModel);
+
+        Mockito.verify(modelRepository)
+                .save(existingModel);
     }
 
     @Test
@@ -116,17 +157,52 @@ class ModelServiceTest {
         ModelDto response = modelService.update(modelDto);
 
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
     }
 
     @Test
     void deleteTest() {
 
-        Mockito.doNothing().when(modelRepository)
-                .deleteByIdentifier("Admin");
+        Model model = new Model();
+        model.setIdentifier("Admin");
+        model.setStatus(true);
+        model.setIsDeleted(false);
 
-        modelService.delete("Admin");
+        Mockito.when(modelRepository.findByIdentifier("Admin"))
+                .thenReturn(model);
 
-        Mockito.verify(modelRepository).deleteByIdentifier("Admin");
+        Mockito.when(modelRepository.save(model))
+                .thenReturn(model);
+
+        ModelDto response = modelService.delete("Admin");
+
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals(
+                "Model deleted successfully",
+                response.getMessage()
+        );
+
+        Assertions.assertTrue(model.getIsDeleted());
+        Assertions.assertFalse(model.getStatus());
+
+        Mockito.verify(modelRepository)
+                .save(model);
+    }
+
+    @Test
+    void deleteNotFoundTest() {
+
+        Mockito.when(modelRepository.findByIdentifier("Admin"))
+                .thenReturn(null);
+
+        ModelDto response = modelService.delete("Admin");
+
+        Assertions.assertFalse(response.isSuccess());
+
+        Assertions.assertEquals(
+                "Model with identifier - Admin not found",
+                response.getMessage()
+        );
     }
 
     @Test
@@ -141,19 +217,36 @@ class ModelServiceTest {
         List<Model> models = List.of(model);
         List<ModelDto> modelDtos = List.of(modelDto);
 
-        Page<Model> modelPage = new PageImpl<>(models);
+        Pageable pageable = PageRequest.of(0, 10);
 
-        Mockito.when(modelRepository.findAll(Mockito.any(Pageable.class)))
-                .thenReturn(modelPage);
+        Page<Model> modelPage =
+                new PageImpl<>(models, pageable, models.size());
 
-        Mockito.when(modelMapper.map(
-                Mockito.eq(models),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(modelDtos);
+        Mockito.when(
+                modelRepository.findByIsDeleted(
+                        false,
+                        pageable
+                )
+        ).thenReturn(modelPage);
 
-        PaginatedResponseDto<ModelDto> response = modelService.findAll(PageRequest.of(0, 10));
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(models),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(modelDtos);
+
+        PaginatedResponseDto<ModelDto> response =
+                modelService.findAll(pageable);
 
         Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals(
+                "Admin",
+                response.getItems().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
     }
 
     @Test
@@ -169,15 +262,28 @@ class ModelServiceTest {
         List<Model> models = List.of(model);
         List<ModelDto> modelDtos = List.of(modelDto);
 
-        Mockito.when(modelRepository.findByStatus(true)).thenReturn(models);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(models),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(modelDtos);
+        Mockito.when(
+                modelRepository.findByStatusAndIsDeleted(
+                        true,
+                        false
+                )
+        ).thenReturn(models);
 
-        List<ModelDto> response = modelService.findAllActive();
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(models),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(modelDtos);
+
+        List<ModelDto> response =
+                modelService.findAllActive();
 
         Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(
+                "Admin",
+                response.get(0).getIdentifier()
+        );
     }
 
     @Test
@@ -197,6 +303,7 @@ class ModelServiceTest {
 
         Assertions.assertTrue(model.getStatus());
 
-        Mockito.verify(modelRepository).save(model);
+        Mockito.verify(modelRepository)
+                .save(model);
     }
 }

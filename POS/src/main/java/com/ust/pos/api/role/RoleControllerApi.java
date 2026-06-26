@@ -2,10 +2,10 @@ package com.ust.pos.api.role;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginatedResponseDto;
-import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,14 +13,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/role")
+@RequiredArgsConstructor
 public class RoleControllerApi extends BaseController {
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return roleService.findAll(pageable);
@@ -32,26 +31,28 @@ public class RoleControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public RoleDto update(@RequestParam String identifier) {
+    public RoleDto get(@RequestParam String identifier) {
         return roleService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RoleDto updatePost(@RequestBody RoleDto roleDto) {
         return roleService.update(roleDto);
     }
 
-    @PostMapping("/delete")
-    public boolean delete(@RequestBody RoleDto roleDto) {
+    @DeleteMapping("/delete")
+    public RoleDto delete(@RequestBody RoleDto roleDto) {
         try {
-            roleService.delete(roleDto.getIdentifier());
+            return roleService.delete(roleDto.getIdentifier());
         } catch (Exception e) {
-            return false;
+            RoleDto errorDto = new RoleDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
         }
-        return true;
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public boolean changeStatus(@RequestBody RoleDto roleDto) {
         try {
             roleService.changeStatus(roleDto.getIdentifier(), roleDto.getStatus());

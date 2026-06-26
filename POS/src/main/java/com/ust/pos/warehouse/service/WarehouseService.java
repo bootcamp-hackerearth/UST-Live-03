@@ -14,7 +14,7 @@ public interface WarehouseService {
 
     WarehouseDto update(WarehouseDto warehouseDto);
 
-    void delete(String identifier);
+    WarehouseDto delete(String identifier);
 
     PaginatedResponseDto<WarehouseDto> findAll(Pageable pageable);
 

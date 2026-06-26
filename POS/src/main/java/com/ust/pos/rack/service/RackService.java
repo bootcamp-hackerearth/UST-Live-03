@@ -12,7 +12,7 @@ public interface RackService {
 
     RackDto update(RackDto rackDto);
 
-    void delete(String identifier);
+    RackDto delete(String identifier);
 
     PaginatedResponseDto<RackDto> findAll(Pageable pageable);
 

@@ -5,20 +5,21 @@ import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.models.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/model")
+@RequiredArgsConstructor
 public class ModelControllerApi extends BaseController {
 
-    @Autowired
-    private ModelService modelService;
+    private final ModelService modelService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<ModelDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return modelService.findAll(pageable);
@@ -30,22 +31,39 @@ public class ModelControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public ModelDto update(@RequestParam String identifier) {
+    public ModelDto get(@RequestParam String identifier) {
         return modelService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelDto updatePost(@RequestBody ModelDto modelDto) {
         return modelService.update(modelDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public ModelDto delete(@RequestBody ModelDto modelDto) {
         try {
-            modelService.delete(identifier);
+            return modelService.delete(modelDto.getIdentifier());
+        } catch (Exception e) {
+            ModelDto errorDto = new ModelDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
+        }
+    }
+
+    @PatchMapping("/toggle")
+    public boolean changeStatus(@RequestBody ModelDto modelDto) {
+        try {
+            modelService.changeStatus(modelDto.getIdentifier(), modelDto.getStatus());
         } catch (Exception e) {
             return false;
         }
         return true;
+    }
+
+    @GetMapping("/active")
+    public List<ModelDto> getActiveModels() {
+        return modelService.findAllActive();
     }
 }

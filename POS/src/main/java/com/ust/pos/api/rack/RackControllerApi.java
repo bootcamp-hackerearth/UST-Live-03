@@ -5,20 +5,19 @@ import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.rack.service.RackService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/rack")
+@RequiredArgsConstructor
 public class RackControllerApi extends BaseController {
 
-    @Autowired
-    private RackService rackService;
+    private final RackService rackService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<RackDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return rackService.findAll(pageable);
@@ -30,29 +29,31 @@ public class RackControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public RackDto update(@RequestParam String identifier) {
+    public RackDto get(@RequestParam String identifier) {
         return rackService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RackDto updatePost(@RequestBody RackDto rackDto) {
         return rackService.update(rackDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public RackDto delete(@RequestBody RackDto rackDto) {
         try {
-            rackService.delete(identifier);
+            return rackService.delete(rackDto.getIdentifier());
         } catch (Exception e) {
-            return false;
+            RackDto errorDto = new RackDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
         }
-        return true;
     }
 
-    @GetMapping("/toggle")
-    public boolean changeStatus(String identifier, boolean status) {
+    @PatchMapping("/toggle")
+    public boolean changeStatus(@RequestBody RackDto rackDto) {
         try {
-            rackService.changeStatus(identifier, status);
+            rackService.changeStatus(rackDto.getIdentifier(), rackDto.getStatus());
         } catch (Exception e) {
             return false;
         }

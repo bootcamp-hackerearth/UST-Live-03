@@ -8,9 +8,9 @@ import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.CartRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,23 +21,24 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    private final CartRepository cartRepository;
+    private final ModelMapper modelMapper;
+    private final CartEntryRepository cartEntryRepository;
 
     @Override
     public CartDto save(CartDto cartDto) {
 
+        if (cartDto.getIdentifier() == null ||
+                cartDto.getIdentifier().trim().isEmpty()) {
+            throw new IllegalArgumentException("Cart identifier is required");
+        }
+
         Cart cart = cartRepository.findByIdentifier(cartDto.getIdentifier());
 
-        if(cart == null) {
+        if (cart == null) {
 
             cart = new Cart();
             cart.setIdentifier(cartDto.getIdentifier());
@@ -87,15 +88,32 @@ public class CartServiceImpl implements CartService {
 
         BigDecimal totalPrice = BigDecimal.ZERO;
         BigDecimal discount = BigDecimal.ZERO;
+        BigDecimal originalPrice = BigDecimal.ZERO;
 
-        for(CartEntry entry : cartEntries) {
+        for (CartEntry entry : cartEntries) {
 
             totalPrice = totalPrice.add(entry.getTotalPrice());
             discount = discount.add(entry.getDiscount());
+            originalPrice = originalPrice.add(entry.getOriginalPrice());
         }
 
         cart.setTotalPrice(totalPrice);
         cart.setDiscount(discount);
+        cart.setOriginalPrice(originalPrice);
+        cartRepository.save(cart);
+    }
+
+    @Override
+    public void clearCart(String cartId) {
+
+        Cart cart = cartRepository.findByIdentifier(cartId);
+        if (cart == null) {
+            throw new IllegalArgumentException("Cart not found");
+        }
+        cartEntryRepository.deleteByCartId(cartId);
+        cart.setTotalPrice(BigDecimal.ZERO);
+        cart.setOriginalPrice(BigDecimal.ZERO);
+        cart.setDiscount(BigDecimal.ZERO);
         cartRepository.save(cart);
     }
 }

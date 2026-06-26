@@ -1,5 +1,7 @@
 package com.ust.pos.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +14,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     void deleteByIdentifier(String identifier);
 
-    List<Category> findByStatus(boolean status);
+    List<Category> findByStatusAndIsDeleted(boolean status, boolean isDeleted);
 
-    boolean existsBySuperCategory(String superCategory);
+    Page<Category> findByIsDeleted(boolean isDeleted, Pageable pageable);
+
+    boolean existsBySuperCategoryAndIsDeleted(String superCategory, boolean isDeleted);
 }

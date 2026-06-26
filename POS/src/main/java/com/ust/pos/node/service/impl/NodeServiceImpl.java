@@ -8,9 +8,9 @@ import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -25,24 +25,22 @@ import java.util.Set;
 
 @Service
 @Transactional
-
+@RequiredArgsConstructor
 public class NodeServiceImpl implements NodeService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private static final String NODE_WITH_IDENTIFIER = "Node with identifier - ";
 
-    @Autowired
-    private NodeRepository nodeRepository;
+    private final UserRepository userRepository;
+    private final NodeRepository nodeRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
+    @Override
     public List<NodeDto> getNodesForRoles() {
-
         List<NodeDto> nodeDtos = new ArrayList<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
-            org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+            org.springframework.security.core.userdetails.User principalObject =
+                    (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
             if (principalObject != null) findNodes(principalObject, nodeDtos);
         }
         return nodeDtos;
@@ -66,55 +64,72 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public NodeDto save(NodeDto nodeDto) {
-
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
+
         if (existingNode != null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
+            if (Boolean.TRUE.equals(existingNode.getIsDeleted())) {
+                nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " was deleted. Contact admin for further support or try with a different identifier.");
+            } else {
+                nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " already exists");
+            }
             nodeDto.setSuccess(false);
             return nodeDto;
         }
+
         Node node = modelMapper.map(nodeDto, Node.class);
+        node.setIsDeleted(false);
         nodeRepository.save(node);
         return nodeDto;
     }
 
     @Override
     public NodeDto update(NodeDto nodeDto) {
-
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
+
         if (existingNode == null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " not found");
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " not found");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
+
         modelMapper.map(nodeDto, existingNode);
         nodeRepository.save(existingNode);
         return nodeDto;
     }
 
     @Override
-    public void delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
+    public NodeDto delete(String identifier) {
+        NodeDto nodeDto = new NodeDto();
+        Node node = nodeRepository.findByIdentifier(identifier);
+
+        if (node == null) {
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " not found");
+            nodeDto.setSuccess(false);
+            return nodeDto;
+        }
+
+        node.setIsDeleted(true);
+        node.setStatus(false);
+        nodeRepository.save(node);
+        nodeDto.setSuccess(true);
+        nodeDto.setMessage("Node deleted successfully");
+        return nodeDto;
     }
 
     @Override
     public PaginatedResponseDto<NodeDto> findAll(Pageable pageable) {
-
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
-
+        Page<Node> nodePage = nodeRepository.findByIsDeleted(false, pageable);
         List<NodeDto> items = modelMapper.map(nodePage.getContent(), listType);
-
         PaginatedResponseDto<NodeDto> response = new PaginatedResponseDto<>();
         response.setItems(items);
         response.setTotalRecords(nodePage.getTotalElements());
         response.setTotalPages(nodePage.getTotalPages());
         response.setSizePerPage(pageable.getPageSize());
         response.setPage(pageable.getPageNumber());
-
         return response;
     }
 
@@ -127,7 +142,7 @@ public class NodeServiceImpl implements NodeService {
     public List<NodeDto> findAllActive() {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        return modelMapper.map(nodeRepository.findByStatus(true), listType);
+        return modelMapper.map(nodeRepository.findByStatusAndIsDeleted(true, false), listType);
     }
 
     @Override
@@ -137,5 +152,3 @@ public class NodeServiceImpl implements NodeService {
         nodeRepository.save(node);
     }
 }
-
-

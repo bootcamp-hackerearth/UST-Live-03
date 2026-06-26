@@ -94,27 +94,26 @@ export const getItem = async (
 };
 
 export const updateItem = async (model, data) => {
-  const response = await api.post(`/api/${model}/update`, data);
+  const response = await api.put(`/api/${model}/update`, data);
   return response.data;
 };
 
 
-export const deleteItem = async (model, identifier) => {
+export const deleteItem = async (model, identifier, extraData = {}) => {
   const body =
     model === "user"
       ? { username: identifier }
-      : { identifier };
+      : { identifier, ...extraData };
 
-  const response = await api.post(
+  const response = await api.delete(
     `/api/${model}/delete`,
-    body
+    { data: body }
   );
-
   return response.data;
 };
 
 export const toggleItem = async (model, identifier, status) => {
-  const response = await api.post(`/api/${model}/toggle`, {
+  const response = await api.patch(`/api/${model}/toggle`, {
     identifier,
     status,
   });
@@ -151,5 +150,20 @@ export const fetchActiveProducts = async () => {
   const response = await api.get("/api/product/active");
   return response.data;
 }
+
+export const clearCart=async(cartId)=>{
+  const response=await api.post("/api/cart/clear",{identifier:cartId});
+  return response.data;
+}
+
+export const getOrderById = async (id) => {
+  const response = await api.get(`/api/order/getById`, { params: { id } });
+  return response.data;
+};
+
+export const fetchActiveItems = async (model) => {
+  const response = await api.get(`/api/${model}/active`);
+  return response.data;
+};
 
 export default api;

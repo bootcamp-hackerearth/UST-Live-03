@@ -18,8 +18,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.lang.reflect.Type;
 import java.util.List;
-
 
 @ExtendWith(MockitoExtension.class)
 class StockServiceTest {
@@ -32,7 +32,6 @@ class StockServiceTest {
 
     @Mock
     private ModelMapper modelMapper;
-
 
     @Test
     void saveTest() {
@@ -53,26 +52,43 @@ class StockServiceTest {
 
         Assertions.assertEquals(identifier, response.getIdentifier());
         Assertions.assertNull(response.getMessage());
+        Assertions.assertFalse(stock.getIsDeleted());
     }
 
     @Test
-    void saveTestFailure() {
+    void saveTestFailureAlreadyExists() {
 
         StockDto stockDto = new StockDto();
         stockDto.setProduct("P1");
         stockDto.setWarehouse("W1");
 
-        String identifier = "P1_W1";
-
         Stock stock = new Stock();
+        stock.setIsDeleted(false);
 
-        Mockito.when(stockRepository.findByIdentifier(identifier)).thenReturn(stock);
+        Mockito.when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
 
         StockDto response = stockService.save(stockDto);
 
-        Assertions.assertEquals(identifier, response.getIdentifier());
-        Assertions.assertNotNull(response.getMessage());
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("already exists"));
+    }
+
+    @Test
+    void saveTestFailureDeletedStock() {
+
+        StockDto stockDto = new StockDto();
+        stockDto.setProduct("P1");
+        stockDto.setWarehouse("W1");
+
+        Stock stock = new Stock();
+        stock.setIsDeleted(true);
+
+        Mockito.when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
+
+        StockDto response = stockService.save(stockDto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("was deleted"));
     }
 
     @Test
@@ -101,14 +117,15 @@ class StockServiceTest {
         Stock existingStock = new Stock();
         existingStock.setIdentifier("Admin");
 
-        Mockito.when(stockRepository.findByIdentifier("Admin"))
-                .thenReturn(existingStock);
-        Mockito.when(stockRepository.save(existingStock))
-                .thenReturn(existingStock);
+        Mockito.when(stockRepository.findByIdentifier("Admin")).thenReturn(existingStock);
+        Mockito.when(stockRepository.save(existingStock)).thenReturn(existingStock);
 
         StockDto response = stockService.update(stockDto);
 
-        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Admin", response.getIdentifier());
+
+        Mockito.verify(modelMapper).map(stockDto, existingStock);
+        Mockito.verify(stockRepository).save(existingStock);
     }
 
     @Test
@@ -117,23 +134,42 @@ class StockServiceTest {
         StockDto stockDto = new StockDto();
         stockDto.setIdentifier("Admin");
 
-        Mockito.when(stockRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
+        Mockito.when(stockRepository.findByIdentifier("Admin")).thenReturn(null);
 
         StockDto response = stockService.update(stockDto);
 
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Stock with identifier - Admin not found", response.getMessage());
     }
 
     @Test
     void deleteTest() {
 
-        Mockito.doNothing().when(stockRepository)
-                .deleteByIdentifier("Admin");
+        Stock stock = new Stock();
+        stock.setIdentifier("Admin");
+        stock.setStatus(true);
+        stock.setIsDeleted(false);
 
-        stockService.delete("Admin");
+        Mockito.when(stockRepository.findByIdentifier("Admin")).thenReturn(stock);
+        Mockito.when(stockRepository.save(stock)).thenReturn(stock);
 
-        Mockito.verify(stockRepository).deleteByIdentifier("Admin");
+        StockDto response = stockService.delete("Admin");
+
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Stock deleted successfully", response.getMessage());
+        Assertions.assertTrue(stock.getIsDeleted());
+        Assertions.assertFalse(stock.getStatus());
+    }
+
+    @Test
+    void deleteTestFailure() {
+
+        Mockito.when(stockRepository.findByIdentifier("Admin")).thenReturn(null);
+
+        StockDto response = stockService.delete("Admin");
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Stock with identifier - Admin not found", response.getMessage());
     }
 
     @Test
@@ -150,17 +186,23 @@ class StockServiceTest {
 
         Page<Stock> stockPage = new PageImpl<>(stocks);
 
-        Mockito.when(stockRepository.findAll(Mockito.any(Pageable.class)))
-                .thenReturn(stockPage);
+        Mockito.when(stockRepository.findByIsDeleted(
+                Mockito.eq(false),
+                Mockito.any(Pageable.class)
+        )).thenReturn(stockPage);
 
         Mockito.when(modelMapper.map(
-                Mockito.eq(stocks),
-                Mockito.any(java.lang.reflect.Type.class)
+                Mockito.anyList(),
+                Mockito.any(Type.class)
         )).thenReturn(stockDtos);
 
         PaginatedResponseDto<StockDto> response = stockService.findAll(PageRequest.of(0, 10));
 
         Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
@@ -176,34 +218,48 @@ class StockServiceTest {
         List<Stock> stocks = List.of(stock);
         List<StockDto> stockDtos = List.of(stockDto);
 
-        Mockito.when(stockRepository.findByStatus(true)).thenReturn(stocks);
+        Mockito.when(stockRepository.findByStatusAndIsDeleted(true, false)).thenReturn(stocks);
+
         Mockito.when(modelMapper.map(
-                Mockito.eq(stocks),
-                Mockito.any(java.lang.reflect.Type.class)
+                Mockito.anyList(),
+                Mockito.any(Type.class)
         )).thenReturn(stockDtos);
 
         List<StockDto> response = stockService.findAllActive();
 
         Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
     }
 
     @Test
-    void changeStatusTest() {
+    void changeStatusTrueTest() {
 
         Stock stock = new Stock();
         stock.setIdentifier("Admin");
         stock.setStatus(false);
 
-        Mockito.when(stockRepository.findByIdentifier("Admin"))
-                .thenReturn(stock);
-
-        Mockito.when(stockRepository.save(stock))
-                .thenReturn(stock);
+        Mockito.when(stockRepository.findByIdentifier("Admin")).thenReturn(stock);
+        Mockito.when(stockRepository.save(stock)).thenReturn(stock);
 
         stockService.changeStatus("Admin", true);
 
         Assertions.assertTrue(stock.getStatus());
+        Mockito.verify(stockRepository).save(stock);
+    }
 
+    @Test
+    void changeStatusFalseTest() {
+
+        Stock stock = new Stock();
+        stock.setIdentifier("Admin");
+        stock.setStatus(true);
+
+        Mockito.when(stockRepository.findByIdentifier("Admin")).thenReturn(stock);
+        Mockito.when(stockRepository.save(stock)).thenReturn(stock);
+
+        stockService.changeStatus("Admin", false);
+
+        Assertions.assertFalse(stock.getStatus());
         Mockito.verify(stockRepository).save(stock);
     }
 }

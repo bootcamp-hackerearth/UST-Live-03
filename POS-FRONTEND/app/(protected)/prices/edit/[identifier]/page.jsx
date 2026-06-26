@@ -22,6 +22,7 @@ export default function EditPricePage() {
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [auditData, setAuditData] = useState({});
 
   useEffect(() => {
     loadData();
@@ -38,6 +39,13 @@ export default function EditPricePage() {
     setPrice(response?.costPrice || "");
     setProduct(response?.product || "");
     setPriceType(response?.priceType || "");
+
+    setAuditData({
+      createdBy: response.createdBy,
+      createdOn: response.createdOn,
+      modifiedBy: response.modifiedBy,
+      modifiedOn: response.modifiedOn,
+    });
 
   } catch (err) {
     console.log(err);
@@ -118,6 +126,7 @@ export default function EditPricePage() {
       successMessage={successMessage}
       onSubmit={handleSubmit}
       cancelPath="/prices"
+      auditData={auditData}
     >
       <div>
         <label htmlFor="price" className="mb-2 block text-sm font-medium text-[#344054]">

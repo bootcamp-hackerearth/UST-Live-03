@@ -41,6 +41,7 @@ export default function Navbar() {
       <div className="relative">
 
         <button
+          type="button"
           onClick={() =>
             setShowProfileMenu(
               !showProfileMenu
@@ -88,6 +89,7 @@ export default function Navbar() {
               </div>
 
               <button
+                type="button"
                 onClick={() => {
 
                   setShowProfileMenu(false);

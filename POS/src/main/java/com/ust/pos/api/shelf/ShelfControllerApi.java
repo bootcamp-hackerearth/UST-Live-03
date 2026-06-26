@@ -5,7 +5,7 @@ import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,14 +13,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/shelf")
+@RequiredArgsConstructor
 public class ShelfControllerApi extends BaseController {
 
-    @Autowired
-    private ShelfService shelfService;
+    private final ShelfService shelfService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<ShelfDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return shelfService.findAll(pageable);
@@ -32,34 +31,36 @@ public class ShelfControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public ShelfDto update(@RequestParam String identifier) {
+    public ShelfDto get(@RequestParam String identifier) {
         return shelfService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfDto updatePost(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
-    @GetMapping("/delete")
-    public Boolean delete(@RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public ShelfDto delete(@RequestBody ShelfDto shelfDto) {
         try {
-            shelfService.delete(identifier);
+            return shelfService.delete(shelfDto.getIdentifier());
         } catch (Exception e) {
-            return false;
+            ShelfDto errorDto = new ShelfDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
         }
-        return true;
     }
 
-    @GetMapping("/activeshelf")
+    @GetMapping("/active")
     public List<ShelfDto> findAllActive() {
         return shelfService.findAllActive();
     }
 
-    @GetMapping("/toggle")
-    public boolean changeStatus(String identifier, boolean status) {
+    @PatchMapping("/toggle")
+    public boolean changeStatus(@RequestBody ShelfDto shelfDto) {
         try {
-            shelfService.changeStatus(identifier, status);
+            shelfService.changeStatus(shelfDto.getIdentifier(), shelfDto.getStatus());
         } catch (Exception e) {
             return false;
         }

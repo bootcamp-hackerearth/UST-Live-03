@@ -12,7 +12,7 @@ public interface CustomerService {
 
     CustomerDto update(CustomerDto customerDto);
 
-    void delete(String identifier, Long phoneNo);
+    CustomerDto delete(String identifier, Long phoneNo);
 
     PaginatedResponseDto<CustomerDto> findAll(Pageable pageable);
 

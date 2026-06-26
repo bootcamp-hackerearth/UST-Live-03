@@ -12,7 +12,7 @@ public interface BrandService {
 
     BrandDto update(BrandDto brandDto);
 
-    void delete(String identifier);
+    BrandDto delete(String identifier);
 
     PaginatedResponseDto<BrandDto> findAll(Pageable pageable);
 

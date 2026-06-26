@@ -64,6 +64,7 @@ export default function TablePagination({
       <div className="flex items-center gap-2">
 
         <button
+          type="button"
           onClick={() =>
             onPageChange(
               safeCurrentPage - 1
@@ -86,6 +87,7 @@ export default function TablePagination({
         {
           pageNumbers.map((page) => (
             <button
+              type="button"
               key={page}
               onClick={() =>
                 onPageChange(page)
@@ -106,6 +108,7 @@ export default function TablePagination({
         }
 
         <button
+          type="button"
           onClick={() =>
             onPageChange(
               safeCurrentPage + 1

@@ -2,7 +2,7 @@
 
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { listItems, fetchActiveProducts } from "@/services/api";
+import { fetchActiveItems, listItems } from "@/services/api";
 
 export default function SingleDropDown({
   label,
@@ -27,52 +27,37 @@ export default function SingleDropDown({
   }, []);
 
   const loadOptions = async () => {
+  try {
+    setLoading(true);
+    setError("");
 
-    try {
-      setLoading(true);
-      setError("");
-
-      let response;
-
-        if (model === "product") {
-          response =
-            await fetchActiveProducts();
-        } else {
-          response =
-            await listItems(model);
-        }  
-
-      console.log(
-        `${model} RESPONSE:`,
-        response
-      );
-
-      setOptions(
-        Array.isArray(response)
-          ? response
-          : response?.items || []
-      );
-
-    } catch (error) {
-      console.log(error);
-
-      setError(
-        `Failed to load ${label}`
-      );
-
-    } finally {
-      setLoading(false);
+    let data;
+    if (model === "customer") {
+      const response = await listItems(model);
+      data = response?.items || [];
+    } else {
+      const response = await fetchActiveItems(model);
+      data = Array.isArray(response) ? response : response?.items || [];
     }
-  };
+
+    setOptions(data);
+  } catch (error) {
+    console.log(error);
+    setError(`Failed to load ${label}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div>
 
-      <label className="block mb-2 text-sm font-medium text-[#475467]">
+      <label htmlFor={`single-dropdown-${model}`} className="block mb-2 text-sm font-medium text-[#475467]">
         {label}
       </label>
 
       <select
+        id={`single-dropdown-${model}`}
         value={value || ""}
         onChange={(event) =>
           onChange(event.target.value)

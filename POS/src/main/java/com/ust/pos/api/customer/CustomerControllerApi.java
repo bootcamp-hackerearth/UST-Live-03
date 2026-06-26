@@ -5,20 +5,21 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/customer")
+@RequiredArgsConstructor
 public class CustomerControllerApi extends BaseController {
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return customerService.findAll(pageable);
@@ -30,22 +31,39 @@ public class CustomerControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public CustomerDto update(@RequestParam String identifier) {
+    public CustomerDto get(@RequestParam String identifier) {
         return customerService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier, Long phoneNo) {
+    @DeleteMapping("/delete")
+    public CustomerDto delete(@RequestBody CustomerDto customerDto) {
         try {
-            customerService.delete(identifier, phoneNo);
+            return customerService.delete(customerDto.getIdentifier(), customerDto.getPhoneNo());
+        } catch (Exception e) {
+            CustomerDto errorDto = new CustomerDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
+        }
+    }
+
+    @PatchMapping("/toggle")
+    public boolean changeStatus(@RequestBody CustomerDto customerDto) {
+        try {
+            customerService.changeStatus(customerDto.getIdentifier(), customerDto.getStatus());
         } catch (Exception e) {
             return false;
         }
         return true;
+    }
+
+    @GetMapping("/active")
+    public List<CustomerDto> getActiveCustomers() {
+        return customerService.findAllActive();
     }
 }

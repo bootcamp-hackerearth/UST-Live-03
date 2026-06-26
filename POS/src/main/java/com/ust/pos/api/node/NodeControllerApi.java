@@ -5,28 +5,21 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.node.service.NodeService;
-import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/node")
-
+@RequiredArgsConstructor
 public class NodeControllerApi extends BaseController {
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private RoleService roleService;
+    private final NodeService nodeService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
         return nodeService.findAll(pageable);
@@ -38,23 +31,25 @@ public class NodeControllerApi extends BaseController {
     }
 
     @GetMapping("/get")
-    public NodeDto update(@RequestParam String identifier) {
+    public NodeDto get(@RequestParam String identifier) {
         return nodeService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public NodeDto updatePost(Model model, @RequestBody NodeDto nodeDto) {
+    @PutMapping("/update")
+    public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
         return nodeService.update(nodeDto);
     }
 
-    @PostMapping("/delete")
-    public Boolean delete(@RequestBody NodeDto nodeDto) {
+    @DeleteMapping("/delete")
+    public NodeDto delete(@RequestBody NodeDto nodeDto) {
         try {
-            nodeService.delete(nodeDto.getIdentifier());
+            return nodeService.delete(nodeDto.getIdentifier());
         } catch (Exception e) {
-            return false;
+            NodeDto errorDto = new NodeDto();
+            errorDto.setSuccess(false);
+            errorDto.setMessage("Delete failed: " + e.getMessage());
+            return errorDto;
         }
-        return true;
     }
 
     @GetMapping("/getnodes")
@@ -62,8 +57,7 @@ public class NodeControllerApi extends BaseController {
         return nodeService.getNodesForRoles();
     }
 
-
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public boolean changeStatus(@RequestBody NodeDto nodeDto) {
         try {
             nodeService.changeStatus(nodeDto.getIdentifier(), nodeDto.getStatus());

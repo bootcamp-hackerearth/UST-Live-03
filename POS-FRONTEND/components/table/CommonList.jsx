@@ -147,47 +147,42 @@ export default function CommonList({
   };
 
   const handleDeleteItem = async () => {
-    try {
-      const success = await deleteItem(
-        entity,
-        selectedItem[identifierField]
-      );
+  try {
+    const extraData = entity === "customer" && selectedItem?.phoneNo
+      ? { phoneNo: selectedItem.phoneNo }
+      : {};
 
-      if (entity === "category" && !success) {
-        setAlertMessage(
-          "Cannot delete category because it is used as a super category"
-        );
-        setTimeout(() => {
-          setAlertMessage("");
-        }, 3000);
-        
-        setShowDeleteModal(false);
-        setSelectedItem(null);
-        return;
-      }
+    const result = await deleteItem(
+      entity,
+      selectedItem[identifierField],
+      extraData
+    );
 
-      setItems((previousItems) =>
-
-        previousItems.filter(
-
-          (item) =>
-
-            item[identifierField] !==
-            selectedItem[identifierField]
-        )
-      );
-
-      showToast( "Deleted Successfully" );
-      await loadItems();
-      await loadUserData();
+    if (result?.success === false) {
+      setAlertMessage(result?.message || "Failed to delete");
+      setTimeout(() => setAlertMessage(""), 4000);
       setShowDeleteModal(false);
       setSelectedItem(null);
-
-    } catch (error) {
-      console.log(error);
-      showToast("Failed To Delete");
+      return;
     }
-  };
+
+    setItems((previousItems) =>
+      previousItems.filter(
+        (item) => item[identifierField] !== selectedItem[identifierField]
+      )
+    );
+
+    showToast("Deleted Successfully");
+    await loadItems();
+    await loadUserData();
+    setShowDeleteModal(false);
+    setSelectedItem(null);
+
+  } catch (error) {
+    console.log(error);
+    showToast("Failed To Delete");
+  }
+};
 
   const showToast = (message) => {
     setToast(message);
@@ -253,6 +248,7 @@ export default function CommonList({
         </div>
 
         <button
+          type="button"
           onClick={() =>
             router.push(addPath)
           }

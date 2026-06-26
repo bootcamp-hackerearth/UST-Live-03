@@ -12,7 +12,7 @@ public interface CategoryService {
 
     CategoryDto update(CategoryDto categoryDto);
 
-    void delete(String identifier);
+    CategoryDto delete(String identifier);
 
     PaginatedResponseDto<CategoryDto> findAll(Pageable pageable);
 

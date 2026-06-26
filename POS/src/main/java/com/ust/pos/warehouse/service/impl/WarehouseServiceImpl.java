@@ -6,9 +6,9 @@ import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,13 +18,13 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class WarehouseServiceImpl implements WarehouseService {
 
-    @Autowired
-    private WarehouseRepository warehouseRepository;
+    private static final String WAREHOUSE_WITH_IDENTIFIER = "Warehouse with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final WarehouseRepository warehouseRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     public WarehouseDto findByIdentifier(String identifier) {
@@ -33,29 +33,32 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public WarehouseDto save(WarehouseDto warehouseDto) {
-
         String identifier = warehouseDto.getIdentifier();
         Warehouse existingWarehouse = warehouseRepository.findByIdentifier(identifier);
 
         if (existingWarehouse != null) {
-            warehouseDto.setMessage("Warehouse with identifier - " + identifier + " already exists");
+            if (Boolean.TRUE.equals(existingWarehouse.getIsDeleted())) {
+                warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " was deleted. Contact admin for further support or try with a different identifier.");
+            } else {
+                warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " already exists");
+            }
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
 
         Warehouse warehouse = modelMapper.map(warehouseDto, Warehouse.class);
+        warehouse.setIsDeleted(false);
         warehouseRepository.save(warehouse);
         return warehouseDto;
     }
 
     @Override
     public WarehouseDto update(WarehouseDto warehouseDto) {
-
         String identifier = warehouseDto.getIdentifier();
         Warehouse existingWarehouse = warehouseRepository.findByIdentifier(identifier);
 
         if (existingWarehouse == null) {
-            warehouseDto.setMessage("Warehouse with identifier - " + identifier + " not found");
+            warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " not found");
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
@@ -66,27 +69,36 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    public void delete(String identifier) {
+    public WarehouseDto delete(String identifier) {
+        WarehouseDto warehouseDto = new WarehouseDto();
+        Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
 
-        warehouseRepository.deleteByIdentifier(identifier);
+        if (warehouse == null) {
+            warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " not found");
+            warehouseDto.setSuccess(false);
+            return warehouseDto;
+        }
+
+        warehouse.setIsDeleted(true);
+        warehouse.setStatus(false);
+        warehouseRepository.save(warehouse);
+        warehouseDto.setSuccess(true);
+        warehouseDto.setMessage("Warehouse deleted successfully");
+        return warehouseDto;
     }
 
     @Override
     public PaginatedResponseDto<WarehouseDto> findAll(Pageable pageable) {
-
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
-        Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-
+        Page<Warehouse> warehousePage = warehouseRepository.findByIsDeleted(false, pageable);
         List<WarehouseDto> items = modelMapper.map(warehousePage.getContent(), listType);
-
         PaginatedResponseDto<WarehouseDto> response = new PaginatedResponseDto<>();
         response.setItems(items);
         response.setTotalRecords(warehousePage.getTotalElements());
         response.setTotalPages(warehousePage.getTotalPages());
         response.setSizePerPage(pageable.getPageSize());
         response.setPage(pageable.getPageNumber());
-
         return response;
     }
 
@@ -94,7 +106,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     public List<WarehouseDto> findAllActive() {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
-        return modelMapper.map(warehouseRepository.findByStatus(true), listType);
+        return modelMapper.map(warehouseRepository.findByStatusAndIsDeleted(true, false), listType);
     }
 
     @Override

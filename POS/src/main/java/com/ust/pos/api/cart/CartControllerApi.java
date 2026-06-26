@@ -5,16 +5,16 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
+@RequiredArgsConstructor
 public class CartControllerApi extends BaseController {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
 
     @PostMapping("/list")
     public PaginatedResponseDto<CartDto> home(@RequestBody PaginationDto paginationDto) {
@@ -29,14 +29,24 @@ public class CartControllerApi extends BaseController {
         return cartService.save(cartDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
-
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody CartDto cartDto) {
         try {
-            cartService.delete(identifier);
+            cartService.delete(cartDto.getIdentifier());
         } catch (Exception e) {
             return false;
         }
         return true;
+    }
+
+    @GetMapping("/get")
+    public CartDto get(@RequestParam String identifier) {
+        return cartService.findByIdentifier(identifier);
+    }
+
+    @PostMapping("/clear")
+    public CartDto clearCart(@RequestBody CartDto cartDto) {
+        cartService.clearCart(cartDto.getIdentifier());
+        return cartService.findByIdentifier(cartDto.getIdentifier());
     }
 }

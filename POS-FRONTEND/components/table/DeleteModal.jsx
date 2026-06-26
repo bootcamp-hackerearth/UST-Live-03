@@ -34,6 +34,7 @@ export default function DeleteModal({
         <div className="flex justify-end gap-4 mt-8">
 
           <button
+            type="button"
             onClick={onClose}
             className="h-12 px-6 rounded-2xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
           >
@@ -43,6 +44,7 @@ export default function DeleteModal({
           </button>
 
           <button
+            type="button"
             onClick={onConfirm}
             className="h-12 px-6 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-medium transition-all"
           >
