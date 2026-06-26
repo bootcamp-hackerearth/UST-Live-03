@@ -8,4 +8,5 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     Address findByIdentifier(String identifier);
 
     Address findByPhoneNoAndAddressType(Long phoneNo, String addressType);
+
 }

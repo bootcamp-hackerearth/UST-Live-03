@@ -8,4 +8,7 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     Cart findByIdentifier(String identifier);
 
     void deleteByIdentifier(String identifier);
+
+    Cart findTopByCustomerOrderByIdDesc(String customer);
+
 }

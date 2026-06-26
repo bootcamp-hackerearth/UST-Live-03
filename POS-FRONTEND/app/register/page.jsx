@@ -52,86 +52,112 @@ export default function Register() {
   }, []);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  setSuccess("");
-  setError("");
+    setSuccess("");
+    setError("");
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^\d{10}$/;
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
-
-  if (!emailRegex.test(user.username)) {
-    setError("Enter valid email");
-    return;
-  }
-
-  if (!phoneRegex.test(user.phoneNo)) {
-    setError("Phone number must be 10 digits");
-    return;
-  }
-
-  if (!passwordRegex.test(user.password)) {
-    setError("Password must contain letters and numbers");
-    return;
-  }
-
-  try {
-    const listRes = await axios.post(
-      "http://localhost:8080/api/user/list",
-      {
-        page: 0,
-        sizePerPage: 1000,
-      }
-    );
-
-    const users =
-      Array.isArray(listRes.data)
-        ? listRes.data
-        : listRes.data.dtoList || listRes.data.content || [];
-
-    const exists = users.some(
-      (u) =>
-        u.username?.toLowerCase() === user.username.toLowerCase()
-    );
-
-    if (exists) {
-      setError("Email already exists");
+    if (!user.name.trim()) {
+      setError("Full Name is required");
       return;
     }
 
-    const res = await axios.post(
-      "http://localhost:8080/api/user/register",
-      {
-        name: user.name,
-        username: user.username,
-        phoneNo: user.phoneNo,
-        password: user.password,
-        roles: [user.roles],
+    if (!user.username.trim()) {
+      setError("Email is required");
+      return;
+    }
+
+    if (!user.roles) {
+      setError("Please select a role");
+      return;
+    }
+
+    if (!user.phoneNo) {
+      setError("Phone number is required");
+      return;
+    }
+
+    if (!user.password) {
+      setError("Password is required");
+      return;
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const phoneRegex = /^\d{10}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+
+    if (!emailRegex.test(user.username)) {
+      setError("Enter valid email");
+      return;
+    }
+
+    if (!phoneRegex.test(user.phoneNo)) {
+      setError("Phone number must be 10 digits");
+      return;
+    }
+
+    if (!passwordRegex.test(user.password)) {
+      setError("Password must contain letters and numbers");
+      return;
+    }
+
+    try {
+      const listRes = await axios.post(
+        "http://localhost:8080/api/user/list",
+        {
+          page: 0,
+          sizePerPage: 1000,
+        }
+      );
+
+      const users =
+        Array.isArray(listRes.data)
+          ? listRes.data
+          : listRes.data.dtoList || listRes.data.content || [];
+
+      const exists = users.some(
+        (u) =>
+          u.username?.toLowerCase() === user.username.toLowerCase()
+      );
+
+      if (exists) {
+        setError("Email already exists");
+        return;
       }
-    );
 
-    console.log("Register Response:", res.data);
+      const res = await axios.post(
+        "http://localhost:8080/api/user/register",
+        {
+          name: user.name,
+          username: user.username,
+          phoneNo: user.phoneNo,
+          password: user.password,
+          roles: [user.roles],
+        }
+      );
 
-    setSuccess("Registration successful");
+      console.log("Register Response:", res.data);
 
-    setUser({
-      name: "",
-      username: "",
-      roles: "",
-      phoneNo: "",
-      password: "",
-    });
+      setSuccess("Registration successful");
 
-    setTimeout(() => {
-      router.push("/login");
-    }, 1500);
+      setUser({
+        name: "",
+        username: "",
+        roles: "",
+        phoneNo: "",
+        password: "",
+      });
 
-  } catch (err) {
-    console.log("Error:", err.response);
-    setError("Registration failed. Please try again.");
-  }
-};
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
+
+    } catch (err) {
+      console.log("Error:", err.response);
+      setError("Registration failed. Please try again.");
+    }
+  };
+
   const handleChange = (e) => {
     setUser({
       ...user,

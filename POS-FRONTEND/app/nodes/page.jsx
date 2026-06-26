@@ -1,106 +1,64 @@
 "use client";
 
-import axios from "axios";
 import CommonList from "@/components/CommonList";
 import CommonForm from "@/components/CommonForm";
-import PropTypes from "@/lib/propTypes";
+import PropTypes from "prop-types";
+import { requiredValidation, pathValidation } from "@/validation/validation";
 
-const nodeFields = [
-  {
-    name: "identifier",
-    label: "Identifier",
-  },
-  {
-    name: "path",
-    label: "Path",
-  },
-  {
-    name: "roles",
-    label: "Roles",
-    type: "multiselect",
-    apiUrl: "http://localhost:8080/api/role/list",
-  },
-];
-
-function NodeForm(props) {
+export default function NodesPage() {
   return (
-    <CommonForm
-      {...props}
-      title="Node"
-      fields={nodeFields}
-      onSubmit={props.handleSubmit}
+    <CommonList
+      routeName="node"
+      editField="identifier"
+      keys={["identifier", "path", "roles"]}
+      headers={["Node Name", "Path", "Roles"]}
+      FormComponent={NodeForm}
     />
   );
 }
 
 NodeForm.propTypes = {
-  mode: PropTypes.oneOf(["add", "edit"]).isRequired,
+  mode: PropTypes.string.isRequired,
   data: PropTypes.object,
   onClose: PropTypes.func.isRequired,
-  onSuccess: PropTypes.func,
-  handleSubmit: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
 };
 
-export default function NodesPage() {
-  const handleSubmit = async (
-    formData,
-    mode
-  ) => {
-    try {
-      const token =
-        localStorage.getItem(
-          "token"
-        );
-
-      const url =
-        mode === "add"
-          ? "http://localhost:8080/api/node/add"
-          : "http://localhost:8080/api/node/update";
-
-      await axios.post(
-        url,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type":
-              "application/json",
-          },
-        }
-      );
-
-      return true;
-    } catch (error) {
-      console.log(error);
-      return false;
-    }
+function NodeForm({ mode, data, onClose, onSubmit }) {
+  const customValidations = {
+    identifier: requiredValidation,
+    path: pathValidation,
+    roles: requiredValidation,
   };
 
   return (
-    <CommonList
-      title="Node Management"
-      subtitle="Manage system nodes"
-      apiUrl="http://localhost:8080/api/node/list"
-      deleteUrl="http://localhost:8080/api/node/delete"
-      dataKey="identifier"
-      addButtonText="Add Node"
-      FormComponent={NodeForm}
-      formComponentProps={{ handleSubmit }}
-      columns={[
+    <CommonForm
+      title="Node"
+      mode={mode}
+      data={data}
+      onClose={onClose}
+      validate={customValidations}
+      onSubmit={onSubmit}
+      fields={[
         {
-          label:
-            "Identifier",
-          key:
-            "identifier",
+          name: "identifier",
+          label: "Node Name",
+          placeholder: "Node Name",
+          required: true,
         },
         {
+          name: "path",
           label: "Path",
-          key: "path",
+          placeholder: "Path",
+          required: true,
         },
         {
-          label:
-            "Roles",
-          key: "roles",
+          name: "roles",
+          label: "Roles",
+          placeholder: "Roles",
+          type: "multiselect",
+          apiUrl: "http://localhost:8080/api/role/list",
+          required: true,
         },
       ]}
     />

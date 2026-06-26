@@ -6,27 +6,23 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerApiController extends BaseController {
 
-    @Autowired
-    private CustomerService customerService;
 
-    @Autowired
-    private ProductService productService;
+    private final CustomerService customerService;
 
-    @Autowired
-    private AddressService addressService;
+    private final AddressService addressService;
+
+    public CustomerApiController(CustomerService customerService, AddressService addressService) {
+        this.customerService = customerService;
+        this.addressService = addressService;
+    }
 
     @PostMapping("/list")
     public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
@@ -53,12 +49,12 @@ public class CustomerApiController extends BaseController {
         return response;
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestBody String identifier) {
         try {
             customerService.delete(identifier);
@@ -66,6 +62,16 @@ public class CustomerApiController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public boolean toggleStatus(@RequestBody String identifier) {
+        try {
+            customerService.toggleStatus(identifier);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
 

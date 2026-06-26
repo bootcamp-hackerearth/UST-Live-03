@@ -1,5 +1,6 @@
 package com.ust.pos.cartentry.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
@@ -10,7 +11,6 @@ import com.ust.pos.model.CartRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -21,18 +21,23 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
-public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+public class CartEntryServiceImpl extends BaseService implements CartEntryService {
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private PriceService priceService;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final PriceService priceService;
+
+    private final CartRepository cartRepository;
+
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, CartRepository cartRepository,
+                                ModelMapper modelMapper, PriceService priceService) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+        this.priceService = priceService;
+    }
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
@@ -59,6 +64,7 @@ public class CartEntryServiceImpl implements CartEntryService {
             cartEntryRepository.save(existingCartEntry);
         } else {
             CartEntry cartEntry = modelMapper.map(cartEntryDto, CartEntry.class);
+            setCreatedDetails(cartEntry);
             cartEntryRepository.save(cartEntry);
         }
         recalculate(cartEntryDto.getCartId());
@@ -132,4 +138,5 @@ public class CartEntryServiceImpl implements CartEntryService {
         cartEntryRepository.deleteAllByCartId(cartId);
         recalculate(cartId);
     }
+
 }

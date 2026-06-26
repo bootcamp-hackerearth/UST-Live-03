@@ -107,13 +107,12 @@ export default function Login() {
                   {...register("username", {
                     required: "Please enter email",
                     pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
                       message: "Please enter a valid email address",
                     },
                   })}
-                  className={`w-full h-12 rounded-xl px-4 text-sm text-black placeholder:text-black outline-none focus:border-black ${
-                    hasError ? "border border-red-500" : "border border-gray-300"
-                  }`}
+                  className={`w-full h-12 rounded-xl px-4 text-sm text-black placeholder:text-black outline-none focus:border-black ${hasError ? "border border-red-500" : "border border-gray-300"
+                    }`}
                 />
 
                 <input
@@ -122,9 +121,8 @@ export default function Login() {
                   {...register("password", {
                     required: "Please enter password",
                   })}
-                  className={`w-full h-12 rounded-xl px-4 text-sm text-black placeholder:text-black outline-none focus:border-black ${
-                    hasError ? "border border-red-500" : "border border-gray-300"
-                  }`}
+                  className={`w-full h-12 rounded-xl px-4 text-sm text-black placeholder:text-black outline-none focus:border-black ${hasError ? "border border-red-500" : "border border-gray-300"
+                    }`}
                 />
 
                 {displayedError && (

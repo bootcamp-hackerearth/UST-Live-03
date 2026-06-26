@@ -1,5 +1,6 @@
 package com.ust.pos.customer.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
@@ -9,7 +10,6 @@ import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,45 +19,56 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends BaseService implements CustomerService {
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    public static final String CUSTOMER_WITH_IDENTIFIER = "Customer with identifier - ";
+    public static final String SHIPPING_ADDRESS = "shippingAddress";
+    public static final String BILLING_ADDRESS = "billingAddress";
+    private final CustomerRepository customerRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private AddressService addressService;
+    private final AddressService addressService;
+
+    public CustomerServiceImpl(AddressService addressService, CustomerRepository customerRepository,
+                               ModelMapper modelMapper) {
+        this.addressService = addressService;
+        this.customerRepository = customerRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CustomerDto findByIdentifier(String identifier) {
-
         Customer customer = customerRepository.findByIdentifier(identifier);
-
         if (customer == null) {
-
             return null;
         }
-
         return modelMapper.map(customer, CustomerDto.class);
     }
 
     @Override
     public CustomerDto save(CustomerDto customerDto) {
-
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
-
         if (existingCustomer != null) {
-
-            customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
+            customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier + " already exists");
             customerDto.setSuccess(false);
             return customerDto;
         }
 
         AddressDto billingAddress = customerDto.getBillingAddress();
+        if (billingAddress == null) {
+            billingAddress = new AddressDto();
+            billingAddress.setAddressType(BILLING_ADDRESS);
+            customerDto.setBillingAddress(billingAddress);
+        }
+
         AddressDto shippingAddress = customerDto.getShippingAddress();
+        if (shippingAddress == null) {
+            shippingAddress = new AddressDto();
+            shippingAddress.setAddressType(SHIPPING_ADDRESS);
+            customerDto.setShippingAddress(shippingAddress);
+        }
 
         billingAddress.setPhoneNo(customerDto.getPhoneNo());
         shippingAddress.setPhoneNo(customerDto.getPhoneNo());
@@ -66,6 +77,12 @@ public class CustomerServiceImpl implements CustomerService {
         addressService.save(shippingAddress);
 
         Customer customer = modelMapper.map(customerDto, Customer.class);
+
+        if (customer.getStatus() == null) {
+            customer.setStatus(true);
+        }
+
+        setCreatedDetails(customer);
         customerRepository.save(customer);
 
         return customerDto;
@@ -73,19 +90,42 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto update(CustomerDto customerDto) {
-
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
 
-        if (existingCustomer == null) {
-
-            customerDto.setMessage("Customer with identifier - " + identifier + " not found");
+        if (existingCustomer == null || existingCustomer.isDeleted()) {
+            if (existingCustomer == null) {
+                customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier + " not found");
+            } else {
+                customerDto.setMessage(CUSTOMER_WITH_IDENTIFIER + identifier
+                        + " was deleted, Please Contact the Administrator to add.");
+            }
             customerDto.setSuccess(false);
             return customerDto;
         }
 
+        AddressDto dbBilling = addressService.findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), BILLING_ADDRESS);
+        AddressDto dbShipping = addressService.findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), SHIPPING_ADDRESS);
+
         AddressDto billingAddress = customerDto.getBillingAddress();
+        if (billingAddress == null) {
+            billingAddress = new AddressDto();
+            billingAddress.setAddressType(BILLING_ADDRESS);
+            customerDto.setBillingAddress(billingAddress);
+        }
+        if (dbBilling != null && dbBilling.getId() != null) {
+            billingAddress.setId(dbBilling.getId());
+        }
+
         AddressDto shippingAddress = customerDto.getShippingAddress();
+        if (shippingAddress == null) {
+            shippingAddress = new AddressDto();
+            shippingAddress.setAddressType(SHIPPING_ADDRESS);
+            customerDto.setShippingAddress(shippingAddress);
+        }
+        if (dbShipping != null && dbShipping.getId() != null) {
+            shippingAddress.setId(dbShipping.getId());
+        }
 
         billingAddress.setPhoneNo(customerDto.getPhoneNo());
         shippingAddress.setPhoneNo(customerDto.getPhoneNo());
@@ -94,11 +134,11 @@ public class CustomerServiceImpl implements CustomerService {
         addressService.save(shippingAddress);
 
         modelMapper.map(customerDto, existingCustomer);
-        customerDto.setBillingAddress(addressService.
-                findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), "billingAddress"));
-        customerDto.setShippingAddress(addressService.
-                findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), "shippingAddress"));
 
+        customerDto.setBillingAddress(addressService.findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), BILLING_ADDRESS));
+        customerDto.setShippingAddress(addressService.findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), SHIPPING_ADDRESS));
+
+        setModifiedDetails(existingCustomer);
         customerRepository.save(existingCustomer);
         return customerDto;
     }
@@ -106,15 +146,16 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public void delete(String identifier) {
-
-        customerRepository.deleteByIdentifier(identifier);
+        Customer customer = customerRepository.findByIdentifier(identifier);
+        softDelete(customer);
+        setModifiedDetails(customer);
     }
 
     @Override
     public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
+        Page<Customer> customerPage = customerRepository.findByIsDeletedFalse(pageable);
         WsDto<CustomerDto> customerWsDto = new WsDto<>();
         customerWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
         customerWsDto.setTotalRecords(customerPage.getTotalElements());
@@ -127,9 +168,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public String buildAddressIdentifier(AddressDto address) {
-
         if (address == null) return null;
-
         return address.getAddressline().trim().toUpperCase()
                 + "-" + address.getZipcode()
                 + "-" + address.getAddressType().toUpperCase();
@@ -140,6 +179,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findByIdentifier(identifier);
         if (customer != null) {
             customer.setStatus(!customer.getStatus());
+            setModifiedDetails(customer);
             customerRepository.save(customer);
         }
     }

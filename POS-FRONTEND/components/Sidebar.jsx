@@ -72,11 +72,10 @@ export default function SideBar({
 
   return (
     <div
-      className={`bg-black text-white h-screen transition-all duration-300 ease-in-out flex flex-col shadow-2xl ${
-        sidebarOpen
+      className={`bg-black text-white h-screen transition-all duration-300 ease-in-out flex flex-col shadow-2xl ${sidebarOpen
           ? "w-[220px]"
           : "w-0"
-      } overflow-hidden`}
+        } overflow-hidden`}
     >
       <div className="h-[68px] flex items-center justify-between px-5 border-b border-white/10 shrink-0">
         <h2 className="text-2xl font-bold whitespace-nowrap">
@@ -108,7 +107,7 @@ export default function SideBar({
         }}
       >
         {nodes.length ===
-        0 ? (
+          0 ? (
           <div className="text-gray-400 text-sm text-center mt-4">
             No Menu Items
           </div>
@@ -132,12 +131,11 @@ export default function SideBar({
                       node.path
                     )
                   }
-                  className={`w-full text-left px-4 py-3 rounded-xl mb-2 transition-all duration-200 text-sm ${
-                    pathname ===
-                    finalPath
+                  className={`w-full text-left px-4 py-3 rounded-xl mb-2 transition-all duration-200 text-sm ${pathname ===
+                      finalPath
                       ? "bg-white text-black font-semibold"
                       : "text-gray-300 hover:bg-white hover:text-black"
-                  }`}
+                    }`}
                 >
                   {
                     node.identifier

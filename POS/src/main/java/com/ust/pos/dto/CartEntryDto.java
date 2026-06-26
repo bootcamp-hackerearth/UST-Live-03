@@ -13,6 +13,7 @@ public class CartEntryDto extends CommonDto {
     private BigDecimal totalPrice;
     private String cartId;
     private BigDecimal quantity = new BigDecimal(0);
+    private BigDecimal mrp;
     private BigDecimal unitPrice;
     private BigDecimal totalOriginalPrice;
 }

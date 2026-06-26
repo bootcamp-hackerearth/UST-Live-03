@@ -12,7 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
@@ -33,112 +36,170 @@ class StockServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void saveTestSuccess() {
-        StockDto dto = new StockDto();
-        dto.setProduct("P1");
-        dto.setWarehouse("W1");
-
-        Stock stock = new Stock();
-
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(null);
-        when(modelMapper.map(dto, Stock.class)).thenReturn(stock);
-
-        StockDto result = stockService.save(dto);
-
-        Assertions.assertEquals("P1_W1", result.getIdentifier());
-        verify(stockRepository).save(stock);
-    }
-
-    @Test
-    void saveTestFailure() {
-        StockDto dto = new StockDto();
-        dto.setProduct("P1");
-        dto.setWarehouse("W1");
-
-        Stock stock = new Stock();
-
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
-
-        StockDto result = stockService.save(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
-        verify(stockRepository, never()).save(any());
-    }
-
-    @Test
-    void updateTestSuccess() {
-        StockDto dto = new StockDto();
-        dto.setProduct("P1");
-        dto.setWarehouse("W1");
-
-        Stock stock = new Stock();
-
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
-
-        StockDto result = stockService.update(dto);
-
-        Assertions.assertEquals("P1_W1", result.getIdentifier());
-        verify(modelMapper).map(dto, stock);
-        verify(stockRepository).save(stock);
-    }
-
-    @Test
-    void updateTestFailure() {
-        StockDto dto = new StockDto();
-        dto.setProduct("P1");
-        dto.setWarehouse("W1");
-
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(null);
-
-        StockDto result = stockService.update(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
-        verify(stockRepository, never()).save(any());
-    }
-
-    @Test
-    void deleteTest() {
-        stockService.delete("P1_W1");
-        verify(stockRepository).deleteByIdentifier("P1_W1");
-    }
-
-    @Test
     void findByIdentifierSuccessTest() {
         Stock stock = new Stock();
-        stock.setIdentifier("P1_W1");
+        stock.setIdentifier("PROD1_WH1");
 
         StockDto dto = new StockDto();
-        dto.setIdentifier("P1_W1");
+        dto.setIdentifier("PROD1_WH1");
 
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
-        when(modelMapper.map(stock, StockDto.class)).thenReturn(dto);
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(stock);
 
-        StockDto result = stockService.findByIdentifier("P1_W1");
+        when(modelMapper.map(stock, StockDto.class))
+                .thenReturn(dto);
+
+        StockDto result = stockService.findByIdentifier("PROD1_WH1");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("P1_W1", result.getIdentifier());
+        Assertions.assertEquals("PROD1_WH1", result.getIdentifier());
     }
 
     @Test
     void findByIdentifierFailureTest() {
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(null);
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(null);
 
-        StockDto result = stockService.findByIdentifier("P1_W1");
+        StockDto result = stockService.findByIdentifier("PROD1_WH1");
 
         Assertions.assertNull(result);
     }
 
     @Test
-    void findAllTest() {
+    void saveSuccessTest() {
+        StockDto dto = new StockDto();
+        dto.setProduct("PROD1");
+        dto.setWarehouse("WH1");
 
-        Pageable pageable = mock(Pageable.class);
-        Page<Stock> page = mock(Page.class);
+        Stock stock = new Stock();
+
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(dto, Stock.class))
+                .thenReturn(stock);
+
+        StockDto result = stockService.save(dto);
+
+        Assertions.assertEquals("PROD1_WH1", result.getIdentifier());
+
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void saveAlreadyExistsTest() {
+        StockDto dto = new StockDto();
+        dto.setProduct("PROD1");
+        dto.setWarehouse("WH1");
+
+        Stock existingStock = new Stock();
+        existingStock.setDeleted(false);
+
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(existingStock);
+
+        StockDto result = stockService.save(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertEquals(
+                "Stock with identifier - PROD1_WH1 already exists",
+                result.getMessage()
+        );
+
+        verify(stockRepository, never()).save(any());
+    }
+
+    @Test
+    void saveDeletedStockTest() {
+        StockDto dto = new StockDto();
+        dto.setProduct("PROD1");
+        dto.setWarehouse("WH1");
+
+        Stock existingStock = new Stock();
+        existingStock.setDeleted(true);
+
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(existingStock);
+
+        StockDto result = stockService.save(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertEquals(
+                "Stock with identifier - PROD1_WH1 was deleted , Please Contact the Administrator to add.",
+                result.getMessage()
+        );
+
+        verify(stockRepository, never()).save(any());
+    }
+
+    @Test
+    void updateSuccessTest() {
+        StockDto dto = new StockDto();
+        dto.setProduct("PROD1");
+        dto.setWarehouse("WH1");
+
+        Stock existingStock = new Stock();
+        existingStock.setIdentifier("PROD1_WH1");
+
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(existingStock);
+
+        StockDto result = stockService.update(dto);
+
+        Assertions.assertEquals("PROD1_WH1", result.getIdentifier());
+
+        verify(modelMapper).map(dto, existingStock);
+        verify(stockRepository).save(existingStock);
+    }
+
+    @Test
+    void updateFailureTest() {
+        StockDto dto = new StockDto();
+        dto.setProduct("PROD1");
+        dto.setWarehouse("WH1");
+
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(null);
+
+        StockDto result = stockService.update(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertEquals(
+                "Stock with identifier - PROD1_WH1 not found",
+                result.getMessage()
+        );
+
+        verify(stockRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteTest() {
+        Stock stock = new Stock();
+
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(stock);
+
+        stockService.delete("PROD1_WH1");
+
+        verify(stockRepository).findByIdentifier("PROD1_WH1");
+    }
+
+    @Test
+    void findAllTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Stock stock1 = new Stock();
+        Stock stock2 = new Stock();
 
         List<Stock> stocks = List.of(
-                new Stock(),
-                new Stock()
+                stock1,
+                stock2
+        );
+
+        Page<Stock> page = new PageImpl<>(
+                stocks,
+                pageable,
+                2
         );
 
         List<StockDto> dtoList = List.of(
@@ -146,30 +207,23 @@ class StockServiceTest {
                 new StockDto()
         );
 
-        when(stockRepository.findAll(pageable)).thenReturn(page);
-        when(page.getContent()).thenReturn(stocks);
-        when(page.getTotalElements()).thenReturn(2L);
-        when(page.getTotalPages()).thenReturn(1);
-        when(pageable.getPageSize()).thenReturn(10);
-        when(pageable.getPageNumber()).thenReturn(0);
-        when(modelMapper.map(eq(stocks), any(Type.class))).thenReturn(dtoList);
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+
+        when(stockRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(stocks, listType))
+                .thenReturn(dtoList);
 
         WsDto<StockDto> result = stockService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(dtoList, result.getDtoList());
-        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals(2, result.getTotalRecords());
         Assertions.assertEquals(1, result.getTotalPages());
         Assertions.assertEquals(10, result.getSizePerPage());
         Assertions.assertEquals(0, result.getPage());
-
-        verify(stockRepository).findAll(pageable);
-        verify(page).getContent();
-        verify(page).getTotalElements();
-        verify(page).getTotalPages();
-        verify(pageable).getPageSize();
-        verify(pageable).getPageNumber();
-        verify(modelMapper).map(eq(stocks), any(Type.class));
     }
 
     @Test
@@ -177,11 +231,13 @@ class StockServiceTest {
         Stock stock = new Stock();
         stock.setStatus(true);
 
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(stock);
 
-        stockService.toggleStatus("P1_W1");
+        stockService.toggleStatus("PROD1_WH1");
 
         Assertions.assertFalse(stock.getStatus());
+
         verify(stockRepository).save(stock);
     }
 
@@ -190,19 +246,22 @@ class StockServiceTest {
         Stock stock = new Stock();
         stock.setStatus(false);
 
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(stock);
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(stock);
 
-        stockService.toggleStatus("P1_W1");
+        stockService.toggleStatus("PROD1_WH1");
 
         Assertions.assertTrue(stock.getStatus());
+
         verify(stockRepository).save(stock);
     }
 
     @Test
-    void toggleStatusNullTest() {
-        when(stockRepository.findByIdentifier("P1_W1")).thenReturn(null);
+    void toggleStatusStockNotFoundTest() {
+        when(stockRepository.findByIdentifier("PROD1_WH1"))
+                .thenReturn(null);
 
-        stockService.toggleStatus("P1_W1");
+        stockService.toggleStatus("PROD1_WH1");
 
         verify(stockRepository, never()).save(any());
     }

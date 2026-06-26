@@ -1,115 +1,67 @@
 "use client";
 
-import axios from "axios";
 import CommonList from "@/components/CommonList";
 import CommonForm from "@/components/CommonForm";
-import PropTypes from "@/lib/propTypes";
+import PropTypes from "prop-types";
+import { requiredValidation } from "@/validation/validation";
 
-const priceFields = [
-  {
-    name: "product",
-    label: "Product",
-    type: "select",
-    apiUrl:
-      "http://localhost:8080/api/product/list",
-  },
-  {
-    name: "priceAmount",
-    label: "Price Amount",
-    type: "number",
-  },
-  {
-    name: "priceType",
-    label: "Price Type",
-    type: "staticSelect",
-    options: [
-      "selling price",
-      "cost price",
-      "MRP",
-    ],
-  },
-];
-
-function PriceForm(props) {
+export default function PricesPage() {
   return (
-    <CommonForm
-      {...props}
-      title="Price"
-      fields={priceFields}
-      onSubmit={props.handleSubmit}
+    <CommonList
+      routeName="price"
+      editField="identifier"
+      keys={["identifier", "product", "priceAmount", "priceType"]}
+      headers={["Price Code", "Product", "Price Amount", "Price Type"]}
+      FormComponent={PriceForm}
     />
   );
 }
 
 PriceForm.propTypes = {
-  mode: PropTypes.oneOf(["add", "edit"]).isRequired,
+  mode: PropTypes.string.isRequired,
   data: PropTypes.object,
   onClose: PropTypes.func.isRequired,
-  onSuccess: PropTypes.func,
-  handleSubmit: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
 };
 
-export default function PricesPage() {
-  const handleSubmit = async (
-    formData,
-    mode
-  ) => {
-    try {
-      const token =
-        localStorage.getItem(
-          "token"
-        );
-
-      const url =
-        mode === "add"
-          ? "http://localhost:8080/api/price/add"
-          : "http://localhost:8080/api/price/update";
-
-      await axios.post(
-        url,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type":
-              "application/json",
-          },
-        }
-      );
-
-      return true;
-    } catch (error) {
-      console.log(error);
-      return false;
-    }
+function PriceForm({ mode, data, onClose, onSubmit }) {
+  const customValidations = {
+    product: requiredValidation,
+    priceAmount: requiredValidation,
+    priceType: requiredValidation,
   };
 
   return (
-    <CommonList
-      title="Price Management"
-      subtitle="Manage product prices"
-      apiUrl="http://localhost:8080/api/price/list"
-      deleteUrl="http://localhost:8080/api/price/delete"
-      dataKey="identifier"
-      addButtonText="Add Price"
-      FormComponent={PriceForm}
-      formComponentProps={{ handleSubmit }}
-      columns={[
+    <CommonForm
+      title="Price"
+      mode={mode}
+      data={data}
+      onClose={onClose}
+      validate={customValidations}
+      onSubmit={onSubmit}
+      fields={[
         {
-          label: "Price Code",
-          key: "identifier",
-        },
-        {
+          name: "product",
           label: "Product",
-          key: "product",
+          placeholder: "Product",
+          type: "select",
+          apiUrl: "http://localhost:8080/api/product/list",
+          required: true,
         },
         {
+          name: "priceAmount",
           label: "Price Amount",
-          key: "priceAmount",
+          placeholder: "Price Amount",
+          type: "number",
+          required: true,
         },
         {
+          name: "priceType",
           label: "Price Type",
-          key: "priceType",
+          placeholder: "Price Type",
+          type: "staticSelect",
+          options: ["selling price", "cost price", "MRP"],
+          required: true,
         },
       ]}
     />

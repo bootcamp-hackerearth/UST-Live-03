@@ -1,120 +1,54 @@
 "use client";
 
-import axios from "axios";
 import CommonList from "@/components/CommonList";
 import CommonForm from "@/components/CommonForm";
-import PropTypes from "@/lib/propTypes";
+import PropTypes from "prop-types";
+import { requiredValidation } from "@/validation/validation"
 
-const categoryFields = [
-  {
-    name: "identifier",
-    label: "Category Name",
-    required: true,
-  },
-  {
-    name: "superCategory",
-    label: "Super Category",
-    type: "multiselect",
-    required: false,
-    apiUrl: "http://localhost:8080/api/category/list",
-  },
-];
 
-function CategoryForm(props) {
+export default function CategoriesPage() {
   return (
-    <CommonForm
-      {...props}
-      title="Category"
-      fields={categoryFields}
-      onSubmit={props.handleSubmit}
+    <CommonList
+      routeName="category"
+      editField="identifier"
+      keys={["identifier", "superCategory"]}
+      headers={["Category Name", "Super Category"]}
+      FormComponent={CategoryForm}
     />
   );
 }
 
 CategoryForm.propTypes = {
-  mode: PropTypes.oneOf(["add", "edit"]).isRequired,
+  mode: PropTypes.string.isRequired,
   data: PropTypes.object,
   onClose: PropTypes.func.isRequired,
-  onSuccess: PropTypes.func,
-  handleSubmit: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
 };
 
-export default function CategoriesPage() {
-  const handleSubmit = async (
-    formData,
-    mode
-  ) => {
-    try {
-      const token =
-        localStorage.getItem(
-          "token"
-        );
-
-      if (
-        !formData.superCategory
-      ) {
-        formData.superCategory =
-          [];
-      }
-
-      console.log(
-        "Category Payload:",
-        formData
-      );
-
-      const url =
-        mode === "add"
-          ? "http://localhost:8080/api/category/add"
-          : "http://localhost:8080/api/category/update";
-
-      await axios.post(
-        url,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type":
-              "application/json",
-          },
-        }
-      );
-
-      return true;
-    } catch (error) {
-      console.log(
-        "Category Error:"
-      );
-      console.log(error);
-      console.log(
-        error?.response?.data
-      );
-
-      return false;
-    }
-  };
-
+function CategoryForm({ mode, data, onClose, onSubmit }) {
   return (
-    <CommonList
-      title="Category Management"
-      subtitle="Manage product categories"
-      apiUrl="http://localhost:8080/api/category/list"
-      deleteUrl="http://localhost:8080/api/category/delete"
-      dataKey="identifier"
-      addButtonText="Add Category"
-      FormComponent={CategoryForm}
-      formComponentProps={{ handleSubmit }}
-      columns={[
+    <CommonForm
+      title="Category"
+      mode={mode}
+      data={data}
+      onClose={onClose}
+      onSubmit={onSubmit}
+      fields={[
         {
-          label:
-            "Category Name",
-          key:
-            "identifier",
+          name: "identifier",
+          label: "Category Name",
+          placeholder: "Category Name",
+          required: true,
+          validation: requiredValidation,
         },
         {
-          label:
-            "Super Category",
-          key:
-            "superCategory",
+          name: "superCategory",
+          label: "Super Category",
+          placeholder: "Super Category",
+          validation: requiredValidation,
+          type: "multiselect",
+          apiUrl: "http://localhost:8080/api/category/list",
+          required: false,
         },
       ]}
     />

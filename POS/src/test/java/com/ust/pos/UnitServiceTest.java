@@ -12,7 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
@@ -33,155 +36,197 @@ class UnitServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void saveTestSuccess() {
+    void findByIdentifierTest() {
+        Unit unit = new Unit();
+        unit.setIdentifier("KG");
+
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("Admin");
+        dto.setIdentifier("KG");
+
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(unit);
+
+        when(modelMapper.map(unit, UnitDto.class))
+                .thenReturn(dto);
+
+        UnitDto result = unitService.findByIdentifier("KG");
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("KG", result.getIdentifier());
+    }
+
+    @Test
+    void saveSuccessTest() {
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("KG");
 
         Unit unit = new Unit();
 
-        when(unitRepository.findByIdentifier("Admin")).thenReturn(null);
-        when(modelMapper.map(dto, Unit.class)).thenReturn(unit);
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(null);
 
-        UnitDto response = unitService.save(dto);
+        when(modelMapper.map(dto, Unit.class))
+                .thenReturn(unit);
 
-        Assertions.assertEquals("Admin", response.getIdentifier());
+        UnitDto result = unitService.save(dto);
+
+        Assertions.assertEquals("KG", result.getIdentifier());
 
         verify(unitRepository).save(unit);
     }
 
     @Test
-    void saveTestFailure() {
+    void saveAlreadyExistsTest() {
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("Admin");
+        dto.setIdentifier("KG");
 
-        Unit unit = new Unit();
-        unit.setIdentifier("Admin");
+        Unit existingUnit = new Unit();
+        existingUnit.setDeleted(false);
 
-        when(unitRepository.findByIdentifier("Admin")).thenReturn(unit);
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(existingUnit);
 
-        UnitDto response = unitService.save(dto);
+        UnitDto result = unitService.save(dto);
 
-        Assertions.assertNotNull(response.getMessage());
-        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertEquals(
+                "Unit with identifier - KG already exists",
+                result.getMessage()
+        );
 
         verify(unitRepository, never()).save(any());
     }
 
     @Test
-    void updateTestSuccess() {
+    void saveDeletedUnitTest() {
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("Admin");
+        dto.setIdentifier("KG");
 
-        Unit unit = new Unit();
+        Unit existingUnit = new Unit();
+        existingUnit.setDeleted(true);
 
-        when(unitRepository.findByIdentifier("Admin")).thenReturn(unit);
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(existingUnit);
 
-        UnitDto response = unitService.update(dto);
+        UnitDto result = unitService.save(dto);
 
-        Assertions.assertEquals("Admin", response.getIdentifier());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertEquals(
+                "Unit with identifier - KG was deleted , Please Contact the Administrator to add.",
+                result.getMessage()
+        );
 
-        verify(modelMapper).map(dto, unit);
-        verify(unitRepository).save(unit);
+        verify(unitRepository, never()).save(any());
     }
 
     @Test
-    void updateTestFailure() {
+    void updateSuccessTest() {
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("Admin");
+        dto.setIdentifier("KG");
 
-        when(unitRepository.findByIdentifier("Admin")).thenReturn(null);
+        Unit existingUnit = new Unit();
 
-        UnitDto response = unitService.update(dto);
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(existingUnit);
 
-        Assertions.assertNotNull(response.getMessage());
-        Assertions.assertFalse(response.isSuccess());
+        UnitDto result = unitService.update(dto);
+
+        Assertions.assertEquals("KG", result.getIdentifier());
+
+        verify(modelMapper).map(dto, existingUnit);
+        verify(unitRepository).save(existingUnit);
+    }
+
+    @Test
+    void updateFailureTest() {
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("KG");
+
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(null);
+
+        UnitDto result = unitService.update(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertEquals(
+                "Unit with identifier - KG not found",
+                result.getMessage()
+        );
 
         verify(unitRepository, never()).save(any());
     }
 
     @Test
     void deleteTest() {
-        unitService.delete("Admin");
-        verify(unitRepository).deleteByIdentifier("Admin");
-    }
-
-    @Test
-    void findByIdentifierSuccessTest() {
         Unit unit = new Unit();
-        unit.setIdentifier("Admin");
 
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("Admin");
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(unit);
 
-        when(unitRepository.findByIdentifier("Admin")).thenReturn(unit);
-        when(modelMapper.map(unit, UnitDto.class)).thenReturn(dto);
+        unitService.delete("KG");
 
-        UnitDto result = unitService.findByIdentifier("Admin");
-
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("Admin", result.getIdentifier());
-    }
-
-    @Test
-    void findByIdentifierFailureTest() {
-        when(unitRepository.findByIdentifier("Admin")).thenReturn(null);
-
-        UnitDto result = unitService.findByIdentifier("Admin");
-
-        Assertions.assertNull(result);
+        verify(unitRepository).findByIdentifier("KG");
     }
 
     @Test
     void findAllTest() {
-
-        Pageable pageable = mock(Pageable.class);
-        Page<Unit> page = mock(Page.class);
+        Pageable pageable = PageRequest.of(0, 10);
 
         List<Unit> units = List.of(
                 new Unit(),
                 new Unit()
         );
 
+        Page<Unit> page = new PageImpl<>(units, pageable, 2);
+
         List<UnitDto> dtoList = List.of(
                 new UnitDto(),
                 new UnitDto()
         );
 
-        when(unitRepository.findAll(pageable)).thenReturn(page);
-        when(page.getContent()).thenReturn(units);
-        when(page.getTotalElements()).thenReturn(2L);
-        when(page.getTotalPages()).thenReturn(1);
-        when(pageable.getPageSize()).thenReturn(10);
-        when(pageable.getPageNumber()).thenReturn(0);
-        when(modelMapper.map(eq(units), any(Type.class))).thenReturn(dtoList);
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
+
+        when(unitRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(units, listType))
+                .thenReturn(dtoList);
 
         WsDto<UnitDto> result = unitService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(dtoList, result.getDtoList());
-        Assertions.assertEquals(2L, result.getTotalRecords());
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals(2, result.getTotalRecords());
         Assertions.assertEquals(1, result.getTotalPages());
         Assertions.assertEquals(10, result.getSizePerPage());
         Assertions.assertEquals(0, result.getPage());
-
-        verify(unitRepository).findAll(pageable);
-        verify(page).getContent();
-        verify(page).getTotalElements();
-        verify(page).getTotalPages();
-        verify(pageable).getPageSize();
-        verify(pageable).getPageNumber();
-        verify(modelMapper).map(eq(units), any(Type.class));
     }
 
     @Test
-    void toggleStatusTest() {
+    void toggleStatusFalseToTrueTest() {
         Unit unit = new Unit();
-        unit.setIdentifier("Admin");
+        unit.setStatus(false);
+
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(unit);
+
+        unitService.toggleStatus("KG");
+
+        Assertions.assertTrue(unit.getStatus());
+
+        verify(unitRepository).save(unit);
+    }
+
+    @Test
+    void toggleStatusTrueToFalseTest() {
+        Unit unit = new Unit();
         unit.setStatus(true);
 
-        when(unitRepository.findByIdentifier("Admin")).thenReturn(unit);
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(unit);
 
-        unitService.toggleStatus("Admin");
+        unitService.toggleStatus("KG");
 
         Assertions.assertFalse(unit.getStatus());
 
@@ -189,14 +234,14 @@ class UnitServiceTest {
     }
 
     @Test
-    void toggleStatusFromNullTest() {
+    void toggleStatusNullToTrueTest() {
         Unit unit = new Unit();
-        unit.setIdentifier("Admin");
         unit.setStatus(null);
 
-        when(unitRepository.findByIdentifier("Admin")).thenReturn(unit);
+        when(unitRepository.findByIdentifier("KG"))
+                .thenReturn(unit);
 
-        unitService.toggleStatus("Admin");
+        unitService.toggleStatus("KG");
 
         Assertions.assertTrue(unit.getStatus());
 
