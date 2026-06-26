@@ -39,7 +39,6 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         }
 
         String name = dto.getModelName().trim();
-
         Models existing = modelsRepository.findByIdentifier(name);
 
         if (existing != null && !Boolean.TRUE.equals(existing.getDeleted())) {
@@ -52,15 +51,11 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         model.setIdentifier(name);
         model.setModelName(name);
         model.setStatus(dto.getStatus());
-
         setCreatedDetails(model);
-
         modelsRepository.save(model);
-
         dto.setSuccess(true);
         dto.setMessage("Model saved successfully");
         dto.setIdentifier(model.getIdentifier());
-
         return dto;
     }
 
@@ -80,14 +75,10 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         }
 
         model.setStatus(dto.getStatus());
-
         setModifiedDetails(model);
-
         modelsRepository.save(model);
-
         dto.setSuccess(true);
         dto.setMessage("Model updated successfully");
-
         return dto;
     }
 
@@ -110,16 +101,13 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
     public WsDto<ModelsDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<ModelsDto>>() {}.getType();
-
         Page<Models> page = modelsRepository.findAll(pageable);
-
         WsDto<ModelsDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(page.getContent(), listType));
         ws.setTotalRecords(page.getTotalElements());
         ws.setTotalPages(page.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
-
         return ws;
     }
 
@@ -132,7 +120,6 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
 
         model.setDeleted(true);
         setModifiedDetails(model);
-
         modelsRepository.save(model);
     }
 
@@ -149,15 +136,11 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         }
 
         model.setStatus(!Boolean.TRUE.equals(model.getStatus()));
-
         setModifiedDetails(model);
-
         modelsRepository.save(model);
-
         ModelsDto dto = modelMapper.map(model, ModelsDto.class);
         dto.setSuccess(true);
         dto.setMessage("Status updated successfully");
-
         return dto;
     }
 

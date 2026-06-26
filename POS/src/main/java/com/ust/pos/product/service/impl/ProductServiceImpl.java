@@ -38,7 +38,6 @@ public class ProductServiceImpl extends BaseService implements ProductService {
     public ProductDto save(ProductDto productDto) {
 
         String identifier = productDto.getIdentifier().trim();
-
         Product existing = productRepository.findByIdentifier(identifier);
 
         if (existing != null && !Boolean.TRUE.equals(existing.getDeleted())) {
@@ -49,15 +48,11 @@ public class ProductServiceImpl extends BaseService implements ProductService {
 
         Product product = modelMapper.map(productDto, Product.class);
         product.setIdentifier(identifier);
-
         setCreatedDetails(product);
-
         Product saved = productRepository.save(product);
-
         ProductDto response = modelMapper.map(saved, ProductDto.class);
         response.setSuccess(true);
         response.setMessage("Product saved successfully");
-
         return response;
     }
 
@@ -74,15 +69,11 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         }
 
         modelMapper.map(productDto, product);
-
         setModifiedDetails(product);
-
         Product saved = productRepository.save(product);
-
         ProductDto dto = modelMapper.map(saved, ProductDto.class);
         dto.setSuccess(true);
         dto.setMessage("Product updated successfully");
-
         return dto;
     }
 
@@ -97,7 +88,6 @@ public class ProductServiceImpl extends BaseService implements ProductService {
             dto.setMessage(PRODUCT_NOT_FOUND);
             return dto;
         }
-
         return modelMapper.map(product, ProductDto.class);
     }
 
@@ -105,16 +95,13 @@ public class ProductServiceImpl extends BaseService implements ProductService {
     public WsDto<ProductDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<ProductDto>>() {}.getType();
-
         Page<Product> page = productRepository.findByDeletedFalse(pageable);
-
         WsDto<ProductDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(page.getContent(), listType));
         ws.setTotalRecords(page.getTotalElements());
         ws.setTotalPages(page.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
-
         return ws;
     }
 
@@ -122,12 +109,9 @@ public class ProductServiceImpl extends BaseService implements ProductService {
     public void delete(String identifier) {
 
         Product product = productRepository.findByIdentifier(identifier);
-
         if (product == null) return;
-
         product.setDeleted(true);
         setModifiedDetails(product);
-
         productRepository.save(product);
     }
 
@@ -135,9 +119,7 @@ public class ProductServiceImpl extends BaseService implements ProductService {
     public List<ProductDto> findActiveProducts() {
 
         List<Product> list = productRepository.findByStatusTrueAndDeletedFalse();
-
         Type type = new TypeToken<List<ProductDto>>() {}.getType();
-
         return modelMapper.map(list, type);
     }
 
@@ -154,15 +136,11 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         }
 
         product.setStatus(!Boolean.TRUE.equals(product.getStatus()));
-
         setModifiedDetails(product);
-
         Product saved = productRepository.save(product);
-
         ProductDto dto = modelMapper.map(saved, ProductDto.class);
         dto.setSuccess(true);
         dto.setMessage("Status updated successfully");
-
         return dto;
     }
 
@@ -174,7 +152,6 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         }
 
         List<Product> products = productRepository.searchActiveProducts(query);
-
         return products.stream()
                 .filter(p -> priceRepository.countActivePriceTypes(p.getIdentifier()) == 3)
                 .map(p -> modelMapper.map(p, ProductDto.class))

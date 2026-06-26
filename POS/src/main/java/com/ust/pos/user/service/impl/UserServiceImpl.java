@@ -56,17 +56,12 @@ public class UserServiceImpl extends BaseService implements UserService {
         }
 
         User user = modelMapper.map(userDto, User.class);
-
         user.setIdentifier(userDto.getUsername());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-
         setCreatedDetails(user);
-
         userRepository.save(user);
-
         userDto.setSuccess(true);
         userDto.setMessage("User created successfully");
-
         return userDto;
     }
 
@@ -98,14 +93,10 @@ public class UserServiceImpl extends BaseService implements UserService {
 
         existingUser.setIdentifier(userDto.getUsername());
         modelMapper.map(userDto, existingUser);
-
         setModifiedDetails(existingUser);
-
         userRepository.save(existingUser);
-
         userDto.setSuccess(true);
         userDto.setMessage("User updated successfully");
-
         return userDto;
     }
 
@@ -118,9 +109,7 @@ public class UserServiceImpl extends BaseService implements UserService {
         if (user == null) return;
 
         user.setDeleted(true);
-
         setModifiedDetails(user);
-
         userRepository.save(user);
     }
 
@@ -131,15 +120,12 @@ public class UserServiceImpl extends BaseService implements UserService {
         }.getType();
 
         Page<User> userPage = userRepository.findByDeletedFalse(pageable);
-
         WsDto<UserDto> wsDto = new WsDto<>();
-
         wsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
         wsDto.setTotalRecords(userPage.getTotalElements());
         wsDto.setTotalPages(userPage.getTotalPages());
         wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setPage(pageable.getPageNumber());
-
         return wsDto;
     }
 }

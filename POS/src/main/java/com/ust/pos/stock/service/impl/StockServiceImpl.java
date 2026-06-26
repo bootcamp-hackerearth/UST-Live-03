@@ -23,8 +23,7 @@ public class StockServiceImpl extends BaseService implements StockService {
     private final StockRepository stockRepository;
     private final ModelMapper modelMapper;
 
-    public StockServiceImpl(StockRepository stockRepository,
-                            ModelMapper modelMapper) {
+    public StockServiceImpl(StockRepository stockRepository,ModelMapper modelMapper) {
         this.stockRepository = stockRepository;
         this.modelMapper = modelMapper;
     }
@@ -35,8 +34,7 @@ public class StockServiceImpl extends BaseService implements StockService {
             return "DISCONTINUED";
         }
 
-        if (stock.getAvailableQuantity() == null
-                || stock.getAvailableQuantity() <= 0) {
+        if (stock.getAvailableQuantity() == null || stock.getAvailableQuantity() <= 0) {
             return "OUT_OF_STOCK";
         }
 
@@ -51,19 +49,15 @@ public class StockServiceImpl extends BaseService implements StockService {
     @Override
     public StockDto save(StockDto dto) {
 
-        dto.setIdentifier(dto.getProductIdentifier()
-                + "_" + dto.getWarehouseIdentifier());
-
+        dto.setIdentifier(dto.getProductIdentifier() + "_" + dto.getWarehouseIdentifier());
         Stock existing = stockRepository.findByIdentifier(dto.getIdentifier());
 
         if (existing != null) {
-
             if (Boolean.TRUE.equals(existing.getDeleted())) {
                 dto.setSuccess(false);
                 dto.setMessage("Product was deleted from this warehouse — restore it instead of creating new");
                 return dto;
             }
-
             dto.setSuccess(false);
             dto.setMessage("Product already exists in this warehouse");
             return dto;
@@ -76,27 +70,21 @@ public class StockServiceImpl extends BaseService implements StockService {
         }
 
         setCreatedDetails(stock);
-
         Stock saved = stockRepository.save(stock);
-
         StockDto response = modelMapper.map(saved, StockDto.class);
         response.setStockState(calculateState(saved));
         response.setSuccess(true);
         response.setMessage("Stock saved successfully");
-
         return response;
     }
 
     @Override
     public StockDto update(StockDto dto) {
 
-        dto.setIdentifier(dto.getProductIdentifier()
-                + "_" + dto.getWarehouseIdentifier());
-
+        dto.setIdentifier(dto.getProductIdentifier() + "_" + dto.getWarehouseIdentifier());
         Stock existing = stockRepository.findByIdentifier(dto.getIdentifier());
 
-        if (existing == null
-                || Boolean.TRUE.equals(existing.getDeleted())) {
+        if (existing == null || Boolean.TRUE.equals(existing.getDeleted())) {
             StockDto error = new StockDto();
             error.setSuccess(false);
             error.setMessage(STOCK_NOT_FOUND);
@@ -106,16 +94,12 @@ public class StockServiceImpl extends BaseService implements StockService {
         existing.setAvailableQuantity(dto.getAvailableQuantity());
         existing.setReorderLevel(dto.getReorderLevel());
         existing.setStatus(dto.getStatus());
-
         setModifiedDetails(existing);
-
         Stock saved = stockRepository.save(existing);
-
         StockDto response = modelMapper.map(saved, StockDto.class);
         response.setStockState(calculateState(saved));
         response.setSuccess(true);
         response.setMessage("Stock updated successfully");
-
         return response;
     }
 
@@ -134,7 +118,6 @@ public class StockServiceImpl extends BaseService implements StockService {
         StockDto dto = modelMapper.map(stock, StockDto.class);
         dto.setStockState(calculateState(stock));
         dto.setSuccess(true);
-
         return dto;
     }
 
@@ -143,8 +126,7 @@ public class StockServiceImpl extends BaseService implements StockService {
 
         Page<Stock> stockPage = stockRepository.findByDeletedFalse(pageable);
 
-        List<StockDto> dtoList = stockPage.getContent()
-                .stream()
+        List<StockDto> dtoList = stockPage.getContent().stream()
                 .map(s -> {
                     StockDto dto = modelMapper.map(s, StockDto.class);
                     dto.setStockState(calculateState(s));
@@ -158,7 +140,6 @@ public class StockServiceImpl extends BaseService implements StockService {
         ws.setTotalPages(stockPage.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
-
         return ws;
     }
     @Override
@@ -169,9 +150,7 @@ public class StockServiceImpl extends BaseService implements StockService {
         if (stock == null) return;
 
         stock.setDeleted(true);
-
         setModifiedDetails(stock);
-
         stockRepository.save(stock);
     }
 
@@ -188,16 +167,12 @@ public class StockServiceImpl extends BaseService implements StockService {
         }
 
         stock.setStatus(!Boolean.TRUE.equals(stock.getStatus()));
-
         setModifiedDetails(stock);
-
         Stock saved = stockRepository.save(stock);
-
         StockDto dto = modelMapper.map(saved, StockDto.class);
         dto.setStockState(calculateState(saved));
         dto.setSuccess(true);
         dto.setMessage("Stock status updated successfully");
-
         return dto;
     }
 
@@ -205,8 +180,7 @@ public class StockServiceImpl extends BaseService implements StockService {
     public List<StockDto> findActiveStock() {
 
         return stockRepository.findByStatusTrueAndDeletedFalse()
-                .stream()
-                .map(s -> {
+                .stream().map(s -> {
                     StockDto dto = modelMapper.map(s, StockDto.class);
                     dto.setStockState(calculateState(s));
                     return dto;
@@ -218,8 +192,7 @@ public class StockServiceImpl extends BaseService implements StockService {
     public boolean isStockAvailable(String productIdentifier, Integer quantity) {
 
         int totalAvailable = stockRepository.findByProductIdentifierAndDeletedFalse(productIdentifier)
-                .stream()
-                .filter(s -> Boolean.TRUE.equals(s.getStatus()))
+                .stream().filter(s -> Boolean.TRUE.equals(s.getStatus()))
                 .mapToInt(s -> s.getAvailableQuantity() != null ? s.getAvailableQuantity() : 0)
                 .sum();
 
@@ -230,18 +203,13 @@ public class StockServiceImpl extends BaseService implements StockService {
     public StockDto reduceStock(String productIdentifier, Integer quantity) {
 
         List<Stock> stocks = stockRepository.findByProductIdentifierAndDeletedFalse(productIdentifier)
-                .stream()
-                .filter(s -> Boolean.TRUE.equals(s.getStatus()))
+                .stream().filter(s -> Boolean.TRUE.equals(s.getStatus()))
                 .filter(s -> s.getAvailableQuantity() != null && s.getAvailableQuantity() > 0)
                 .sorted((a, b) -> b.getAvailableQuantity() - a.getAvailableQuantity()) // biggest warehouse first
                 .toList();
 
-        int totalAvailable = stocks.stream()
-                .mapToInt(Stock::getAvailableQuantity)
-                .sum();
-
+        int totalAvailable = stocks.stream().mapToInt(Stock::getAvailableQuantity).sum();
         StockDto dto = new StockDto();
-
         if (totalAvailable < quantity) {
             dto.setSuccess(false);
             dto.setMessage("Insufficient stock for product: " + productIdentifier);
@@ -251,24 +219,17 @@ public class StockServiceImpl extends BaseService implements StockService {
         int remaining = quantity;
 
         for (Stock s : stocks) {
-
             if (remaining <= 0) break;
-
             int take = Math.min(remaining, s.getAvailableQuantity());
-
             s.setAvailableQuantity(s.getAvailableQuantity() - take);
-
             setModifiedDetails(s);
-
             stockRepository.save(s);
-
             remaining -= take;
         }
 
         dto.setProductIdentifier(productIdentifier);
         dto.setSuccess(true);
         dto.setMessage("Stock reduced successfully");
-
         return dto;
     }
 }

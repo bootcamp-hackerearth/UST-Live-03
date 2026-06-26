@@ -94,11 +94,8 @@ public class BrandServiceImpl extends BaseService implements BrandService {
 
         brand.setBrandName(dto.getBrandName());
         brand.setDescription(dto.getDescription());
-
         setModifiedDetails(brand);
-
         Brand saved = brandRepository.save(brand);
-
         BrandDto result = modelMapper.map(saved, BrandDto.class);
         result.setSuccess(true);
         result.setMessage("Brand updated successfully");
@@ -155,15 +152,11 @@ public class BrandServiceImpl extends BaseService implements BrandService {
         }
 
         brand.setStatus(!Boolean.TRUE.equals(brand.getStatus()));
-
         setModifiedDetails(brand);
-
         Brand saved = brandRepository.save(brand);
-
         dto = modelMapper.map(saved, BrandDto.class);
         dto.setSuccess(true);
         dto.setMessage("Status updated successfully");
-
         return dto;
     }
 }

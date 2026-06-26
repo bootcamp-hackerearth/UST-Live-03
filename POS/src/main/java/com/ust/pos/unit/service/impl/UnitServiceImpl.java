@@ -42,16 +42,13 @@ public class UnitServiceImpl extends BaseService implements UnitService {
         }
 
         String identifier = unitName.trim();
-
         Unit existing = unitRepository.findByIdentifier(identifier);
 
         if (existing != null) {
 
             if (Boolean.TRUE.equals(existing.getDeleted())) {
-                unitDto.setMessage(
-                        UNIT_WITH_IDENTIFIER + identifier +
-                                HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS
-                );
+                unitDto.setMessage( UNIT_WITH_IDENTIFIER + identifier +
+                                HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS);
                 unitDto.setSuccess(false);
                 return unitDto;
             }
@@ -91,10 +88,8 @@ public class UnitServiceImpl extends BaseService implements UnitService {
 
         if (Boolean.TRUE.equals(unit.getDeleted())) {
             unitDto.setSuccess(false);
-            unitDto.setMessage(
-                    UNIT_WITH_IDENTIFIER + identifier +
-                            HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS
-            );
+            unitDto.setMessage(UNIT_WITH_IDENTIFIER + identifier +
+                            HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS);
             return unitDto;
         }
 
@@ -116,9 +111,7 @@ public class UnitServiceImpl extends BaseService implements UnitService {
         }
 
         softDelete(unit);
-
         setModifiedDetails(unit);
-
         unitRepository.save(unit);
     }
 
@@ -127,14 +120,12 @@ public class UnitServiceImpl extends BaseService implements UnitService {
         Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
         Page<Unit> unitPage = unitRepository.findByDeletedFalse(pageable);
-
         WsDto<UnitDto> unitWsDto = new WsDto<>();
         unitWsDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
         unitWsDto.setTotalRecords(unitPage.getTotalElements());
         unitWsDto.setTotalPages(unitPage.getTotalPages());
         unitWsDto.setSizePerPage(pageable.getPageSize());
         unitWsDto.setPage(pageable.getPageNumber());
-
         return unitWsDto;
     }
 
@@ -162,10 +153,8 @@ public class UnitServiceImpl extends BaseService implements UnitService {
 
         if (Boolean.TRUE.equals(unit.getDeleted())) {
             response.setSuccess(false);
-            response.setMessage(
-                    UNIT_WITH_IDENTIFIER + identifier +
-                            HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS
-            );
+            response.setMessage(UNIT_WITH_IDENTIFIER + identifier +
+                            HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS);
             return response;
         }
 

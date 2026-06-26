@@ -32,7 +32,6 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
     public WsDto<CategoryDto> findAll(Pageable pageable) {
 
         Type type = new TypeToken<List<CategoryDto>>() {}.getType();
-
         Page<Category> page = categoryRepository.findByDeletedFalse(pageable);
 
         WsDto<CategoryDto> ws = new WsDto<>();
@@ -49,9 +48,7 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
     public List<CategoryDto> findAllcontroller(Pageable pageable) {
 
         Type type = new TypeToken<List<CategoryDto>>() {}.getType();
-
         Page<Category> page = categoryRepository.findByDeletedFalse(pageable);
-
         return modelMapper.map(page.getContent(), type);
     }
 
@@ -59,7 +56,6 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
     public CategoryDto findByIdentifier(String identifier) {
 
         CategoryDto dto = new CategoryDto();
-
         Category category = categoryRepository.findByIdentifier(identifier).orElse(null);
 
         if (category == null || Boolean.TRUE.equals(category.getDeleted())) {
@@ -67,7 +63,6 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
             dto.setMessage("Category not found");
             return dto;
         }
-
         return modelMapper.map(category, CategoryDto.class);
     }
 
@@ -87,14 +82,10 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         category.setName(dto.getName());
         category.setSuperCategoryIdentifier(dto.getSuperCategoryIdentifier());
         category.setStatus(true);
-
         setCreatedDetails(category);
-
         categoryRepository.save(category);
-
         response.setSuccess(true);
         response.setMessage("Category created successfully");
-
         return response;
     }
 
@@ -102,7 +93,6 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
     public CategoryDto update(CategoryDto dto) {
 
         CategoryDto response = new CategoryDto();
-
         Category category = categoryRepository.findByIdentifier(dto.getIdentifier()).orElse(null);
 
         if (category == null || Boolean.TRUE.equals(category.getDeleted())) {
@@ -112,16 +102,11 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         }
 
         category.setName(dto.getName());
-
         String superCat = dto.getSuperCategoryIdentifier();
         category.setSuperCategoryIdentifier(
-                (superCat == null || superCat.trim().isEmpty()) ? null : superCat
-        );
-
+                (superCat == null || superCat.trim().isEmpty()) ? null : superCat);
         setModifiedDetails(category);
-
         categoryRepository.save(category);
-
         response.setSuccess(true);
         response.setMessage("Category updated successfully");
 
@@ -163,21 +148,17 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         List<CategoryDto> result = new ArrayList<>();
 
         for (Category c : list) {
-
             boolean isParent = false;
-
             for (Category other : list) {
                 if (c.getIdentifier().equals(other.getSuperCategoryIdentifier())) {
                     isParent = true;
                     break;
                 }
             }
-
             if (!isParent) {
                 result.add(modelMapper.map(c, CategoryDto.class));
             }
         }
-
         return result;
     }
 
@@ -193,7 +174,6 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
                 result.add(modelMapper.map(c, CategoryDto.class));
             }
         }
-
         return result;
     }
 }

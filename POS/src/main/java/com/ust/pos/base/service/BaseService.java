@@ -12,11 +12,9 @@ public class BaseService {
     private String getLoggedInUser() {
         try {
             var auth = SecurityContextHolder.getContext().getAuthentication();
-
             if (auth == null || auth.getName() == null) {
                 return "SYSTEM";
             }
-
             return auth.getName();
         } catch (Exception e) {
             return "SYSTEM";

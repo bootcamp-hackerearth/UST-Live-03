@@ -49,7 +49,6 @@ public class NodeServiceImpl extends BaseService implements NodeService {
             dto.setMessage("Node not found");
             return dto;
         }
-
         return modelMapper.map(node, NodeDto.class);
     }
 
@@ -75,14 +74,10 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         Node node = modelMapper.map(nodeDto, Node.class);
         node.setIdentifier(identifier);
         node.setDeleted(false);
-
         setCreatedDetails(node);
-
         nodeRepository.save(node);
-
         nodeDto.setSuccess(true);
         nodeDto.setMessage("Node saved successfully");
-
         return nodeDto;
     }
 
@@ -98,14 +93,10 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         }
 
         modelMapper.map(nodeDto, node);
-
         setModifiedDetails(node);
-
         nodeRepository.save(node);
-
         nodeDto.setSuccess(true);
         nodeDto.setMessage("Node updated successfully");
-
         return nodeDto;
     }
 
@@ -119,9 +110,7 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         }
 
         node.setDeleted(true);
-
         setModifiedDetails(node);
-
         nodeRepository.save(node);
     }
 
@@ -129,16 +118,13 @@ public class NodeServiceImpl extends BaseService implements NodeService {
     public WsDto<NodeDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<NodeDto>>() {}.getType();
-
         Page<Node> page = nodeRepository.findByDeletedFalse(pageable);
-
         WsDto<NodeDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(page.getContent(), listType));
         ws.setTotalRecords(page.getTotalElements());
         ws.setTotalPages(page.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
-
         return ws;
     }
 
@@ -153,7 +139,6 @@ public class NodeServiceImpl extends BaseService implements NodeService {
 
         org.springframework.security.core.userdetails.User principal =
                 (org.springframework.security.core.userdetails.User) auth.getPrincipal();
-
         User currentUser = userRepository.findByUsername(principal.getUsername());
 
         if (currentUser == null || currentUser.getRoles() == null) {
@@ -161,7 +146,6 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         }
 
         List<Node> allNodes = nodeRepository.findByDeletedFalse();
-
         Set<String> allowedNodes = new HashSet<>();
 
         for (String role : currentUser.getRoles()) {
@@ -175,14 +159,11 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         List<NodeDto> result = new ArrayList<>();
 
         for (String identifier : allowedNodes) {
-
             Node node = nodeRepository.findByIdentifierAndDeletedFalse(identifier);
-
             if (node != null) {
                 result.add(modelMapper.map(node, NodeDto.class));
             }
         }
-
         return result;
     }
 }

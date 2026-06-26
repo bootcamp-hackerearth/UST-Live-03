@@ -36,7 +36,6 @@ public class PriceServiceImpl extends BaseService implements PriceService {
     public PriceDto save(PriceDto priceDto) {
 
         String identifier =priceDto.getProductId() + "_" +priceDto.getPriceType().replace(" ", "_");
-
         Price existing = priceRepository.findByIdentifier(identifier);
 
         if (existing != null && !Boolean.TRUE.equals(existing.getDeleted())) {
@@ -47,16 +46,11 @@ public class PriceServiceImpl extends BaseService implements PriceService {
 
         priceDto.setIdentifier(identifier);
         priceDto.setProductName(productService.findByIdentifier(priceDto.getProductId()).getProductName());
-
         Price price = modelMapper.map(priceDto, Price.class);
-
         setCreatedDetails(price);
-
         priceRepository.save(price);
-
         priceDto.setSuccess(true);
         priceDto.setMessage("Price saved successfully");
-
         return priceDto;
     }
 
@@ -72,19 +66,14 @@ public class PriceServiceImpl extends BaseService implements PriceService {
         }
 
         priceDto.setProductName(productService.findByIdentifier(priceDto.getProductId()).getProductName());
-
         existing.setProductId(priceDto.getProductId());
         existing.setProductName(priceDto.getProductName());
         existing.setPriceType(priceDto.getPriceType());
         existing.setValue(priceDto.getValue());
-
         setModifiedDetails(existing);
-
         priceRepository.save(existing);
-
         priceDto.setSuccess(true);
         priceDto.setMessage("Price updated successfully");
-
         return priceDto;
     }
 
@@ -102,7 +91,6 @@ public class PriceServiceImpl extends BaseService implements PriceService {
 
         PriceDto dto = modelMapper.map(price, PriceDto.class);
         dto.setSuccess(true);
-
         return dto;
     }
 
@@ -110,16 +98,13 @@ public class PriceServiceImpl extends BaseService implements PriceService {
     public WsDto<PriceDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<PriceDto>>() {}.getType();
-
         Page<Price> page = priceRepository.findByDeletedFalse(pageable);
-
         WsDto<PriceDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(page.getContent(), listType));
         ws.setTotalRecords(page.getTotalElements());
         ws.setTotalPages(page.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
-
         return ws;
     }
 
@@ -132,7 +117,6 @@ public class PriceServiceImpl extends BaseService implements PriceService {
 
         price.setDeleted(true);
         setModifiedDetails(price);
-
         priceRepository.save(price);
     }
 
@@ -140,9 +124,7 @@ public class PriceServiceImpl extends BaseService implements PriceService {
     public List<PriceDto> findActivePrices() {
 
         List<Price> list = priceRepository.findByStatusTrueAndDeletedFalse();
-
         Type type = new TypeToken<List<PriceDto>>() {}.getType();
-
         return modelMapper.map(list, type);
     }
 

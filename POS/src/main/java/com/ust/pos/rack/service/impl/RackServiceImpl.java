@@ -25,8 +25,7 @@ public class RackServiceImpl extends BaseService implements RackService {
     private final RackRepository rackRepository;
     private final ModelMapper modelMapper;
 
-    public RackServiceImpl(RackRepository rackRepository,
-                           ModelMapper modelMapper) {
+    public RackServiceImpl(RackRepository rackRepository,ModelMapper modelMapper) {
         this.rackRepository = rackRepository;
         this.modelMapper = modelMapper;
     }
@@ -42,7 +41,6 @@ public class RackServiceImpl extends BaseService implements RackService {
         }
 
         String name = rackDto.getName().trim();
-
         Rack existing = rackRepository.findByIdentifier(name);
 
         if (existing != null) {
@@ -53,7 +51,6 @@ public class RackServiceImpl extends BaseService implements RackService {
         }
 
         Rack rack = modelMapper.map(rackDto, Rack.class);
-
         rack.setName(name);
         rack.setIdentifier(name);
 
@@ -62,13 +59,10 @@ public class RackServiceImpl extends BaseService implements RackService {
         }
 
         setCreatedDetails(rack);
-
         Rack saved = rackRepository.save(rack);
-
         RackDto response = modelMapper.map(saved, RackDto.class);
         response.setSuccess(true);
         response.setMessage("Rack saved successfully");
-
         return response;
     }
 
@@ -108,13 +102,10 @@ public class RackServiceImpl extends BaseService implements RackService {
         }
 
         setModifiedDetails(rack);
-
         Rack saved = rackRepository.save(rack);
-
         RackDto response = modelMapper.map(saved, RackDto.class);
         response.setSuccess(true);
         response.setMessage("Rack updated successfully");
-
         return response;
     }
 
@@ -132,7 +123,6 @@ public class RackServiceImpl extends BaseService implements RackService {
 
         RackDto dto = modelMapper.map(rack, RackDto.class);
         dto.setSuccess(true);
-
         return dto;
     }
 
@@ -140,16 +130,13 @@ public class RackServiceImpl extends BaseService implements RackService {
     public WsDto<RackDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<RackDto>>() {}.getType();
-
         Page<Rack> rackPage = rackRepository.findByDeletedFalse(pageable);
-
         WsDto<RackDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(rackPage.getContent(), listType));
         ws.setTotalRecords(rackPage.getTotalElements());
         ws.setTotalPages(rackPage.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
-
         return ws;
     }
 
@@ -166,13 +153,9 @@ public class RackServiceImpl extends BaseService implements RackService {
     public void delete(String identifier) {
 
         Rack rack = rackRepository.findByIdentifier(identifier);
-
         if (rack == null) return;
-
         rack.setDeleted(true);
-
         setModifiedDetails(rack);
-
         rackRepository.save(rack);
     }
 
@@ -189,15 +172,11 @@ public class RackServiceImpl extends BaseService implements RackService {
         }
 
         rack.setStatus(!Boolean.TRUE.equals(rack.getStatus()));
-
         setModifiedDetails(rack);
-
         Rack saved = rackRepository.save(rack);
-
         RackDto dto = modelMapper.map(saved, RackDto.class);
         dto.setSuccess(true);
         dto.setMessage("Status updated successfully");
-
         return dto;
     }
 }
