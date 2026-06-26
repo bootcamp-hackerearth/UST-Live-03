@@ -18,10 +18,8 @@ export default function SideBar({
     usePathname();
 
   useEffect(() => {
-    if (sidebarOpen) {
-      fetchNodes();
-    }
-  }, [sidebarOpen]);
+    fetchNodes();
+  }, []);
 
   const fetchNodes =
     async () => {
@@ -49,6 +47,10 @@ export default function SideBar({
         setNodes(
           data || []
         );
+        localStorage.setItem(
+          "nodes",
+          JSON.stringify(data || [])
+        );
       } catch (error) {
         console.log(
           "Sidebar Error:",
@@ -73,8 +75,8 @@ export default function SideBar({
   return (
     <div
       className={`bg-black text-white h-screen transition-all duration-300 ease-in-out flex flex-col shadow-2xl ${sidebarOpen
-          ? "w-[220px]"
-          : "w-0"
+        ? "w-[220px]"
+        : "w-0"
         } overflow-hidden`}
     >
       <div className="h-[68px] flex items-center justify-between px-5 border-b border-white/10 shrink-0">
@@ -132,9 +134,9 @@ export default function SideBar({
                     )
                   }
                   className={`w-full text-left px-4 py-3 rounded-xl mb-2 transition-all duration-200 text-sm ${pathname ===
-                      finalPath
-                      ? "bg-white text-black font-semibold"
-                      : "text-gray-300 hover:bg-white hover:text-black"
+                    finalPath
+                    ? "bg-white text-black font-semibold"
+                    : "text-gray-300 hover:bg-white hover:text-black"
                     }`}
                 >
                   {

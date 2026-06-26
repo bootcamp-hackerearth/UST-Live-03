@@ -49,29 +49,41 @@ export default function RootLayout({
   ]);
 
   useEffect(() => {
-    if (
-      publicRoutes.has(
-        pathname
-      )
-    ) {
-      setIsAuthorized(true);
-      return;
-    }
-
-    const token =
-      localStorage.getItem(
-        "token"
-      );
-
-    if (!token) {
-      router.replace(
-        "/login"
-      );
-      return;
-    }
-
+  if (publicRoutes.has(pathname)) {
     setIsAuthorized(true);
-  }, [pathname, router]);
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    router.replace("/login");
+    return;
+  }
+
+  const nodes = JSON.parse(localStorage.getItem("nodes")) || [];
+
+  if (pathname === "/home") {
+    setIsAuthorized(true);
+    return;
+  }
+
+  const allowed = nodes.some((node) => {
+    const nodePath = node.path.startsWith("/")
+      ? node.path
+      : `/${node.path}`;
+
+    return nodePath.toLowerCase() === pathname.toLowerCase();
+  });
+
+  if (!allowed) {
+    alert("Access Denied");
+    router.replace("/home");
+    return;
+  }
+
+  setIsAuthorized(true);
+}, [pathname, router]);
 
   const hideLayout =
     pathname === "/login" ||

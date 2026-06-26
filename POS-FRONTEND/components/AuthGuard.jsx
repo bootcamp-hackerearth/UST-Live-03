@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import {
+  useRouter,
+  usePathname,
+} from "next/navigation";
 
 export default function AuthGuard({
   children,
 }) {
-  const router =
-    useRouter();
+  const router = useRouter();
+  const pathname =
+    usePathname();
 
   useEffect(() => {
     const token =
@@ -16,11 +20,44 @@ export default function AuthGuard({
       );
 
     if (!token) {
-      router.replace(
-        "/login"
-      );
+      router.replace("/login");
+      return;
     }
-  }, [router]);
+
+    const nodes =
+      JSON.parse(
+        localStorage.getItem("nodes")
+      ) || [];
+
+    const currentPath =
+      pathname.toLowerCase();
+
+    if (
+      currentPath === "/home"
+    ) {
+      return;
+    }
+
+    const allowed =
+      nodes.some((node) => {
+        const nodePath =
+          node.path.startsWith("/")
+            ? node.path.toLowerCase()
+            : "/" +
+            node.path.toLowerCase();
+
+        return (
+          nodePath === currentPath
+        );
+      });
+
+    if (!allowed) {
+      alert(
+        "Access Denied"
+      );
+      router.replace("/home");
+    }
+  }, [pathname, router]);
 
   return children;
 }

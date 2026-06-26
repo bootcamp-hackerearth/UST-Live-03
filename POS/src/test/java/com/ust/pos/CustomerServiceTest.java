@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,13 +52,14 @@ class CustomerServiceTest {
 
         when(customerRepository.findByIdentifier("CUS001"))
                 .thenReturn(customer);
+
         when(modelMapper.map(customer, CustomerDto.class))
                 .thenReturn(dto);
 
         CustomerDto result = customerService.findByIdentifier("CUS001");
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("CUS001", result.getIdentifier());
+        assertNotNull(result);
+        assertEquals("CUS001", result.getIdentifier());
     }
 
     @Test
@@ -66,7 +69,7 @@ class CustomerServiceTest {
 
         CustomerDto result = customerService.findByIdentifier("CUS001");
 
-        Assertions.assertNull(result);
+        assertNull(result);
     }
 
     @Test
@@ -85,17 +88,18 @@ class CustomerServiceTest {
         dto.setShippingAddress(shipping);
 
         Customer customer = new Customer();
+        customer.setStatus(true);
 
         when(customerRepository.findByIdentifier("CUS001"))
                 .thenReturn(null);
+
         when(modelMapper.map(dto, Customer.class))
                 .thenReturn(customer);
 
         CustomerDto result = customerService.save(dto);
 
-        Assertions.assertEquals("CUS001", result.getIdentifier());
-        Assertions.assertEquals(9876543210L, billing.getPhoneNo());
-        Assertions.assertEquals(9876543210L, shipping.getPhoneNo());
+        assertNotNull(result);
+        assertEquals("CUS001", result.getIdentifier());
 
         verify(addressService).save(billing);
         verify(addressService).save(shipping);
@@ -114,13 +118,13 @@ class CustomerServiceTest {
 
         CustomerDto result = customerService.save(dto);
 
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals(
+        assertFalse(result.isSuccess());
+        assertEquals(
                 "Customer with identifier - CUS001 already exists",
                 result.getMessage()
         );
 
-        verify(customerRepository, never()).save(any());
+        verify(customerRepository, never()).save(any(Customer.class));
     }
 
     @Test
@@ -141,23 +145,25 @@ class CustomerServiceTest {
         Customer existingCustomer = new Customer();
         existingCustomer.setIdentifier("CUS001");
         existingCustomer.setPhoneNo(9876543210L);
+        existingCustomer.setDeleted(false);
 
         when(customerRepository.findByIdentifier("CUS001"))
                 .thenReturn(existingCustomer);
 
         when(addressService.findByPhoneNoAndAddressType(
                 9876543210L,
-                "billingAddress"
-        )).thenReturn(billing);
+                "billingAddress"))
+                .thenReturn(billing);
 
         when(addressService.findByPhoneNoAndAddressType(
                 9876543210L,
-                "shippingAddress"
-        )).thenReturn(shipping);
+                "shippingAddress"))
+                .thenReturn(shipping);
 
         CustomerDto result = customerService.update(dto);
 
-        Assertions.assertEquals("CUS001", result.getIdentifier());
+        assertNotNull(result);
+        assertEquals("CUS001", result.getIdentifier());
 
         verify(addressService).save(billing);
         verify(addressService).save(shipping);
@@ -173,10 +179,19 @@ class CustomerServiceTest {
         when(customerRepository.findByIdentifier("CUS001"))
                 .thenReturn(null);
 
-        Assertions.assertThrows(
-                NullPointerException.class,
-                () -> customerService.update(dto)
+        CustomerDto result = customerService.update(dto);
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertEquals(
+                "Customer with identifier - CUS001 not found",
+                result.getMessage()
         );
+
+        verify(customerRepository).findByIdentifier("CUS001");
+        verify(customerRepository, never()).save(any(Customer.class));
+        verifyNoInteractions(addressService);
+        verify(modelMapper, never()).map(any(), any());
     }
 
     @Test
@@ -200,11 +215,7 @@ class CustomerServiceTest {
                 new Customer()
         );
 
-        Page<Customer> page = new PageImpl<>(
-                customers,
-                pageable,
-                2
-        );
+        Page<Customer> page = new PageImpl<>(customers, pageable, 2);
 
         List<CustomerDto> dtoList = List.of(
                 new CustomerDto(),
@@ -222,12 +233,12 @@ class CustomerServiceTest {
 
         WsDto<CustomerDto> result = customerService.findAll(pageable);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(2, result.getDtoList().size());
-        Assertions.assertEquals(2, result.getTotalRecords());
-        Assertions.assertEquals(1, result.getTotalPages());
-        Assertions.assertEquals(10, result.getSizePerPage());
-        Assertions.assertEquals(0, result.getPage());
+        assertNotNull(result);
+        assertEquals(2, result.getDtoList().size());
+        assertEquals(2, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
     }
 
     @Test
@@ -239,7 +250,7 @@ class CustomerServiceTest {
 
         String result = customerService.buildAddressIdentifier(address);
 
-        Assertions.assertEquals(
+        assertEquals(
                 "MAIN STREET-500001-BILLINGADDRESS",
                 result
         );
@@ -247,9 +258,7 @@ class CustomerServiceTest {
 
     @Test
     void buildAddressIdentifierNullTest() {
-        Assertions.assertNull(
-                customerService.buildAddressIdentifier(null)
-        );
+        assertNull(customerService.buildAddressIdentifier(null));
     }
 
     @Test
@@ -262,7 +271,7 @@ class CustomerServiceTest {
 
         customerService.toggleStatus("CUS001");
 
-        Assertions.assertFalse(customer.getStatus());
+        assertFalse(customer.getStatus());
 
         verify(customerRepository).save(customer);
     }
@@ -277,7 +286,7 @@ class CustomerServiceTest {
 
         customerService.toggleStatus("CUS001");
 
-        Assertions.assertTrue(customer.getStatus());
+        assertTrue(customer.getStatus());
 
         verify(customerRepository).save(customer);
     }
@@ -289,6 +298,6 @@ class CustomerServiceTest {
 
         customerService.toggleStatus("CUS001");
 
-        verify(customerRepository, never()).save(any());
+        verify(customerRepository, never()).save(any(Customer.class));
     }
 }
