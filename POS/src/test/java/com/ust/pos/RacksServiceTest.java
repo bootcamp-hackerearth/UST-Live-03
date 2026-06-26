@@ -21,8 +21,7 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -50,7 +49,7 @@ class RacksServiceTest {
         RacksDto response = racksService.save(dto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(racksRepository).save(racks);
@@ -82,7 +81,7 @@ class RacksServiceTest {
         RacksDto response = racksService.update(dto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(racksRepository).save(racks);
@@ -105,8 +104,17 @@ class RacksServiceTest {
     @Test
     void deleteTest() {
 
+        Racks racks = new Racks();
+
+        when(racksRepository.findByIdentifier("Admin"))
+                .thenReturn(racks);
+
         racksService.delete("Admin");
-        verify(racksRepository).deleteByIdentifier("Admin");
+
+        assertTrue(racks.isDeleted());
+
+        verify(racksRepository)
+                .findByIdentifier("Admin");
     }
 
     @Test
@@ -138,6 +146,28 @@ class RacksServiceTest {
     }
 
     @Test
+    void saveTestFailure_deletedRack() {
+
+        RacksDto dto = new RacksDto();
+        dto.setIdentifier("Admin");
+
+        Racks existing = new Racks();
+        existing.setDeleted(true);
+
+        when(racksRepository.findByIdentifier("Admin"))
+                .thenReturn(existing);
+
+        RacksDto response = racksService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
+    }
+
+    @Test
     void toggleStatus_trueToFalse() {
 
         Racks racks = new Racks();
@@ -165,7 +195,7 @@ class RacksServiceTest {
                 .thenReturn(racks);
         racksService.toggleStatus("Admin");
 
-        Assertions.assertTrue(racks.isStatus());
+        assertTrue(racks.isStatus());
         verify(racksRepository).save(argThat(CommonFields::isStatus
         ));
     }
@@ -174,21 +204,39 @@ class RacksServiceTest {
     void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Racks> racks = List.of(new Racks());
-        Page<Racks> page = new PageImpl<>(racks);
-        List<RacksDto> dtos = List.of(new RacksDto());
 
-        when(racksRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(racks),
-                any(Type.class)
-        )).thenReturn(dtos);
+        Racks racks = new Racks();
+        racks.setIdentifier("Admin");
 
-        List<RacksDto> result = racksService.findAll(pageable);
+        RacksDto dto = new RacksDto();
+        dto.setIdentifier("Admin");
+
+        Page<Racks> page =
+                new PageImpl<>(List.of(racks), pageable, 1);
+
+        when(racksRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(racks, RacksDto.class))
+                .thenReturn(dto);
+
+        var result = racksService.findAll(pageable);
+
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("Admin",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(racksRepository).findAll(pageable);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(racksRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(racks, RacksDto.class);
     }
 
     @Test

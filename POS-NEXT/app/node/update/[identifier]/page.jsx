@@ -19,7 +19,7 @@ export default function NodeUpdate() {
   ];
 
   const dropdownApis = {
-    roles: `${baseUrl}/role/list`
+    roles: `${baseUrl}/role/getactive`
   };
 
   return (

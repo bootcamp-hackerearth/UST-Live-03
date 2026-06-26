@@ -1,35 +1,42 @@
 package com.ust.pos.customer.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
-import com.ust.pos.dto.*;
+import com.ust.pos.dto.AddressDto;
+import com.ust.pos.dto.CartDto;
+import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Address;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends BaseService implements CustomerService {
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private static final String VALIDATION_MESSAGE = "Customer with identidier - ";
+    private static final String SHIPPING_ADDRESS = "shippingAddress";
+    private static final String BILLING_ADDRESS = "billingAddress";
+    private final CustomerRepository customerRepository;
+    private final ModelMapper modelMapper;
+    private final AddressService addressService;
+    private final CartService cartService;
 
-    @Autowired
-    private ModelMapper modelMapper;
 
-    @Autowired
-    private AddressService addressService;
-
-    @Autowired
-    private CartService cartService;
+    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, AddressService addressService, CartService cartService) {
+        this.customerRepository = customerRepository;
+        this.modelMapper = modelMapper;
+        this.addressService = addressService;
+        this.cartService = cartService;
+    }
 
     @Override
     public CustomerDto findByIdentifier(String identifier) {
@@ -49,7 +56,13 @@ public class CustomerServiceImpl implements CustomerService {
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
 
         if (existingCustomer != null) {
-            customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
+            customerDto.setMessage(
+                    existingCustomer.isDeleted()
+                            ? VALIDATION_MESSAGE + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : VALIDATION_MESSAGE + identifier
+                            + " already exists."
+            );
             customerDto.setSuccess(false);
             return customerDto;
         }
@@ -57,17 +70,23 @@ public class CustomerServiceImpl implements CustomerService {
         AddressDto billingAddress = customerDto.getBillingAddress();
         AddressDto shippingAddress = customerDto.getShippingAddress();
 
-        billingAddress.setPhoneNo(customerDto.getPhoneNo());
-        shippingAddress.setPhoneNo(customerDto.getPhoneNo());
-
-        addressService.save(billingAddress);
-        addressService.save(shippingAddress);
+        if (customerDto.getBillingAddress() != null) {
+            billingAddress.setPhoneNo(customerDto.getPhoneNo());
+            billingAddress.setAddressType(BILLING_ADDRESS);
+            addressService.save(billingAddress);
+        }
+        if (customerDto.getShippingAddress() != null) {
+            shippingAddress.setPhoneNo(customerDto.getPhoneNo());
+            shippingAddress.setAddressType(SHIPPING_ADDRESS);
+            addressService.save(shippingAddress);
+        }
 
         CartDto cartDto = new CartDto();
         cartDto.setIdentifier(customerDto.getIdentifier());
         cartService.save(cartDto);
 
         Customer customer = modelMapper.map(customerDto, Customer.class);
+        setCreatedDetails(customer);
         customerRepository.save(customer);
 
         return customerDto;
@@ -80,7 +99,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
 
         if (existingCustomer == null) {
-            customerDto.setMessage("Customer with identifier - " + identifier + " not found");
+            customerDto.setMessage(VALIDATION_MESSAGE + identifier + " not found");
             customerDto.setSuccess(false);
             return customerDto;
         }
@@ -89,17 +108,21 @@ public class CustomerServiceImpl implements CustomerService {
         AddressDto shippingAddress = customerDto.getShippingAddress();
 
         billingAddress.setPhoneNo(customerDto.getPhoneNo());
+        billingAddress.setAddressType(BILLING_ADDRESS);
+
         shippingAddress.setPhoneNo(customerDto.getPhoneNo());
+        shippingAddress.setAddressType(SHIPPING_ADDRESS);
 
         addressService.update(billingAddress);
         addressService.update(shippingAddress);
 
         customerDto.setBillingAddress(addressService.
-                findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), "billingAddress"));
+                findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), BILLING_ADDRESS));
         customerDto.setShippingAddress(addressService.
-                findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), "shippingAddress"));
+                findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), SHIPPING_ADDRESS));
 
         modelMapper.map(customerDto, existingCustomer);
+        setModifiedDetails(existingCustomer);
         customerRepository.save(existingCustomer);
 
         return customerDto;
@@ -109,15 +132,22 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public void delete(String identifier, Long phoneNo) {
 
-        customerRepository.deleteByIdentifier(identifier);
-        addressService.deleteByPhoneNo(phoneNo);
+        Customer customer = customerRepository.findByIdentifier(identifier);
+        List<Address> addresses = addressService.findByPhoneNo(phoneNo);
+
+        setModifiedDetails(customer);
+        softDelete(customer);
+        for (Address address : addresses) {
+            setModifiedDetails(address);
+            softDelete(address);
+        }
     }
 
     @Override
     public WsDto<CustomerDto> findAll(Pageable pageable) {
 
 
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
+        Page<Customer> customerPage = customerRepository.findByIsDeletedFalse(pageable);
 
         WsDto<CustomerDto> paginationResponseDto = new WsDto<>();
 

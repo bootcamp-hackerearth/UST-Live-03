@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -20,10 +21,8 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UnitServiceTest {
@@ -71,9 +70,9 @@ class UnitServiceTest {
         UnitDto response = unitService.save(dto);
 
         Assertions.assertNotNull(response.getMessage());
-        Assertions.assertFalse(response.isSuccess());
+        assertFalse(response.isSuccess());
 
-        verify(unitRepository, Mockito.never()).save(Mockito.any());
+        verify(unitRepository, never()).save(Mockito.any());
     }
 
     @Test
@@ -107,17 +106,26 @@ class UnitServiceTest {
         UnitDto response = unitService.update(dto);
 
         Assertions.assertNotNull(response.getMessage());
-        Assertions.assertFalse(response.isSuccess());
+        assertFalse(response.isSuccess());
 
-        verify(unitRepository, Mockito.never()).save(Mockito.any());
+        verify(unitRepository, never()).save(Mockito.any());
     }
 
     @Test
     void deleteTest() {
 
+        Unit unit = new Unit();
+        unit.setIdentifier("Admin");
+
+        when(unitRepository.findByIdentifier("Admin"))
+                .thenReturn(unit);
+
         unitService.delete("Admin");
 
-        verify(unitRepository).deleteByIdentifier("Admin");
+        assertTrue(unit.isDeleted());
+
+        verify(unitRepository)
+                .findByIdentifier("Admin");
     }
 
     @Test
@@ -153,23 +161,62 @@ class UnitServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Unit unit = new Unit();
+        unit.setIdentifier("Admin");
+
         UnitDto dto = new UnitDto();
+        dto.setIdentifier("Admin");
 
-        List<Unit> units = List.of(unit);
-        Page<Unit> page = new PageImpl<>(units);
+        Page<Unit> page =
+                new PageImpl<>(List.of(unit), pageable, 1);
 
-        when(unitRepository.findAll(pageable)).thenReturn(page);
+        when(unitRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
         when(modelMapper.map(unit, UnitDto.class))
                 .thenReturn(dto);
 
-        List<UnitDto> result = unitService.findAll(pageable).getContent();
+        WsDto<UnitDto> result = unitService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("Admin",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(unitRepository).findAll(pageable);
-        verify(modelMapper).map(unit, UnitDto.class);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(unitRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(unit, UnitDto.class);
+    }
+
+    @Test
+    void saveTestDeletedUnitExists() {
+
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("Admin");
+
+        Unit existing = new Unit();
+        existing.setDeleted(true);
+
+        when(unitRepository.findByIdentifier("Admin"))
+                .thenReturn(existing);
+
+        UnitDto response = unitService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
+
+        verify(unitRepository, never())
+                .save(any());
     }
 
     @Test
@@ -183,7 +230,7 @@ class UnitServiceTest {
 
         unitService.toggleStatus("Admin");
 
-        Assertions.assertFalse(unit.isStatus());
+        assertFalse(unit.isStatus());
         verify(unitRepository).save(unit);
     }
 
@@ -208,7 +255,7 @@ class UnitServiceTest {
                 .thenReturn(null);
         unitService.toggleStatus("Admin");
 
-        verify(unitRepository, Mockito.never()).save(Mockito.any());
+        verify(unitRepository, never()).save(Mockito.any());
     }
 
     @Test
@@ -219,7 +266,7 @@ class UnitServiceTest {
         Mockito.when(unitRepository.findByStatus(true))
                 .thenReturn(units);
 
-        List<Unit> response = unitService.findActiveUnit();
+        List<UnitDto> response = unitService.findActiveUnit();
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());

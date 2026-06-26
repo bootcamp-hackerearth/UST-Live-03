@@ -4,26 +4,21 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
 public class UserApiController extends BaseController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private RoleService roleService;
+    public UserApiController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/register")
     public UserDto registerUser(@RequestBody UserDto userDto) {
@@ -53,20 +48,22 @@ public class UserApiController extends BaseController {
         return userService.findAll(pageable);
     }
 
-    @PostMapping("/get")
-    public UserDto update(@RequestBody String username) {
+    @GetMapping("/{username}")
+    public UserDto update(@PathVariable String username) {
 
         return userService.findByUserName(username);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto) {
 
         return userService.update(userDto);
     }
 
-    @PostMapping("/delete")
-    public boolean delete(@RequestBody String username) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody UserDto userDto) {
+
+        String username = userDto.getUsername();
 
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -83,7 +80,6 @@ public class UserApiController extends BaseController {
         } catch (Exception e) {
             return false;
         }
-
         return true;
     }
 }

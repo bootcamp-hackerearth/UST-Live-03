@@ -4,26 +4,21 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
-import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/unit")
 public class UnitApiController extends BaseController {
 
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private WarehouseService warehouseService;
+    public UnitApiController(UnitService unitService) {
+        this.unitService = unitService;
+    }
 
     @PostMapping("/list")
     public WsDto<UnitDto> home(@RequestBody PaginationDto paginationDto) {
@@ -41,20 +36,39 @@ public class UnitApiController extends BaseController {
         return unitService.save(unitDto);
     }
 
-    @GetMapping("/get")
-    public UnitDto update(Model model, @RequestParam String identifier) {
+    @GetMapping("/{identifier}")
+    public UnitDto update(@PathVariable String identifier) {
 
         return unitService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
 
         return unitService.update(unitDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(Model model, @RequestParam String identifier) {
+    @PatchMapping("/toggle")
+    public boolean toggleStatus(@RequestBody String identifier) {
+
+        try {
+            unitService.toggleStatus(identifier);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    @GetMapping("/getactive")
+    public List<UnitDto> getActiveUnits() {
+
+        return unitService.findActiveUnit();
+    }
+
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody UnitDto unitDto) {
+
+        String identifier = unitDto.getIdentifier();
 
         try {
             unitService.delete(identifier);

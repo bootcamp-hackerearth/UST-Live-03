@@ -6,7 +6,6 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,20 +19,23 @@ public class ProductController {
     public static final String MODEL = "model";
     public static final String BRAND = "brand";
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
 
-    @Autowired
-    private BrandService brandService;
+    private final BrandService brandService;
 
-    @Autowired
-    private ModelService modelService;
+    private final ModelService modelService;
+
+    public ProductController(ProductService productService, CategoryService categoryService, UnitService unitService, BrandService brandService, ModelService modelService) {
+        this.productService = productService;
+        this.categoryService = categoryService;
+        this.unitService = unitService;
+        this.brandService = brandService;
+        this.modelService = modelService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -45,7 +47,7 @@ public class ProductController {
     @GetMapping("/add")
     public String add(Model model) {
 
-        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper(null));
+        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper());
         model.addAttribute("productDto", new ProductDto());
         model.addAttribute("unit", unitService.findActiveUnit());
         model.addAttribute(BRAND, brandService.findActiveBrands());
@@ -75,7 +77,7 @@ public class ProductController {
     public String update(Model model, @RequestParam String identifier) {
 
         ProductDto response = productService.findByIdentifier(identifier);
-        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper(null));
+        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper());
         model.addAttribute("productDto", response);
         model.addAttribute("unit", unitService.findActiveUnit());
         model.addAttribute(BRAND, brandService.findActiveBrands());

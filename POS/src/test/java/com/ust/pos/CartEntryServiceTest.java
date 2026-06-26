@@ -1,6 +1,6 @@
 package com.ust.pos;
 
-import com.ust.pos.cartEntry.service.impl.CartEntryServiceImpl;
+import com.ust.pos.cartentry.service.impl.CartEntryServiceImpl;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,7 +99,6 @@ class CartEntryServiceTest {
 
         BigDecimal discount = service.getDiscount(cartEntryDto);
 
-        // (150 - 100) * 2 = 100
         assertEquals(new BigDecimal("100"), discount);
     }
 
@@ -140,7 +139,6 @@ class CartEntryServiceTest {
         existing.setCartId("cart1");
         existing.setQuantity(new BigDecimal("2"));
 
-        // IMPORTANT
         existing.setTotalPrice(new BigDecimal("300"));
         existing.setDiscount(new BigDecimal("50"));
         existing.setOriginalPrice(new BigDecimal("350"));

@@ -36,16 +36,16 @@ const CommonList = ({ keys, routeName, title }) => {
     listFetch();
   }, [routeName, page]);
 
-  const handleDelete = async (identifier) => {
+  const handleDelete = async (item) => {
 
     const res = await FetchEntity(
       `${baseUrl}/${routeName}/delete`,
-      identifier,
-      "text/plain"
+      "DELETE",
+      item,
     );
 
     const currentIdentifier = localStorage.getItem("username");
-    if (currentIdentifier === identifier) {
+    if (currentIdentifier === item.identifier) {
       localStorage.removeItem("username");
       redirect("/login");
     }
@@ -70,14 +70,13 @@ const CommonList = ({ keys, routeName, title }) => {
   };
 
   const handleToggle = async (item) => {
-    console.log(item.identifier);
 
-    const res = await FetchEntity(
+    await FetchEntity(
       `${baseUrl}/${routeName}/toggle`,
+      "PATCH",
       item.identifier,
       "text/plain"
     );
-    console.log(res);
   };
 
   const updateItemStatus = (itemId, newStatus) => {
@@ -137,7 +136,7 @@ const CommonList = ({ keys, routeName, title }) => {
 
         <Link
           href={`/${routeName}/add`}
-          className="whitespace-nowrap px-6 py-2 rounded-xl bg-indigo-500 text-white text-sm font-semibold shadow-sm hover:bg-indigo-600 transition">
+          className="whitespace-nowrap px-6 py-2 rounded-xl bg-violet-500 text-white text-sm font-semibold shadow-sm hover:bg-violet-600 transition">
           Add {routeName}
         </Link>
 
@@ -211,7 +210,7 @@ const CommonList = ({ keys, routeName, title }) => {
 
                       <button
                         onClick={() =>
-                          handleDelete(item.identifier ?? item.username)
+                          handleDelete(item)
                         }
                         className="p-2 rounded-lg hover:bg-red-50 transition">
                         <Trash2Icon size={16} className="text-red-400" />
@@ -247,7 +246,7 @@ const CommonList = ({ keys, routeName, title }) => {
         <button
           onClick={handleNext}
           disabled={page >= totalPages - 1}
-          className="px-4 py-2 rounded-xl bg-indigo-500 text-white disabled:opacity-50 hover:bg-indigo-600 transition">
+          className="px-4 py-2 rounded-xl bg-violet-500 text-white disabled:opacity-50 hover:bg-violet-600 transition">
           Next
         </button>
       </div>

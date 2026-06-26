@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -146,7 +147,7 @@ class UserServiceTest {
                 .thenReturn(Optional.of(existing));
 
         Mockito.when(userRepository.findByUsername("newUser"))
-                .thenReturn(new User()); // conflict
+                .thenReturn(new User());
 
         UserDto response = userService.update(dto);
 
@@ -167,9 +168,6 @@ class UserServiceTest {
         Mockito.when(userRepository.findById(1L))
                 .thenReturn(Optional.of(existing));
 
-        Mockito.when(userRepository.save(existing))
-                .thenReturn(existing);
-
         UserDto response = userService.update(dto);
 
         assertEquals("admin", response.getUsername());
@@ -183,9 +181,18 @@ class UserServiceTest {
     @Test
     void deleteTest() {
 
+        User user = new User();
+        user.setUsername("admin");
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(user);
+
         userService.delete("admin");
 
-        verify(userRepository).deleteByUsername("admin");
+        assertTrue(user.isDeleted());
+
+        verify(userRepository)
+                .findByUsername("admin");
     }
 
     @Test
@@ -194,23 +201,62 @@ class UserServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         User user = new User();
+        user.setUsername("admin");
+
         UserDto dto = new UserDto();
+        dto.setUsername("admin");
 
-        List<User> users = List.of(user);
-        Page<User> page = new PageImpl<>(users);
+        Page<User> page =
+                new PageImpl<>(List.of(user), pageable, 1);
 
-        when(userRepository.findAll(pageable)).thenReturn(page);
+        when(userRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
         when(modelMapper.map(user, UserDto.class))
                 .thenReturn(dto);
 
-        List<UserDto> result = userService.findAll(pageable).getContent();
+        WsDto<UserDto> result = userService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("admin",
+                result.getContent().getFirst().getUsername());
 
-        verify(userRepository).findAll(pageable);
-        verify(modelMapper).map(user, UserDto.class);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(userRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(user, UserDto.class);
+    }
+
+    @Test
+    void saveTestDeletedUserExists() {
+
+        UserDto dto = new UserDto();
+        dto.setUsername("admin");
+
+        User existing = new User();
+        existing.setDeleted(true);
+
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(existing);
+
+        UserDto response = userService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
+
+        verify(userRepository, never())
+                .save(any());
     }
 
     @Test

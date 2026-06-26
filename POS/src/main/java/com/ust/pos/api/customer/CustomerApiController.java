@@ -7,8 +7,6 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,14 +14,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/customer")
 public class CustomerApiController extends BaseController {
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
 
-    @Autowired
-    private ProductService productService;
+    private final AddressService addressService;
 
-    @Autowired
-    private AddressService addressService;
+    public CustomerApiController(CustomerService customerService, AddressService addressService) {
+        this.customerService = customerService;
+        this.addressService = addressService;
+    }
 
     @PostMapping("/list")
     public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
@@ -47,8 +45,8 @@ public class CustomerApiController extends BaseController {
         return addressService.findByPhoneNoAndAddressType(phoneNo, addressType);
     }
 
-    @GetMapping("/get")
-    public CustomerDto update(@RequestParam String identifier) {
+    @GetMapping("/{identifier}")
+    public CustomerDto update(@PathVariable String identifier) {
 
         CustomerDto response = customerService.findByIdentifier(identifier);
         response.setBillingAddress(findAddress(response.getPhoneNo(), "billingAddress"));
@@ -57,14 +55,17 @@ public class CustomerApiController extends BaseController {
         return response;
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
 
         return customerService.update(customerDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier, Long phoneNo) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody CustomerDto customerDto) {
+
+        String identifier = customerDto.getIdentifier();
+        Long phoneNo = customerDto.getPhoneNo();
 
         try {
             customerService.delete(identifier, phoneNo);

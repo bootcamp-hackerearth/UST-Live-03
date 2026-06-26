@@ -5,19 +5,20 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/category")
 public class CategoryApiController extends BaseController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryApiController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @PostMapping("/list")
     public WsDto<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
@@ -29,14 +30,10 @@ public class CategoryApiController extends BaseController {
         return categoryService.findAll(pageable);
     }
 
-    @PostMapping("/getCategoriesWithoutParent")
-    public WsDto<CategoryDto> listAllCategoryWithNoSuper(@RequestBody PaginationDto paginationDto) {
+    @GetMapping("/getCategoriesWithoutParent")
+    public List<CategoryDto> listAllCategoryWithNoSuper() {
 
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
-
-        return categoryService.findAllCategoriesWithNoSuper(pageable);
+        return categoryService.findAllCategoriesWithNoSuper();
     }
 
     @PostMapping("/add")
@@ -45,20 +42,39 @@ public class CategoryApiController extends BaseController {
         return categoryService.save(categoryDto);
     }
 
-    @PostMapping("/get")
-    public CategoryDto update(@RequestBody String identifier) {
+    @GetMapping("/{identifier}")
+    public CategoryDto update(@PathVariable String identifier) {
 
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
 
         return categoryService.update(categoryDto);
     }
 
-    @PostMapping("/delete")
-    public boolean delete(@RequestBody String identifier) {
+    @PatchMapping("/toggle")
+    public boolean toggleStatus(@RequestBody String identifier) {
+
+        try {
+            categoryService.toggleStatus(identifier);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    @GetMapping("/getactive")
+    public List<CategoryDto> getActiveCategory() {
+
+        return categoryService.findActiveCategory();
+    }
+
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody CategoryDto categoryDto) {
+
+        String identifier = categoryDto.getIdentifier();
 
         try {
             categoryService.delete(identifier);

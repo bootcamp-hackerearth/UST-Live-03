@@ -35,9 +35,9 @@ export default function ProductAdd() {
   ];
 
   const dropdownApis = {
-    unit: `${baseUrl}/unit/list`,
-    brand: `${baseUrl}/brand/list`,
-    model: `${baseUrl}/models/list`,
+    unit: `${baseUrl}/unit/getactive`,
+    brand: `${baseUrl}/brand/getactive`,
+    model: `${baseUrl}/models/getactive`,
     category: `${baseUrl}/category/getCategoriesWithoutParent`
 
   };

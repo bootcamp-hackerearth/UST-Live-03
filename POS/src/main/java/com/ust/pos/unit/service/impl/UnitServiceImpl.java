@@ -1,12 +1,12 @@
 package com.ust.pos.unit.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,13 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class UnitServiceImpl implements UnitService {
+public class UnitServiceImpl extends BaseService implements UnitService {
 
-    @Autowired
-    private UnitRepository unitRepository;
+    private static final String VALIDATION_MESSAGE = "Unit with identifier - ";
+    private final UnitRepository unitRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+
+    public UnitServiceImpl(UnitRepository unitRepository, ModelMapper modelMapper) {
+        this.unitRepository = unitRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UnitDto findByIdentifier(String identifier) {
@@ -42,12 +46,19 @@ public class UnitServiceImpl implements UnitService {
         Unit existingUnit = unitRepository.findByIdentifier(identifier);
 
         if (existingUnit != null) {
-            unitDto.setMessage("Unit with identifier - " + identifier + " already exists");
+            unitDto.setMessage(
+                    existingUnit.isDeleted()
+                            ? VALIDATION_MESSAGE + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : VALIDATION_MESSAGE + identifier
+                            + " already exists."
+            );
             unitDto.setSuccess(false);
             return unitDto;
         }
 
         Unit unit = modelMapper.map(unitDto, Unit.class);
+        setCreatedDetails(unit);
         unitRepository.save(unit);
 
         return unitDto;
@@ -60,12 +71,13 @@ public class UnitServiceImpl implements UnitService {
         Unit existingUnit = unitRepository.findByIdentifier(identifier);
 
         if (existingUnit == null) {
-            unitDto.setMessage("Unit with identifier - " + identifier + " not found");
+            unitDto.setMessage(VALIDATION_MESSAGE + identifier + " not found");
             unitDto.setSuccess(false);
             return unitDto;
         }
 
         modelMapper.map(unitDto, existingUnit);
+        setModifiedDetails(existingUnit);
         unitRepository.save(existingUnit);
 
         return unitDto;
@@ -75,13 +87,15 @@ public class UnitServiceImpl implements UnitService {
     @Transactional
     public void delete(String identifier) {
 
-        unitRepository.deleteByIdentifier(identifier);
+        Unit unit = unitRepository.findByIdentifier(identifier);
+        setModifiedDetails(unit);
+        softDelete(unit);
     }
 
     @Override
     public WsDto<UnitDto> findAll(Pageable pageable) {
 
-        Page<Unit> unitPage = unitRepository.findAll(pageable);
+        Page<Unit> unitPage = unitRepository.findByIsDeletedFalse(pageable);
         WsDto<UnitDto> unitDto = new WsDto<>();
 
         List<UnitDto> unitDtos = unitPage.getContent()
@@ -110,9 +124,10 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public List<Unit> findActiveUnit() {
+    public List<UnitDto> findActiveUnit() {
 
-        return unitRepository.findByStatus(true);
+        List<Unit> units = unitRepository.findByStatus(true);
+        return units.stream().map(unit -> modelMapper.map(unit, UnitDto.class)).toList();
     }
 
 }

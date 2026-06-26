@@ -105,8 +105,18 @@ class CategoryServiceTest {
     @Test
     void deleteTest() {
 
+        Category category = new Category();
+        category.setIdentifier("CAT01");
+
+        when(categoryRepository.findByIdentifier("CAT01"))
+                .thenReturn(category);
+
         categoryService.delete("CAT01");
-        verify(categoryRepository).deleteByIdentifier("CAT01");
+
+        assertTrue(category.isDeleted());
+
+        verify(categoryRepository)
+                .findByIdentifier("CAT01");
     }
 
     @Test
@@ -140,23 +150,78 @@ class CategoryServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Category category = new Category();
+        category.setIdentifier("CAT01");
+
         CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT01");
 
-        List<Category> categories = List.of(category);
-        Page<Category> page = new PageImpl<>(categories);
+        Page<Category> page =
+                new PageImpl<>(List.of(category), pageable, 1);
 
-        when(categoryRepository.findAll(pageable)).thenReturn(page);
+        when(categoryRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
         when(modelMapper.map(category, CategoryDto.class))
                 .thenReturn(dto);
 
-        WsDto<CategoryDto> result = categoryService.findAll(pageable);
+        WsDto<CategoryDto> result =
+                categoryService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
+        assertEquals("CAT01",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(categoryRepository).findAll(pageable);
-        verify(modelMapper).map(category, CategoryDto.class);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(categoryRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(category, CategoryDto.class);
+    }
+
+    @Test
+    void saveFailureDeletedCategoryTest() {
+
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT01");
+
+        Category category = new Category();
+        category.setDeleted(true);
+
+        when(categoryRepository.findByIdentifier("CAT01"))
+                .thenReturn(category);
+
+        CategoryDto response = categoryService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(response.getMessage()
+                .contains("already exists but was deleted"));
+    }
+
+    @Test
+    void testFindAllCategoriesWithNullSuperCategory() {
+
+        Category category = new Category();
+        category.setSuperCategory(null);
+
+        when(categoryRepository.findByStatus(true))
+                .thenReturn(List.of(category));
+
+        when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(new CategoryDto());
+
+        List<CategoryDto> result =
+                categoryService.findAllCategoriesWithNoSuper();
+
+        assertEquals(1, result.size());
+
+        verify(categoryRepository).findByStatus(true);
     }
 
     @Test
@@ -169,21 +234,20 @@ class CategoryServiceTest {
         category2.setSuperCategory(List.of());
 
         List<Category> categories = List.of(category1, category2);
-        Page<Category> page = new PageImpl<>(categories);
 
-        Pageable pageable = PageRequest.of(0, 10);
+        when(categoryRepository.findByStatus(true))
+                .thenReturn(categories);
 
-        when(categoryRepository.findAll(pageable)).thenReturn(page);
-
-        when(modelMapper.map(any(Category.class), eq(CategoryDto.class)))
+        when(modelMapper.map(any(Category.class),
+                eq(CategoryDto.class)))
                 .thenReturn(new CategoryDto());
 
-        WsDto<CategoryDto> result =
-                categoryService.findAllCategoriesWithNoSuper(pageable);
+        List<CategoryDto> result =
+                categoryService.findAllCategoriesWithNoSuper();
 
         assertNotNull(result);
-        assertEquals(1, result.getContent().size());
+        assertEquals(1, result.size());
 
-        verify(categoryRepository).findAll(pageable);
+        verify(categoryRepository).findByStatus(true);
     }
 }

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface NodeService {
 
-    List<NodeDto> getNodesForRoles();
+    List<NodeDto> getNodesForRoles(Pageable pageable);
 
     NodeDto save(NodeDto userDto);
 
@@ -19,4 +19,6 @@ public interface NodeService {
     WsDto<NodeDto> findAll(Pageable pageable);
 
     NodeDto findByIdentifier(String identifier);
+
+    void toggleStatus(String identifer);
 }

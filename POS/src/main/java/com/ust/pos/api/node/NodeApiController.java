@@ -5,7 +5,6 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +14,11 @@ import java.util.List;
 @RequestMapping("/api/node")
 public class NodeApiController extends BaseController {
 
-    @Autowired
-    private NodeService nodeService;
+    private final NodeService nodeService;
+
+    public NodeApiController(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
 
     @PostMapping("/list")
     public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
@@ -34,26 +36,43 @@ public class NodeApiController extends BaseController {
         return nodeService.save(userDto);
     }
 
-    @PostMapping("/get")
-    public NodeDto update(@RequestBody String identifier) {
+    @GetMapping("/{identifier}")
+    public NodeDto update(@PathVariable String identifier) {
 
         return nodeService.findByIdentifier(identifier);
     }
 
     @PostMapping("/getnodesforroles")
-    public List<NodeDto> getNodesForRoles() {
+    public List<NodeDto> getNodesForRoles(PaginationDto paginationDto) {
 
-        return nodeService.getNodesForRoles();
+        Pageable pageable = getPageable(paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        return nodeService.getNodesForRoles(pageable);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
 
         return nodeService.update(nodeDto);
     }
 
-    @PostMapping("/delete")
-    public boolean delete(@RequestBody String identifier) {
+    @PatchMapping("/toggle")
+    public boolean toggleStatus(@RequestBody String identifier) {
+
+        try {
+            nodeService.toggleStatus(identifier);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody NodeDto nodeDto) {
+
+        String identifier = nodeDto.getIdentifier();
 
         try {
             nodeService.delete(identifier);

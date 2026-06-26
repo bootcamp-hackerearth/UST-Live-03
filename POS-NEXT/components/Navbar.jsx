@@ -22,10 +22,9 @@ const Navbar = () => {
 
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${baseUrl}/user/get`, {
-          method: "POST",
+        const res = await fetch(`${baseUrl}/user/${userName}`, {
+          method: "GET",
           headers: { "Content-Type": "text/plain" },
-          body: userName,
           credentials: "include",
         });
 
@@ -78,7 +77,7 @@ const Navbar = () => {
 
         <button
           onClick={() => setShowProfile(!showProfile)}
-          className="w-9 h-9 rounded-full bg-indigo-500 text-white flex items-center justify-center text-sm font-semibold shadow-sm hover:bg-indigo-600 transition"
+          className="w-9 h-9 rounded-full bg-violet-500 text-white flex items-center justify-center text-sm font-semibold shadow-sm hover:bg-indigo-600 transition"
         >
           {userDetails.name
             ? userDetails.name.charAt(0).toUpperCase()

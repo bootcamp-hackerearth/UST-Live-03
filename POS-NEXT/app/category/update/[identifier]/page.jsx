@@ -16,7 +16,7 @@ export default function CategoryUpdate() {
   ];
 
   const dropdownApis = {
-    superCategory: `${baseUrl}/category/list`
+    superCategory: `${baseUrl}/category/getactive`
   };
 
   return (

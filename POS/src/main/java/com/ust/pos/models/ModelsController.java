@@ -4,7 +4,6 @@ package com.ust.pos.models;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.models.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +15,14 @@ public class ModelsController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/models/list";
 
-    @Autowired
-    private ModelService modelsService;
+    private final ModelService modelsService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public ModelsController(ModelService modelsService, CategoryService categoryService) {
+        this.modelsService = modelsService;
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -32,7 +34,7 @@ public class ModelsController {
     @GetMapping("/add")
     public String add(Model model) {
 
-        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper(null));
+        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper());
         model.addAttribute("modelsDto", new ModelsDto());
 
         return "models/add";
@@ -55,7 +57,7 @@ public class ModelsController {
     public String update(Model model, @RequestParam String identifier) {
 
         ModelsDto response = modelsService.findByIdentifier(identifier);
-        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper(null));
+        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper());
         model.addAttribute("modelsDto", response);
 
         return "models/models";

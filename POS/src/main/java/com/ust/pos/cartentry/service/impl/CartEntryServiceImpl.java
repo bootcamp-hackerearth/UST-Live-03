@@ -1,11 +1,11 @@
-package com.ust.pos.cartEntry.service.impl;
+package com.ust.pos.cartentry.service.impl;
 
-import com.ust.pos.cartEntry.service.CartEntryService;
+import com.ust.pos.base.service.BaseService;
+import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.*;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,19 +16,22 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-public class CartEntryServiceImpl implements CartEntryService {
+public class CartEntryServiceImpl extends BaseService implements CartEntryService {
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    private final CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
 
-    @Autowired
-    private PriceRepository priceRepository;
+    private final PriceRepository priceRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, CartRepository cartRepository, PriceRepository priceRepository, ModelMapper modelMapper) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.cartRepository = cartRepository;
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
@@ -90,8 +93,10 @@ public class CartEntryServiceImpl implements CartEntryService {
 
         if (existingCartEntry != null) {
             modelMapper.map(cartEntryDto, existingCartEntry);
+            setModifiedDetails(existingCartEntry);
             cartEntryRepository.save(existingCartEntry);
         } else {
+            setCreatedDetails(modelMapper.map(cartEntryDto, CartEntry.class));
             cartEntryRepository.save(modelMapper.map(cartEntryDto, CartEntry.class));
         }
 
@@ -100,7 +105,7 @@ public class CartEntryServiceImpl implements CartEntryService {
     }
 
     @Override
-    public CartEntryDto updateQuantity(CartEntryDto cartEntryDto){
+    public CartEntryDto updateQuantity(CartEntryDto cartEntryDto) {
 
         String product = cartEntryDto.getProduct();
         String cartId = cartEntryDto.getCartId();
@@ -122,8 +127,10 @@ public class CartEntryServiceImpl implements CartEntryService {
 
         if (existingCartEntry != null) {
             modelMapper.map(cartEntryDto, existingCartEntry);
+            setModifiedDetails(existingCartEntry);
             cartEntryRepository.save(existingCartEntry);
         } else {
+            setCreatedDetails(modelMapper.map(cartEntryDto, CartEntry.class));
             cartEntryRepository.save(modelMapper.map(cartEntryDto, CartEntry.class));
         }
 

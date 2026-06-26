@@ -20,8 +20,7 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,7 +51,7 @@ class ProductServiceTest {
 
         ProductDto response = productService.save(dto);
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(productRepository).save(product);
@@ -84,12 +83,10 @@ class ProductServiceTest {
 
         Mockito.when(productRepository.findByIdentifier("Admin"))
                 .thenReturn(existing);
-        Mockito.when(productRepository.save(any(Product.class)))
-                .thenReturn(existing);
         ProductDto response = productService.update(dto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(productRepository).save(existing);
@@ -113,8 +110,39 @@ class ProductServiceTest {
     @Test
     void deleteTest() {
 
+        Product product = new Product();
+
+        when(productRepository.findByIdentifier("Admin"))
+                .thenReturn(product);
+
         productService.delete("Admin");
-        verify(productRepository).deleteByIdentifier("Admin");
+
+        assertTrue(product.isDeleted());
+
+        verify(productRepository)
+                .findByIdentifier("Admin");
+    }
+
+    @Test
+    void saveTestFailureDeletedProduct() {
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("Admin");
+
+        Product existing = new Product();
+        existing.setDeleted(true);
+
+        when(productRepository.findByIdentifier("Admin"))
+                .thenReturn(existing);
+
+        ProductDto response = productService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
     }
 
     @Test
@@ -147,26 +175,65 @@ class ProductServiceTest {
     }
 
     @Test
+    void toggleStatusTest() {
+
+        Product product = new Product();
+        product.setStatus(true);
+
+        when(productRepository.findByIdentifier("Admin"))
+                .thenReturn(product);
+
+        productService.toggleStatus("Admin");
+
+        assertFalse(product.isStatus());
+
+        verify(productRepository).save(product);
+    }
+
+    @Test
+    void toggleStatusNotFoundTest() {
+
+        when(productRepository.findByIdentifier("Admin"))
+                .thenReturn(null);
+
+        productService.toggleStatus("Admin");
+
+        verify(productRepository, Mockito.never())
+                .save(any());
+    }
+
+    @Test
     void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
 
         Product product = new Product();
+        product.setIdentifier("Admin");
+
         ProductDto dto = new ProductDto();
+        dto.setIdentifier("Admin");
 
-        List<Product> products = List.of(product);
-        Page<Product> page = new PageImpl<>(products);
+        Page<Product> page =
+                new PageImpl<>(List.of(product), pageable, 1);
 
-        when(productRepository.findAll(pageable)).thenReturn(page);
+        when(productRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
         when(modelMapper.map(product, ProductDto.class))
                 .thenReturn(dto);
 
-        List<ProductDto> result = productService.findAll(pageable).getContent();
+        var result = productService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("Admin",
+                result.getContent().getFirst().getIdentifier());
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
 
-        verify(productRepository).findAll(pageable);
+        verify(productRepository)
+                .findByIsDeletedFalse(pageable);
     }
 }

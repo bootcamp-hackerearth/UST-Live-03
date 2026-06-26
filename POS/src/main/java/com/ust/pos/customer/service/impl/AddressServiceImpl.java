@@ -1,25 +1,29 @@
 package com.ust.pos.customer.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl extends BaseService implements AddressService {
 
-    @Autowired
-    private AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto findByPhoneNoAndAddressType(Long phoneNo, String addressType) {
@@ -27,23 +31,18 @@ public class AddressServiceImpl implements AddressService {
         Address address = addressRepository.
                 findByPhoneNoAndAddressType(phoneNo, addressType);
 
+        if (address == null) {
+            return null;
+        }
+
         return modelMapper.map(address, AddressDto.class);
     }
 
     @Override
     public AddressDto save(AddressDto addressDto) {
 
-        Address existingAddress = addressRepository.
-                findByPhoneNoAndAddressType(addressDto.getPhoneNo(),
-                        addressDto.getAddressType());
-
-        if (existingAddress != null) {
-            addressDto.setMessage("Address with identifier - " + addressDto.getAddressType() + " already exists");
-            addressDto.setSuccess(false);
-            return addressDto;
-        }
-
         Address address = modelMapper.map(addressDto, Address.class);
+        setCreatedDetails(address);
         addressRepository.save(address);
 
         return addressDto;
@@ -63,6 +62,7 @@ public class AddressServiceImpl implements AddressService {
         }
 
         modelMapper.map(addressDto, existingAddress);
+        setModifiedDetails(existingAddress);
         addressRepository.save(existingAddress);
 
         return addressDto;
@@ -75,6 +75,11 @@ public class AddressServiceImpl implements AddressService {
         }.getType();
 
         return modelMapper.map(addressRepository.findAll(), listType);
+    }
+
+    @Override
+    public List<Address> findByPhoneNo(Long phoneNo) {
+        return addressRepository.findByPhoneNo(phoneNo);
     }
 
     @Override

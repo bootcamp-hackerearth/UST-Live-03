@@ -3,8 +3,6 @@ package com.ust.pos.customer;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,14 +14,14 @@ public class CustomerController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/customer/list";
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
 
-    @Autowired
-    private ProductService productService;
+    private final AddressService addressService;
 
-    @Autowired
-    private AddressService addressService;
+    public CustomerController(CustomerService customerService, AddressService addressService) {
+        this.customerService = customerService;
+        this.addressService = addressService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -52,7 +50,7 @@ public class CustomerController {
         return REDIRECT_ROLE_LIST;
     }
 
-    @GetMapping("/get")
+    @PostMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
 
         CustomerDto response = customerService.findByIdentifier(identifier);

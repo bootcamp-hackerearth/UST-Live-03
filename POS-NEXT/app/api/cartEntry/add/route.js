@@ -21,7 +21,7 @@ export async function POST(req) {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${baseUrl}/cartEntry/add`, {
+    const res = await fetch(`${baseUrl}/cartentry/add`, {
       method: "POST",
       headers,
       body: JSON.stringify(normalizedBody),
@@ -35,7 +35,7 @@ export async function POST(req) {
       },
     });
   } catch (error) {
-    console.error("cartEntry/add proxy failed", error);
+    console.error("cartentry/add proxy failed", error);
     return new Response("Proxy error", { status: 500 });
   }
 }

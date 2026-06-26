@@ -3,7 +3,6 @@ package com.ust.pos.unit;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,11 +14,14 @@ public class UnitController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/unit/list";
 
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public UnitController(UnitService unitService, CategoryService categoryService) {
+        this.unitService = unitService;
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -52,7 +54,7 @@ public class UnitController {
     public String update(Model model, @RequestParam String identifier) {
 
         UnitDto response = unitService.findByIdentifier(identifier);
-        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper(null));
+        model.addAttribute("categories", categoryService.findAllCategoriesWithNoSuper());
         model.addAttribute("unitDto", response);
 
         return "unit/unit";

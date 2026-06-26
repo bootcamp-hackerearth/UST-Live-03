@@ -2,460 +2,341 @@
 
 import { FetchEntity } from "@/apicalls/fetch/FetchEntity";
 import { FetchList } from "@/apicalls/fetch/FetchList";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
+import { getListContent, getItemLabel, getDisplayValue, filterCustomerOption } from "@/utils/CartHelpers";
+import Modal from "@/components/Modal";
+import AddCustomerModal from "@/components/AddCustomerModal";
+import CartEntries from "@/components/CartEntries";
+import ProductList from "@/components/ProductList";
+import useCart from "@/hooks/useCart";
+import PaymentModal from "./PaymentModal";
+import BillModal from "./BillModal";
+import { useReactToPrint } from "react-to-print";
+import PrintableReceipt from "./PrintableReceipt";
+import { useRouter } from "next/navigation";
+
 const Select = dynamic(() => import("react-select"), {
-  ssr: false,
+    ssr: false,
 });
- 
+
 export default function Cart() {
 
     const [customers, setCustomers] = useState([]);
     const [products, setProducts] = useState([]);
-    const [prices, setPrices] = useState([]);
-    const [cartEntries, setCartEntries] = useState([]);
     const [selectedCustomerId, setSelectedCustomerId] = useState("");
-    const [selectedCart, setSelectedCart] = useState(null);
-    const [message, setMessage] = useState("");
-    const [loadingCart, setLoadingCart] = useState(false);
-    const [addingProductId, setAddingProductId] = useState("");
-
+    const [searchTerm, setSearchTerm] = useState("");
+    const [showCustomerModal, setShowCustomerModal] = useState(false);
+    const [customerForm, setCustomerForm] = useState({
+        name: "",
+        identifier: "",
+        phoneNo: "",
+    });
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [paymentType, setPaymentType] = useState("");
+    const [completedOrder, setCompletedOrder] = useState(null);
+    const [invoiceItems, setInvoiceItems] = useState([]);
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
-
-    const getListContent = (response) => {
-        if (Array.isArray(response)) {
-            return response;
-        }
-
-        return response?.content || [];
-    };
-
-    const getProductIdentifier = (item) => item?.identifier || item?.id || "";
-
-    const priceSummaryByProduct = prices.reduce((summary, priceItem) => {
-        const productKey = priceItem?.product;
-        if (!productKey) {
-            return summary;
-        }
-
-        if (!summary[productKey]) {
-            summary[productKey] = {};
-        }
-
-        summary[productKey][priceItem.priceType] = priceItem.priceAmount;
-        return summary;
-    }, {});
-
-    const getPriceInfo = (productIdentifier) => {
-        const productPrices = priceSummaryByProduct[productIdentifier] || {};
-
-        const mrp = productPrices["MRP"] ?? null;
-        const sellingPrice = productPrices["Selling Price"] ?? null;
-
-        return {
-            mrp,
-            sellingPrice,
-            hasPricing: mrp !== null && sellingPrice !== null,
-        };
-    };
-    const getActiveCartIdentifier = () => selectedCart?.identifier || selectedCustomerId;
-
-    const getItemLabel = (item) => {
-        if (!item) return "-";
-
-        return item.name || item.title || item.identifier || item.username || item.phoneNo || item.id || "-";
-    };
-
-    const getDisplayValue = (value) => {
-        if (value === null || value === undefined || value === "") {
-            return "-";
-        }
-
-        if (Array.isArray(value)) {
-            return value.length ? value.join(", ") : "-";
-        }
-
-        if (typeof value === "object") {
-            return value.name || value.title || value.identifier || value.id || JSON.stringify(value);
-        }
-
-        return value;
-    };
+    const printRef = useRef(null);
+    const router = useRouter();
+    const {
+        cartEntries,
+        selectedCart,
+        loadingCart,
+        addingProductId,
+        handleAddProduct,
+        handleUpdateQuantity,
+        handleDelete,
+        handleClearCart,
+    } = useCart(selectedCustomerId, baseUrl);
 
 
-    useEffect(() => {
-        const fetchData = async () => {
+     const fetchData = async () => {
             try {
                 const customerRes = await FetchList(`${baseUrl}/customer/list`, 0, 200);
-                const productRes = await FetchList(`${baseUrl}/product/list`, 0, 200);
-                const priceRes = await FetchList(`${baseUrl}/price/list`, 0, 200);
+                const productRes = await FetchList(`${baseUrl}/product/cart-list`, 0, 200);
 
                 setCustomers(getListContent(customerRes));
                 setProducts(getListContent(productRes));
-                setPrices(getListContent(priceRes));
 
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
         };
 
+    useEffect(() => {
         fetchData();
     }, []);
-
-    useEffect(() => {
-        if (!selectedCustomerId) return;
-
-        const fetchCartEntries = async () => {
-            setLoadingCart(true);
-            setMessage("");
-
-            try {
-                const res = await FetchEntity(
-                    `/api/cart/get`,
-                    selectedCustomerId,
-                    "text/plain"
-                );
-
-                setSelectedCart(res || null);
-                const cartIdentifier = res?.identifier || selectedCustomerId;
-                const cartEntryRes = await FetchList(`${baseUrl}/cartEntry/list`, 0, 200);
-                const cartEntryItems = getListContent(cartEntryRes);
-
-                setCartEntries(
-                    cartEntryItems.filter((entry) => entry?.cartId === cartIdentifier)
-                );
-
-            } catch (err) {
-                console.log(err);
-                setSelectedCart(null);
-                setCartEntries([]);
-            } finally {
-                setLoadingCart(false);
-            }
-        };
-
-        fetchCartEntries();
-    }, [selectedCustomerId]);
-
-    const refreshCartEntries = async (cartIdentifier) => {
-        const activeCartIdentifier = cartIdentifier || getActiveCartIdentifier();
-        if (!activeCartIdentifier) {
-            setCartEntries([]);
-            return;
-        }
-
-        const cartEntryRes = await FetchList(`${baseUrl}/cartEntry/list`, 0, 200);
-        const cartEntryItems = getListContent(cartEntryRes);
-
-        setCartEntries(
-            cartEntryItems.filter((entry) => entry?.cartId === activeCartIdentifier)
-        );
-    };
-
-    const handleAddProduct = async (product) => {
-        const cartId = selectedCart?.identifier || selectedCart?.id || selectedCustomerId;
-        if (!cartId) {
-            setMessage("Select a customer first.");
-            return;
-        }
-
-        const productIdentifier = product?.identifier || product?.id;
-        if (!productIdentifier) {
-            setMessage("Selected product is missing an identifier.");
-            return;
-        }
-
-        const priceInfo = getPriceInfo(productIdentifier);
-
-        if (!priceInfo.hasPricing) {
-            setMessage(`Missing pricing for ${getItemLabel(product)}.`);
-            return;
-        }
-
-        setAddingProductId(productIdentifier);
-        setMessage("");
-
-        const unitPrice = Number(priceInfo.sellingPrice ?? 0);
-
-        const payload = {
-            cartId,
-            product: productIdentifier,
-            quantity: 1,
-            discount: 0,
-            orginalPrice: unitPrice,
-            totalPrice: unitPrice,
-            customerIdentifier: selectedCustomerId,
-        };
-        try {
-            const response = await FetchEntity(`/api/cartEntry/add`, payload, "application/json");
-
-            if (response) {
-                const updatedCart = await FetchEntity(
-                    `/api/cart/get`,
-                    selectedCustomerId,
-                    "text/plain"
-                );
-
-                setSelectedCart(updatedCart || null);
-                await refreshCartEntries(updatedCart?.identifier || cartId);
-                setMessage("Product added to cart.");
-            } else {
-                setMessage("Unable to add product to cart.");
-            }
-        } catch (error) {
-            console.error("Error adding product:", error);
-            setMessage("Unable to add product to cart.");
-        } finally {
-            setAddingProductId("");
-        }
-    };
-
-    const handleCustomerSelect = (identifier) => {
-        setSelectedCustomerId(identifier);
-    };
 
     const customerOptions = customers.map((customer) => ({
         value: customer.identifier,
         label: `${customer.name} (${customer.phoneNo})`,
     }));
 
+    const filteredProducts = products.filter((product) => {
 
-    const filterCustomerOption = (option, inputValue) => {
-        const search = inputValue.toLowerCase();
+        if ((product.stockQuantity || 0) <= 0) {
+            return false;
+        }
+        const label = getItemLabel(product)?.toLowerCase() || "";
+        const category = getDisplayValue(product.category)?.toLowerCase() || "";
+        const term = searchTerm.toLowerCase();
 
-        return (
-            option.label.toLowerCase().includes(search) ||
-            option.value.toLowerCase().includes(search)
+        return label.includes(term) || category.includes(term);
+    });
+
+    const getProductName = (productIdentifier) => {
+        const product = products.find(
+            (p) => p.identifier === productIdentifier || p.id === productIdentifier
         );
+        return product?.name || productIdentifier;
     };
 
-    const handleUpdateQuantity = async (entry, delta) => {
-    try {
-        if (delta === 1) {
-            const payload = {
-                cartId: entry.cartId,
-                product: entry.product,
-                quantity: 1,
-                customerIdentifier: selectedCustomerId,
-            };
+    const handleAddCustomer = async () => {
+        try {
+            const response = await FetchEntity(
+                `${baseUrl}/customer/add`,
+                "POST",
+                customerForm,
+                "application/json"
+            );
+            if (!response) {
+                return;
+            }
 
-            await FetchEntity(`${baseUrl}/cartEntry/add`, payload, "application/json");
+            const customerRes = await FetchList(
+                `${baseUrl}/customer/list`,
+                0,
+                200
+            );
 
-        } else if (delta === -1) {
-            const newQty = Number(entry.quantity) - 1;
+            const updatedCustomers = getListContent(customerRes);
+            setCustomers(updatedCustomers);
+            setShowCustomerModal(false);
+            setCustomerForm({
+                name: "",
+                identifier: "",
+                phoneNo: "",
+            });
 
-            if (newQty < 1) return;
+            const newCustomerId = response.identifier || response.id;
+            setSelectedCustomerId(newCustomerId);
 
-            const payload = {
-                ...entry,
-                quantity: newQty,
-            };
-
-            await FetchEntity(`${baseUrl}/cartEntry/updatequantity`, payload, "application/json");
+        } catch (error) {
+            console.error(error);
         }
+    };
 
-        const updatedCart = await FetchEntity(
-            `${baseUrl}/cart/get`,
-            selectedCustomerId,
-            "text/plain"
-        );
+    const selectedCustomer = customers.find(
+        customer => customer.identifier === selectedCustomerId
+    );
 
-        setSelectedCart(updatedCart || null);
-        await refreshCartEntries(updatedCart?.identifier);
+    const handlePaymentComplete = async () => {
+        try {
 
-    } catch (err) {
-        console.error("Error updating quantity", err);
-    }
-};
+            const orderPayload = {
+                customerId: selectedCustomerId,
+                paymentType: paymentType,
+            };
+
+            const orderResponse = await FetchEntity(
+                `${baseUrl}/orders/add`,
+                "POST",
+                orderPayload,
+                "application/json"
+            );
+
+            if (!orderResponse) {
+                return;
+            }
+
+            setCompletedOrder(orderResponse);
+            setInvoiceItems([...cartEntries]);
+
+            await handleClearCart();
+            await fetchData();
+
+            setShowPaymentModal(false);
+            setShowInvoiceModal(true);
+
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const isCheckoutDisabled = !selectedCustomerId || cartEntries.length === 0;
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+    });
+ 
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 p-6 md:p-8">
-            <div className="mx-auto max-w-7xl space-y-6">
+        <>
+            <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 p-3 md:p-4">
+                <div className="mx-auto max-w-7xl space-y-1">
 
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-semibold text-slate-900">Cart</h1>
-                </div>
+                    <div className="flex justify-between mb-2">
+                        <h1 className="text-xl font-semibold text-slate-900 pl-2">
+                            Cart
+                        </h1>
 
-                <div className="grid gap-6 lg:grid-cols-4">
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => router.push("/orders")}
+                                className="rounded-2xl border border-violet-200 bg-white px-4 py-1.5 text-[11px] font-bold text-violet-600 hover:bg-violet-200">
+                                Orders
+                            </button>
 
-                    <aside className="lg:col-span-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="space-y-4">
+                            <button
+                                onClick={() => setShowCustomerModal(true)}
+                                className="rounded-2xl border border-violet-200 bg-white px-4 py-1.5 text-[11px] font-bold text-violet-600 hover:bg-violet-200"
+                            >
+                                Add Customer +
+                            </button>
+                        </div>
+                    </div>
 
+                    <div className="grid gap-3 lg:grid-cols-4 min-h-[calc(100vh-7rem)]">
+                        <aside className="lg:col-span-3 rounded-3xl border border-slate-300 bg-white p-3 shadow-sm flex flex-col h-[calc(100vh-120px)]">                            <div className="flex flex-col gap-2.5 flex-1 min-h-0">
                             <div>
-                                <h2 className="text-lg font-semibold text-slate-900">Customers</h2>
-                                <p className="text-sm text-slate-500">
-                                    Search and select a customer to load their cart.
-                                </p>
+                                <h2 className="text-sm font-semibold text-slate-900">{selectedCustomer?.name || "Customers"}</h2>
                             </div>
                             <Select
                                 options={customerOptions}
                                 placeholder="Search and select customer..."
                                 value={customerOptions.find(opt => opt.value === selectedCustomerId) || null}
                                 onChange={(selectedOption) => {
-                                    handleCustomerSelect(selectedOption?.value || "");
+                                    setSelectedCustomerId(selectedOption?.value || "");
                                 }}
                                 isSearchable
-                                className="text-sm"
+                                className="text-[11px] border border-slate-400"
                                 filterOption={filterCustomerOption}
                                 styles={{
-                                    control: (base) => ({
-                                        ...base,
-                                        borderRadius: "12px",
-                                        padding: "2px",
-                                        borderColor: "#cbd5f5",
-                                    }),
-                                    menu: (base) => ({
-                                        ...base,
-                                        zIndex: 9999,
-                                    }),
-                                }}
-                            />
-
-                            <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-                                <div className="font-medium text-slate-900">Selected customer</div>
-                                <div>{selectedCustomerId || "None"}</div>
-                                {message && <div className="mt-2 text-emerald-700">{message}</div>}
-                            </div>
-
-                            <div>
-                                <div className="mb-3 flex justify-between">
-                                    <h3 className="text-sm font-semibold uppercase text-slate-500">Cart Entries</h3>
-                                    {loadingCart && <span className="text-xs text-slate-400">Loading...</span>}
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-h-[55vh] overflow-y-auto">
-                                    {cartEntries.length === 0 ? (
-                                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-400">
-                                            No records found
-                                        </div>
-                                    ) : (
-                                        cartEntries.map((item) => (
-                                            <div key={item.identifier ?? item.id} className="rounded-2xl border border-slate-200 p-4 text-sm">
-                                                <div className="font-medium text-slate-900">
-                                                    {getDisplayValue(item.product)}
-                                                </div>
-
-                                                <div className="mt-1 text-slate-500">
-                                                    Qty: {getDisplayValue(item.quantity)}
-                                                </div>
-                                                <div className="mt-2 flex items-center justify-between">
-
-                                                    <button
-                                                        onClick={() => handleUpdateQuantity(item, -1)}
-                                                        className="w-7 h-7 rounded-full border border-slate-300 text-sm hover:bg-slate-100"
-                                                    >
-                                                        -
-                                                    </button>
-
-                                                    <span className="text-sm font-semibold text-slate-900">
-                                                        {getDisplayValue(item.quantity)}
-                                                    </span>
-
-                                                    <button
-                                                        onClick={() => handleUpdateQuantity(item, +1)}
-                                                        className="w-7 h-7 rounded-full border border-slate-300 text-sm hover:bg-slate-100"
-                                                    >
-                                                        +
-                                                    </button>
-
-                                                </div>
-
-                                                <div className="mt-1 text-slate-500">
-                                                    Total: {getDisplayValue(item.totalPrice)}
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <h3 className="text-sm font-semibold uppercase text-slate-500 mb-3">
-                                Summary
-                            </h3>
-
-                            <div className="space-y-2 text-sm">
-
-                                <div className="flex justify-between text-slate-600">
-                                    <span>Original Price</span>
-                                    <span className="font-medium text-slate-900">
-                                        ₹{selectedCart?.originalPrice ?? 0}
-                                    </span>
-                                </div>
-
-                                <div className="flex justify-between text-slate-600">
-                                    <span>Discount</span>
-                                    <span className="font-medium text-red-500">
-                                        -₹{selectedCart?.discount ?? 0}
-                                    </span>
-                                </div>
-
-                                <div className="border-t pt-2 flex justify-between text-base font-semibold text-slate-900">
-                                    <span>Total Price</span>
-                                    <span>
-                                        ₹{selectedCart?.totalPrice ?? 0}
-                                    </span>
-                                </div>
+                                    option: (base, state) => {
+                                        let backgroundColor = "white";
+                                        if (state.isSelected) {
+                                            backgroundColor = "#8b5cf6";
+                                        } else if (state.isFocused) {
+                                            backgroundColor = "#ede9fe";
+                                        }
+                                        return {
+                                            ...base,
+                                            backgroundColor,
+                                            color: state.isSelected ? "white" : "#0f172a",
+                                            cursor: "pointer",
+                                        };
+                                    },
+                                }} />
+                            <div className="flex-1 overflow-hidden">
+                                <CartEntries
+                                    cartEntries={cartEntries}
+                                    products={products}
+                                    loading={loadingCart}
+                                    getProductName={getProductName}
+                                    getDisplayValue={getDisplayValue}
+                                    onDelete={handleDelete}
+                                    onUpdateQuantity={handleUpdateQuantity} />
                             </div>
                         </div>
-                    </aside>
+                            <div className="mt-2.5 shrink-0">
+                                <div className="mt-2.5 shrink-0 rounded-2xl border border-violet-300 bg-violet-50 p-2.5 text-[11px]">
+                                    <div className="bg-violet-50 border-blue-200">
+                                        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                            Summary
+                                        </h3>
+                                    </div>
 
-                    <section className="lg:col-span-1 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm max-h-[75vh] overflow-y-auto">
+                                    <div className="flex justify-between text-slate-600">
+                                        <span>Original Price</span>
+                                        <span className="font-medium text-slate-900">
+                                            ₹{selectedCart?.originalPrice ?? 0}
+                                        </span>
+                                    </div>
 
-                        <div className="mb-4">
-                            <h2 className="text-lg font-semibold text-slate-900">Products</h2>
-                            <p className="text-sm text-slate-500">
-                                Click to add
-                            </p>
-                        </div>
+                                    <div className="flex justify-between text-slate-600">
+                                        <span>Discount</span>
+                                        <span className="font-medium text-red-500">
+                                            -₹{selectedCart?.discount ?? 0}
+                                        </span>
+                                    </div>
 
-                        <div className="grid gap-3">
-
-                            {products.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-400">
-                                    No products available.
+                                    <div className="mt-1.5 flex justify-between border-t pt-1.5 text-[12px] font-semibold text-slate-900">
+                                        <span>Total Price</span>
+                                        <span>
+                                            ₹{selectedCart?.totalPrice ?? 0}
+                                        </span>
+                                    </div>
                                 </div>
-                            ) : (
-                                products.map((product) => {
-                                    const productIdentifier = getProductIdentifier(product);
-                                    const priceInfo = getPriceInfo(productIdentifier);
-                                    const isAdding = addingProductId === productIdentifier;
+                            </div>
+                        </aside>
+                        <div className="lg:col-span-1 flex flex-col h-full overflow-hidden">
+                            <ProductList
+                                products={filteredProducts}
+                                cartEntries={cartEntries}
+                                searchTerm={searchTerm}
+                                setSearchTerm={setSearchTerm}
+                                selectedCustomerId={selectedCustomerId}
+                                addingProductId={addingProductId}
+                                onAddProduct={handleAddProduct} />
 
-                                    return (
-                                        <button
-                                            key={productIdentifier}
-                                            onClick={() => handleAddProduct(product)}
-                                            disabled={!selectedCustomerId || isAdding || !priceInfo.hasPricing}
-                                            className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left hover:bg-white hover:border-slate-300 transition disabled:opacity-60"
-                                        >
-                                            <div className="flex justify-between items-start">
-                                                <div className="text-sm font-semibold text-slate-900">
-                                                    {getItemLabel(product)}
-                                                </div>
-                                                <span className="text-xs bg-slate-900 text-white px-2 py-1 rounded-full">
-                                                    {isAdding ? "..." : "+"}
-                                                </span>
-                                            </div>
+                            <div className="mt-2.5 flex h-10 gap-2.5 shrink-0">
+                                <button disabled={isCheckoutDisabled} onClick={() => setShowPaymentModal(true)} className="flex-1 rounded-xl bg-violet-500 font-bold disabled:bg-gray-200 disabled:text-black py-1.5 text-[11px] text-white transition hover:bg-violet-700">
+                                    Checkout
+                                </button>
 
-                                            <div className="text-xs text-slate-500 mt-1">
-                                                {getDisplayValue(product.category)}
-                                            </div>
-
-                                            <div className="text-xs mt-2 text-slate-700">
-                                                {priceInfo.hasPricing
-                                                    ? `₹${priceInfo.sellingPrice}`
-                                                    : "No price"}
-                                            </div>
-                                        </button>
-                                    );
-                                })
-                            )}
+                                <button onClick={handleClearCart} className="flex-1 rounded-xl bg-gray-200 font-bold py-1.5 text-[11px] text-slate-800 transition hover:bg-gray-300">
+                                    Clear Cart
+                                </button>
+                            </div>
                         </div>
-                    </section>
+                    </div>
                 </div>
             </div>
-        </div>
+            <Modal
+                open={showCustomerModal}
+                onClose={() => setShowCustomerModal(false)}
+                title="Add Customer">
+                <AddCustomerModal
+                    onClose={() => setShowCustomerModal(false)}
+                    customerForm={customerForm}
+                    setCustomerForm={setCustomerForm}
+                    onSubmit={handleAddCustomer} />
+            </Modal>
+            <Modal
+                open={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                title="Payment">
+                <PaymentModal
+                    selectedCart={selectedCart}
+                    paymentType={paymentType}
+                    setPaymentType={setPaymentType}
+                    onCompletePayment={handlePaymentComplete} />
+            </Modal>
+            <div className="hidden">
+                <PrintableReceipt
+                    ref={printRef}
+                    order={completedOrder}
+                    cartEntries={invoiceItems}
+                    selectedCustomer={selectedCustomer}
+                    paymentType={paymentType}
+                    getProductName={getProductName}
+                />
+            </div>
+            <Modal
+                open={showInvoiceModal}
+                onClose={() => setShowInvoiceModal(false)}
+                title="Order Summary">
+                <BillModal
+                    order={completedOrder}
+                    cartEntries={invoiceItems}
+                    paymentType={paymentType}
+                    selectedCustomer={selectedCustomer}
+                    getProductName={getProductName}
+                    onClose={() => setShowInvoiceModal(false)}
+                    onPrint={handlePrint}
+                />
+            </Modal>
+        </>
     );
 }

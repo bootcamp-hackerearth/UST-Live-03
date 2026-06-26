@@ -13,5 +13,5 @@ public class ProductDto extends CommonDto {
     private String brand;
     private String model;
     private String category;
-
+    private Long stockQuantity;
 }

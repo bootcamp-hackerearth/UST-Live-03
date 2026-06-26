@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 const FormFields = ({ field, register, errors, dropdownData }) => {
 
-  const baseInput = "w-full px-3 py-2 rounded-xl border border-gray-200 bg-[#F9FAFC] text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400";
+const baseInput = "w-full px-2 py-1 rounded-lg border border-gray-200 bg-[#F9FAFC] text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-400";
 
   if (["text", "email", "number", "password"].includes(field.type)) {
     return (
@@ -44,13 +44,16 @@ const FormFields = ({ field, register, errors, dropdownData }) => {
     return (
       <div>
         <select
+          defaultValue={field.multiple ? undefined : ""}
           multiple={field.multiple || false}
           disabled={field.readOnly || false}
           {...register(field.name)}
           className={`${baseInput} ${field.readOnly ? "bg-gray-100" : ""}`}>
-          <option value="">
-            {field.placeholder}
-          </option>
+          {!field.multiple && (
+    <option value="" disabled hidden>
+        {field.placeholder}
+    </option>
+)}
 
           {options.map((item) => (
             <option

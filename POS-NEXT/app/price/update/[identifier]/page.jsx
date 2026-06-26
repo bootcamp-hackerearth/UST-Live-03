@@ -21,7 +21,7 @@ export default function PriceUpdate() {
   ];
 
   const dropdownApis = {
-    product: `${baseUrl}/product/list`
+    product: `${baseUrl}/product/getactive`
   };
 
   return (

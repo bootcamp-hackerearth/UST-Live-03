@@ -1,9 +1,13 @@
 package com.ust.pos;
 
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
+import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Address;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +39,9 @@ class CustomerServiceTest {
 
     @Mock
     private ModelMapper modelMapper;
+
+    @Mock
+    private CartService cartService;
 
     @InjectMocks
     private CustomerServiceImpl customerService;
@@ -84,14 +91,37 @@ class CustomerServiceTest {
     @Test
     void testSave_success() {
 
-        when(customerRepository.findByIdentifier("cust1")).thenReturn(null);
-        when(modelMapper.map(customerDto, Customer.class)).thenReturn(customer);
+        when(customerRepository.findByIdentifier("cust1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(customerDto, Customer.class))
+                .thenReturn(customer);
+
         CustomerDto result = customerService.save(customerDto);
 
         verify(addressService).save(billing);
         verify(addressService).save(shipping);
         verify(customerRepository).save(customer);
+        verify(cartService).save(any(CartDto.class));
+
         assertTrue(result.isSuccess());
+    }
+
+    @Test
+    void testSave_duplicateDeletedCustomer() {
+
+        customer.setDeleted(true);
+
+        when(customerRepository.findByIdentifier("cust1"))
+                .thenReturn(customer);
+
+        CustomerDto result =
+                customerService.save(customerDto);
+
+        assertFalse(result.isSuccess());
+
+        assertTrue(result.getMessage()
+                .contains("already exists but was deleted"));
     }
 
     @Test
@@ -135,30 +165,58 @@ class CustomerServiceTest {
     @Test
     void testDelete() {
 
+        Address address = new Address();
+
+        when(customerRepository.findByIdentifier("cust1"))
+                .thenReturn(customer);
+
+        when(addressService.findByPhoneNo(123456L))
+                .thenReturn(List.of(address));
+
         customerService.delete("cust1", 123456L);
-        verify(customerRepository).deleteByIdentifier("cust1");
-        verify(addressService).deleteByPhoneNo(123456L);
+
+        assertTrue(customer.isDeleted());
+        assertTrue(address.isDeleted());
+
+        verify(customerRepository)
+                .findByIdentifier("cust1");
+
+        verify(addressService)
+                .findByPhoneNo(123456L);
     }
 
     @Test
     void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Customer> customers = List.of(new Customer());
-        Page<Customer> page = new PageImpl<>(customers);
-        List<CustomerDto> dtos = List.of(new CustomerDto());
 
-        when(customerRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(customers),
-                any(Type.class)
-        )).thenReturn(dtos);
+        Customer customer1 = new Customer();
+        customer1.setIdentifier("cust1");
 
-        List<CustomerDto> result = customerService.findAll(pageable);
+        Page<Customer> page =
+                new PageImpl<>(List.of(customer1), pageable, 1);
+
+        CustomerDto dto = new CustomerDto();
+        dto.setIdentifier("cust1");
+
+        when(customerRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(customer1, CustomerDto.class))
+                .thenReturn(dto);
+
+        WsDto<CustomerDto> result = customerService.findAll(pageable);
+
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("cust1",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(customerRepository).findAll(pageable);
+        verify(customerRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(customer1, CustomerDto.class);
     }
 
     @Test

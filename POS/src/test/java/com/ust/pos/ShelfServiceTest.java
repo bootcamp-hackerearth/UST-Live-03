@@ -21,8 +21,7 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -52,7 +51,7 @@ class ShelfServiceTest {
         ShelfDto response = shelfService.save(dto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(shelfRepository).save(shelf);
@@ -85,7 +84,7 @@ class ShelfServiceTest {
         ShelfDto response = shelfService.update(dto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(shelfRepository).save(shelf);
@@ -108,8 +107,17 @@ class ShelfServiceTest {
     @Test
     void deleteTest() {
 
+        Shelf shelf = new Shelf();
+
+        when(shelfRepository.findByIdentifier("Admin"))
+                .thenReturn(shelf);
+
         shelfService.delete("Admin");
-        verify(shelfRepository).deleteByIdentifier("Admin");
+
+        assertTrue(shelf.isDeleted());
+
+        verify(shelfRepository)
+                .findByIdentifier("Admin");
     }
 
     @Test
@@ -148,22 +156,60 @@ class ShelfServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Shelf> shelfs = List.of(new Shelf());
-        Page<Shelf> page = new PageImpl<>(shelfs);
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Admin");
 
-        List<ShelfDto> dtos = List.of(new ShelfDto());
+        ShelfDto dto = new ShelfDto();
+        dto.setIdentifier("Admin");
 
-        when(shelfRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(shelfs),
-                any(Type.class)
-        )).thenReturn(dtos);
+        Page<Shelf> page =
+                new PageImpl<>(List.of(shelf), pageable, 1);
 
-        List<ShelfDto> result = shelfService.findAll(pageable);
+        when(shelfRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(shelf, ShelfDto.class))
+                .thenReturn(dto);
+
+        var result = shelfService.findAll(pageable);
+
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("Admin",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(shelfRepository).findAll(pageable);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(shelfRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(shelf, ShelfDto.class);
+    }
+
+    @Test
+    void saveTestFailure_deletedShelf() {
+
+        ShelfDto dto = new ShelfDto();
+        dto.setIdentifier("Admin");
+
+        Shelf existing = new Shelf();
+        existing.setDeleted(true);
+
+        when(shelfRepository.findByIdentifier("Admin"))
+                .thenReturn(existing);
+
+        ShelfDto response = shelfService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
     }
 
     @Test
@@ -177,7 +223,7 @@ class ShelfServiceTest {
                 .thenReturn(shelf);
         shelfService.toggleStatus("Admin");
 
-        Assertions.assertTrue(shelf.isStatus());
+        assertTrue(shelf.isStatus());
 
         verify(shelfRepository).save(argThat(CommonFields::isStatus
         ));
@@ -217,7 +263,7 @@ class ShelfServiceTest {
         Mockito.when(shelfRepository.findByStatus(true))
                 .thenReturn(shelfList);
 
-        List<Shelf> response = shelfService.findActiveShelf();
+        List<ShelfDto> response = shelfService.findActiveShelf();
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());

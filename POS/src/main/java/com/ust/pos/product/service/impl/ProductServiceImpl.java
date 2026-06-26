@@ -1,12 +1,14 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
+import com.ust.pos.model.Stock;
+import com.ust.pos.model.StockRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,13 +17,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl extends BaseService implements ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private static final String VALIDATION_MESSAGE = "Product with identifier - ";
+    private final ProductRepository productRepository;
+    private final StockRepository stockRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ProductServiceImpl(ProductRepository productRepository, StockRepository stockRepository, ModelMapper modelMapper) {
+        this.productRepository = productRepository;
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
@@ -42,12 +49,19 @@ public class ProductServiceImpl implements ProductService {
         Product existingProduct = productRepository.findByIdentifier(identifier);
 
         if (existingProduct != null) {
-            productDto.setMessage("Product with identifier - " + identifier + " already exists");
+            productDto.setMessage(
+                    existingProduct.isDeleted()
+                            ? VALIDATION_MESSAGE + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : VALIDATION_MESSAGE + identifier
+                            + " already exists."
+            );
             productDto.setSuccess(false);
             return productDto;
         }
 
         Product product = modelMapper.map(productDto, Product.class);
+        setCreatedDetails(product);
         productRepository.save(product);
 
         return productDto;
@@ -60,12 +74,13 @@ public class ProductServiceImpl implements ProductService {
         Product existingProduct = productRepository.findByIdentifier(identifier);
 
         if (existingProduct == null) {
-            productDto.setMessage("Product with identifier - " + identifier + " not found");
+            productDto.setMessage(VALIDATION_MESSAGE + identifier + " not found");
             productDto.setSuccess(false);
             return productDto;
         }
 
         modelMapper.map(productDto, existingProduct);
+        setModifiedDetails(existingProduct);
         productRepository.save(existingProduct);
 
         return productDto;
@@ -75,13 +90,15 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void delete(String identifier) {
 
-        productRepository.deleteByIdentifier(identifier);
+        Product product = productRepository.findByIdentifier(identifier);
+        setModifiedDetails(product);
+        softDelete(product);
     }
 
     @Override
     public WsDto<ProductDto> findAll(Pageable pageable) {
 
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<Product> productPage = productRepository.findByIsDeletedFalse(pageable);
         WsDto<ProductDto> paginationResponseDto = new WsDto<>();
 
         List<ProductDto> productDtos = productPage.getContent()
@@ -107,6 +124,40 @@ public class ProductServiceImpl implements ProductService {
             product.setStatus(!product.isStatus());
             productRepository.save(product);
         }
+    }
+
+    @Override
+    public List<ProductDto> findActiveShelf() {
+
+        List<Product> productPage = productRepository.findByStatus(true);
+        return productPage.stream().map(product -> modelMapper.map(product, ProductDto.class)).toList();
+    }
+
+    @Override
+    public WsDto<ProductDto> findAllWithQuantity(Pageable pageable) {
+
+        Page<Product> productPage = productRepository.findByIsDeletedFalse(pageable);
+        WsDto<ProductDto> paginationResponseDto = new WsDto<>();
+
+        List<ProductDto> productDtos = productPage.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, ProductDto.class))
+                .toList();
+
+        for (ProductDto product : productDtos) {
+            Stock stock = stockRepository.findByProduct(product.getIdentifier());
+            if (stock != null) {
+                product.setStockQuantity(stock.getQuantity());
+            }
+        }
+
+        paginationResponseDto.setContent(productDtos);
+        paginationResponseDto.setPage(productPage.getNumber());
+        paginationResponseDto.setSizePerPage(productPage.getSize());
+        paginationResponseDto.setTotalPages(productPage.getTotalPages());
+        paginationResponseDto.setTotalRecords(productPage.getTotalElements());
+
+        return paginationResponseDto;
     }
 }
 

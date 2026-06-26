@@ -21,8 +21,9 @@ export default function Productupdate() {
         hardCoded: false,
         hardCodedArray: [],
         required: true,
+        multiple:false,
         readOnly: false
-    });
+        });
 
     const fields = [
         createTextField("identifier", "Identifier", true, {
@@ -39,8 +40,8 @@ export default function Productupdate() {
     const dropdownApis = ["unit", "brand", "model", "category"]
         .reduce((acc, key) => {
             acc[key] = key === "model"
-                ? `${baseUrl}/models/list`
-                : `${baseUrl}/${key}/list`;
+                ? `${baseUrl}/models/getactive`
+                : `${baseUrl}/${key}/getactive`;
             return acc;
         }, {});
 

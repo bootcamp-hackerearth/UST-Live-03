@@ -119,8 +119,15 @@ class NodeServiceTest {
     @Test
     void testDelete() {
 
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
+
         nodeService.delete("NODE1");
-        verify(nodeRepository).deleteByIdentifier("NODE1");
+
+        assertTrue(node.isDeleted());
+
+        verify(nodeRepository)
+                .findByIdentifier("NODE1");
     }
 
     @Test
@@ -128,28 +135,57 @@ class NodeServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Node node5 = new Node();
+        Node node1 = new Node();
+        node.setIdentifier("NODE1");
+
         NodeDto dto = new NodeDto();
+        dto.setIdentifier("NODE1");
 
-        List<Node> nodes = List.of(node5);
-        Page<Node> page = new PageImpl<>(nodes);
+        Page<Node> page =
+                new PageImpl<>(List.of(node1), pageable, 1);
 
-        when(nodeRepository.findAll(pageable)).thenReturn(page);
+        when(nodeRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
-        when(modelMapper.map(node5, NodeDto.class))
+        when(modelMapper.map(node1, NodeDto.class))
                 .thenReturn(dto);
 
-        List<NodeDto> result = nodeService.findAll(pageable).getContent();
+        var result = nodeService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("NODE1",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(nodeRepository).findAll(pageable);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(nodeRepository)
+                .findByIsDeletedFalse(pageable);
+    }
+
+    @Test
+    void testSave_duplicateDeleted() {
+
+        node.setDeleted(true);
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
+
+        NodeDto result = nodeService.save(nodeDto);
+
+        assertFalse(result.isSuccess());
+
+        assertTrue(result.getMessage()
+                .contains("already exists but was deleted"));
     }
 
     @Test
     void testGetNodesForRoles_conditionTrue() {
 
+        Pageable pageable = PageRequest.of(0, 10);
         org.springframework.security.core.userdetails.User springUser =
                 new org.springframework.security.core.userdetails.User(
                         "testUser", "pass", new ArrayList<>());
@@ -167,20 +203,25 @@ class NodeServiceTest {
         node1.setIdentifier("NODE1");
         node1.setRoles(List.of("ADMIN"));
 
-        when(nodeRepository.findAll()).thenReturn(List.of(node1));
+        Page<Node> page =
+                new PageImpl<>(List.of(node1));
+
+        when(nodeRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
         when(nodeRepository.findByIdentifier("NODE1")).thenReturn(node1);
 
         NodeDto dto = new NodeDto();
         dto.setIdentifier("NODE1");
 
         when(modelMapper.map(node1, NodeDto.class)).thenReturn(dto);
-        List<NodeDto> result = nodeService.getNodesForRoles();
+        List<NodeDto> result = nodeService.getNodesForRoles(pageable);
         assertEquals(1, result.size());
     }
 
     @Test
     void testGetNodesForRoles_conditionFalse_rolesNotMatching() {
 
+        Pageable pageable = PageRequest.of(0, 10);
         org.springframework.security.core.userdetails.User springUser =
                 new org.springframework.security.core.userdetails.User(
                         "testUser", "pass", new ArrayList<>());
@@ -199,14 +240,18 @@ class NodeServiceTest {
         node4.setIdentifier("NODE1");
         node4.setRoles(List.of("ADMIN"));
 
-        when(nodeRepository.findAll()).thenReturn(List.of(node4));
-        List<NodeDto> result = nodeService.getNodesForRoles();
+        Page<Node> page =
+                new PageImpl<>(List.of(node4));
+
+        when(nodeRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);        List<NodeDto> result = nodeService.getNodesForRoles(pageable);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetNodesForRoles_rolesNull() {
 
+        Pageable pageable = PageRequest.of(0, 10);
         org.springframework.security.core.userdetails.User springUser =
                 new org.springframework.security.core.userdetails.User(
                         "testUser", "pass", new ArrayList<>());
@@ -225,9 +270,12 @@ class NodeServiceTest {
         node2.setIdentifier("NODE1");
         node2.setRoles(null);
 
-        when(nodeRepository.findAll()).thenReturn(List.of(node2));
+        Page<Node> page =
+                new PageImpl<>(List.of(node2));
 
-        List<NodeDto> result = nodeService.getNodesForRoles();
+        when(nodeRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+        List<NodeDto> result = nodeService.getNodesForRoles(pageable);
 
         assertTrue(result.isEmpty());
     }
@@ -235,6 +283,7 @@ class NodeServiceTest {
     @Test
     void testGetNodesForRoles_withAuth() {
 
+        Pageable pageable = PageRequest.of(0, 10);
         org.springframework.security.core.userdetails.User springUser =
                 new org.springframework.security.core.userdetails.User(
                         "testUser", "pass", new ArrayList<>());
@@ -248,35 +297,40 @@ class NodeServiceTest {
         user.setRoles(List.of("ADMIN"));
 
         when(userRepository.findByUsername("testUser")).thenReturn(user);
-        when(nodeRepository.findAll()).thenReturn(List.of(node));
+        Page<Node> page =
+                new PageImpl<>(List.of(node));
+
+        when(nodeRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
         when(nodeRepository.findByIdentifier("NODE1")).thenReturn(node);
         when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
 
-        List<NodeDto> result = nodeService.getNodesForRoles();
+        List<NodeDto> result = nodeService.getNodesForRoles(pageable);
         assertEquals(1, result.size());
     }
 
     @Test
     void testGetNodesForRoles_principalNull() {
 
+        Pageable pageable = PageRequest.of(0, 10);
         Authentication authentication = mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(null);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        List<NodeDto> result = nodeService.getNodesForRoles();
+        List<NodeDto> result = nodeService.getNodesForRoles(pageable);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
         verify(userRepository, never()).findByUsername(anyString());
-        verify(nodeRepository, never()).findAll();
-    }
+        verify(nodeRepository, never()).findByIsDeletedFalse(any());    }
 
     @Test
     void testGetNodesForRoles_noAuth() {
 
+        Pageable pageable = PageRequest.of(0, 10);
         SecurityContextHolder.getContext().setAuthentication(null);
-        List<NodeDto> result = nodeService.getNodesForRoles();
+        List<NodeDto> result = nodeService.getNodesForRoles(pageable);
 
         assertTrue(result.isEmpty());
     }

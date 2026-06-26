@@ -1,28 +1,31 @@
 package com.ust.pos.shelf.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ShelfServiceImpl implements ShelfService {
+public class ShelfServiceImpl extends BaseService implements ShelfService {
 
-    @Autowired
-    private ShelfRepository shelfRepository;
+    private static final String VALIDATION_MESSAGE = "Shelf with identifier - ";
+    private final ShelfRepository shelfRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+
+    public ShelfServiceImpl(ShelfRepository shelfRepository, ModelMapper modelMapper) {
+        this.shelfRepository = shelfRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ShelfDto findByIdentifier(String identifier) {
@@ -43,12 +46,19 @@ public class ShelfServiceImpl implements ShelfService {
         Shelf existingShelf = shelfRepository.findByIdentifier(identifier);
 
         if (existingShelf != null) {
-            shelfDto.setMessage("Shelf with identifier - " + identifier + " already exists");
+            shelfDto.setMessage(
+                    existingShelf.isDeleted()
+                            ? VALIDATION_MESSAGE + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : VALIDATION_MESSAGE + identifier
+                            + " already exists."
+            );
             shelfDto.setSuccess(false);
             return shelfDto;
         }
 
         Shelf shelf = modelMapper.map(shelfDto, Shelf.class);
+        setCreatedDetails(shelf);
         shelfRepository.save(shelf);
 
         return shelfDto;
@@ -61,12 +71,13 @@ public class ShelfServiceImpl implements ShelfService {
         Shelf existingShelf = shelfRepository.findByIdentifier(identifier);
 
         if (existingShelf == null) {
-            shelfDto.setMessage("Shelf with identifier - " + identifier + " not found");
+            shelfDto.setMessage(VALIDATION_MESSAGE + identifier + " not found");
             shelfDto.setSuccess(false);
             return shelfDto;
         }
 
         modelMapper.map(shelfDto, existingShelf);
+        setModifiedDetails(existingShelf);
         shelfRepository.save(existingShelf);
 
         return shelfDto;
@@ -76,17 +87,30 @@ public class ShelfServiceImpl implements ShelfService {
     @Transactional
     public void delete(String identifier) {
 
-        shelfRepository.deleteByIdentifier(identifier);
+        Shelf shelf = shelfRepository.findByIdentifier(identifier);
+        setModifiedDetails(shelf);
+        softDelete(shelf);
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
+    public WsDto<ShelfDto> findAll(Pageable pageable) {
 
-        Type listType = new TypeToken<List<ShelfDto>>() {
-        }.getType();
-        Page<Shelf> shelfPage = shelfRepository.findAll(pageable);
+        Page<Shelf> shelfPage = shelfRepository.findByIsDeletedFalse(pageable);
 
-        return modelMapper.map(shelfPage.getContent(), listType);
+        WsDto<ShelfDto> shelfDto = new WsDto<>();
+
+        List<ShelfDto> shelfDtos = shelfPage.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, ShelfDto.class))
+                .toList();
+
+        shelfDto.setContent(shelfDtos);
+        shelfDto.setPage(shelfPage.getNumber());
+        shelfDto.setSizePerPage(shelfPage.getSize());
+        shelfDto.setTotalPages(shelfPage.getTotalPages());
+        shelfDto.setTotalRecords(shelfPage.getTotalElements());
+
+        return shelfDto;
     }
 
     @Override
@@ -101,9 +125,10 @@ public class ShelfServiceImpl implements ShelfService {
     }
 
     @Override
-    public List<Shelf> findActiveShelf() {
+    public List<ShelfDto> findActiveShelf() {
 
-        return shelfRepository.findByStatus(true);
+        List<Shelf> shelves = shelfRepository.findByStatus(true);
+        return shelves.stream().map(shelf -> modelMapper.map(shelf, ShelfDto.class)).toList();
     }
 
 }

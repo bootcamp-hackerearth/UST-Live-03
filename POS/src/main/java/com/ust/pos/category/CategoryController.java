@@ -2,8 +2,6 @@ package com.ust.pos.category;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,11 +12,12 @@ import org.springframework.web.bind.annotation.*;
 public class CategoryController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/category/list";
-    @Autowired
-    private CategoryService categoryService;
 
-    @Autowired
-    private ProductService productService;
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

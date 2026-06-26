@@ -1,8 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.node.service.NodeService;
-import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -12,14 +11,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-    @Autowired
-    private NodeService nodeService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private UserService userService;
+    public HomeController(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(Model model, Pageable pageable) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -28,7 +27,7 @@ public class HomeController {
             model.addAttribute("name", username);
         }
 
-        model.addAttribute("nodes", nodeService.getNodesForRoles());
+        model.addAttribute("nodes", nodeService.getNodesForRoles(pageable));
 
         return "home";
     }

@@ -1,21 +1,23 @@
 package com.ust.pos.api.cartentry;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.cartEntry.service.CartEntryService;
+import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/cartEntry")
+@RequestMapping("/api/cartentry")
 public class CartEntryApiController extends BaseController {
 
-    @Autowired
-    private CartEntryService cartEntryService;
+    private final CartEntryService cartEntryService;
+
+    public CartEntryApiController(CartEntryService cartEntryService) {
+        this.cartEntryService = cartEntryService;
+    }
 
     @PostMapping("/list")
     public List<CartEntryDto> home(@RequestBody PaginationDto paginationDto) {
@@ -33,7 +35,7 @@ public class CartEntryApiController extends BaseController {
         return cartEntryService.save(cartEntryDto);
     }
 
-    @PostMapping("/updatequantity")
+    @PutMapping("/updatequantity")
     public CartEntryDto updatePost(@RequestBody CartEntryDto cartEntryDto) {
 
         return cartEntryService.updateQuantity(cartEntryDto);
@@ -45,8 +47,15 @@ public class CartEntryApiController extends BaseController {
         return cartEntryService.findByIdentifier(identifier);
     }
 
-    @GetMapping("/clearCart")
-    public boolean deleteAll(@RequestParam String cartId) {
+    @PostMapping("/cart")
+    public List<CartEntryDto> findByCartId(@RequestBody String cartId) {
+
+        return cartEntryService.findByCartId(cartId);
+    }
+
+    @DeleteMapping("/clearCart")
+    public boolean deleteAll(@RequestBody String cartId) {
+
         try {
             cartEntryService.deleteAllByCartId(cartId);
             return true;
@@ -55,9 +64,8 @@ public class CartEntryApiController extends BaseController {
         }
     }
 
-
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody String identifier) {
 
         try {
             cartEntryService.delete(identifier);

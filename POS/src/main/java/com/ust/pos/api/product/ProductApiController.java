@@ -5,19 +5,20 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/product")
 public class ProductApiController extends BaseController {
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+
+    public ProductApiController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping("/list")
     public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
@@ -29,29 +30,40 @@ public class ProductApiController extends BaseController {
         return productService.findAll(pageable);
     }
 
+    @PostMapping("/cart-list")
+    public WsDto<ProductDto> cartHome(@RequestBody PaginationDto paginationDto) {
+
+        Pageable pageable = getPageable(paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        return productService.findAllWithQuantity(pageable);
+    }
+
+
     @PostMapping("/add")
     public ProductDto addPost(@RequestBody ProductDto userDto) {
 
         return productService.save(userDto);
     }
 
-    @PostMapping("/get")
-    public ProductDto update(@RequestBody String identifier) {
-
+    @GetMapping("/{identifier}")
+    public ProductDto update(@PathVariable String identifier) {
 
         identifier = identifier.replace("\"", "");
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
 
         return productService.update(productDto);
     }
 
-    @PostMapping("/delete")
-    public boolean delete(@RequestBody String identifier) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody ProductDto productDto) {
 
+        String identifier = productDto.getIdentifier();
         identifier = identifier.replace("\"", "");
 
         try {
@@ -63,7 +75,7 @@ public class ProductApiController extends BaseController {
         return true;
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public boolean toggleStatus(@RequestBody String identifier) {
 
         try {
@@ -72,6 +84,12 @@ public class ProductApiController extends BaseController {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @GetMapping("/getactive")
+    public List<ProductDto> getActiveProducts() {
+
+        return productService.findActiveShelf();
     }
 
 }

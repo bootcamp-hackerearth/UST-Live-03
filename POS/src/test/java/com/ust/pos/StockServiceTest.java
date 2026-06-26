@@ -19,8 +19,7 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,7 +54,7 @@ class StockServiceTest {
 
         Assertions.assertEquals("P1W1", response.getIdentifier());
         Assertions.assertEquals("AVAILABLE", response.getStockStatus());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(stockRepository).save(stock);
@@ -76,7 +75,7 @@ class StockServiceTest {
         StockDto response = stockService.save(dto);
 
         Assertions.assertEquals("LIMITED STOCK", response.getStockStatus());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
     }
 
     @Test
@@ -94,7 +93,7 @@ class StockServiceTest {
         StockDto response = stockService.save(dto);
 
         Assertions.assertEquals("OUT OF STOCK", response.getStockStatus());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
     }
 
     @Test
@@ -129,7 +128,7 @@ class StockServiceTest {
         StockDto response = stockService.update(dto);
 
         Assertions.assertEquals("AVAILABLE", response.getStockStatus());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
 
         verify(stockRepository).save(stock);
     }
@@ -147,7 +146,7 @@ class StockServiceTest {
         StockDto response = stockService.update(dto);
 
         Assertions.assertEquals("LIMITED STOCK", response.getStockStatus());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
     }
 
     @Test
@@ -163,7 +162,7 @@ class StockServiceTest {
         StockDto response = stockService.update(dto);
 
         Assertions.assertEquals("OUT OF STOCK", response.getStockStatus());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
     }
 
     @Test
@@ -184,9 +183,18 @@ class StockServiceTest {
     @Test
     void deleteTest() {
 
+        Stock stock = new Stock();
+        stock.setIdentifier("P1W1");
+
+        when(stockRepository.findByIdentifier("P1W1"))
+                .thenReturn(stock);
+
         stockService.delete("P1W1");
 
-        verify(stockRepository).deleteByIdentifier("P1W1");
+        assertTrue(stock.isDeleted());
+
+        verify(stockRepository)
+                .findByIdentifier("P1W1");
     }
 
     @Test
@@ -221,22 +229,60 @@ class StockServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Stock> stocks = List.of(new Stock());
-        Page<Stock> page = new PageImpl<>(stocks);
+        Stock stock = new Stock();
+        stock.setIdentifier("P1W1");
 
-        List<StockDto> dtos = List.of(new StockDto());
+        StockDto dto = new StockDto();
+        dto.setIdentifier("P1W1");
 
-        when(stockRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(
-                eq(stocks),
-                any(Type.class)
-        )).thenReturn(dtos);
+        Page<Stock> page =
+                new PageImpl<>(List.of(stock), pageable, 1);
 
-        List<StockDto> result = stockService.findAll(pageable);
+        when(stockRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(stock, StockDto.class))
+                .thenReturn(dto);
+
+        var result = stockService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("P1W1",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(stockRepository).findAll(pageable);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(stockRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(stock, StockDto.class);
+    }
+
+    @Test
+    void save_deletedStockTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProduct("P1");
+        dto.setWarehouse("W1");
+
+        Stock existing = new Stock();
+        existing.setDeleted(true);
+
+        when(stockRepository.findByIdentifier(anyString()))
+                .thenReturn(existing);
+
+        StockDto response = stockService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
     }
 }

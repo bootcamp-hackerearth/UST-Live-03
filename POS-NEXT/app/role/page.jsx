@@ -2,7 +2,7 @@ import List from "@/components/CommonList";
 
 export default function RoleList() {
 
-    const keys = ["identifier", "description"]
+    const keys = ["identifier", "description", "status"]
 
     return (
         

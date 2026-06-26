@@ -25,7 +25,6 @@ export default function Login() {
     setLoading(true);
     setError("");
 
-    console.log("Submitting login...");
     const res = await fetch("/api/login", {
       method: "POST",
       headers: {

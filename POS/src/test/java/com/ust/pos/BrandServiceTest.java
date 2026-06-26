@@ -111,8 +111,15 @@ class BrandServiceTest {
     @Test
     void testDelete() {
 
+        when(brandRepository.findByIdentifier("BR001"))
+                .thenReturn(brand);
+
         brandService.delete("BR001");
-        verify(brandRepository).deleteByIdentifier("BR001");
+
+        assertTrue(brand.isDeleted());
+
+        verify(brandRepository)
+                .findByIdentifier("BR001");
     }
 
     @Test
@@ -121,23 +128,53 @@ class BrandServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Brand brand1 = new Brand();
+        brand1.setIdentifier("BR001");
+
         BrandDto dto = new BrandDto();
+        dto.setIdentifier("BR001");
 
-        List<Brand> brands = List.of(brand1);
-        Page<Brand> page = new PageImpl<>(brands);
+        Page<Brand> page =
+                new PageImpl<>(List.of(brand1), pageable, 1);
 
-        when(brandRepository.findAll(pageable)).thenReturn(page);
+        when(brandRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
         when(modelMapper.map(brand1, BrandDto.class))
                 .thenReturn(dto);
 
-        List<BrandDto> result = brandService.findAll(pageable).getContent();
+        var result = brandService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("BR001",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(brandRepository).findAll(pageable);
-        verify(modelMapper).map(brand1, BrandDto.class);
+        verify(brandRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(brand1, BrandDto.class);
+    }
+
+    @Test
+    void testSave_DeletedBrandExists() {
+
+        brand.setDeleted(true);
+
+        when(brandRepository.findByIdentifier("BR001"))
+                .thenReturn(brand);
+
+        BrandDto result = brandService.save(brandDto);
+
+        assertFalse(result.isSuccess());
+
+        assertTrue(
+                result.getMessage()
+                        .contains("already exists but was deleted")
+        );
+
+        verify(brandRepository, never())
+                .save(any());
     }
 
 
@@ -184,7 +221,7 @@ class BrandServiceTest {
 
         when(brandRepository.findByStatus(true))
                 .thenReturn(Collections.singletonList(brand));
-        List<Brand> result = brandService.findActiveBrands();
+        List<BrandDto> result = brandService.findActiveBrands();
         assertEquals(1, result.size());
         verify(brandRepository).findByStatus(true);
     }

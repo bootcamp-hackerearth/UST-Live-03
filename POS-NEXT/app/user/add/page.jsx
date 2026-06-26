@@ -40,7 +40,7 @@ export default function UserAdd() {
 
   const dropdownApis = {
 
-    roles: `${baseUrl}/role/list`
+    roles: `${baseUrl}/role/getactive`
   };
 
   return (

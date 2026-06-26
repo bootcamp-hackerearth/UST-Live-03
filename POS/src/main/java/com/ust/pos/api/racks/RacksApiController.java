@@ -3,22 +3,23 @@ package com.ust.pos.api.racks;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/racks")
 public class RacksApiController extends BaseController {
 
-    @Autowired
-    private RacksService racksService;
+    private final RacksService racksService;
+
+    public RacksApiController(RacksService racksService) {
+        this.racksService = racksService;
+    }
 
     @PostMapping("/list")
-    public List<RacksDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RacksDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -33,20 +34,33 @@ public class RacksApiController extends BaseController {
         return racksService.save(userDto);
     }
 
-    @GetMapping("/get")
-    public RacksDto update(@RequestParam String identifier) {
+    @GetMapping("/{identifier}")
+    public RacksDto update(@PathVariable String identifier) {
 
         return racksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RacksDto updatePost(@RequestBody RacksDto racksDto) {
 
         return racksService.update(racksDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @PatchMapping("/toggle")
+    public boolean toggleStatus(@RequestBody String identifier) {
+
+        try {
+            racksService.toggleStatus(identifier);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody RacksDto racksDto) {
+
+        String identifier = racksDto.getIdentifier();
 
         try {
             racksService.delete(identifier);

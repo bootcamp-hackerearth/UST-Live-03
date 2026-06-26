@@ -19,10 +19,7 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +52,7 @@ class WarehouseServiceTest {
         WarehouseDto response = warehouseService.save(dto);
 
         Assertions.assertEquals("WH1", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(warehouseRepository).save(warehouse);
@@ -90,7 +87,7 @@ class WarehouseServiceTest {
         WarehouseDto response = warehouseService.update(dto);
 
         Assertions.assertEquals("WH1", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(modelMapper).map(dto, existing);
@@ -115,9 +112,17 @@ class WarehouseServiceTest {
     @Test
     void deleteTest() {
 
+        Warehouse warehouse = new Warehouse();
+
+        when(warehouseRepository.findByIdentifier("WH1"))
+                .thenReturn(warehouse);
+
         warehouseService.delete("WH1");
 
-        verify(warehouseRepository).deleteByIdentifier("WH1");
+        assertTrue(warehouse.isDeleted());
+
+        verify(warehouseRepository)
+                .findByIdentifier("WH1");
     }
 
     @Test
@@ -154,23 +159,59 @@ class WarehouseServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Warehouse> warehouses = List.of(new Warehouse());
-        Page<Warehouse> page = new PageImpl<>(warehouses);
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("WH1");
 
-        List<WarehouseDto> dtos = List.of(new WarehouseDto());
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("WH1");
 
-        when(warehouseRepository.findAll(pageable)).thenReturn(page);
+        Page<Warehouse> page =
+                new PageImpl<>(List.of(warehouse), pageable, 1);
 
-        when(modelMapper.map(
-                eq(warehouses),
-                any(Type.class)
-        )).thenReturn(dtos);
+        when(warehouseRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
-        List<WarehouseDto> result = warehouseService.findAll(pageable);
+        when(modelMapper.map(warehouse, WarehouseDto.class))
+                .thenReturn(dto);
+
+        var result = warehouseService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("WH1",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(warehouseRepository).findAll(pageable);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(warehouseRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(warehouse, WarehouseDto.class);
+    }
+
+    @Test
+    void saveTestFailure_deletedWarehouse() {
+
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("WH1");
+
+        Warehouse existing = new Warehouse();
+        existing.setDeleted(true);
+
+        when(warehouseRepository.findByIdentifier("WH1"))
+                .thenReturn(existing);
+
+        WarehouseDto response = warehouseService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
     }
 }

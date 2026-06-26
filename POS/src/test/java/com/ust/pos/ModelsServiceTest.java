@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.impl.ModelServiceImpl;
@@ -94,9 +95,6 @@ class ModelsServiceTest {
 
         Mockito.when(modelsRepository.findByIdentifier("Admin"))
                 .thenReturn(existingModels);
-        Mockito.when(modelsRepository.save(existingModels))
-                .thenReturn(existingModels);
-
         ModelsDto response = modelsService.update(modelsDto);
         assertTrue(response.isSuccess());
     }
@@ -116,10 +114,18 @@ class ModelsServiceTest {
     @Test
     void deleteTest() {
 
-        Mockito.doNothing().when(modelsRepository)
-                .deleteByIdentifier("Admin");
+        Models models = new Models();
+        models.setIdentifier("Admin");
+
+        when(modelsRepository.findByIdentifier("Admin"))
+                .thenReturn(models);
+
         modelsService.delete("Admin");
-        verify(modelsRepository).deleteByIdentifier("Admin");
+
+        assertTrue(models.isDeleted());
+
+        verify(modelsRepository)
+                .findByIdentifier("Admin");
     }
 
     @Test
@@ -128,24 +134,62 @@ class ModelsServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Models models = new Models();
+        models.setIdentifier("M1");
+
         ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("M1");
 
-        List<Models> modelss = List.of(models);
-        Page<Models> page = new PageImpl<>(modelss);
+        Page<Models> page =
+                new PageImpl<>(List.of(models), pageable, 1);
 
-        when(modelsRepository.findAll(pageable)).thenReturn(page);
+        when(modelsRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
         when(modelMapper.map(models, ModelsDto.class))
                 .thenReturn(dto);
 
-        List<ModelsDto> result = modelsService.findAll(pageable).getContent();
+        WsDto<ModelsDto> result =
+                modelsService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("M1",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(modelsRepository).findAll(pageable);
-        verify(modelMapper).map(models, ModelsDto.class);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(modelsRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(models, ModelsDto.class);
     }
+
+    @Test
+    void saveTestFailure_DeletedModel() {
+
+        ModelsDto modelsDto = new ModelsDto();
+        modelsDto.setIdentifier("Admin");
+
+        Models existing = new Models();
+        existing.setDeleted(true);
+
+        when(modelsRepository.findByIdentifier("Admin"))
+                .thenReturn(existing);
+
+        ModelsDto response = modelsService.save(modelsDto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
+    }
+
     @Test
     void toggleStatusTest_TrueToFalse() {
 

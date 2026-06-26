@@ -19,7 +19,7 @@ export default function PriceAdd() {
   ];
 
   const dropdownApis = {
-    product: `${baseUrl}/product/list`
+    product: `${baseUrl}/product/getactive`
   };
 
   return (

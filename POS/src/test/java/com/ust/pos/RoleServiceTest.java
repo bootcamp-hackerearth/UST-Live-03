@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -20,8 +21,7 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -83,7 +83,7 @@ class RoleServiceTest {
         RoleDto response = roleService.save(dto);
 
         Assertions.assertEquals("ADMIN", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(roleRepository).save(role);
@@ -116,7 +116,7 @@ class RoleServiceTest {
         RoleDto response = roleService.update(dto);
 
         Assertions.assertEquals("ADMIN", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(roleRepository).save(role);
@@ -139,10 +139,37 @@ class RoleServiceTest {
     @Test
     void deleteTestSuccess() {
 
-        boolean result = roleService.delete("ADMIN");
-        Assertions.assertTrue(result);
+        Role role = new Role();
+        role.setIdentifier("ADMIN");
 
-        verify(roleRepository).deleteByIdentifier("ADMIN");
+        when(roleRepository.findByIdentifier("ADMIN"))
+                .thenReturn(role);
+
+        boolean result = roleService.delete("ADMIN");
+
+        assertTrue(result);
+        assertTrue(role.isDeleted());
+
+        verify(roleRepository)
+                .findByIdentifier("ADMIN");
+    }
+
+    @Test
+    void deleteTestWithQuotedIdentifier() {
+
+        Role role = new Role();
+        role.setIdentifier("ADMIN");
+
+        when(roleRepository.findByIdentifier("ADMIN"))
+                .thenReturn(role);
+
+        boolean result = roleService.delete("\"ADMIN\"");
+
+        assertTrue(result);
+        assertTrue(role.isDeleted());
+
+        verify(roleRepository)
+                .findByIdentifier("ADMIN");
     }
 
     @Test
@@ -160,22 +187,59 @@ class RoleServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Role role = new Role();
+        role.setIdentifier("ADMIN");
+
         RoleDto dto = new RoleDto();
+        dto.setIdentifier("ADMIN");
 
-        List<Role> roles = List.of(role);
-        Page<Role> page = new PageImpl<>(roles);
+        Page<Role> page =
+                new PageImpl<>(List.of(role), pageable, 1);
 
-        when(roleRepository.findAll(pageable)).thenReturn(page);
+        when(roleRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
         when(modelMapper.map(role, RoleDto.class))
                 .thenReturn(dto);
 
-        List<RoleDto> result = roleService.findAll(pageable).getContent();
+        WsDto<RoleDto> result =
+                roleService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("ADMIN",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(roleRepository).findAll(pageable);
-        verify(modelMapper).map(role, RoleDto.class);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(roleRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(role, RoleDto.class);
+    }
+
+    @Test
+    void saveTestFailure_DeletedRole() {
+
+        RoleDto dto = new RoleDto();
+        dto.setIdentifier("ADMIN");
+
+        Role existing = new Role();
+        existing.setDeleted(true);
+
+        when(roleRepository.findByIdentifier("ADMIN"))
+                .thenReturn(existing);
+
+        RoleDto response = roleService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("already exists but was deleted")
+        );
     }
 }

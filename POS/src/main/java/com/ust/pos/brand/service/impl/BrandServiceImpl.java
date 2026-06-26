@@ -1,12 +1,12 @@
 package com.ust.pos.brand.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,13 +15,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class BrandServiceImpl implements BrandService {
+public class BrandServiceImpl extends BaseService implements BrandService {
 
-    @Autowired
-    private BrandRepository brandRepository;
+    private static final String VALIDATION_MESSAGE = "Brand with identifier - ";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final BrandRepository brandRepository;
+
+    private final ModelMapper modelMapper;
+
+    public BrandServiceImpl(ModelMapper modelMapper, BrandRepository brandRepository) {
+        this.modelMapper = modelMapper;
+        this.brandRepository = brandRepository;
+    }
 
     @Override
     public BrandDto findByIdentifier(String identifier) {
@@ -42,12 +47,19 @@ public class BrandServiceImpl implements BrandService {
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
 
         if (existingBrand != null) {
-            brandDto.setMessage("Brand with identifier - " + identifier + " already exists");
+            brandDto.setMessage(
+                    existingBrand.isDeleted()
+                            ? VALIDATION_MESSAGE + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : VALIDATION_MESSAGE + identifier
+                            + " already exists."
+            );
             brandDto.setSuccess(false);
             return brandDto;
         }
 
         Brand brand = modelMapper.map(brandDto, Brand.class);
+        setCreatedDetails(brand);
         brandRepository.save(brand);
 
         return brandDto;
@@ -60,12 +72,13 @@ public class BrandServiceImpl implements BrandService {
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
 
         if (existingBrand == null) {
-            brandDto.setMessage("Brand with identifier - " + identifier + " not found");
+            brandDto.setMessage(VALIDATION_MESSAGE + identifier + " not found");
             brandDto.setSuccess(false);
             return brandDto;
         }
 
         modelMapper.map(brandDto, existingBrand);
+        setModifiedDetails(existingBrand);
         brandRepository.save(existingBrand);
 
         return brandDto;
@@ -75,13 +88,15 @@ public class BrandServiceImpl implements BrandService {
     @Transactional
     public void delete(String identifier) {
 
-        brandRepository.deleteByIdentifier(identifier);
+        Brand brand = brandRepository.findByIdentifier(identifier);
+        setModifiedDetails(brand);
+        softDelete(brand);
     }
 
     @Override
     public WsDto<BrandDto> findAll(Pageable pageable) {
 
-        Page<Brand> brandPage = brandRepository.findAll(pageable);
+        Page<Brand> brandPage = brandRepository.findByIsDeletedFalse(pageable);
 
         WsDto<BrandDto> paginationResponseDto = new WsDto<>();
 
@@ -111,9 +126,10 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public List<Brand> findActiveBrands() {
+    public List<BrandDto> findActiveBrands() {
 
-        return brandRepository.findByStatus(true);
+        List<Brand> brands = brandRepository.findByStatus(true);
+        return brands.stream().map(brand -> modelMapper.map(brand, BrandDto.class)).toList();
     }
 
 }

@@ -1,13 +1,28 @@
-export async function FetchEntity(url, body, content_type = "application/json") {
+export async function FetchEntity(
+    url,
+    method,
+    body = null,
+    content_type = "application/json"
+) {
     try {
-        const res = await fetch(url, {
-            method: "POST",
+
+        const options = {
+            method,
+            credentials: "include",
             headers: {
                 "Content-Type": content_type
-            },
-            credentials: "include",
-            body: content_type === "application/json" ? JSON.stringify(body) : body.toString()
-        })
+            }
+        };
+
+        if (method !== "GET" && body != null) {
+            options.body =
+                content_type === "application/json"
+                    ? JSON.stringify(body)
+                    : body.toString();
+        }
+
+        const res = await fetch(url, options);
+
         const text = await res.text();
         return text ? JSON.parse(text) : null;
 

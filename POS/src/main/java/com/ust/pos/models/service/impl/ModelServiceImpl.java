@@ -1,5 +1,6 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
@@ -7,7 +8,6 @@ import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,16 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ModelServiceImpl implements ModelService {
+public class ModelServiceImpl extends BaseService implements ModelService {
 
-    @Autowired
-    private ModelsRepository modelsRepository;
+    private static final String VALIDATION_MESSAGE = "Model with identifier - ";
+    private final ModelsRepository modelsRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ModelServiceImpl(ModelsRepository modelsRepository, ModelMapper modelMapper) {
+        this.modelsRepository = modelsRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
@@ -44,12 +47,19 @@ public class ModelServiceImpl implements ModelService {
         Models existingModels = modelsRepository.findByIdentifier(identifier);
 
         if (existingModels != null) {
-            modelsDto.setMessage("Models with identifier - " + identifier + " already exists");
+            modelsDto.setMessage(
+                    existingModels.isDeleted()
+                            ? VALIDATION_MESSAGE + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : VALIDATION_MESSAGE + identifier
+                            + " already exists."
+            );
             modelsDto.setSuccess(false);
             return modelsDto;
         }
 
         Models models = modelMapper.map(modelsDto, Models.class);
+        setCreatedDetails(models);
         modelsRepository.save(models);
 
         return modelsDto;
@@ -62,12 +72,13 @@ public class ModelServiceImpl implements ModelService {
         Models existingModels = modelsRepository.findByIdentifier(identifier);
 
         if (existingModels == null) {
-            modelsDto.setMessage("Models with identifier - " + identifier + " not found");
+            modelsDto.setMessage(VALIDATION_MESSAGE + identifier + " not found");
             modelsDto.setSuccess(false);
             return modelsDto;
         }
 
         modelMapper.map(modelsDto, existingModels);
+        setModifiedDetails(existingModels);
         modelsRepository.save(existingModels);
 
         return modelsDto;
@@ -77,13 +88,15 @@ public class ModelServiceImpl implements ModelService {
     @Transactional
     public void delete(String identifier) {
 
-        modelsRepository.deleteByIdentifier(identifier);
+        Models models = modelsRepository.findByIdentifier(identifier);
+        setModifiedDetails(models);
+        softDelete(models);
     }
 
     @Override
     public WsDto<ModelsDto> findAll(Pageable pageable) {
 
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
+        Page<Models> modelsPage = modelsRepository.findByIsDeletedFalse(pageable);
 
         WsDto<ModelsDto> modelsDto = new WsDto<>();
 

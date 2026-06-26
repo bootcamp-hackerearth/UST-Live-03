@@ -34,7 +34,9 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
   });
 
   useEffect(() => {
+
     if (!dropdownApis || Object.keys(dropdownApis).length === 0) return;
+
     DropDownService(dropdownApis)
       .then((data) => setDropdownData(data))
       .catch((err) => {
@@ -43,35 +45,49 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
   }, [dropdownApis]);
 
   useEffect(() => {
+
     const hasDropdownApis = dropdownApis && Object.keys(dropdownApis).length > 0;
+
     const dropdownReady =
       !hasDropdownApis || Object.keys(dropdownData).length > 0;
+
     if (data && dropdownReady) {
-     reset(data)
+      reset(data)
     }
   }, [data, dropdownData, dropdownApis, reset]);
 
-  const onSubmit = async (formData) => {
+  const onSubmit = async (formData) => {    
     setSubmitting(true)
     try {
       if (method === FORM_MODE.ADD) {
         const response = await FetchEntity(
           `${baseUrl}/${apiRoute}/add`,
+          "POST",
           formData,
           "application/json"
         );
-        if (!response || response.error) {
+
+        if (response.message != null || response.error) {
           setErrorMessage(response?.message || "Error adding data");
+
+          setTimeout(() => {
+            setErrorMessage("");
+          }, 4000);
+
           return;
+        } else {
+          router.push(`/${apiRoute}`);
         }
+
       } else {
         await FetchEntity(
           `${baseUrl}/${apiRoute}/update`,
+          "PUT",
           formData,
           "application/json"
         );
+        router.push(`/${apiRoute}`);
       }
-      router.push(`/${apiRoute}`);
     } catch (err) {
       console.log(err);
       setErrorMessage("Something went wrong");
@@ -94,41 +110,96 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F5FB] flex items-center justify-center px-4">
-      <div className="w-full max-w-3xl mb-10 bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-        <h1 className="text-xl font-semibold text-gray-700 text-center mb-6">
+
+    <div className="min-h-screen bg-[#F4F5FB] flex justify-center px-4">
+      <div className="w-full max-w-xl mt-6">
+
+        <h1 className="text-xl font-semibold text-slate-700 text-center mb-3">
           {method.charAt(0).toUpperCase() + method.slice(1)} {title}
         </h1>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <input type="hidden" {...register("id")} />
+        {method === FORM_MODE.UPDATE && data && (
+          <div className="mb-3 px-2 py-2.5 bg-violet-50 border border-violet-200 rounded-xl">
+            <div className="flex justify-between text-xs">
+              <div>
+                <p className="font-semibold text-violet-700">Created</p>
+                <p className="text-gray-600">
+                  <span className="font-medium">By:</span> {data.createdBy || "-"}
+                </p>
+                <p className="text-gray-600">
+                  <span className="font-medium">On:</span>{" "}
+                  {data.createdOn
+                    ? new Date(data.createdOn).toLocaleDateString()
+                    : "-"}
+                </p>
+              </div>
 
-          {fields.map((field) => (
-            <FormFields
-              key={field.identifier ?? field.name}
-              field={field}
-              register={register}
-              errors={errors}
-              dropdownData={dropdownData}
-            />
-          ))}
+              <div className="text-right">
+                <p className="font-semibold text-violet-700">Modified</p>
+                <p className="text-gray-600">
+                  <span className="font-medium">By:</span> {data.modifiedBy || "-"}
+                </p>
+                <p className="text-gray-600">
+                  <span className="font-medium">On:</span>{" "}
+                  {data.modifiedOn
+                    ? new Date(data.modifiedOn).toLocaleDateString()
+                    : "-"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
-          <button className="md:col-span-2 mt-2 py-2 rounded-xl bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 transition disabled:bg-indigo-400 disabled:hover:bg-indigo-500"
-            disabled={submitting}>
-            {submitButtonText}
-          </button>
-        </form>
+        <div className="bg-white mt-5 p-5 border border-slate-300 rounded-xl shadow">
 
-        <div className="text-center mt-6">
-          <Link
-            href={`/${apiRoute}`}
-            className="text-sm text-indigo-500 hover:underline"
-          >
-            Go back
-          </Link>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="hidden" {...register("id")} />
+
+            {fields.map((field) => {
+              if (field.type === "section") {
+                return (
+                  <div
+                    key={field.title}
+                    className="md:col-span-2 mt-2 border-b border-violet-200 pb-2"
+                  >
+                    <h2 className="text-sm font-semibold text-violet-700">
+                      {field.title}
+                    </h2>
+                  </div>
+                );
+              }
+
+              return (
+                <FormFields
+                  key={field.identifier ?? field.name}
+                  field={field}
+                  register={register}
+                  errors={errors}
+                  dropdownData={dropdownData}/>
+              );
+            })}
+
+            <div className="md:col-span-2 flex gap-3 pt-2">
+              <Link
+                href={`/${apiRoute}`}
+                className="flex-1 py-2 rounded-xl border border-violet-300 text-violet-600 text-center font-medium hover:bg-violet-50 transition"
+              >
+                Cancel
+              </Link>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex-1 py-2 rounded-xl bg-violet-500 text-white font-medium hover:bg-violet-600 transition disabled:bg-violet-300"
+              >
+                {submitButtonText}
+              </button>
+            </div>
+          </form>
         </div>
+
         {errorMessage && (
           <div className="text-center mt-4 text-red-500">
             {errorMessage}

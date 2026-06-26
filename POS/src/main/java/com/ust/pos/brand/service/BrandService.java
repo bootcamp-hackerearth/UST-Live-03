@@ -2,7 +2,6 @@ package com.ust.pos.brand.service;
 
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Brand;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -21,5 +20,5 @@ public interface BrandService {
 
     void toggleStatus(String identifier);
 
-    List<Brand> findActiveBrands();
+    List<BrandDto> findActiveBrands();
 }

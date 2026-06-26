@@ -1,28 +1,31 @@
 package com.ust.pos.racks.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.RacksService;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class RacksServiceImpl implements RacksService {
+public class RacksServiceImpl extends BaseService implements RacksService {
 
-    @Autowired
-    private RacksRepository racksRepository;
+    private static final String VALIDATION_MESSAGE = "Rack with identifier - ";
+    private final RacksRepository racksRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+
+    public RacksServiceImpl(RacksRepository racksRepository, ModelMapper modelMapper) {
+        this.racksRepository = racksRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public RacksDto findByIdentifier(String identifier) {
@@ -43,12 +46,19 @@ public class RacksServiceImpl implements RacksService {
         Racks existingRacks = racksRepository.findByIdentifier(identifier);
 
         if (existingRacks != null) {
-            racksDto.setMessage("Racks with identifier - " + identifier + " already exists");
+            racksDto.setMessage(
+                    existingRacks.isDeleted()
+                            ? VALIDATION_MESSAGE + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : VALIDATION_MESSAGE + identifier
+                            + " already exists."
+            );
             racksDto.setSuccess(false);
             return racksDto;
         }
 
         Racks racks = modelMapper.map(racksDto, Racks.class);
+        setCreatedDetails(racks);
         racksRepository.save(racks);
 
         return racksDto;
@@ -61,12 +71,13 @@ public class RacksServiceImpl implements RacksService {
         Racks existingRacks = racksRepository.findByIdentifier(identifier);
 
         if (existingRacks == null) {
-            racksDto.setMessage("Racks with identifier - " + identifier + " not found");
+            racksDto.setMessage(VALIDATION_MESSAGE + identifier + " not found");
             racksDto.setSuccess(false);
             return racksDto;
         }
 
         modelMapper.map(racksDto, existingRacks);
+        setModifiedDetails(existingRacks);
         racksRepository.save(existingRacks);
 
         return racksDto;
@@ -76,17 +87,30 @@ public class RacksServiceImpl implements RacksService {
     @Transactional
     public void delete(String identifier) {
 
-        racksRepository.deleteByIdentifier(identifier);
+        Racks rack = racksRepository.findByIdentifier(identifier);
+        setModifiedDetails(rack);
+        softDelete(rack);
     }
 
     @Override
-    public List<RacksDto> findAll(Pageable pageable) {
+    public WsDto<RacksDto> findAll(Pageable pageable) {
 
-        Type listType = new TypeToken<List<RacksDto>>() {
-        }.getType();
-        Page<Racks> racksPage = racksRepository.findAll(pageable);
+        Page<Racks> racksPage = racksRepository.findByIsDeletedFalse(pageable);
 
-        return modelMapper.map(racksPage.getContent(), listType);
+        WsDto<RacksDto> racksDto = new WsDto<>();
+
+        List<RacksDto> racksDtos = racksPage.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, RacksDto.class))
+                .toList();
+
+        racksDto.setContent(racksDtos);
+        racksDto.setPage(racksPage.getNumber());
+        racksDto.setSizePerPage(racksPage.getSize());
+        racksDto.setTotalPages(racksPage.getTotalPages());
+        racksDto.setTotalRecords(racksPage.getTotalElements());
+
+        return racksDto;
     }
 
     @Override

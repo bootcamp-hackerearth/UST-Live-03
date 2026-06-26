@@ -20,8 +20,7 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,10 +82,31 @@ class PriceServiceTest {
         PriceDto response = priceService.save(dto);
 
         Assertions.assertEquals("P1.RETAIL", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(priceRepository).save(any(Price.class));
+    }
+
+    @Test
+    void saveTestFailure_deletedPrice() {
+
+        PriceDto dto = new PriceDto();
+        dto.setProduct("P1");
+        dto.setPriceType("RETAIL");
+
+        Price existing = new Price();
+        existing.setDeleted(true);
+
+        when(priceRepository.findByIdentifier(anyString()))
+                .thenReturn(existing);
+
+        PriceDto response = priceService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(response.getMessage()
+                .contains("already exists but was deleted"));
     }
 
     @Test
@@ -118,12 +138,9 @@ class PriceServiceTest {
 
         Mockito.when(priceRepository.findByIdentifier(anyString()))
                 .thenReturn(existing);
-        Mockito.when(priceRepository.save(any(Price.class)))
-                .thenReturn(existing);
-
         PriceDto response = priceService.update(dto);
         Assertions.assertEquals("P1.RETAIL", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
         Assertions.assertNull(response.getMessage());
 
         verify(priceRepository).save(existing);
@@ -148,8 +165,17 @@ class PriceServiceTest {
     @Test
     void deleteTest() {
 
+        Price price = new Price();
+
+        when(priceRepository.findByIdentifier("P1.RETAIL"))
+                .thenReturn(price);
+
         priceService.delete("P1.RETAIL");
-        verify(priceRepository).deleteByIdentifier("P1.RETAIL");
+
+        assertTrue(price.isDeleted());
+
+        verify(priceRepository)
+                .findByIdentifier("P1.RETAIL");
     }
 
     @Test
@@ -158,21 +184,36 @@ class PriceServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Price price = new Price();
+        price.setIdentifier("P1.RETAIL");
+
         PriceDto dto = new PriceDto();
+        dto.setIdentifier("P1.RETAIL");
 
-        List<Price> prices = List.of(price);
-        Page<Price> page = new PageImpl<>(prices);
+        Page<Price> page =
+                new PageImpl<>(List.of(price), pageable, 1);
 
-        when(priceRepository.findAll(pageable)).thenReturn(page);
+        when(priceRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
         when(modelMapper.map(price, PriceDto.class))
                 .thenReturn(dto);
 
-        List<PriceDto> result = priceService.findAll(pageable).getContent();
+        var result = priceService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
+        assertEquals("P1.RETAIL",
+                result.getContent().getFirst().getIdentifier());
 
-        verify(priceRepository).findAll(pageable);
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(priceRepository)
+                .findByIsDeletedFalse(pageable);
+
+        verify(modelMapper)
+                .map(price, PriceDto.class);
     }
 }

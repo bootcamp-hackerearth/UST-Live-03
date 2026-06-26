@@ -11,9 +11,8 @@ export const useFetchEntity = ({ baseUrl, apiRoute, identifier, method }) => {
       setLoading(true);
       try {
         const response = await FetchEntity(
-          `${baseUrl}/${apiRoute}/get`,
-          identifier,
-          "text/plain"
+          `${baseUrl}/${apiRoute}/${identifier}`,
+          "GET",
         );
         setData(response);
       } catch (err) {
