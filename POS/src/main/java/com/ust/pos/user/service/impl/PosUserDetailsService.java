@@ -2,9 +2,7 @@ package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,8 +14,11 @@ import java.util.List;
 @Service
 public class PosUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public PosUserDetailsService(UserService userService) {
+        this.userService = userService;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -25,12 +26,14 @@ public class PosUserDetailsService implements UserDetailsService {
         if (userDto == null) {
             throw new UsernameNotFoundException("User not found: " + username);
         }
-        List<SimpleGrantedAuthority> authorities = Collections.emptyList();
-        if (userDto.getRoles() != null && !userDto.getRoles().isEmpty()) {
-            authorities = userDto.getRoles().stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .toList();
-        }
-        return new User(userDto.getUsername(), userDto.getPassword(), authorities);
+        List<String> roles = userDto.getRoles() != null ? userDto.getRoles() : Collections.emptyList();
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+        return org.springframework.security.core.userdetails.User
+                .withUsername(userDto.getUsername())
+                .password(userDto.getPassword())
+                .authorities(authorities)
+                .build();
     }
 }

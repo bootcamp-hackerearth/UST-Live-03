@@ -15,14 +15,19 @@ export default function AddCategoryPage() {
       type: "custom",
       required: false,
       component: (
-        <SingleDropdown
-          label="Super Category"
-          entity="category"
-          selectedValue={superCategory}
-          onChange={setSuperCategory}
-          valueField="identifier"
-          labelField="identifier"
-        />
+        <div className="flex flex-col gap-3 w-full">
+          <SingleDropdown
+            label="Super Category"
+            entity="category"
+            selectedValue={superCategory}
+            onChange={setSuperCategory}
+            valueField="identifier"
+            labelField="identifier"
+          />
+          <p className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-medium leading-relaxed shadow-sm w-full">
+            <strong>Note:</strong> If the category you are creating is a <strong>Super Category</strong> itself, leave this field completely blank.
+          </p>
+        </div>
       ),
     },
   ];

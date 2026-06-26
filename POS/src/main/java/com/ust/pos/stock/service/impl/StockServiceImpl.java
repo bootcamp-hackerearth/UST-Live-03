@@ -1,13 +1,14 @@
 package com.ust.pos.stock.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,35 +18,51 @@ import java.util.List;
 
 @Transactional
 @Service
-public class StockServiceImpl implements StockService {
-
+public class StockServiceImpl extends CommonService implements StockService {
     public static final String STOCK_WITH_IDENTIFIER = "Stock with identifier - ";
-    @Autowired
-    private StockRepository stockRepository;
+    private final StockRepository stockRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper) {
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public StockDto save(StockDto stockDto) {
         String identifier = stockDto.getIdentifier();
         Stock existingStock = stockRepository.findByIdentifier(identifier);
         if (existingStock != null) {
-            stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " already exists");
+            if (!existingStock.isDeleted()) {
+                stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " already exists");
+                stockDto.setSuccess(false);
+                return stockDto;
+            }
+            stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " was previously deleted. " +
+                    "Please contact backend team to restore.");
             stockDto.setSuccess(false);
             return stockDto;
         }
         Stock stock = modelMapper.map(stockDto, Stock.class);
+        setAuditFields(stock, true);
         stockRepository.save(stock);
+        stockDto.setSuccess(true);
+        stockDto.setMessage("Stock created successfully");
         return stockDto;
     }
 
     @Override
-    public List<StockDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<StockDto>>() {
+    public WsDto<StockDto> findAll(Pageable pageable) {
+        Page<Stock> stockPage = stockRepository.findByDeletedFalse(pageable);
+        Type type = new TypeToken<List<StockDto>>() {
         }.getType();
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
-        return modelMapper.map(stockPage.getContent(), listType);
+        WsDto<StockDto> stockWsDto = new WsDto<>();
+        stockWsDto.setDtoList(modelMapper.map(stockPage.getContent(), type));
+        stockWsDto.setTotalRecords(stockPage.getTotalElements());
+        stockWsDto.setTotalPages(stockPage.getTotalPages());
+        stockWsDto.setSizePerPage(pageable.getPageSize());
+        stockWsDto.setPage(pageable.getPageNumber());
+        return stockWsDto;
     }
 
     @Override
@@ -63,6 +80,7 @@ public class StockServiceImpl implements StockService {
             return stockDto;
         }
         modelMapper.map(stockDto, existingStock);
+        setAuditFields(existingStock, false);
         stockRepository.save(existingStock);
         stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " Updated");
         stockDto.setSuccess(true);
@@ -73,13 +91,18 @@ public class StockServiceImpl implements StockService {
     public StockDto toggleStatus(String identifier) {
         Stock stock = stockRepository.findByIdentifier(identifier);
         stock.setStatus(!stock.isStatus());
+        setAuditFields(stock, false);
         stockRepository.save(stock);
         return modelMapper.map(stock, StockDto.class);
     }
 
     @Override
     public boolean delete(String identifier) {
-        stockRepository.deleteByIdentifier(identifier);
+        Stock stock = stockRepository.findByIdentifier(identifier);
+        if (stock == null) return false;
+        softDelete(stock);
+        setAuditFields(stock, false);
+        stockRepository.save(stock);
         return true;
     }
 }

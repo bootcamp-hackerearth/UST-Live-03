@@ -10,6 +10,7 @@ import { useApiWithLoader } from "../../app/lib/useApiWithLoader";
 export default function BaseAddForm({
   title,
   apiPath,
+  customAction,
   extraFields = [],
   extraData: externalExtraData = {},
   identifierKey = "identifier",
@@ -55,7 +56,11 @@ export default function BaseAddForm({
         ...externalExtraData,
       };
 
-      const data = await post(`/${apiPath}/add`, payload);
+      const targetUrl = customAction
+        ? `/${apiPath}/${customAction}`
+        : `/${apiPath}/add`;
+
+      const data = await post(targetUrl, payload);
 
       if (data?.success === false) {
         const backendMessage = data.message || `${title} with this ${identifierKey} already exists.`;
@@ -83,7 +88,7 @@ export default function BaseAddForm({
 
   const renderFieldInput = (field) => {
     if (field.type === "custom") {
-      return field.component;
+      return typeof field.render === "function" ? field.render() : field.component;
     }
 
     if (field.type === "select") {
@@ -212,6 +217,7 @@ export default function BaseAddForm({
 BaseAddForm.propTypes = {
   title: PropTypes.string.isRequired,
   apiPath: PropTypes.string.isRequired,
+  customAction: PropTypes.string,
   extraFields: PropTypes.array,
   extraData: PropTypes.object,
   identifierKey: PropTypes.string,

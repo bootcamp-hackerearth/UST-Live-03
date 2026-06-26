@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import com.ust.pos.util.FileStorageUtil;
@@ -56,10 +57,11 @@ class BrandServiceTest {
         brand.setIdentifier("Nike");
         brand.setDescription("Athletic Gear");
         brand.setStatus(true);
+        brand.setDeleted(false);
     }
 
     @Test
-    @DisplayName("Save Brand - Success with Icon")
+    @DisplayName("Save Brand - Success")
     void save_Success() {
         MultipartFile mockFile = mock(MultipartFile.class);
         brandDto.setIcon(mockFile);
@@ -75,24 +77,81 @@ class BrandServiceTest {
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertEquals("Brand with identifier - Nike Added Successfully", result.getMessage());
         verify(brandRepository).save(brand);
-        verify(fileStorageUtil).saveBrandIcon(mockFile, "Nike");
     }
 
     @Test
-    @DisplayName("Save Brand - Failure: Already Exists")
-    void save_Failure_Duplicate() {
+    @DisplayName("Save Brand - Failure: Active Brand Already Exists")
+    void save_Failure_AlreadyExists() {
+        brand.setDeleted(false);
         when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
 
         BrandDto result = brandService.save(brandDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Brand with identifier - Nike Already Exists", result.getMessage());
+        Assertions.assertEquals("Brand with identifier - Nike already exists", result.getMessage());
         verify(brandRepository, never()).save(any());
-        verify(fileStorageUtil, never()).saveBrandIcon(any(), any());
     }
 
     @Test
-    @DisplayName("Update Brand - Success with New Icon")
+    @DisplayName("Save Brand - Failure: Brand Was Soft-Deleted Previously")
+    void save_Failure_PreviouslyDeleted() {
+        brand.setDeleted(true);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
+
+        BrandDto result = brandService.save(brandDto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("was previously deleted. Please contact backend team"));
+        verify(brandRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Find By Identifier - Success")
+    void findByIdentifier_Success() {
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
+        when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);
+
+        BrandDto result = brandService.findByIdentifier("Nike");
+
+        Assertions.assertNotNull(result);
+        verify(brandRepository).findByIdentifier("Nike");
+    }
+
+    @Test
+    @DisplayName("Find All - Paginated Success")
+    void findAll_PaginatedSuccess() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Brand> brandList = Collections.singletonList(brand);
+        Page<Brand> brandPage = new PageImpl<>(brandList, pageable, 1);
+
+        when(brandRepository.findByDeletedFalse(pageable)).thenReturn(brandPage);
+        when(modelMapper.map(eq(brandList), any(Type.class))).thenReturn(Collections.singletonList(brandDto));
+
+        WsDto<BrandDto> result = brandService.findAll(pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertFalse(result.getDtoList().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Find All Active Brands - Success")
+    void findAllActive_Success() {
+        List<Brand> activeBrands = Collections.singletonList(brand);
+        when(brandRepository.findAllByStatusAndDeletedFalse(true)).thenReturn(activeBrands);
+        when(modelMapper.map(eq(activeBrands), any(Type.class))).thenReturn(Collections.singletonList(brandDto));
+
+        List<BrandDto> result = brandService.findAllActive();
+
+        Assertions.assertFalse(result.isEmpty());
+        Assertions.assertEquals(1, result.size());
+    }
+
+    @Test
+    @DisplayName("Update Brand - Success with New Icon File")
     void update_Success_WithIcon() {
         MultipartFile mockFile = mock(MultipartFile.class);
         when(mockFile.isEmpty()).thenReturn(false);
@@ -106,12 +165,13 @@ class BrandServiceTest {
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals("Brand with identifier - Nike Updated", result.getMessage());
+        verify(fileStorageUtil).saveBrandIcon(mockFile, "Nike");
         verify(brandRepository).save(brand);
     }
 
     @Test
-    @DisplayName("Update Brand - Success with Empty Icon Multipart")
-    void update_Success_EmptyIconFile() {
+    @DisplayName("Update Brand - Success with Empty Icon File")
+    void update_Success_EmptyIcon() {
         MultipartFile mockFile = mock(MultipartFile.class);
         when(mockFile.isEmpty()).thenReturn(true);
         brandDto.setIcon(mockFile);
@@ -126,7 +186,7 @@ class BrandServiceTest {
     }
 
     @Test
-    @DisplayName("Update Brand - Success with Null Icon")
+    @DisplayName("Update Brand - Success with Null Icon File")
     void update_Success_NullIcon() {
         brandDto.setIcon(null);
 
@@ -140,54 +200,19 @@ class BrandServiceTest {
     }
 
     @Test
-    @DisplayName("Update Brand - Failure: Not Found")
+    @DisplayName("Update Brand - Failure: Brand Not Found")
     void update_Failure_NotFound() {
         when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
+
         BrandDto result = brandService.update(brandDto);
+
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertEquals("Brand not found", result.getMessage());
         verify(brandRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Find All - Paginated")
-    void findAll_Paginated() {
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Brand> brandList = Collections.singletonList(brand);
-        Page<Brand> brandPage = new PageImpl<>(brandList);
-
-        when(brandRepository.findAll(pageable)).thenReturn(brandPage);
-        when(modelMapper.map(eq(brandList), any(Type.class))).thenReturn(Collections.singletonList(brandDto));
-
-        List<BrandDto> result = brandService.findAll(pageable);
-
-        Assertions.assertEquals(1, result.size());
-    }
-
-    @Test
-    @DisplayName("Find All Active")
-    void findAllActive_Success() {
-        List<Brand> activeBrands = Collections.singletonList(brand);
-        when(brandRepository.findAllByStatus(true)).thenReturn(activeBrands);
-        when(modelMapper.map(eq(activeBrands), any(Type.class))).thenReturn(Collections.singletonList(brandDto));
-
-        List<BrandDto> result = brandService.findAllActive();
-
-        Assertions.assertFalse(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Find By Identifier")
-    void findByIdentifier_Success() {
-        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
-        when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);
-
-        BrandDto result = brandService.findByIdentifier("Nike");
-        Assertions.assertNotNull(result);
-    }
-
-    @Test
-    @DisplayName("Toggle Status - Logic Flip")
+    @DisplayName("Toggle Status - Inverts Flag Successfully")
     void toggleStatus_Success() {
         brand.setStatus(true);
         when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
@@ -201,10 +226,24 @@ class BrandServiceTest {
     }
 
     @Test
-    @DisplayName("Delete Brand")
+    @DisplayName("Delete Brand - Success")
     void delete_Success() {
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
+
         boolean result = brandService.delete("Nike");
+
         Assertions.assertTrue(result);
-        verify(brandRepository).deleteByIdentifier("Nike");
+        verify(brandRepository).save(brand);
+    }
+
+    @Test
+    @DisplayName("Delete Brand - Failure: Brand Not Found")
+    void delete_Failure_NotFound() {
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
+
+        boolean result = brandService.delete("Nike");
+
+        Assertions.assertFalse(result);
+        verify(brandRepository, never()).save(any());
     }
 }

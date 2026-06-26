@@ -4,7 +4,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Loader, KeyRound, CheckCircle2, Mail, Lock } from "lucide-react";
 import api from "../api/axios";
 import ustLogo from "@/assets/logo/UST-White-logo.png";
@@ -104,7 +103,7 @@ export default function LoginPage() {
         </div>
 
         <div className="text-[10px] text-white/30 font-mono">
-          v3.1.0-build || Sprint-3
+          v4.1.0-build || Sprint-4
         </div>
       </div>
 
@@ -185,13 +184,6 @@ export default function LoginPage() {
             </button>
 
           </form>
-
-          <div className="mt-6 text-center text-xs text-[#231F20]/60">
-            New to the System?{" "}
-            <Link href="/register" className="text-[#006E74] font-bold hover:text-[#0097AC] underline transition-colors">
-              Create an account
-            </Link>
-          </div>
 
         </div>
       </div>

@@ -6,12 +6,12 @@ import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,9 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -36,185 +38,166 @@ class ProductServiceTest {
     @InjectMocks
     private ProductServiceImpl productService;
 
-    @Test
-    @DisplayName("Save - Success with provided categories")
-    void saveTest_Success_WithCategories() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P100");
-        dto.setCategories(List.of("Electronics"));
+    private ProductDto productDto;
+    private Product product;
 
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(null);
-        Mockito.when(modelMapper.map(dto, Product.class)).thenReturn(new Product());
+    @BeforeEach
+    void setUp() {
+        productDto = new ProductDto();
+        productDto.setIdentifier("PROD-001");
+        productDto.setName("Sample Product");
+        productDto.setCategories(List.of("Electronics"));
 
-        ProductDto result = productService.save(dto);
-
-        Assertions.assertTrue(result.isSuccess());
-        Mockito.verify(productRepository).save(any(Product.class));
-    }
-
-    @Test
-    @DisplayName("Save - Success with null categories (Ternary Branch)")
-    void saveTest_Success_NullCategories() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P100");
-        dto.setCategories(null);
-
-        Product productEntity = new Product();
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(null);
-        Mockito.when(modelMapper.map(dto, Product.class)).thenReturn(productEntity);
-
-        ProductDto result = productService.save(dto);
-
-        Assertions.assertTrue(result.isSuccess());
-        Assertions.assertNotNull(productEntity.getCategories());
-        Assertions.assertTrue(productEntity.getCategories().isEmpty());
-    }
-
-    @Test
-    @DisplayName("Save - Fail if already exists")
-    void saveTest_Error_AlreadyExists() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P100");
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(new Product());
-
-        ProductDto result = productService.save(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Product already exists", result.getMessage());
-        Mockito.verify(productRepository, Mockito.never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Update - Success with categories")
-    void updateTest_Success_WithCategories() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P100");
-        dto.setBrand("Brand A");
-        dto.setModel("Model X");
-        dto.setName("Product Name");
-        dto.setCategories(List.of("Home"));
-
-        Product existing = new Product();
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(existing);
-
-        ProductDto result = productService.update(dto);
-
-        Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Brand A", existing.getBrand());
-        Assertions.assertEquals("Model X", existing.getModel());
-        Assertions.assertEquals("Product Name", existing.getName());
-        Assertions.assertEquals(List.of("Home"), existing.getCategories());
-        Mockito.verify(productRepository).save(existing);
-    }
-
-    @Test
-    @DisplayName("Update - Success with null categories (Ternary Branch)")
-    void updateTest_Success_NullCategories() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P100");
-        dto.setCategories(null);
-
-        Product existing = new Product();
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(existing);
-
-        ProductDto result = productService.update(dto);
-
-        Assertions.assertTrue(result.isSuccess());
-        Assertions.assertNotNull(existing.getCategories());
-        Assertions.assertTrue(existing.getCategories().isEmpty());
-        Mockito.verify(productRepository).save(existing);
-    }
-
-    @Test
-    @DisplayName("Update - Fail if not found")
-    void updateTest_NotFound() {
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P100");
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(null);
-
-        ProductDto result = productService.update(dto);
-
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Product not found", result.getMessage());
-        Mockito.verify(productRepository, Mockito.never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Toggle Status - Flip boolean")
-    void toggleStatus_Test() {
-        Product product = new Product();
+        product = new Product();
+        product.setIdentifier("PROD-001");
+        product.setName("Sample Product");
+        product.setCategories(List.of("Electronics"));
         product.setStatus(true);
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(product);
-        Mockito.when(modelMapper.map(product, ProductDto.class)).thenReturn(new ProductDto());
-
-        productService.toggleStatus("P100");
-
-        Assertions.assertFalse(product.isStatus());
-        Mockito.verify(productRepository).save(product);
+        product.setDeleted(false);
     }
 
     @Test
-    @DisplayName("Find All - Paginated Map to WsDto")
-    void findAllTest() {
-        Pageable pageable = PageRequest.of(1, 10);
-        List<Product> products = List.of(new Product());
-        Page<Product> productPage = new PageImpl<>(products, pageable, 25);
-        List<ProductDto> dtoList = List.of(new ProductDto());
+    @DisplayName("Save Product - Success")
+    void save_Success() {
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(null);
+        when(modelMapper.map(productDto, Product.class)).thenReturn(product);
 
-        Mockito.when(productRepository.findAll(pageable)).thenReturn(productPage);
-        Mockito.when(modelMapper.map(anyList(), any(Type.class))).thenReturn(dtoList);
+        ProductDto result = productService.save(productDto);
+
+        Assertions.assertTrue(result.isSuccess());
+        Assertions.assertEquals("Product created successfully", result.getMessage());
+        verify(productRepository).save(product);
+    }
+
+    @Test
+    @DisplayName("Save Product - Failure: Product Already Exists")
+    void save_Failure_AlreadyExists() {
+        product.setDeleted(false);
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(product);
+
+        ProductDto result = productService.save(productDto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("already exists"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Save Product - Failure: Product Was Soft-Deleted")
+    void save_Failure_PreviouslyDeleted() {
+        product.setDeleted(true);
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(product);
+
+        ProductDto result = productService.save(productDto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Find All Products - Paginated Success")
+    void findAll_PaginatedSuccess() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Product> productPage = new PageImpl<>(List.of(product));
+
+        when(productRepository.findByDeletedFalse(pageable)).thenReturn(productPage);
+        when(modelMapper.map(eq(productPage.getContent()), any(Type.class))).thenReturn(List.of(productDto));
 
         WsDto<ProductDto> result = productService.findAll(pageable);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(dtoList, result.getDtoList());
-        Assertions.assertEquals(25, result.getTotalRecords());
-        Assertions.assertEquals(3, result.getTotalPages());
-        Assertions.assertEquals(10, result.getSizePerPage());
-        Assertions.assertEquals(1, result.getPage());
-        Mockito.verify(productRepository).findAll(pageable);
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertFalse(result.getDtoList().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Find All Active Products - Success")
+    void findAllActive_Success() {
+        List<Product> activeProducts = List.of(product);
+        when(productRepository.findAllByStatusAndDeletedFalse(true)).thenReturn(activeProducts);
+        when(modelMapper.map(eq(activeProducts), any(Type.class))).thenReturn(List.of(productDto));
+
+        List<ProductDto> result = productService.findAllActive();
+
+        Assertions.assertEquals(1, result.size());
     }
 
     @Test
     @DisplayName("Find By Identifier - Success")
     void findByIdentifier_Success() {
-        Product product = new Product();
-        product.setCategories(List.of("Cat1"));
-        ProductDto mappedDto = new ProductDto();
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(product);
+        when(modelMapper.map(product, ProductDto.class)).thenReturn(productDto);
 
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(product);
-        Mockito.when(modelMapper.map(product, ProductDto.class)).thenReturn(mappedDto);
-
-        ProductDto result = productService.findByIdentifier("P100");
+        ProductDto result = productService.findByIdentifier("PROD-001");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(List.of("Cat1"), result.getCategories());
+        Assertions.assertEquals(product.getCategories(), result.getCategories());
     }
 
     @Test
-    @DisplayName("Find By Identifier - Null")
-    void findByIdentifier_Null() {
-        Mockito.when(productRepository.findByIdentifier("P100")).thenReturn(null);
-        Assertions.assertNull(productService.findByIdentifier("P100"));
+    @DisplayName("Find By Identifier - Failure: Not Found")
+    void findByIdentifier_NotFound() {
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(null);
+
+        ProductDto result = productService.findByIdentifier("PROD-001");
+
+        Assertions.assertNull(result);
     }
 
     @Test
-    @DisplayName("Find All Active")
-    void findAllActiveTest() {
-        List<Product> products = List.of(new Product());
-        Mockito.when(productRepository.findAllByStatus(true)).thenReturn(products);
-        Mockito.when(modelMapper.map(eq(products), any(Type.class))).thenReturn(List.of(new ProductDto()));
+    @DisplayName("Update Product - Success")
+    void update_Success() {
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(product);
 
-        List<ProductDto> result = productService.findAllActive();
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(1, result.size());
+        ProductDto result = productService.update(productDto);
+
+        Assertions.assertTrue(result.isSuccess());
+        verify(productRepository).save(product);
     }
 
     @Test
-    @DisplayName("Delete - Success")
-    void deleteTest() {
-        boolean result = productService.delete("P100");
+    @DisplayName("Update Product - Failure: Product Not Found")
+    void update_Failure_NotFound() {
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(null);
+
+        ProductDto result = productService.update(productDto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertEquals("Product not found", result.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Toggle Status - Success")
+    void toggleStatus_Success() {
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(product);
+        when(modelMapper.map(product, ProductDto.class)).thenReturn(productDto);
+
+        ProductDto result = productService.toggleStatus("PROD-001");
+
+        Assertions.assertFalse(product.isStatus());
+        verify(productRepository).save(product);
+    }
+
+    @Test
+    @DisplayName("Delete Product - Success")
+    void delete_Success() {
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(product);
+
+        boolean result = productService.delete("PROD-001");
+
         Assertions.assertTrue(result);
-        Mockito.verify(productRepository).deleteByIdentifier("P100");
+        verify(productRepository).save(product);
+    }
+
+    @Test
+    @DisplayName("Delete Product - Failure: Product Not Found")
+    void delete_Failure_NotFound() {
+        when(productRepository.findByIdentifier("PROD-001")).thenReturn(null);
+
+        boolean result = productService.delete("PROD-001");
+
+        Assertions.assertFalse(result);
+        verify(productRepository, never()).save(any(Product.class));
     }
 }

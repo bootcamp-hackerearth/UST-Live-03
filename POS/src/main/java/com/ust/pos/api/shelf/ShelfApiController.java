@@ -3,8 +3,8 @@ package com.ust.pos.api.shelf;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +13,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/shelf")
 public class ShelfApiController extends BaseController {
+    private final ShelfService shelfService;
 
-    @Autowired
-    private ShelfService shelfService;
+    public ShelfApiController(ShelfService shelfService) {
+        this.shelfService = shelfService;
+    }
 
     @PostMapping("/list")
-    public List<ShelfDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ShelfDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage()
                 , paginationDto.getSortDirection(), paginationDto.getSortField());
         return shelfService.findAll(pageable);
@@ -34,12 +36,17 @@ public class ShelfApiController extends BaseController {
         return shelfService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @GetMapping("/getAllActive")
+    public List<ShelfDto> getAllActive() {
+        return shelfService.findAllActive();
+    }
+
+    @PutMapping("/update")
     public ShelfDto update(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfService.delete(identifier);

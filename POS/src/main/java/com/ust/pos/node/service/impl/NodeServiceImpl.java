@@ -1,5 +1,6 @@
 package com.ust.pos.node.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
@@ -10,7 +11,6 @@ import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -25,33 +25,44 @@ import java.util.Set;
 
 @Transactional
 @Service
-public class NodeServiceImpl implements NodeService {
-    @Autowired
-    private UserRepository userRepository;
+public class NodeServiceImpl extends CommonService implements NodeService {
+    public static final String NODE_WITH_IDENTIFIER = "Node with identifier - ";
+    private final UserRepository userRepository;
+    private final NodeRepository nodeRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private NodeRepository nodeRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {
+        this.nodeRepository = nodeRepository;
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public NodeDto save(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode != null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
+            if (!existingNode.isDeleted()) {
+                nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " already exists");
+                nodeDto.setSuccess(false);
+                return nodeDto;
+            }
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " was previously deleted. " +
+                    "Please contact backend team to restore.");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
         Node node = modelMapper.map(nodeDto, Node.class);
+        setAuditFields(node, true);
         nodeRepository.save(node);
+        nodeDto.setSuccess(true);
+        nodeDto.setMessage("Node created successfully");
         return nodeDto;
     }
 
     @Override
     public WsDto<NodeDto> findAll(Pageable pageable) {
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        Page<Node> nodePage = nodeRepository.findByDeletedFalse(pageable);
         Type type = new TypeToken<List<NodeDto>>() {
         }.getType();
         WsDto<NodeDto> nodeWsDto = new WsDto<>();
@@ -69,20 +80,20 @@ public class NodeServiceImpl implements NodeService {
     }
 
     public List<NodeDto> getNodesForRoles() {
-        List<NodeDto> nodeDtos = new ArrayList<>();
+        List<NodeDto> nodeDtoList = new ArrayList<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             org.springframework.security.core.userdetails.User principalObject
                     = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            if (principalObject != null) findNodes(principalObject, nodeDtos);
+            if (principalObject != null) findNodes(principalObject, nodeDtoList);
         }
-        return nodeDtos;
+        return nodeDtoList;
     }
 
-    public void findNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtos) {
+    public void findNodes(org.springframework.security.core.userdetails.User principalObject, List<NodeDto> nodeDtoList) {
         User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesStr = new HashSet<>();
-        List<Node> nodes = nodeRepository.findAllByStatus(true);
+        List<Node> nodes = nodeRepository.findAllByStatusAndDeletedFalse(true);
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
                 if (node.getRoles() != null && node.getRoles().contains(role)) {
@@ -91,7 +102,7 @@ public class NodeServiceImpl implements NodeService {
             }
         }
         for (String nodeStr : nodesStr) {
-            nodeDtos.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
+            nodeDtoList.add(modelMapper.map(nodeRepository.findByIdentifier(nodeStr), NodeDto.class));
         }
     }
 
@@ -100,12 +111,22 @@ public class NodeServiceImpl implements NodeService {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode == null) {
-            nodeDto.setMessage("Node with identifier - " + identifier + " not found");
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " not found");
+            nodeDto.setSuccess(false);
+            return nodeDto;
+        }
+        if (existingNode.isDeleted()) {
+            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " was previously deleted. " +
+                    "Please contact backend team to restore."
+            );
             nodeDto.setSuccess(false);
             return nodeDto;
         }
         modelMapper.map(nodeDto, existingNode);
+        setAuditFields(existingNode, false);
         nodeRepository.save(existingNode);
+        nodeDto.setSuccess(true);
+        nodeDto.setMessage("Node updated successfully");
         return nodeDto;
     }
 
@@ -119,7 +140,11 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public boolean delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
+        Node node = nodeRepository.findByIdentifier(identifier);
+        if (node == null) return false;
+        softDelete(node);
+        setAuditFields(node, false);
+        nodeRepository.save(node);
         return true;
     }
 }

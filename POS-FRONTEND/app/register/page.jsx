@@ -29,7 +29,7 @@ function Register() {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/role/getAllActive");
+      const response = await axios.get("/role/getAllActive");
       setRolesList(response.data.content || response.data);
     } catch (err) {
       if (err.message) {
@@ -56,10 +56,10 @@ function Register() {
     if (user.roles.length === 0) return "Select at least one terminal security role";
     if (!/^\d{10}$/.test(user.phoneNo)) return "Phone number must be exactly 10 digits";
     if (user.password.length < 6) return "Password must be at least 6 characters long";
-    
+
     if (!/[A-Z]/.test(user.password)) {
       return "Add at least one uppercase letter (A-Z)";
-    } 
+    }
     if (!/\d/.test(user.password)) {
       return "Add at least one numerical digit (0-9)";
     }
@@ -76,10 +76,7 @@ function Register() {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:8080/api/user/register",
-        user
-      );
+      const res = await axios.post("/user/register", user);
       if (res.data?.success === false) {
         setError(res.data.message || "Registration failed");
         return;
@@ -108,7 +105,7 @@ function Register() {
       <div className="hidden lg:flex w-5/12 bg-[#231F20] text-white flex-col p-12 justify-between relative border-r border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
-            <img 
+            <img
               src={ustLogo.src}
               alt="UST Logo"
               className="w-10 h-10 object-contain"
@@ -132,9 +129,9 @@ function Register() {
             <div className="h-1.5 w-4 bg-[#0097AC] rounded-full" />
           </div>
         </div>
-        
+
         <div className="text-[10px] text-white/30 font-mono tracking-wider">
-          v3.1.0-build || Sprint-3
+          v4.1.0-build || Sprint-4
         </div>
       </div>
 
@@ -188,7 +185,7 @@ function Register() {
                   htmlFor="username"
                   className="text-[10px] font-bold uppercase tracking-widest text-[#231F20]/60 block mb-1.5"
                 >
-                  User Email 
+                  User Email
                 </label>
                 <div className="relative">
                   <Mail size={16} className="absolute left-3 top-3 text-[#231F20]/30" />
@@ -230,8 +227,8 @@ function Register() {
               </div>
 
               <div>
-                <label 
-                  htmlFor="register-password-input" 
+                <label
+                  htmlFor="register-password-input"
                   className="text-[10px] font-bold uppercase tracking-widest text-[#231F20]/60 block mb-1.5"
                 >
                   System Password
@@ -260,15 +257,15 @@ function Register() {
             </div>
 
             <div>
-              <label 
-                htmlFor="roles-selection-container" 
+              <label
+                htmlFor="roles-selection-container"
                 className="text-[10px] font-bold uppercase tracking-widest text-[#231F20]/60 block mb-2"
               >
                 Assign User Roles
               </label>
-              
-              <div 
-                id="roles-selection-container" 
+
+              <div
+                id="roles-selection-container"
                 className="grid sm:grid-cols-2 gap-2 max-h-[150px] overflow-y-auto pr-1 border border-[#231F20]/10 p-2 rounded-xl bg-slate-50"
               >
                 {rolesList.map((role, idx) => {

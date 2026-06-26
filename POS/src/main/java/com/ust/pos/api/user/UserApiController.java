@@ -5,16 +5,17 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequestMapping("/api/user")
 public class UserApiController extends BaseController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserApiController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/register")
     public UserDto add(@RequestBody UserDto userDto) {
@@ -33,15 +34,15 @@ public class UserApiController extends BaseController {
         return userService.findByUserName(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto update(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String username) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestParam String identifier) {
         try {
-            userService.delete(username);
+            userService.delete(identifier);
         } catch (Exception e) {
             return false;
         }

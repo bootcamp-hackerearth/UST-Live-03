@@ -15,5 +15,5 @@ public interface UserService {
 
     UserDto toggleStatus(String username);
 
-    void delete(String username);
+    boolean delete(String username);
 }

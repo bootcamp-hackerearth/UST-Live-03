@@ -37,26 +37,26 @@ export default function AddPricePage() {
 
     try {
       const payload = {
-      identifier: product,
-      mrp: mrp ? Number.parseFloat(mrp) : null,
-      sellingPrice: sellingPrice ? Number.parseFloat(sellingPrice) : null,
-      costPrice: costPrice ? Number.parseFloat(costPrice) : null,
-      effectiveFrom: effectiveFrom || null,
-    };
+        identifier: product,
+        mrp: mrp ? Number.parseFloat(mrp) : null,
+        sellingPrice: sellingPrice ? Number.parseFloat(sellingPrice) : null,
+        costPrice: costPrice ? Number.parseFloat(costPrice) : null,
+        effectiveFrom: effectiveFrom || null,
+      };
 
-    const res = await api.post("/price/add", payload, {
-      headers: getSecurityHeaders(),
-    });
-    const data = res.data;
+      const res = await api.post("/price/add", payload, {
+        headers: getSecurityHeaders(),
+      });
+      const data = res.data;
 
-    if (data?.identifier) {
-      setSuccess("Price configured successfully");
-      showToast("Price added successfully!", "success");
-      setTimeout(() => router.push("/price"), 1500);
-    } else {
-      setError("Failed to add price. Please try again.");
-      showToast("Failed to add price", "error");
-    }
+      if (data?.identifier) {
+        setSuccess("Price configured successfully");
+        showToast("Price added successfully!", "success");
+        setTimeout(() => router.push("/pos/prices"), 1500);
+      } else {
+        setError("Failed to add price. Please try again.");
+        showToast("Failed to add price", "error");
+      }
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Unable to connect to server";
       setError(errorMsg);
@@ -93,7 +93,7 @@ export default function AddPricePage() {
 
   return (
     <div className="min-h-screen bg-white p-6 font-sans">
-      
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#231F20]">
           Configure Price
@@ -115,9 +115,9 @@ export default function AddPricePage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          
+
           <div>
             <SingleDropdown
               label="Select Product"
@@ -126,12 +126,11 @@ export default function AddPricePage() {
               onChange={setProduct}
               valueField="identifier"
               labelField="identifier"
-              headers={getSecurityHeaders()} 
+              headers={getSecurityHeaders()}
             />
           </div>
 
           <div>
-            {/* Fixed S6853: Added explicit programmatic mapping via htmlFor */}
             <label htmlFor="mrp-input-field" className="block text-xs font-semibold text-[#006E74] uppercase tracking-wider cursor-pointer">
               MRP (Maximum Retail Price)
             </label>
@@ -147,7 +146,6 @@ export default function AddPricePage() {
           </div>
 
           <div>
-            {/* Fixed S6853: Added explicit programmatic mapping via htmlFor */}
             <label htmlFor="selling-price-input-field" className="block text-xs font-semibold text-[#006E74] uppercase tracking-wider cursor-pointer">
               Selling Price
             </label>
@@ -163,7 +161,6 @@ export default function AddPricePage() {
           </div>
 
           <div>
-            {/* Fixed S6853: Added explicit programmatic mapping via htmlFor */}
             <label htmlFor="cost-price-input-field" className="block text-xs font-semibold text-[#006E74] uppercase tracking-wider cursor-pointer">
               Cost Price
             </label>
@@ -179,7 +176,6 @@ export default function AddPricePage() {
           </div>
 
           <div>
-            {/* Fixed S6853: Added explicit programmatic mapping via htmlFor */}
             <label htmlFor="effective-date-input-field" className="block text-xs font-semibold text-[#006E74] uppercase tracking-wider cursor-pointer">
               Effective From Date
             </label>
@@ -193,7 +189,7 @@ export default function AddPricePage() {
           </div>
 
         </div>
-        
+
         <div className="sticky bottom-0 bg-white pt-4 border-t border-[#006E74]/20 flex justify-end gap-3">
           <button
             type="button"
@@ -202,15 +198,14 @@ export default function AddPricePage() {
           >
             Cancel
           </button>
-          
+
           <button
             type="submit"
             disabled={loading || !product}
-            className={`px-6 py-2 text-sm rounded-md text-white flex items-center justify-center gap-2 transition ${
-              loading || !product
+            className={`px-6 py-2 text-sm rounded-md text-white flex items-center justify-center gap-2 transition ${loading || !product
                 ? "bg-[#006E74]/50 cursor-not-allowed opacity-70"
                 : "bg-[#006E74] hover:bg-[#0097AC] cursor-pointer"
-            }`}
+              }`}
           >
             {loading ? (
               <>

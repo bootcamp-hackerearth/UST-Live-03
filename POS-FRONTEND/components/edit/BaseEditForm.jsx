@@ -16,6 +16,92 @@ const SKELETON_ITEMS = [
   "skeleton-row-5"
 ];
 
+function formatDateTime(value) {
+  if (!value) return "—";
+  try {
+    if (Array.isArray(value)) {
+      const [y, mo, d, h = 0, mi = 0, s = 0] = value;
+      return new Date(y, mo - 1, d, h, mi, s).toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    }
+    return new Date(value).toLocaleString("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  } catch {
+    return String(value);
+  }
+}
+
+function AuditTrail({ createdBy, createdAt, modifiedBy, modifiedAt }) {
+  const hasAnyData = createdBy || createdAt || modifiedBy || modifiedAt;
+  if (!hasAnyData) return null;
+
+  return (
+    <div className="mt-8 border-t border-[#006E74]/10 pt-6">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-[10px] font-bold text-[#006E74] uppercase tracking-widest">
+          Audit Trail
+        </span>
+        <div className="flex-1 h-px bg-[#006E74]/10" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex items-start gap-3 bg-[#006E74]/4 rounded-xl px-4 py-3 border border-[#006E74]/10">
+          <div className="w-7 h-7 rounded-lg bg-[#006E74]/10 flex items-center justify-center shrink-0 mt-0.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#006E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[9px] font-bold text-[#006E74]/60 uppercase tracking-widest">Created</p>
+            <p className="text-xs font-semibold text-[#231F20] mt-0.5 truncate">
+              {createdBy || "—"}
+            </p>
+            <p className="text-[10px] text-gray-400 font-mono mt-0.5">
+              {formatDateTime(createdAt)}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+          <div className="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center shrink-0 mt-0.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Last modified</p>
+            <p className="text-xs font-semibold text-[#231F20] mt-0.5 truncate">
+              {modifiedBy || "Not yet modified"}
+            </p>
+            <p className="text-[10px] text-gray-400 font-mono mt-0.5">
+              {formatDateTime(modifiedAt)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+AuditTrail.propTypes = {
+  createdBy: PropTypes.string,
+  createdAt: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.arrayOf(PropTypes.number),
+    PropTypes.instanceOf(Date),
+  ]),
+  modifiedBy: PropTypes.string,
+  modifiedAt: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.arrayOf(PropTypes.number),
+    PropTypes.instanceOf(Date),
+  ]),
+};
+
 export default function BaseEditForm({
   title,
   apiPath,
@@ -26,12 +112,18 @@ export default function BaseEditForm({
 }) {
   const router = useRouter();
   const params = useParams();
-  const { get, post } = useApiWithLoader();
+  const { get, put } = useApiWithLoader();
 
   const urlParamValue = params?.[identifierKey] || params?.identifier || "";
 
   const [identifierDisplay, setIdentifierDisplay] = useState("");
   const [extraData, setExtraData] = useState({});
+  const [audit, setAudit] = useState({
+    createdBy: null,
+    createdAt: null,
+    modifiedBy: null,
+    modifiedAt: null,
+  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(true);
@@ -55,12 +147,12 @@ export default function BaseEditForm({
         setLoading(true);
         setError("");
 
-        const cleanParamValue = urlParamValue 
-          ? decodeURIComponent(decodeURIComponent(urlParamValue)) 
+        const cleanParamValue = urlParamValue
+          ? decodeURIComponent(decodeURIComponent(urlParamValue))
           : "";
 
         if (!cleanParamValue) {
-          setError(`No valid identifier provided in URL`);
+          setError("No valid identifier provided in URL");
           setLoading(false);
           return;
         }
@@ -71,8 +163,16 @@ export default function BaseEditForm({
 
         if (!isMounted) return;
 
-        const displayVal = data?.username || data?.[identifierKey] || data?.identifier || cleanParamValue;
+        const displayVal =
+          data?.username || data?.[identifierKey] || data?.identifier || cleanParamValue;
         setIdentifierDisplay(displayVal);
+
+        setAudit({
+          createdBy: data?.createdBy ?? null,
+          createdAt: data?.createdAt ?? null,
+          modifiedBy: data?.modifiedBy ?? null,
+          modifiedAt: data?.modifiedAt ?? null,
+        });
 
         const prefilled = {};
         fieldsRef.current.forEach((field) => {
@@ -93,19 +193,12 @@ export default function BaseEditForm({
           setError(errorMsg);
         }
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     }
 
-    if (urlParamValue) {
-      loadData();
-    }
-
-    return () => {
-      isMounted = false;
-    };
+    if (urlParamValue) loadData();
+    return () => { isMounted = false; };
   }, [urlParamValue, apiPath, identifierKey, get]);
 
   async function handleSubmit(e) {
@@ -116,16 +209,21 @@ export default function BaseEditForm({
 
     try {
       const payload = {
-        identifier: identifierDisplay, 
+        identifier: identifierDisplay,
         ...extraData,
         ...externalExtraData,
       };
 
-      const res = await post(`/${apiPath}/update`, payload);
+      const res = await put(`/${apiPath}/update`, payload);
       const hasIdentifier = res?.username || res?.[identifierKey] || res?.identifier;
 
       if (hasIdentifier) {
         setSuccess(`${title} updated successfully`);
+        setAudit((prev) => ({
+          ...prev,
+          modifiedBy: res?.modifiedBy ?? prev.modifiedBy,
+          modifiedAt: res?.modifiedAt ?? prev.modifiedAt,
+        }));
         setTimeout(() => router.back(), 1500);
       } else {
         setError("Update failed. Please try again.");
@@ -147,15 +245,14 @@ export default function BaseEditForm({
 
   const handleMultiSelectToggle = (fieldKey, currentSelection, optionValue) => {
     const isSelected = currentSelection.includes(optionValue);
-    const updatedSelection = isSelected
+    const updated = isSelected
       ? currentSelection.filter((v) => v !== optionValue)
       : [...currentSelection, optionValue];
-    
-    handleExtraChange(fieldKey, updatedSelection);
+    handleExtraChange(fieldKey, updated);
   };
 
   const renderFieldInput = (field) => {
-    if (field.type === "custom") return field.component;
+    if (field.type === "custom") return typeof field.render === "function" ? field.render() : field.component;
 
     if (field.type === "select") {
       return (
@@ -180,16 +277,15 @@ export default function BaseEditForm({
           {field.options?.map((opt) => {
             const currentSelection = extraData[field.key] || [];
             const isSelected = currentSelection.includes(opt.value);
-            const btnClass = isSelected
-              ? "bg-[#0097AC] text-white border-[#0097AC]"
-              : "bg-white text-[#231F20] border-[#006E74]/30";
-
             return (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => handleMultiSelectToggle(field.key, currentSelection, opt.value)}
-                className={`px-3 py-1 text-xs rounded-md border transition cursor-pointer ${btnClass}`}
+                className={`px-3 py-1 text-xs rounded-md border transition cursor-pointer ${isSelected
+                    ? "bg-[#0097AC] text-white border-[#0097AC]"
+                    : "bg-white text-[#231F20] border-[#006E74]/30"
+                  }`}
                 aria-pressed={isSelected}
               >
                 {opt.label}
@@ -200,12 +296,11 @@ export default function BaseEditForm({
       );
     }
 
-    const inputType = field.type || "text";
     return (
       <input
         id={`field-${field.key}`}
         className="mt-1 w-full px-4 py-2 border rounded-md text-sm border-[#006E74]/30 focus:border-[#006E74] focus:ring-1 focus:ring-[#006E74]"
-        type={inputType}
+        type={field.type || "text"}
         value={extraData[field.key] || ""}
         placeholder={`Enter ${field.label?.toLowerCase() || field.key}`}
         onChange={(e) => handleExtraChange(field.key, e.target.value)}
@@ -218,19 +313,25 @@ export default function BaseEditForm({
     return (
       <div className="min-h-screen bg-white p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-6 w-1/4 bg-[#006E74]/20 rounded"></div>
+          <div className="h-6 w-1/4 bg-[#006E74]/20 rounded" />
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {SKELETON_ITEMS.map((rowKey) => (
-              <div key={rowKey} className="h-10 bg-[#006E74]/10 rounded"></div>
+            {SKELETON_ITEMS.map((k) => (
+              <div key={k} className="h-10 bg-[#006E74]/10 rounded" />
             ))}
+          </div>
+          {/* Audit skeleton */}
+          <div className="mt-8 border-t border-[#006E74]/10 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="h-16 bg-[#006E74]/6 rounded-xl" />
+            <div className="h-16 bg-gray-100 rounded-xl" />
           </div>
         </div>
       </div>
     );
   }
 
-  const submitBtnClass = submitting ? "bg-[#006E74]/50 cursor-not-allowed" : "bg-[#006E74] hover:bg-[#0097AC] cursor-pointer";
-  const submitBtnText = submitting ? "Saving..." : `Update ${title}`;
+  const submitBtnClass = submitting
+    ? "bg-[#006E74]/50 cursor-not-allowed"
+    : "bg-[#006E74] hover:bg-[#0097AC] cursor-pointer";
 
   return (
     <div className="min-h-screen bg-white p-6">
@@ -278,6 +379,13 @@ export default function BaseEditForm({
           ))}
         </div>
 
+        <AuditTrail
+          createdBy={audit.createdBy}
+          createdAt={audit.createdAt}
+          modifiedBy={audit.modifiedBy}
+          modifiedAt={audit.modifiedAt}
+        />
+
         <div className="sticky bottom-0 bg-white pt-4 border-t border-[#006E74]/20 flex justify-end gap-3">
           <button
             type="button"
@@ -286,8 +394,12 @@ export default function BaseEditForm({
           >
             Cancel
           </button>
-          <button type="submit" disabled={submitting} className={`px-6 py-2 text-sm rounded-md text-white transition-colors ${submitBtnClass}`}>
-            {submitBtnText}
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`px-6 py-2 text-sm rounded-md text-white transition-colors ${submitBtnClass}`}
+          >
+            {submitting ? "Saving..." : `Update ${title}`}
           </button>
         </div>
       </form>
@@ -303,13 +415,9 @@ BaseEditForm.propTypes = {
       key: PropTypes.string.isRequired,
       label: PropTypes.string,
       type: PropTypes.string,
-      options: PropTypes.arrayOf(
-        PropTypes.shape({
-          label: PropTypes.string.isRequired,
-          value: PropTypes.any.isRequired,
-        })
-      ),
+      options: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string.isRequired, value: PropTypes.any.isRequired })),
       component: PropTypes.node,
+      render: PropTypes.func,
     })
   ),
   extraData: PropTypes.object,

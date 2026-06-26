@@ -8,7 +8,7 @@ import api from "../../app/api/axios";
 
 export default function SingleDropdown({
   label,
-  entity,        
+  entity,
   selectedValue,
   onChange,
   valueField = "identifier",
@@ -62,8 +62,8 @@ export default function SingleDropdown({
 
   return (
     <div className="w-full relative mb-5 text-left">
-      <label 
-        htmlFor={dropdownId} 
+      <label
+        htmlFor={dropdownId}
         className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2"
       >
         {label}
@@ -73,18 +73,17 @@ export default function SingleDropdown({
         id={dropdownId}
         type="button"
         onClick={toggle}
-        className={`w-full flex items-center justify-between px-4 py-2.5 bg-white border rounded-lg text-sm text-left transition-all duration-150 cursor-pointer focus:outline-none ${
-          isOpen 
-            ? "border-slate-400 ring-2 ring-slate-900/5 shadow-sm" 
+        className={`w-full flex items-center justify-between px-4 py-2.5 bg-white border rounded-lg text-sm text-left transition-all duration-150 cursor-pointer focus:outline-none ${isOpen
+            ? "border-slate-400 ring-2 ring-slate-900/5 shadow-sm"
             : "border-slate-200 hover:border-slate-300 shadow-sm"
-        }`}
+          }`}
       >
         <span className={`truncate ${selectedValue ? "text-slate-800 font-medium" : "text-slate-400"}`}>
           {selectedValue
             ? options.find((o) => o.value === selectedValue)?.label ?? selectedValue
             : "Select configuration..."}
         </span>
-        
+
         <svg
           className={`h-4 w-4 text-slate-400 transition-transform duration-150 ml-2 shrink-0 ${isOpen ? "rotate-180 text-slate-600" : ""}`}
           fill="none"
@@ -110,14 +109,13 @@ export default function SingleDropdown({
                   key={opt.value}
                   type="button"
                   onClick={() => handleSelect(opt.value)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium text-left transition-colors duration-100 cursor-pointer focus:outline-none ${
-                    isSelected
+                  className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium text-left transition-colors duration-100 cursor-pointer focus:outline-none ${isSelected
                       ? "bg-blue-50 text-blue-700 font-semibold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                  }`}
+                    }`}
                 >
                   <span className="truncate pr-2">{opt.label}</span>
-                  
+
                   {isSelected && (
                     <span className="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-blue-100 text-blue-800 rounded shrink-0">
                       Active

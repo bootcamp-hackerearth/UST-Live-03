@@ -2,14 +2,10 @@
 
 "use client";
 
-import BaseListForm from "../../../components/lists/BaseListForm"; 
+import BaseListForm from "../../../components/lists/BaseListForm";
 
 export default function RoleListPage() {
   const columns = [
-    {
-      key: "id",
-      label: "ID"
-    },
     {
       key: "identifier",
       label: "Name",

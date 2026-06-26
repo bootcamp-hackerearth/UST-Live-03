@@ -9,7 +9,7 @@ import MultiDropDown from "../../../../components/dropDowns/multiDropDown";
 export default function UserAdd() {
   const [roles, setRoles] = useState([]);
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
   const status = true;
 
   const extraFields = [
@@ -36,8 +36,8 @@ export default function UserAdd() {
       type: "custom",
       component: (
         <div className="flex flex-col gap-1.5 text-left">
-          <label 
-            htmlFor="confirm-password-field" 
+          <label
+            htmlFor="confirm-password-field"
             className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
           >
             Confirm Password *
@@ -81,7 +81,8 @@ export default function UserAdd() {
   return (
     <BaseAddForm
       title="User"
-      apiPath="user/register"
+      apiPath="user"
+      customAction="register"
       identifierKey="username"
       extraFields={extraFields}
       extraData={extraData}

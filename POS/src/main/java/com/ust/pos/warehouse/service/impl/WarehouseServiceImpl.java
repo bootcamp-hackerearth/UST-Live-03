@@ -1,12 +1,13 @@
 package com.ust.pos.warehouse.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,40 +16,59 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class WarehouseServiceImpl implements WarehouseService {
-    @Autowired
-    private WarehouseRepository warehouseRepository;
+public class WarehouseServiceImpl extends CommonService implements WarehouseService {
+    public static final String WAREHOUSE_WITH_IDENTIFIER = "Warehouse with identifier - ";
+    private final WarehouseRepository warehouseRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public WarehouseServiceImpl(WarehouseRepository warehouseRepository, ModelMapper modelMapper) {
+        this.warehouseRepository = warehouseRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public WarehouseDto save(WarehouseDto warehouseDto) {
         String identifier = warehouseDto.getIdentifier();
         Warehouse existingWarehouse = warehouseRepository.findByIdentifier(identifier);
         if (existingWarehouse != null) {
-            warehouseDto.setMessage("Warehouse with identifier - " + identifier + " already exists");
+            if (!existingWarehouse.isDeleted()) {
+                warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " already exists");
+                warehouseDto.setSuccess(false);
+                return warehouseDto;
+            }
+            warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " was previously deleted. " +
+                    "Please contact backend team to restore.");
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
         Warehouse warehouse = modelMapper.map(warehouseDto, Warehouse.class);
+        setAuditFields(warehouse, true);
         warehouseRepository.save(warehouse);
+        warehouseDto.setSuccess(true);
+        warehouseDto.setMessage("Warehouse created successfully");
+
         return warehouseDto;
     }
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<WarehouseDto>>() {
+    public WsDto<WarehouseDto> findAll(Pageable pageable) {
+        Page<Warehouse> warehousePage = warehouseRepository.findByDeletedFalse(pageable);
+        Type type = new TypeToken<List<WarehouseDto>>() {
         }.getType();
-        Page<Warehouse> warehousePage = warehouseRepository.findAll(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+        WsDto<WarehouseDto> warehouseWsDto = new WsDto<>();
+        warehouseWsDto.setDtoList(modelMapper.map(warehousePage.getContent(), type));
+        warehouseWsDto.setTotalRecords(warehousePage.getTotalElements());
+        warehouseWsDto.setTotalPages(warehousePage.getTotalPages());
+        warehouseWsDto.setSizePerPage(pageable.getPageSize());
+        warehouseWsDto.setPage(pageable.getPageNumber());
+        return warehouseWsDto;
     }
 
     @Override
     public List<WarehouseDto> findAllActive() {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
-        return modelMapper.map(warehouseRepository.findAllByStatus(true), listType);
+        return modelMapper.map(warehouseRepository.findAllByStatusAndDeletedFalse(true), listType);
     }
 
     @Override
@@ -61,11 +81,12 @@ public class WarehouseServiceImpl implements WarehouseService {
         String identifier = warehouseDto.getIdentifier();
         Warehouse existingWarehouse = warehouseRepository.findByIdentifier(warehouseDto.getIdentifier());
         if (existingWarehouse == null) {
-            warehouseDto.setMessage("Warehouse with identifier - " + identifier + " not found");
+            warehouseDto.setMessage(WAREHOUSE_WITH_IDENTIFIER + identifier + " not found");
             warehouseDto.setSuccess(false);
             return warehouseDto;
         }
         modelMapper.map(warehouseDto, existingWarehouse);
+        setAuditFields(existingWarehouse, false);
         warehouseRepository.save(existingWarehouse);
         return warehouseDto;
     }
@@ -74,13 +95,18 @@ public class WarehouseServiceImpl implements WarehouseService {
     public WarehouseDto toggleStatus(String identifier) {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
         warehouse.setStatus(!warehouse.isStatus());
+        setAuditFields(warehouse, false);
         warehouseRepository.save(warehouse);
         return modelMapper.map(warehouse, WarehouseDto.class);
     }
 
     @Override
     public boolean delete(String identifier) {
-        warehouseRepository.deleteByIdentifier(identifier);
+        Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
+        if (warehouse == null) return false;
+        softDelete(warehouse);
+        setAuditFields(warehouse, false);
+        warehouseRepository.save(warehouse);
         return true;
     }
 }

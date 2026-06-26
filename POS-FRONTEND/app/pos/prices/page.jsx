@@ -6,25 +6,24 @@ import BaseListForm from "../../../components/lists/BaseListForm";
 
 export default function PriceListPage() {
   const columns = [
-    { key: "id", label: "ID" },
     { key: "identifier", label: "Product" },
-    { 
-      key: "mrp", 
+    {
+      key: "mrp",
       label: "MRP",
       render: (value) => value ? `₹${Number.parseFloat(value).toFixed(2)}` : "-"
     },
-    { 
-      key: "sellingPrice", 
+    {
+      key: "sellingPrice",
       label: "Selling Price",
       render: (value) => value ? `₹${Number.parseFloat(value).toFixed(2)}` : "-"
     },
-    { 
-      key: "costPrice", 
+    {
+      key: "costPrice",
       label: "Cost Price",
       render: (value) => value ? `₹${Number.parseFloat(value).toFixed(2)}` : "-"
     },
-    { 
-      key: "effectiveFrom", 
+    {
+      key: "effectiveFrom",
       label: "Effective From",
       render: (value) => value ? new Date(value).toLocaleDateString() : "-"
     },

@@ -28,7 +28,7 @@ export default function Header({ name }) {
 
   return (
     <header className="h-20 bg-white border-b border-[#231F20]/10 flex items-center justify-between px-10 shadow-sm relative z-50">
-      
+
       <div>
         <h1 className="text-xl font-bold text-[#231F20] tracking-tight">
           POS Dashboard
@@ -52,11 +52,10 @@ export default function Header({ name }) {
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
           title="User Menu"
-          className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-150 ${
-            isOpen
+          className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-150 ${isOpen
               ? "bg-[#006E74] border-[#006E74] text-white shadow-md"
               : "bg-slate-50 border-[#231F20]/15 text-[#231F20]/80 hover:bg-slate-100 hover:text-[#231F20]"
-          }`}
+            }`}
         >
           <User size={22} />
         </button>

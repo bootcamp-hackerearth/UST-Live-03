@@ -8,7 +8,6 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,21 +18,21 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController extends BaseController {
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
     private static final String MESSAGE = "message";
+    private final ProductService productService;
+    private final PriceService priceService;
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final ModelsService modelsService;
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private PriceService priceService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private BrandService brandService;
-
-    @Autowired
-    private ModelsService modelsService;
+    public ProductController(ProductService productService, PriceService priceService,
+                             CategoryService categoryService, BrandService brandService,
+                             ModelsService modelsService) {
+        this.productService = productService;
+        this.priceService = priceService;
+        this.categoryService = categoryService;
+        this.brandService = brandService;
+        this.modelsService = modelsService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, Pageable pageable) {

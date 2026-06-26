@@ -64,13 +64,13 @@ export default function ProfileDropdownCard({ onClose }) {
         phoneNo: formData.phoneNo
       };
 
-      await axios.post(`${axios.defaults.baseURL}/user/update`, payload, {
+      await axios.put(`${axios.defaults.baseURL}/user/update`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       setSuccess("Account configurations persisted successfully.");
       setEditMode(false);
-      
+
       await fetchUserProfile();
     } catch (err) {
       console.error("Backend state updating transaction failure:", err);
@@ -91,7 +91,7 @@ export default function ProfileDropdownCard({ onClose }) {
 
   return (
     <div className="w-96 bg-white border border-[#231F20]/15 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-200 ease-out origin-top-right animate-in fade-in zoom-in-95">
-      
+
       <div className="bg-slate-950 p-5 text-white flex justify-between items-center">
         <div>
           <h2 className="text-sm font-bold tracking-wide text-white uppercase tracking-wider">User Profile</h2>
@@ -99,11 +99,10 @@ export default function ProfileDropdownCard({ onClose }) {
             {profileData?.username || "fetching username..."}
           </p>
         </div>
-        <span className={`text-[11px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md border ${
-          profileData?.status 
-            ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" 
+        <span className={`text-[11px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md border ${profileData?.status
+            ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
             : "bg-amber-500/20 text-amber-400 border-amber-500/30"
-        }`}>
+          }`}>
           {profileData?.status ? "Active" : "InActive"}
         </span>
       </div>
@@ -112,7 +111,7 @@ export default function ProfileDropdownCard({ onClose }) {
       {success && <div className="bg-emerald-50 text-emerald-700 text-xs font-bold px-5 py-3 border-b border-emerald-100">{success}</div>}
 
       <div className="p-6 space-y-5">
-        
+
         <div>
           <span className="text-xs font-bold text-[#231F20]/50 uppercase tracking-widest block mb-2">
             Security Access
@@ -134,7 +133,7 @@ export default function ProfileDropdownCard({ onClose }) {
         <hr className="border-[#231F20]/10" />
 
         <form onSubmit={handleUpdateProfile} className="space-y-4">
-          
+
           <div>
             <span className="text-xs font-bold text-[#231F20]/50 uppercase tracking-widest block mb-1.5">
               System Username (Non-Editable)

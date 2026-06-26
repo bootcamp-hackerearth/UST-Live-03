@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +13,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/product")
 public class ProductApiController extends BaseController {
+    private final ProductService productService;
 
-    @Autowired
-    private ProductService productService;
+    public ProductApiController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping("/list")
     public WsDto<ProductDto> list(@RequestBody PaginationDto paginationDto) {
@@ -40,12 +41,12 @@ public class ProductApiController extends BaseController {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ProductDto update(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             productService.delete(identifier);

@@ -4,22 +4,27 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/brand")
 public class BrandApiController extends BaseController {
-    @Autowired
-    private BrandService brandService;
+    private final BrandService brandService;
+
+    public BrandApiController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @PostMapping("/list")
-    public List<BrandDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage()
-                , paginationDto.getSortDirection(), paginationDto.getSortField());
+    public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortField());
         return brandService.findAll(pageable);
     }
 
@@ -28,8 +33,13 @@ public class BrandApiController extends BaseController {
         return brandService.findAllActive();
     }
 
-    @PostMapping("/add")
-    public BrandDto add(@RequestBody BrandDto brandDto) {
+    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BrandDto add(@RequestPart("identifier") String identifier, @RequestPart("description") String description,
+                        @RequestPart(value = "icon", required = false) MultipartFile icon) {
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier(identifier);
+        brandDto.setDescription(description);
+        brandDto.setIcon(icon);
         return brandService.save(brandDto);
     }
 
@@ -38,12 +48,17 @@ public class BrandApiController extends BaseController {
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public BrandDto updatePost(@RequestBody BrandDto brandDto) {
+    @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BrandDto update(@RequestPart("identifier") String identifier, @RequestPart("description") String description,
+                           @RequestPart(value = "icon", required = false) MultipartFile icon) {
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier(identifier);
+        brandDto.setDescription(description);
+        brandDto.setIcon(icon);
         return brandService.update(brandDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);

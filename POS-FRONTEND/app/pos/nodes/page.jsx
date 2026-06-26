@@ -6,11 +6,10 @@ import BaseListForm from "../../../components/lists/BaseListForm";
 
 export default function NodeListPage() {
   const columns = [
-    { key: "id", label:"ID" },
     { key: "identifier", label: "Node Name" },
     { key: "path", label: "Path" },
-    { 
-      key: "roles", 
+    {
+      key: "roles",
       label: "Roles",
       render: (roles) => roles && Array.isArray(roles) ? roles.join(", ") : "-"
     },

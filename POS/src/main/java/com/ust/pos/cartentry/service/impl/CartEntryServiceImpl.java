@@ -1,15 +1,14 @@
 package com.ust.pos.cartentry.service.impl;
 
 import com.ust.pos.cartentry.service.CartEntryService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
-import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -17,18 +16,17 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+public class CartEntryServiceImpl extends CommonService implements CartEntryService {
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
+    private final PriceRepository priceRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private PriceService priceService;
-
-    @Autowired
-    private PriceRepository priceRepository;
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, ModelMapper modelMapper,
+                                PriceRepository priceRepository) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+        this.priceRepository = priceRepository;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -51,6 +49,7 @@ public class CartEntryServiceImpl implements CartEntryService {
         cartEntryDto.setPrice(price.getMrp());
         cartEntryDto.setSellingPrice(price.getSellingPrice());
         modelMapper.map(cartEntryDto, cartEntry);
+        setAuditFields(cartEntry, true);
         cartEntryRepository.save(cartEntry);
         return cartEntryDto;
     }

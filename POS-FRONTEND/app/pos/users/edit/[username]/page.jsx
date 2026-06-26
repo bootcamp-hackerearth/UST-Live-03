@@ -1,3 +1,4 @@
+// app/pos/users/edit/[username]/page.jsx
 "use client";
 
 import { useState } from "react";
@@ -8,15 +9,15 @@ import MultiDropDown from "../../../../../components/dropDowns/multiDropDown";
 
 export default function EditUserPage() {
   const params = useParams();
-  const [userId, setUserId] = useState(null);  // ✅ NEW: Store ID here
+  const [userId, setUserId] = useState(null);
   const [roles, setRoles] = useState([]);
   const [status, setStatus] = useState(true);
 
   let username = null;
-    if (params?.username) {
-      const rawUsername = Array.isArray(params.username) ? params.username[0] : params.username;
-      username = decodeURIComponent(rawUsername);
-    }
+  if (params?.username) {
+    const rawUsername = Array.isArray(params.username) ? params.username[0] : params.username;
+    username = decodeURIComponent(rawUsername);
+  }
 
   const renderEmailBlock = () => (
     <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3 mt-1">
@@ -88,17 +89,17 @@ export default function EditUserPage() {
       title="User"
       apiPath="user"
       extraFields={extraFields}
-      extraData={{ 
-        id: userId,  // ✅ PASS ID (hidden from user)
-        roles: roles.map((r) => r.startsWith("ROLE_") ? r : `ROLE_${r}`), 
-        status 
+      extraData={{
+        id: userId,
+        roles: roles.map((r) => r.startsWith("ROLE_") ? r : `ROLE_${r}`),
+        status
       }}
-      setters={{ 
-        roles: setRoles, 
+      setters={{
+        roles: setRoles,
         status: setStatus,
-        id: setUserId  // ✅ NEW: Set ID when data loads
+        id: setUserId
       }}
-      identifierKey="username" 
+      identifierKey="username"
     />
   );
 }

@@ -3,8 +3,8 @@ package com.ust.pos.api.warehouse;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,12 +14,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/warehouse")
 public class WarehouseApiController extends BaseController {
+    private final WarehouseService warehouseService;
 
-    @Autowired
-    private WarehouseService warehouseService;
+    public WarehouseApiController(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @PostMapping("/list")
-    public List<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage()
                 , paginationDto.getSortDirection(), paginationDto.getSortField());
         return warehouseService.findAll(pageable);
@@ -35,12 +37,17 @@ public class WarehouseApiController extends BaseController {
         return warehouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @GetMapping("/getAllActive")
+    public List<WarehouseDto> getAllActive() {
+        return warehouseService.findAllActive();
+    }
+
+    @PutMapping("/update")
     public WarehouseDto update(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);

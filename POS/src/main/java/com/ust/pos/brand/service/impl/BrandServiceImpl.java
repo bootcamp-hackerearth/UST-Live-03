@@ -1,13 +1,14 @@
 package com.ust.pos.brand.service.impl;
 
 import com.ust.pos.brand.service.BrandService;
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import com.ust.pos.util.FileStorageUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,34 +17,38 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class BrandServiceImpl implements BrandService {
-
+public class BrandServiceImpl extends CommonService implements BrandService {
     public static final String BRAND_WITH_IDENTIFIER = "Brand with identifier - ";
-    @Autowired
-    private BrandRepository brandRepository;
+    private final BrandRepository brandRepository;
+    private final FileStorageUtil fileStorageUtil;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private FileStorageUtil fileStorageUtil;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public BrandServiceImpl(BrandRepository brandRepository, FileStorageUtil fileStorageUtil, ModelMapper modelMapper) {
+        this.brandRepository = brandRepository;
+        this.fileStorageUtil = fileStorageUtil;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public BrandDto save(BrandDto brandDto) {
         String identifier = brandDto.getIdentifier();
         Brand existingBrand = brandRepository.findByIdentifier(identifier);
-
         if (existingBrand != null) {
-            brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " Already Exists");
+            if (!existingBrand.isDeleted()) {
+                brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " already exists");
+                brandDto.setSuccess(false);
+                return brandDto;
+            }
+            brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " was previously deleted. " +
+                    "Please contact backend team to restore.");
             brandDto.setSuccess(false);
             return brandDto;
         }
-
         Brand brand = modelMapper.map(brandDto, Brand.class);
         String iconPath = fileStorageUtil.saveBrandIcon(brandDto.getIcon(), identifier);
         brand.setIconPath(iconPath);
+        setAuditFields(brand, true);
         brandRepository.save(brand);
-
         brandDto = modelMapper.map(brand, BrandDto.class);
         brandDto.setSuccess(true);
         brandDto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " Added Successfully");
@@ -56,18 +61,24 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public List<BrandDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<BrandDto>>() {
+    public WsDto<BrandDto> findAll(Pageable pageable) {
+        Page<Brand> brandPage = brandRepository.findByDeletedFalse(pageable);
+        Type type = new TypeToken<List<BrandDto>>() {
         }.getType();
-        Page<Brand> brandPage = brandRepository.findAll(pageable);
-        return modelMapper.map(brandPage.getContent(), listType);
+        WsDto<BrandDto> brandWsDto = new WsDto<>();
+        brandWsDto.setDtoList(modelMapper.map(brandPage.getContent(), type));
+        brandWsDto.setTotalRecords(brandPage.getTotalElements());
+        brandWsDto.setTotalPages(brandPage.getTotalPages());
+        brandWsDto.setSizePerPage(pageable.getPageSize());
+        brandWsDto.setPage(pageable.getPageNumber());
+        return brandWsDto;
     }
 
     @Override
     public List<BrandDto> findAllActive() {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
-        return modelMapper.map(brandRepository.findAllByStatus(true), listType);
+        return modelMapper.map(brandRepository.findAllByStatusAndDeletedFalse(true), listType);
     }
 
     @Override
@@ -83,6 +94,7 @@ public class BrandServiceImpl implements BrandService {
             String iconPath = fileStorageUtil.saveBrandIcon(brandDto.getIcon(), brand.getIdentifier());
             brand.setIconPath(iconPath);
         }
+        setAuditFields(brand, false);
         brandRepository.save(brand);
         brandDto = modelMapper.map(brand, BrandDto.class);
         brandDto.setMessage(BRAND_WITH_IDENTIFIER + brandDto.getIdentifier() + " Updated");
@@ -93,13 +105,18 @@ public class BrandServiceImpl implements BrandService {
     public BrandDto toggleStatus(String identifier) {
         Brand brand = brandRepository.findByIdentifier(identifier);
         brand.setStatus(!brand.isStatus());
+        setAuditFields(brand, false);
         brandRepository.save(brand);
         return modelMapper.map(brandRepository.findByIdentifier(identifier), BrandDto.class);
     }
 
     @Override
     public boolean delete(String identifier) {
-        brandRepository.deleteByIdentifier(identifier);
+        Brand brand = brandRepository.findByIdentifier(identifier);
+        if (brand == null) return false;
+        softDelete(brand);
+        setAuditFields(brand, false);
+        brandRepository.save(brand);
         return true;
     }
 }

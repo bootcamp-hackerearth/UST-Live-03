@@ -11,21 +11,23 @@ const api = axios.create({
   },
 });
 
+const openEndpoints = [
+  "/authenticate",
+  "/user/register",
+  "/role/getAllActive",
+];
+
+const isOpenEndpoint = (url = "") =>
+  openEndpoints.some((endpoint) => url === endpoint || url.includes(endpoint));
+
 api.interceptors.request.use(
   (config) => {
-    const token = typeof globalThis === "undefined" ? null : globalThis.localStorage?.getItem("token");
+    const token =
+      typeof globalThis === "undefined"
+        ? null
+        : globalThis.localStorage?.getItem("token");
 
-    const openEndpoints = [
-      "/authenticate",
-      "/user/register",
-      "/role/findByStatus",
-    ];
-
-    const isOpenEndpoint = openEndpoints.some(
-      (endpoint) => config.url === endpoint || config.url?.includes(endpoint)
-    );
-
-    if (!isOpenEndpoint && token) {
+    if (!isOpenEndpoint(config.url) && token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -34,13 +36,22 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
+  // 2xx — pass through unchanged
   (response) => response,
+
   (error) => {
-    if (error.response?.status === 401) {
+    const status     = error.response?.status;
+    const requestUrl = error.config?.url || "";
+
+    if (!error.response) {
+      console.error("Network error - Backend may be unavailable");
+      return Promise.reject(error);
+    }
+
+    if (status === 401 && !isOpenEndpoint(requestUrl)) {
       console.warn("Unauthorized - redirecting to login");
 
       if (typeof globalThis !== "undefined" && globalThis.localStorage) {
-        // Clear all state keys to avoid stale "ghost" data matching on login reload
         globalThis.localStorage.removeItem("token");
         globalThis.localStorage.removeItem("tokenLoginTime");
         globalThis.localStorage.removeItem("username");
@@ -49,10 +60,26 @@ api.interceptors.response.use(
           globalThis.window.location.href = "/login";
         }
       }
+
+      return Promise.reject(error);
     }
-    if (!error.response) {
-      console.error("Network error - Backend may be unavailable");
+
+    if (status === 404) {
+      if (typeof globalThis !== "undefined" && globalThis.window) {
+        globalThis.window.location.assign("/not found");
+      }
+      return Promise.reject(error);
     }
+
+    if (status >= 500) {
+      const serverError = new Error(
+        error.response?.data?.message || "A server error occurred."
+      );
+      serverError.status = status;
+      serverError.cause  = error;
+      return Promise.reject(serverError);
+    }
+
     return Promise.reject(error);
   }
 );

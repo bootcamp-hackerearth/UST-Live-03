@@ -1,12 +1,13 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.ModelsDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,15 +16,16 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ModelsServiceImpl implements ModelsService {
+public class ModelsServiceImpl extends CommonService implements ModelsService {
     private static final String MODELS_WITH_IDENTIFIER = "Models with identifier - ";
     private static final String NOT_FOUND = " not found";
+    private final ModelsRepository modelsRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelsRepository modelsRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public ModelsServiceImpl(ModelsRepository modelsRepository, ModelMapper modelMapper) {
+        this.modelsRepository = modelsRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ModelsDto save(ModelsDto modelsDto) {
@@ -35,23 +37,30 @@ public class ModelsServiceImpl implements ModelsService {
             return modelsDto;
         }
         Models models = modelMapper.map(modelsDto, Models.class);
+        setAuditFields(models, true);
         modelsRepository.save(models);
         return modelsDto;
     }
 
     @Override
-    public List<ModelsDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ModelsDto>>() {
+    public WsDto<ModelsDto> findAll(Pageable pageable) {
+        Page<Models> modelsPage = modelsRepository.findByDeletedFalse(pageable);
+        Type type = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
-        return modelMapper.map(modelsPage.getContent(), listType);
+        WsDto<ModelsDto> modelsWsDto = new WsDto<>();
+        modelsWsDto.setDtoList(modelMapper.map(modelsPage.getContent(), type));
+        modelsWsDto.setTotalRecords(modelsPage.getTotalElements());
+        modelsWsDto.setTotalPages(modelsPage.getTotalPages());
+        modelsWsDto.setSizePerPage(pageable.getPageSize());
+        modelsWsDto.setPage(pageable.getPageNumber());
+        return modelsWsDto;
     }
 
     @Override
     public List<ModelsDto> findAllActive() {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        return modelMapper.map(modelsRepository.findAllByStatus(true), listType);
+        return modelMapper.map(modelsRepository.findAllByStatusAndDeletedFalse(true), listType);
     }
 
     @Override
@@ -78,6 +87,7 @@ public class ModelsServiceImpl implements ModelsService {
             return modelsDto;
         }
         modelMapper.map(modelsDto, existingModels);
+        setAuditFields(existingModels, false);
         modelsRepository.save(existingModels);
         return modelsDto;
     }
@@ -92,13 +102,18 @@ public class ModelsServiceImpl implements ModelsService {
             return dto;
         }
         models.setStatus(!models.isStatus());
+        setAuditFields(models, false);
         modelsRepository.save(models);
         return modelMapper.map(modelsRepository.findByIdentifier(identifier), ModelsDto.class);
     }
 
     @Override
     public boolean delete(String identifier) {
-        modelsRepository.deleteByIdentifier(identifier);
+        Models models = modelsRepository.findByIdentifier(identifier);
+        if (models == null) return false;
+        softDelete(models);
+        setAuditFields(models, false);
+        modelsRepository.save(models);
         return true;
     }
 }

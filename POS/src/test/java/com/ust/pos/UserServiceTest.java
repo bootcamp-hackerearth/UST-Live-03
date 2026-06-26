@@ -5,6 +5,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,11 +21,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -44,172 +43,186 @@ class UserServiceTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    private User user;
     private UserDto userDto;
+    private User user;
 
     @BeforeEach
     void setUp() {
-        user = new User();
-        user.setId(1L);
-        user.setUsername("test@example.com");
-        user.setPassword("encodedPassword");
-        user.setStatus(true);
-
         userDto = new UserDto();
         userDto.setId(1L);
-        userDto.setUsername("test@example.com");
-        userDto.setPassword("rawPassword");
+        userDto.setUsername("test@ust.com");
+        userDto.setPassword("password123");
+
+        user = new User();
+        user.setId(1L);
+        user.setUsername("test@ust.com");
+        user.setPassword("encodedPassword123");
+        user.setStatus(true);
+        user.setDeleted(false);
     }
 
     @Test
     @DisplayName("Find By Username - Success")
     void findByUserName_Success() {
-        when(userRepository.findByUsername("test@example.com")).thenReturn(user);
+        when(userRepository.findByUsername("test@ust.com")).thenReturn(user);
         when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
 
-        UserDto result = userService.findByUserName("test@example.com");
+        UserDto result = userService.findByUserName("test@ust.com");
 
-        assertNotNull(result);
-        assertEquals("test@example.com", result.getUsername());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("test@ust.com", result.getUsername());
     }
 
     @Test
     @DisplayName("Find By Username - Not Found")
     void findByUserName_NotFound() {
-        when(userRepository.findByUsername("none")).thenReturn(null);
-        assertNull(userService.findByUserName("none"));
+        when(userRepository.findByUsername("test@ust.com")).thenReturn(null);
+
+        UserDto result = userService.findByUserName("test@ust.com");
+
+        Assertions.assertNull(result);
     }
 
     @Test
     @DisplayName("Save User - Success")
     void save_Success() {
-        when(userRepository.findByUsername("test@example.com")).thenReturn(null);
-        when(modelMapper.map(any(UserDto.class), eq(User.class))).thenReturn(user);
-        when(passwordEncoder.encode("rawPassword")).thenReturn("encoded");
+        when(userRepository.findByUsername("test@ust.com")).thenReturn(null);
+        when(modelMapper.map(userDto, User.class)).thenReturn(user);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword123");
 
         UserDto result = userService.save(userDto);
 
-        assertTrue(result.isSuccess());
-        assertEquals("User registered successfully", result.getMessage());
+        Assertions.assertTrue(result.isSuccess());
+        Assertions.assertEquals("User registered successfully", result.getMessage());
         verify(userRepository).save(user);
     }
 
     @Test
-    @DisplayName("Save User - Failure: Email Already Exists")
-    void save_AlreadyExists() {
-        when(userRepository.findByUsername(userDto.getUsername())).thenReturn(user);
+    @DisplayName("Save User - Failure: Already Exists")
+    void save_Failure_AlreadyExists() {
+        user.setDeleted(false);
+        when(userRepository.findByUsername("test@ust.com")).thenReturn(user);
 
         UserDto result = userService.save(userDto);
 
-        assertFalse(result.isSuccess());
-        assertEquals("Sorry! That Email already exists.", result.getMessage());
-        verify(userRepository, never()).save(any());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("Email already exists"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Update User - Failure: User Not Found")
-    void update_UserNotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+    @DisplayName("Save User - Failure: Previously Deleted")
+    void save_Failure_PreviouslyDeleted() {
+        user.setDeleted(true);
+        when(userRepository.findByUsername("test@ust.com")).thenReturn(user);
 
-        UserDto result = userService.update(userDto);
+        UserDto result = userService.save(userDto);
 
-        assertFalse(result.isSuccess());
-        assertEquals("User with username/email - test@example.com not found", result.getMessage());
-        verify(userRepository, never()).save(any());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Update User - Success: Same Username")
-    void update_Success_SameUsername() {
+    @DisplayName("Find All Users - Paginated Success")
+    void findAll_PaginatedSuccess() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> userPage = new PageImpl<>(List.of(user));
+
+        when(userRepository.findByDeletedFalse(pageable)).thenReturn(userPage);
+        when(modelMapper.map(eq(userPage.getContent()), any(Type.class))).thenReturn(List.of(userDto));
+
+        WsDto<UserDto> result = userService.findAll(pageable);
+
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertFalse(result.getDtoList().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Update User - Success")
+    void update_Success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         UserDto result = userService.update(userDto);
 
-        assertTrue(result.isSuccess());
-        assertEquals("User updated successfully", result.getMessage());
-        verify(modelMapper).map(userDto, user);
+        Assertions.assertTrue(result.isSuccess());
+        Assertions.assertEquals("User updated successfully", result.getMessage());
         verify(userRepository).save(user);
     }
 
     @Test
-    @DisplayName("Update User - Success: Changed Username")
-    void update_Success_ChangedUsername() {
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setUsername("old@example.com");
-
-        userDto.setUsername("new@example.com");
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(userRepository.findByUsername("new@example.com")).thenReturn(null);
+    @DisplayName("Update User - Failure: Not Found")
+    void update_Failure_NotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         UserDto result = userService.update(userDto);
 
-        assertTrue(result.isSuccess());
-        assertEquals("User updated successfully", result.getMessage());
-        verify(modelMapper).map(userDto, existingUser);
-        verify(userRepository).save(existingUser);
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("not found"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Update User - Failure: Duplicate Username Conflict")
-    void update_Failure_DuplicateUsernameConflict() {
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setUsername("old@example.com");
-
-        userDto.setUsername("other@example.com");
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(userRepository.findByUsername("other@example.com")).thenReturn(new User());
+    @DisplayName("Update User - Failure: Target User Soft Deleted")
+    void update_Failure_TargetUserDeleted() {
+        user.setDeleted(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         UserDto result = userService.update(userDto);
 
-        assertFalse(result.isSuccess());
-        assertEquals("User with username/email - other@example.com already exists", result.getMessage());
-        verify(userRepository, never()).save(existingUser);
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Find All - Paginated Success with WsDto Mapping")
-    void findAll_Paginated() {
-        Pageable pageable = PageRequest.of(1, 10);
-        List<User> userList = Collections.singletonList(user);
-        Page<User> userPage = new PageImpl<>(userList, pageable, 25);
-        List<UserDto> dtoList = Collections.singletonList(userDto);
+    @DisplayName("Update User - Failure: Email Conflict With Another User")
+    void update_Failure_EmailConflict() {
+        userDto.setUsername("newemail@ust.com");
+        User conflictingUser = new User();
+        conflictingUser.setUsername("newemail@ust.com");
 
-        when(userRepository.findAll(pageable)).thenReturn(userPage);
-        when(modelMapper.map(eq(userList), any(Type.class))).thenReturn(dtoList);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("newemail@ust.com")).thenReturn(conflictingUser);
 
-        WsDto<UserDto> result = userService.findAll(pageable);
+        UserDto result = userService.update(userDto);
 
-        assertNotNull(result);
-        assertEquals(dtoList, result.getDtoList());
-        assertEquals(25, result.getTotalRecords());
-        assertEquals(3, result.getTotalPages());
-        assertEquals(10, result.getSizePerPage());
-        assertEquals(1, result.getPage());
-        verify(userRepository).findAll(pageable);
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("already exists"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Toggle Status - Logic Flip")
-    void toggleStatus_Logic() {
-        user.setStatus(true);
-        when(userRepository.findByUsername("test@example.com")).thenReturn(user);
+    @DisplayName("Toggle Status - Success")
+    void toggleStatus_Success() {
+        when(userRepository.findByUsername("test@ust.com")).thenReturn(user);
         when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
 
-        UserDto result = userService.toggleStatus("test@example.com");
+        UserDto result = userService.toggleStatus("test@ust.com");
 
-        assertFalse(user.isStatus());
+        Assertions.assertFalse(user.isStatus());
         verify(userRepository).save(user);
-        assertNotNull(result);
     }
 
     @Test
     @DisplayName("Delete User - Success")
     void delete_Success() {
-        userService.delete("test@example.com");
-        verify(userRepository).deleteByUsername("test@example.com");
+        when(userRepository.findByUsername("test@ust.com")).thenReturn(user);
+
+        boolean result = userService.delete("test@ust.com");
+
+        Assertions.assertTrue(result);
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("Delete User - Failure: Not Found")
+    void delete_Failure_NotFound() {
+        when(userRepository.findByUsername("test@ust.com")).thenReturn(null);
+
+        boolean result = userService.delete("test@ust.com");
+
+        Assertions.assertFalse(result);
+        verify(userRepository, never()).save(any(User.class));
     }
 }

@@ -3,7 +3,6 @@ package com.ust.pos.role;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,9 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/role")
 public class RoleController extends BaseController {
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
+    private final RoleService roleService;
 
-    @Autowired
-    private RoleService roleService;
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @GetMapping("/add")
     public String add() {

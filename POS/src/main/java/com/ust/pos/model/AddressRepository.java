@@ -11,9 +11,7 @@ import java.util.List;
 public interface AddressRepository extends JpaRepository<Address, Long> {
     Address findByIdentifier(String identifier);
 
-    List<Address> findAllByPhoneNo(String phoneNo);
+    List<Address> findAllByPhoneNoAndDeletedFalse(String phoneNo);
 
-    void deleteByIdentifier(String identifier);
-
-    List<Brand> findAllByStatus(Boolean status);
+    List<Brand> findAllByStatusAndDeletedFalse(Boolean status);
 }

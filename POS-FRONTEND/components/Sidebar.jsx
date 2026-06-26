@@ -18,7 +18,7 @@ export default function Sidebar({
   onCollapseChange,
 }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
     if (onCollapseChange) {
@@ -37,6 +37,17 @@ export default function Sidebar({
     Roles: "ShieldAlert",
     Users: "Users",
     test: "Terminal",
+    Bills: "ReceiptIndianRupee",
+    Sales: "ShoppingCart",
+    Orders: "ClipboardList",
+    Warehouses: "Warehouse",
+    Racks: "Columns3",
+    Shelves: "ShelvingUnit",
+    Units: "Weight",
+    Models: "Component",
+    Stocks: "Boxes",
+    Customers: "UsersRound",
+    Brands: "Award"
   };
 
   const getIcon = (name) => {
@@ -46,13 +57,11 @@ export default function Sidebar({
     return Icons[iconMap[key]] || Icons.Circle;
   };
 
-  // FIXED: Explicitly grouped regex choices inside parentheses and converted .replace to .replaceAll
   const formatPath = (dbPath) => {
     if (!dbPath) return "";
     return dbPath.replaceAll(/(^\/)|(\/$)/g, "");
   };
 
-  // FIXED: Explicitly grouped regex choices inside parentheses and converted .replace to .replaceAll
   const isActive = (path) => {
     const formattedPath = formatPath(path);
     const currentPath = pathname.replaceAll(/(^\/)|(\/$)/g, "");
@@ -127,7 +136,7 @@ export default function Sidebar({
                 "bg-[#006E74] text-white shadow-md font-semibold" :
                 "text-white/70 hover:text-white hover:bg-white/5"
               }`}
-            title={collapsed ? "Home" : undefined}
+            title={collapsed ? "HOME" : undefined}
           >
             <Home
               size={18}

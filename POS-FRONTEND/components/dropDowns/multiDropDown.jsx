@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import api from "../../app/api/axios";
 
@@ -16,124 +16,175 @@ export default function MultiDropDown({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [options, setOptions] = useState([]);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-  const loadOptions = async () => {
-    try {
-      const res = await api.get(
-        `http://localhost:8080/api/${entity}/getAllActive`
-      );
-
-      const mapped = res.data.map((item) => ({
-        value: item[valueField],
-        label: item[labelField],
-      }));
-
-      setOptions(mapped);
-    } catch (err) {
-      setOptions([]);
-      console.error(`Failed to load terminal ${entity} dropdown context:`, err);
+    async function loadOptions() {
+      try {
+        const res = await api.get(`/${entity}/getAllActive`);
+        const list = Array.isArray(res.data)
+          ? res.data
+          : res.data?.dtoList || [];
+        setOptions(
+          list.map((item) => ({
+            value: item[valueField],
+            label: item[labelField],
+          }))
+        );
+      } catch (err) {
+        setOptions([]);
+        console.error(`Failed to load ${entity} dropdown:`, err);
+      }
     }
-  };
+    loadOptions();
+  }, [entity, valueField, labelField]);
 
-  loadOptions();
-}, [entity, valueField, labelField]);
+  useEffect(() => {
+    function handleOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
 
-const toggle = () => setIsOpen((prev) => !prev);
-
-const handleSelect = (value) => {
-  const updated = selectedValues.includes(value)
-    ? selectedValues.filter((v) => v !== value)
-    : [...selectedValues, value];
-  onChange(updated);
-};
+  const toggle = () => setIsOpen((prev) => !prev);
   const clearAll = () => onChange([]);
-
   const selectAll = () => onChange(options.map((o) => o.value));
 
-  let chosenPillsLayout = (
-    <span className="text-slate-400 text-sm px-2">Select multiple...</span>
-  );
-
-  if (selectedValues.length > 0) {
-    chosenPillsLayout = selectedValues.map((val) => {
-      const matchOpt = options.find((o) => o.value === val);
-      const displayPillLabel = matchOpt ? matchOpt.label : val;
-      
-      return (
-        <span
-          key={val}
-          className="flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
-        >
-          {displayPillLabel}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSelect(val);
-            }}
-            className="ml-1 text-blue-600 hover:text-red-600 cursor-pointer"
-          >
-            ✕
-          </button>
-        </span>
-      );
-    });
-  }
-
-  let dropdownMenuOverlay = null;
-  if (isOpen) {
-    dropdownMenuOverlay = (
-      <div className="absolute w-full bg-white border mt-1 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-        <div className="flex justify-between px-3 py-2 text-xs border-b bg-gray-50">
-          <button type="button" onClick={selectAll} className="text-blue-600 hover:underline cursor-pointer">
-            Select All
-          </button>
-          <button type="button" onClick={clearAll} className="text-red-600 hover:underline cursor-pointer">
-            Clear
-          </button>
-        </div>
-
-        {options.map((opt) => {
-          const isSelected = selectedValues.includes(opt.value);
-          const spanClass = isSelected ? "font-semibold" : "";
-
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => handleSelect(opt.value)}
-              className="w-full flex items-center px-3 py-2 text-sm text-left hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none"
-            >
-              <input
-                type="checkbox"
-                checked={isSelected}
-                readOnly
-                className="mr-2 cursor-pointer"
-              />
-              <span className={spanClass}>{opt.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
+  const handleSelect = (value) => {
+    const updated = selectedValues.includes(value)
+      ? selectedValues.filter((v) => v !== value)
+      : [...selectedValues, value];
+    onChange(updated);
+  };
 
   return (
-    <div className="w-full relative mb-5 text-left">
-      <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+    <div ref={containerRef} className="w-full relative mb-5 text-left">
+      <label className="block text-xs font-semibold text-[#006E74] uppercase mb-1">
         {label}
       </label>
 
       <button
         type="button"
         onClick={toggle}
-        className="w-full min-h-[40px] flex flex-wrap gap-1 items-center px-2 py-1 bg-white border rounded-lg text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        onKeyDown={(e) => e.key === "Enter" || e.key === " " ? toggle() : null}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={`${label} selector`}
+        className="w-full min-h-[40px] flex flex-wrap gap-1 items-center px-2 py-1 bg-white border border-[#006E74]/30 rounded-lg select-none cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#006E74]/20"
       >
-        {chosenPillsLayout}
+        <span className="flex-1 min-w-[120px] pr-2 text-sm">
+          {selectedValues.length === 0 ? (
+            <span className="text-gray-400">Select {label.toLowerCase()}…</span>
+          ) : (
+            <span className="text-[#231F20]">{selectedValues.length} selected</span>
+          )}
+        </span>
+
+        {selectedValues.map((val) => {
+          const match = options.find((o) => o.value === val);
+          const pillLabel = match ? match.label : val;
+          return (
+            <button
+              key={val}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelect(val);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.stopPropagation();
+                  handleSelect(val);
+                }
+              }}
+              className="flex items-center gap-1 bg-[#006E74]/10 text-[#006E74] text-xs font-semibold px-2 py-1 rounded-full cursor-pointer hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-[#006E74]/20"
+              aria-label={`Remove ${pillLabel}`}
+            >
+              {pillLabel}
+              <span className="text-[#006E74]/60 hover:text-red-500 leading-none">✕</span>
+            </button>
+          );
+        })}
+
+        <span className="ml-auto shrink-0 p-1 pointer-events-none">
+          <svg
+            className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+            width="14" height="14" viewBox="0 0 24 24"
+            fill="none" stroke="#006E74" strokeWidth="2.5"
+            strokeLinecap="round" strokeLinejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </span>
       </button>
 
-      {dropdownMenuOverlay}
+      {isOpen && (
+        <div className="absolute w-full bg-white border border-[#006E74]/20 mt-1 rounded-xl shadow-lg z-50">
+
+          <div className="flex justify-between px-3 py-2 text-xs border-b border-gray-100 bg-gray-50 rounded-t-xl">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); selectAll(); }}
+              className="text-[#006E74] font-semibold hover:underline"
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); clearAll(); }}
+              className="text-red-500 font-semibold hover:underline"
+            >
+              Clear
+            </button>
+          </div>
+
+          {options.length === 0 ? (
+            <p className="px-3 py-4 text-xs text-gray-400 text-center">No options found.</p>
+          ) : (
+            <ul className="max-h-60 overflow-y-auto rounded-b-xl">
+              {options.map((opt) => {
+                const isSelected = selectedValues.includes(opt.value);
+                return (
+                  <li key={opt.value}>
+                    <button
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelect(opt.value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.stopPropagation();
+                          handleSelect(opt.value);
+                        }
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#006E74]/20
+                        ${isSelected
+                          ? "bg-[#006E74]/10 text-[#006E74] font-semibold"
+                          : "text-[#231F20] hover:bg-gray-50"
+                        }`}
+                    >
+                      <span className={`w-4 h-4 shrink-0 rounded border flex items-center justify-center text-[10px]
+                        ${isSelected
+                          ? "bg-[#006E74] border-[#006E74] text-white"
+                          : "border-gray-300"
+                        }`}
+                      >
+                        {isSelected && "✓"}
+                      </span>
+                      {opt.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }

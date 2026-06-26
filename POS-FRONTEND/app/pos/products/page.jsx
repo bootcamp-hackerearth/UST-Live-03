@@ -9,8 +9,8 @@ const ProductList = () => {
     { key: "id", label: "ID" },
     { key: "identifier", label: "SKU Code" },
     { key: "name", label: "Product Name" },
-    { 
-      key: "categories", 
+    {
+      key: "categories",
       label: "Category",
       render: (val) => {
         if (!val || (Array.isArray(val) && val.length === 0)) {
@@ -18,7 +18,7 @@ const ProductList = () => {
         }
 
         const categoryArray = Array.isArray(val) ? val : [val];
-        const categoryNames = categoryArray.map(c => 
+        const categoryNames = categoryArray.map(c =>
           typeof c === 'object' ? (c.name || c.identifier) : c
         );
 
@@ -37,7 +37,17 @@ const ProductList = () => {
       }
     },
     { key: "brand", label: "Brand" },
-    { key: "model", label: "Model" },
+    { 
+      key: "model", 
+      label: "Model",
+      render: (val) => val ? (
+          <span className="font-mono text-md text-[#231F20]">{val}</span>
+      ) : (
+          <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+              N/A
+          </span>
+      )
+    },
     { key: "status", label: "Status" }
   ];
 

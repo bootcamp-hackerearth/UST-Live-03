@@ -34,14 +34,14 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class WebSecurityConfig {
-
     private static final String JAVA_IN_USE_SECURITY_SCHEME = "JavaInUseSecurityScheme";
+    private final UserDetailsService userDetailsService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    public WebSecurityConfig(UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userDetailsService = userDetailsService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) {
@@ -56,6 +56,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/authenticate"
                                 , "/api/validateToken"
                                 , "/api/role/getAllActive"
+                                , "/uploads/**"
                                 , "/api/node/getNodesForRoles"
                                 , "/api/user/register"
                                 , "/swagger-ui/**"

@@ -91,7 +91,7 @@ export default function EditPricePage() {
         effectiveFrom: effectiveFrom || null,
       };
 
-      const res = await api.post("/price/update", payload, {
+      const res = await api.put("/price/update", payload, {
         headers: getSecurityHeaders()
       });
 
@@ -154,7 +154,7 @@ export default function EditPricePage() {
 
   return (
     <div className="min-h-screen bg-white p-6 font-sans">
-      
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#231F20]">
           Edit Price
@@ -176,9 +176,9 @@ export default function EditPricePage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          
+
           <div>
             <label htmlFor="edit-identifier-input" className="block text-xs font-semibold text-[#006E74] uppercase tracking-wider cursor-pointer">
               Identifier
@@ -260,15 +260,14 @@ export default function EditPricePage() {
           >
             Cancel
           </button>
-          
+
           <button
             type="submit"
             disabled={submitting}
-            className={`px-6 py-2 text-sm rounded-md text-white flex items-center justify-center gap-2 transition ${
-              submitting
+            className={`px-6 py-2 text-sm rounded-md text-white flex items-center justify-center gap-2 transition ${submitting
                 ? "bg-[#006E74]/50 cursor-not-allowed opacity-70"
                 : "bg-[#006E74] hover:bg-[#0097AC] cursor-pointer"
-            }`}
+              }`}
           >
             {submitting ? (
               <>

@@ -5,7 +5,6 @@ import com.ust.pos.dto.StockDto;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,15 +15,16 @@ import org.springframework.web.bind.annotation.*;
 public class StockController extends BaseController {
     public static final String REDIRECT_STOCK_LIST = "redirect:/stock/list";
     private static final String MESSAGE = "message";
+    private final StockService stockService;
+    private final ProductService productService;
+    private final WarehouseService warehouseService;
 
-    @Autowired
-    private StockService stockService;
-
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private WarehouseService warehouseService;
+    public StockController(StockService stockService, ProductService productService,
+                           WarehouseService warehouseService) {
+        this.stockService = stockService;
+        this.productService = productService;
+        this.warehouseService = warehouseService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, Pageable pageable) {

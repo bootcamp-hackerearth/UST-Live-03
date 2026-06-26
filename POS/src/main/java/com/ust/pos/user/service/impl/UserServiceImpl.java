@@ -1,5 +1,6 @@
 package com.ust.pos.user.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
@@ -8,7 +9,6 @@ import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,20 +16,20 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 @Transactional
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends CommonService implements UserService {
+    public static final String USER_WITH_EMAIL = "User with Email - ";
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UserDto findByUserName(String username) {
@@ -45,12 +45,19 @@ public class UserServiceImpl implements UserService {
         String username = userDto.getUsername();
         User existingUser = userRepository.findByUsername(username);
         if (existingUser != null) {
+            if (!existingUser.isDeleted()) {
+                userDto.setSuccess(false);
+                userDto.setMessage("Sorry! That Email already exists.");
+                return userDto;
+            }
             userDto.setSuccess(false);
-            userDto.setMessage("Sorry! That Email already exists.");
+            userDto.setMessage("User with username - " + username + " was previously deleted. " +
+                    "Please contact backend team to restore.");
             return userDto;
         }
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        setAuditFields(user, true);
         userRepository.save(user);
         userDto.setSuccess(true);
         userDto.setMessage("User registered successfully");
@@ -61,7 +68,7 @@ public class UserServiceImpl implements UserService {
     public WsDto<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        Page<User> userPage = userRepository.findAll(pageable);
+        Page<User> userPage = userRepository.findByDeletedFalse(pageable);
         WsDto<UserDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
         userWsDto.setTotalRecords(userPage.getTotalElements());
@@ -74,21 +81,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto update(UserDto userDto) {
         String username = userDto.getUsername();
-        Optional<User> userOptional = userRepository.findById(userDto.getId());
-        if (userOptional.isEmpty()) {
-            userDto.setMessage("User with username/email - " + userDto.getUsername() + " not found");
+        User existingUser = userRepository.findById(userDto.getId()).orElse(null);
+        if (existingUser == null) {
+            userDto.setMessage(USER_WITH_EMAIL + username + " not found");
             userDto.setSuccess(false);
             return userDto;
-        } else {
-            User existingUser = userOptional.get();
-            if (!username.equalsIgnoreCase(existingUser.getUsername()) && userRepository.findByUsername(username) != null) {
-                userDto.setMessage("User with username/email - " + userDto.getUsername() + " already exists");
-                userDto.setSuccess(false);
-                return userDto;
-            }
-            modelMapper.map(userDto, existingUser);
-            userRepository.save(existingUser);
         }
+        if (existingUser.isDeleted()) {
+            userDto.setMessage(USER_WITH_EMAIL + username + " was previously deleted. " +
+                    "Please contact backend team to restore.");
+            userDto.setSuccess(false);
+            return userDto;
+        }
+        if (!username.equalsIgnoreCase(existingUser.getUsername())
+                && userRepository.findByUsername(username) != null) {
+            userDto.setMessage(USER_WITH_EMAIL + username + " already exists");
+            userDto.setSuccess(false);
+            return userDto;
+        }
+        modelMapper.map(userDto, existingUser);
+        setAuditFields(existingUser, false);
+        userRepository.save(existingUser);
         userDto.setSuccess(true);
         userDto.setMessage("User updated successfully");
         return userDto;
@@ -98,12 +111,18 @@ public class UserServiceImpl implements UserService {
     public UserDto toggleStatus(String username) {
         User user = userRepository.findByUsername(username);
         user.setStatus(!user.isStatus());
+        setAuditFields(user, false);
         userRepository.save(user);
         return modelMapper.map(user, UserDto.class);
     }
 
     @Override
-    public void delete(String username) {
-        userRepository.deleteByUsername(username);
+    public boolean delete(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) return false;
+        softDelete(user);
+        setAuditFields(user, false);
+        userRepository.save(user);
+        return true;
     }
 }

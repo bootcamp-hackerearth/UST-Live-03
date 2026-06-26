@@ -1,14 +1,15 @@
 package com.ust.pos.role.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,14 +19,15 @@ import java.util.List;
 
 @Transactional
 @Service
-public class RoleServiceImpl implements RoleService {
+public class RoleServiceImpl extends CommonService implements RoleService {
     private static final String ROLE_WITH_IDENTIFIER = "Role with identifier - ";
+    private final RoleRepository roleRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public RoleServiceImpl(RoleRepository roleRepository, ModelMapper modelMapper) {
+        this.roleRepository = roleRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public RoleDto save(RoleDto roleDto) {
@@ -37,6 +39,7 @@ public class RoleServiceImpl implements RoleService {
             return roleDto;
         }
         Role role = modelMapper.map(roleDto, Role.class);
+        setAuditFields(role, true);
         roleRepository.save(role);
         roleDto.setMessage(ROLE_WITH_IDENTIFIER + identifier + " successfully Created...!");
         return roleDto;
@@ -44,12 +47,16 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+        Role role = roleRepository.findByIdentifier(identifier);
+        if(role==null){
+            throw new ResourceNotFoundException("Role with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(role,RoleDto.class);
     }
 
     @Override
     public WsDto<RoleDto> findAll(Pageable pageable) {
-        Page<Role> rolePage = roleRepository.findAll(pageable);
+        Page<Role> rolePage = roleRepository.findByDeletedFalse(pageable);
         Type type = new TypeToken<List<RoleDto>>() {
         }.getType();
         WsDto<RoleDto> roleWsDto = new WsDto<>();
@@ -65,7 +72,7 @@ public class RoleServiceImpl implements RoleService {
     public List<RoleDto> findAllActive() {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        return modelMapper.map(roleRepository.findAllByStatus(true), listType);
+        return modelMapper.map(roleRepository.findAllByStatusAndDeletedFalse(true), listType);
     }
 
     @Override
@@ -78,6 +85,7 @@ public class RoleServiceImpl implements RoleService {
             return roleDto;
         }
         modelMapper.map(roleDto, existingRole);
+        setAuditFields(existingRole, false);
         roleRepository.save(existingRole);
         return roleDto;
     }
@@ -86,13 +94,18 @@ public class RoleServiceImpl implements RoleService {
     public RoleDto toggleStatus(String identifier) {
         Role role = roleRepository.findByIdentifier(identifier);
         role.setStatus(!role.isStatus());
+        setAuditFields(role, false);
         roleRepository.save(role);
         return modelMapper.map(role, RoleDto.class);
     }
 
     @Override
     public boolean delete(String identifier) {
-        roleRepository.deleteByIdentifier(identifier);
+        Role role = roleRepository.findByIdentifier(identifier);
+        if (role == null) return false;
+        softDelete(role);
+        setAuditFields(role, false);
+        roleRepository.save(role);
         return true;
     }
 }

@@ -1,5 +1,6 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Price;
@@ -7,7 +8,6 @@ import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,24 +17,36 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-public class PriceServiceImpl implements PriceService {
-    @Autowired
-    private PriceRepository priceRepository;
+public class PriceServiceImpl extends CommonService implements PriceService {
+    public static final String PRICE_WITH_IDENTIFIER = "Price with identifier - ";
+    private final PriceRepository priceRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public PriceServiceImpl(PriceRepository priceRepository, ModelMapper modelMapper) {
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PriceDto save(PriceDto priceDto) {
         String identifier = priceDto.getIdentifier();
         Price existingPrice = priceRepository.findByIdentifier(identifier);
         if (existingPrice != null) {
-            priceDto.setMessage("Price with identifier - " + identifier + " already exists");
+            if (!existingPrice.isDeleted()) {
+                priceDto.setMessage(PRICE_WITH_IDENTIFIER + identifier + " already exists");
+                priceDto.setSuccess(false);
+                return priceDto;
+            }
+            priceDto.setMessage(PRICE_WITH_IDENTIFIER + identifier + " was previously deleted. " +
+                    "Please contact backend team to restore.");
             priceDto.setSuccess(false);
             return priceDto;
         }
         Price price = modelMapper.map(priceDto, Price.class);
+        setAuditFields(price, true);
         priceRepository.save(price);
+        priceDto.setSuccess(true);
+        priceDto.setMessage("Price created successfully");
         return priceDto;
     }
 
@@ -43,18 +55,23 @@ public class PriceServiceImpl implements PriceService {
         String identifier = priceDto.getIdentifier();
         Price existingPrice = priceRepository.findByIdentifier(priceDto.getIdentifier());
         if (existingPrice == null) {
-            priceDto.setMessage("Price with identifier - " + identifier + " not found");
+            priceDto.setMessage(PRICE_WITH_IDENTIFIER + identifier + " not found");
             priceDto.setSuccess(false);
             return priceDto;
         }
         modelMapper.map(priceDto, existingPrice);
+        setAuditFields(existingPrice, false);
         priceRepository.save(existingPrice);
         return priceDto;
     }
 
     @Override
     public boolean delete(String identifier) {
-        priceRepository.deleteByIdentifier(identifier);
+        Price price = priceRepository.findByIdentifier(identifier);
+        if (price == null) return false;
+        softDelete(price);
+        setAuditFields(price, false);
+        priceRepository.save(price);
         return true;
     }
 
@@ -70,6 +87,13 @@ public class PriceServiceImpl implements PriceService {
         priceWsDto.setSizePerPage(pageable.getPageSize());
         priceWsDto.setPage(pageable.getPageNumber());
         return priceWsDto;
+    }
+
+    @Override
+    public List<PriceDto> findAllActive() {
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        return modelMapper.map(priceRepository.findAllByStatusAndDeletedFalse(true), listType);
     }
 
     @Override
@@ -91,6 +115,7 @@ public class PriceServiceImpl implements PriceService {
     public PriceDto toggleStatus(String identifier) {
         Price price = priceRepository.findByIdentifier(identifier);
         price.setStatus(!price.isStatus());
+        setAuditFields(price, false);
         priceRepository.save(price);
         return modelMapper.map(price, PriceDto.class);
     }

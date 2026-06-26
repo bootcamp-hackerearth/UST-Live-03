@@ -4,7 +4,6 @@ import com.ust.pos.adress.service.AddressService;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +12,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/address")
 public class AddressApiController extends BaseController {
-    @Autowired
-    private AddressService addressService;
+    private final AddressService addressService;
+
+    public AddressApiController(AddressService addressService) {
+        this.addressService = addressService;
+    }
 
     @PostMapping("/add")
     public AddressDto add(@RequestBody AddressDto addressDto) {
@@ -23,8 +25,7 @@ public class AddressApiController extends BaseController {
 
     @PostMapping("/list")
     public List<AddressDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage()
-                , paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return addressService.findAll(pageable);
     }
 
@@ -38,12 +39,12 @@ public class AddressApiController extends BaseController {
         return addressService.findAllByPhoneNumber(phoneNo);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public AddressDto update(@RequestBody AddressDto addressDto) {
         return addressService.update(addressDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String phoneNo) {
         try {
             addressService.delete(phoneNo);

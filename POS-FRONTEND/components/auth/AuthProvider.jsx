@@ -21,7 +21,7 @@ export default function AuthProvider({ children }) {
     }, [router]);
 
     useEffect(() => {
-        if (pathname === "/login") return;
+        if (pathname === "/login" || pathname === "/register") return;
 
         if (typeof globalThis === "undefined" || !globalThis.window || !globalThis.localStorage) return;
 

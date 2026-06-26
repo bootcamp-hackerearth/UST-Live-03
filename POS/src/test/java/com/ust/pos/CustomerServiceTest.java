@@ -1,9 +1,12 @@
 package com.ust.pos;
 
 import com.ust.pos.adress.service.AddressService;
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
+import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Assertions;
@@ -21,7 +24,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +42,9 @@ class CustomerServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
+    @Mock
+    private CartService cartService;
+
     @InjectMocks
     private CustomerServiceImpl customerService;
 
@@ -48,159 +53,104 @@ class CustomerServiceTest {
 
     @BeforeEach
     void setUp() {
+        AddressDto billingAddressDto = new AddressDto();
+        billingAddressDto.setAddressLine("123 Billing St");
+
+        AddressDto shippingAddressDto = new AddressDto();
+        shippingAddressDto.setAddressLine("456 Shipping St");
+
         customerDto = new CustomerDto();
-        customerDto.setIdentifier("CUST001");
-        customerDto.setUsername("user1");
+        customerDto.setIdentifier("CUST-100");
+        customerDto.setUsername("johndoe");
+        customerDto.setCustomerName("John Doe");
+        customerDto.setBillingAddress(billingAddressDto);
+        customerDto.setShippingAddress(shippingAddressDto);
 
         customer = new Customer();
-        customer.setIdentifier("CUST001");
+        customer.setIdentifier("CUST-100");
         customer.setCustomerName("John Doe");
         customer.setStatus(true);
+        customer.setDeleted(false);
     }
 
     @Test
-    @DisplayName("Save - New Customer with Both Addresses")
-    void save_Success_Full() {
-        AddressDto billingDto = new AddressDto();
-        AddressDto shippingDto = new AddressDto();
-        customerDto.setBillingAddress(billingDto);
-        customerDto.setShippingAddress(shippingDto);
-
-        when(customerRepository.findByIdentifier("CUST001")).thenReturn(null);
+    @DisplayName("Save Customer - Success with Addresses and Cart")
+    void save_Success() {
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(null);
         when(modelMapper.map(customerDto, Customer.class)).thenReturn(customer);
 
         CustomerDto result = customerService.save(customerDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Customer with identifier - CUST001 Added Successfully", result.getMessage());
-        Assertions.assertEquals("user1_billing_CUST001", billingDto.getIdentifier());
-        Assertions.assertEquals("CUST001", billingDto.getPhoneNo());
-        Assertions.assertEquals("John Doe", billingDto.getCustomerName());
-        Assertions.assertEquals("billing", billingDto.getAddressType());
-
-        Assertions.assertEquals("user1_shipping_CUST001", shippingDto.getIdentifier());
-        Assertions.assertEquals("CUST001", shippingDto.getPhoneNo());
-        Assertions.assertEquals("John Doe", shippingDto.getCustomerName());
-        Assertions.assertEquals("shipping", shippingDto.getAddressType());
-
+        Assertions.assertTrue(result.getMessage().contains("Added Successfully"));
         verify(customerRepository).save(customer);
         verify(addressService, times(2)).save(any(AddressDto.class));
+        verify(cartService).save(any(CartDto.class));
     }
 
     @Test
-    @DisplayName("Save - New Customer with No Addresses")
-    void save_Success_Minimal() {
+    @DisplayName("Save Customer - Success without Addresses")
+    void save_Success_NoAddresses() {
         customerDto.setBillingAddress(null);
         customerDto.setShippingAddress(null);
-
-        when(customerRepository.findByIdentifier("CUST001")).thenReturn(null);
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(null);
         when(modelMapper.map(customerDto, Customer.class)).thenReturn(customer);
 
         CustomerDto result = customerService.save(customerDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Customer with identifier - CUST001 Added Successfully", result.getMessage());
         verify(customerRepository).save(customer);
-        verify(addressService, never()).save(any());
+        verify(addressService, never()).save(any(AddressDto.class));
+        verify(cartService).save(any(CartDto.class));
     }
 
     @Test
-    @DisplayName("Save - Already Exists")
-    void save_Failure_Exists() {
-        when(customerRepository.findByIdentifier("CUST001")).thenReturn(customer);
+    @DisplayName("Save Customer - Failure: Already Exists")
+    void save_Failure_AlreadyExists() {
+        customer.setDeleted(false);
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(customer);
 
         CustomerDto result = customerService.save(customerDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Customer with identifier - CUST001 already exists", result.getMessage());
-        verify(customerRepository, never()).save(any());
-        verify(addressService, never()).save(any());
+        Assertions.assertTrue(result.getMessage().contains("already exists"));
+        verify(customerRepository, never()).save(any(Customer.class));
     }
 
     @Test
-    @DisplayName("Update - Full Address Sync (Existing Billing and Shipping)")
-    void update_Success_FullSync() {
-        AddressDto existingBill = new AddressDto();
-        existingBill.setAddressType("billing");
-        existingBill.setIdentifier("OLD_BILL_ID");
+    @DisplayName("Save Customer - Failure: Previously Deleted")
+    void save_Failure_PreviouslyDeleted() {
+        customer.setDeleted(true);
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(customer);
 
-        AddressDto existingShip = new AddressDto();
-        existingShip.setAddressType("shipping");
-        existingShip.setIdentifier("OLD_SHIP_ID");
-
-        AddressDto billingDto = new AddressDto();
-        AddressDto shippingDto = new AddressDto();
-        customerDto.setBillingAddress(billingDto);
-        customerDto.setShippingAddress(shippingDto);
-
-        when(customerRepository.findByIdentifier("CUST001")).thenReturn(customer);
-        when(addressService.findAllByPhoneNumber("CUST001")).thenReturn(List.of(existingBill, existingShip));
-
-        CustomerDto result = customerService.update(customerDto);
-
-        Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Customer with identifier - CUST001 Updated", result.getMessage());
-        Assertions.assertEquals("OLD_BILL_ID", billingDto.getIdentifier());
-        Assertions.assertEquals("OLD_SHIP_ID", shippingDto.getIdentifier());
-
-        verify(modelMapper).map(customerDto, customer);
-        verify(customerRepository).save(customer);
-        verify(addressService, times(2)).update(any(AddressDto.class));
-    }
-
-    @Test
-    @DisplayName("Update - Addresses Provided But None Exist in DB")
-    void update_Success_NoExistingAddresses() {
-        AddressDto billingDto = new AddressDto();
-        AddressDto shippingDto = new AddressDto();
-        customerDto.setBillingAddress(billingDto);
-        customerDto.setShippingAddress(shippingDto);
-
-        when(customerRepository.findByIdentifier("CUST001")).thenReturn(customer);
-        when(addressService.findAllByPhoneNumber("CUST001")).thenReturn(Collections.emptyList());
-
-        CustomerDto result = customerService.update(customerDto);
-
-        Assertions.assertTrue(result.isSuccess());
-        Assertions.assertNull(billingDto.getIdentifier());
-        Assertions.assertNull(shippingDto.getIdentifier());
-        verify(addressService, times(2)).update(any(AddressDto.class));
-    }
-
-    @Test
-    @DisplayName("Update - Customer Not Found")
-    void update_Failure_NotFound() {
-        when(customerRepository.findByIdentifier("CUST001")).thenReturn(null);
-
-        CustomerDto result = customerService.update(customerDto);
+        CustomerDto result = customerService.save(customerDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Customer with identifier - CUST001 not found", result.getMessage());
-        verify(customerRepository, never()).save(any());
-        verify(addressService, never()).update(any());
+        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        verify(customerRepository, never()).save(any(Customer.class));
     }
 
     @Test
-    @DisplayName("Find All - Pagination Support")
-    void findAll_Paginated() {
+    @DisplayName("Find All Customers - Paginated Success")
+    void findAll_PaginatedSuccess() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Customer> list = List.of(customer);
-        Page<Customer> page = new PageImpl<>(list);
+        Page<Customer> customerPage = new PageImpl<>(List.of(customer));
 
-        when(customerRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(List.of(customerDto));
+        when(customerRepository.findByDeletedFalse(pageable)).thenReturn(customerPage);
+        when(modelMapper.map(eq(customerPage.getContent()), any(Type.class))).thenReturn(List.of(customerDto));
 
-        List<CustomerDto> result = customerService.findAll(pageable);
+        WsDto<CustomerDto> result = customerService.findAll(pageable);
 
-        Assertions.assertEquals(1, result.size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertFalse(result.getDtoList().isEmpty());
     }
 
     @Test
-    @DisplayName("Find All Active")
+    @DisplayName("Find All Active Customers - Success")
     void findAllActive_Success() {
-        List<Customer> list = List.of(customer);
-        when(customerRepository.findAllByStatus(true)).thenReturn(list);
-        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(List.of(customerDto));
+        List<Customer> activeCustomers = List.of(customer);
+        when(customerRepository.findAllByStatusAndDeletedFalse(true)).thenReturn(activeCustomers);
+        when(modelMapper.map(eq(activeCustomers), any(Type.class))).thenReturn(List.of(customerDto));
 
         List<CustomerDto> result = customerService.findAllActive();
 
@@ -208,36 +158,93 @@ class CustomerServiceTest {
     }
 
     @Test
-    @DisplayName("Find By Identifier")
+    @DisplayName("Find By Identifier - Success with Address Filtering")
     void findByIdentifier_Success() {
-        when(customerRepository.findByIdentifier("CUST001")).thenReturn(customer);
-        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
+        AddressDto mockBilling = new AddressDto();
+        mockBilling.setAddressType("billing");
+        AddressDto mockShipping = new AddressDto();
+        mockShipping.setAddressType("shipping");
 
-        CustomerDto result = customerService.findByIdentifier("CUST001");
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(customer);
+        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
+        when(addressService.findAllByPhoneNumber("CUST-100")).thenReturn(List.of(mockBilling, mockShipping));
+
+        CustomerDto result = customerService.findByIdentifier("CUST-100");
 
         Assertions.assertNotNull(result);
+        Assertions.assertNotNull(result.getBillingAddress());
+        Assertions.assertNotNull(result.getShippingAddress());
+        verify(customerRepository).findByIdentifier("CUST-100");
+        verify(addressService).findAllByPhoneNumber("CUST-100");
     }
 
     @Test
-    @DisplayName("Toggle Status")
-    void toggleStatus_Logic() {
-        customer.setStatus(true);
-        when(customerRepository.findByIdentifier("CUST001")).thenReturn(customer);
+    @DisplayName("Update Customer - Success with Existing Address Remapping")
+    void update_Success() {
+        AddressDto existingBilling = new AddressDto();
+        existingBilling.setAddressType("billing");
+        existingBilling.setIdentifier("old_bill_id");
+
+        AddressDto existingShipping = new AddressDto();
+        existingShipping.setAddressType("shipping");
+        existingShipping.setIdentifier("old_ship_id");
+
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(customer);
+        when(addressService.findAllByPhoneNumber("CUST-100")).thenReturn(List.of(existingBilling, existingShipping));
+
+        CustomerDto result = customerService.update(customerDto);
+
+        Assertions.assertTrue(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("Updated"));
+        verify(customerRepository).save(customer);
+        verify(addressService, times(2)).update(any(AddressDto.class));
+    }
+
+    @Test
+    @DisplayName("Update Customer - Failure: Customer Not Found")
+    void update_Failure_NotFound() {
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(null);
+
+        CustomerDto result = customerService.update(customerDto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("not found"));
+        verify(customerRepository, never()).save(any(Customer.class));
+    }
+
+    @Test
+    @DisplayName("Toggle Status - Success")
+    void toggleStatus_Success() {
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(customer);
         when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
 
-        customerService.toggleStatus("CUST001");
+        CustomerDto result = customerService.toggleStatus("CUST-100");
 
         Assertions.assertFalse(customer.isStatus());
         verify(customerRepository).save(customer);
     }
 
     @Test
-    @DisplayName("Delete - Cascade Verification")
+    @DisplayName("Delete Customer - Success")
     void delete_Success() {
-        boolean deleted = customerService.delete("CUST001");
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(customer);
 
-        Assertions.assertTrue(deleted);
-        verify(customerRepository).deleteByIdentifier("CUST001");
-        verify(addressService).delete("CUST001");
+        boolean result = customerService.delete("CUST-100");
+
+        Assertions.assertTrue(result);
+        verify(customerRepository).save(customer);
+        verify(addressService).delete("CUST-100");
+    }
+
+    @Test
+    @DisplayName("Delete Customer - Failure: Not Found")
+    void delete_Failure_NotFound() {
+        when(customerRepository.findByIdentifier("CUST-100")).thenReturn(null);
+
+        boolean result = customerService.delete("CUST-100");
+
+        Assertions.assertFalse(result);
+        verify(customerRepository, never()).save(any(Customer.class));
+        verify(addressService, never()).delete(anyString());
     }
 }

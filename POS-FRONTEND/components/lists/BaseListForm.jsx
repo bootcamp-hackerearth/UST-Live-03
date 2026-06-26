@@ -1,11 +1,9 @@
-// components/lists/BaseListForm.jsx
-
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
-import { useApiWithLoader } from "@/app/lib/useApiWithLoader"; 
+import { useApiWithLoader } from "@/app/lib/useApiWithLoader";
 import { Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 
 export default function BaseListForm({
@@ -17,8 +15,8 @@ export default function BaseListForm({
   identifierKey = "identifier"
 }) {
   const router = useRouter();
-  
-  const { post, get } = useApiWithLoader();
+
+  const { post, delete: del } = useApiWithLoader();
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +35,20 @@ export default function BaseListForm({
   const currentPage = pagination.page;
   const getId = useCallback((item) => item[identifierKey] ?? item.id, [identifierKey]);
 
+  const handleErrorRouting = useCallback((err) => {
+    const status = err?.response?.status || err?.status;
+
+    if (status === 404) {
+      router.push("/not found");
+      return true;
+    }
+    if (status === 500) {
+      router.push("/pos/error");
+      return true;
+    }
+    return false;
+  }, [router]);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -51,7 +63,7 @@ export default function BaseListForm({
         } else if (resData.dtoList || resData.list || resData.content) {
           const listData = resData.dtoList || resData.list || resData.content || [];
           setData(listData);
-          
+
           const backendPages = resData.totalPages || resData.totalPage || listData[0]?.totalPages;
           setTotalPages(backendPages > 0 ? backendPages : 1);
         } else {
@@ -60,12 +72,15 @@ export default function BaseListForm({
         }
       }
     } catch (err) {
-      setError(`Failed to load ${entity.toLowerCase()} records`);
       console.error(err);
+      // If handled by error routing, we don't need to display the local state error
+      if (!handleErrorRouting(err)) {
+        setError(`Something went wrong`);
+      }
     } finally {
       setLoading(false);
     }
-  }, [entity, pagination, post]);
+  }, [entity, pagination, post, handleErrorRouting]);
 
   useEffect(() => {
     fetchData();
@@ -79,42 +94,44 @@ export default function BaseListForm({
     if (!globalThis.confirm?.(`Delete this record?\n\nID: ${identifier}`)) return;
     try {
       setDeleting(identifier);
-      setError(""); 
+      setError("");
 
-      await get(`/${entity}/delete`, {
+      await del(`/${entity}/delete`, {
         params: { identifier: identifier }
       });
       setData(prev => prev.filter(item => getId(item) !== identifier));
-      
+
       if (data.length === 1 && currentPage > 0) {
         goToPage(currentPage - 1);
       }
     } catch (err) {
-      setError("Delete operation failed");
       console.error("Delete error:", err);
+      if (!handleErrorRouting(err)) {
+        setError("Delete operation failed");
+      }
     } finally {
       setDeleting(null);
     }
   };
 
   const handleToggleStatus = async (item) => {
-    const targetIdentifier = getId(item); 
-    
+    const targetIdentifier = getId(item);
+
     try {
       setError("");
 
       const updatedData = await post(
-        `/${entity}/toggle?identifier=${encodeURIComponent(targetIdentifier)}`, 
+        `/${entity}/toggle?identifier=${encodeURIComponent(targetIdentifier)}`,
         null
       );
 
       setData(prev =>
         prev.map(row => {
           if (getId(row) === targetIdentifier) {
-            return { 
-              ...row, 
-              status: updatedData && typeof updatedData.status === "boolean" 
-                ? updatedData.status 
+            return {
+              ...row,
+              status: updatedData && typeof updatedData.status === "boolean"
+                ? updatedData.status
                 : !row.status
             };
           }
@@ -122,8 +139,10 @@ export default function BaseListForm({
         })
       );
     } catch (err) {
-      setError("Failed to update user status");
       console.error("Toggle status error:", err);
+      if (!handleErrorRouting(err)) {
+        setError("Failed to update user status");
+      }
     }
   };
 
@@ -166,11 +185,10 @@ export default function BaseListForm({
       return (
         <button
           onClick={() => handleToggleStatus(item)}
-          className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-            item.status
+          className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${item.status
               ? "bg-[#006E74]/10 text-[#006E74] hover:bg-[#006E74]/20"
               : "bg-[#231F20]/10 text-[#231F20]/60 hover:bg-[#231F20]/20"
-          }`}
+            }`}
         >
           {item.status ? "Active" : "Inactive"}
         </button>
@@ -286,7 +304,7 @@ export default function BaseListForm({
               Manage and control your {entity.toLowerCase()} records.
             </p>
           </div>
-          
+
           <button
             onClick={() => router.push(addPath)}
             className="flex items-center gap-2 bg-[#006E74] hover:bg-[#0097AC] text-white px-4 py-2.5 rounded-lg font-semibold transition-colors shadow-md"
@@ -358,11 +376,10 @@ export default function BaseListForm({
                   type="button"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 0}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${
-                    currentPage === 0
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${currentPage === 0
                       ? "opacity-40 cursor-not-allowed bg-slate-100 border-[#231F20]/10 text-[#231F20]/40"
                       : "bg-white border-[#231F20]/20 hover:bg-slate-50 text-[#231F20] cursor-pointer"
-                  }`}
+                    }`}
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -372,11 +389,10 @@ export default function BaseListForm({
                     type="button"
                     key={`page-btn-${pageIndex}`}
                     onClick={() => goToPage(pageIndex)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-lg border text-xs font-bold transition-colors ${
-                      currentPage === pageIndex
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg border text-xs font-bold transition-colors ${currentPage === pageIndex
                         ? "bg-[#006E74] border-[#006E74] text-white"
                         : "bg-white border-[#231F20]/20 text-[#231F20]/80 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     {pageIndex + 1}
                   </button>
@@ -386,11 +402,10 @@ export default function BaseListForm({
                   type="button"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages - 1}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${
-                    currentPage === totalPages - 1
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${currentPage === totalPages - 1
                       ? "opacity-40 cursor-not-allowed bg-slate-100 border-[#231F20]/10 text-[#231F20]/40"
                       : "bg-white border-[#231F20]/20 hover:bg-slate-50 text-[#231F20] cursor-pointer"
-                  }`}
+                    }`}
                 >
                   <ChevronRight size={16} />
                 </button>

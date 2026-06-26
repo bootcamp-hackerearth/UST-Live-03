@@ -27,5 +27,25 @@ export function useApiWithLoader() {
     }
   }, [showLoader, hideLoader]);
 
-  return { get, post };
+  const put = useCallback(async (url, data, config = {}) => {
+    showLoader();
+    try {
+      const response = await api.put(url, data, config);
+      return response.data;
+    } finally {
+      hideLoader();
+    }
+  }, [showLoader, hideLoader]);
+
+  const del = useCallback(async (url, config = {}) => {
+    showLoader();
+    try {
+      const response = await api.delete(url, config);
+      return response.data;
+    } finally {
+      hideLoader();
+    }
+  }, [showLoader, hideLoader]);
+
+  return { get, post, put, delete: del };
 }
