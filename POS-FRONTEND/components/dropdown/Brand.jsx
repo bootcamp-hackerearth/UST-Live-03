@@ -15,14 +15,8 @@ const BrandDropdown = ({ value, onChange }) => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await api.post(
-        "/brand/list",
-        {
-          page: 0,
-          sizePerPage: 1000,
-          sortDirection: "ASC",
-          sortField: "identifier"
-        },
+      const res = await api.get(
+        "/brand/active",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -30,9 +24,9 @@ const BrandDropdown = ({ value, onChange }) => {
         }
       );
 
-      setBrands(res.data.dtoList || []);
+      setBrands(res.data || []);
     } catch (err) {
-      console.error("Brand fetch error:", err);
+      console.error("Active Brand fetch error:", err);
     }
   };
 
@@ -56,4 +50,5 @@ BrandDropdown.propTypes = {
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
 };
+
 export default BrandDropdown;

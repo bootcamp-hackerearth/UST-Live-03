@@ -15,22 +15,13 @@ const ModelDropdown = ({ value, onChange }) => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await api.post(
-        "/models/list",
-        {
-          page: 0,
-          sizePerPage: 1000,
-          sortDirection: "ASC",
-          sortField: "identifier"
+      const res = await api.get("/models/active", {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      });
 
-      setModels(res.data.dtoList || []);
+      setModels(res.data || []);
     } catch (err) {
       console.error("Model fetch error:", err);
     }
@@ -52,6 +43,7 @@ const ModelDropdown = ({ value, onChange }) => {
     </select>
   );
 };
+
 ModelDropdown.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,

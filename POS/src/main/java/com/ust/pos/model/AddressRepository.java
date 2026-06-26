@@ -1,6 +1,5 @@
 package com.ust.pos.model;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,8 +7,5 @@ import org.springframework.stereotype.Repository;
 public interface AddressRepository extends JpaRepository<Address, Long> {
     Address findByPhoneNoAndAddressType(String phoneNo, String addressType);
 
-    @Transactional
-    void deleteByPhoneNo(String phoneNo);
-
-    Address findByPhoneNo(String phoneNo);
+    Address findByPhoneNoAndAddressTypeAndDeletedFalse(String phoneNo, String addressType);
 }

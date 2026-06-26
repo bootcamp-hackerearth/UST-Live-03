@@ -7,6 +7,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsDto <T> extends PaginationDto{
+public class WsDto<T> extends PaginationDto {
     List<T> dtoList;
 }

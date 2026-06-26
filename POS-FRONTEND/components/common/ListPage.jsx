@@ -17,51 +17,89 @@ const ListPage = ({ keys, fields, modelName, showToggle = true }) => {
 
   const [listData, setListData] = useState([]);
   const [page, setPage] = useState(0);
-  const [sizePerPage] = useState(2);
+  const [sizePerPage] = useState(3);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
 
-  const [searchQuery, setSearchQuery] = useState("");
+const [searchQuery, setSearchQuery] = useState("");
+const handleApiError = (err, defaultMessage) => {
+  console.log(err);
 
-  const fetchData = async () => {
-  try {
-    const isSearchEmpty = searchQuery.trim() === "";
+  if (err.response) {
+    const {
+      status,
+      data,
+    } = err.response;
 
-    if (isSearchEmpty) {
-      const res = await api.post(`/${modelName}/list`, {
-        page,
-        sizePerPage,
-      });
-
-      const data = res.data;
-
-      setListData(data.dtoList || []);
-      setTotalPages(data.totalPages || 0);
-      setTotalRecords(data.totalRecords || 0);
-    } else {
-      const res = await api.post(`/${modelName}/list`, {
-        page: 0,
-        sizePerPage: 1000,
-      });
-
-      const data = res.data;
-      const fullData = data.dtoList || [];
-
-      const filtered = fullData.filter((item) =>
-        Object.values(item).some((value) =>
-          String(value).toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-
-      setListData(filtered);
-      setTotalPages(1);
-      setTotalRecords(filtered.length);
+    if (status === 404) {
+      alert(data?.message || "Data not found");
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    alert("Failed to fetch data");
+
+    if (status === 500) {
+      alert(data?.message || "Internal server error");
+      return;
+    }
+
+    if (status === 403) {
+      alert("Access denied");
+      return;
+    }
+
+    if (status === 401) {
+      alert("Session expired. Login again");
+      return;
+    }
+
+    alert(data?.message || defaultMessage);
+
+  } else if (err.request) {
+    alert("Server not responding");
+  } else {
+    alert(defaultMessage);
   }
 };
+  const fetchData = async () => {
+    try {
+      const isSearchEmpty = searchQuery.trim() === "";
+
+      if (isSearchEmpty) {
+        const res = await api.post(`/${modelName}/list`, {
+          page,
+          sizePerPage,
+        });
+
+        const data = res.data;
+
+        setListData(data.dtoList || []);
+        setTotalPages(data.totalPages || 0);
+        setTotalRecords(data.totalRecords || 0);
+      } else {
+        const res = await api.post(`/${modelName}/list`, {
+          page: 0,
+          sizePerPage: 1000,
+        });
+
+        const data = res.data;
+        const fullData = data.dtoList || [];
+
+        const filtered = fullData.filter((item) =>
+          Object.values(item).some((value) =>
+            String(value).toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        );
+
+        setListData(filtered);
+        setTotalPages(1);
+        setTotalRecords(filtered.length);
+      }
+    } catch (err) {
+  handleApiError(
+    err,
+    "Failed to fetch data"
+  );
+}
+  };
 
   useEffect(() => {
     fetchData();
@@ -72,55 +110,64 @@ const ListPage = ({ keys, fields, modelName, showToggle = true }) => {
     setPage(0);
   };
 
- const handleChange = (e) => {
-  const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  setFormData((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
 
-  setErrors((prev) => ({
-    ...prev,
-    [name]: "",
-  }));
-};
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+  const handleEdit = async (item) => {
+    try {
+      const res = await api.get(`/${modelName}/get?identifier=${item.identifier}`);
+      const freshData = res.data || {};
+      fields.forEach((field) => {
+        if (field.multiple) {
+          if (Array.isArray(freshData[field.name])) {
+            // already an array
+          } else if (freshData[field.name]) {
+            freshData[field.name] = freshData[field.name].split(",");
+          } else {
+            freshData[field.name] = [];
+          }
+        }
+      });
 
- const handleEdit = (item) => {
-  const updatedData = { ...item };
+      setFormData(freshData);
+      setErrors({});
+      setShowModal(true);
+    } catch (err) {
+  handleApiError(
+    err,
+    "Failed to fetch current record"
+  );
+}
+  };
 
-  fields.forEach((field) => {
-    if (field.multiple) {
-      if (Array.isArray(item[field.name])) {
-        updatedData[field.name] = item[field.name];
-      } else if (item[field.name]) {
-        updatedData[field.name] = item[field.name].split(",");
-      } else {
-        updatedData[field.name] = [];
-      }
+  const handleUpdate = async () => {
+    const newErrors = validateForm(fields, formData);
+    setErrors(newErrors);
+    const hasErrors = Object.keys(newErrors).length > 0;
+    if (hasErrors) {
+      return;
     }
-  });
-  setFormData(updatedData);
-  setErrors({});
-  setShowModal(true);
-};
-
-const handleUpdate = async () => {
-  const newErrors = validateForm(fields, formData);
-  setErrors(newErrors);
-  if (Object.keys(newErrors).length > 0) {
-    return;
-  }
-  try {
-    await api.post(`/${modelName}/update`, formData);
-    setShowModal(false);
-    setRefresh((prev) => prev + 1);
-
-  } catch (err) {
-    console.error(err);
-    alert("Update failed");
-  }
-};
+    try {
+      await api.put(`/${modelName}/update`, formData);
+      setShowModal(false);
+      setRefresh((prev) => prev + 1);
+    } catch (err) {
+  handleApiError(
+    err,
+    "Update failed"
+  );
+}
+  };
 
   const start = page * sizePerPage + 1;
   const end = start + listData.length - 1;
@@ -151,7 +198,7 @@ const handleUpdate = async () => {
               + Add {modelName}
             </button>
           </div>
-       <div className="mb-4 flex justify-end">
+          <div className="mb-4 flex justify-end">
             <div className="relative">
               <input
                 type="text"
@@ -160,8 +207,6 @@ const handleUpdate = async () => {
                 onChange={handleSearchChange}
                 className="w-64 border border-gray-300 rounded px-3 py-2 text-sm pr-8"
               />
-              <span className="absolute right-2 top-2 text-gray-400 text-sm">
-              </span>
             </div>
           </div>
           {listData.length === 0 && (
@@ -213,7 +258,7 @@ const handleUpdate = async () => {
                             <label className="relative inline-flex items-center cursor-pointer" aria-label="Toggle status">
                               <input
                                 type="checkbox"
-                                checked={item.status}
+                                checked={item.status || false}
                                 onChange={async () => {
                                   try {
                                     await api.post(`/${modelName}/toggleStatus`, {
@@ -227,11 +272,9 @@ const handleUpdate = async () => {
                                 }}
                                 className="sr-only peer"
                               />
-
                               <div className="w-12 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-all" />
                               <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-6" />
                             </label>
-
                             <span className={`text-xs mt-1 font-semibold ${item.status ? "text-blue-600" : "text-red-500"}`}>
                               {item.status ? "Active" : "Deactivated"}
                             </span>
@@ -241,7 +284,6 @@ const handleUpdate = async () => {
 
                       <td className="py-2 px-3 text-center">
                         <div className="flex gap-2 justify-center">
-
                           <button
                             onClick={() => handleEdit(item)}
                             className="bg-green-500 text-white px-2 py-1 rounded text-sm"
@@ -251,22 +293,24 @@ const handleUpdate = async () => {
                           <button
                             onClick={async () => {
                               if (!globalThis.confirm("Delete?")) return;
-
                               try {
-                                await api.post(`/${modelName}/delete`, {
+                                await api.delete(`/${modelName}/delete`, {
+                                  data: {
                                   identifier: item.identifier,
+                                  }
                                 });
-
                                 setRefresh((prev) => prev + 1);
-                              } catch {
-                                alert("Delete failed");
+                              } catch (err) {
+                                handleApiError(
+                                  err,
+                                  "Delete failed"
+                                );
                               }
                             }}
                             className="bg-red-500 text-white px-2 py-1 rounded text-sm"
                           >
                             Delete
                           </button>
-
                         </div>
                       </td>
                     </tr>
@@ -301,8 +345,9 @@ const handleUpdate = async () => {
           </div>
         </div>
       </div>
+      
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/20">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/20 z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
             <h2 className="text-xl font-semibold mb-4">
               Update {modelName}
@@ -335,6 +380,7 @@ const handleUpdate = async () => {
 };
 
 export default ListPage;
+
 ListPage.propTypes = {
   keys: PropTypes.arrayOf(PropTypes.string).isRequired,
   fields: PropTypes.arrayOf(

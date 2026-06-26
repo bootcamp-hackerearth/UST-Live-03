@@ -9,7 +9,7 @@ public interface PriceService {
 
     PriceDto update(PriceDto priceDto);
 
-    void delete(String username);
+    void delete(String identifier);
 
     WsDto<PriceDto> findAll(Pageable pageable);
 

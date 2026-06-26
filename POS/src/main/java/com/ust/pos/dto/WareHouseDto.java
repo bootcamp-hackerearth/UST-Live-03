@@ -9,5 +9,5 @@ import lombok.Setter;
 public class WareHouseDto extends CommonDto {
     private String location;
     private String contactPerson;
-    private String phoneNumber;
+    private String phoneNo;
 }

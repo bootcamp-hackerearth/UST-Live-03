@@ -2,7 +2,6 @@ package com.ust.pos.category;
 
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.category.service.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,19 +14,21 @@ import java.util.List;
 public class CategoryController {
 
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
+    private final CategoryService categoryService;
 
-    @Autowired
-    private CategoryService categoryService;
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
-        model.addAttribute("categories",categoryService.findAll(pageable));
+        model.addAttribute("categories", categoryService.findAll(pageable));
         return "category/list";
     }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute CategoryDto categoryDto, Pageable pageable) {
-        model.addAttribute("category",categoryService.findAll(pageable));
+        model.addAttribute("category", categoryService.findAll(pageable));
         return "category/add";
     }
 
@@ -46,7 +47,7 @@ public class CategoryController {
         CategoryDto response = categoryService.findByIdentifier(identifier);
         model.addAttribute("category", response);
         List<CategoryDto> cd = categoryService.findAll(pageable).getDtoList();
-        model.addAttribute("categories",cd.stream().filter(s-> !s.getIdentifier().equals(identifier)).toList());
+        model.addAttribute("categories", cd.stream().filter(s -> !s.getIdentifier().equals(identifier)).toList());
         return "category/category";
     }
 

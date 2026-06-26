@@ -1,5 +1,7 @@
 package com.ust.pos.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -7,9 +9,11 @@ import java.util.List;
 
 @Repository
 public interface WareHouseRepository extends JpaRepository<WareHouse, Long> {
-    WareHouse findByIdentifier(String username);
+    WareHouse findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String username);
+    void deleteByIdentifier(String identifier);
 
     List<WareHouse> findByStatusTrue();
+
+    Page<WareHouse> findByDeletedFalse(Pageable pageable);
 }

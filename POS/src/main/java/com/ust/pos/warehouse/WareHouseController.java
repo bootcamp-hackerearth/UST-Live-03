@@ -2,7 +2,6 @@ package com.ust.pos.warehouse;
 
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.warehouse.service.WareHouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,12 +14,15 @@ public class WareHouseController {
     public static final String REDIRECT_WAREHOUSE_LIST = "redirect:/warehouse/list";
     public static final String MESSAGE = "message";
 
-    @Autowired
-    private WareHouseService warehouseService;
+    private final WareHouseService wareHouseService;
+
+    public WareHouseController(WareHouseService wareHouseService) {
+        this.wareHouseService = wareHouseService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
-        model.addAttribute("warehouses", warehouseService.findAll(pageable));
+        model.addAttribute("warehouses", wareHouseService.findAll(pageable));
         return "warehouse/list";
     }
 
@@ -32,7 +34,7 @@ public class WareHouseController {
 
     @PostMapping("/add")
     public String addPost(Model model, @ModelAttribute("warehouseDto") WareHouseDto warehouseDto) {
-        WareHouseDto response = warehouseService.save(warehouseDto);
+        WareHouseDto response = wareHouseService.save(warehouseDto);
         if (!response.isSuccess()) {
             model.addAttribute(MESSAGE, response.getMessage());
             return "warehouse/add";
@@ -42,7 +44,7 @@ public class WareHouseController {
 
     @GetMapping("/get")
     public String updatePage(Model model, @RequestParam String identifier) {
-        WareHouseDto warehouseDto = warehouseService.findByIdentifier(identifier);
+        WareHouseDto warehouseDto = wareHouseService.findByIdentifier(identifier);
         if (warehouseDto == null) {
             model.addAttribute(MESSAGE, "WareHouse not found");
             return REDIRECT_WAREHOUSE_LIST;
@@ -53,7 +55,7 @@ public class WareHouseController {
 
     @PostMapping("/update")
     public String updatePost(Model model, @ModelAttribute("warehouseDto") WareHouseDto warehouseDto) {
-        WareHouseDto response = warehouseService.update(warehouseDto);
+        WareHouseDto response = wareHouseService.update(warehouseDto);
         if (!response.isSuccess()) {
             model.addAttribute(MESSAGE, response.getMessage());
             return "warehouse/warehouse";
@@ -63,13 +65,13 @@ public class WareHouseController {
 
     @GetMapping("/delete")
     public String delete(@RequestParam String identifier) {
-        warehouseService.delete(identifier);
+        wareHouseService.delete(identifier);
         return REDIRECT_WAREHOUSE_LIST;
     }
 
     @GetMapping("/toggleStatus")
     public String toggleWareHouseStatus(@RequestParam String identifier, boolean status) {
-        warehouseService.toggleStatus(identifier, status);
+        wareHouseService.toggleStatus(identifier, status);
         return REDIRECT_WAREHOUSE_LIST;
     }
 }

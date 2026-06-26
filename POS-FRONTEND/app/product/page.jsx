@@ -20,6 +20,10 @@ const Products = () => {
 
   const fields = [
     {
+      name: "identifier",
+      label: "Identifier",
+    },
+    {
       name: "productName",
       label: "Product Name",
     },

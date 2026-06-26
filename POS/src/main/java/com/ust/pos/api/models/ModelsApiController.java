@@ -5,7 +5,6 @@ import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +13,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/models")
 public class ModelsApiController extends BaseController {
+    private final ModelsService modelsService;
 
-    @Autowired
-    private ModelsService modelsService;
+    public ModelsApiController(ModelsService modelsService) {
+        this.modelsService = modelsService;
+    }
 
     @PostMapping("/list")
     public WsDto<ModelsDto> list(@RequestBody PaginationDto paginationDto) {
@@ -34,12 +35,12 @@ public class ModelsApiController extends BaseController {
         return modelsService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelsDto update(@RequestBody ModelsDto modelsDto) {
         return modelsService.update(modelsDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestBody ModelsDto modelsDto) {
         try {
             modelsService.delete(modelsDto.getIdentifier());
@@ -54,7 +55,7 @@ public class ModelsApiController extends BaseController {
         return modelsService.toggleStatus(modelsDto.getIdentifier(), modelsDto.isStatus());
     }
 
-    @GetMapping("/models")
+    @GetMapping("/active")
     public List<ModelsDto> getActiveModel() {
         return modelsService.findActiveModel();
     }

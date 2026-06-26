@@ -32,6 +32,7 @@ const UserList = () => {
       name: "username",
       label: "Username",
       type: "text",
+      readOnly: true,
     },
     {
       name: "name",

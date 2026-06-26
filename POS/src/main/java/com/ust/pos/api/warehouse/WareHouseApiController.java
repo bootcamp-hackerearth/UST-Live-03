@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WareHouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,48 +13,50 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/warehouse")
 public class WareHouseApiController extends BaseController {
+    private final WareHouseService wareHouseService;
 
-    @Autowired
-    private WareHouseService warehouseService;
+    public WareHouseApiController(WareHouseService wareHouseService) {
+        this.wareHouseService = wareHouseService;
+    }
 
     @PostMapping("/list")
     public WsDto<WareHouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        return warehouseService.findAll(pageable);
+        return wareHouseService.findAll(pageable);
     }
 
     @PostMapping("/add")
     public WareHouseDto add(@RequestBody WareHouseDto wareHouseDto) {
-        return warehouseService.save(wareHouseDto);
+        return wareHouseService.save(wareHouseDto);
     }
 
     @GetMapping("/get")
     public WareHouseDto get(@RequestParam String identifier) {
-        return warehouseService.findByIdentifier(identifier);
+        return wareHouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public WareHouseDto update(@RequestBody WareHouseDto wareHouseDto) {
-        return warehouseService.update(wareHouseDto);
+        return wareHouseService.update(wareHouseDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestBody WareHouseDto wareHouseDto) {
         try {
-            warehouseService.delete(wareHouseDto.getIdentifier());
+            wareHouseService.delete(wareHouseDto.getIdentifier());
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    @GetMapping("/warehouse")
+    @GetMapping("/active")
     public List<WareHouseDto> getActiveWareHouse() {
-        return warehouseService.findActiveWareHouse();
+        return wareHouseService.findActiveWareHouse();
     }
 
     @PostMapping("/toggleStatus")
     public WareHouseDto toggleStatus(@RequestBody WareHouseDto wareHouseDto) {
-        return warehouseService.toggleStatus(wareHouseDto.getIdentifier(), wareHouseDto.isStatus());
+        return wareHouseService.toggleStatus(wareHouseDto.getIdentifier(), wareHouseDto.isStatus());
     }
 }

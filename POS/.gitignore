@@ -36,3 +36,4 @@ build/
 /htmlReport/
 /.scannerwork/
 /src/main/resources/
+/app.log*

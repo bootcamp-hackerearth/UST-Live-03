@@ -11,7 +11,7 @@ public interface RackService {
 
     RackDto update(RackDto rackDto);
 
-    void delete(String username);
+    void delete(String identifier);
 
     WsDto<RackDto> findAll(Pageable pageable);
 

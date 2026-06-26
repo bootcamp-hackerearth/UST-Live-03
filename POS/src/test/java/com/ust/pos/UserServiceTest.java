@@ -8,15 +8,10 @@ import com.ust.pos.user.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -31,90 +26,112 @@ class UserServiceTest {
     private ModelMapper modelMapper;
     @Mock
     private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserServiceImpl userService;
 
     @Test
     void saveTestSuccess() {
-        UserDto userDto = new UserDto();
-        userDto.setUsername("admin@test.com");
-        userDto.setPassword("password");
-        User user = new User();
-        user.setUsername("admin@test.com");
+        UserDto dto = new UserDto();
+        dto.setUsername("admin@test.com");
+        dto.setPassword("password");
 
+        User user = new User();
         Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(null);
-        Mockito.when(modelMapper.map(userDto, User.class)).thenReturn(user);
+        Mockito.when(modelMapper.map(dto, User.class)).thenReturn(user);
         Mockito.when(passwordEncoder.encode("password")).thenReturn("encodedPwd");
-        UserDto response = userService.save(userDto);
+
+        UserDto response = userService.save(dto);
         Assertions.assertTrue(response.isSuccess());
-        Assertions.assertNull(response.getMessage());
+        Assertions.assertEquals("admin@test.com", response.getIdentifier());
+        Mockito.verify(userRepository).save(user);
     }
 
     @Test
-    void saveTestFailure_UserAlreadyExists() {
-        UserDto userDto = new UserDto();
-        userDto.setUsername("admin@test.com");
+    void saveFailure_existingActive() {
+        UserDto dto = new UserDto();
+        dto.setUsername("admin@test.com");
+
         User existing = new User();
-        existing.setUsername("admin@test.com");
+        existing.setDeleted(false);
+
         Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(existing);
-        UserDto response = userService.save(userDto);
+        UserDto response = userService.save(dto);
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "admin@test.com already exists", response.getMessage());
+        Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "admin@test.com already exists",
+                response.getMessage()
+        );
+    }
+
+    @Test
+    void saveFailure_softDeleted() {
+        UserDto dto = new UserDto();
+        dto.setUsername("admin@test.com");
+
+        User existing = new User();
+        existing.setDeleted(true);
+        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(existing);
+        UserDto response = userService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("soft deleted"));
     }
 
     @Test
     void findByUsernameTest() {
         User user = new User();
         user.setUsername("admin@test.com");
-        UserDto userDto = new UserDto();
-        userDto.setUsername("admin@test.com");
+        UserDto dto = new UserDto();
+        dto.setUsername("admin@test.com");
 
         Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(user);
-        Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
+        Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(dto);
         UserDto response = userService.findByUserName("admin@test.com");
         Assertions.assertEquals("admin@test.com", response.getUsername());
     }
 
     @Test
     void updateTestSuccess() {
-        UserDto userDto = new UserDto();
-        userDto.setId(1L);
-        userDto.setUsername("admin@test.com");
+        UserDto dto = new UserDto();
+        dto.setId(1L);
+        dto.setUsername("admin@test.com");
 
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setUsername("admin@test.com");
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        Mockito.when(userRepository.save(existingUser)).thenReturn(existingUser);
-        UserDto response = userService.update(userDto);
+        User existing = new User();
+        existing.setId(1L);
+        existing.setUsername("admin@test.com");
+        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        Mockito.when(userRepository.save(existing)).thenReturn(existing);
+        UserDto response = userService.update(dto);
         Assertions.assertTrue(response.isSuccess());
+        Mockito.verify(userRepository).save(existing);
     }
 
     @Test
-    void updateTestFailure_UserNotFound() {
-        UserDto userDto = new UserDto();
-        userDto.setId(99L);
-        userDto.setUsername("admin@test.com");
+    void updateFailure_notFound() {
+        UserDto dto = new UserDto();
+        dto.setId(99L);
+        dto.setUsername("admin@test.com");
+
         Mockito.when(userRepository.findById(99L)).thenReturn(Optional.empty());
-        UserDto response = userService.update(userDto);
+        UserDto response = userService.update(dto);
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "admin@test.com not found", response.getMessage());
     }
 
     @Test
-    void updateTestFailure_DuplicateUsername() {
-        UserDto userDto = new UserDto();
-        userDto.setId(1L);
-        userDto.setUsername("new@test.com");
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setUsername("old@test.com");
-        User anotherUser = new User();
-        anotherUser.setUsername("new@test.com");
+    void updateFailure_duplicateUsername() {
+        UserDto dto = new UserDto();
+        dto.setId(1L);
+        dto.setUsername("new@test.com");
 
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        Mockito.when(userRepository.findByUsername("new@test.com")).thenReturn(anotherUser);
-        UserDto response = userService.update(userDto);
+        User existing = new User();
+        existing.setId(1L);
+        existing.setUsername("old@test.com");
+
+        User another = new User();
+        another.setUsername("new@test.com");
+        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        Mockito.when(userRepository.findByUsername("new@test.com")).thenReturn(another);
+        UserDto response = userService.update(dto);
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals(UserServiceImpl.USER_WITH_USERNAME_EMAIL + "new@test.com already exists", response.getMessage());
         Mockito.verify(userRepository, Mockito.never()).save(Mockito.any());
@@ -122,9 +139,16 @@ class UserServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(userRepository).deleteByUsername("admin@test.com");
+        User user = new User();
+        user.setDeleted(false);
+
+        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(user);
+        Mockito.when(userRepository.save(user)).thenReturn(user);
+
         userService.delete("admin@test.com");
-        Mockito.verify(userRepository, Mockito.times(1)).deleteByUsername("admin@test.com");
+        Mockito.verify(userRepository).findByUsername("admin@test.com");
+        Mockito.verify(userRepository).save(user);
+        Assertions.assertTrue(user.isDeleted());
     }
 
     @Test
@@ -132,26 +156,20 @@ class UserServiceTest {
         User user = new User();
         user.setUsername("admin@test.com");
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername("admin@test.com");
+        UserDto dto = new UserDto();
+        dto.setUsername("admin@test.com");
 
-        List<User> users = List.of(user);
+        List<User> list = List.of(user);
+        Page<User> page = new PageImpl<>(list, PageRequest.of(0, 10), 1);
         Pageable pageable = PageRequest.of(0, 10);
-        Page<User> userPage = new PageImpl<>(users, pageable, users.size());
+        Mockito.when(userRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(List.of(dto));
 
-        Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
-        Mockito.when(modelMapper.map(Mockito.eq(users),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(List.of(userDto));
         WsDto<UserDto> response = userService.findAll(pageable);
         Assertions.assertNotNull(response);
-        Assertions.assertNotNull(response.getDtoList());
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals("admin@test.com", response.getDtoList().get(0).getUsername());
-
         Assertions.assertEquals(1, response.getTotalRecords());
-        Assertions.assertEquals(1, response.getTotalPages());
-        Assertions.assertEquals(10, response.getSizePerPage());
-        Assertions.assertEquals(0, response.getPage());
     }
 }

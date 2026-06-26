@@ -108,14 +108,38 @@ class CartEntryServiceTest {
     void updateTest() {
         CartEntryDto dto = new CartEntryDto();
         dto.setIdentifier("cart1-prod1");
+        dto.setQuantity(new BigDecimal("2"));
 
         CartEntry existing = new CartEntry();
-        Mockito.when(cartEntryRepository.findByIdentifier("cart1-prod1")).thenReturn(existing);
-        Mockito.doNothing().when(modelMapper).map(dto, existing);
+        existing.setIdentifier("cart1-prod1");
+        existing.setProductIdentifier("prod1");
+        existing.setCartIdentifier("cart1");
+
+        Price selling = new Price();
+        selling.setAmount(new BigDecimal("100"));
+
+        Price mrp = new Price();
+        mrp.setAmount(new BigDecimal("120"));
+
+        Mockito.when(cartEntryRepository.findByIdentifier("cart1-prod1"))
+                .thenReturn(existing);
+
+        Mockito.when(priceRepository.findByProductAndPriceType("prod1", "SELLING PRICE"))
+                .thenReturn(selling);
+
+        Mockito.when(priceRepository.findByProductAndPriceType("prod1", "MRP"))
+                .thenReturn(mrp);
+
         Mockito.when(cartEntryRepository.save(existing)).thenReturn(existing);
+
+        Mockito.when(modelMapper.map(existing, CartEntryDto.class)).thenReturn(dto);
+
         CartEntryDto response = cartEntryService.update(dto);
+
         Assertions.assertNotNull(response);
-        Mockito.verify(cartEntryRepository).save(existing);
+        Assertions.assertEquals(new BigDecimal("2"), existing.getQuantity());
+        Assertions.assertEquals(new BigDecimal("200"), existing.getTotalPrice());
+        Mockito.verify(cartService).reCalculate("cart1");
     }
 
     @Test

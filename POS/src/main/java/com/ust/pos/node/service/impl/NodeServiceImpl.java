@@ -3,11 +3,11 @@ package com.ust.pos.node.service.impl;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.*;
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -15,21 +15,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Service
-public class NodeServiceImpl implements NodeService {
-    @Autowired
-    private UserRepository userRepository;
+public class NodeServiceImpl extends BaseService implements NodeService {
+    private final UserRepository userRepository;
+    private final NodeRepository nodeRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private NodeRepository nodeRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.nodeRepository = nodeRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
@@ -41,11 +43,17 @@ public class NodeServiceImpl implements NodeService {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode != null) {
+            if (existingNode.isDeleted()) {
+                nodeDto.setMessage("Node with identifier" + identifier + "has been soft deleted.(Rollback by changing status)");
+                nodeDto.setSuccess(false);
+                return nodeDto;
+            }
             nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
         Node node = modelMapper.map(nodeDto, Node.class);
+        setCreatedDetails(node);
         nodeRepository.save(node);
         return nodeDto;
     }
@@ -59,21 +67,29 @@ public class NodeServiceImpl implements NodeService {
             nodeDto.setSuccess(false);
             return nodeDto;
         }
+        String createdBy = existingNode.getCreatedBy();
+        LocalDateTime createdOn = existingNode.getCreatedOn();
         modelMapper.map(nodeDto, existingNode);
+        existingNode.setCreatedBy(createdBy);
+        existingNode.setCreatedOn(createdOn);
+        setModifiedDetails(existingNode);
         nodeRepository.save(existingNode);
-        return nodeDto;
+        return modelMapper.map(existingNode, NodeDto.class);
     }
 
     @Override
     @Transactional
     public void delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
+        Node node = nodeRepository.findByIdentifier(identifier);
+        softDelete(node);
+        setModifiedDetails(node);
+        nodeRepository.save(node);
     }
 
     public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        Page<Node> nodePage = nodeRepository.findByDeletedFalse(pageable);
 
         WsDto<NodeDto> nodeWsDto = new WsDto<>();
         nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
@@ -90,9 +106,6 @@ public class NodeServiceImpl implements NodeService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
-            return nodeDtos; // or throw an exception if you want
-        }
-        if ("anonymousUser".equals(authentication.getPrincipal())) {
             return nodeDtos;
         }
         if (authentication != null) {

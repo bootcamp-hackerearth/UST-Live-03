@@ -8,7 +8,6 @@ import com.ust.pos.model.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,15 +18,17 @@ import java.util.List;
 
 @Service
 public class CartEntryServiceImpl implements CartEntryService {
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
+    private final PriceRepository priceRepository;
+    private final CartService cartService;
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private PriceRepository priceRepository;
-    @Autowired
-    private CartService cartService;
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, ModelMapper modelMapper, PriceRepository priceRepository, CartService cartService){
+        this.cartEntryRepository = cartEntryRepository;
+        this.cartService = cartService;
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
@@ -85,9 +86,31 @@ public class CartEntryServiceImpl implements CartEntryService {
             cartEntryDto.setSuccess(false);
             return cartEntryDto;
         }
-        modelMapper.map(cartEntryDto, existingCartEntry);
+
+        BigDecimal quantity = cartEntryDto.getQuantity();
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            cartEntryDto.setMessage("Quantity must be greater than 0");
+            cartEntryDto.setSuccess(false);
+            return cartEntryDto;
+        }
+        Price sellingPrice = priceRepository.findByProductAndPriceType(existingCartEntry.getProductIdentifier(), "SELLING PRICE");
+        Price mrp = priceRepository.findByProductAndPriceType(existingCartEntry.getProductIdentifier(), "MRP");
+
+        BigDecimal unitPrice = sellingPrice.getAmount();
+        BigDecimal mrpPrice = mrp.getAmount();
+        existingCartEntry.setQuantity(quantity);
+        existingCartEntry.setUnitPrice(unitPrice);
+
+        BigDecimal originalPrice = mrpPrice.multiply(quantity);
+        BigDecimal discount = mrpPrice.subtract(unitPrice).multiply(quantity);
+        BigDecimal totalPrice = unitPrice.multiply(quantity);
+
+        existingCartEntry.setOriginalPrice(originalPrice);
+        existingCartEntry.setDiscount(discount);
+        existingCartEntry.setTotalPrice(totalPrice);
         cartEntryRepository.save(existingCartEntry);
-        return cartEntryDto;
+        cartService.reCalculate(existingCartEntry.getCartIdentifier());
+        return modelMapper.map(existingCartEntry, CartEntryDto.class);
     }
 
     @Override

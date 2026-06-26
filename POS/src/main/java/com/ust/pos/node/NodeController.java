@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,11 +14,14 @@ import org.springframework.web.bind.annotation.*;
 public class NodeController extends BaseController {
 
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
-    @Autowired
-    private NodeService nodeService;
 
-    @Autowired
-    private RoleService roleService;
+    private final NodeService nodeService;
+    private final RoleService roleService;
+
+    public NodeController(NodeService nodeService, RoleService roleService) {
+        this.nodeService = nodeService;
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -29,7 +31,7 @@ public class NodeController extends BaseController {
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute NodeDto nodeDto, Pageable pageable) {
-        model.addAttribute("roles",roleService.findAll(pageable));
+        model.addAttribute("roles", roleService.findAll(pageable));
         return "node/add";
     }
 
@@ -46,7 +48,7 @@ public class NodeController extends BaseController {
     public String update(Model model, @RequestParam String identifier, Pageable pageable) {
         NodeDto response = nodeService.findByIdentifier(identifier);
         model.addAttribute("node", response);
-        model.addAttribute("roles",roleService.findAll(pageable));
+        model.addAttribute("roles", roleService.findAll(pageable));
         return "node/node";
     }
 

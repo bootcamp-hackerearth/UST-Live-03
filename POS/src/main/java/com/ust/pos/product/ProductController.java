@@ -5,8 +5,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.models.service.ModelsService;
 import com.ust.pos.product.service.ProductService;
-import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,17 +16,18 @@ public class ProductController {
 
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
     public static final String BRANDS = "brands";
-    @Autowired
-    private ProductService productService;
 
-    @Autowired
-    CategoryService categoryService;
-    @Autowired
-    BrandService brandService;
-    @Autowired
-    ModelsService modelsService;
-    @Autowired
-    UnitService unitService;
+    private final ProductService productService;
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final ModelsService modelsService;
+
+    public ProductController(ProductService productService, CategoryService categoryService, BrandService brandService, ModelsService modelsService) {
+        this.productService = productService;
+        this.brandService = brandService;
+        this.categoryService = categoryService;
+        this.modelsService = modelsService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -38,9 +37,9 @@ public class ProductController {
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ProductDto productDto) {
-        model.addAttribute("categories",categoryService.findChildCategories());
-        model.addAttribute(BRANDS,brandService.findActiveBrands());
-        model.addAttribute("model",modelsService.findActiveModel());
+        model.addAttribute("categories", categoryService.findChildCategories());
+        model.addAttribute(BRANDS, brandService.findActiveBrands());
+        model.addAttribute("model", modelsService.findActiveModel());
         return "product/add";
     }
 
@@ -58,9 +57,9 @@ public class ProductController {
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
         ProductDto response = productService.findByIdentifier(identifier);
-        model.addAttribute("categories",categoryService.findChildCategories());
+        model.addAttribute("categories", categoryService.findChildCategories());
         model.addAttribute(BRANDS, brandService.findActiveBrands());
-        model.addAttribute("model",modelsService.findActiveModel());
+        model.addAttribute("model", modelsService.findActiveModel());
         model.addAttribute("product", response);
         return "product/product";
     }
@@ -82,7 +81,7 @@ public class ProductController {
 
     @GetMapping("/toggleStatus")
     public String toggleProductStatus(@RequestParam String identifier, boolean status) {
-        productService.toggleStatus(identifier,status);
+        productService.toggleStatus(identifier, status);
         return REDIRECT_PRODUCT_LIST;
     }
 }

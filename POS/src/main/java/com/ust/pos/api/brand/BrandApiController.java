@@ -5,40 +5,48 @@ import com.ust.pos.dto.BrandDto;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/brand")
 public class BrandApiController extends BaseController {
+    private final BrandService brandService;
 
-    @Autowired
-    private BrandService brandService;
+    public BrandApiController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return brandService.findAll(pageable);
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public BrandDto add(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public BrandDto get(@RequestParam String identifier) {
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public BrandDto update(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestBody BrandDto brandDto) {
         try {
             brandService.delete(brandDto.getIdentifier());
@@ -46,6 +54,11 @@ public class BrandApiController extends BaseController {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @GetMapping("/active")
+    public List<BrandDto> getActiveBrands() {
+        return brandService.findActiveBrands();
     }
 
     @PostMapping("/toggleStatus")

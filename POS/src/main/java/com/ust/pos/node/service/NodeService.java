@@ -11,7 +11,7 @@ public interface NodeService {
 
     NodeDto update(NodeDto nodeDto);
 
-    void delete(String username);
+    void delete(String identifier);
 
     WsDto<NodeDto> findAll(Pageable pageable);
 

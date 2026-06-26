@@ -24,7 +24,7 @@ const UserUpdate = () => {
       name: "username",
       label: "Username",
       type: "email",
-      required: true,
+      readOnly: true,
     },
     {
       name: "name",
