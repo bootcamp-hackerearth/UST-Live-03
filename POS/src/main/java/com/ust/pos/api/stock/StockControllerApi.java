@@ -3,8 +3,8 @@ package com.ust.pos.api.stock;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.stock.service.StockService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,11 +14,14 @@ import java.util.List;
 @RequestMapping("/api/stock")
 public class StockControllerApi extends BaseController {
 
-    @Autowired
-    private StockService stockService;
+    private final StockService stockService;
+
+    public StockControllerApi(StockService stockService) {
+        this.stockService = stockService;
+    }
 
     @PostMapping("/list")
-    public List<StockDto> list(@RequestBody PaginationDto pagination) {
+    public WsDto<StockDto> list(@RequestBody PaginationDto pagination) {
         Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
                 pagination.getSortDirection(), pagination.getSortfield());
         return stockService.findAll(pageable);
@@ -34,12 +37,12 @@ public class StockControllerApi extends BaseController {
         return stockService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StockDto update(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public StockDto delete(@RequestBody StockDto stockDto) {
         StockDto response = new StockDto();
         try {
@@ -53,9 +56,13 @@ public class StockControllerApi extends BaseController {
         return response;
     }
 
+    @PatchMapping("/toggle")
+    public StockDto toggle(@RequestBody StockDto stockDto) {
+        return stockService.toggleStatus(stockDto.getIdentifier());
+    }
 
-    @GetMapping("/toggle")
-    public StockDto toggle(@RequestParam String identifier) {
-        return stockService.toggleStatus(identifier);
+    @PostMapping("/active")
+    public List<StockDto> active(){
+        return stockService.findActiveStock();
     }
 }

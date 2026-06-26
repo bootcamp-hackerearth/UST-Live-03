@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +16,11 @@ public class ProductControllerApi extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/product/list";
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+
+    public ProductControllerApi(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping("/list")
     public WsDto<ProductDto> list(@RequestBody PaginationDto pagination) {
@@ -37,12 +39,12 @@ public class ProductControllerApi extends BaseController {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public ProductDto delete(@RequestBody ProductDto productDto) {
         ProductDto response = new ProductDto();
         try {
@@ -56,7 +58,7 @@ public class ProductControllerApi extends BaseController {
         return response;
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public ProductDto toggleStatus(@RequestBody ProductDto productDto) {
         return productService.toggleStatus(productDto.getIdentifier());
     }
@@ -64,5 +66,10 @@ public class ProductControllerApi extends BaseController {
     @GetMapping("/active")
     public List<ProductDto> getActiveProducts() {
         return productService.findActiveProducts();
+    }
+
+    @GetMapping("/search")
+    public List<ProductDto>searchProduct(@RequestParam String query){
+        return productService.searchProduct(query);
     }
 }

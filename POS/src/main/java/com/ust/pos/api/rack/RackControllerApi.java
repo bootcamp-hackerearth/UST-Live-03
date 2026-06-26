@@ -3,8 +3,8 @@ package com.ust.pos.api.rack;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.rack.service.RackService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,11 +16,14 @@ public class RackControllerApi extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/rack/list";
 
-    @Autowired
-    private RackService rackService;
+    private final RackService rackService;
+
+    public RackControllerApi(RackService rackService) {
+        this.rackService = rackService;
+    }
 
     @PostMapping("/list")
-    public List<RackDto> list(@RequestBody PaginationDto pagination) {
+    public WsDto<RackDto> list(@RequestBody PaginationDto pagination) {
         Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
                 pagination.getSortDirection(), pagination.getSortfield());
         return rackService.findAll(pageable);
@@ -36,12 +39,12 @@ public class RackControllerApi extends BaseController {
         return rackService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RackDto updatePost(@RequestBody RackDto rackDto) {
         return rackService.update(rackDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public RackDto delete(@RequestBody RackDto rackDto) {
         RackDto response = new RackDto();
         try {
@@ -60,7 +63,7 @@ public class RackControllerApi extends BaseController {
         return rackService.getActiveRacks();
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public RackDto toggleStatus(@RequestBody RackDto rackDto) {
         return rackService.toggleStatus(rackDto.getIdentifier());
     }

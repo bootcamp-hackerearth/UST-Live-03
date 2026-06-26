@@ -1,132 +1,171 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ModelsServiceImpl implements ModelsService {
+@Transactional
+public class ModelsServiceImpl extends BaseService implements ModelsService {
 
-    @Autowired
-    private ModelsRepository modelsRepository;
+    public static final String MODEL_NOT_FOUND = "Model not found";
+    private final ModelsRepository modelsRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ModelsServiceImpl(ModelsRepository modelsRepository,ModelMapper modelMapper) {
+        this.modelsRepository = modelsRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
-    public ModelsDto save(ModelsDto modelsDto) {
-        if (modelsDto.getModelName() == null || modelsDto.getModelName().trim().isEmpty()) {
-            modelsDto.setSuccess(false);
-            modelsDto.setMessage("Model name is required");
-            return modelsDto;
+    public ModelsDto save(ModelsDto dto) {
+
+        if (dto.getModelName() == null || dto.getModelName().trim().isEmpty()) {
+            dto.setSuccess(false);
+            dto.setMessage("Model name is required");
+            return dto;
         }
-        if (modelsRepository.findByIdentifier(modelsDto.getModelName()) != null) {
-            modelsDto.setSuccess(false);
-            modelsDto.setMessage("Model already exists");
-            return modelsDto;
+
+        String name = dto.getModelName().trim();
+
+        Models existing = modelsRepository.findByIdentifier(name);
+
+        if (existing != null && !Boolean.TRUE.equals(existing.getDeleted())) {
+            dto.setSuccess(false);
+            dto.setMessage("Model already exists");
+            return dto;
         }
+
         Models model = new Models();
-        model.setIdentifier(modelsDto.getModelName());
-        model.setModelName(modelsDto.getModelName());
-        model.setStatus(modelsDto.getStatus());
-        Models saved = modelsRepository.save(model);
-        ModelsDto dto = modelMapper.map(saved, ModelsDto.class);
+        model.setIdentifier(name);
+        model.setModelName(name);
+        model.setStatus(dto.getStatus());
+
+        setCreatedDetails(model);
+
+        modelsRepository.save(model);
+
         dto.setSuccess(true);
-        dto.setMessage("Model added successfully");
+        dto.setMessage("Model saved successfully");
+        dto.setIdentifier(model.getIdentifier());
+
         return dto;
     }
 
     @Override
-    public ModelsDto update(ModelsDto modelsDto) {
-        Models model = modelsRepository.findByIdentifier(modelsDto.getIdentifier());
-        if (model == null) {
-            modelsDto.setSuccess(false);
-            modelsDto.setMessage("Model not found");
-            return modelsDto;
+    public ModelsDto update(ModelsDto dto) {
+
+        Models model = modelsRepository.findByIdentifier(dto.getIdentifier());
+
+        if (model == null || Boolean.TRUE.equals(model.getDeleted())) {
+            dto.setSuccess(false);
+            dto.setMessage(MODEL_NOT_FOUND);
+            return dto;
         }
-        model.setStatus(modelsDto.getStatus());
+
+        if (dto.getModelName() != null && !dto.getModelName().trim().isEmpty()) {
+            model.setModelName(dto.getModelName().trim());
+        }
+
+        model.setStatus(dto.getStatus());
+
+        setModifiedDetails(model);
+
         modelsRepository.save(model);
-        modelsDto.setSuccess(true);
-        modelsDto.setMessage("Model updated successfully");
-        return modelsDto;
-    }
 
-    @Override
-    public WsDto<ModelsDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ModelsDto>>() {
-        }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
+        dto.setSuccess(true);
+        dto.setMessage("Model updated successfully");
 
-        WsDto<ModelsDto> modelsWsDto = new WsDto<>();
-        modelsWsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
-        modelsWsDto.setTotalRecords(modelsPage.getTotalElements());
-        modelsWsDto.setTotalPages(modelsPage.getTotalPages());
-        modelsWsDto.setSizePerPage(pageable.getPageSize());
-        modelsWsDto.setPage(pageable.getPageNumber());
-
-        return modelsWsDto;
+        return dto;
     }
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
+
         Models model = modelsRepository.findByIdentifier(identifier);
-        if (model == null) return null;
-        ModelsDto dto = new ModelsDto();
-        dto.setIdentifier(model.getIdentifier());
-        dto.setModelName(model.getModelName());
-        dto.setStatus(model.getStatus());
-        return dto;
+
+        if (model == null || Boolean.TRUE.equals(model.getDeleted())) {
+            ModelsDto dto = new ModelsDto();
+            dto.setSuccess(false);
+            dto.setMessage(MODEL_NOT_FOUND);
+            return dto;
+        }
+
+        return modelMapper.map(model, ModelsDto.class);
+    }
+
+    @Override
+    public WsDto<ModelsDto> findAll(Pageable pageable) {
+
+        Type listType = new TypeToken<List<ModelsDto>>() {}.getType();
+
+        Page<Models> page = modelsRepository.findAll(pageable);
+
+        WsDto<ModelsDto> ws = new WsDto<>();
+        ws.setDtoList(modelMapper.map(page.getContent(), listType));
+        ws.setTotalRecords(page.getTotalElements());
+        ws.setTotalPages(page.getTotalPages());
+        ws.setSizePerPage(pageable.getPageSize());
+        ws.setPage(pageable.getPageNumber());
+
+        return ws;
     }
 
     @Override
     public void delete(String identifier) {
-        modelsRepository.deleteByIdentifier(identifier);
+
+        Models model = modelsRepository.findByIdentifier(identifier);
+
+        if (model == null) return;
+
+        model.setDeleted(true);
+        setModifiedDetails(model);
+
+        modelsRepository.save(model);
     }
 
     @Override
     public ModelsDto toggleStatus(String identifier) {
-        ModelsDto response = new ModelsDto();
+
         Models model = modelsRepository.findByIdentifier(identifier);
-        if (model == null) {
-            response.setSuccess(false);
-            response.setMessage("Model not found");
-            return response;
+
+        if (model == null || Boolean.TRUE.equals(model.getDeleted())) {
+            ModelsDto dto = new ModelsDto();
+            dto.setSuccess(false);
+            dto.setMessage(MODEL_NOT_FOUND);
+            return dto;
         }
+
         model.setStatus(!Boolean.TRUE.equals(model.getStatus()));
-        Models saved = modelsRepository.save(model);
-        response.setIdentifier(saved.getIdentifier());
-        response.setModelName(saved.getModelName());
-        response.setStatus(saved.getStatus());
-        response.setSuccess(true);
-        response.setMessage("Status updated successfully");
-        return response;
+
+        setModifiedDetails(model);
+
+        modelsRepository.save(model);
+
+        ModelsDto dto = modelMapper.map(model, ModelsDto.class);
+        dto.setSuccess(true);
+        dto.setMessage("Status updated successfully");
+
+        return dto;
     }
 
     @Override
     public List<ModelsDto> findActiveModels() {
-        List<Models> list = modelsRepository.findAll();
-        List<ModelsDto> result = new ArrayList<>();
-        for (Models model : list) {
-            if (model.getStatus() != null && model.getStatus()) {
-                ModelsDto dto = new ModelsDto();
-                dto.setIdentifier(model.getIdentifier());
-                dto.setModelName(model.getModelName());
-                dto.setStatus(model.getStatus());
-                result.add(dto);
-            }
-        }
-        return result;
+
+        List<Models> list = modelsRepository.findByStatusTrueAndDeletedFalse();
+        Type type = new TypeToken<List<ModelsDto>>() {}.getType();
+        return modelMapper.map(list, type);
     }
 }

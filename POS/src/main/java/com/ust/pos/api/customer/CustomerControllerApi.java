@@ -4,7 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,11 +16,14 @@ public class CustomerControllerApi extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/customer/list";
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
+
+    public CustomerControllerApi(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
     @PostMapping("/list")
-    public List<CustomerDto> list(@RequestBody PaginationDto pagination) {
+    public WsDto<CustomerDto> list(@RequestBody PaginationDto pagination) {
         Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
                 pagination.getSortDirection(), pagination.getSortfield());
         return customerService.findAll(pageable);
@@ -36,12 +39,12 @@ public class CustomerControllerApi extends BaseController {
         return customerService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public CustomerDto delete(@RequestBody CustomerDto customerDto) {
         CustomerDto response = new CustomerDto();
         try {
@@ -60,8 +63,13 @@ public class CustomerControllerApi extends BaseController {
         return customerService.findActive();
     }
 
-    @PostMapping("/toggle-status")
+    @PatchMapping("/toggle")
     public CustomerDto toggleStatus(@RequestBody CustomerDto customerDto) {
         return customerService.toggleStatus(customerDto.getIdentifier());
+    }
+
+    @GetMapping("/search")
+    public List<CustomerDto> searchCustomer(@RequestParam String query){
+        return customerService.searchCustomer(query);
     }
 }

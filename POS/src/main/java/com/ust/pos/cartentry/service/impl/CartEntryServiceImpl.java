@@ -7,10 +7,10 @@ import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.price.service.PriceService;
+import com.ust.pos.product.service.ProductService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,17 +23,20 @@ import java.util.List;
 @Transactional
 public class CartEntryServiceImpl implements CartEntryService {
 
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    
+    private final CartEntryRepository cartEntryRepository;
+    private final CartService cartService;
+    private final PriceService priceService;
+    private final ModelMapper modelMapper;
+    private final ProductService productService;
 
-    @Autowired
-    private CartService cartService;
-
-    @Autowired
-    private PriceService priceService;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, CartService cartService, PriceService priceService, ModelMapper modelMapper, ProductService productService) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.cartService = cartService;
+        this.priceService = priceService;
+        this.modelMapper = modelMapper;
+        this.productService = productService;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto dto) {
@@ -43,7 +46,10 @@ public class CartEntryServiceImpl implements CartEntryService {
             return dto;
         }
         String cartId = dto.getCartId();
+        cartService.save(cartId);
         String productId = dto.getProductId();
+        String productName =productService.findByIdentifier(productId).getProductName();
+
         String identifier = cartId + "_" + productId;
         CartEntry entry = cartEntryRepository.findByIdentifier(identifier);
         if (entry == null) {
@@ -53,6 +59,7 @@ public class CartEntryServiceImpl implements CartEntryService {
             entry.setProductId(productId);
             entry.setQuantity(BigDecimal.ZERO);
         }
+        entry.setProductName(productName);
         BigDecimal existingQty = entry.getQuantity() != null ? entry.getQuantity() : BigDecimal.ZERO;
         entry.setQuantity(existingQty.add(dto.getQuantity()));
         PriceDto mrpDto = priceService.findByIdentifier(productId + "_MRP");

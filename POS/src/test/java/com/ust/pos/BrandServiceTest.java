@@ -7,10 +7,10 @@ import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -41,14 +41,12 @@ class BrandServiceTest {
         BrandDto dto = new BrandDto();
         dto.setBrandName("Nike");
         dto.setDescription("Sports");
-        dto.setStatus(true);
 
-        Brand entity = new Brand();
         Brand saved = new Brand();
+        saved.setBrandName("Nike");
+        saved.setDescription("Sports");
 
-        BrandDto responseDto = new BrandDto();
-        responseDto.setSuccess(true);
-        responseDto.setMessage("Brand added successfully");
+        BrandDto mapped = new BrandDto();
 
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(null);
@@ -56,13 +54,15 @@ class BrandServiceTest {
         when(brandRepository.save(any(Brand.class)))
                 .thenReturn(saved);
 
-        when(modelMapper.map(any(Brand.class), eq(BrandDto.class)))
-                .thenReturn(responseDto);
+        when(modelMapper.map(saved, BrandDto.class))
+                .thenReturn(mapped);
 
         BrandDto response = brandService.save(dto);
 
         assertTrue(response.isSuccess());
-        assertEquals("Brand added successfully", response.getMessage());
+        assertEquals("Brand created successfully", response.getMessage());
+
+        verify(brandRepository).save(any(Brand.class));
     }
 
     @Test
@@ -75,6 +75,9 @@ class BrandServiceTest {
 
         assertFalse(response.isSuccess());
         assertEquals("Brand name is required", response.getMessage());
+
+        verifyNoInteractions(brandRepository);
+        verifyNoInteractions(modelMapper);
     }
 
     @Test
@@ -83,13 +86,46 @@ class BrandServiceTest {
         BrandDto dto = new BrandDto();
         dto.setBrandName("Nike");
 
+        Brand existing = new Brand();
+        existing.setDeleted(false);
+
         when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(new Brand());
+                .thenReturn(existing);
 
         BrandDto response = brandService.save(dto);
 
         assertFalse(response.isSuccess());
         assertEquals("Brand already exists", response.getMessage());
+
+        verify(brandRepository, never()).save(any());
+    }
+
+    @Test
+    void save_success_deleted_record_exists() {
+
+        BrandDto dto = new BrandDto();
+        dto.setBrandName("Nike");
+
+        Brand existing = new Brand();
+        existing.setDeleted(true);
+
+        Brand saved = new Brand();
+
+        BrandDto mapped = new BrandDto();
+
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(existing);
+
+        when(brandRepository.save(any(Brand.class)))
+                .thenReturn(saved);
+
+        when(modelMapper.map(saved, BrandDto.class))
+                .thenReturn(mapped);
+
+        BrandDto response = brandService.save(dto);
+
+        assertTrue(response.isSuccess());
+        assertEquals("Brand created successfully", response.getMessage());
     }
 
     @Test
@@ -97,28 +133,25 @@ class BrandServiceTest {
 
         BrandDto dto = new BrandDto();
         dto.setIdentifier("Nike");
+        dto.setBrandName("Nike Updated");
+        dto.setDescription("Updated");
 
         Brand existing = new Brand();
         existing.setIdentifier("Nike");
+        existing.setDeleted(false);
 
-        Brand updated = new Brand();
+        Brand saved = new Brand();
 
-        BrandDto responseDto = new BrandDto();
-        responseDto.setSuccess(true);
-        responseDto.setMessage("Brand updated successfully");
-        responseDto.setIdentifier("Nike");
+        BrandDto mapped = new BrandDto();
 
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(existing);
 
-        when(brandRepository.save(any(Brand.class)))
-                .thenReturn(updated);
+        when(brandRepository.save(existing))
+                .thenReturn(saved);
 
-        doNothing().when(modelMapper)
-                .map(any(BrandDto.class), any(Brand.class));
-
-        when(modelMapper.map(any(Brand.class), eq(BrandDto.class)))
-                .thenReturn(responseDto);
+        when(modelMapper.map(saved, BrandDto.class))
+                .thenReturn(mapped);
 
         BrandDto response = brandService.update(dto);
 
@@ -141,39 +174,120 @@ class BrandServiceTest {
 
         assertFalse(response.isSuccess());
         assertEquals("Brand not found", response.getMessage());
+
+        verify(brandRepository, never()).save(any());
+    }
+
+    @Test
+    void update_failure_deleted() {
+
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("Nike");
+
+        Brand brand = new Brand();
+        brand.setDeleted(true);
+
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(brand);
+
+        BrandDto response = brandService.update(dto);
+
+        assertFalse(response.isSuccess());
+        assertEquals("Brand not found", response.getMessage());
+
+        verify(brandRepository, never()).save(any());
     }
 
     @Test
     void find_success() {
 
         Brand brand = new Brand();
+        brand.setDeleted(false);
 
         BrandDto dto = new BrandDto();
 
-        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
-        when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(brand);
+
+        when(modelMapper.map(brand, BrandDto.class))
+                .thenReturn(dto);
+
         BrandDto response = brandService.findByIdentifier("Nike");
 
         assertNotNull(response);
     }
 
     @Test
-    void delete_test() {
+    void find_not_found() {
+
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(null);
+
+        BrandDto response = brandService.findByIdentifier("Nike");
+
+        assertNull(response);
+    }
+
+    @Test
+    void find_deleted() {
+
+        Brand brand = new Brand();
+        brand.setDeleted(true);
+
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(brand);
+
+        BrandDto response = brandService.findByIdentifier("Nike");
+
+        assertNull(response);
+    }
+
+    @Test
+    void delete_success() {
+
+        Brand brand = new Brand();
+        brand.setDeleted(false);
+
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(brand);
+
+        when(brandRepository.save(brand))
+                .thenReturn(brand);
+
         brandService.delete("Nike");
-        verify(brandRepository).deleteByIdentifier("Nike");
+
+        assertTrue(brand.getDeleted());
+
+        verify(brandRepository).save(brand);
+    }
+
+    @Test
+    void delete_not_found() {
+
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(null);
+
+        brandService.delete("Nike");
+
+        verify(brandRepository, never()).save(any());
     }
 
     @Test
     void find_all() {
 
         Brand brand = new Brand();
+
         Page<Brand> page = new PageImpl<>(List.of(brand));
 
-        when(brandRepository.findAll(any(Pageable.class)))
+        when(brandRepository.findByDeletedFalse(any(Pageable.class)))
                 .thenReturn(page);
 
-        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(new BrandDto()));
-        WsDto<BrandDto> result =brandService.findAll(PageRequest.of(0, 5));
+        when(modelMapper.map(anyList(), any(Type.class)))
+                .thenReturn(List.of(new BrandDto()));
+
+        WsDto<BrandDto> result =
+                brandService.findAll(PageRequest.of(0, 5));
+
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
     }
@@ -183,11 +297,12 @@ class BrandServiceTest {
 
         Brand brand = new Brand();
         brand.setStatus(true);
+        brand.setDeleted(false);
 
-        when(brandRepository.findAll())
+        when(brandRepository.findByDeletedFalse())
                 .thenReturn(List.of(brand));
 
-        when(modelMapper.map(any(Brand.class), eq(BrandDto.class)))
+        when(modelMapper.map(brand, BrandDto.class))
                 .thenReturn(new BrandDto());
 
         List<BrandDto> result = brandService.findActiveBrands();
@@ -196,23 +311,68 @@ class BrandServiceTest {
     }
 
     @Test
+    void active_brands_empty() {
+
+        Brand brand = new Brand();
+        brand.setStatus(false);
+
+        when(brandRepository.findByDeletedFalse())
+                .thenReturn(List.of(brand));
+
+        List<BrandDto> result = brandService.findActiveBrands();
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void toggle_success() {
 
         Brand brand = new Brand();
         brand.setIdentifier("Nike");
-        brand.setBrandName("Nike");
         brand.setStatus(false);
+        brand.setDeleted(false);
+
+        BrandDto mapped = new BrandDto();
 
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(brand);
 
-        when(brandRepository.save(any(Brand.class)))
+        when(brandRepository.save(brand))
                 .thenReturn(brand);
+
+        when(modelMapper.map(brand, BrandDto.class))
+                .thenReturn(mapped);
 
         BrandDto response = brandService.toggleStatus("Nike");
 
         assertTrue(response.isSuccess());
         assertEquals("Status updated successfully", response.getMessage());
-        assertEquals("Nike", response.getIdentifier());
+    }
+
+    @Test
+    void toggle_not_found() {
+
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(null);
+
+        BrandDto response = brandService.toggleStatus("Nike");
+
+        assertFalse(response.isSuccess());
+        assertEquals("Brand not found", response.getMessage());
+    }
+
+    @Test
+    void toggle_deleted() {
+
+        Brand brand = new Brand();
+        brand.setDeleted(true);
+
+        when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(brand);
+
+        BrandDto response = brandService.toggleStatus("Nike");
+
+        assertFalse(response.isSuccess());
+        assertEquals("Brand not found", response.getMessage());
     }
 }

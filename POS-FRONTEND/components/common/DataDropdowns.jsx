@@ -35,3 +35,15 @@ export const getCategories = async () => {
 export const getRoles = async () => {
   return await fetchList("/role/list");
 };
+
+/* PRICE TYPES */
+export const getPriceTypes = async () => {
+  const res = await api.post("/price/priceTypes");
+  return (res.data || []).map((type) => ({identifier: type, label: type}));
+};
+
+/* SHELVES */
+export const getActiveShelves = async () => {
+  const res = await api.get("/shelf/active");
+  return res.data || [];
+};

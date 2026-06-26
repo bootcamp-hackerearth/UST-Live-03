@@ -5,7 +5,6 @@ import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.models.service.ModelsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +16,11 @@ public class ModelsControllerApi extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/models/list";
 
-    @Autowired
-    private ModelsService modelsService;
+    private final ModelsService modelsService;
+
+    public ModelsControllerApi(ModelsService modelsService) {
+        this.modelsService = modelsService;
+    }
 
     @PostMapping("/list")
     public WsDto<ModelsDto> list(@RequestBody PaginationDto pagination) {
@@ -37,12 +39,12 @@ public class ModelsControllerApi extends BaseController {
         return modelsService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelsDto updatePost(@RequestBody ModelsDto modelsDto) {
         return modelsService.update(modelsDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public ModelsDto delete(@RequestBody ModelsDto modelsDto) {
         ModelsDto response = new ModelsDto();
         try {
@@ -56,7 +58,7 @@ public class ModelsControllerApi extends BaseController {
         return response;
     }
 
-    @PostMapping("/toggle-status")
+    @PatchMapping("/toggle")
     public ModelsDto toggleStatus(@RequestBody ModelsDto modelsDto) {
         return modelsService.toggleStatus(modelsDto.getIdentifier());
     }

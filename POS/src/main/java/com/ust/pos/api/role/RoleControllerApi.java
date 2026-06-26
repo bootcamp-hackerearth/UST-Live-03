@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +14,11 @@ import org.springframework.web.bind.annotation.*;
 //here its disable if it is as enable then in the role contrller API no need of @CrossOrigin(origins = "http://localhost:5173")
 public class RoleControllerApi extends BaseController {
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
+
+    public RoleControllerApi(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @PostMapping("/list")
     public WsDto<RoleDto> list(@RequestBody PaginationDto pagination) {
@@ -35,12 +37,12 @@ public class RoleControllerApi extends BaseController {
         return roleService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RoleDto updatePost(@RequestBody RoleDto roleDto) {
         return roleService.update(roleDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public RoleDto delete(@RequestBody RoleDto roleDto) {
         RoleDto response = new RoleDto();
         try {

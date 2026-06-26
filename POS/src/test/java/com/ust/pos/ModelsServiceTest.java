@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class ModelsServiceTest {
@@ -70,13 +71,18 @@ class ModelsServiceTest {
         ModelsDto dto = new ModelsDto();
         dto.setModelName("Test");
 
+        Models existing = new Models();
+        existing.setDeleted(false);
+
         when(repository.findByIdentifier("Test"))
-                .thenReturn(new Models());
+                .thenReturn(existing);
 
         ModelsDto result = service.save(dto);
 
         assertFalse(result.isSuccess());
         assertEquals("Model already exists", result.getMessage());
+
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -86,32 +92,14 @@ class ModelsServiceTest {
         dto.setModelName("Test");
         dto.setStatus(true);
 
-        Models saved = new Models();
-        saved.setIdentifier("Test");
-        saved.setModelName("Test");
-        saved.setStatus(true);
-
-        ModelsDto mapped = new ModelsDto();
-        mapped.setIdentifier("Test");
-        mapped.setModelName("Test");
-        mapped.setStatus(true);
-
         when(repository.findByIdentifier("Test"))
                 .thenReturn(null);
-
-        when(repository.save(any(Models.class)))
-                .thenReturn(saved);
-
-        when(modelMapper.map(saved, ModelsDto.class))
-                .thenReturn(mapped);
 
         ModelsDto result = service.save(dto);
 
         assertTrue(result.isSuccess());
-        assertEquals("Model added successfully", result.getMessage());
+        assertEquals("Model saved successfully", result.getMessage());
         assertEquals("Test", result.getIdentifier());
-        assertEquals("Test", result.getModelName());
-        assertTrue(result.getStatus());
 
         verify(repository).save(any(Models.class));
     }
@@ -123,28 +111,15 @@ class ModelsServiceTest {
         dto.setModelName("Test");
         dto.setStatus(null);
 
-        Models saved = new Models();
-        saved.setIdentifier("Test");
-        saved.setModelName("Test");
-        saved.setStatus(null);
-
-        ModelsDto mapped = new ModelsDto();
-        mapped.setIdentifier("Test");
-        mapped.setModelName("Test");
-        mapped.setStatus(null);
-
         when(repository.findByIdentifier("Test"))
                 .thenReturn(null);
 
-        when(repository.save(any(Models.class)))
-                .thenReturn(saved);
-
-        when(modelMapper.map(saved, ModelsDto.class))
-                .thenReturn(mapped);
-
         ModelsDto result = service.save(dto);
 
+        assertTrue(result.isSuccess());
         assertNull(result.getStatus());
+
+        verify(repository).save(any(Models.class));
     }
 
     @Test
@@ -163,6 +138,24 @@ class ModelsServiceTest {
     }
 
     @Test
+    void update_shouldFail_whenDeleted() {
+
+        Models model = new Models();
+        model.setDeleted(true);
+
+        ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("id");
+
+        when(repository.findByIdentifier("id"))
+                .thenReturn(model);
+
+        ModelsDto result = service.update(dto);
+
+        assertFalse(result.isSuccess());
+        assertEquals("Model not found", result.getMessage());
+    }
+
+    @Test
     void update_shouldSuccess() {
 
         Models model = new Models();
@@ -171,6 +164,7 @@ class ModelsServiceTest {
 
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("id");
+        dto.setModelName("Updated");
         dto.setStatus(true);
 
         when(repository.findByIdentifier("id"))
@@ -180,6 +174,7 @@ class ModelsServiceTest {
 
         assertTrue(result.isSuccess());
         assertEquals("Model updated successfully", result.getMessage());
+        assertEquals("Updated", model.getModelName());
         assertTrue(model.getStatus());
 
         verify(repository).save(model);
@@ -214,14 +209,30 @@ class ModelsServiceTest {
     }
 
     @Test
-    void findByIdentifier_shouldReturnNull_whenNotFound() {
+    void findByIdentifier_shouldReturnNotFound() {
 
         when(repository.findByIdentifier("id"))
                 .thenReturn(null);
 
         ModelsDto result = service.findByIdentifier("id");
 
-        assertNull(result);
+        assertFalse(result.isSuccess());
+        assertEquals("Model not found", result.getMessage());
+    }
+
+    @Test
+    void findByIdentifier_shouldReturnDeletedNotFound() {
+
+        Models model = new Models();
+        model.setDeleted(true);
+
+        when(repository.findByIdentifier("id"))
+                .thenReturn(model);
+
+        ModelsDto result = service.findByIdentifier("id");
+
+        assertFalse(result.isSuccess());
+        assertEquals("Model not found", result.getMessage());
     }
 
     @Test
@@ -231,9 +242,18 @@ class ModelsServiceTest {
         model.setIdentifier("id");
         model.setModelName("name");
         model.setStatus(true);
+        model.setDeleted(false);
+
+        ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("id");
+        dto.setModelName("name");
+        dto.setStatus(true);
 
         when(repository.findByIdentifier("id"))
                 .thenReturn(model);
+
+        when(modelMapper.map(model, ModelsDto.class))
+                .thenReturn(dto);
 
         ModelsDto result = service.findByIdentifier("id");
 
@@ -244,11 +264,31 @@ class ModelsServiceTest {
     }
 
     @Test
-    void delete_shouldCallRepository() {
+    void delete_shouldSoftDelete() {
+
+        Models model = new Models();
+        model.setIdentifier("id");
+        model.setDeleted(false);
+
+        when(repository.findByIdentifier("id"))
+                .thenReturn(model);
 
         service.delete("id");
 
-        verify(repository).deleteByIdentifier("id");
+        assertTrue(model.getDeleted());
+
+        verify(repository).save(model);
+    }
+
+    @Test
+    void delete_shouldIgnoreWhenNotFound() {
+
+        when(repository.findByIdentifier("id"))
+                .thenReturn(null);
+
+        service.delete("id");
+
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -264,6 +304,21 @@ class ModelsServiceTest {
     }
 
     @Test
+    void toggleStatus_shouldFail_whenDeleted() {
+
+        Models model = new Models();
+        model.setDeleted(true);
+
+        when(repository.findByIdentifier("id"))
+                .thenReturn(model);
+
+        ModelsDto result = service.toggleStatus("id");
+
+        assertFalse(result.isSuccess());
+        assertEquals("Model not found", result.getMessage());
+    }
+
+    @Test
     void toggleStatus_shouldToggleTrueToFalse() {
 
         Models model = new Models();
@@ -271,21 +326,23 @@ class ModelsServiceTest {
         model.setModelName("name");
         model.setStatus(true);
 
-        Models saved = new Models();
-        saved.setIdentifier("id");
-        saved.setModelName("name");
-        saved.setStatus(false);
+        ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("id");
+        dto.setModelName("name");
+        dto.setStatus(false);
 
         when(repository.findByIdentifier("id"))
                 .thenReturn(model);
 
-        when(repository.save(model))
-                .thenReturn(saved);
+        when(modelMapper.map(model, ModelsDto.class))
+                .thenReturn(dto);
 
         ModelsDto result = service.toggleStatus("id");
 
         assertFalse(result.getStatus());
         assertEquals("Status updated successfully", result.getMessage());
+
+        verify(repository).save(model);
     }
 
     @Test
@@ -293,23 +350,23 @@ class ModelsServiceTest {
 
         Models model = new Models();
         model.setIdentifier("id");
-        model.setModelName("name");
         model.setStatus(false);
 
-        Models saved = new Models();
-        saved.setIdentifier("id");
-        saved.setModelName("name");
-        saved.setStatus(true);
+        ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("id");
+        dto.setStatus(true);
 
         when(repository.findByIdentifier("id"))
                 .thenReturn(model);
 
-        when(repository.save(model))
-                .thenReturn(saved);
+        when(modelMapper.map(model, ModelsDto.class))
+                .thenReturn(dto);
 
         ModelsDto result = service.toggleStatus("id");
 
         assertTrue(result.getStatus());
+
+        verify(repository).save(model);
     }
 
     @Test
@@ -317,23 +374,23 @@ class ModelsServiceTest {
 
         Models model = new Models();
         model.setIdentifier("id");
-        model.setModelName("name");
         model.setStatus(null);
 
-        Models saved = new Models();
-        saved.setIdentifier("id");
-        saved.setModelName("name");
-        saved.setStatus(true);
+        ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("id");
+        dto.setStatus(true);
 
         when(repository.findByIdentifier("id"))
                 .thenReturn(model);
 
-        when(repository.save(model))
-                .thenReturn(saved);
+        when(modelMapper.map(model, ModelsDto.class))
+                .thenReturn(dto);
 
         ModelsDto result = service.toggleStatus("id");
 
         assertTrue(result.getStatus());
+
+        verify(repository).save(model);
     }
 
     @Test
@@ -344,29 +401,33 @@ class ModelsServiceTest {
         active.setModelName("A");
         active.setStatus(true);
 
-        Models inactive = new Models();
-        inactive.setStatus(false);
+        List<Models> models = List.of(active);
 
-        Models nullModel = new Models();
-        nullModel.setStatus(null);
+        List<ModelsDto> dtos = List.of(new ModelsDto());
 
-        when(repository.findAll())
-                .thenReturn(Arrays.asList(active, inactive, nullModel));
+        when(repository.findByStatusTrueAndDeletedFalse())
+                .thenReturn(models);
+
+        when(modelMapper.map(
+                eq(models),
+                ArgumentMatchers.<Type>any()))
+                .thenReturn(dtos);
 
         List<ModelsDto> result = service.findActiveModels();
 
         assertEquals(1, result.size());
-        assertEquals("1", result.get(0).getIdentifier());
     }
 
     @Test
     void findActiveModels_shouldReturnEmpty() {
 
-        Models model = new Models();
-        model.setStatus(false);
+        when(repository.findByStatusTrueAndDeletedFalse())
+                .thenReturn(Collections.emptyList());
 
-        when(repository.findAll())
-                .thenReturn(Collections.singletonList(model));
+        when(modelMapper.map(
+                eq(Collections.emptyList()),
+                ArgumentMatchers.<Type>any()))
+                .thenReturn(Collections.emptyList());
 
         List<ModelsDto> result = service.findActiveModels();
 

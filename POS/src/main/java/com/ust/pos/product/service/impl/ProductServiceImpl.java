@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.PriceRepository;
@@ -9,134 +10,174 @@ import com.ust.pos.product.service.ProductService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @Transactional
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl extends BaseService implements ProductService {
 
     public static final String PRODUCT_NOT_FOUND = "Product not found";
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final PriceRepository priceRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PriceRepository priceRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public ProductServiceImpl(ProductRepository productRepository,PriceRepository priceRepository,
+                              ModelMapper modelMapper) {
+        this.productRepository = productRepository;
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ProductDto save(ProductDto productDto) {
-        if (productDto.getIdentifier() == null || productDto.getIdentifier().trim().isEmpty()) {
-            productDto.setSuccess(false);
-            productDto.setMessage("Identifier required");
-            return productDto;
-        }
-        Product product = productRepository.findByIdentifier(productDto.getIdentifier());
-        if (product != null) {
+
+        String identifier = productDto.getIdentifier().trim();
+
+        Product existing = productRepository.findByIdentifier(identifier);
+
+        if (existing != null && !Boolean.TRUE.equals(existing.getDeleted())) {
             productDto.setSuccess(false);
             productDto.setMessage("Product already exists");
             return productDto;
         }
-        Product saveProduct = modelMapper.map(productDto, Product.class);
-        Product savedProduct = productRepository.save(saveProduct);
-        ProductDto savedProductDto = modelMapper.map(savedProduct, ProductDto.class);
-        savedProductDto.setSuccess(true);
-        savedProductDto.setMessage("Product saved successfully");
-        return savedProductDto;
+
+        Product product = modelMapper.map(productDto, Product.class);
+        product.setIdentifier(identifier);
+
+        setCreatedDetails(product);
+
+        Product saved = productRepository.save(product);
+
+        ProductDto response = modelMapper.map(saved, ProductDto.class);
+        response.setSuccess(true);
+        response.setMessage("Product saved successfully");
+
+        return response;
     }
 
     @Override
     public ProductDto update(ProductDto productDto) {
+
         Product product = productRepository.findByIdentifier(productDto.getIdentifier());
-        if (product == null) {
-            productDto.setSuccess(false);
-            productDto.setMessage(PRODUCT_NOT_FOUND);
-            return productDto;
+
+        if (product == null || Boolean.TRUE.equals(product.getDeleted())) {
+            ProductDto dto = new ProductDto();
+            dto.setSuccess(false);
+            dto.setMessage(PRODUCT_NOT_FOUND);
+            return dto;
         }
+
         modelMapper.map(productDto, product);
-        Product updatedProduct = productRepository.save(product);
-        ProductDto updatedProductDto = modelMapper.map(updatedProduct, ProductDto.class);
-        updatedProductDto.setSuccess(true);
-        updatedProductDto.setMessage("Product updated successfully");
-        return updatedProductDto;
+
+        setModifiedDetails(product);
+
+        Product saved = productRepository.save(product);
+
+        ProductDto dto = modelMapper.map(saved, ProductDto.class);
+        dto.setSuccess(true);
+        dto.setMessage("Product updated successfully");
+
+        return dto;
     }
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
+
         Product product = productRepository.findByIdentifier(identifier);
-        if (product == null) {
-            ProductDto productDto = new ProductDto();
-            productDto.setSuccess(false);
-            productDto.setMessage(PRODUCT_NOT_FOUND);
-            return productDto;
+
+        if (product == null || Boolean.TRUE.equals(product.getDeleted())) {
+            ProductDto dto = new ProductDto();
+            dto.setSuccess(false);
+            dto.setMessage(PRODUCT_NOT_FOUND);
+            return dto;
         }
-        ProductDto productDto = modelMapper.map(product, ProductDto.class);
-        productDto.setSuccess(true);
-        return productDto;
+
+        return modelMapper.map(product, ProductDto.class);
     }
 
     @Override
     public WsDto<ProductDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ProductDto>>() {
-        }.getType();
-        Page<Product> productPage = productRepository.findAll(pageable);
 
-        WsDto<ProductDto> productWsDto = new WsDto<>();
-        productWsDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
-        productWsDto.setTotalRecords(productPage.getTotalElements());
-        productWsDto.setTotalPages(productPage.getTotalPages());
-        productWsDto.setSizePerPage(pageable.getPageSize());
-        productWsDto.setPage(pageable.getPageNumber());
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
 
-        return productWsDto;
+        Page<Product> page = productRepository.findByDeletedFalse(pageable);
+
+        WsDto<ProductDto> ws = new WsDto<>();
+        ws.setDtoList(modelMapper.map(page.getContent(), listType));
+        ws.setTotalRecords(page.getTotalElements());
+        ws.setTotalPages(page.getTotalPages());
+        ws.setSizePerPage(pageable.getPageSize());
+        ws.setPage(pageable.getPageNumber());
+
+        return ws;
     }
 
     @Override
     public void delete(String identifier) {
-        priceRepository.deleteByProductId(identifier);
-        productRepository.deleteByIdentifier(identifier);
+
+        Product product = productRepository.findByIdentifier(identifier);
+
+        if (product == null) return;
+
+        product.setDeleted(true);
+        setModifiedDetails(product);
+
+        productRepository.save(product);
     }
 
     @Override
     public List<ProductDto> findActiveProducts() {
-        Type listType = new TypeToken<List<ProductDto>>() {
-        }.getType();
-        List<Product> productList = productRepository.findAll();
-        List<ProductDto> productDtos = modelMapper.map(productList, listType);
-        List<ProductDto> active = new ArrayList<>();
-        if (productDtos != null) {
-            for (ProductDto dto : productDtos) {
-                if (Boolean.TRUE.equals(dto.getStatus())) {
-                    active.add(dto);
-                }
-            }
-        }
-        return active;
+
+        List<Product> list = productRepository.findByStatusTrueAndDeletedFalse();
+
+        Type type = new TypeToken<List<ProductDto>>() {}.getType();
+
+        return modelMapper.map(list, type);
     }
 
     @Override
     public ProductDto toggleStatus(String identifier) {
+
         Product product = productRepository.findByIdentifier(identifier);
-        if (product == null) {
-            ProductDto productDto = new ProductDto();
-            productDto.setSuccess(false);
-            productDto.setMessage(PRODUCT_NOT_FOUND);
-            return productDto;
+
+        if (product == null || Boolean.TRUE.equals(product.getDeleted())) {
+            ProductDto dto = new ProductDto();
+            dto.setSuccess(false);
+            dto.setMessage(PRODUCT_NOT_FOUND);
+            return dto;
         }
+
         product.setStatus(!Boolean.TRUE.equals(product.getStatus()));
-        Product savedProduct = productRepository.save(product);
-        ProductDto productDto = modelMapper.map(savedProduct, ProductDto.class);
-        productDto.setSuccess(true);
-        productDto.setMessage("Status updated successfully");
-        return productDto;
+
+        setModifiedDetails(product);
+
+        Product saved = productRepository.save(product);
+
+        ProductDto dto = modelMapper.map(saved, ProductDto.class);
+        dto.setSuccess(true);
+        dto.setMessage("Status updated successfully");
+
+        return dto;
+    }
+
+    @Override
+    public List<ProductDto> searchProduct(String query) {
+
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+
+        List<Product> products = productRepository.searchActiveProducts(query);
+
+        return products.stream()
+                .filter(p -> priceRepository.countActivePriceTypes(p.getIdentifier()) == 3)
+                .map(p -> modelMapper.map(p, ProductDto.class))
+                .toList();
     }
 }

@@ -32,6 +32,8 @@ const CommonListPage = ({
   enableToggle = false,
   hideAddButton = false,
   sizePerPage = 10,
+  onAddClick,
+  externalRefresh = 0,
 }) => {
   const router = useRouter();
 
@@ -80,7 +82,7 @@ const CommonListPage = ({
 
   useEffect(() => {
     if (modelName) loadData(page);
-  }, [modelName, page, refreshFlag, loadData]);
+  }, [modelName, page, refreshFlag, externalRefresh, loadData]);
 
   useEffect(() => {
     if (modelName) loadData(0);
@@ -88,7 +90,7 @@ const CommonListPage = ({
 
   const handleDeleteConfirm = async () => {
     try {
-      await api.post(`/${modelName}/delete`, { identifier: deleteTarget });
+      await api.delete(`/${modelName}/delete`, { data: { identifier: deleteTarget } });
       setDeleteTarget(null);
       setRefreshFlag((f) => f + 1);
     } catch (err) {
@@ -97,16 +99,24 @@ const CommonListPage = ({
     }
   };
 
-  const handleToggle = async (item, index) => {
+ const handleToggle = async (item, index) => {
     try {
-      await api.post(`/${modelName}/toggle`, { identifier: item.identifier });
+      const res = await api.patch(`/${modelName}/toggle`, { identifier: item.identifier });
       const updated = [...listData];
-      updated[index].status = !updated[index].status;
+      updated[index] = { ...updated[index], ...res.data };
       setListData(updated);
     } catch (err) {
       console.error("Error toggling:", err);
       alert("Toggle failed. Please try again.");
       setRefreshFlag((f) => f + 1);
+    }
+  };
+
+  const handleAddClick = () => {
+    if (onAddClick) {
+      onAddClick();
+    } else {
+      router.push(`/${modelName}/add`);
     }
   };
 
@@ -141,7 +151,7 @@ const CommonListPage = ({
             </div>
             {!hideAddButton && (
               <button
-                onClick={() => router.push(`/${modelName}/add`)}
+                onClick={handleAddClick}
                 className="bg-[#0097AC] hover:bg-[#006E74] text-white px-5 py-2 rounded-xl transition-colors"
               >
                 + Add
@@ -275,6 +285,8 @@ CommonListPage.propTypes = {
   enableToggle: PropTypes.bool,
   hideAddButton: PropTypes.bool,
   sizePerPage: PropTypes.number,
+  onAddClick: PropTypes.func,
+  externalRefresh: PropTypes.number,
 };
 
 export default CommonListPage;

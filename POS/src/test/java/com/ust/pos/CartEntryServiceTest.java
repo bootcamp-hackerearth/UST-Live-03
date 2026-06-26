@@ -4,9 +4,11 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.impl.CartEntryServiceImpl;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.price.service.PriceService;
+import com.ust.pos.product.service.ProductService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,8 +42,12 @@ class CartEntryServiceTest {
     private PriceService priceService;
 
     @Mock
+    private ProductService productService;
+
+    @Mock
     private ModelMapper modelMapper;
 
+    // ---------------- SAVE SUCCESS ----------------
     @Test
     void save_success() {
 
@@ -50,10 +56,13 @@ class CartEntryServiceTest {
         dto.setProductId("P1");
         dto.setQuantity(BigDecimal.valueOf(2));
 
-        CartEntry entry = new CartEntry();
-        entry.setCartId("C1");
-        entry.setProductId("P1");
-        entry.setQuantity(BigDecimal.valueOf(1));
+        CartEntry existing = new CartEntry();
+        existing.setCartId("C1");
+        existing.setProductId("P1");
+        existing.setQuantity(BigDecimal.valueOf(1));
+
+        ProductDto productDto = new ProductDto();
+        productDto.setProductName("Apple");
 
         PriceDto mrp = new PriceDto();
         mrp.setValue(BigDecimal.valueOf(100));
@@ -61,15 +70,11 @@ class CartEntryServiceTest {
         PriceDto sp = new PriceDto();
         sp.setValue(BigDecimal.valueOf(80));
 
-        CartEntry saved = new CartEntry();
-        saved.setIdentifier("C1_P1");
-
-        CartEntryDto responseDto = new CartEntryDto();
-        responseDto.setSuccess(true);
-        responseDto.setMessage("Cart entry saved successfully");
+        when(productService.findByIdentifier("P1"))
+                .thenReturn(productDto);
 
         when(cartEntryRepository.findByIdentifier("C1_P1"))
-                .thenReturn(entry);
+                .thenReturn(existing);
 
         when(priceService.findByIdentifier("P1_MRP"))
                 .thenReturn(mrp);
@@ -78,19 +83,21 @@ class CartEntryServiceTest {
                 .thenReturn(sp);
 
         when(cartEntryRepository.save(any(CartEntry.class)))
-                .thenReturn(saved);
+                .thenAnswer(i -> i.getArgument(0));
 
         when(modelMapper.map(any(CartEntry.class), eq(CartEntryDto.class)))
-                .thenReturn(responseDto);
+                .thenReturn(new CartEntryDto());
 
         CartEntryDto result = service.save(dto);
 
         assertTrue(result.isSuccess());
         assertEquals("Cart entry saved successfully", result.getMessage());
 
+        verify(cartService).save("C1");
         verify(cartService).recalculate("C1");
     }
 
+    // ---------------- SAVE INVALID QTY ----------------
     @Test
     void save_failure_quantity_zero() {
 
@@ -101,15 +108,26 @@ class CartEntryServiceTest {
 
         assertFalse(result.isSuccess());
         assertEquals("Quantity must be greater than 0", result.getMessage());
+
+        verifyNoInteractions(cartEntryRepository);
+        verifyNoInteractions(priceService);
+        verifyNoInteractions(productService);
     }
 
+    // ---------------- SAVE PRICE MISSING ----------------
     @Test
     void save_failure_price_missing() {
 
         CartEntryDto dto = new CartEntryDto();
         dto.setCartId("C1");
         dto.setProductId("P1");
-        dto.setQuantity(BigDecimal.valueOf(1));
+        dto.setQuantity(BigDecimal.ONE);
+
+        ProductDto productDto = new ProductDto();
+        productDto.setProductName("Apple");
+
+        when(productService.findByIdentifier("P1"))
+                .thenReturn(productDto);
 
         when(cartEntryRepository.findByIdentifier("C1_P1"))
                 .thenReturn(null);
@@ -123,6 +141,7 @@ class CartEntryServiceTest {
         assertEquals("Price not configured for product: P1", result.getMessage());
     }
 
+    // ---------------- UPDATE SUCCESS ----------------
     @Test
     void update_success() {
 
@@ -134,21 +153,16 @@ class CartEntryServiceTest {
         entry.setCartId("C1");
         entry.setMrp(BigDecimal.valueOf(100));
         entry.setSellingPrice(BigDecimal.valueOf(80));
-
-        CartEntry saved = new CartEntry();
-
-        CartEntryDto responseDto = new CartEntryDto();
-        responseDto.setSuccess(true);
-        responseDto.setMessage("Cart entry updated successfully");
+        entry.setQuantity(BigDecimal.ONE);
 
         when(cartEntryRepository.findByIdentifier("C1_P1"))
                 .thenReturn(entry);
 
         when(cartEntryRepository.save(any(CartEntry.class)))
-                .thenReturn(saved);
+                .thenAnswer(i -> i.getArgument(0));
 
         when(modelMapper.map(any(CartEntry.class), eq(CartEntryDto.class)))
-                .thenReturn(responseDto);
+                .thenReturn(new CartEntryDto());
 
         CartEntryDto result = service.update(dto);
 
@@ -158,12 +172,13 @@ class CartEntryServiceTest {
         verify(cartService).recalculate("C1");
     }
 
+    // ---------------- UPDATE NOT FOUND ----------------
     @Test
     void update_failure_not_found() {
 
         CartEntryDto dto = new CartEntryDto();
         dto.setIdentifier("C1_P1");
-        dto.setQuantity(BigDecimal.valueOf(1));
+        dto.setQuantity(BigDecimal.ONE);
 
         when(cartEntryRepository.findByIdentifier("C1_P1"))
                 .thenReturn(null);
@@ -174,23 +189,24 @@ class CartEntryServiceTest {
         assertEquals("Cart entry not found", result.getMessage());
     }
 
+    // ---------------- FIND BY ID SUCCESS ----------------
     @Test
     void findByIdentifier_success() {
 
         CartEntry entry = new CartEntry();
-        CartEntryDto dto = new CartEntryDto();
 
         when(cartEntryRepository.findByIdentifier("C1_P1"))
                 .thenReturn(entry);
 
         when(modelMapper.map(entry, CartEntryDto.class))
-                .thenReturn(dto);
+                .thenReturn(new CartEntryDto());
 
         CartEntryDto result = service.findByIdentifier("C1_P1");
 
         assertTrue(result.isSuccess());
     }
 
+    // ---------------- FIND BY ID FAILURE ----------------
     @Test
     void findByIdentifier_failure() {
 
@@ -203,6 +219,7 @@ class CartEntryServiceTest {
         assertEquals("Cart entry not found", result.getMessage());
     }
 
+    // ---------------- FIND ALL ----------------
     @Test
     void findAll_success() {
 
@@ -223,6 +240,7 @@ class CartEntryServiceTest {
         assertEquals(1, result.size());
     }
 
+    // ---------------- FIND BY CART ID ----------------
     @Test
     void findByCartId_success() {
 
@@ -241,6 +259,7 @@ class CartEntryServiceTest {
         assertEquals(1, result.size());
     }
 
+    // ---------------- DELETE ----------------
     @Test
     void delete_success() {
 

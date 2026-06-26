@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,11 @@ import java.util.List;
 @RequestMapping("/api/cart")
 public class CartControllerApi extends BaseController {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
+
+    public CartControllerApi(CartService cartService) {
+        this.cartService = cartService;
+    }
 
     @PostMapping("/list")
     public List<CartDto> list(@RequestBody PaginationDto pagination) {
@@ -35,7 +37,7 @@ public class CartControllerApi extends BaseController {
         return cartService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public CartDto delete(@RequestBody CartDto cartDto) {
 
         CartDto response = new CartDto();
@@ -48,7 +50,6 @@ public class CartControllerApi extends BaseController {
             response.setSuccess(false);
             response.setMessage("Delete failed: " + e.getMessage());
         }
-
         return response;
     }
 

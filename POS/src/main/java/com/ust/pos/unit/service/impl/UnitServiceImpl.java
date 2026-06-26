@@ -1,5 +1,6 @@
 package com.ust.pos.unit.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
@@ -8,7 +9,6 @@ import com.ust.pos.unit.service.UnitService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,14 +18,19 @@ import java.util.List;
 
 @Service
 @Transactional
-public class UnitServiceImpl implements UnitService {
+public class UnitServiceImpl extends BaseService implements UnitService {
 
     public static final String UNIT_NOT_FOUND = "Unit not found";
-    @Autowired
-    private UnitRepository unitRepository;
+    public static final String UNIT_WITH_IDENTIFIER = "Unit with identifier ";
+    public static final String HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS = " has been soft deleted. (Rollback by changing status)";
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final UnitRepository unitRepository;
+    private final ModelMapper modelMapper;
+
+    public UnitServiceImpl(UnitRepository unitRepository, ModelMapper modelMapper) {
+        this.unitRepository = unitRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UnitDto save(UnitDto unitDto) {
@@ -35,18 +40,34 @@ public class UnitServiceImpl implements UnitService {
             unitDto.setMessage("Unit name is required");
             return unitDto;
         }
-        Unit existing = unitRepository.findByIdentifier(unitName);
+
+        String identifier = unitName.trim();
+
+        Unit existing = unitRepository.findByIdentifier(identifier);
+
         if (existing != null) {
+
+            if (Boolean.TRUE.equals(existing.getDeleted())) {
+                unitDto.setMessage(
+                        UNIT_WITH_IDENTIFIER + identifier +
+                                HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS
+                );
+                unitDto.setSuccess(false);
+                return unitDto;
+            }
+
             unitDto.setSuccess(false);
             unitDto.setMessage("Unit already exists");
             return unitDto;
         }
+
         Unit unit = new Unit();
-        unit.setIdentifier(unitName);
-        unit.setUnitName(unitName);
+        unit.setIdentifier(identifier);
+        unit.setUnitName(identifier);
         unit.setStatus(Boolean.TRUE.equals(unitDto.getStatus()));
+        setCreatedDetails(unit);
         unitRepository.save(unit);
-        unitDto.setIdentifier(unitName);
+        unitDto.setIdentifier(identifier);
         unitDto.setSuccess(true);
         unitDto.setMessage("Unit added successfully");
         return unitDto;
@@ -60,13 +81,25 @@ public class UnitServiceImpl implements UnitService {
             unitDto.setMessage("Invalid identifier");
             return unitDto;
         }
+
         Unit unit = unitRepository.findByIdentifier(identifier);
         if (unit == null) {
             unitDto.setSuccess(false);
             unitDto.setMessage(UNIT_NOT_FOUND);
             return unitDto;
         }
+
+        if (Boolean.TRUE.equals(unit.getDeleted())) {
+            unitDto.setSuccess(false);
+            unitDto.setMessage(
+                    UNIT_WITH_IDENTIFIER + identifier +
+                            HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS
+            );
+            return unitDto;
+        }
+
         unit.setStatus(Boolean.TRUE.equals(unitDto.getStatus()));
+        setModifiedDetails(unit);
         unitRepository.save(unit);
         unitDto.setSuccess(true);
         unitDto.setMessage("Unit updated successfully");
@@ -75,14 +108,25 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void delete(String identifier) {
-        unitRepository.deleteByIdentifier(identifier);
+
+        Unit unit = unitRepository.findByIdentifier(identifier);
+
+        if (unit == null) {
+            return;
+        }
+
+        softDelete(unit);
+
+        setModifiedDetails(unit);
+
+        unitRepository.save(unit);
     }
 
     @Override
     public WsDto<UnitDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
-        Page<Unit> unitPage = unitRepository.findAll(pageable);
+        Page<Unit> unitPage = unitRepository.findByDeletedFalse(pageable);
 
         WsDto<UnitDto> unitWsDto = new WsDto<>();
         unitWsDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
@@ -97,7 +141,7 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public UnitDto findByIdentifier(String identifier) {
         Unit unit = unitRepository.findByIdentifier(identifier);
-        if (unit == null) {
+        if (unit == null || Boolean.TRUE.equals(unit.getDeleted())) {
             UnitDto dto = new UnitDto();
             dto.setSuccess(false);
             dto.setMessage(UNIT_NOT_FOUND);
@@ -115,7 +159,18 @@ public class UnitServiceImpl implements UnitService {
             response.setMessage(UNIT_NOT_FOUND);
             return response;
         }
+
+        if (Boolean.TRUE.equals(unit.getDeleted())) {
+            response.setSuccess(false);
+            response.setMessage(
+                    UNIT_WITH_IDENTIFIER + identifier +
+                            HAS_BEEN_SOFT_DELETED_ROLLBACK_BY_CHANGING_STATUS
+            );
+            return response;
+        }
+
         unit.setStatus(!Boolean.TRUE.equals(unit.getStatus()));
+        setModifiedDetails(unit);
         unitRepository.save(unit);
         response = modelMapper.map(unit, UnitDto.class);
         response.setSuccess(true);
@@ -125,7 +180,9 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public List<UnitDto> findActiveUnits() {
-        return unitRepository.findAll().stream().filter(u -> Boolean.TRUE
-                .equals(u.getStatus())).map(u -> modelMapper.map(u, UnitDto.class)).toList();
+        return unitRepository.findAll().stream()
+                .filter(u -> Boolean.TRUE.equals(u.getStatus()) && !Boolean.TRUE.equals(u.getDeleted()))
+                .map(u -> modelMapper.map(u, UnitDto.class))
+                .toList();
     }
 }

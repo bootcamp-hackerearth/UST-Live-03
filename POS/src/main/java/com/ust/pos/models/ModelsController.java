@@ -3,7 +3,6 @@ package com.ust.pos.models;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.models.service.ModelsService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,8 +14,12 @@ public class ModelsController {
 
     public static final String MESSAGE = "message";
     private static final String REDIRECT_LIST = "redirect:/models/list";
-    @Autowired
-    private ModelsService modelsService;
+
+    private final ModelsService modelsService;
+
+    public ModelsController(ModelsService modelsService) {
+        this.modelsService = modelsService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {

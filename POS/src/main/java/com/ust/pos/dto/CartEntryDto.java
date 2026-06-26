@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 
 public class CartEntryDto extends CommonDto {
     private String productId;
+    private String productName;
     private String cartId;
     private BigDecimal quantity = new BigDecimal(0);
     private BigDecimal mrp;

@@ -21,4 +21,6 @@ public interface ProductService {
     ProductDto toggleStatus(String identifier);
 
     List<ProductDto> findActiveProducts();
+
+    List<ProductDto> searchProduct(String query);
 }

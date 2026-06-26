@@ -5,8 +5,8 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,32 +15,36 @@ public class WarehouseControllerApi extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/warehouse/list";
 
-    @Autowired
-    private WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
+
+    public WarehouseControllerApi(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @PostMapping("/list")
-    public WsDto<WarehouseDto> list(@RequestBody PaginationDto pagination) {
-        Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
-                pagination.getSortDirection(), pagination.getSortfield());
+    @PreAuthorize("hasAuthority('Admin')")
+    public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortDirection());
         return warehouseService.findAll(pageable);
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin', 'Manager')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
 
     @GetMapping("/get")
-    public WarehouseDto updatePage(@RequestParam String identifier) {
+    @PreAuthorize("hasAuthority('Admin')")
+    public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
-
-    @PostMapping("/update")
+    @PutMapping("/update")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public Boolean delete(@RequestBody WarehouseDto warehouseDto) {
         try {
             warehouseService.delete(warehouseDto.getIdentifier());

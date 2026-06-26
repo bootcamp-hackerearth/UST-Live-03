@@ -7,7 +7,6 @@ import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
 import com.ust.pos.product.service.ProductService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,6 +22,7 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -47,44 +47,42 @@ class PriceServiceTest {
 
         PriceDto dto = new PriceDto();
         dto.setProductId("P1");
-        dto.setPriceType("Retail");
+        dto.setPriceType("Retail Price");
 
         ProductDto productDto = new ProductDto();
         productDto.setProductName("Laptop");
 
-        Price price = new Price();
+        Price priceEntity = new Price();
 
-        when(priceRepository.findByIdentifier("P1_Retail"))
-                .thenReturn(null);
+        String expectedId = "P1_Retail_Price";
 
-        when(productService.findByIdentifier("P1"))
-                .thenReturn(productDto);
+        when(priceRepository.findByIdentifier(expectedId)).thenReturn(null);
+        when(productService.findByIdentifier("P1")).thenReturn(productDto);
+        when(modelMapper.map(any(PriceDto.class), eq(Price.class))).thenReturn(priceEntity);
 
-        when(modelMapper.map(any(PriceDto.class), eq(Price.class)))
-                .thenReturn(price);
+        PriceDto result = priceService.save(dto);
 
-        PriceDto response = priceService.save(dto);
+        assertTrue(result.isSuccess());
+        assertEquals("Price saved successfully", result.getMessage());
+        assertEquals(expectedId, result.getIdentifier());
 
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertEquals("Price saved successfully", response.getMessage());
-
-        verify(priceRepository).save(price);
+        verify(priceRepository).save(priceEntity);
     }
 
     @Test
-    void save_failure_priceExists() {
+    void save_failure_duplicate() {
 
         PriceDto dto = new PriceDto();
         dto.setProductId("P1");
-        dto.setPriceType("Retail");
+        dto.setPriceType("Retail Price");
 
-        when(priceRepository.findByIdentifier("P1_Retail"))
-                .thenReturn(new Price());
+        String expectedId = "P1_Retail_Price";
 
-        PriceDto response = priceService.save(dto);
+        when(priceRepository.findByIdentifier(expectedId)).thenReturn(new Price());
+        PriceDto result = priceService.save(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Price already exists", response.getMessage());
+        assertFalse(result.isSuccess());
+        assertEquals("Price already exists", result.getMessage());
 
         verify(priceRepository, never()).save(any());
     }
@@ -93,9 +91,9 @@ class PriceServiceTest {
     void update_success() {
 
         PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1_Retail");
+        dto.setIdentifier("P1_Retail_Price");
         dto.setProductId("P1");
-        dto.setPriceType("Retail");
+        dto.setPriceType("Retail Price");
         dto.setValue(BigDecimal.valueOf(100));
 
         Price existing = new Price();
@@ -103,16 +101,12 @@ class PriceServiceTest {
         ProductDto productDto = new ProductDto();
         productDto.setProductName("Laptop");
 
-        when(priceRepository.findByIdentifier("P1_Retail"))
-                .thenReturn(existing);
+        when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(existing);
+        when(productService.findByIdentifier("P1")).thenReturn(productDto);
+        PriceDto result = priceService.update(dto);
 
-        when(productService.findByIdentifier("P1"))
-                .thenReturn(productDto);
-
-        PriceDto response = priceService.update(dto);
-
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertEquals("Price updated successfully", response.getMessage());
+        assertTrue(result.isSuccess());
+        assertEquals("Price updated successfully", result.getMessage());
 
         verify(priceRepository).save(existing);
     }
@@ -121,57 +115,89 @@ class PriceServiceTest {
     void findByIdentifier_success() {
 
         Price price = new Price();
-        PriceDto dto = new PriceDto();
+        PriceDto mapped = new PriceDto();
 
-        when(priceRepository.findByIdentifier("P1_Retail"))
-                .thenReturn(price);
+        when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(price);
 
-        when(modelMapper.map(price, PriceDto.class))
-                .thenReturn(dto);
+        when(modelMapper.map(price, PriceDto.class)).thenReturn(mapped);
 
-        PriceDto response = priceService.findByIdentifier("P1_Retail");
+        PriceDto result = priceService.findByIdentifier("P1_Retail_Price");
 
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(result.isSuccess());
+        assertNotNull(result);
     }
 
     @Test
     void findByIdentifier_failure() {
 
-        when(priceRepository.findByIdentifier("P1_Retail"))
-                .thenReturn(null);
+        when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(null);
 
-        PriceDto response = priceService.findByIdentifier("P1_Retail");
+        PriceDto result = priceService.findByIdentifier("P1_Retail_Price");
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Price not found", response.getMessage());
+        assertFalse(result.isSuccess());
+        assertEquals("Price not found", result.getMessage());
     }
 
     @Test
     void findAll_success() {
 
-        List<Price> prices = List.of(new Price());
-        Page<Price> page = new PageImpl<>(prices);
+        List<Price> list = List.of(new Price());
+        Page<Price> page = new PageImpl<>(list);
+        Pageable pageable = PageRequest.of(0, 5);
 
         List<PriceDto> dtoList = List.of(new PriceDto());
 
-        when(priceRepository.findAll(any(Pageable.class)))
-                .thenReturn(page);
+        when(priceRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(dtoList);
+        WsDto<PriceDto> result = priceService.findAll(pageable);
 
-        when(modelMapper.map(eq(prices), any(Type.class)))
-                .thenReturn(dtoList);
-
-        WsDto<PriceDto> response =
-                priceService.findAll(PageRequest.of(0, 5));
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.getDtoList().size());
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(0, result.getPage());
     }
 
     @Test
     void delete_success() {
 
-        priceService.delete("P1_Retail");
+        Price price = new Price();
+        price.setDeleted(false);
 
-        verify(priceRepository).deleteByIdentifier("P1_Retail");
+        when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(price);
+        priceService.delete("P1_Retail_Price");
+
+        assertTrue(price.getDeleted());
+        verify(priceRepository).save(price);
+    }
+
+    @Test
+    void delete_null_case() {
+
+        when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(null);
+        priceService.delete("P1_Retail_Price");
+
+        verify(priceRepository, never()).save(any());
+    }
+
+    @Test
+    void find_active_prices() {
+
+        List<Price> list = List.of(new Price());
+        List<PriceDto> dtoList = List.of(new PriceDto());
+
+        when(priceRepository.findByStatusTrueAndDeletedFalse()).thenReturn(list);
+        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(dtoList);
+
+        List<PriceDto> result = priceService.findActivePrices();
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void get_price_types() {
+
+        List<String> types = priceService.getPriceTypes();
+
+        assertEquals(3, types.size());
+        assertTrue(types.contains("Selling Price"));
     }
 }

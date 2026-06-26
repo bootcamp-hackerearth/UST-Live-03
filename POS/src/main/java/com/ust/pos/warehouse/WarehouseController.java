@@ -2,7 +2,6 @@ package com.ust.pos.warehouse;
 
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,8 +14,12 @@ public class WarehouseController {
     public static final String WAREHOUSE_DTO = "warehouseDto";
     public static final String MESSAGE = "message";
     private static final String REDIRECT = "redirect:/warehouse/list";
-    @Autowired
-    private WarehouseService warehouseService;
+
+    private final WarehouseService warehouseService;
+
+    public WarehouseController(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {

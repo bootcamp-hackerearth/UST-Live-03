@@ -51,7 +51,7 @@ class NodeServiceTest {
 
         Node node = new Node();
 
-        when(nodeRepository.findByIdentifier("N1"))
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(null);
 
         when(modelMapper.map(dto, Node.class))
@@ -62,7 +62,7 @@ class NodeServiceTest {
 
         NodeDto response = nodeService.save(dto);
 
-        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.isSuccess());
 
         verify(nodeRepository).save(node);
     }
@@ -73,14 +73,14 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        when(nodeRepository.findByIdentifier("N1"))
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(new Node());
 
         NodeDto response = nodeService.save(dto);
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals(
-                "Node with identifier - N1 already exists",
+                "Node already exists",
                 response.getMessage()
         );
 
@@ -94,7 +94,7 @@ class NodeServiceTest {
 
         NodeDto dto = new NodeDto();
 
-        when(nodeRepository.findByIdentifier("N1"))
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(node);
 
         when(modelMapper.map(node, NodeDto.class))
@@ -107,15 +107,19 @@ class NodeServiceTest {
     }
 
     @Test
-    void find_null() {
+    void find_not_found() {
 
-        when(nodeRepository.findByIdentifier("N1"))
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(null);
 
         NodeDto response =
                 nodeService.findByIdentifier("N1");
 
-        Assertions.assertNull(response);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals(
+                "Node not found",
+                response.getMessage()
+        );
     }
 
     @Test
@@ -126,7 +130,7 @@ class NodeServiceTest {
 
         Node existing = new Node();
 
-        when(nodeRepository.findByIdentifier("N1"))
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(existing);
 
         doNothing().when(modelMapper)
@@ -137,7 +141,7 @@ class NodeServiceTest {
 
         NodeDto response = nodeService.update(dto);
 
-        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.isSuccess());
 
         verify(nodeRepository).save(existing);
     }
@@ -148,7 +152,7 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        when(nodeRepository.findByIdentifier("N1"))
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(null);
 
         NodeDto response = nodeService.update(dto);
@@ -156,29 +160,48 @@ class NodeServiceTest {
         Assertions.assertFalse(response.isSuccess());
 
         Assertions.assertEquals(
-                "Node with identifier - N1 not found",
+                "Node not found",
                 response.getMessage()
         );
     }
 
     @Test
-    void delete_test() {
+    void delete_success() {
+
+        Node node = new Node();
+        node.setDeleted(false);
+
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
+                .thenReturn(node);
 
         nodeService.delete("N1");
 
-        verify(nodeRepository)
-                .deleteByIdentifier("N1");
+        Assertions.assertTrue(node.getDeleted());
+
+        verify(nodeRepository).save(node);
+    }
+
+    @Test
+    void delete_node_not_found() {
+
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
+                .thenReturn(null);
+
+        nodeService.delete("N1");
+
+        verify(nodeRepository, never()).save(any());
     }
 
     @Test
     void findAll_success() {
 
         List<Node> nodes = List.of(new Node());
+
         Page<Node> page = new PageImpl<>(nodes);
 
         List<NodeDto> mappedList = List.of(new NodeDto());
 
-        when(nodeRepository.findAll(any(Pageable.class)))
+        when(nodeRepository.findByDeletedFalse(any(Pageable.class)))
                 .thenReturn(page);
 
         when(modelMapper.map(
@@ -194,7 +217,7 @@ class NodeServiceTest {
     }
 
     @Test
-    void getNodesForRoles_empty() {
+    void getNodesForRoles_emptyAuthentication() {
 
         SecurityContextHolder.clearContext();
 
@@ -202,6 +225,34 @@ class NodeServiceTest {
                 nodeService.getNodesForRoles();
 
         Assertions.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getNodesForRoles_userNotFound() {
+
+        org.springframework.security.core.userdetails.User springUser =
+                new org.springframework.security.core.userdetails.User(
+                        "john",
+                        "password",
+                        List.of()
+                );
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        springUser,
+                        null
+                )
+        );
+
+        when(userRepository.findByUsername("john"))
+                .thenReturn(null);
+
+        List<NodeDto> result =
+                nodeService.getNodesForRoles();
+
+        Assertions.assertTrue(result.isEmpty());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -227,16 +278,17 @@ class NodeServiceTest {
         Node node = new Node();
         node.setIdentifier("N1");
         node.setRoles(List.of("ADMIN"));
+        node.setDeleted(false);
 
         NodeDto nodeDto = new NodeDto();
 
         when(userRepository.findByUsername("john"))
                 .thenReturn(user);
 
-        when(nodeRepository.findAll())
+        when(nodeRepository.findByDeletedFalse())
                 .thenReturn(List.of(node));
 
-        when(nodeRepository.findByIdentifier("N1"))
+        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(node);
 
         when(modelMapper.map(node, NodeDto.class))
