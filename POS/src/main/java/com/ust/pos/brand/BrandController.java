@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ public class BrandController extends BaseController {
     }
 
     @GetMapping("/list")
+    @PreAuthorize("hasAuthority('Manager')")
     public String list(Model model, Pageable pageable) {
         model.addAttribute("brands", brandService.findAll(pageable));
         return "brand/list";

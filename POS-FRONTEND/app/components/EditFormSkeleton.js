@@ -52,11 +52,19 @@ export default function EditFormSkeleton({
       if (field.multiple) {
         return Array.isArray(value)
           ? value.map((v) =>
-              String(typeof v === "object" ? v[field.optionValue || "identifier"] : v)
+              String(
+                typeof v === "object"
+                  ? v[field.optionValue || "identifier"]
+                  : v,
+              ),
             )
           : [];
       }
-      return String(typeof value === "object" ? value[field.optionValue || "identifier"] : value);
+      return String(
+        typeof value === "object"
+          ? value[field.optionValue || "identifier"]
+          : value,
+      );
     }
     return value;
   };
@@ -79,6 +87,11 @@ export default function EditFormSkeleton({
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        if (res.status !== 200 && res.status !== 201) {
+          router.push("/404");
+          return;
+        }
+
         const data = res.data;
         const prefilled = {};
         fields.forEach((field) => {
@@ -98,9 +111,12 @@ export default function EditFormSkeleton({
           modifiedBy: data.modifiedBy || "",
           modifiedOn: data.modifiedOn || "",
         });
-
       } catch (err) {
         console.error("Failed to load data:", err);
+        if (err.response.status === 404) {
+          router.push("/404");
+          return;
+        }
         setError("Failed to load data.");
       } finally {
         setLoading(false);
@@ -108,7 +124,15 @@ export default function EditFormSkeleton({
     }
 
     loadData();
-  }, [paramKey, paramValue, apiPath, token, fieldsDependency, getParamKey, tokenReady]);
+  }, [
+    paramKey,
+    paramValue,
+    apiPath,
+    token,
+    fieldsDependency,
+    getParamKey,
+    tokenReady,
+  ]);
 
   const loadDropdownData = (field) => {
     setDropdownLoading((prev) => ({ ...prev, [field.name]: true }));
@@ -120,10 +144,14 @@ export default function EditFormSkeleton({
     axios
       .get(url, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => {
+        if (res.status !== 200 && res.status !== 201) {
+          router.push("/404");
+          return;
+        }
         const data = res.data?.data || res.data || [];
         setDropdownOptions((prev) => ({ ...prev, [field.name]: data }));
       })
-      .catch(() => {
+      .catch((err) => {
         setDropdownOptions((prev) => ({ ...prev, [field.name]: [] }));
       })
       .finally(() => {
@@ -145,7 +173,9 @@ export default function EditFormSkeleton({
     const { name, value, selectedOptions } = e.target;
 
     if (field.multiple) {
-      const values = Array.from(selectedOptions).map((opt) => String(opt.value));
+      const values = Array.from(selectedOptions).map((opt) =>
+        String(opt.value),
+      );
       setFormData((prev) => ({ ...prev, [name]: values }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -164,16 +194,14 @@ export default function EditFormSkeleton({
         [paramKey]: paramValue,
       };
 
-      const res = await axios.put(
-        `${BASE_URL}/${apiPath}/update`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await axios.put(`${BASE_URL}/${apiPath}/update`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (res.status === 200 || res.status === 201) {
         setSuccess(`${title} updated successfully`);
         setTimeout(() => router.back(), 1200);
       } else {
-        setError(res.data?.message || "Update failed.");
+        router.push("/404");
       }
     } catch (err) {
       console.error(err);
@@ -190,7 +218,9 @@ export default function EditFormSkeleton({
           <h2 className="text-xl font-bold mb-6">Edit {title}</h2>
 
           {error && <div className="text-red-500 text-sm mb-3">{error}</div>}
-          {success && <div className="text-green-600 text-sm mb-3">{success}</div>}
+          {success && (
+            <div className="text-green-600 text-sm mb-3">{success}</div>
+          )}
 
           {loading ? (
             <p className="text-gray-400">Loading...</p>
@@ -210,7 +240,9 @@ export default function EditFormSkeleton({
                 const renderField = () => {
                   if (field.type === "select") {
                     if (dropdownLoading[field.name]) {
-                      return <p className="text-sm text-gray-400">Loading...</p>;
+                      return (
+                        <p className="text-sm text-gray-400">Loading...</p>
+                      );
                     }
                     return (
                       <CommonDropdown
@@ -230,7 +262,7 @@ export default function EditFormSkeleton({
                     );
                   }
                   return (
-                    <>
+                    <React.Fragment key={field.name}>
                       <label className="text-sm mb-1 block font-medium text-gray-700">
                         {field.label}
                       </label>
@@ -242,7 +274,7 @@ export default function EditFormSkeleton({
                         disabled={field.disabled || false}
                         className="w-full border p-2 rounded disabled:bg-gray-100 disabled:text-gray-500"
                       />
-                    </>
+                    </React.Fragment>
                   );
                 };
                 return <div key={field.name}>{renderField()}</div>;
@@ -254,20 +286,36 @@ export default function EditFormSkeleton({
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="font-medium block text-gray-400">Created By</span>
-                    <span className="text-gray-700 font-mono break-all">{auditData.createdBy || "System"}</span>
+                    <span className="font-medium block text-gray-400">
+                      Created By
+                    </span>
+                    <span className="text-gray-700 font-mono break-all">
+                      {auditData.createdBy || "System"}
+                    </span>
                   </div>
                   <div>
-                    <span className="font-medium block text-gray-400">Created On</span>
-                    <span className="text-gray-700">{formatDateTime(auditData.createdOn)}</span>
+                    <span className="font-medium block text-gray-400">
+                      Created On
+                    </span>
+                    <span className="text-gray-700">
+                      {formatDateTime(auditData.createdOn)}
+                    </span>
                   </div>
                   <div className="mt-1">
-                    <span className="font-medium block text-gray-400">Modified By</span>
-                    <span className="text-gray-700 font-mono break-all">{auditData.modifiedBy || "N/A"}</span>
+                    <span className="font-medium block text-gray-400">
+                      Modified By
+                    </span>
+                    <span className="text-gray-700 font-mono break-all">
+                      {auditData.modifiedBy || "N/A"}
+                    </span>
                   </div>
                   <div className="mt-1">
-                    <span className="font-medium block text-gray-400">Modified On</span>
-                    <span className="text-gray-700">{formatDateTime(auditData.modifiedOn)}</span>
+                    <span className="font-medium block text-gray-400">
+                      Modified On
+                    </span>
+                    <span className="text-gray-700">
+                      {formatDateTime(auditData.modifiedOn)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -295,21 +343,21 @@ export default function EditFormSkeleton({
   );
 }
 
-EditFormSkeleton.propTypes = {  
-  title: PropTypes.string.isRequired, 
+EditFormSkeleton.propTypes = {
+  title: PropTypes.string.isRequired,
   apiPath: PropTypes.string.isRequired,
   fields: PropTypes.arrayOf(
-    PropTypes.shape({         
+    PropTypes.shape({
       name: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired, 
-      type: PropTypes.string, 
+      label: PropTypes.string.isRequired,
+      type: PropTypes.string,
       multiple: PropTypes.bool,
-      api: PropTypes.string,  
+      api: PropTypes.string,
       optionLabel: PropTypes.string,
       optionValue: PropTypes.string,
-      endpoint: PropTypes.string, 
-      disabled: PropTypes.bool,                          
-    })
+      endpoint: PropTypes.string,
+      disabled: PropTypes.bool,
+    }),
   ).isRequired,
   paramKey: PropTypes.string,
   getParamKey: PropTypes.func,

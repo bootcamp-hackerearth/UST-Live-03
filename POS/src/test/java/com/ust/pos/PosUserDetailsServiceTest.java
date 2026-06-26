@@ -22,11 +22,13 @@ class PosUserDetailsServiceTest {
     @InjectMocks
     private PosUserDetailsService posUserDetailsService;
 
+
     @Test
     void loadUserByUsername_success() {
         UserDto userDto = new UserDto();
         userDto.setUsername("admin@test.com");
         userDto.setPassword("encodedPassword");
+        userDto.setRoles(java.util.List.of("ROLE_ADMIN")); //
 
         Mockito.when(userService.findByUserName("admin@test.com"))
                 .thenReturn(userDto);
@@ -38,6 +40,7 @@ class PosUserDetailsServiceTest {
         Assertions.assertEquals("admin@test.com", userDetails.getUsername());
         Assertions.assertEquals("encodedPassword", userDetails.getPassword());
     }
+
 
     @Test
     void loadUserByUsername_userNotFound() {

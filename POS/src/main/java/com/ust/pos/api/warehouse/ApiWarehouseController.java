@@ -6,6 +6,7 @@ import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
