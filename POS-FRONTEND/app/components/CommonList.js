@@ -82,7 +82,7 @@ const CommonList = ({
       }
     } catch (err) {
       console.error("Fetch Error:", err);
-      if (err.response.status === 500) {
+      if (err.response.status === 403 || err.response.status === 500) {
         router.push("/500");
         return;
       }

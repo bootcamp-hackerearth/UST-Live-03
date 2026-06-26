@@ -25,10 +25,6 @@ export default function InternalServerError() {
               />
             </svg>
           </div>
-
-          <h1 className="text-6xl font-extrabold text-slate-950 tracking-tight mb-2">
-            500
-          </h1>
           <h2 className="text-xl font-bold text-slate-800 tracking-tight mb-3">
             Internal Server Error
           </h2>

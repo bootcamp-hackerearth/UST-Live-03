@@ -22,7 +22,6 @@ public class BrandController extends BaseController {
     }
 
     @GetMapping("/list")
-    @PreAuthorize("hasAuthority('Manager')")
     public String list(Model model, Pageable pageable) {
         model.addAttribute("brands", brandService.findAll(pageable));
         return "brand/list";
