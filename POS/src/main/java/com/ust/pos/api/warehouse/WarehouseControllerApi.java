@@ -22,29 +22,31 @@ public class WarehouseControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortDirection());
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortfield());
         return warehouseService.findAll(pageable);
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin', 'Manager')")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public Boolean delete(@RequestBody WarehouseDto warehouseDto) {
         try {
             warehouseService.delete(warehouseDto.getIdentifier());
