@@ -1,34 +1,38 @@
 package com.ust.pos.unit.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Unit;
 import com.ust.pos.modell.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
-public class UnitServiceImpl implements UnitService {
+@RequiredArgsConstructor
+public class UnitServiceImpl extends BaseService implements UnitService {
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private UnitRepository unitRepository;
+    private final ModelMapper modelMapper;
+    private final UnitRepository unitRepository;
 
     @Override
     public UnitDto findByIdentifier(String identifier) {
-        return modelMapper.map(unitRepository.findByIdentifier(identifier), UnitDto.class
-        );
+        Unit unit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (unit == null) {
+            throw new ResourceNotFoundException("Unit with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(unit, UnitDto.class);
     }
 
     @Override
@@ -37,11 +41,22 @@ public class UnitServiceImpl implements UnitService {
         Unit existingUnit = unitRepository.findByIdentifier(identifier);
 
         if (existingUnit != null) {
+            if (Boolean.TRUE.equals(existingUnit.getDeleted())) {
+                unitDto.setMessage("Unit with Identifier " + identifier + " already exists (Soft-Deleted)");
+                unitDto.setSuccess(false);
+                return unitDto;
+            }
+
             unitDto.setMessage("Warehouse with identifier - " + identifier + " already exists");
             unitDto.setSuccess(false);
             return unitDto;
         }
+
         Unit unit = modelMapper.map(unitDto, Unit.class);
+        if (unit.getStatus() == null) {
+            unit.setStatus(true);
+        }
+        setCreatedDetails(unit);
         unitRepository.save(unit);
         return unitDto;
     }
@@ -49,15 +64,23 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public UnitDto update(UnitDto unitDto) {
         String identifier = unitDto.getIdentifier();
-        Unit existingUnit = unitRepository.findByIdentifier(identifier);
+        Unit existingUnit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
 
         if (existingUnit == null) {
-            unitDto.setMessage(
-                    "Warehouse with identifier - " + identifier + " not found");
+            unitDto.setMessage("Warehouse with identifier - " + identifier + " not found");
             unitDto.setSuccess(false);
             return unitDto;
         }
+
+        String originalCreatedBy = existingUnit.getCreatedBy();
+        java.time.LocalDateTime originalCreatedOn = existingUnit.getCreatedOn();
+
         modelMapper.map(unitDto, existingUnit);
+
+        existingUnit.setCreatedBy(originalCreatedBy);
+        existingUnit.setCreatedOn(originalCreatedOn);
+
+        setModifiedDetails(existingUnit);
         unitRepository.save(existingUnit);
         return unitDto;
     }
@@ -65,14 +88,20 @@ public class UnitServiceImpl implements UnitService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        unitRepository.deleteByIdentifier(identifier);
+        Unit unit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (unit != null) {
+            softDelete(unit);
+            setModifiedDetails(unit);
+            unitRepository.save(unit);
+        }
     }
 
     @Override
     public WsDto<UnitDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
-        Page<Unit> unitPage = unitRepository.findAll(pageable);
+
+        Page<Unit> unitPage = unitRepository.findAllByDeletedFalse(pageable);
 
         WsDto<UnitDto> unitWsDto = new WsDto<>();
         unitWsDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
@@ -87,16 +116,16 @@ public class UnitServiceImpl implements UnitService {
     @Override
     @Transactional
     public UnitDto toggleStatus(String identifier) {
-        Unit unit = unitRepository.findByIdentifier(identifier);
+        Unit unit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
 
         if (unit == null) {
-            throw new RuntimeException("Unit not found with identifier: " + identifier);
+            throw new NoSuchElementException("Unit not found with identifier: " + identifier);
         }
         Boolean currentStatus = unit.getStatus();
         unit.setStatus(currentStatus == null ? Boolean.TRUE : !currentStatus);
 
+        setModifiedDetails(unit);
         Unit saved = unitRepository.save(unit);
         return modelMapper.map(saved, UnitDto.class);
     }
-
 }

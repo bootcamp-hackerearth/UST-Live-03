@@ -31,9 +31,9 @@ export default function CategoryEditPage() {
         })
       }
  
-      updateApi={(data) =>
-        api.post("/api/category/update", data)
-      }
+updateApi={(data) => {
+  return api.put("/api/category/update", data);
+}}
  
       redirectRoute="/category/list"
       identifierParam="identifier"

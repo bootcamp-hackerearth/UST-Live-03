@@ -14,5 +14,4 @@ public interface UserService {
     void delete(String username);
 
     WsDto<UserDto> findAll(Pageable pageable);
-
 }

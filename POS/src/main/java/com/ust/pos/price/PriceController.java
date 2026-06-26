@@ -3,7 +3,7 @@ package com.ust.pos.price;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,16 +11,14 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/price")
+@RequiredArgsConstructor
 public class PriceController {
 
     public static final String REDIRECT_PRICE_LIST = "redirect:/price/list";
     public static final String PRODUCTS = "products";
 
-    @Autowired
-    private PriceService priceService;
-
-    @Autowired
-    private ProductService productService;
+    private final PriceService priceService;
+    private final ProductService productService;
 
     @GetMapping("/add")
     public String add(Model model) {
@@ -67,7 +65,6 @@ public class PriceController {
             model.addAttribute(PRODUCTS, productService.findAllActive());
             return "price/price";
         }
-
         return REDIRECT_PRICE_LIST;
     }
 

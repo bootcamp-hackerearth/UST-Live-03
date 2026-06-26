@@ -1,25 +1,20 @@
 package com.ust.pos.api.cartentry;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/cartentry")
+@RequiredArgsConstructor
 public class ApiCartEntryController extends BaseController {
 
-    @Autowired
-    private CartEntryService cartEntryService;
-
-    @Autowired
-    private CartService cartService;
+    private final CartEntryService cartEntryService;
 
     @PostMapping("/add")
     public CartEntryDto addPost(@RequestBody CartEntryDto cartEntryDto) {
@@ -28,7 +23,6 @@ public class ApiCartEntryController extends BaseController {
 
     @PostMapping("/list")
     public WsDto<CartEntryDto> list(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(
                 paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
@@ -42,4 +36,5 @@ public class ApiCartEntryController extends BaseController {
     public CartEntryDto get(@RequestParam("identifier") String identifier) {
         return cartEntryService.findByIdentifier(identifier);
     }
+
 }

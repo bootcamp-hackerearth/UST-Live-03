@@ -7,13 +7,11 @@ import java.util.List;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
+    Address findByIdentifierAndDeletedFalse(String identifier);
 
-    Address findByIdentifier(String identifier);
+    List<Address> findAllByPhoneNoAndDeletedFalse(String phoneNo);
 
-    void deleteByIdentifier(String identifier);
+    Address findByPhoneNoAndAddressTypeAndDeletedFalse(String phoneNo, String addressType);
 
-    List<Address> findAllByPhoneNo(String phoneNo);
-
-    Address findByPhoneNoAndAddressType(String phoneNo, String addressType);
-
+    List<Address> findAllByDeletedFalse();
 }

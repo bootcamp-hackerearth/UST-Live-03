@@ -5,16 +5,16 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/unit")
+@RequiredArgsConstructor
 public class ApiUnitController extends BaseController {
 
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
 
     @PostMapping("/add")
     public UnitDto addPost(@RequestBody UnitDto unitDto) {
@@ -32,22 +32,22 @@ public class ApiUnitController extends BaseController {
         return unitService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return false;
         }
         return true;
     }
 
-    @PostMapping("/toggle-status")
+    @PatchMapping("/toggle-status")
     public UnitDto toggle(@RequestParam String identifier) {
         return unitService.toggleStatus(identifier);
     }

@@ -5,23 +5,18 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
-import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/rack")
+@RequestMapping("/api/racks")
+@RequiredArgsConstructor
 public class ApiRacksController extends BaseController {
 
-    public static final String REDIRECT_LIST = "redirect:/rack/list";
-
-    @Autowired
-    private RacksService racksService;
-
-    @Autowired
-    private ShelfService shelfService;
+    private final RacksService racksService;
 
     @PostMapping("/list")
     public WsDto<RacksDto> list(@RequestBody PaginationDto paginationDto) {
@@ -39,19 +34,29 @@ public class ApiRacksController extends BaseController {
         return racksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RacksDto update(@RequestBody RacksDto rackDto) {
         return racksService.update(rackDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return true;
         }
         return false;
+    }
+
+    @GetMapping("/findallactive")
+    public List<RacksDto> findAllActive() {
+        return racksService.findAllActive();
+    }
+
+    @PatchMapping("/toggle-status")
+    public RacksDto toggle(@RequestParam String identifier) {
+        return racksService.toggleStatus(identifier);
     }
 
 }

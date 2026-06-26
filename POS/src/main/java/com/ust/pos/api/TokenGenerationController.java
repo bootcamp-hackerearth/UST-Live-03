@@ -2,9 +2,7 @@ package com.ust.pos.api;
 
 import com.ust.pos.config.JWTUtility;
 import com.ust.pos.dto.UserDto;
-import com.ust.pos.modell.UserRepository;
-import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -17,22 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class TokenGenerationController {
 
-    @Autowired
-    UserDetailsService userDetailsService;
-
-    @Autowired
-    private AuthenticationProvider authenticationProvider;
-
-    @Autowired
-    private JWTUtility jwtUtility;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserService userService;
+    private final UserDetailsService userDetailsService;
+    private final AuthenticationProvider authenticationProvider;
+    private final JWTUtility jwtUtility;
 
     @PostMapping("/api/authenticate")
     public ResponseEntity<Object> authenticate(@RequestBody UserDto userDto) {
@@ -46,10 +34,10 @@ public class TokenGenerationController {
             final String token = jwtUtility.generateToken(userDetails);
             return ResponseEntity.ok(new UserDto(token));
 
-        } catch (BadCredentialsException e) {
+        } catch (BadCredentialsException exception) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid username or password.");
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Authentication failed.");
         }
@@ -61,7 +49,7 @@ public class TokenGenerationController {
             UserDetails userDetails = userDetailsService.loadUserByUsername
                     (jwtRequest.getUsername());
             return jwtUtility.validateToken(jwtRequest.getToken(), userDetails);
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return false;
         }
     }

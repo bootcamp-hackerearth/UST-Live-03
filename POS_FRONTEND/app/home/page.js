@@ -30,7 +30,6 @@ const Home = () => {
     <Layout username={username}>
       <div className="space-y-6">
 
-        {/* LOADING */}
         {isLoading ? (
           <div className="bg-white rounded-xl p-6 text-sm text-gray-500 shadow-sm">
             Loading dashboard...

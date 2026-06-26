@@ -13,8 +13,7 @@ public interface StockService {
 
     StockDto update(StockDto stockDto);
 
-    void delete(Long id);
+    void deleteByIdentifier(String identifier);
 
     WsDto<StockDto> findAll(Pageable pageable);
-
 }

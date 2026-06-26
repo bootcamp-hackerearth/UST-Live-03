@@ -1,16 +1,16 @@
 package com.ust.pos;
 
 import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
 
-    @Autowired
-    private NodeService nodeService;
+    private final NodeService nodeService;
 
     @GetMapping("/")
     public String home(Model model) {

@@ -7,23 +7,31 @@ import com.ust.pos.modell.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StockServiceTest {
 
+    public static final String IN_STOCK = "IN_STOCK";
+    public static final String STK_P_W = "STK-P-W";
     @InjectMocks
     private StockServiceImpl service;
 
@@ -34,41 +42,62 @@ class StockServiceTest {
     private ModelMapper mapper;
 
     @Test
-    void findByIdentifierTest() {
+    void findByIdentifierSuccessTest() {
+
         Stock stock = new Stock();
-        stock.setIdentifier("STK-P-W");
+        stock.setIdentifier(STK_P_W);
+        stock.setQuantity(20);
+        stock.setMinimumStock(10);
 
-        when(repository.findByIdentifier("STK-P-W")).thenReturn(stock);
+        when(repository.findByIdentifierAndDeletedFalse(STK_P_W))
+                .thenReturn(stock);
 
-        StockDto result = service.findByIdentifier("STK-P-W");
-        assertEquals("STK-P-W", result.getIdentifier());
+        StockDto result = service.findByIdentifier(STK_P_W);
 
-        when(repository.findByIdentifier("X")).thenReturn(null);
+        assertEquals(IN_STOCK, result.getStatusLabel());
+    }
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.findByIdentifier("X"));
+    @Test
+    void findByIdentifierNotFoundTest() {
 
-        assertTrue(ex.getMessage().contains("Stock not found"));
+        when(repository.findByIdentifierAndDeletedFalse("X"))
+                .thenReturn(null);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.findByIdentifier("X")
+        );
     }
 
     @Test
     void findByIdTest() {
+
         Stock stock = new Stock();
         stock.setId(1L);
-        stock.setIdentifier("STK-P-W");
+        stock.setIdentifier(STK_P_W);
+        stock.setQuantity(20);
+        stock.setMinimumStock(10);
 
-        when(repository.findById(1L)).thenReturn(java.util.Optional.of(stock));
+        when(repository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(stock));
 
-        StockDto result = service.findById(1L);
-        assertEquals(1L, result.getId());
+        assertEquals(
+                1L,
+                service.findById(1L).getId()
+        );
 
-        when(repository.findById(99L)).thenReturn(java.util.Optional.empty());
+        when(repository.findByIdAndDeletedFalse(99L))
+                .thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> service.findById(99L));
+        assertThrows(
+                RuntimeException.class,
+                () -> service.findById(99L)
+        );
     }
 
     @Test
-    void saveTest() {
+    void saveSuccessTest() {
+
         StockDto dto = new StockDto();
         dto.setProductIdentifier("P");
         dto.setWarehouseIdentifier("W");
@@ -76,34 +105,82 @@ class StockServiceTest {
         dto.setMinimumStock(10);
 
         Stock saved = new Stock();
-        saved.setIdentifier("STK-P-W");
+        saved.setIdentifier(STK_P_W);
         saved.setQuantity(20);
         saved.setMinimumStock(10);
-        saved.setStatus(true);
+        saved.setProductIdentifier("P");
+        saved.setWarehouseIdentifier("W");
 
-        when(repository.save(any())).thenReturn(saved);
+        when(repository.findByIdentifier(STK_P_W))
+                .thenReturn(null);
+
+        when(repository.save(any()))
+                .thenReturn(saved);
 
         StockDto result = service.save(dto);
 
-        assertEquals("STK-P-W", result.getIdentifier());
-        assertTrue(result.getStatus());
+        assertEquals(IN_STOCK, result.getStatusLabel());
+    }
 
-        StockDto invalid = new StockDto();
+    @Test
+    void saveDuplicateTest() {
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.save(invalid));
+        StockDto dto = new StockDto();
+        dto.setProductIdentifier("P");
+        dto.setWarehouseIdentifier("W");
 
-        assertTrue(ex.getMessage().contains("Product & Warehouse required"));
+        Stock stock = new Stock();
+        stock.setDeleted(false);
+
+        when(repository.findByIdentifier(STK_P_W))
+                .thenReturn(stock);
+
+        StockDto result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+    }
+
+    @Test
+    void saveSoftDeletedTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProductIdentifier("P");
+        dto.setWarehouseIdentifier("W");
+
+        Stock stock = new Stock();
+        stock.setDeleted(true);
+
+        when(repository.findByIdentifier(STK_P_W))
+                .thenReturn(stock);
+
+        StockDto result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+    }
+
+    @Test
+    void saveValidationTest() {
+        StockDto stockDto = new StockDto();
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.save(stockDto)
+        );
     }
 
     @Test
     void updateTest() {
-        Stock existing = new Stock();
-        existing.setId(1L);
-        existing.setIdentifier("OLD");
 
-        when(repository.findById(1L)).thenReturn(java.util.Optional.of(existing));
-        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+        Stock stock = new Stock();
+        stock.setId(1L);
+        stock.setCreatedBy("admin");
+        stock.setCreatedOn(LocalDateTime.now());
+
+        when(repository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(stock));
+
+        when(repository.save(any()))
+                .thenAnswer(i -> i.getArgument(0));
 
         StockDto dto = new StockDto();
         dto.setId(1L);
@@ -114,50 +191,118 @@ class StockServiceTest {
 
         StockDto result = service.update(dto);
 
-        assertEquals("STK-P-W", result.getIdentifier());
-        assertFalse(result.getStatus());
+        assertEquals("LOW_STOCK", result.getStatusLabel());
 
-        when(repository.findById(99L)).thenReturn(java.util.Optional.empty());
+        when(repository.findByIdAndDeletedFalse(99L))
+                .thenReturn(Optional.empty());
 
-        StockDto fail = new StockDto();
-        fail.setId(99L);
+        StockDto notFound = new StockDto();
+        notFound.setId(99L);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.update(fail));
-
-        assertEquals("Stock not found", ex.getMessage());
+        assertThrows(
+                RuntimeException.class,
+                () -> service.update(notFound)
+        );
     }
 
     @Test
-    void deleteTest() {
-        service.delete(1L);
-        verify(repository).deleteById(1L);
-    }
-
-    @Test
-    void findAllTest() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Type type = new TypeToken<List<StockDto>>(){}.getType();
+    void deleteByIdentifierTest() {
 
         Stock stock = new Stock();
-        stock.setIdentifier("STK-P-W");
+
+        when(repository.findByIdentifierAndDeletedFalse("STK"))
+                .thenReturn(stock)
+                .thenReturn(null);
+
+        service.deleteByIdentifier("STK");
+
+        verify(repository).save(stock);
+
+        service.deleteByIdentifier("STK");
+    }
+
+    @Test
+    void findAllInStockTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Stock stock = new Stock();
+        stock.setQuantity(20);
+        stock.setMinimumStock(10);
 
         StockDto dto = new StockDto();
-        dto.setIdentifier("STK-P-W");
 
-        Page<Stock> page = new PageImpl<>(List.of(stock), pageable, 1);
+        Page<Stock> page =
+                new PageImpl<>(List.of(stock), pageable, 1);
 
-        when(repository.findAll(pageable)).thenReturn(page);
-        when(mapper.map(page.getContent(), type)).thenReturn(List.of(dto));
+        when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(mapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(dto));
 
         WsDto<StockDto> result = service.findAll(pageable);
-        assertEquals(1, result.getDtoList().size());
 
-        Page<Stock> empty = new PageImpl<>(List.of(), pageable, 0);
-        when(repository.findAll(pageable)).thenReturn(empty);
-        when(mapper.map(empty.getContent(), type)).thenReturn(List.of());
+        assertEquals(
+                IN_STOCK,
+                result.getDtoList().get(0).getStatusLabel()
+        );
+    }
 
-        WsDto<StockDto> emptyResult = service.findAll(pageable);
-        assertTrue(emptyResult.getDtoList().isEmpty());
+    @Test
+    void findAllLowAndOutStockTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Stock low = new Stock();
+        low.setQuantity(5);
+        low.setMinimumStock(10);
+
+        Stock out = new Stock();
+        out.setQuantity(0);
+        out.setMinimumStock(10);
+
+        StockDto dto1 = new StockDto();
+        StockDto dto2 = new StockDto();
+
+        Page<Stock> page =
+                new PageImpl<>(List.of(low, out), pageable, 2);
+
+        when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(mapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(dto1, dto2));
+
+        WsDto<StockDto> result = service.findAll(pageable);
+
+        assertEquals(
+                "LOW_STOCK",
+                result.getDtoList().get(0).getStatusLabel()
+        );
+
+        assertEquals(
+                "OUT_OF_STOCK",
+                result.getDtoList().get(1).getStatusLabel()
+        );
+    }
+
+    @Test
+    void findAllEmptyTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Stock> page =
+                new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(mapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.emptyList());
+
+        WsDto<StockDto> result = service.findAll(pageable);
+
+        assertTrue(result.getDtoList().isEmpty());
     }
 }

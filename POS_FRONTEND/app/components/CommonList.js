@@ -21,7 +21,7 @@ function CommonList({
   toggleApi,
   toggleParam = "identifier",
   toggleField = "status",
-  toggleMethod = "POST",
+  toggleMethod="PATCH",
   sortField = "id",
   sortOrder = "ASC",
   itemsPerPage = 5,
@@ -90,7 +90,15 @@ function CommonList({
       setTotalRecords(res.data?.totalRecords || 0);
       setTotalPages(res.data?.totalPage || 0);
 
-    } catch {
+    } catch (err) {
+      const status = err.response?.status;
+
+      if (status === 401 || status === 403 || status >= 500) {
+        router.push("/403");
+        return;
+      }
+
+      console.error(err);
       triggerToast("Failed to fetch data");
     } finally {
       setLoading(false);
@@ -115,13 +123,14 @@ function CommonList({
     if (!confirm("Delete this record?")) return;
 
     try {
-      await api.get(deleteApi, {
+      await api.delete(deleteApi, {
         params: { [deleteParam]: row[deleteParam] },
       });
 
       triggerToast("Deleted successfully");
       fetchData();
-    } catch {
+    } catch (err) {
+      console.error(err);
       triggerToast("Delete failed");
     }
   };
@@ -156,16 +165,16 @@ function CommonList({
 
     try {
       await api({
-        method: toggleMethod,
+        method: toggleMethod.toLowerCase(),
         url: toggleApi,
         params: { [toggleParam]: id },
       });
 
       triggerToast("Status updated");
     } catch (err) {
-      console.log(err);
+      console.error(err);
       triggerToast("Toggle failed");
-      fetchData();
+      fetchData(); 
     }
   };
 

@@ -2,7 +2,7 @@ package com.ust.pos.unit;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/unit")
+@RequiredArgsConstructor
 public class UnitController {
 
     public static final String REDIRECT_UNIT_LIST = "redirect:/unit/list";
 
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
 
     @GetMapping("/add")
     public String add(Model model) {
@@ -32,7 +32,6 @@ public class UnitController {
             model.addAttribute("unit", unitDto);
             return "unit/add";
         }
-
         return REDIRECT_UNIT_LIST;
     }
 
@@ -58,7 +57,6 @@ public class UnitController {
             model.addAttribute("message", response.getMessage());
             return "unit/unit";
         }
-
         return REDIRECT_UNIT_LIST;
     }
 

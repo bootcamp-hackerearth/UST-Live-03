@@ -5,22 +5,21 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/brand")
+@RequiredArgsConstructor
 public class ApiBrandController extends BaseController {
 
-    @Autowired
-    private BrandService brandService;
+    private final BrandService brandService;
 
     @PostMapping("/add")
     public BrandDto addPost(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
-
     }
 
     @PostMapping("/list")
@@ -32,21 +31,26 @@ public class ApiBrandController extends BaseController {
     @GetMapping("/get")
     public BrandDto get(@RequestParam("identifier") String identifier) {
         return brandService.findByIdentifier(identifier);
-
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam("identifier") String identifier) {
         try {
             brandService.delete(identifier);
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return false;
         }
         return true;
     }
+
+    @PatchMapping("/toggle-status")
+    public void toggle(@RequestParam String identifier) {
+        brandService.toggleStatus(identifier);
+    }
+
 }

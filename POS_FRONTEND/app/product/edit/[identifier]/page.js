@@ -15,7 +15,7 @@ export default function ProductEditPage() {
         return res;
       }}
       updateApi={(data) => {
-        return api.post("/api/product/update", data);
+        return api.put("/api/product/update", data);
       }}
       redirectRoute="/product/list"
       identifierParam="identifier"

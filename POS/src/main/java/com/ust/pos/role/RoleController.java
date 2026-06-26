@@ -2,7 +2,7 @@ package com.ust.pos.role;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/role")
+@RequiredArgsConstructor
 public class RoleController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/role/list";
     public static final String ROLES = "roles";
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -64,9 +64,4 @@ public class RoleController {
         return REDIRECT_ROLE_LIST;
     }
 
-    @GetMapping("/toggle")
-    public String toggle(@RequestParam String identifier) {
-        roleService.toggleStatus(identifier);
-        return REDIRECT_ROLE_LIST;
-    }
 }

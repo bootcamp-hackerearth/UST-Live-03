@@ -5,7 +5,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +13,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/shelf")
+@RequiredArgsConstructor
 public class ApiShelfController extends BaseController {
 
-    @Autowired
-    private ShelfService shelfService;
+    private final ShelfService shelfService;
 
     @PostMapping("/add")
     public ShelfDto addPost(@RequestBody ShelfDto shelfDto) {
@@ -34,16 +34,16 @@ public class ApiShelfController extends BaseController {
         return shelfService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfDto updatePost(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfService.delete(identifier);
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return false;
         }
         return true;
@@ -59,7 +59,7 @@ public class ApiShelfController extends BaseController {
         return shelfService.findAllActive();
     }
 
-    @PostMapping("/toggle-status")
+    @PatchMapping("/toggle-status")
     public ShelfDto toggle(@RequestParam String identifier) {
         return shelfService.toggleStatus(identifier);
     }

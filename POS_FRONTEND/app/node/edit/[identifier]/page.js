@@ -32,9 +32,9 @@ export default function NodeEditPage() {
         return res;
       }}
  
-      updateApi={async (data) => {
-        return await api.post("/api/node/update", data);
-      }}
+     updateApi={async (data) => {
+  return await api.put("/api/node/update", data); 
+}}
  
       redirectRoute="/node/list"
  

@@ -5,7 +5,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class ApiUserController extends BaseController {
 
     public static final String MESSAGE = "message";
     public static final String ROLES = "roles";
     public static final String USER_USER = "user/user";
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @PostMapping("/list")
     public WsDto<UserDto> list(@RequestBody PaginationDto paginationDto) {
@@ -39,12 +39,12 @@ public class ApiUserController extends BaseController {
         return userService.findByUserName(username);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto, @RequestParam String oldUsername) {
         return userService.update(oldUsername, userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String username) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -58,9 +58,10 @@ public class ApiUserController extends BaseController {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return false;
         }
         return true;
     }
+
 }

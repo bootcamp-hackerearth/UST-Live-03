@@ -12,7 +12,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-
 @OpenAPIDefinition(
         servers = {
                 @Server(url = "/", description = "Default Server URL")

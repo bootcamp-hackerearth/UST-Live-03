@@ -9,5 +9,4 @@ import lombok.Setter;
 public class BrandDto extends CommonDto {
     @Column(length = 500)
     private String description;
-
 }

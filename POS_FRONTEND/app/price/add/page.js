@@ -53,18 +53,28 @@ export default function PriceAddPage() {
           type: "number",
         },
 
-        {
-          label: "Price Type",
-          name: "type",
-          type: "dropdown",
-          options: [
-            { identifier: "MRP" },
-            { identifier: "SELLING" },
-          ],
-          optionLabel: "identifier",
-          optionValue: "identifier",
-          placeholder: "Select Price Type",
-        },
+      {
+  label: "Price Type",
+  name: "priceType",
+  type: "dropdown",
+  options: [
+    {
+      identifier: "MRP",
+      label: "MRP"
+    },
+    {
+      identifier: "SELLING_PRICE",
+      label: "Selling Price"
+    },
+    {
+      identifier: "COST_PRICE",
+      label: "Cost Price"
+    }
+  ],
+  optionLabel: "label",
+  optionValue: "identifier",
+  placeholder: "Select Price Type",
+}
       ]}
     />
   );

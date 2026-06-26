@@ -4,25 +4,17 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.product.service.ProductService;
 import com.ust.pos.stock.service.StockService;
-import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/stock")
+@RequiredArgsConstructor
 public class ApiStockController extends BaseController {
 
-    @Autowired
-    private StockService stockService;
-
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private WarehouseService warehouseService;
+    private final StockService stockService;
 
     @PostMapping("/add")
     public StockDto addPost(@RequestBody StockDto stockDto) {
@@ -40,19 +32,19 @@ public class ApiStockController extends BaseController {
         return stockService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam Long id) {
+    @DeleteMapping("/deleteByIdentifier")
+    public boolean deleteByIdentifier(@RequestParam String identifier) {
         try {
-            stockService.delete(id);
-        } catch (Exception e) {
+            stockService.deleteByIdentifier(identifier);
+            return true;
+        } catch (Exception exception) {
             return false;
         }
-        return true;
     }
 
 }

@@ -3,7 +3,7 @@ package com.ust.pos.racks;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.racks.service.RacksService;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,16 +12,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/rack")
+@RequiredArgsConstructor
 public class RacksController {
 
     public static final String REDIRECT_LIST = "redirect:/rack/list";
     public static final String SUCCESS_MESSAGE = "successMessage";
 
-    @Autowired
-    private RacksService racksService;
-
-    @Autowired
-    private ShelfService shelfService;
+    private final RacksService racksService;
+    private final ShelfService shelfService;
 
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
@@ -41,17 +39,11 @@ public class RacksController {
         RacksDto response = racksService.save(racksDto);
 
         if (!response.isSuccess()) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    response.getMessage()
-            );
+            redirectAttributes.addFlashAttribute("errorMessage", response.getMessage());
             return "redirect:/rack/add";
         }
 
-        redirectAttributes.addFlashAttribute(
-                SUCCESS_MESSAGE,
-                "Rack added successfully"
-        );
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Rack added successfully");
         return REDIRECT_LIST;
     }
 

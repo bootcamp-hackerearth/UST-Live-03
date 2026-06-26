@@ -9,4 +9,5 @@ import java.util.List;
 @Setter
 public class RacksDto extends CommonDto {
     private List<String> shelfs;
+    private String shelfIdentifier;
 }

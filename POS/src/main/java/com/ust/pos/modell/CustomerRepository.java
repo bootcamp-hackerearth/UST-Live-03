@@ -1,5 +1,7 @@
 package com.ust.pos.modell;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -7,13 +9,13 @@ import java.util.List;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
-
     Customer findByPhoneNo(String phoneNo);
 
-    Customer findById(String identifier);
+    Customer findByPhoneNoAndDeletedFalse(String phoneNo);
 
-    void deleteByPhoneNo(String phoneNo);
+    Customer findByIdAndDeletedFalse(String identifier);
 
-    List<Customer> findByStatusIsTrue();
+    Page<Customer> findAllByDeletedFalse(Pageable pageable);
 
+    List<Customer> findByStatusIsTrueAndDeletedFalse();
 }

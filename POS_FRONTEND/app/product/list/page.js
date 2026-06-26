@@ -21,7 +21,7 @@ export default function ProductPage() {
       toggleApi="/api/product/toggle-status"
       toggleParam="identifier"
       toggleField="status"
-      toggleMethod="POST"
+      toggleMethod="PATCH"
  
       columns={[
         { header: "ID", field: "id" },

@@ -10,6 +10,7 @@ import Layout from "./Layout";
 export default function CommonAddPage({
   title = "Add",
   submitApi,
+  method = "post",
   redirectRoute,
   fields = [],
   initialValues = {},
@@ -20,63 +21,83 @@ export default function CommonAddPage({
   const [formData, setFormData] = useState(initialValues);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(null);
+  
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target; 
+
+    if (name === "phoneNo") {
+      value = value.replaceAll(/\D/g, "").slice(0, 10);
+    }
 
     let parsedValue = value;
-
     if (value === "true") parsedValue = true;
     if (value === "false") parsedValue = false;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: parsedValue,
-    }));
+    const keys = name.split(".");
 
-    setErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
-  };
+    setFormData((prev) => {
+      const updated = { ...prev };
+      let temp = updated;
+
+      keys.forEach((key, index) => {
+        if (index === keys.length - 1) {
+          temp[key] = parsedValue;
+        } else {
+          if (!temp[key]) temp[key] = {}; 
+          temp = temp[key];
+        }
+      });
+
+      return updated;
+    });
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    setServerError(null);
+    };
+
+  
 
   const validate = () => {
-    const newErrors = {};
+  const newErrors = {};
 
-    fields.forEach((f) => {
-      const val = formData[f.name];
+  fields.forEach((f) => {
+    if (f.type === "checkbox-action" || f.readOnly) return;
 
-      if (f.type === "dropdown" && f.multiple) {
-        if (!Array.isArray(val) || val.length === 0) {
-          newErrors[f.name] = "Required";
-        }
-        return;
-      }
+    let val = getValue(formData, f.name);
+    const isEmpty = val === undefined || val === null || val === "";
+    
+    if (isEmpty) {
+      newErrors[f.name] = `${f.label || "This field"} is required`;
+      return;
+    }
 
-      if (
-        val === "" ||
-        val === null ||
-        val === undefined
-      ) {
-        newErrors[f.name] = "Required";
-      }
-    });
+    if (f.validation?.pattern && !f.validation.pattern.test(String(val))) {
+      newErrors[f.name] = f.validation.message || "Invalid format";
+    }
+  });
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     try {
       setLoading(true);
+      setServerError(null);
 
       const response =
         typeof submitApi === "function"
           ? await submitApi(formData)
-          : await api.post(submitApi, formData);
+          : await api[method.toLowerCase()](submitApi, formData);
+
+          if (response?.data?.success === false) {
+        setServerError(response.data.message || "Operation failed.");
+        setLoading(false);
+        return;
+      }
 
       console.log(" SUCCESS:", response?.data);
 
@@ -87,14 +108,29 @@ export default function CommonAddPage({
         err.response?.data || err.message
       );
 
-      alert(
-        err.response?.data?.message ||
-          "Failed to save."
-      );
+      alert(err.response?.data?.message || "Failed to save.");
     } finally {
       setLoading(false);
     }
-  };
+  };const renderCheckboxAction = (f) => (
+  <div className="md:col-span-2 py-2">
+    <label className="flex items-center gap-2 text-sm font-bold text-blue-700 cursor-pointer">
+      <input
+        type="checkbox"
+        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+        onChange={(e) => {
+          if (e.target.checked) {
+            setFormData((prev) => ({
+              ...prev,
+              shippingAddress: { ...prev.billingAddress }
+            }));
+          }
+        }}
+      />
+      {f.label}
+    </label>
+  </div>
+);
 
 
   const renderInput = (f, val) => (
@@ -103,6 +139,7 @@ export default function CommonAddPage({
       name={f.name}
       value={val}
       onChange={handleChange}
+      disabled={f.readOnly}
       className="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600"
     />
   );
@@ -117,8 +154,13 @@ export default function CommonAddPage({
   );
 
   const renderDropdown = (f, val) => (
-    <CommonDropDown {...f} value={val} onChange={handleChange} />
-  );
+  <CommonDropDown
+    key={f.name}
+    {...f}
+    value={val}
+    onChange={handleChange}
+  />
+);
 
   const renderRadio = (f, val) => (
     <div className="flex gap-4 mt-2">
@@ -146,12 +188,16 @@ export default function CommonAddPage({
     textarea: renderTextarea,
     dropdown: renderDropdown,
     radio: renderRadio,
+    "checkbox-action": renderCheckboxAction,
+  };
+
+  const getValue = (obj, path) => {
+    return path.split(".").reduce((acc, key) => acc?.[key], obj);
   };
 
   const renderField = (f) => {
     const val =
-      formData[f.name] ??
-      (f.multiple ? [] : ""); 
+      getValue(formData, f.name) ?? (f.multiple ? [] : "");
 
     const renderer = fieldRenderers[f.type];
     return renderer ? renderer(f, val) : null;
@@ -162,7 +208,7 @@ export default function CommonAddPage({
       <div className="flex justify-center py-6">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border border-blue-50">
 
-          <div className="px-6 py-5 border-b border-blue-50 flex justify-between items-center">
+          <div className="px-6 py-5 border-b flex justify-between items-center">
             <h2 className="text-xl font-bold text-blue-900">
               {title}
             </h2>
@@ -178,13 +224,20 @@ export default function CommonAddPage({
           <form onSubmit={handleSubmit} className="p-6">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {serverError && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                {serverError}
+              </div>
+            )}
               {fields.map((f) => (
                 <div key={f.name}>
                   <label className="text-sm font-medium text-gray-700">
                     {f.label}
                   </label>
 
+
                   {renderField(f)}
+                  
 
                   {errors[f.name] && (
                     <p className="text-red-500 text-xs mt-1">
@@ -226,6 +279,14 @@ CommonAddPage.propTypes = {
     PropTypes.string,
     PropTypes.func,
   ]),
+  
+method: PropTypes.oneOf([
+  "get",
+  "post",
+  "put",
+  "patch",
+  "delete",
+]),
   redirectRoute: PropTypes.string,
   fields: PropTypes.array,
   initialValues: PropTypes.object,

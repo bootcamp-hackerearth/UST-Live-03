@@ -10,5 +10,4 @@ public interface CartEntryService {
     CartEntryDto findByIdentifier(String identifier);
 
     WsDto<CartEntryDto> findAll(Pageable pageable);
-
 }

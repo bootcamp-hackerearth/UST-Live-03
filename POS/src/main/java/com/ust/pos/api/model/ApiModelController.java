@@ -5,17 +5,16 @@ import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/model")
+@RequiredArgsConstructor
 public class ApiModelController extends BaseController {
 
-    @Autowired
-    private ModelService modelService;
+    private final ModelService modelService;
 
     @PostMapping("/add")
     public ModelDto addPost(@RequestBody ModelDto modelDto) {
@@ -33,22 +32,22 @@ public class ApiModelController extends BaseController {
         return modelService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ModelDto updatePost(@RequestBody ModelDto modelDto) {
         return modelService.update(modelDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.delete(identifier);
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return false;
         }
         return true;
     }
 
-    @PostMapping("/toggle-status")
+    @PatchMapping("/toggle-status")
     public void toggle(@RequestParam String identifier) {
         modelService.toggleStatus(identifier);
     }

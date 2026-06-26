@@ -4,7 +4,6 @@ import com.ust.pos.dto.RoleDto;
 import com.ust.pos.modell.Role;
 
 public interface RoleDao {
-
     Role findByIdentifier(String identifier);
 
     Role save(RoleDto roleDto);
@@ -12,5 +11,4 @@ public interface RoleDao {
     Role update(RoleDto roleDto);
 
     void deleteByIdentifier(String identifier);
-
 }

@@ -5,7 +5,6 @@ import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
 public interface UnitService {
-
     UnitDto findByIdentifier(String identifier);
 
     UnitDto save(UnitDto unitDto);

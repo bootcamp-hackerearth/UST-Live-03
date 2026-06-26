@@ -7,19 +7,24 @@ import com.ust.pos.modell.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UnitServiceTest {
@@ -35,123 +40,236 @@ class UnitServiceTest {
 
     @Test
     void findByIdentifierTest() {
+
         Unit unit = new Unit();
-        unit.setIdentifier("KG");
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("KG");
 
-        when(repository.findByIdentifier("KG")).thenReturn(unit);
-        when(mapper.map(unit, UnitDto.class)).thenReturn(dto);
+        when(repository.findByIdentifierAndDeletedFalse("KG"))
+                .thenReturn(unit);
 
-        assertEquals("KG", service.findByIdentifier("KG").getIdentifier());
+        when(mapper.map(unit, UnitDto.class))
+                .thenReturn(dto);
 
-        when(repository.findByIdentifier("X")).thenReturn(null);
-        when(mapper.map(null, UnitDto.class)).thenReturn(null);
-
-        assertNull(service.findByIdentifier("X"));
+        assertNotNull(service.findByIdentifier("KG"));
     }
 
     @Test
-    void saveTest() {
+    void saveSuccessTest() {
+
         UnitDto dto = new UnitDto();
         dto.setIdentifier("KG");
-        Unit unit = new Unit();
-        unit.setIdentifier("KG");
 
-        when(repository.findByIdentifier("KG")).thenReturn(null);
-        when(mapper.map(dto, Unit.class)).thenReturn(unit);
+        Unit unit = new Unit();
+        unit.setStatus(null);
+
+        when(repository.findByIdentifier("KG"))
+                .thenReturn(null);
+
+        when(mapper.map(dto, Unit.class))
+                .thenReturn(unit);
 
         UnitDto result = service.save(dto);
+
         verify(repository).save(unit);
-        assertTrue(result.getMessage() == null || result.isSuccess());
 
-        when(repository.findByIdentifier("KG")).thenReturn(unit);
-
-        UnitDto duplicate = service.save(dto);
-        assertFalse(duplicate.isSuccess());
-        assertTrue(duplicate.getMessage().contains("already exists"));
+        assertEquals("KG", result.getIdentifier());
+        assertTrue(unit.getStatus());
     }
 
     @Test
-    void updateTest() {
+    void saveDuplicateTest() {
+
         UnitDto dto = new UnitDto();
         dto.setIdentifier("KG");
+
+        Unit existing = new Unit();
+        existing.setDeleted(false);
+
+        when(repository.findByIdentifier("KG"))
+                .thenReturn(existing);
+
+        UnitDto result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+
+        assertEquals(
+                "Warehouse with identifier - KG already exists",
+                result.getMessage()
+        );
+    }
+
+    @Test
+    void saveSoftDeletedTest() {
+
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("KG");
+
+        Unit existing = new Unit();
+        existing.setDeleted(true);
+
+        when(repository.findByIdentifier("KG"))
+                .thenReturn(existing);
+
+        UnitDto result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+
+        assertEquals(
+                "Unit with Identifier KG already exists (Soft-Deleted)",
+                result.getMessage()
+        );
+    }
+
+    @Test
+    void updateSuccessTest() {
+
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("KG");
+
         Unit unit = new Unit();
         unit.setIdentifier("KG");
+        unit.setCreatedBy("admin");
+        unit.setCreatedOn(LocalDateTime.now());
 
-        when(repository.findByIdentifier("KG")).thenReturn(unit);
+        when(repository.findByIdentifierAndDeletedFalse("KG"))
+                .thenReturn(unit);
 
-        service.update(dto);
+        UnitDto result = service.update(dto);
+
         verify(mapper).map(dto, unit);
         verify(repository).save(unit);
 
-        when(repository.findByIdentifier("X")).thenReturn(null);
-        dto.setIdentifier("X");
+        assertNotNull(result);
+    }
 
-        UnitDto failure = service.update(dto);
-        assertFalse(failure.isSuccess());
-        assertTrue(failure.getMessage().contains("not found"));
+    @Test
+    void updateNotFoundTest() {
+
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("KG");
+
+        when(repository.findByIdentifierAndDeletedFalse("KG"))
+                .thenReturn(null);
+
+        UnitDto result = service.update(dto);
+
+        assertFalse(result.isSuccess());
+
+        assertEquals(
+                "Warehouse with identifier - KG not found",
+                result.getMessage()
+        );
     }
 
     @Test
     void deleteTest() {
+
+        Unit unit = new Unit();
+
+        when(repository.findByIdentifierAndDeletedFalse("KG"))
+                .thenReturn(unit)
+                .thenReturn(null);
+
         service.delete("KG");
-        verify(repository).deleteByIdentifier("KG");
+
+        verify(repository).save(unit);
+
+        service.delete("KG");
     }
 
     @Test
     void findAllTest() {
+
         Pageable pageable = PageRequest.of(0, 10);
-        Type type = new TypeToken<List<UnitDto>>(){}.getType();
 
-        Unit unit = new Unit();
-        unit.setIdentifier("KG");
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("KG");
+        Page<Unit> page =
+                new PageImpl<>(List.of(new Unit()), pageable, 1);
 
-        Page<Unit> page = new PageImpl<>(List.of(unit), pageable, 1);
-        when(repository.findAll(pageable)).thenReturn(page);
-        when(mapper.map(page.getContent(), type)).thenReturn(List.of(dto));
+        when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(mapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(new UnitDto()));
 
         WsDto<UnitDto> result = service.findAll(pageable);
+
         assertEquals(1, result.getDtoList().size());
-
-        Page<Unit> emptyPage = new PageImpl<>(List.of(), pageable, 0);
-        when(repository.findAll(pageable)).thenReturn(emptyPage);
-        when(mapper.map(emptyPage.getContent(), type)).thenReturn(List.of());
-
-        WsDto<UnitDto> empty = service.findAll(pageable);
-        assertTrue(empty.getDtoList().isEmpty());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
     }
 
     @Test
-    void toggleStatusTest() {
-        Unit unit = new Unit();
-        unit.setIdentifier("KG");
-        unit.setStatus(true);
+    void findAllEmptyTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Unit> page =
+                new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(mapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.emptyList());
+
+        WsDto<UnitDto> result = service.findAll(pageable);
+
+        assertTrue(result.getDtoList().isEmpty());
+    }
+
+    @Test
+    void toggleStatusSuccessAndNullStatusTest() {
+
+        Unit activeUnit = new Unit();
+        activeUnit.setStatus(true);
 
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("KG");
 
-        when(repository.findByIdentifier("KG")).thenReturn(unit);
+        when(repository.findByIdentifierAndDeletedFalse("KG"))
+                .thenReturn(activeUnit);
 
-        when(repository.save(any(Unit.class))).thenReturn(unit);
+        when(repository.save(activeUnit))
+                .thenReturn(activeUnit);
 
-        when(mapper.map(any(Unit.class), eq(UnitDto.class))).thenReturn(dto);
+        when(mapper.map(activeUnit, UnitDto.class))
+                .thenReturn(dto);
 
         service.toggleStatus("KG");
-        assertFalse(unit.getStatus());
 
-        service.toggleStatus("KG");
-        assertTrue(unit.getStatus());
+        assertFalse(activeUnit.getStatus());
 
-        verify(repository, times(2)).save(unit);
+        Unit nullStatusUnit = new Unit();
+        nullStatusUnit.setStatus(null);
 
-        when(repository.findByIdentifier("X")).thenReturn(null);
+        when(repository.findByIdentifierAndDeletedFalse("KG2"))
+                .thenReturn(nullStatusUnit);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.toggleStatus("X"));
+        when(repository.save(nullStatusUnit))
+                .thenReturn(nullStatusUnit);
 
-        assertTrue(ex.getMessage().contains("Unit not found with identifier"));
+        when(mapper.map(nullStatusUnit, UnitDto.class))
+                .thenReturn(dto);
+
+        service.toggleStatus("KG2");
+
+        assertTrue(nullStatusUnit.getStatus());
+    }
+
+    @Test
+    void toggleStatusNotFoundTest() {
+
+        when(repository.findByIdentifierAndDeletedFalse("KG"))
+                .thenReturn(null);
+
+        RuntimeException exception =
+                assertThrows(
+                        RuntimeException.class,
+                        () -> service.toggleStatus("KG")
+                );
+
+        assertEquals(
+                "Unit not found with identifier: KG",
+                exception.getMessage()
+        );
     }
 }

@@ -1,15 +1,17 @@
 package com.ust.pos.modell;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface CartEntryRepository extends JpaRepository<CartEntry,Long> {
+public interface CartEntryRepository extends JpaRepository<CartEntry, Long> {
     CartEntry findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String identifier);
+    CartEntry findByIdentifierAndDeletedFalse(String identifier);
 
-    List<CartEntry> findByCartIdentifier(String cartIdentifier);
+    Page<CartEntry> findAllByDeletedFalse(Pageable pageable);
 
-    void deleteByCartIdentifier(String cartIdentifier);
+    List<CartEntry> findByCartIdentifierAndDeletedFalse(String cartIdentifier);
 }

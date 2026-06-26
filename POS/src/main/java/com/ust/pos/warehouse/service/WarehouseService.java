@@ -20,5 +20,4 @@ public interface WarehouseService {
     void toggleStatus(String identifier);
 
     List<WarehouseDto> findAllActive();
-
 }

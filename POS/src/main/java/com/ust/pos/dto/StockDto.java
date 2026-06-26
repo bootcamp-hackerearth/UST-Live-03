@@ -10,4 +10,5 @@ public class StockDto extends CommonDto {
     private String warehouseIdentifier;
     private Integer quantity;
     private Integer minimumStock;
+    private String statusLabel;
 }

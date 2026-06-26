@@ -1,13 +1,17 @@
 package com.ust.pos.modell;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 
-@Repository
 public interface StockRepository extends JpaRepository<Stock, Long> {
-
     Stock findByIdentifier(String identifier);
 
-    void deleteById(Long id);
+    Stock findByIdentifierAndDeletedFalse(String identifier);
+
+    Optional<Stock> findByIdAndDeletedFalse(Long id);
+
+    Page<Stock> findAllByDeletedFalse(Pageable pageable);
 }

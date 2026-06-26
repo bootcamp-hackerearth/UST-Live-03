@@ -2,25 +2,20 @@ package com.ust.pos.api.cart;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.cart.service.CartService;
-import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/cart")
+@RequiredArgsConstructor
 public class ApiCartController extends BaseController {
 
-    @Autowired
-    private CartService cartService;
-
-    @Autowired
-    private CartEntryService cartEntryService;
+    private final CartService cartService;
 
     @PostMapping("/add")
     public CartDto addPost(@RequestBody CartDto cartDto) {
@@ -48,17 +43,17 @@ public class ApiCartController extends BaseController {
         return cartService.findByIdentifier(identifier);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             cartService.delete(identifier);
             return true;
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return false;
         }
     }
 
-    @GetMapping("/clear")
+    @PostMapping("/clear")
     public CartDto clearCart(@RequestParam String cartIdentifier) {
         cartService.clearCart(cartIdentifier);
         return cartService.findByIdentifier(cartIdentifier);

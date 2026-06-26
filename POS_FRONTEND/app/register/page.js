@@ -96,13 +96,18 @@ export default function Register() {
     err.roles = "Select at least one role";
   }
 
-  if (formData.password.length < 6) {
-    err.password = "Min 6 characters";
-  }
+  
+const userPassword = formData.password;
+const confirmUserPassword = formData.confirmPassword;
 
-  if (formData.password !== formData.confirmPassword) {
-    err.confirmPassword = "Passwords do not match";
-  }
+if (userPassword.length < 6) {
+  err.password = "Min 6 characters";
+}
+
+if (userPassword !== confirmUserPassword) {
+  err.confirmPassword = "Passwords do not match";
+}
+
 
   setErrors(err);
   return Object.keys(err).length === 0;
@@ -133,7 +138,6 @@ export default function Register() {
   return (
     <div className="min-h-screen flex">
 
-      {/* LEFT SIDE (same as login) */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#020617] via-[#020c2f] to-[#0a1f66] text-white flex-col justify-center px-16">
         <h1 className="text-4xl font-bold">Join Us </h1>
         <p className="mt-4 text-blue-200 text-lg">
