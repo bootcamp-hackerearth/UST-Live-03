@@ -4,52 +4,54 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/cartentry")
+@RequestMapping("/api/cartEntry")
 public class CartEntryApiController extends BaseController {
-    @Autowired
-    CartEntryService cartEntryService;
 
-    @PostMapping("/add")
-    public CartEntryDto addPost(@RequestBody CartEntryDto cartEntryDto) {
-        return cartEntryService.save(cartEntryDto);
+    private final CartEntryService cartEntryService;
+
+    public CartEntryApiController(CartEntryService cartEntryService) {
+        this.cartEntryService = cartEntryService;
     }
 
     @PostMapping("/list")
-    public List<CartEntryDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
+    public List<CartEntryDto> list(@RequestBody PaginationDto pagination) {
+        Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
+                pagination.getSortDirection(), pagination.getSortField());
         return cartEntryService.findAll(pageable);
     }
 
+    @PostMapping("/add")
+    public CartEntryDto add(@RequestBody CartEntryDto dto) {
+        return cartEntryService.save(dto);
+    }
+
     @GetMapping("/get")
-    public CartEntryDto update(@RequestParam String identifier) {
+    public CartEntryDto get(@RequestParam String identifier) {
         return cartEntryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public CartEntryDto updatePost(@RequestBody CartEntryDto cartEntryDto) {
-        return cartEntryService.update(cartEntryDto);
+    @PutMapping("/update")
+    public CartEntryDto update(@RequestBody CartEntryDto dto) {
+        return cartEntryService.update(dto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(@RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public CartEntryDto delete(@RequestBody CartEntryDto dto) {
+        CartEntryDto response = new CartEntryDto();
         try {
-            cartEntryService.deleteByIdentifier(identifier);
+            cartEntryService.delete(dto.getIdentifier());
+            response.setSuccess(true);
+            response.setMessage("CartEntry deleted successfully");
         } catch (Exception e) {
-            return false;
+            response.setSuccess(false);
+            response.setMessage("Delete failed");
         }
-        return true;
-    }
-
-    @PostMapping("/find")
-    public List<CartEntryDto> findByCart(@RequestBody String cart){
-        return cartEntryService.findByCart(cart);
+        return response;
     }
 }

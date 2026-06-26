@@ -9,7 +9,6 @@ import com.ust.pos.product.service.ProductService;
 import com.ust.pos.rack.service.RackService;
 import com.ust.pos.shelf.service.ShelfService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,23 +22,28 @@ public class ProductController extends BaseController {
     public static final String SHELFS = "shelfs";
     public static final String RACKS = "racks";
 
-    @Autowired
-    ProductService productService;
+    private final ProductService productService;
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final ShelfService shelfService;
+    private final RackService rackService;
+    private final UnitService unitService;
 
-    @Autowired
-    CategoryService categoryService;
+    public ProductController(
+            ProductService productService,
+            CategoryService categoryService,
+            BrandService brandService,
+            ShelfService shelfService,
+            RackService rackService,
+            UnitService unitService) {
 
-    @Autowired
-    BrandService brandService;
-
-    @Autowired
-    ShelfService shelfService;
-
-    @Autowired
-    RackService rackService;
-
-    @Autowired
-    UnitService unitService;
+        this.productService = productService;
+        this.categoryService = categoryService;
+        this.brandService = brandService;
+        this.shelfService = shelfService;
+        this.rackService = rackService;
+        this.unitService = unitService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ProductDto productDto,Pageable pageable) {
@@ -96,6 +100,12 @@ public class ProductController extends BaseController {
     @GetMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         productService.deleteByIdentifier(identifier);
+        return REDIRECT_PRODUCT_LIST;
+    }
+
+    @PostMapping("/toggleStatus")
+    public String toggleStatus(@RequestParam String identifier, boolean status) {
+        productService.toggleStatus(identifier, status);
         return REDIRECT_PRODUCT_LIST;
     }
 }

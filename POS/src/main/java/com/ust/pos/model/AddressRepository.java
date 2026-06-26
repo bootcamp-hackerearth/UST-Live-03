@@ -5,7 +5,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
+
     Address findByPhoneNoAndAddressType(String phoneNo, String addressType);
 
     void deleteByPhoneNo(String phoneNo);
+
+    Address findByPhoneNoAndAddressTypeAndDeletedFalse(String phoneNo, String addressType);
 }

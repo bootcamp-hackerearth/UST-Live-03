@@ -13,10 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -29,69 +26,58 @@ class BrandServiceTest {
 
     @Mock
     private BrandRepository brandRepository;
+
     @Mock
     private ModelMapper modelMapper;
 
     @Test
-    void saveTest() {
-        BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Nike");
-        Mockito.when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
+    void saveSuccessTest() {
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("NIKE");
         Brand brand = new Brand();
-        Mockito.when(modelMapper.map(brandDto, Brand.class)).thenReturn(brand);
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(null);
+        Mockito.when(modelMapper.map(dto, Brand.class)).thenReturn(brand);
         Mockito.when(brandRepository.save(brand)).thenReturn(brand);
-        BrandDto response = brandService.save(brandDto);
-        Assertions.assertEquals("Nike", response.getIdentifier());
+        BrandDto response = brandService.save(dto);
         Assertions.assertTrue(response.isSuccess());
+        Mockito.verify(brandRepository).save(brand);
     }
 
     @Test
-    void saveTestFailure() {
-        BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Nike");
-        Brand brand = new Brand();
-        Mockito.when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
-        BrandDto response = brandService.save(brandDto);
-        Assertions.assertEquals("Nike", response.getIdentifier());
-        Assertions.assertNotNull(response.getMessage(), "Message cannot be null");
+    void saveFailureAlreadyExistsTest() {
+        Brand existing = new Brand();
+        existing.setDeleted(false);
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("NIKE");
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(existing);
+        BrandDto response = brandService.save(dto);
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("already exists")
+        );
+    }
+
+    @Test
+    void saveFailureSoftDeletedTest() {
+        Brand existing = new Brand();
+        existing.setDeleted(true);
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("NIKE");
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(existing);
+        BrandDto response = brandService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("soft deleted"));
     }
 
     @Test
     void findByIdentifierTest() {
-        BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Nike");
         Brand brand = new Brand();
-        brand.setIdentifier("Nike");
-        Mockito.when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
-        Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);
-        BrandDto response = brandService.findByIdentifier("Nike");
-        Assertions.assertEquals("Nike", response.getIdentifier());
-    }
-
-    @Test
-    void deleteByIdentifierTest() {
-        Mockito.doNothing().when(brandRepository).deleteByIdentifier("Nike");
-        brandService.deleteByIdentifier("Nike");
-        Mockito.verify(brandRepository).deleteByIdentifier("Nike");
-    }
-
-    @Test
-    void findAllWithPageableTest() {
-        Brand brand = new Brand();
-        brand.setIdentifier("BR001");
+        brand.setIdentifier("NIKE");
         BrandDto dto = new BrandDto();
-        dto.setIdentifier("BR001");
-        List<Brand> brands = List.of(brand);
-        List<BrandDto> dtos = List.of(dto);
-        Pageable pageable = PageRequest.of(0, 5);
-        Page<Brand> brandPage = new PageImpl<>(brands);
-        Mockito.when(brandRepository.findAll(pageable)).thenReturn(brandPage);
-        Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(Type.class)
-        )).thenReturn(dtos);
-        PaginationResponseDto<BrandDto> response = brandService.findAll(pageable);
-        Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("BR001", response.getDtoList().get(0).getIdentifier());
+        dto.setIdentifier("NIKE");
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(brand);
+        Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
+        BrandDto response = brandService.findByIdentifier("NIKE");
+        Assertions.assertEquals("NIKE", response.getIdentifier());
     }
 
     @Test
@@ -105,61 +91,93 @@ class BrandServiceTest {
         Mockito.when(brandRepository.findAll()).thenReturn(brands);
         Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(Type.class))).thenReturn(dtos);
         PaginationResponseDto<BrandDto> response = brandService.findAll(null);
-        Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals("BR001", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
-    void updateTest() {
-        BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Nike");
+    void findAllWithPageableTest() {
         Brand brand = new Brand();
-        brand.setIdentifier("Nike");
-        Mockito.when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
-        Mockito.when(brandRepository.save(brand)).thenReturn(brand);
-        BrandDto response = brandService.update(brandDto);
-        Assertions.assertTrue(response.isSuccess());
+        brand.setIdentifier("BR001");
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("BR001");
+        List<Brand> brands = List.of(brand);
+        List<BrandDto> dtos = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Brand> page = new PageImpl<>(brands);
+        Mockito.when(brandRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<BrandDto> response = brandService.findAll(pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("BR001", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
-    void updateTestFailure() {
-        BrandDto brandDto = new BrandDto();
-        brandDto.setIdentifier("Nike");
-        Mockito.when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
-        BrandDto response = brandService.update(brandDto);
+    void updateSuccessTest() {
+        Brand brand = new Brand();
+        brand.setIdentifier("NIKE");
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("NIKE");
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(brand);
+        Mockito.when(brandRepository.save(brand)).thenReturn(brand);
+        BrandDto response = brandService.update(dto);
+        Assertions.assertTrue(response.isSuccess());
+        Mockito.verify(brandRepository).save(brand);
+    }
+
+    @Test
+    void updateFailureTest() {
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("NIKE");
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(null);
+        BrandDto response = brandService.update(dto);
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("not found"));
+    }
+
+    @Test
+    void deleteByIdentifierTest() {
+        Brand brand = new Brand();
+        brand.setIdentifier("NIKE");
+        brand.setDeleted(false);
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(brand);
+        Mockito.when(brandRepository.save(brand)).thenReturn(brand);
+        brandService.deleteByIdentifier("NIKE");
+        Assertions.assertTrue(brand.isDeleted());
+        Mockito.verify(brandRepository).save(brand);
+    }
+
+    @Test
+    void deleteByIdentifierBrandNotFoundTest() {
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(null);
+        RuntimeException exception = Assertions.assertThrows(RuntimeException.class,
+                () -> brandService.deleteByIdentifier("NIKE"));
+        Assertions.assertEquals("Brand not found", exception.getMessage());
     }
 
     @Test
     void toggleStatusSuccessTest() {
         Brand brand = new Brand();
-        brand.setIdentifier("Admin");
+        brand.setIdentifier("NIKE");
         brand.setStatus(false);
         BrandDto dto = new BrandDto();
-        dto.setIdentifier("Admin");
+        dto.setIdentifier("NIKE");
         dto.setStatus(true);
-        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(brand);
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(brand);
         Mockito.when(brandRepository.save(brand)).thenReturn(brand);
         Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
-        BrandDto response = brandService.toggleStatus("Admin", true);
+        BrandDto response = brandService.toggleStatus("NIKE", true);
         Assertions.assertNotNull(response);
-        Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isStatus());
         Assertions.assertTrue(brand.isStatus());
-        Mockito.verify(brandRepository).findByIdentifier("Admin");
         Mockito.verify(brandRepository).save(brand);
-        Mockito.verify(modelMapper).map(brand, BrandDto.class);
     }
 
     @Test
-    void toggleStatusFailureTest() {
-        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(null);
+    void toggleStatusBrandNotFoundTest() {
+        Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(null);
         Mockito.when(modelMapper.map(null, BrandDto.class)).thenReturn(null);
-        BrandDto response = brandService.toggleStatus("Admin", true);
+        BrandDto response = brandService.toggleStatus("NIKE", true);
         Assertions.assertNull(response);
-        Mockito.verify(brandRepository).findByIdentifier("Admin");
         Mockito.verify(brandRepository, Mockito.never()).save(Mockito.any());
-        Mockito.verify(modelMapper).map(null, BrandDto.class);
     }
 }

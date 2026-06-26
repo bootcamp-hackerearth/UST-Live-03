@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Warehouse extends CommonFields {
+    private String name;
     private String region;
     private String city;
     private String state;

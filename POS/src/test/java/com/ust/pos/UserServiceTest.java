@@ -50,6 +50,7 @@ class UserServiceTest {
         Mockito.when(userRepository.save(user)).thenReturn(user);
         UserDto response = userService.save(userDto);
         Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("User added successfully", response.getMessage());
     }
 
     @Test
@@ -61,6 +62,18 @@ class UserServiceTest {
         UserDto response = userService.save(userDto);
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertNotNull(response.getMessage());
+    }
+
+    @Test
+    void saveTestFailureForSoftDeletedUser() {
+        UserDto userDto = new UserDto();
+        userDto.setUsername("chaila@gmail.com");
+        User deletedUser = new User();
+        deletedUser.setDeleted(true);
+        Mockito.when(userRepository.findByUsername("chaila@gmail.com")).thenReturn(deletedUser);
+        UserDto response = userService.save(userDto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("soft deleted"));
     }
 
     @Test
@@ -83,10 +96,12 @@ class UserServiceTest {
         User existingUser = new User();
         existingUser.setId(1L);
         existingUser.setUsername("chailashree@gmail.com");
+        existingUser.setPassword("encodedPassword");
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
         Mockito.when(userRepository.save(existingUser)).thenReturn(existingUser);
         UserDto response = userService.update(userDto);
         Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("User updated successfully", response.getMessage());
     }
 
     @Test
@@ -97,13 +112,60 @@ class UserServiceTest {
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.empty());
         UserDto response = userService.update(userDto);
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
+    }
+
+    @Test
+    void updateTestFailureUsernameAlreadyExists() {
+        UserDto userDto = new UserDto();
+        userDto.setId(1L);
+        userDto.setUsername("new@gmail.com");
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("old@gmail.com");
+        User duplicateUser = new User();
+        duplicateUser.setUsername("new@gmail.com");
+        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        Mockito.when(userRepository.findByUsername("new@gmail.com")).thenReturn(duplicateUser);
+        UserDto response = userService.update(userDto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("already exists"));
+    }
+
+    @Test
+    void updateTestPasswordShouldRemainUnchanged() {
+        UserDto userDto = new UserDto();
+        userDto.setId(1L);
+        userDto.setUsername("chaila@gmail.com");
+        userDto.setPassword("newPassword");
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("chaila@gmail.com");
+        existingUser.setPassword("encodedOldPassword");
+        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        Mockito.when(userRepository.save(existingUser)).thenReturn(existingUser);
+        UserDto response = userService.update(userDto);
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("encodedOldPassword", existingUser.getPassword());
     }
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(userRepository).deleteByUsername("chaila@gmail.com");
+        User user = new User();
+        user.setUsername("chaila@gmail.com");
+        user.setDeleted(false);
+        Mockito.when(userRepository.findByUsername("chaila@gmail.com")).thenReturn(user);
         userService.delete("chaila@gmail.com");
-        Mockito.verify(userRepository).deleteByUsername("chaila@gmail.com");
+        Assertions.assertTrue(user.isDeleted());
+        Mockito.verify(userRepository).save(user);
+    }
+
+    @Test
+    void deleteTestFailure() {
+        Mockito.when(userRepository.findByUsername("chaila@gmail.com")).thenReturn(null);
+        RuntimeException exception = Assertions.assertThrows(RuntimeException.class,
+                () -> userService.delete("chaila@gmail.com"));
+        Assertions.assertEquals("User not found", exception.getMessage());
     }
 
     @Test
@@ -116,9 +178,10 @@ class UserServiceTest {
         List<UserDto> dtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 5);
         Page<User> userPage = new PageImpl<>(users);
-        Mockito.when(userRepository.findAll(pageable)).thenReturn(userPage);
+        Mockito.when(userRepository.findByDeletedFalse(pageable)).thenReturn(userPage);
         Mockito.when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(dtos);
         PaginationResponseDto<UserDto> response = userService.findAll(pageable);
+        Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals("chaila@gmail.com", response.getDtoList().get(0).getIdentifier());
     }
@@ -137,5 +200,6 @@ class UserServiceTest {
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals("chaila@gmail.com", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 }

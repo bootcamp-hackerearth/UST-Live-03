@@ -1,4 +1,6 @@
 'use client';
+
+import PropTypes from 'prop-types';
  
 const CommonUpdate = ({
   data,
@@ -10,16 +12,17 @@ const CommonUpdate = ({
  
   return (
     <>
- 
       {showIdentifier && (
- 
         <div>
  
-          <label className="block mb-2 text-sm font-semibold text-slate-700">
+          <label 
+            htmlFor="identifier"
+            className="block mb-2 text-sm font-semibold text-slate-700">
             Identifier
           </label>
  
           <input
+            id="identifier"
             type="text"
             name="identifier"
             value={data.identifier}
@@ -33,18 +36,18 @@ const CommonUpdate = ({
           />
  
         </div>
- 
       )}
- 
       {showName && (
- 
         <div>
  
-          <label className="block mb-2 text-sm font-semibold text-slate-700">
+          <label 
+            htmlFor="name"
+            className="block mb-2 text-sm font-semibold text-slate-700">
             Name
           </label>
  
           <input
+            id="name"
             type="text"
             name="name"
             value={data.name}
@@ -64,13 +67,22 @@ const CommonUpdate = ({
                        trandition
                       "
           />
- 
         </div>
- 
       )}
- 
+      
     </>
   );
 };
  
+CommonUpdate.propTypes = {
+  data: PropTypes.shape({
+    identifier: PropTypes.string,
+    name: PropTypes.string
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired,
+  showIdentifier: PropTypes.bool,
+  showName: PropTypes.bool,
+  identifierReadOnly: PropTypes.bool
+};
+
 export default CommonUpdate;

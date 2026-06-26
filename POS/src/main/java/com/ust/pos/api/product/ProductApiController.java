@@ -1,11 +1,10 @@
 package com.ust.pos.api.product;
 
 import com.ust.pos.api.BaseController;
+import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
-import com.ust.pos.dto.ProductDto;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/product")
 public class ProductApiController extends BaseController {
 
-    @Autowired
-    ProductService productService;
+    private final ProductService productService;
+
+    public ProductApiController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping("/add")
     public ProductDto addPost(@RequestBody ProductDto productDto) {
@@ -33,12 +35,12 @@ public class ProductApiController extends BaseController {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             productService.deleteByIdentifier(identifier);
@@ -46,5 +48,10 @@ public class ProductApiController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggleStatus")
+    public ProductDto toggleStatus(@RequestBody ProductDto productDto) {
+        return productService.toggleStatus(productDto.getIdentifier(), productDto.isStatus());
     }
 }

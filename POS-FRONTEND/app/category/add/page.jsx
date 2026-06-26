@@ -1,5 +1,6 @@
 'use client';
  
+import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
  
 import api from '@/app/services/api';
@@ -12,6 +13,7 @@ const AddCategory = ({
 }) => {
  
   const [message, setMessage] = useState('');
+  const [errors, setErrors] = useState({});
  
   const [category, setCategory] = useState({
     identifier: '',
@@ -20,15 +22,11 @@ const AddCategory = ({
   });
  
   const [categories, setCategories] = useState([]);
- 
   useEffect(() => {
     fetchCategories();
   }, []);
- 
   const fetchCategories = async () => {
- 
     try {
- 
       const response = await api.post(
         '/category/list',
         {
@@ -36,63 +34,63 @@ const AddCategory = ({
           sizePerPage: 100
         }
       );
- 
       setCategories(
         response.data.dtoList || response.data || []
       );
- 
     } catch (error) {
- 
       console.error(error);
- 
     }
- 
   };
  
   const handleChange = (e) => {
- 
     const { name, value } = e.target;
- 
     setCategory((prev) => ({
       ...prev,
       [name]: value
     }));
- 
+    setErrors((prev) => ({
+      ...prev,
+      [name]: ''
+    }));
   };
  
   const handleSubmit = async (e) => {
- 
     e.preventDefault();
- 
+    if(!validate()) return;
     try {
- 
       const response = await api.post(
         '/category/add',
         category
       );
- 
       const data = response.data;
- 
       setMessage(
         data.message || 'Category added successfully'
       );
- 
       if (!data.success) return;
- 
       refreshData?.();
       closeModal?.();
- 
     } catch (error) {
- 
       console.error(error);
- 
       setMessage('Failed to add category');
- 
     }
- 
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!category.identifier.trim()) {
+      newErrors.identifier = 'Identifier is required';
+    }
+
+    if (!category.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
  
   return (
+
   <div className="flex flex-col bg-white rounded-2xl overflow-hidden max-h-[85vh] border-t-4 border-cyan-500 shadow-lg">
  
     <div className="px-8 pt-6 pb-5 border-b border-slate-50 flex-shrink-0">
@@ -110,7 +108,6 @@ const AddCategory = ({
       onSubmit={handleSubmit}
       className="flex-1 overflow-y-auto px-8 py-8 space-y-8"
     >
- 
       {message && (
         <div
           className={`
@@ -129,6 +126,7 @@ const AddCategory = ({
       <CommonAdd
         data={category}
         handleChange={handleChange}
+        errors={errors}
       />
  
       <div>
@@ -140,6 +138,7 @@ const AddCategory = ({
           onChange={handleChange}
           placeholder="Select Super Category"
         />
+          
       </div>
  
     </form>
@@ -184,5 +183,10 @@ const AddCategory = ({
 );
  
 };
- 
+
+AddCategory.propTypes = {
+  closeModal: PropTypes.func,
+  refreshData: PropTypes.func
+};
+
 export default AddCategory;

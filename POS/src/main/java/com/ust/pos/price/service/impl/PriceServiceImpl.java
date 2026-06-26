@@ -1,14 +1,15 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,13 +19,19 @@ import java.util.List;
 
 @Service
 @Transactional
-public class PriceServiceImpl implements PriceService {
+public class PriceServiceImpl extends BaseService implements PriceService {
 
-    @Autowired
-    PriceRepository priceRepository;
+    public static final String PRICE_WITH_IDENTIFIER = "Price with identifier - ";
+    private final PriceRepository priceRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    ModelMapper modelMapper;
+    public PriceServiceImpl(
+            PriceRepository priceRepository,
+            ModelMapper modelMapper
+    ) {
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PriceDto save(PriceDto priceDto) {
@@ -32,11 +39,17 @@ public class PriceServiceImpl implements PriceService {
         String identifier = priceDto.getIdentifier();
         Price existingPrice = priceRepository.findByIdentifier(identifier);
         if (existingPrice != null) {
-            priceDto.setMessage("Price with identifier - " + identifier + " already exists");
+            if (existingPrice.isDeleted()) {
+                priceDto.setMessage(PRICE_WITH_IDENTIFIER + identifier + " has been soft deleted. (Rollback by changing status)");
+                priceDto.setSuccess(false);
+                return priceDto;
+            }
+            priceDto.setMessage(PRICE_WITH_IDENTIFIER + identifier + " already exists");
             priceDto.setSuccess(false);
             return priceDto;
         }
         Price price = modelMapper.map(priceDto, Price.class);
+        setCreatedDetails(price);
         priceRepository.save(price);
         return priceDto;
     }
@@ -48,12 +61,12 @@ public class PriceServiceImpl implements PriceService {
         if (pageable == null) {
             List<Price> prices = priceRepository.findAll();
             response.setDtoList(modelMapper.map(prices, listType));
-            response.setTotalRecords((long) prices.size());
+            response.setTotalRecords(prices.size());
             response.setTotalPages(1);
             response.setSizePerPage(prices.size());
             response.setPage(0);
         } else {
-            Page<Price> pricePage = priceRepository.findAll(pageable);
+            Page<Price> pricePage = priceRepository.findByDeletedFalse(pageable);
             response.setDtoList(modelMapper.map(pricePage.getContent(), listType));
             response.setTotalRecords(pricePage.getTotalElements());
             response.setTotalPages(pricePage.getTotalPages());
@@ -68,11 +81,12 @@ public class PriceServiceImpl implements PriceService {
         String identifier = priceDto.getIdentifier();
         Price existingPrice = priceRepository.findByIdentifier(identifier);
         if (existingPrice == null) {
-            priceDto.setMessage("Price with identifier - " + priceDto.getId() + "not found");
+            priceDto.setMessage(PRICE_WITH_IDENTIFIER + priceDto.getId() + "not found");
             priceDto.setSuccess(false);
             return priceDto;
         }
         modelMapper.map(priceDto, existingPrice);
+        setModifiedDetails(existingPrice);
         priceRepository.save(existingPrice);
         return priceDto;
     }
@@ -88,6 +102,12 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public void deleteByIdentifier(String identifier) {
-        priceRepository.deleteByIdentifier(identifier);
+        Price price = priceRepository.findByIdentifier(identifier);
+        if (price == null) {
+            throw new EntityNotFoundException("Price not found");
+        }
+        softDelete(price);
+        setModifiedDetails(price);
+        priceRepository.save(price);
     }
 }

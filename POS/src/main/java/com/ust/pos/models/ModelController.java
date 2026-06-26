@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.models.service.ModelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,8 +15,11 @@ public class ModelController extends BaseController {
 
     public static final String REDIRECT_MODEL_LIST = "redirect:/model/list";
 
-    @Autowired
-    ModelService modelService;
+    private final ModelService modelService;
+
+    public ModelController(ModelService modelService) {
+        this.modelService = modelService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute ModelDto modelDto) {

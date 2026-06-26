@@ -1,11 +1,10 @@
 'use client';
  
 import { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname} from 'next/navigation';
  
 export default function ProtectedRoute({ children }) {
- 
-  const router = useRouter();
+
   const pathname = usePathname();
  
   useEffect(() => {
@@ -15,11 +14,10 @@ export default function ProtectedRoute({ children }) {
     const publicRoutes = ['/login', '/register'];
  
     if (!token && !publicRoutes.includes(pathname)) {
-      window.location.replace('/login');
+      globalThis.location.replace('/login');
     }
  
   }, [pathname]);
  
   return children;
 }
- 

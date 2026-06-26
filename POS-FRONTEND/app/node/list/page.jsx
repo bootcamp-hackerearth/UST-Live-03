@@ -1,14 +1,13 @@
 'use client';
  
 import CommonList from '@/components/ListPage';
- 
+
 import AddNode from '../add/page';
 import UpdateNode from '../update/page';
  
 const NodeList = () => {
  
   return (
- 
     <CommonList
       title="Node List"
       apiUrl="/node/list"
@@ -23,10 +22,7 @@ const NodeList = () => {
       AddComponent={AddNode}
       UpdateComponent={UpdateNode}
     />
- 
   );
- 
 };
  
 export default NodeList;
- 

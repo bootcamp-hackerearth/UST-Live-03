@@ -1,6 +1,7 @@
 'use client';
  
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
  
 import api from '@/app/services/api';
 import CommonUpdate from '@/components/UpdatePage';
@@ -102,7 +103,7 @@ const UpdateUser = ({
  
     try {
  
-      await api.post(
+      await api.put(
         '/user/update',
         user,
         {
@@ -167,11 +168,14 @@ const UpdateUser = ({
         >
  
           <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
+            <label 
+              htmlFor="userId"
+              className="block mb-2 text-sm font-medium text-slate-700">
               ID
             </label>
  
             <input
+              id="userId"
               type="text"
               value={user.id}
               readOnly
@@ -198,11 +202,14 @@ const UpdateUser = ({
           />
  
           <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
+            <label 
+              htmlFor="username"
+              className="block mb-2 text-sm font-medium text-slate-700">
               Username
             </label>
  
             <input
+              id="username"
               type="email"
               name="username"
               value={user.username}
@@ -223,21 +230,24 @@ const UpdateUser = ({
           </div>
  
           <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
+            <label 
+              htmlFor="phoneNo"
+              className="block mb-2 text-sm font-medium text-slate-700">
               Phone Number
             </label>
  
             <input
+            id="phoneNo"
             type="text"
             name="phoneNo"
             value={user.phoneNo}
             onChange={(e) => {
-            const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+            const value = e.target.value.replaceAll(/\D/g, '').slice(0, 10);
             setUser((prev) => ({
             ...prev,
             phoneNo: value
-          }));
-        }}
+            }));
+            }}
               maxLength={10}
               className="
               w-full
@@ -257,9 +267,10 @@ const UpdateUser = ({
  
           <div>
  
-            <label className="block mb-3 text-sm font-medium text-slate-700">
+            <h3
+              className="block mb-3 text-sm font-medium text-slate-700">
               Assigned Roles
-            </label>
+            </h3>
  
             <div className="border border-slate-200 rounded-2xl p-5 max-h-64 overflow-y-auto bg-slate-50">
  
@@ -351,4 +362,21 @@ const UpdateUser = ({
   );
 };
  
+UpdateUser.propTypes = {
+  data: PropTypes.shape({
+    id: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number
+    ]),
+    username: PropTypes.string,
+    name: PropTypes.string,
+    phoneNo: PropTypes.string,
+    roles: PropTypes.arrayOf(
+      PropTypes.string
+    )
+  }),
+  closeModal: PropTypes.func,
+  refreshData: PropTypes.func
+};
+
 export default UpdateUser;

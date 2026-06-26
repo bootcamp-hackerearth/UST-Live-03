@@ -1,69 +1,51 @@
 'use client';
  
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
  
 import api from '@/app/services/api';
  
 const Profile = ({ closeModal }) => {
- 
   const [user, setUser] = useState(null);
  
   const [loading, setLoading] = useState(true);
  
   const [error, setError] = useState('');
+
  
   useEffect(() => {
- 
     fetchProfile();
- 
   }, []);
  
   const fetchProfile = async () => {
- 
     try {
- 
       const username = localStorage.getItem('username');
- 
       const response = await api.get(
-        `/user/get?username=${username}`
+        `/user/get?identifier=${username}`
       );
- 
       setUser(response.data);
- 
+      
+
     } catch (err) {
- 
       console.error(err);
- 
       setError('Failed to load profile');
- 
     } finally {
- 
       setLoading(false);
     }
   };
  
- 
   if (loading) {
- 
     return (
- 
       <div className="p-10 text-center text-xl font-semibold text-cyan-600">
- 
         Loading Profile...
- 
       </div>
     );
   }
  
- 
   if (error) {
- 
     return (
- 
       <div className="p-10 text-center text-red-600 text-xl">
- 
         {error}
- 
       </div>
     );
   }
@@ -72,9 +54,7 @@ const Profile = ({ closeModal }) => {
  
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
  
- 
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border-t-4 border-cyan-500">
- 
  
         <div className="bg-cyan-500 text-white p-6 flex justify-between items-center">
  
@@ -105,10 +85,8 @@ const Profile = ({ closeModal }) => {
           </button>
  
         </div>
- 
- 
+
         <div className="p-6 space-y-5">
- 
  
           <div className="flex justify-between items-center border-b border-slate-200 pb-3">
  
@@ -121,8 +99,7 @@ const Profile = ({ closeModal }) => {
             </span>
  
           </div>
- 
- 
+  
           <div className="flex justify-between border-b pb-2">
  
             <span className="text-slate-500">
@@ -134,7 +111,6 @@ const Profile = ({ closeModal }) => {
             </span>
  
           </div>
- 
  
           <div className="flex justify-between border-b pb-2">
  
@@ -148,7 +124,6 @@ const Profile = ({ closeModal }) => {
  
           </div>
  
- 
           <div>
  
             <p className="text-slate-500 mb-2">
@@ -156,36 +131,25 @@ const Profile = ({ closeModal }) => {
             </p>
  
             <div className="flex gap-2 flex-wrap">
- 
-              {user?.roles?.map((role, index) => (
- 
+              {user?.roles?.map((role) => (
                 <span
-                  key={index}
+                  key={role}
                   className="
-                    bg-cyan-100
-                    text-cyan-700
-                    px-3
-                    py-1
-                    rounded-md
-                    text-sm
-                    font-medium
+                  bg-cyan-100
+                  text-cyan-700
+                  px-3
+                  py-1
+                  rounded-md
+                  text-sm
+                  font-medium
                   "
                 >
- 
-                  {
-                    typeof role === 'object'
-                      ? role.identifier || role.name
-                      : role
-                  }
- 
+                  {role}
                 </span>
- 
               ))}
- 
             </div>
  
           </div>
- 
  
           <button
             onClick={closeModal}
@@ -211,4 +175,8 @@ const Profile = ({ closeModal }) => {
   );
 };
  
+Profile.propTypes = {
+  closeModal: PropTypes.func.isRequired
+};
+
 export default Profile;

@@ -1,6 +1,7 @@
+import PropTypes from 'prop-types';
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
- 
+
 import ProtectedRoute from "./ProtectedRoute";
  
 const geistSans = Geist({
@@ -25,12 +26,13 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
- 
         <ProtectedRoute>
           {children}
         </ProtectedRoute>
- 
       </body>
     </html>
   );
 }
+RootLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+};

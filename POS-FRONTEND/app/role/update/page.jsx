@@ -1,5 +1,6 @@
 'use client';
  
+import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import api from '@/app/services/api';
  
@@ -18,61 +19,44 @@ const UpdateRole = ({
   });
  
   useEffect(() => {
- 
     if (data) {
- 
       setRole({
         id: data.id || '',
         identifier: data.identifier || '',
         description: data.description || ''
       });
- 
     }
- 
   }, [data]);
- 
+
   const handleChange = (e) => {
- 
     const { name, value } = e.target;
- 
     setRole(prev => ({
       ...prev,
       [name]: value
     }));
- 
   };
  
   const handleSubmit = async (e) => {
- 
     e.preventDefault();
- 
     try {
- 
-      const response = await api.post(
+      const response = await api.put(
         '/role/update',
         role
       );
  
       const result = response.data;
- 
       setMessage(
         result.message || 'Role updated successfully'
       );
- 
       refreshData?.();
- 
       setTimeout(() => {
         closeModal?.();
       }, 500);
  
     } catch (error) {
- 
       console.error(error);
- 
       setMessage('Failed to update role');
- 
     }
- 
   };
  
   return (
@@ -81,9 +65,7 @@ const UpdateRole = ({
       onSubmit={handleSubmit}
       className="bg-white rounded-2xl border-t-4 border-cyan-500 shadow-lg"
     >
- 
       <div className="px-8 pt-8 pb-6 bg-slate-50 border-b border-slate-200">
- 
         <h2 className="text-3xl font-bold text-slate-800">
           Update Role
         </h2>
@@ -91,11 +73,9 @@ const UpdateRole = ({
         <p className="mt-2 text-slate-500">
           Modify role details.
         </p>
- 
       </div>
  
 <div className="p-8 space-y-8">
- 
   {message && (
     <div
       className={`
@@ -112,13 +92,15 @@ const UpdateRole = ({
   )}
  
   <div className="grid grid-cols-2 gap-4">
- 
     <div>
-      <label className="block mb-2 text-sm font-semibold text-slate-700">
+      <label 
+        htmlFor="roleId"
+        className="block mb-2 text-sm font-semibold text-slate-700">
         ID
       </label>
  
       <input
+        id="roleId"
         type="text"
         value={role.id}
         readOnly
@@ -137,11 +119,14 @@ const UpdateRole = ({
     </div>
  
     <div>
-      <label className="block mb-2 text-sm font-semibold text-slate-700">
+      <label 
+        htmlFor="roleIdentifier"
+        className="block mb-2 text-sm font-semibold text-slate-700">
         Identifier
       </label>
  
       <input
+        id="roleIdentifier"
         type="text"
         value={role.identifier}
         readOnly
@@ -158,15 +143,17 @@ const UpdateRole = ({
         "
       />
     </div>
- 
   </div>
  
   <div>
-    <label className="block mb-2 text-sm font-semibold text-slate-700">
+    <label 
+      htmlFor="roleDescription"
+      className="block mb-2 text-sm font-semibold text-slate-700">
       Description
     </label>
  
     <textarea
+      id="roleDescription"
       name="description"
       value={role.description}
       onChange={handleChange}
@@ -231,4 +218,17 @@ const UpdateRole = ({
  
 };
  
+UpdateRole.propTypes = {
+  data: PropTypes.shape({
+    id: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number
+    ]),
+    identifier: PropTypes.string,
+    description: PropTypes.string
+  }),
+  closeModal: PropTypes.func,
+  refreshData: PropTypes.func
+};
+
 export default UpdateRole;

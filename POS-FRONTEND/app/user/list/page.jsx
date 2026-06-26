@@ -5,6 +5,7 @@ import UpdateUser from '../update/page';
 import AddUser from '../add/page';
 
 const UserList = () => {
+  
   return (
     <CommonList
       title="User List"

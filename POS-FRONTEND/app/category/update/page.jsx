@@ -1,6 +1,7 @@
 'use client';
  
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
  
 import api from '@/app/services/api';
 import CommonUpdate from '@/components/UpdatePage';
@@ -21,30 +22,21 @@ const UpdateCategory = ({
   });
  
   const [categories, setCategories] = useState([]);
- 
   useEffect(() => {
     fetchCategories();
   }, []);
- 
   useEffect(() => {
- 
     if (data) {
-
       setCategory({
         identifier: data.identifier || '',
         name: data.name || '',
         superCategory: data.superCategory || ''
       });
-      
- 
     }
- 
   }, [data]);
  
   const fetchCategories = async () => {
- 
     try {
- 
       const response = await api.post(
         '/category/list',
         {
@@ -57,41 +49,29 @@ const UpdateCategory = ({
         response.data.dtoList ||
         response.data ||
         [];
- 
       setCategories(
         categoryList.filter(
           cat => cat.identifier !== data?.identifier
         )
       );
- 
     } catch (error) {
- 
       console.error(error);
- 
     }
- 
   };
  
   const handleChange = (e) => {
- 
     const { name, value } = e.target;
- 
     setCategory(prev => ({
       ...prev,
       [name]: value
     }));
- 
   };
  
   const handleSubmit = async (e) => {
- 
     e.preventDefault();
-
     console.log("Sending Category:", category);
- 
     try {
- 
-      await api.post(
+      await api.put(
         '/category/update',
         category,
         {
@@ -101,26 +81,19 @@ const UpdateCategory = ({
           }
         }
       );
- 
       setMessage('Category updated successfully');
- 
       refreshData?.();
- 
       setTimeout(() => {
         closeModal?.();
       }, 500);
- 
     } catch (error) {
- 
       console.error(error);
- 
       setMessage('Failed to update category');
- 
     }
- 
   };
  
   return (
+
   <div className="flex flex-col bg-white rounded-2xl overflow-hidden max-h-[85vh] border-t-4 border-cyan-500 shadow-lg">
  
     <div className="px-8 pt-6 pb-5 bg-slate-50 border-b border-slate-200 flex-shrink-0">
@@ -138,7 +111,6 @@ const UpdateCategory = ({
       onSubmit={handleSubmit}
       className="flex-1 overflow-y-auto px-8 py-6 space-y-8"
     >
- 
       {message && (
         <div
           className={`
@@ -213,4 +185,14 @@ const UpdateCategory = ({
 );
 };
  
+UpdateCategory.propTypes = {
+  data: PropTypes.shape({
+    identifier: PropTypes.string,
+    name: PropTypes.string,
+    superCategory: PropTypes.string
+  }),
+  closeModal: PropTypes.func,
+  refreshData: PropTypes.func
+};
+
 export default UpdateCategory;

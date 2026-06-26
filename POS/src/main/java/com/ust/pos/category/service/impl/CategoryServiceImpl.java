@@ -1,15 +1,16 @@
 package com.ust.pos.category.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import io.micrometer.common.util.StringUtils;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,13 +20,19 @@ import java.util.List;
 
 @Transactional
 @Service
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl extends BaseService implements CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public CategoryServiceImpl(
+            CategoryRepository categoryRepository,
+            ModelMapper modelMapper) {
+
+        this.categoryRepository = categoryRepository;
+        this.modelMapper = modelMapper;
+    }
+
 
     @Override
     public PaginationResponseDto<CategoryDto> findAll(Pageable pageable) {
@@ -34,12 +41,12 @@ public class CategoryServiceImpl implements CategoryService {
         if (pageable == null) {
             List<Category> categorys = categoryRepository.findAll();
             response.setDtoList(modelMapper.map(categorys, listType));
-            response.setTotalRecords((long) categorys.size());
+            response.setTotalRecords(categorys.size());
             response.setTotalPages(1);
             response.setSizePerPage(categorys.size());
             response.setPage(0);
         } else {
-            Page<Category> categoryPage = categoryRepository.findAll(pageable);
+            Page<Category> categoryPage = categoryRepository.findByDeletedFalse(pageable);
             response.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
             response.setTotalRecords(categoryPage.getTotalElements());
             response.setTotalPages(categoryPage.getTotalPages());
@@ -61,14 +68,21 @@ public class CategoryServiceImpl implements CategoryService {
         }
         String identifier = categoryDto.getIdentifier();
         Category category = categoryRepository.findByIdentifier(identifier);
-        if (category == null) {
-            categoryRepository.save(modelMapper.map(categoryDto, Category.class));
-            categoryDto.setMessage("Successfully added the category");
-            categoryDto.setSuccess(true);
-        } else {
+        if (category != null) {
+            if (category.isDeleted()) {
+                categoryDto.setMessage("Category with identifier - " + identifier + " has been soft deleted.");
+                categoryDto.setSuccess(false);
+                return categoryDto;
+            }
             categoryDto.setMessage("Category " + identifier + " already exists");
             categoryDto.setSuccess(false);
+            return categoryDto;
         }
+        Category newCategory = modelMapper.map(categoryDto, Category.class);
+        setCreatedDetails(newCategory);
+        categoryRepository.save(newCategory);
+        categoryDto.setMessage("Successfully added the category");
+        categoryDto.setSuccess(true);
         return categoryDto;
     }
 
@@ -81,7 +95,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void delete(String identifier) {
-        categoryRepository.deleteByIdentifier(identifier);
+        Category category = categoryRepository.findByIdentifier(identifier);
+        if (category == null) {
+            throw new EntityNotFoundException("Category not found");
+        }
+        softDelete(category);
+        setModifiedDetails(category);
+        categoryRepository.save(category);
     }
 
     @Override
@@ -93,6 +113,7 @@ public class CategoryServiceImpl implements CategoryService {
             return categoryDto;
         }
         modelMapper.map(categoryDto, existingCategory);
+        setModifiedDetails(existingCategory);
         categoryRepository.save(existingCategory);
         return categoryDto;
     }
@@ -102,6 +123,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findByIdentifier(identifier);
         if (category != null) {
             category.setStatus(!category.isStatus());
+            setModifiedDetails(category);
             categoryRepository.save(category);
         }
         return modelMapper.map(category, CategoryDto.class);

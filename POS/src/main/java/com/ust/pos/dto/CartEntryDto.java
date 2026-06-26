@@ -7,12 +7,14 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
+
 public class CartEntryDto extends CommonDto {
-    private String cartIdentifier;
-    private String productIdentifier;
+    private String productId;
+    private String cartId;
     private BigDecimal quantity = new BigDecimal(0);
-    private BigDecimal unitPrice;
-    private BigDecimal originalPrice;
+    private BigDecimal mrp;
+    private BigDecimal sellingPrice;
     private BigDecimal discount;
     private BigDecimal totalPrice;
+    private BigDecimal originalPrice;
 }

@@ -1,21 +1,24 @@
 package com.ust.pos.address.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl extends BaseService implements AddressService {
 
-    @Autowired
-    private AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public AddressServiceImpl(AddressRepository addressRepository,
+                              ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto save(AddressDto addressDto) {
@@ -27,7 +30,11 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDto findByPhoneNoAndAddressType(String phoneNo, String addressType) {
-        return modelMapper.map(addressRepository.findByPhoneNoAndAddressType(phoneNo, addressType), AddressDto.class);
+        Address address = addressRepository.findByPhoneNoAndAddressTypeAndDeletedFalse(phoneNo, addressType);
+        if (address == null) {
+            return null;
+        }
+        return modelMapper.map(address, AddressDto.class);
     }
 
     @Override
@@ -40,6 +47,17 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public void delete(String phoneNo) {
-        addressRepository.deleteByPhoneNo(phoneNo);
+        Address billing = addressRepository.findByPhoneNoAndAddressType(phoneNo,"billing");
+        if (billing != null) {
+            softDelete(billing);
+            setModifiedDetails(billing);
+            addressRepository.save(billing);
+        }
+        Address shipping = addressRepository.findByPhoneNoAndAddressType(phoneNo,"shipping");
+        if (shipping != null) {
+            softDelete(shipping);
+            setModifiedDetails(shipping);
+            addressRepository.save(shipping);
+        }
     }
 }

@@ -1,11 +1,12 @@
 'use client';
  
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
  
 import api from '@/app/services/api';
 import CommonUpdate from '@/components/UpdatePage';
 import Dropdown from '@/components/Dropdown';
-import PropTypes from 'prop-types';
+
  
 const UpdatePrice = ({
   data,
@@ -24,15 +25,13 @@ const UpdatePrice = ({
   });
  
   const [products, setProducts] = useState([]);
- 
+
   useEffect(() => {
     fetchProducts();
   }, []);
- 
+
   useEffect(() => {
- 
     if (data) {
- 
       setPrice({
         identifier: data.identifier || '',
         product: data.product || '',
@@ -40,15 +39,11 @@ const UpdatePrice = ({
         amount: data.amount || '',
         currency: data.currency || ''
       });
- 
     }
- 
   }, [data]);
  
   const fetchProducts = async () => {
- 
     try {
- 
       const response = await api.post(
         '/product/list',
         {
@@ -56,37 +51,26 @@ const UpdatePrice = ({
           sizePerPage: 100
         }
       );
- 
       setProducts(
         response.data.dtoList || []
       );
- 
     } catch (error) {
- 
       console.error(error);
- 
     }
- 
   };
  
   const handleChange = (e) => {
- 
     const { name, value } = e.target;
- 
     setPrice((prev) => ({
       ...prev,
       [name]: value
     }));
- 
   };
  
   const handleSubmit = async (e) => {
- 
     e.preventDefault();
- 
     try {
- 
-      await api.post(
+      await api.put(
         '/price/update',
         price,
         {
@@ -96,25 +80,18 @@ const UpdatePrice = ({
           }
         }
       );
- 
+
       setMessage('Price updated successfully');
- 
+
       refreshData?.();
- 
       setTimeout(() => {
- 
         closeModal?.();
- 
       }, 500);
- 
+
     } catch (error) {
- 
       console.error(error);
- 
       setMessage('Failed to update price');
- 
     }
- 
   };
 
   const priceTypes = [
@@ -122,10 +99,12 @@ const UpdatePrice = ({
       identifier: 'COST_PRICE',
       name: 'Cost Price (CP)'
     },
+
     {
       identifier: 'SELLING_PRICE',
       name: 'Selling Price (SP)'
     },
+    
     {
       identifier: 'MRP',
       name: 'MRP'
@@ -133,6 +112,7 @@ const UpdatePrice = ({
   ];
 
   return (
+
     <div className="flex flex-col bg-white rounded-2xl overflow-hidden max-h-[85vh] border-t-4 border-cyan-500 shadow-lg">
 
       <div className="px-8 pt-6 pb-5 border-b border-slate-200 flex-shrink-0">
@@ -150,7 +130,6 @@ const UpdatePrice = ({
         onSubmit={handleSubmit}
         className="flex-1 overflow-y-auto px-8 py-6 space-y-8"
       >
-
         {message && (
           <div
             className={`
@@ -311,4 +290,5 @@ UpdatePrice.propTypes = {
   closeModal: PropTypes.func,
   refreshData: PropTypes.func
 };
+
 export default UpdatePrice;

@@ -5,7 +5,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +14,11 @@ import java.util.List;
 @RequestMapping("/api/category")
 public class CategoryApiController extends BaseController {
 
-    @Autowired
-    CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryApiController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @PostMapping("/add")
     public CategoryDto addPost(@RequestBody CategoryDto categoryDto) {
@@ -35,12 +37,12 @@ public class CategoryApiController extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -53,5 +55,10 @@ public class CategoryApiController extends BaseController {
     @GetMapping("/subcategories")
     public List<CategoryDto> findSubCategories() {
         return categoryService.findSubCategories();
+    }
+
+    @PostMapping("/toggleStatus")
+    public CategoryDto toggleStatus(@RequestBody CategoryDto categoryDto) {
+        return categoryService.toggleStatus(categoryDto.getIdentifier(), categoryDto.isStatus());
     }
 }

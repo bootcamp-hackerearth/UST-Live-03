@@ -1,14 +1,15 @@
 package com.ust.pos.unit.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,25 +19,34 @@ import java.util.List;
 
 @Service
 @Transactional
-public class UnitServiceImpl implements UnitService {
+public class UnitServiceImpl extends BaseService implements UnitService {
 
-    @Autowired
-    private UnitRepository unitRepository;
+    public static final String UNIT_WITH_IDENTIFIER = "Unit with identifier - ";
+    private final UnitRepository unitRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public UnitServiceImpl(
+            UnitRepository unitRepository,
+            ModelMapper modelMapper) {
+        this.unitRepository = unitRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UnitDto save(UnitDto unitDto) {
         Unit existingUnit = unitRepository.findByIdentifier(unitDto.getIdentifier());
         if (existingUnit != null) {
-            unitDto.setMessage(
-                    "Unit with identifier - " + unitDto.getIdentifier() + " already exists"
-            );
+            if (existingUnit.isDeleted()) {
+                unitDto.setMessage(UNIT_WITH_IDENTIFIER + unitDto.getIdentifier() + " has been soft deleted. (Rollback by changing status)");
+                unitDto.setSuccess(false);
+                return unitDto;
+            }
+            unitDto.setMessage(UNIT_WITH_IDENTIFIER + unitDto.getIdentifier() + " already exists");
             unitDto.setSuccess(false);
             return unitDto;
         }
         Unit unit = modelMapper.map(unitDto, Unit.class);
+        setCreatedDetails(unit);
         unitRepository.save(unit);
         unitDto.setSuccess(true);
         return unitDto;
@@ -50,12 +60,12 @@ public class UnitServiceImpl implements UnitService {
         if (pageable == null) {
             List<Unit> units = unitRepository.findAll();
             response.setDtoList(modelMapper.map(units, listType));
-            response.setTotalRecords((long) units.size());
+            response.setTotalRecords(units.size());
             response.setTotalPages(1);
             response.setSizePerPage(units.size());
             response.setPage(0);
         } else {
-            Page<Unit> unitPage = unitRepository.findAll(pageable);
+            Page<Unit> unitPage = unitRepository.findByDeletedFalse(pageable);
             response.setDtoList(modelMapper.map(unitPage.getContent(), listType));
             response.setTotalRecords(unitPage.getTotalElements());
             response.setTotalPages(unitPage.getTotalPages());
@@ -73,7 +83,13 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void delete(String identifier) {
-        unitRepository.deleteByIdentifier(identifier);
+        Unit unit = unitRepository.findByIdentifier(identifier);
+        if (unit == null) {
+            throw new EntityNotFoundException("Unit not found");
+        }
+        softDelete(unit);
+        setModifiedDetails(unit);
+        unitRepository.save(unit);
     }
 
     @Override
@@ -81,13 +97,12 @@ public class UnitServiceImpl implements UnitService {
         Unit existingUnit =
                 unitRepository.findByIdentifier(unitDto.getIdentifier());
         if (existingUnit == null) {
-            unitDto.setMessage(
-                    "Unit with identifier - " + unitDto.getIdentifier() + " not found"
-            );
+            unitDto.setMessage(UNIT_WITH_IDENTIFIER + unitDto.getIdentifier() + " not found");
             unitDto.setSuccess(false);
             return unitDto;
         }
         modelMapper.map(unitDto, existingUnit);
+        setModifiedDetails(existingUnit);
         unitRepository.save(existingUnit);
         unitDto.setSuccess(true);
         return unitDto;
@@ -99,6 +114,7 @@ public class UnitServiceImpl implements UnitService {
         Unit unit = unitRepository.findByIdentifier(identifier);
         if (unit != null) {
             unit.setStatus(!unit.isStatus());
+            setModifiedDetails(unit);
             unitRepository.save(unit);
         }
         return modelMapper.map(unit,UnitDto.class);

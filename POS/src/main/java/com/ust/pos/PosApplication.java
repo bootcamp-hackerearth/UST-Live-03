@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -27,8 +26,11 @@ import javax.sql.DataSource;
 @ComponentScan({"com.ust.pos.api", "com.ust.pos.web.controller", "com.ust.pos"})
 public class PosApplication {
 
-    @Autowired
-    Environment environment;
+    private final Environment environment;
+
+    public PosApplication(Environment environment) {
+        this.environment = environment;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(PosApplication.class, args);

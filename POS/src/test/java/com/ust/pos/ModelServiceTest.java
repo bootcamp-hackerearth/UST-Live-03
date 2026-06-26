@@ -13,10 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -25,48 +22,90 @@ import java.util.List;
 class ModelServiceTest {
 
     @InjectMocks
-    ModelServiceImpl modelService;
+    private ModelServiceImpl modelService;
 
     @Mock
-    ModelRepository modelRepository;
+    private ModelRepository modelRepository;
 
     @Mock
-    ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @Test
-    void saveTest() {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setIdentifier("Jordan");
+    void saveSuccessTest() {
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("MDL001");
         Model model = new Model();
-        Mockito.when(modelMapper.map(modelDto, Model.class)).thenReturn(model);
+        Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(null);
+        Mockito.when(modelMapper.map(dto, Model.class)).thenReturn(model);
         Mockito.when(modelRepository.save(model)).thenReturn(model);
-        ModelDto response = modelService.save(modelDto);
-        Assertions.assertEquals("Jordan", response.getIdentifier());
+        ModelDto response = modelService.save(dto);
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("MDL001", response.getIdentifier());
+        Mockito.verify(modelRepository).save(model);
+    }
+
+    @Test
+    void saveDuplicateModelTest() {
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("MDL001");
+        Model existing = new Model();
+        existing.setDeleted(false);
+        Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(existing);
+        ModelDto response = modelService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("already exists"));
+        Mockito.verify(modelRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void saveSoftDeletedModelTest() {
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("MDL001");
+        Model existing = new Model();
+        existing.setDeleted(true);
+        Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(existing);
+        ModelDto response = modelService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("soft deleted"));
+        Mockito.verify(modelRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findByIdentifierTest() {
+        Model model = new Model();
+        model.setIdentifier("MDL001");
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("MDL001");
+        Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(model);
+        Mockito.when(modelMapper.map(model, ModelDto.class)).thenReturn(dto);
+        ModelDto response = modelService.findByIdentifier("MDL001");
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("MDL001", response.getIdentifier());
     }
 
     @Test
     void findAllWithPageableTest() {
         Model model = new Model();
-        model.setIdentifier("Jordan");
+        model.setIdentifier("MDL001");
         ModelDto dto = new ModelDto();
-        dto.setIdentifier("Jordan");
+        dto.setIdentifier("MDL001");
         List<Model> models = List.of(model);
         List<ModelDto> dtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Model> modelPage = new PageImpl<>(models);
-        Mockito.when(modelRepository.findAll(pageable)).thenReturn(modelPage);
+        Page<Model> page = new PageImpl<>(models);
+        Mockito.when(modelRepository.findByDeletedFalse(pageable)).thenReturn(page);
         Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(Type.class))).thenReturn(dtos);
         PaginationResponseDto<ModelDto> response = modelService.findAll(pageable);
         Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("Jordan", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals("MDL001", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
     void findAllWithoutPageableTest() {
         Model model = new Model();
-        model.setIdentifier("Jordan");
+        model.setIdentifier("MDL001");
         ModelDto dto = new ModelDto();
-        dto.setIdentifier("Jordan");
+        dto.setIdentifier("MDL001");
         List<Model> models = List.of(model);
         List<ModelDto> dtos = List.of(dto);
         Mockito.when(modelRepository.findAll()).thenReturn(models);
@@ -74,50 +113,48 @@ class ModelServiceTest {
         PaginationResponseDto<ModelDto> response = modelService.findAll(null);
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("Jordan", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals("MDL001", response.getDtoList().get(0).getIdentifier());
     }
 
     @Test
-    void updateTest() {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setIdentifier("Jordan");
-        Model model = new Model();
-        model.setIdentifier("Jordan");
-        Mockito.when(modelRepository.findByIdentifier(modelDto.getIdentifier())).thenReturn(model);
-        Mockito.when(modelRepository.save(model)).thenReturn(model);
-        ModelDto response = modelService.update(modelDto);
+    void updateSuccessTest() {
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("MDL001");
+        Model existing = new Model();
+        existing.setIdentifier("MDL001");
+        Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(existing);
+        Mockito.when(modelRepository.save(existing)).thenReturn(existing);
+        ModelDto response = modelService.update(dto);
         Assertions.assertTrue(response.isSuccess());
+        Mockito.verify(modelRepository).save(existing);
     }
 
     @Test
-    void updateTestFailure() {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setIdentifier("Jordan");
-        Model model = new Model();
-        model.setIdentifier("Jordan");
-        Mockito.when(modelRepository.findByIdentifier(modelDto.getIdentifier())).thenReturn(null);
-        ModelDto response = modelService.update(modelDto);
+    void updateFailureTest() {
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("MDL001");
+        Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(null);
+        ModelDto response = modelService.update(dto);
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("not found"));
     }
 
     @Test
-    void findByIdentifierTest() {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setIdentifier("Jordan");
+    void deleteSuccessTest() {
         Model model = new Model();
-        model.setIdentifier("Jordan");
-        Mockito.when(modelRepository.findByIdentifier("Jordan")).thenReturn(model);
-        Mockito.when(modelMapper.map(model, ModelDto.class)).thenReturn(modelDto);
-        ModelDto response = modelService.findByIdentifier("Jordan");
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("Jordan", response.getIdentifier());
+        model.setIdentifier("MDL001");
+        Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(model);
+        modelService.deleteByIdentifier("MDL001");
+        Assertions.assertTrue(model.isDeleted());
+        Mockito.verify(modelRepository).save(model);
     }
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing().when(modelRepository).deleteByIdentifier("Jordan");
-        modelService.deleteByIdentifier("Jordan");
-        Mockito.verify(modelRepository).deleteByIdentifier("Jordan");
+    void deleteModelNotFoundTest() {
+        Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(null);
+        RuntimeException exception = Assertions.assertThrows(RuntimeException.class,
+                        () -> modelService.deleteByIdentifier("MDL001"));
+        Assertions.assertEquals("Model not found", exception.getMessage());
     }
 
     @Test
@@ -125,24 +162,25 @@ class ModelServiceTest {
         Model model = new Model();
         model.setIdentifier("MDL001");
         model.setStatus(false);
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("MDL001");
+        dto.setStatus(true);
         Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(model);
+        Mockito.when(modelRepository.save(model)).thenReturn(model);
+        Mockito.when(modelMapper.map(model, ModelDto.class)).thenReturn(dto);
         ModelDto response = modelService.toggleStatus("MDL001", true);
-        Assertions.assertNotNull(response);
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("Status updated successfully", response.getMessage());
         Assertions.assertTrue(model.isStatus());
-        Mockito.verify(modelRepository).findByIdentifier("MDL001");
-        Mockito.verify(modelRepository, Mockito.never()).save(Mockito.any());
+        Mockito.verify(modelRepository).save(model);
     }
 
     @Test
     void toggleStatusModelNotFoundTest() {
         Mockito.when(modelRepository.findByIdentifier("MDL001")).thenReturn(null);
         ModelDto response = modelService.toggleStatus("MDL001", true);
-        Assertions.assertNotNull(response);
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Model not found", response.getMessage());
-        Mockito.verify(modelRepository).findByIdentifier("MDL001");
-        Mockito.verifyNoMoreInteractions(modelRepository);
+        Mockito.verify(modelRepository, Mockito.never()).save(Mockito.any());
     }
 }

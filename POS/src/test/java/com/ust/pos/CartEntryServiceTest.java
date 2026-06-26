@@ -1,5 +1,6 @@
 package com.ust.pos;
 
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.impl.CartEntryServiceImpl;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
@@ -33,30 +34,132 @@ class CartEntryServiceTest {
     private CartEntryRepository cartEntryRepository;
 
     @Mock
-    private ModelMapper modelMapper;
+    private CartService cartService;
 
     @Mock
     private PriceService priceService;
 
+    @Mock
+    private ModelMapper modelMapper;
+
     @Test
-    void findByIdentifierTest() {
-        CartEntry entity = new CartEntry();
-        entity.setIdentifier("P001_CART1");
+    void saveSuccessTest() {
         CartEntryDto dto = new CartEntryDto();
-        dto.setIdentifier("P001_CART1");
-        Mockito.when(cartEntryRepository.findByIdentifier("P001_CART1")).thenReturn(entity);
-        Mockito.when(modelMapper.map(entity, CartEntryDto.class)).thenReturn(dto);
-        CartEntryDto response = cartEntryService.findByIdentifier("P001_CART1");
-        Assertions.assertEquals("P001_CART1", response.getIdentifier());
+        dto.setCartId("CART001");
+        dto.setProductId("PROD001");
+        dto.setQuantity(BigDecimal.valueOf(2));
+        PriceDto mrpDto = new PriceDto();
+        mrpDto.setAmount(100L);
+        PriceDto spDto = new PriceDto();
+        spDto.setAmount(90L);
+        CartEntry savedEntry = new CartEntry();
+        savedEntry.setIdentifier("CART001_PROD001");
+        CartEntryDto responseDto = new CartEntryDto();
+        responseDto.setIdentifier("CART001_PROD001");
+        Mockito.when(cartEntryRepository.findByIdentifier("CART001_PROD001")).thenReturn(null);
+        Mockito.when(priceService.findByIdentifier("PROD001_MRP")).thenReturn(mrpDto);
+        Mockito.when(priceService.findByIdentifier("PROD001_Selling_Price")).thenReturn(spDto);
+        Mockito.when(cartEntryRepository.save(Mockito.any(CartEntry.class))).thenReturn(savedEntry);
+        Mockito.when(modelMapper.map(savedEntry, CartEntryDto.class)).thenReturn(responseDto);
+        CartEntryDto response = cartEntryService.save(dto);
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Cart entry saved successfully", response.getMessage());
+        Mockito.verify(cartService).save("CART001");
+        Mockito.verify(cartService).recalculate("CART001");
     }
 
     @Test
-    void findAllWithPageableTest() {
-        CartEntry entry = new CartEntry();
-        entry.setIdentifier("P001_CART1");
-        List<CartEntry> entries = List.of(entry);
+    void saveInvalidQuantityTest() {
         CartEntryDto dto = new CartEntryDto();
-        dto.setIdentifier("P001_CART1");
+        dto.setQuantity(BigDecimal.ZERO);
+        CartEntryDto response = cartEntryService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Quantity must be greater than 0", response.getMessage());
+    }
+
+    @Test
+    void savePriceNotConfiguredTest() {
+        CartEntryDto dto = new CartEntryDto();
+        dto.setCartId("CART001");
+        dto.setProductId("PROD001");
+        dto.setQuantity(BigDecimal.ONE);
+        Mockito.when(cartEntryRepository.findByIdentifier("CART001_PROD001")).thenReturn(null);
+        Mockito.when(priceService.findByIdentifier("PROD001_MRP")).thenReturn(null);
+        CartEntryDto response = cartEntryService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Price not configured for product: PROD001", response.getMessage());
+    }
+
+    @Test
+    void updateSuccessTest() {
+        CartEntry entry = new CartEntry();
+        entry.setIdentifier("ENTRY001");
+        entry.setCartId("CART001");
+        entry.setQuantity(BigDecimal.ONE);
+        entry.setMrp(BigDecimal.valueOf(100));
+        entry.setSellingPrice(BigDecimal.valueOf(90));
+        CartEntryDto dto = new CartEntryDto();
+        dto.setIdentifier("ENTRY001");
+        dto.setQuantity(BigDecimal.valueOf(3));
+        CartEntryDto mappedDto = new CartEntryDto();
+        Mockito.when(cartEntryRepository.findByIdentifier("ENTRY001")).thenReturn(entry);
+        Mockito.when(cartEntryRepository.save(entry)).thenReturn(entry);
+        Mockito.when(modelMapper.map(entry, CartEntryDto.class)).thenReturn(mappedDto);
+        CartEntryDto response = cartEntryService.update(dto);
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Cart entry updated successfully", response.getMessage());
+        Mockito.verify(cartService).recalculate("CART001");
+    }
+
+    @Test
+    void updateEntryNotFoundTest() {
+        CartEntryDto dto = new CartEntryDto();
+        dto.setIdentifier("ENTRY001");
+        Mockito.when(cartEntryRepository.findByIdentifier("ENTRY001")).thenReturn(null);
+        CartEntryDto response = cartEntryService.update(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Cart entry not found", response.getMessage());
+    }
+
+    @Test
+    void updateInvalidQuantityTest() {
+        CartEntry entry = new CartEntry();
+        entry.setIdentifier("ENTRY001");
+        CartEntryDto dto = new CartEntryDto();
+        dto.setIdentifier("ENTRY001");
+        dto.setQuantity(BigDecimal.ZERO);
+        Mockito.when(cartEntryRepository.findByIdentifier("ENTRY001")).thenReturn(entry);
+        CartEntryDto response = cartEntryService.update(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Invalid quantity", response.getMessage());
+    }
+
+    @Test
+    void findByIdentifierSuccessTest() {
+        CartEntry entry = new CartEntry();
+        entry.setIdentifier("ENTRY001");
+        CartEntryDto dto = new CartEntryDto();
+        dto.setIdentifier("ENTRY001");
+        Mockito.when(cartEntryRepository.findByIdentifier("ENTRY001")).thenReturn(entry);
+        Mockito.when(modelMapper.map(entry, CartEntryDto.class)).thenReturn(dto);
+        CartEntryDto response = cartEntryService.findByIdentifier("ENTRY001");
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("ENTRY001", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(cartEntryRepository.findByIdentifier("ENTRY001")).thenReturn(null);
+        CartEntryDto response = cartEntryService.findByIdentifier("ENTRY001");
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Cart entry not found", response.getMessage());
+    }
+
+    @Test
+    void findAllTest() {
+        CartEntry entry = new CartEntry();
+        CartEntryDto dto = new CartEntryDto();
+        List<CartEntry> entries = List.of(entry);
         List<CartEntryDto> dtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 5);
         Page<CartEntry> page = new PageImpl<>(entries);
@@ -67,83 +170,33 @@ class CartEntryServiceTest {
     }
 
     @Test
-    void findAllWithoutPageableTest() {
+    void findByCartIdTest() {
         CartEntry entry = new CartEntry();
-        entry.setIdentifier("P001_CART1");
+        CartEntryDto dto = new CartEntryDto();
         List<CartEntry> entries = List.of(entry);
-        CartEntryDto dto = new CartEntryDto();
-        dto.setIdentifier("P001_CART1");
         List<CartEntryDto> dtos = List.of(dto);
-        Mockito.when(cartEntryRepository.findAll()).thenReturn(entries);
-        Mockito.when(modelMapper.map(Mockito.eq(entries),Mockito.any(Type.class))).thenReturn(dtos);
-        List<CartEntryDto> response = cartEntryService.findAll(null);
-        Assertions.assertEquals(1, response.size());
-    }
-
-    @Test
-    void saveTest() {
-        CartEntryDto dto = new CartEntryDto();
-        dto.setProductIdentifier("P001");
-        dto.setCartIdentifier("CART1");
-        dto.setQuantity(BigDecimal.valueOf(2));
-        CartEntry existing = new CartEntry();
-        existing.setQuantity(BigDecimal.ZERO);
-        Mockito.when(cartEntryRepository.findByIdentifier("P001_CART1")).thenReturn(existing);
-        PriceDto selling = new PriceDto();
-        selling.setAmount(80L);
-        PriceDto mrp = new PriceDto();
-        mrp.setAmount(100L);
-        Mockito.when(priceService.findByIdentifier("P001_SELLING_PRICE")).thenReturn(selling);
-        Mockito.when(priceService.findByIdentifier("P001_MRP")).thenReturn(mrp);
-        Mockito.when(cartEntryRepository.save(Mockito.any())).
-                thenAnswer(invocation -> invocation.getArgument(0));
-        CartEntryDto mappedDto = new CartEntryDto();
-        mappedDto.setIdentifier("P001_CART1");
-        Mockito.when(modelMapper.map(Mockito.any(CartEntry.class), Mockito.eq(CartEntryDto.class)))
-                .thenReturn(mappedDto);
-        CartEntryDto response = cartEntryService.save(dto);
-        Assertions.assertEquals("P001_CART1", response.getIdentifier());
-    }
-
-    @Test
-    void updateSuccessTest() {
-        CartEntryDto dto = new CartEntryDto();
-        dto.setIdentifier("P001_CART1");
-        CartEntry entity = new CartEntry();
-        entity.setIdentifier("P001_CART1");
-        Mockito.when(cartEntryRepository.findByIdentifier("P001_CART1")).thenReturn(entity);
-        Mockito.when(cartEntryRepository.save(entity)).thenReturn(entity);
-        CartEntryDto response = cartEntryService.update(dto);
-        Assertions.assertEquals("P001_CART1", response.getIdentifier());
-    }
-
-    @Test
-    void updateFailureTest() {
-        CartEntryDto dto = new CartEntryDto();
-        dto.setIdentifier("P001_CART1");
-        Mockito.when(cartEntryRepository.findByIdentifier("P001_CART1")).thenReturn(null);
-        CartEntryDto response = cartEntryService.update(dto);
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertTrue(response.getMessage().contains("not found"));
-    }
-
-    @Test
-    void deleteTest() {
-        cartEntryService.deleteByIdentifier("P001_CART1");
-        Mockito.verify(cartEntryRepository).deleteByIdentifier("P001_CART1");
-    }
-
-    @Test
-    void findByCartTest() {
-        CartEntry entry = new CartEntry();
-        entry.setIdentifier("P001_CART1");
-        List<CartEntry> entries = List.of(entry);
-        CartEntryDto dto = new CartEntryDto();
-        dto.setIdentifier("P001_CART1");
-        List<CartEntryDto> dtos = List.of(dto);
-        Mockito.when(cartEntryRepository.findByCartIdentifier("CART1")).thenReturn(entries);
+        Mockito.when(cartEntryRepository.findByCartId("CART001")).thenReturn(entries);
         Mockito.when(modelMapper.map(Mockito.eq(entries), Mockito.any(Type.class))).thenReturn(dtos);
-        List<CartEntryDto> response = cartEntryService.findByCart("CART1");
+        List<CartEntryDto> response = cartEntryService.findByCartId("CART001");
         Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void deleteExistingEntryTest() {
+        CartEntry entry = new CartEntry();
+        entry.setIdentifier("ENTRY001");
+        entry.setCartId("CART001");
+        Mockito.when(cartEntryRepository.findByIdentifier("ENTRY001")).thenReturn(entry);
+        cartEntryService.delete("ENTRY001");
+        Mockito.verify(cartEntryRepository).deleteByIdentifier("ENTRY001");
+        Mockito.verify(cartService).recalculate("CART001");
+    }
+
+    @Test
+    void deleteNonExistingEntryTest() {
+        Mockito.when(cartEntryRepository.findByIdentifier("ENTRY001")).thenReturn(null);
+        cartEntryService.delete("ENTRY001");
+        Mockito.verify(cartEntryRepository, Mockito.never()).deleteByIdentifier(Mockito.anyString());
+        Mockito.verify(cartService, Mockito.never()).recalculate(Mockito.anyString());
     }
 }

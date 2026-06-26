@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,8 +18,11 @@ public class CategoryController extends BaseController {
     private static final String CATEGORY_LIST = "category/list";
     private static final String CATEGORY_ADD = "category/add";
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String list(Model model, @ModelAttribute PaginationDto paginationDto) {

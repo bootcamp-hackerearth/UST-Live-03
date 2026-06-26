@@ -1,6 +1,7 @@
 'use client';
  
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
  
 import api from '@/app/services/api';
 import CommonUpdate from '@/components/UpdatePage';
@@ -44,7 +45,6 @@ const UpdateNode = ({
   const fetchRoles = async () => {
  
     try {
- 
       const response = await api.post(
         '/role/list',
         {
@@ -58,16 +58,12 @@ const UpdateNode = ({
       );
  
     } catch (error) {
- 
       console.error(error);
- 
     }
   };
  
   const handleChange = (e) => {
- 
     const { name, value } = e.target;
- 
     setNode((prev) => ({
       ...prev,
       [name]: value
@@ -76,30 +72,21 @@ const UpdateNode = ({
   };
  
   const handleRoleChange = (e) => {
- 
     const { value, checked } = e.target;
- 
     setNode((prev) => ({
- 
       ...prev,
- 
       roles: checked
         ? [...prev.roles, value]
         : prev.roles.filter(
             (role) => role !== value
           )
- 
     }));
- 
   };
  
   const handleSubmit = async (e) => {
- 
     e.preventDefault();
- 
     try {
- 
-      await api.post(
+      await api.put(
         '/node/update',
         node,
         {
@@ -109,25 +96,19 @@ const UpdateNode = ({
           }
         }
       );
- 
       setMessage(
         'Node updated successfully'
       );
- 
       refreshData?.();
- 
       setTimeout(() => {
         closeModal?.();
       }, 500);
  
     } catch (error) {
- 
       console.error(error);
- 
       setMessage(
         'Failed to update node'
       );
- 
     }
   };
  
@@ -165,11 +146,14 @@ const UpdateNode = ({
         )}
 
         <div>
-          <label className="block mb-2 text-sm font-medium text-slate-700">
+          <label 
+            htmlFor="nodeId"
+            className="block mb-2 text-sm font-medium text-slate-700">
             Node ID
           </label>
 
           <input
+            id="nodeId"
             type="text"
             value={node.id}
             readOnly
@@ -195,11 +179,14 @@ const UpdateNode = ({
         />
 
         <div>
-          <label className="block mb-2 text-sm font-medium text-slate-700">
+          <label 
+            htmlFor="path"
+            className="block mb-2 text-sm font-medium text-slate-700">
             Path
           </label>
 
           <input
+            id="path"
             type="text"
             name="path"
             value={node.path}
@@ -220,9 +207,10 @@ const UpdateNode = ({
         </div>
 
         <div>
-          <label className="block mb-3 text-sm font-medium text-slate-700">
+          <p
+            className="block mb-3 text-sm font-medium text-slate-700">
             Assigned Roles
-          </label>
+          </p>
 
           <div className="border border-slate-300 rounded-xl p-4 max-h-64 overflow-y-auto bg-slate-50">
 
@@ -238,7 +226,6 @@ const UpdateNode = ({
                   onChange={handleRoleChange}
                   className="h-4 w-4 accent-cyan-500"
                 />
-
                 <span className="text-sm text-slate-700">
                   {role.identifier}
                 </span>
@@ -290,4 +277,15 @@ const UpdateNode = ({
   );
 };
  
+UpdateNode.propTypes = {
+  data: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    identifier: PropTypes.string,
+    path: PropTypes.string,
+    roles: PropTypes.arrayOf(PropTypes.string)
+  }),
+  closeModal: PropTypes.func,
+  refreshData: PropTypes.func
+};
+
 export default UpdateNode;

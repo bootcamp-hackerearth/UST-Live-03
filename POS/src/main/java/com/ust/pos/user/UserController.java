@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,11 +17,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/user")
 public class UserController extends BaseController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final RoleService roleService;
 
-    @Autowired
-    private RoleService roleService;
+    public UserController(
+            UserService userService,
+            RoleService roleService) {
+
+        this.userService = userService;
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, @ModelAttribute PaginationDto paginationDto) {
@@ -33,8 +37,8 @@ public class UserController extends BaseController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String username, @ModelAttribute UserDto userDto) {
-        UserDto response = userService.findByUserName(username);
+    public String update(Model model, @RequestParam String identifier, @ModelAttribute UserDto userDto) {
+        UserDto response = userService.findByUserName(identifier);
         model.addAttribute("userDto", response);
         model.addAttribute("roles", roleService.findAll(null));
         return "user/user";

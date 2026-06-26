@@ -1,14 +1,15 @@
 package com.ust.pos.user.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,18 +21,23 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends BaseService implements UserService {
 
     public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public UserServiceImpl(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            ModelMapper modelMapper) {
 
-    @Autowired
-    private ModelMapper modelMapper;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UserDto findByUserName(String username) {
@@ -44,13 +50,22 @@ public class UserServiceImpl implements UserService {
         userDto.setIdentifier(username);
         User existingUser = userRepository.findByUsername(username);
         if (existingUser != null) {
+            if (existingUser.isDeleted()) {
+                userDto.setMessage(USER_WITH_USERNAME_EMAIL + username +
+                                " has been soft deleted. (Rollback by changing status)");
+                userDto.setSuccess(false);
+                return userDto;
+            }
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
             userDto.setSuccess(false);
             return userDto;
         }
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        setCreatedDetails(user);
         userRepository.save(user);
+        userDto.setSuccess(true);
+        userDto.setMessage("User added successfully");
         return userDto;
     }
 
@@ -69,15 +84,26 @@ public class UserServiceImpl implements UserService {
                 userDto.setSuccess(false);
                 return userDto;
             }
+            String existingPassword = existingUser.getPassword();
             modelMapper.map(userDto, existingUser);
+            existingUser.setPassword(existingPassword);
+            setModifiedDetails(existingUser);
             userRepository.save(existingUser);
+            userDto.setSuccess(true);
+            userDto.setMessage("User updated successfully");
         }
         return userDto;
     }
 
     @Override
     public void delete(String identifier) {
-        userRepository.deleteByUsername(identifier);
+        User user = userRepository.findByUsername(identifier);
+        if (user == null) {
+            throw new EntityNotFoundException("User not found");
+        }
+        softDelete(user);
+        setModifiedDetails(user);
+        userRepository.save(user);
     }
 
 
@@ -88,12 +114,12 @@ public class UserServiceImpl implements UserService {
         if (pageable == null) {
             List<User> users = userRepository.findAll();
             response.setDtoList(modelMapper.map(users, listType));
-            response.setTotalRecords((long) users.size());
+            response.setTotalRecords(users.size());
             response.setTotalPages(1);
             response.setSizePerPage(users.size());
             response.setPage(0);
         } else {
-            Page<User> userPage = userRepository.findAll(pageable);
+            Page<User> userPage = userRepository.findByDeletedFalse(pageable);
             response.setDtoList(modelMapper.map(userPage.getContent(), listType));
             response.setTotalRecords(userPage.getTotalElements());
             response.setTotalPages(userPage.getTotalPages());

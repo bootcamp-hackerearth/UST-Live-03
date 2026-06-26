@@ -15,10 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -41,7 +38,7 @@ class CustomerServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void findByIdentifier_success() {
+    void findByIdentifierSuccessTest() {
         Customer customer = new Customer();
         customer.setIdentifier("9999999999");
         CustomerDto dto = new CustomerDto();
@@ -53,131 +50,157 @@ class CustomerServiceTest {
                 ("9999999999", "billing")).thenReturn(billing);
         Mockito.when(addressService.findByPhoneNoAndAddressType
                 ("9999999999", "shipping")).thenReturn(shipping);
-        CustomerDto result = customerService.findByIdentifier("9999999999");
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("9999999999", result.getPhoneNo());
-        Assertions.assertEquals(billing, result.getBillingAddress());
-        Assertions.assertEquals(shipping, result.getShippingAddress());
+        CustomerDto response = customerService.findByIdentifier("9999999999");
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("9999999999", response.getPhoneNo());
+        Assertions.assertEquals(billing, response.getBillingAddress());
+        Assertions.assertEquals(shipping, response.getShippingAddress());
     }
 
     @Test
-    void findByIdentifier_notFound() {
+    void findByIdentifierNotFoundTest() {
         Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(null);
-        CustomerDto result = customerService.findByIdentifier("9999999999");
-        Assertions.assertNull(result);
+        CustomerDto response = customerService.findByIdentifier("9999999999");
+        Assertions.assertNull(response);
     }
 
     @Test
-    void save_success() {
+    void saveSuccessTest() {
         CustomerDto dto = new CustomerDto();
         dto.setPhoneNo("9999999999");
         dto.setBillingAddress(new AddressDto());
         dto.setShippingAddress(new AddressDto());
+        Customer customer = new Customer();
         Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(null);
-        Mockito.when(modelMapper.map(dto, Customer.class)).thenReturn(new Customer());
-        CustomerDto result = customerService.save(dto);
-        Assertions.assertNotNull(result);
+        Mockito.when(modelMapper.map(dto, Customer.class)).thenReturn(customer);
+        CustomerDto response = customerService.save(dto);
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.isSuccess());
         Mockito.verify(addressService, Mockito.times(2)).save(any(AddressDto.class));
         Mockito.verify(customerRepository).save(any(Customer.class));
     }
 
     @Test
-    void save_duplicateCustomer() {
+    void saveDuplicateCustomerTest() {
         CustomerDto dto = new CustomerDto();
         dto.setPhoneNo("9999999999");
-        Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(new Customer());
-        CustomerDto result = customerService.save(dto);
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
+        Customer customer = new Customer();
+        Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(customer);
+        CustomerDto response = customerService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("already exists"));
         Mockito.verify(customerRepository, Mockito.never()).save(any());
     }
 
     @Test
-    void update_success() {
+    void saveSoftDeletedCustomerTest() {
+        CustomerDto dto = new CustomerDto();
+        dto.setPhoneNo("9999999999");
+        Customer customer = new Customer();
+        customer.setDeleted(true);
+        Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(customer);
+        CustomerDto response = customerService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("soft deleted"));
+    }
+
+    @Test
+    void updateSuccessTest() {
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("9999999999");
         dto.setBillingAddress(new AddressDto());
         dto.setShippingAddress(new AddressDto());
-        Customer existing = new Customer();
-        Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(existing);
-        CustomerDto result = customerService.update(dto);
-        Assertions.assertNotNull(result);
+        Customer existingCustomer = new Customer();
+        Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(existingCustomer);
+        CustomerDto response = customerService.update(dto);
+        Assertions.assertNotNull(response);
         Mockito.verify(addressService, Mockito.times(2)).update(any(AddressDto.class));
-        Mockito.verify(customerRepository).save(existing);
+        Mockito.verify(customerRepository).save(existingCustomer);
     }
 
     @Test
-    void update_notFound() {
+    void updateFailureTest() {
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("9999999999");
         Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(null);
-        CustomerDto result = customerService.update(dto);
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
-        Mockito.verify(customerRepository, Mockito.never()).save(any());
+        CustomerDto response = customerService.update(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("not found"));
     }
 
     @Test
-    void delete_customer() {
+    void deleteSuccessTest() {
+        Customer customer = new Customer();
+        customer.setIdentifier("9999999999");
+        Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(customer);
+        Mockito.when(customerRepository.save(customer)).thenReturn(customer);
         customerService.delete("9999999999");
-        Mockito.verify(customerRepository).deleteByIdentifier("9999999999");
+        Assertions.assertTrue(customer.isDeleted());
+        Mockito.verify(customerRepository).save(customer);
         Mockito.verify(addressService).delete("9999999999");
     }
 
     @Test
-    void toggleStatus_success() {
+    void deleteCustomerNotFoundTest() {
+        Mockito.when(customerRepository.findByIdentifier("9999999999"))
+                .thenReturn(null);
+        RuntimeException exception = Assertions.assertThrows(RuntimeException.class,
+                        () -> customerService.delete("9999999999"));
+        Assertions.assertEquals("Customer not found", exception.getMessage());
+    }
+
+    @Test
+    void toggleStatusSuccessTest() {
         Customer customer = new Customer();
         customer.setStatus(false);
         CustomerDto dto = new CustomerDto();
         Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(customer);
+        Mockito.when(customerRepository.save(customer)).thenReturn(customer);
         Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(dto);
-        CustomerDto result = customerService.toggleStatus("9999999999", true);
-        Assertions.assertTrue(result.isSuccess());
+        CustomerDto response = customerService.toggleStatus("9999999999", true);
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Status updated successfully", response.getMessage());
         Assertions.assertTrue(customer.isStatus());
-        Assertions.assertEquals("Status updated successfully", result.getMessage()
-        );
     }
 
     @Test
-    void toggleStatus_notFound() {
+    void toggleStatusFailureTest() {
         Mockito.when(customerRepository.findByIdentifier("9999999999")).thenReturn(null);
-        CustomerDto result = customerService.toggleStatus("9999999999", true);
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Customer not found", result.getMessage());
+        CustomerDto response = customerService.toggleStatus("9999999999", true);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Customer not found", response.getMessage());
         Mockito.verify(customerRepository, Mockito.never()).save(any());
     }
 
     @Test
     void findAllWithPageableTest() {
         Customer customer = new Customer();
-        customer.setIdentifier("1234567890");
+        customer.setIdentifier("9999999999");
         CustomerDto dto = new CustomerDto();
-        dto.setIdentifier("1234567890");
+        dto.setIdentifier("9999999999");
         List<Customer> customers = List.of(customer);
         List<CustomerDto> dtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Customer> customerPage = new PageImpl<>(customers);
-        Mockito.when(customerRepository.findAll(pageable)).thenReturn(customerPage);
+        Page<Customer> page = new PageImpl<>(customers);
+        Mockito.when(customerRepository.findByDeletedFalse(pageable)).thenReturn(page);
         Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(Type.class))).thenReturn(dtos);
         PaginationResponseDto<CustomerDto> response = customerService.findAll(pageable);
-        Assertions.assertNotNull(response.getDtoList());
         Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("1234567890", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals("9999999999", response.getDtoList().get(0).getIdentifier());
     }
-
 
     @Test
     void findAllWithoutPageableTest() {
         Customer customer = new Customer();
-        customer.setIdentifier("1234567890");
+        customer.setIdentifier("9999999999");
         CustomerDto dto = new CustomerDto();
-        dto.setIdentifier("1234567890");
+        dto.setIdentifier("9999999999");
         List<Customer> customers = List.of(customer);
         List<CustomerDto> dtos = List.of(dto);
         Mockito.when(customerRepository.findAll()).thenReturn(customers);
         Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(Type.class))).thenReturn(dtos);
         PaginationResponseDto<CustomerDto> response = customerService.findAll(null);
         Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("1234567890", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals("9999999999", response.getDtoList().get(0).getIdentifier());
     }
 }

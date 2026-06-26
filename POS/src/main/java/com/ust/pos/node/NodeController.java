@@ -6,7 +6,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.node.service.NodeService;
 import com.ust.pos.role.service.RoleService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,11 +17,13 @@ public class NodeController extends BaseController {
 
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private NodeService nodeService;
+    public NodeController(RoleService roleService, NodeService nodeService) {
+        this.roleService = roleService;
+        this.nodeService = nodeService;
+    }
 
     @GetMapping("/list")
     public String home(Model model,@ModelAttribute PaginationDto paginationDto) {

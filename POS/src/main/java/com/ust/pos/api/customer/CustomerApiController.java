@@ -6,7 +6,6 @@ import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/customer")
 public class CustomerApiController extends BaseController {
 
-    @Autowired
-    CustomerService customerService;
+    private final CustomerService customerService;
+
+    public CustomerApiController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
     @PostMapping("/add")
     public CustomerDto addPost(@RequestBody CustomerDto customerDto) {
@@ -34,13 +36,13 @@ public class CustomerApiController extends BaseController {
         return customerService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
     @Transactional
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);
@@ -48,5 +50,10 @@ public class CustomerApiController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggleStatus")
+    public CustomerDto toggleStatus(@RequestBody CustomerDto customerDto) {
+        return customerService.toggleStatus(customerDto.getIdentifier(), customerDto.isStatus());
     }
 }

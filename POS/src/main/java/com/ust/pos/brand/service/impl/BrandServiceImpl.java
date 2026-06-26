@@ -1,5 +1,6 @@
 package com.ust.pos.brand.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationResponseDto;
@@ -8,33 +9,46 @@ import com.ust.pos.model.BrandRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import jakarta.persistence.EntityNotFoundException;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
 @Transactional
-public class BrandServiceImpl implements BrandService {
+public class BrandServiceImpl extends BaseService implements BrandService {
 
-    @Autowired
-    BrandRepository brandRepository;
+    private final BrandRepository brandRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    ModelMapper modelMapper;
+    public BrandServiceImpl(
+            BrandRepository brandRepository,
+            ModelMapper modelMapper) {
+
+        this.brandRepository = brandRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public BrandDto save(BrandDto brandDto) {
         Brand existingBrand = brandRepository.findByIdentifier(brandDto.getIdentifier());
         if (existingBrand != null) {
+            if(existingBrand.isDeleted())
+            {
+                brandDto.setMessage("Category with identifier - " + brandDto.getIdentifier() +
+                        "has been soft deleted.(Rollback by changing status)");
+                brandDto.setSuccess(false);
+                return brandDto;
+            }
             brandDto.setMessage("Brand with identifier - " + brandDto.getIdentifier() + " already exists");
             brandDto.setSuccess(false);
             return brandDto;
         }
         Brand brand = modelMapper.map(brandDto, Brand.class);
+        setCreatedDetails(brand);
         brandRepository.save(brand);
         return brandDto;
     }
@@ -46,12 +60,12 @@ public class BrandServiceImpl implements BrandService {
         if (pageable == null) {
             List<Brand> brands = brandRepository.findAll();
             response.setDtoList(modelMapper.map(brands, listType));
-            response.setTotalRecords((long) brands.size());
+            response.setTotalRecords(brands.size());
             response.setTotalPages(1);
             response.setSizePerPage(brands.size());
             response.setPage(0);
         } else {
-            Page<Brand> brandPage = brandRepository.findAll(pageable);
+            Page<Brand> brandPage = brandRepository.findByDeletedFalse(pageable);
             response.setDtoList(modelMapper.map(brandPage.getContent(), listType));
             response.setTotalRecords(brandPage.getTotalElements());
             response.setTotalPages(brandPage.getTotalPages());
@@ -66,10 +80,18 @@ public class BrandServiceImpl implements BrandService {
         return modelMapper.map(brandRepository.findByIdentifier(identifier), BrandDto.class);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deleteByIdentifier(String identifier) {
-        brandRepository.deleteByIdentifier(identifier);
+        Brand brand = brandRepository.findByIdentifier(identifier);
+        if (brand == null) {
+            throw new EntityNotFoundException(
+                    "Brand with identifier - " + identifier + " not found");
+        }
+
+        softDelete(brand);
+        setModifiedDetails(brand);
+        brandRepository.save(brand);
     }
 
     @Override
@@ -81,6 +103,7 @@ public class BrandServiceImpl implements BrandService {
             return brandDto;
         }
         modelMapper.map(brandDto, existingBrand);
+        setModifiedDetails(existingBrand);
         brandRepository.save(existingBrand);
         return brandDto;
     }
@@ -91,6 +114,7 @@ public class BrandServiceImpl implements BrandService {
         Brand brand = brandRepository.findByIdentifier(identifier);
         if (brand != null) {
             brand.setStatus(!brand.isStatus());
+            setModifiedDetails(brand);
             brandRepository.save(brand);
         }
         return modelMapper.map(brand, BrandDto.class);

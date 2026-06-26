@@ -1,5 +1,6 @@
 'use client';
  
+import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import api from '@/app/services/api';
  
@@ -74,7 +75,7 @@ const AddUser = ({ closeModal, refreshData }) => {
       return false;
     }
  
-    const phoneRegex = /^[0-9]{10}$/;
+    const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(user.phoneNo)) {
       setMessage('Phone number must be 10 digits');
       return false;
@@ -168,7 +169,7 @@ const AddUser = ({ closeModal, refreshData }) => {
             onChange={(e) =>
               setUser({
                 ...user,
-                phoneNo: e.target.value.replace(/[^0-9]/g, '')
+                phoneNo: e.target.value.replaceAll(/\D/g, '')
               })
             }
             placeholder="Phone"
@@ -177,7 +178,8 @@ const AddUser = ({ closeModal, refreshData }) => {
           />
  
         </div>
- 
+        
+        <div className="grid grid-cols-2 gap-3">
         <input
           name="username"
           value={user.username}
@@ -194,6 +196,7 @@ const AddUser = ({ closeModal, refreshData }) => {
           placeholder="Password"
             className="h-12 px-4 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 "
         />
+        </div>
  
         <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50">
  
@@ -250,4 +253,9 @@ const AddUser = ({ closeModal, refreshData }) => {
 );
 };
  
+AddUser.propTypes = {
+  closeModal: PropTypes.func,
+  refreshData: PropTypes.func
+};
+
 export default AddUser;

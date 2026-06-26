@@ -1,6 +1,7 @@
 'use client';
  
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
  
 import api from '@/app/services/api';
 import Dropdown from '@/components/Dropdown';
@@ -11,6 +12,7 @@ const AddPrice = ({
 }) => {
  
   const [message, setMessage] = useState('');
+  const [errors, setErrors] = useState({});
  
   const [price, setPrice] = useState({
     product: '',
@@ -20,15 +22,12 @@ const AddPrice = ({
   });
  
   const [products, setProducts] = useState([]);
- 
   useEffect(() => {
     fetchProducts();
   }, []);
  
   const fetchProducts = async () => {
- 
     try {
- 
       const response = await api.post(
         '/product/list',
         {
@@ -36,63 +35,49 @@ const AddPrice = ({
           sizePerPage: 100
         }
       );
- 
       setProducts(
         response.data.dtoList || []
       );
- 
     } catch (error) {
- 
       console.error(error);
- 
     }
- 
   };
  
   const handleChange = (e) => {
- 
     const { name, value } = e.target;
- 
     setPrice((prev) => ({
       ...prev,
       [name]: value
     }));
- 
+    setErrors((prev) => ({
+      ...prev,
+      [name]: ''
+    }));
   };
  
   const handleSubmit = async (e) => {
- 
     e.preventDefault();
- 
+    if(!validate()) return;
     try {
- 
       const response = await api.post(
         '/price/add',
         price
       );
- 
       setMessage(
         response.data.message ||
         'Price added successfully'
       );
- 
       if (!response.data.success) {
         return;
       }
- 
       refreshData?.();
       closeModal?.();
- 
     } catch (error) {
- 
       console.error(error);
- 
       setMessage(
         'Failed to add price'
       );
- 
     }
- 
   };
  
   const priceTypes = [
@@ -109,11 +94,35 @@ const AddPrice = ({
       name: 'MRP'
     }
   ];
+
+  const validate = () => {
+    const newErrors = {};
+    if (!price.product) {
+      newErrors.product = 'Product is required';
+    }
+
+    if (!price.type) {
+      newErrors.type = 'Price type is required';
+    }
+
+    if (!price.amount) {
+      newErrors.amount = 'Amount is required';
+    } 
+    else if (Number(price.amount) <= 0) {
+      newErrors.amount = 'Amount must be greater than 0';
+    }
+
+    if (!price.currency.trim()) {
+      newErrors.currency = 'Currency is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
  
   return (
  
     <div className="flex flex-col bg-white rounded-2xl overflow-hidden max-h-[85vh] border-t-4 border-cyan-500 shadow-lg">
- 
       <div className="px-8 pt-6 pb-5 border-b border-slate-200 flex-shrink-0">
  
       <h2 className="text-2xl font-semibold text-slate-800">
@@ -125,22 +134,18 @@ const AddPrice = ({
       </p>
  
     </div>
- 
     {message && (
- 
       <div className="mx-8 mt-5 rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-700">
         {message}
       </div>
- 
     )}
  
     <form
       onSubmit={handleSubmit}
       className="p-8"
     >
- 
       <div className="grid md:grid-cols-2 gap-5">
- 
+       <div>
         <Dropdown
           label="Product"
           name="product"
@@ -149,7 +154,13 @@ const AddPrice = ({
           onChange={handleChange}
           placeholder="Select Product"
         />
- 
+          {errors.product && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.product}
+            </p>
+          )}
+       </div>
+       <div>
         <Dropdown
           label="Price Type"
           name="type"
@@ -158,14 +169,22 @@ const AddPrice = ({
           onChange={handleChange}
           placeholder="Select Price Type"
         />
- 
+          {errors.type && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.type}
+            </p>
+          )}
+          </div>
+
         <div>
- 
-          <label className="block mb-2 text-sm font-medium text-slate-700">
+          <label 
+            htmlFor="amount"
+            className="block mb-2 text-sm font-medium text-slate-700">
             Amount
           </label>
  
           <input
+            id="amount"
             type="number"
             name="amount"
             value={price.amount}
@@ -175,7 +194,6 @@ const AddPrice = ({
             w-full
             h-12
             px-4
-            
             border
             border-slate-300
             rounded-xl
@@ -185,16 +203,22 @@ const AddPrice = ({
             transition
             "
           />
- 
+            {errors.amount && (
+              <p className="text-red-500 text-sm mb-1">
+                {errors.amount}
+              </p>
+            )}
         </div>
  
         <div>
- 
-          <label className="block mb-2 text-sm font-medium text-slate-700">
+          <label 
+            htmlFor="currency"
+            className="block mb-2 text-sm font-medium text-slate-700">
             Currency
           </label>
  
           <input
+            id="currency"
             type="text"
             name="currency"
             value={price.currency}
@@ -214,13 +238,16 @@ const AddPrice = ({
             transition
             "
           />
- 
+            {errors.currency && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.currency}
+              </p>
+            )}
         </div>
- 
       </div>
  
       <div className="flex justify-end gap-3 mt-8 pt-5 border-t border-slate-100">
- 
+
         <button
           type="button"
           onClick={() => closeModal?.()}
@@ -252,17 +279,16 @@ const AddPrice = ({
           "
         >
           Save Price
-        </button>
- 
+        </button> 
       </div>
- 
     </form>
- 
   </div>
- 
 );
- 
 };
  
+AddPrice.propTypes = {
+  closeModal: PropTypes.func,
+  refreshData: PropTypes.func
+};
+
 export default AddPrice;
- 

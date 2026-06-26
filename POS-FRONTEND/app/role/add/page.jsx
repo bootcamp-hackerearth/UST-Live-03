@@ -1,10 +1,13 @@
 'use client';
  
+import PropTypes from 'prop-types';
 import { useState } from 'react';
 import api from '@/app/services/api';
  
 const AddRole = ({ closeModal, refreshData }) => {
   const [message, setMessage] = useState('');
+
+  const [errors, setErrors] = useState({});
  
   const [role, setRole] = useState({
     identifier: '',
@@ -13,25 +16,32 @@ const AddRole = ({ closeModal, refreshData }) => {
  
   const handleChange = (e) => {
     const { name, value } = e.target;
- 
+
     setRole((prev) => ({
       ...prev,
       [name]: value
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: ''
     }));
   };
  
   const handleSubmit = async (e) => {
     e.preventDefault();
- 
+
+    if (!validate()) return;
+
     try {
       const response = await api.post('/role/add', role);
- 
+
       const data = response.data;
- 
+
       setMessage(data.message);
- 
+
       if (!data.success) return;
- 
+
       refreshData?.();
       closeModal?.();
     } catch (error) {
@@ -40,7 +50,35 @@ const AddRole = ({ closeModal, refreshData }) => {
     }
   };
  
+  const validate = () => {
+    const newErrors = {};
+
+  
+    if (!role.identifier.trim()) {
+      newErrors.identifier = 'Identifier is required';
+    } else if (!/^\w+$/.test(role.identifier)) {
+      newErrors.identifier =
+        'Only letters, numbers and underscore are allowed';
+    }
+
+    
+    if (!role.description.trim()) {
+      newErrors.description = 'Description is required';
+    } else if (role.description.trim().length < 5) {
+      newErrors.description =
+        'Description must be at least 5 characters';
+    } else if (role.description.trim().length > 100) {
+      newErrors.description =
+        'Description cannot exceed 100 characters';
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   return (
+
     <form
       onSubmit={handleSubmit}
       className="bg-white rounded-2xl border-t-4 border-cyan-500 shadow-lg"
@@ -73,11 +111,14 @@ const AddRole = ({ closeModal, refreshData }) => {
         )}
  
         <div>
-          <label className="block mb-2 text-sm font-semibold text-slate-700">
+          <label 
+            htmlFor="identifier"
+            className="block mb-2 text-sm font-semibold text-slate-700">
             Identifier
           </label>
  
           <input
+            id="identifier"
             type="text"
             name="identifier"
             value={role.identifier}
@@ -98,14 +139,23 @@ const AddRole = ({ closeModal, refreshData }) => {
               transition
             "
           />
+
+          {errors.identifier && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.identifier}
+            </p>
+          )}
         </div>
  
         <div>
-          <label className="block mb-2 text-sm font-semibold text-slate-700">
+          <label 
+            htmlFor="description"
+            className="block mb-2 text-sm font-semibold text-slate-700">
             Description
           </label>
  
           <textarea
+            id="identifier"
             name="description"
             value={role.description}
             onChange={handleChange}
@@ -126,6 +176,11 @@ const AddRole = ({ closeModal, refreshData }) => {
               transition
             "
           />
+          {errors.description && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.description}
+            </p>
+          )}
         </div>
       </div>
  
@@ -165,4 +220,9 @@ const AddRole = ({ closeModal, refreshData }) => {
   );
 };
  
+AddRole.propTypes = {
+  closeModal: PropTypes.func,
+  refreshData: PropTypes.func
+};
+
 export default AddRole;

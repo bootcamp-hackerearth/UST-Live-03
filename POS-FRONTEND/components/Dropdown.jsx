@@ -1,10 +1,12 @@
 'use client';
  
+import PropTypes from 'prop-types';
+
 const CommonDropdown = ({
   label,
   name,
   value,
-  options,
+  options=[],
   onChange,
   required = false,
   placeholder = '-- Select --'
@@ -13,7 +15,6 @@ const CommonDropdown = ({
   return (
  
     <div>
- 
       <label className="block mb-2 text-sm font-semibold text-slate-700">
         {label}
       </label>
@@ -38,7 +39,6 @@ const CommonDropdown = ({
           transition
         "
       >
- 
         <option value=""
                 className="text-slate-400 bg-white"
         >
@@ -46,7 +46,6 @@ const CommonDropdown = ({
         </option>
  
         {options.map((option, index) => (
- 
         <option
           key={option.id || index}
           value={option.identifier}
@@ -54,14 +53,29 @@ const CommonDropdown = ({
         >
           { option.name || option.identifier}
         </option>
-
       ))}
- 
       </select>
- 
     </div>
- 
   );
 };
  
+CommonDropdown.propTypes = {
+  label: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  value: PropTypes.string,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number
+      ]),
+      identifier: PropTypes.string,
+      name: PropTypes.string
+    })
+  ).isRequired,
+  onChange: PropTypes.func.isRequired,
+  required: PropTypes.bool,
+  placeholder: PropTypes.string
+};
+
 export default CommonDropdown;

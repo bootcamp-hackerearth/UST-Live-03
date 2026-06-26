@@ -5,23 +5,28 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/warehouse")
 public class WarehouseApiController extends BaseController {
 
-    @Autowired
-    WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
+
+    public WarehouseApiController(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
     public PaginationResponseDto<WarehouseDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(),paginationDto.getSortField());
@@ -29,16 +34,19 @@ public class WarehouseApiController extends BaseController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('Seller')")
     public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Seller')")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Seller')")
     public boolean delete(@RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);

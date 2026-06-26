@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,11 +16,15 @@ public class PriceController extends BaseController {
 
     public static final String REDIRECT_PRICE_LIST = "redirect:/price/list";
 
-    @Autowired
-    PriceService priceService;
+    private final PriceService priceService;
+    private final ProductService productService;
 
-    @Autowired
-    ProductService productService;
+    public PriceController(
+            PriceService priceService,
+            ProductService productService) {
+        this.priceService = priceService;
+        this.productService = productService;
+    }
 
     @GetMapping("/add")
     public String add(Model model, @ModelAttribute PriceDto priceDto,Pageable pageable) {

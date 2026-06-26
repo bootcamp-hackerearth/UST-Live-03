@@ -1,7 +1,7 @@
 package com.ust.pos.product.service;
 
-import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import org.springframework.data.domain.Pageable;
 
 public interface ProductService {
@@ -14,4 +14,6 @@ public interface ProductService {
     void deleteByIdentifier(String identifier);
 
     ProductDto update(ProductDto productDto);
+
+    ProductDto toggleStatus(String identifier, boolean status);
 }

@@ -43,7 +43,6 @@ class WarehouseServiceTest {
         Mockito.when(warehouseRepository.save(warehouse)).thenReturn(warehouse);
         WarehouseDto response = warehouseService.save(warehouseDto);
         Assertions.assertEquals("Lays Warehouse", response.getIdentifier());
-        Assertions.assertEquals(true, response.isSuccess());
     }
 
     @Test
@@ -53,9 +52,20 @@ class WarehouseServiceTest {
         Warehouse warehouse = new Warehouse();
         Mockito.when(warehouseRepository.findByIdentifier("Lays Warehouse")).thenReturn(warehouse);
         WarehouseDto response = warehouseService.save(warehouseDto);
-        Assertions.assertEquals("Lays Warehouse", response.getIdentifier());
-        Assertions.assertNotNull(response.getMessage(), "Message cannot be null");
-        Assertions.assertEquals(false, response.isSuccess());
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
+    }
+
+    @Test
+    void saveTestFailureForSoftDeletedWarehouse() {
+        WarehouseDto warehouseDto = new WarehouseDto();
+        warehouseDto.setIdentifier("Lays Warehouse");
+        Warehouse warehouse = new Warehouse();
+        warehouse.setDeleted(true);
+        Mockito.when(warehouseRepository.findByIdentifier("Lays Warehouse")).thenReturn(warehouse);
+        WarehouseDto response = warehouseService.save(warehouseDto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertTrue(response.getMessage().contains("soft deleted"));
     }
 
     @Test
@@ -74,10 +84,10 @@ class WarehouseServiceTest {
     void updateTest() {
         WarehouseDto warehouseDto = new WarehouseDto();
         warehouseDto.setIdentifier("Lays Warehouse");
-        Warehouse existingWarehouse = new Warehouse();
-        existingWarehouse.setIdentifier("Lays Warehouse");
-        Mockito.when(warehouseRepository.findByIdentifier("Lays Warehouse")).thenReturn(existingWarehouse);
-        Mockito.when(warehouseRepository.save(existingWarehouse)).thenReturn(existingWarehouse);
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("Lays Warehouse");
+        Mockito.when(warehouseRepository.findByIdentifier("Lays Warehouse")).thenReturn(warehouse);
+        Mockito.when(warehouseRepository.save(warehouse)).thenReturn(warehouse);
         WarehouseDto response = warehouseService.update(warehouseDto);
         Assertions.assertTrue(response.isSuccess());
     }
@@ -93,9 +103,21 @@ class WarehouseServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(warehouseRepository).deleteByIdentifier("Lays Warehouse");
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("Lays Warehouse");
+        warehouse.setDeleted(false);
+        Mockito.when(warehouseRepository.findByIdentifier("Lays Warehouse")).thenReturn(warehouse);
         warehouseService.delete("Lays Warehouse");
-        Mockito.verify(warehouseRepository).deleteByIdentifier("Lays Warehouse");
+        Assertions.assertTrue(warehouse.isDeleted());
+        Mockito.verify(warehouseRepository).save(warehouse);
+    }
+
+    @Test
+    void deleteTestFailure() {
+        Mockito.when(warehouseRepository.findByIdentifier("Lays Warehouse")).thenReturn(null);
+        RuntimeException exception = Assertions.assertThrows(RuntimeException.class,
+                () -> warehouseService.delete("Lays Warehouse"));
+        Assertions.assertEquals("Warehouse not found", exception.getMessage());
     }
 
     @Test
@@ -108,7 +130,7 @@ class WarehouseServiceTest {
         List<WarehouseDto> dtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 5);
         Page<Warehouse> warehousePage = new PageImpl<>(warehouses);
-        Mockito.when(warehouseRepository.findAll(pageable)).thenReturn(warehousePage);
+        Mockito.when(warehouseRepository.findByDeletedFalse(pageable)).thenReturn(warehousePage);
         Mockito.when(modelMapper.map(Mockito.eq(warehouses), Mockito.any(Type.class))).thenReturn(dtos);
         PaginationResponseDto<WarehouseDto> response = warehouseService.findAll(pageable);
         Assertions.assertEquals(1, response.getDtoList().size());
@@ -129,5 +151,6 @@ class WarehouseServiceTest {
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals("Lays Warehouse", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
     }
 }

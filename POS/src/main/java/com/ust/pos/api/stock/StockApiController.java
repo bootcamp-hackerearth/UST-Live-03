@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.stock.service.StockService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/stock")
 public class StockApiController extends BaseController {
 
-    @Autowired
-    StockService stockService;
+    private final StockService stockService;
+
+    public StockApiController(StockService stockService) {
+        this.stockService = stockService;
+    }
 
     @PostMapping("/add")
     public StockDto addPost(@RequestBody StockDto stockDto) {
@@ -33,12 +35,12 @@ public class StockApiController extends BaseController {
         return stockService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             stockService.delete(identifier);
@@ -48,8 +50,8 @@ public class StockApiController extends BaseController {
         return true;
     }
 
-    @PostMapping("/togglestatus")
-    public StockDto toggle(@RequestParam String identifier,boolean status) {
-        return stockService.toggleStatus(identifier,status);
+    @PostMapping("/toggleStatus")
+    public StockDto toggle(@RequestBody StockDto stockDto) {
+        return stockService.toggleStatus(stockDto.getIdentifier(), stockDto.isStatus());
     }
 }

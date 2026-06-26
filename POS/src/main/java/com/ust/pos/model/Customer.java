@@ -15,6 +15,5 @@ public class Customer extends CommonFields {
     private String balanceType;
     private String email;
     private long creditLimit;
-    private String billingAddress;
-    private String shippingAddress;
+    private String address;
 }

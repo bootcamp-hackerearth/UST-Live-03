@@ -19,7 +19,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
  
   const handleChange = (e) => {
- 
     setCredentials({
       ...credentials,
       [e.target.name]: e.target.value
@@ -30,9 +29,7 @@ const Login = () => {
   const resolveSingleRole = (role) => {
  
     if (!role) return null;
- 
     if (typeof role === 'object' && role !== null) {
- 
       role =
         role.role ||
         role.authority ||
@@ -59,51 +56,36 @@ const Login = () => {
     }
  
     if (Array.isArray(roleValue)) {
- 
       for (const role of roleValue) {
- 
         const normalized =
           resolveSingleRole(role);
- 
         if (normalized) {
           return normalized;
         }
- 
       }
- 
       return null;
     }
- 
     return resolveSingleRole(roleValue);
- 
   };
  
   const handleSubmit = async (e) => {
- 
     e.preventDefault();
- 
     setLoading(true);
     setError('');
- 
     try {
- 
       const res = await fetch(
         `${API}/authenticate`,
         {
           method: 'POST',
- 
           headers: {
             'Content-Type': 'application/json'
           },
- 
           body: JSON.stringify(credentials)
         }
       );
  
       const data = await res.json();
- 
       const token = data?.token;
- 
       const role = normalizeRole(
         data?.roles ||
         data?.role ||
@@ -111,58 +93,42 @@ const Login = () => {
         data?.user?.role
       );
  
+
       if (!res.ok || !token || token === 'Error') {
- 
         setError(
           data?.message ||
           data?.error ||
           'Invalid username or password'
         );
+        return;
  
-      } else if (!role) {
- 
-        setError(
-          'Login succeeded but no role returned from server.'
-        );
- 
-      } else {
- 
-        localStorage.setItem(
-          'token',
-          token
-        );
- 
-        localStorage.setItem(
-          'username',
-          credentials.username
-        );
- 
-        localStorage.setItem(
-          'userRole',
-          role
-        );
-       
+      }
+      if (role) {
+
+        localStorage.setItem('token', token);
+        localStorage.setItem('username', credentials.username);
+        localStorage.setItem('userRole', role);
         router.push('/home');
- 
+
+      } else {
+
+        setError('Login succeeded but no role returned from server.');
+        return;
+
       }
  
     } catch (err) {
- 
       console.error(err);
- 
       setError(
         'Login failed. Please try again.'
       );
- 
     } finally {
- 
       setLoading(false);
- 
     }
   };
  
   return (
- 
+
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold text-zinc-900">
@@ -177,21 +143,16 @@ const Login = () => {
       <div className="w-full md:w-[460px] flex items-center justify-center p-10">
  
         <div className="w-full bg-white p-9 rounded-xl shadow-2xl border-t-[6px] border-cyan-500">
- 
           <h2 className="text-center text-2xl font-bold mb-7">
             Login to your account
           </h2>
- 
           {error && (
- 
             <div className="mb-4 p-3 rounded-md bg-red-100 text-red-700 text-sm text-center border border-red-300">
               {error}
             </div>
- 
           )}
  
           <form onSubmit={handleSubmit}>
- 
             <input
               type="text"
               name="username"
@@ -217,17 +178,14 @@ const Login = () => {
               disabled={loading}
               className="w-full p-3 rounded-md border-none text-sm font-semibold bg-zinc-900 text-white cursor-pointer hover:bg-zinc-800 hover:shadow-lg transition duration-200"
             >
- 
               {loading
                 ? 'Signing In...'
                 : 'Sign In'}
  
             </button>
- 
           </form>
  
           <div className="text-center mt-5 text-sm text-slate-500">
- 
             Don&apos;t have an account?{' '}
  
             <button
@@ -240,15 +198,10 @@ const Login = () => {
             </button>
  
           </div>
- 
         </div>
- 
       </div>
- 
     </div>
- 
   );
 };
  
 export default Login;
- 
