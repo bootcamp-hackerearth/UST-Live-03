@@ -2,6 +2,7 @@ package com.ust.pos.stock.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
@@ -22,8 +23,7 @@ public class StockServiceImpl extends CommonService implements StockService {
     private final WarehouseRepository warehouseRepository;
     private final ModelMapper modelMapper;
 
-    public StockServiceImpl(StockRepository stockRepository, ProductRepository productRepository,
-                            WarehouseRepository warehouseRepository, ModelMapper modelMapper) {
+    public StockServiceImpl(StockRepository stockRepository, ProductRepository productRepository, WarehouseRepository warehouseRepository, ModelMapper modelMapper) {
         this.stockRepository = stockRepository;
         this.productRepository = productRepository;
         this.warehouseRepository = warehouseRepository;
@@ -32,8 +32,8 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public StockDto createStock(StockDto stockDto) {
-        var product = productRepository.findById(stockDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
-        var warehouse = warehouseRepository.findById(stockDto.getWarehouseId()).orElseThrow(() -> new RuntimeException("Warehouse not found"));
+        var product = productRepository.findById(stockDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException("Product with id '" + stockDto.getProductId() + "' not found"));
+        var warehouse = warehouseRepository.findById(stockDto.getWarehouseId()).orElseThrow(() -> new ResourceNotFoundException("Warehouse with id '" + stockDto.getWarehouseId() + "' not found"));
         boolean exists = stockRepository.existsByProductIdAndWarehouseId(stockDto.getProductId(), stockDto.getWarehouseId());
         if (exists) {
             stockDto.setSuccess(false);
@@ -53,38 +53,29 @@ public class StockServiceImpl extends CommonService implements StockService {
     @Override
     public StockDto updateStockQuantity(Long stockId, Integer quantity) {
         StockDto dto = new StockDto();
-        stockRepository.findById(stockId).ifPresentOrElse(stock -> {
-            stock.setQuantity(quantity);
-            productRepository.findById(stock.getProductId()).ifPresent(product -> {
-                stock.setProductName(product.getProductName());
-                stock.setIdentifier(product.getIdentifier());
-            });
-            warehouseRepository.findById(stock.getWarehouseId()).ifPresent(warehouse -> stock.setWarehouseName(warehouse.getName()));
-            setAuditFields(stock, false);
-            stockRepository.save(stock);
-            modelMapper.map(stock, dto);
-        }, () -> {
-            dto.setSuccess(false);
-            dto.setMessage("Stock not found");
+        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException("Stock with id '" + stockId + "' not found"));
+        stock.setQuantity(quantity);
+        productRepository.findById(stock.getProductId()).ifPresent(product -> {
+            stock.setProductName(product.getProductName());
+            stock.setIdentifier(product.getIdentifier());
         });
+        warehouseRepository.findById(stock.getWarehouseId()).ifPresent(warehouse -> stock.setWarehouseName(warehouse.getName()));
+        setAuditFields(stock, false);
+        stockRepository.save(stock);
+        modelMapper.map(stock, dto);
         return dto;
     }
 
     @Override
     public StockDto getStock(Long productId, Long warehouseId) {
         StockDto dto = new StockDto();
-        stockRepository.findByProductIdAndWarehouseId(productId, warehouseId).ifPresentOrElse(stock -> {
-            modelMapper.map(stock, dto);
-            productRepository.findById(stock.getProductId()).ifPresent(product -> {
-                dto.setProductName(product.getProductName());
-                dto.setIdentifier(product.getIdentifier());
-            });
-            warehouseRepository.findById(stock.getWarehouseId()).ifPresent(warehouse ->
-                    dto.setWarehouseName(warehouse.getName()));
-        }, () -> {
-            dto.setSuccess(false);
-            dto.setMessage("Stock not found");
+        Stock stock = stockRepository.findByProductIdAndWarehouseId(productId, warehouseId).orElseThrow(() -> new ResourceNotFoundException("Stock with productId '" + productId + "' and warehouseId '" + warehouseId + "' not found"));
+        modelMapper.map(stock, dto);
+        productRepository.findById(stock.getProductId()).ifPresent(product -> {
+            dto.setProductName(product.getProductName());
+            dto.setIdentifier(product.getIdentifier());
         });
+        warehouseRepository.findById(stock.getWarehouseId()).ifPresent(warehouse -> dto.setWarehouseName(warehouse.getName()));
         return dto;
     }
 
@@ -104,10 +95,7 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public boolean deleteStock(Long stockId) {
-        Stock stock = stockRepository.findById(stockId).orElse(null);
-        if (stock == null) {
-            return false;
-        }
+        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException("Stock with id '" + stockId + "' not found"));
         softDelete(stock);
         setAuditFields(stock, false);
         stockRepository.save(stock);
@@ -116,9 +104,8 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public void toggleStatus(Long stockId) {
-        stockRepository.findById(stockId).ifPresent(stock -> {
-            stock.setStatus(!stock.isStatus());
-            stockRepository.save(stock);
-        });
+        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new ResourceNotFoundException("Stock with id '" + stockId + "' not found"));
+        stock.setStatus(!stock.isStatus());
+        stockRepository.save(stock);
     }
 }

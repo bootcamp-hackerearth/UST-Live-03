@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -100,10 +101,9 @@ class ShelfServiceTest {
 
         Mockito.when(shelfRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ShelfDto response = shelfService.updateShelf(dto);
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> shelfService.updateShelf(dto));
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(ShelfServiceImpl.SHELF_NOT_FOUND, response.getMessage());
+        Assertions.assertEquals("Shelf with id '1' not found", ex.getMessage());
     }
 
     @Test
@@ -130,10 +130,9 @@ class ShelfServiceTest {
     void getShelfNotFoundTest() {
         Mockito.when(shelfRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ShelfDto response = shelfService.getShelf(1L);
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> shelfService.getShelf(1L));
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(ShelfServiceImpl.SHELF_NOT_FOUND, response.getMessage());
+        Assertions.assertEquals("Shelf with id '1' not found", ex.getMessage());
     }
 
     @Test
@@ -191,9 +190,9 @@ class ShelfServiceTest {
     void deleteShelfNotFoundTest() {
         Mockito.when(shelfRepository.findById(1L)).thenReturn(Optional.empty());
 
-        boolean response = shelfService.deleteShelf(1L);
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> shelfService.deleteShelf(1L));
 
-        Assertions.assertFalse(response);
+        Assertions.assertEquals("Shelf with id '1' not found", ex.getMessage());
 
         Mockito.verify(shelfRepository, Mockito.never()).save(Mockito.any());
     }
@@ -234,10 +233,9 @@ class ShelfServiceTest {
     void toggleStatusNotFoundTest() {
         Mockito.when(shelfRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ShelfDto response = shelfService.toggleStatus(1L);
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> shelfService.toggleStatus(1L));
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(ShelfServiceImpl.SHELF_NOT_FOUND, response.getMessage());
+        Assertions.assertEquals("Shelf with id '1' not found", ex.getMessage());
     }
 
     @Test

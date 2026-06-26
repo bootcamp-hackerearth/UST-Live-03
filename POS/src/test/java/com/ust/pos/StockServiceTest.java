@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.*;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
 import org.junit.jupiter.api.Assertions;
@@ -76,9 +77,9 @@ class StockServiceTest {
 
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
-        RuntimeException ex = Assertions.assertThrows(RuntimeException.class, () -> stockService.createStock(dto));
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> stockService.createStock(dto));
 
-        Assertions.assertEquals("Product not found", ex.getMessage());
+        Assertions.assertEquals("Product with id '1' not found", ex.getMessage());
     }
 
     @Test
@@ -90,9 +91,9 @@ class StockServiceTest {
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(new Product()));
         Mockito.when(warehouseRepository.findById(2L)).thenReturn(Optional.empty());
 
-        RuntimeException ex = Assertions.assertThrows(RuntimeException.class, () -> stockService.createStock(dto));
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> stockService.createStock(dto));
 
-        Assertions.assertEquals("Warehouse not found", ex.getMessage());
+        Assertions.assertEquals("Warehouse with id '2' not found", ex.getMessage());
     }
 
     @Test
@@ -169,10 +170,9 @@ class StockServiceTest {
     void updateStockQuantityNotFoundTest() {
         Mockito.when(stockRepository.findById(1L)).thenReturn(Optional.empty());
 
-        StockDto response = stockService.updateStockQuantity(1L, 10);
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> stockService.updateStockQuantity(1L, 10));
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Stock not found", response.getMessage());
+        Assertions.assertEquals("Stock with id '1' not found", ex.getMessage());
     }
 
     @Test
@@ -191,7 +191,6 @@ class StockServiceTest {
         Mockito.when(stockRepository.findByProductIdAndWarehouseId(1L, 2L)).thenReturn(Optional.of(stock));
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         Mockito.when(warehouseRepository.findById(2L)).thenReturn(Optional.of(warehouse));
-
         Mockito.doNothing().when(modelMapper).map(any(Stock.class), any(StockDto.class));
 
         StockDto response = stockService.getStock(1L, 2L);
@@ -205,10 +204,9 @@ class StockServiceTest {
     void getStockNotFoundTest() {
         Mockito.when(stockRepository.findByProductIdAndWarehouseId(1L, 2L)).thenReturn(Optional.empty());
 
-        StockDto response = stockService.getStock(1L, 2L);
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> stockService.getStock(1L, 2L));
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Stock not found", response.getMessage());
+        Assertions.assertEquals("Stock with productId '1' and warehouseId '2' not found", ex.getMessage());
     }
 
     @Test
@@ -266,12 +264,12 @@ class StockServiceTest {
     }
 
     @Test
-    void deleteStockFailureTest() {
+    void deleteStockNotFoundTest() {
         Mockito.when(stockRepository.findById(1L)).thenReturn(Optional.empty());
 
-        boolean response = stockService.deleteStock(1L);
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> stockService.deleteStock(1L));
 
-        Assertions.assertFalse(response);
+        Assertions.assertEquals("Stock with id '1' not found", ex.getMessage());
 
         Mockito.verify(stockRepository, Mockito.never()).save(any());
     }
@@ -291,12 +289,13 @@ class StockServiceTest {
     }
 
     @Test
-    void toggleStatusStockNotFoundTest() {
+    void toggleStatusNotFoundTest() {
         Mockito.when(stockRepository.findById(1L)).thenReturn(Optional.empty());
 
-        Assertions.assertDoesNotThrow(() -> stockService.toggleStatus(1L));
+        ResourceNotFoundException ex = Assertions.assertThrows(ResourceNotFoundException.class, () -> stockService.toggleStatus(1L));
+
+        Assertions.assertEquals("Stock with id '1' not found", ex.getMessage());
 
         Mockito.verify(stockRepository, Mockito.never()).save(any());
     }
-
 }

@@ -2,6 +2,7 @@ package com.ust.pos.warehouse.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -57,9 +58,7 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
 
         Warehouse warehouse = warehouseRepository.findByIdentifier(dto.getIdentifier());
         if (warehouse == null) {
-            dto.setSuccess(false);
-            dto.setMessage("Warehouse not found");
-            return dto;
+            throw new ResourceNotFoundException("Warehouse with identifier '" + dto.getIdentifier() + "' not found");
         }
 
         boolean currentStatus = warehouse.isStatus();
@@ -77,7 +76,10 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
     @Override
     public WarehouseDto findByIdentifier(String identifier) {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
-        return warehouse == null ? null : modelMapper.map(warehouse, WarehouseDto.class);
+        if (warehouse == null) {
+            throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(warehouse, WarehouseDto.class);
     }
 
     @Override
@@ -94,7 +96,7 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
     public boolean delete(String identifier) {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
         if (warehouse == null) {
-            return false;
+            throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
         }
         softDelete(warehouse);
         setAuditFields(warehouse, false);
@@ -106,10 +108,11 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
     @Transactional
     public void toggleStatus(String identifier) {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
-        if (warehouse != null) {
-            warehouse.setStatus(!warehouse.isStatus());
-            warehouseRepository.save(warehouse);
+        if (warehouse == null) {
+            throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
         }
+        warehouse.setStatus(!warehouse.isStatus());
+        warehouseRepository.save(warehouse);
     }
 
     @Override

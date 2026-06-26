@@ -2,6 +2,7 @@ package com.ust.pos.shelf.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
@@ -44,17 +45,13 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
     public ShelfDto updateShelf(ShelfDto shelfDto) {
         ShelfDto dto = new ShelfDto();
 
-        shelfRepository.findById(shelfDto.getId()).ifPresentOrElse(existing -> {
-            existing.setIdentifier(shelfDto.getIdentifier());
-            setAuditFields(existing, false);
-            shelfRepository.save(existing);
+        Shelf existing = shelfRepository.findById(shelfDto.getId()).orElseThrow(() -> new ResourceNotFoundException("Shelf with id '" + shelfDto.getId() + "' not found"));
+        existing.setIdentifier(shelfDto.getIdentifier());
+        setAuditFields(existing, false);
+        shelfRepository.save(existing);
 
-            modelMapper.map(existing, dto);
-            dto.setSuccess(true);
-        }, () -> {
-            dto.setSuccess(false);
-            dto.setMessage(SHELF_NOT_FOUND);
-        });
+        modelMapper.map(existing, dto);
+        dto.setSuccess(true);
 
         return dto;
     }
@@ -64,13 +61,9 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
 
         ShelfDto dto = new ShelfDto();
 
-        shelfRepository.findById(id).ifPresentOrElse(shelf -> {
-            modelMapper.map(shelf, dto);
-            dto.setSuccess(true);
-        }, () -> {
-            dto.setSuccess(false);
-            dto.setMessage(SHELF_NOT_FOUND);
-        });
+        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Shelf with id '" + id + "' not found"));
+        modelMapper.map(shelf, dto);
+        dto.setSuccess(true);
 
         return dto;
     }
@@ -85,10 +78,7 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
 
     @Override
     public boolean deleteShelf(Long id) {
-        Shelf shelf = shelfRepository.findById(id).orElse(null);
-        if (shelf == null) {
-            return false;
-        }
+        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Shelf with id '" + id + "' not found"));
         softDelete(shelf);
         setAuditFields(shelf, false);
         shelfRepository.save(shelf);
@@ -99,16 +89,12 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
     public ShelfDto toggleStatus(Long id) {
         ShelfDto dto = new ShelfDto();
 
-        shelfRepository.findById(id).ifPresentOrElse(shelf -> {
-            shelf.setActive(!shelf.isActive());
-            shelfRepository.save(shelf);
+        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Shelf with id '" + id + "' not found"));
+        shelf.setActive(!shelf.isActive());
+        shelfRepository.save(shelf);
 
-            modelMapper.map(shelf, dto);
-            dto.setSuccess(true);
-        }, () -> {
-            dto.setSuccess(false);
-            dto.setMessage(SHELF_NOT_FOUND);
-        });
+        modelMapper.map(shelf, dto);
+        dto.setSuccess(true);
 
         return dto;
     }
