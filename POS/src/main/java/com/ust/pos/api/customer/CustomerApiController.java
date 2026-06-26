@@ -55,12 +55,7 @@ public class CustomerApiController extends BaseController {
 
     @DeleteMapping("/delete")
     public boolean delete(@RequestBody String identifier) {
-        try {
-            customerService.delete(identifier);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+        customerService.delete(identifier);
         return true;
     }
 

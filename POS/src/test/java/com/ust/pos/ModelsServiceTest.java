@@ -36,7 +36,6 @@ class ModelsServiceTest {
 
     @Test
     void findByIdentifier_Found() {
-
         Models models = new Models();
         models.setIdentifier("M1");
 
@@ -45,7 +44,6 @@ class ModelsServiceTest {
 
         when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(models);
-
         when(modelMapper.map(models, ModelsDto.class))
                 .thenReturn(dto);
 
@@ -57,18 +55,14 @@ class ModelsServiceTest {
 
     @Test
     void save_NewModels() {
-
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("M1");
-
         Models models = new Models();
 
         when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(null);
-
         when(modelMapper.map(dto, Models.class))
                 .thenReturn(models);
-
         when(modelsRepository.save(models))
                 .thenReturn(models);
 
@@ -80,10 +74,9 @@ class ModelsServiceTest {
     }
 
     @Test
-    void save_ModelsExists() {
-
+    void save_ModelsExists_NotDeleted() {
         Models existing = new Models();
-
+        existing.setDeleted(false);
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("M1");
 
@@ -93,21 +86,35 @@ class ModelsServiceTest {
         ModelsDto result = modelsService.save(dto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("already exists."));
         verify(modelsRepository, never()).save(any());
     }
 
     @Test
-    void update_ModelsExists() {
-
+    void save_ModelsExists_ButWasDeleted() {
         Models existing = new Models();
-
+        existing.setDeleted(true);
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("M1");
 
         when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(existing);
 
+        ModelsDto result = modelsService.save(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("was deleted"));
+        verify(modelsRepository, never()).save(any());
+    }
+
+    @Test
+    void update_ModelsExists() {
+        Models existing = new Models();
+        ModelsDto dto = new ModelsDto();
+        dto.setIdentifier("M1");
+
+        when(modelsRepository.findByIdentifier("M1"))
+                .thenReturn(existing);
         when(modelsRepository.save(existing))
                 .thenReturn(existing);
 
@@ -121,7 +128,6 @@ class ModelsServiceTest {
 
     @Test
     void update_ModelsNotFound() {
-
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("M1");
 
@@ -137,7 +143,6 @@ class ModelsServiceTest {
 
     @Test
     void deleteTest() {
-
         Models models = new Models();
 
         when(modelsRepository.findByIdentifier("M1"))
@@ -150,77 +155,48 @@ class ModelsServiceTest {
 
     @Test
     void findAllTest() {
-
         Pageable pageable = PageRequest.of(0, 10);
-
         Models model1 = new Models();
         Models model2 = new Models();
-
-        Page<Models> page = new PageImpl<>(
-                List.of(model1, model2),
-                pageable,
-                2
-        );
-
-        List<ModelsDto> dtoList =
-                List.of(new ModelsDto(), new ModelsDto());
+        Page<Models> page = new PageImpl<>(List.of(model1, model2), pageable, 2);
+        List<ModelsDto> dtoList = List.of(new ModelsDto(), new ModelsDto());
 
         when(modelsRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(page);
-
-        when(modelMapper.map(
-                eq(page.getContent()), any(Type.class)))
+        when(modelMapper.map(eq(page.getContent()), any(Type.class)))
                 .thenReturn(dtoList);
 
-        WsDto<ModelsDto> result =
-                modelsService.findAll(pageable);
+        WsDto<ModelsDto> result = modelsService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(2,
-                result.getContent().size());
+        Assertions.assertEquals(2, result.getContent().size());
         Assertions.assertEquals(0, result.getPage());
-        Assertions.assertEquals(10,
-                result.getSizePerPage());
-        Assertions.assertEquals(1,
-                result.getTotalPages());
-        Assertions.assertEquals(2,
-                result.getTotalRecords());
-
-        verify(modelsRepository)
-                .findByIsDeletedFalse(pageable);
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(2, result.getTotalRecords());
+        verify(modelsRepository).findByIsDeletedFalse(pageable);
     }
 
     @Test
     void findAllEmptyTest() {
-
         Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Models> page =
-                new PageImpl<>(List.of(), pageable, 0);
+        Page<Models> page = new PageImpl<>(List.of(), pageable, 0);
 
         when(modelsRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(page);
-
-        when(modelMapper.map(
-                eq(page.getContent()), any(Type.class)))
+        when(modelMapper.map(eq(page.getContent()), any(Type.class)))
                 .thenReturn(List.of());
 
-        WsDto<ModelsDto> result =
-                modelsService.findAll(pageable);
+        WsDto<ModelsDto> result = modelsService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertTrue(
-                result.getContent().isEmpty());
-        Assertions.assertEquals(0,
-                result.getTotalRecords());
-
-        verify(modelsRepository)
-                .findByIsDeletedFalse(pageable);
+        Assertions.assertTrue(result.getContent().isEmpty());
+        Assertions.assertEquals(0, result.getTotalRecords());
+        verify(modelsRepository).findByIsDeletedFalse(pageable);
     }
 
     @Test
     void toggleStatus_Test() {
-
         Models models = new Models();
         models.setStatus(true);
 
@@ -235,14 +211,11 @@ class ModelsServiceTest {
 
     @Test
     void toggleStatus_NotFound() {
-
-        when(modelsRepository.findByIdentifier("M1"))
-                .thenReturn(null);
+        when(modelsRepository.findByIdentifier("M1")).thenReturn(null);
 
         modelsService.toggleStatus("M1");
 
-        verify(modelsRepository, never())
-                .save(any());
+        verify(modelsRepository).findByIdentifier("M1");
+        verify(modelsRepository, never()).save(any(Models.class));
     }
 }
-

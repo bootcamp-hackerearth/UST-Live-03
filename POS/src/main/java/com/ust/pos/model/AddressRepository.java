@@ -13,8 +13,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     Address findByPhoneNoAndAddressType(Long phoneNo, String addressType);
 
-    void deleteByPhoneNo(Long phoneNo);
-
     List<Address> findByPhoneNo(Long phoneNo);
 
     Page<Address> findByIsDeletedFalse(Pageable pageable);

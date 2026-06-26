@@ -115,6 +115,7 @@ class CustomerServiceTest {
     @Test
     void save_CustomerAlreadyExists() {
         Customer existing = new Customer();
+        existing.setDeleted(false);
 
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("CUS001");
@@ -124,7 +125,27 @@ class CustomerServiceTest {
         CustomerDto result = customerService.save(dto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("already exists."));
+
+        verify(addressService, never()).save(any());
+        verify(customerRepository, never()).save(any());
+        verify(cartService, never()).save(any());
+    }
+
+    @Test
+    void save_CustomerAlreadyExists_ButWasDeleted() {
+        Customer existing = new Customer();
+        existing.setDeleted(true);
+
+        CustomerDto dto = new CustomerDto();
+        dto.setIdentifier("CUS001");
+
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(existing);
+
+        CustomerDto result = customerService.save(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertTrue(result.getMessage().contains("was deleted"));
 
         verify(addressService, never()).save(any());
         verify(customerRepository, never()).save(any());
@@ -195,13 +216,15 @@ class CustomerServiceTest {
 
         Address address = new Address();
         address.setPhoneNo(9876543210L);
+        List<Address> addresses = List.of(address);
 
         when(customerRepository.findByIdentifier("CUS001")).thenReturn(customer);
-        when(addressRepository.findByPhoneNo(9876543210L)).thenReturn((List<Address>) address);
+        when(addressRepository.findByPhoneNo(9876543210L)).thenReturn(addresses);
 
         customerService.delete("CUS001");
 
-        verify(customerRepository).deleteByIdentifier("CUS001");
+        verify(customerRepository).save(customer);
+        verify(addressRepository).save(address);
     }
 
     @Test
@@ -211,7 +234,7 @@ class CustomerServiceTest {
         customerService.delete("CUS001");
 
         verify(addressRepository, never()).findByPhoneNo(anyLong());
-        verify(customerRepository).deleteByIdentifier("CUS001");
+        verify(customerRepository, never()).save(any());
     }
 
     @Test
