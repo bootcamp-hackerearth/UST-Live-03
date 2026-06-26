@@ -8,9 +8,7 @@ const eslintConfig = defineConfig([
       "react/prop-types": "off",
     },
   },
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

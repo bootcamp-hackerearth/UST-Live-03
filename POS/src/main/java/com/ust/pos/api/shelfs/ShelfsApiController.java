@@ -5,17 +5,21 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/shelfs")
 public class ShelfsApiController extends BaseController {
 
-    @Autowired
-    private ShelfsService shelfsService;
+    private final ShelfsService shelfsService;
+
+    public ShelfsApiController(ShelfsService shelfsService) {
+        this.shelfsService = shelfsService;
+    }
 
     @PostMapping("/list")
     public WsDto<ShelfsDto> home(@RequestBody PaginationDto paginationDto) {
@@ -34,12 +38,12 @@ public class ShelfsApiController extends BaseController {
         return shelfsService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfsDto updatePost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.update(shelfsDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             shelfsService.delete(identifier);
@@ -48,14 +52,18 @@ public class ShelfsApiController extends BaseController {
         }
         return true;
     }
-
     @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestParam String identifier) {
+    public boolean toggleStatus(@RequestBody ShelfsDto dto) {
         try {
-            shelfsService.toggleStatus(identifier);
+            shelfsService.toggleStatus(dto.getIdentifier());
+            return true;
         } catch (Exception e) {
             return false;
         }
-        return true;
+    }
+
+    @GetMapping("/getAllActive")
+    public List<ShelfsDto> getAllActive() {
+        return shelfsService.findAllActive();
     }
 }

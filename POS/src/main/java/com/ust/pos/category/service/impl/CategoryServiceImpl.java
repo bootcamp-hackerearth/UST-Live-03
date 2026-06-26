@@ -1,5 +1,6 @@
 package com.ust.pos.category.service.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
@@ -7,7 +8,6 @@ import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,24 +18,33 @@ import java.util.List;
 
 @Service
 @Transactional
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl extends CommonService implements CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
+
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper) {
+        this.categoryRepository = categoryRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CategoryDto save(CategoryDto categoryDto) {
         String identifier = categoryDto.getIdentifier();
         Category existingCategory = categoryRepository.findByIdentifier(identifier);
         if (existingCategory != null) {
+            if(existingCategory.isDeleted()){
+                categoryDto.setMessage("Category identifier - " + identifier + " not available");
+                categoryDto.setSuccess(false);
+                return categoryDto;
+            }
             categoryDto.setMessage("Category with identifier - " + identifier + " already exists");
             categoryDto.setSuccess(false);
             return categoryDto;
         }
         Category category = modelMapper.map(categoryDto, Category.class);
+        setAuditFields(category,true);
         categoryRepository.save(category);
         return categoryDto;
     }
@@ -50,20 +59,22 @@ public class CategoryServiceImpl implements CategoryService {
             return categoryDto;
         }
         Category category = modelMapper.map(categoryDto, Category.class);
+        setAuditFields(category,false);
         categoryRepository.save(category);
         return categoryDto;
     }
 
     @Override
     public void delete(String identifier) {
-        categoryRepository.deleteByIdentifier(identifier);
+        Category category=categoryRepository.findByIdentifier(identifier.trim());
+        softDelete(category);
+        setAuditFields(category,false);
     }
 
     @Override
     public WsDto<CategoryDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CategoryDto>>() {
-        }.getType();
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
+        Page<Category> categoryPage = categoryRepository.findByIsDeletedFalse(pageable);
         WsDto<CategoryDto> categoryDtoWsDto = new WsDto<>();
         categoryDtoWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
         categoryDtoWsDto.setTotalRecords(categoryPage.getTotalElements());
@@ -89,6 +100,7 @@ public class CategoryServiceImpl implements CategoryService {
     public void toggleStatus(String identifier) {
         Category category = categoryRepository.findByIdentifier(identifier);
         category.setStatus(!category.getStatus());
+        setAuditFields(category,false);
         categoryRepository.save(category);
     }
 

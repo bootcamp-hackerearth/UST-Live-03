@@ -7,7 +7,6 @@ import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -18,13 +17,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 public class UserController extends BaseController {
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    public UserController(RoleService roleService, UserService userService) {
+        this.roleService = roleService;
+        this.userService = userService;
+    }
 
-    @GetMapping("/list")
+    @PostMapping("/list")
     public String home(Model model) {
         PaginationDto paginationDto = new PaginationDto();
         model.addAttribute("users", userService.findAll(getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
@@ -43,7 +44,7 @@ public class UserController extends BaseController {
         return "user/user";
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public String updatePost(Model model, @ModelAttribute("userDto") UserDto userDto) {
         UserDto response = userService.update(userDto);
         PaginationDto paginationDto = new PaginationDto();
@@ -56,7 +57,7 @@ public class UserController extends BaseController {
         return "redirect:/user/list";
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public String delete(@RequestParam String username,
                          HttpServletRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

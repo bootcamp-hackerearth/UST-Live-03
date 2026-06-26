@@ -5,13 +5,14 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import Update from "../../../../components/edit";
 import MultiDropdown from "../../../../components/MultiDropdown";
+import { useAuditField } from "../../../../utils/useAuditField";
 
 function RolesDropdownEditor({ value, onChange }) {
   return (
     <MultiDropdown
       value={value}
       label="Roles"
-      apiPath="role"
+      apiPath="role/list"
       required
       onChange={onChange}
     />
@@ -26,6 +27,7 @@ RolesDropdownEditor.propTypes = {
 export default function EditUser() {
   const params = useParams();
   const [roles, setRoles] = useState([]);
+  const auditField = useAuditField();
   const extraFields = [
     {
       key: "name",
@@ -70,6 +72,7 @@ export default function EditUser() {
         <RolesDropdownEditor value={roles} onChange={(val) => setRoles(val)} />
       ),
     },
+    auditField,
   ];
 
   return (

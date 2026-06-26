@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.rack.service.RackService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +13,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/rack")
 public class RackApiController extends BaseController {
 
-    @Autowired
-    private RackService rackService;
+    private final RackService rackService;
+
+    public RackApiController(RackService rackService) {
+        this.rackService = rackService;
+    }
 
     @PostMapping("/list")
     public WsDto<RackDto> home(@RequestBody PaginationDto paginationDto) {
@@ -34,12 +36,12 @@ public class RackApiController extends BaseController {
         return rackService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RackDto updatePost(@RequestBody RackDto rackDto) {
         return rackService.update(rackDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             rackService.delete(identifier);
@@ -50,12 +52,12 @@ public class RackApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestBody String identifier) {
+    public boolean toggleStatus(@RequestBody RackDto dto) {
         try {
-            rackService.toggleStatus(identifier);
+            rackService.toggleStatus(dto.getIdentifier());
+            return true;
         } catch (Exception e) {
             return false;
         }
-        return true;
     }
 }

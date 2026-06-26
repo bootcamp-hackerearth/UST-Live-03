@@ -8,4 +8,6 @@ public interface CartService {
     CartDto recalculate(String cart);
 
     CartDto findByIdentifier(String identifier);
+
+    void delete(String phoneNo);
 }

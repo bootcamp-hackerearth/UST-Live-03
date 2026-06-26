@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
@@ -7,7 +8,6 @@ import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,24 +18,32 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl extends CommonService implements ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ProductServiceImpl(ProductRepository productRepository, ModelMapper modelMapper) {
+        this.productRepository = productRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ProductDto save(ProductDto productDto) {
         String identifier = productDto.getIdentifier();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct != null) {
+            if(existingProduct.isDeleted()){
+                productDto.setMessage("Product identifier - " + identifier + " not available");
+                productDto.setSuccess(false);
+                return productDto;
+            }
             productDto.setMessage("Product with identifier - " + identifier + " already exists");
             productDto.setSuccess(false);
             return productDto;
         }
         Product product = modelMapper.map(productDto, Product.class);
+        setAuditFields(product,true);
         productRepository.save(product);
         return productDto;
     }
@@ -50,20 +58,22 @@ public class ProductServiceImpl implements ProductService {
             return productDto;
         }
         modelMapper.map(productDto, existingProduct);
+        setAuditFields(existingProduct,false);
         productRepository.save(existingProduct);
         return productDto;
     }
 
     @Override
     public void delete(String identifier) {
-        productRepository.deleteByIdentifier(identifier);
+        Product product=productRepository.findByIdentifier(identifier);
+        softDelete(product);
+        setAuditFields(product,false);
     }
 
     @Override
     public WsDto<ProductDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ProductDto>>() {
-        }.getType();
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+        Page<Product> productPage = productRepository.findByIsDeletedFalse(pageable);
         WsDto<ProductDto> productDtoWsDto = new WsDto<>();
         productDtoWsDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
         productDtoWsDto.setTotalRecords(productPage.getTotalElements());
@@ -87,7 +97,14 @@ public class ProductServiceImpl implements ProductService {
                 status = false;
             }
             product.setStatus(!status);
+            setAuditFields(product, false);
             productRepository.save(product);
         }
+    }
+
+    @Override
+    public List<ProductDto> findAllActive() {
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+        return modelMapper.map(productRepository.findByStatusTrueAndIsDeletedFalse(), listType);
     }
 }

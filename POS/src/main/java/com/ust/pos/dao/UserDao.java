@@ -6,7 +6,6 @@ import com.ust.pos.model.User;
 import java.util.List;
 
 public interface UserDao {
-
     boolean save(UserDto userDto);
 
     User findByUsername(String username);

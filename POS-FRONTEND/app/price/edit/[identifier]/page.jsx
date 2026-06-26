@@ -1,10 +1,10 @@
 "use client";
+
 import { useParams } from "next/navigation";
 import Update from "../../../../components/edit";
 
 export default function EditPrice() {
   const params = useParams();
-
   const extraFields = [
     {
       key: "costPrice",

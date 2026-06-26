@@ -5,8 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.rack.service.RackService;
-import com.ust.pos.shelfs.service.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +15,13 @@ public class RackController extends BaseController {
 
     private static final String REDIRECT_LIST = "redirect:/rack/list";
 
-    @Autowired
-    ShelfsRepository shelfsRepository;
+    private final ShelfsRepository shelfsRepository;
+    private final RackService rackService;
 
-    @Autowired
-    private RackService rackService;
-
-    @Autowired
-    private ShelfsService shelfsService;
+    public RackController(ShelfsRepository shelfsRepository, RackService rackService) {
+        this.shelfsRepository = shelfsRepository;
+        this.rackService = rackService;
+    }
 
     @GetMapping("/list")
     public String list(Model model) {

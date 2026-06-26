@@ -1,17 +1,20 @@
 "use client";
+
 import PropTypes from "prop-types";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Update from "../../../../components/edit";
 import SingleDropdown from "../../../../components/SingleDropdown";
+import { useAuditField } from "../../../../utils/useAuditField";
 
 function SuperCategoryField({ value, onChange }) {
   return (
     <SingleDropdown
       value={value}
       label="Super Category"
-      apiPath="category"
+      apiPath="category/list"
       onChange={onChange}
+      urlMethod={"post"}
     />
   );
 }
@@ -25,6 +28,7 @@ export default function EditCategory() {
   const params = useParams();
   const router = useRouter();
   const [superCategory, setSuperCategory] = useState("");
+  const auditField = useAuditField();
 
   const extraFields = [
     {
@@ -38,6 +42,7 @@ export default function EditCategory() {
         />
       ),
     },
+    auditField,
   ];
 
   return (

@@ -8,7 +8,6 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.modelproduct.service.ModelProductService;
 import com.ust.pos.product.service.ProductService;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,17 +16,22 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/product")
 public class ProductController extends BaseController {
+
     public static final String REDIRECT_PRODUCT_LIST = "redirect:/product/list";
-    @Autowired
-    CategoryService categoryService;
-    @Autowired
-    BrandService brandService;
-    @Autowired
-    UnitService unitService;
-    @Autowired
-    ModelProductService modelProductService;
-    @Autowired
-    private ProductService productService;
+
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final UnitService unitService;
+    private final ModelProductService modelProductService;
+    private final ProductService productService;
+
+    public ProductController(CategoryService categoryService, BrandService brandService, UnitService unitService, ModelProductService modelProductService, ProductService productService) {
+        this.categoryService = categoryService;
+        this.brandService = brandService;
+        this.unitService = unitService;
+        this.modelProductService = modelProductService;
+        this.productService = productService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

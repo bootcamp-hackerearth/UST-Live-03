@@ -1,39 +1,43 @@
 package com.ust.pos.customer.service.impl;
-
+import com.ust.pos.CommonService;
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.cart.service.CartService;
+import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.customer.service.CustomerService;
-import com.ust.pos.dto.AddressDto;
-import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.*;
 import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends CommonService implements CustomerService {
 
     public static final String SHIPPING_ADDRESS = "shippingAddress";
     public static final String BILLING_ADDRESS = "billingAddress";
-    @Autowired
-    private CustomerRepository customerRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CustomerRepository customerRepository;
+    private final ModelMapper modelMapper;
+    private final AddressService addressService;
+    private final AddressRepository addressRepository;
+    private final CartService cartService;
+    private final CartEntryService cartEntryService;
 
-    @Autowired
-    private AddressService addressService;
-
-    @Autowired
-    private AddressRepository addressRepository;
+    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, AddressService addressService, AddressRepository addressRepository, CartService cartService, CartEntryService cartEntryService) {
+        this.customerRepository = customerRepository;
+        this.modelMapper = modelMapper;
+        this.addressService = addressService;
+        this.addressRepository = addressRepository;
+        this.cartService = cartService;
+        this.cartEntryService = cartEntryService;
+    }
 
     @Override
     public CustomerDto findByIdentifier(String identifier) {
@@ -41,7 +45,12 @@ public class CustomerServiceImpl implements CustomerService {
         if (customer == null) {
             return null;
         }
-        return modelMapper.map(customer, CustomerDto.class);
+        CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
+        customerDto.setShippingAddress(
+                addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), SHIPPING_ADDRESS));
+        customerDto.setBillingAddress(
+                addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), BILLING_ADDRESS));
+        return customerDto;
     }
 
     @Override
@@ -49,20 +58,31 @@ public class CustomerServiceImpl implements CustomerService {
         String identifier = customerDto.getIdentifier();
         Customer existingCustomer = customerRepository.findByIdentifier(identifier);
         if (existingCustomer != null) {
+            if (existingCustomer.isDeleted()) {
+                customerDto.setMessage("Customer identifier - " + identifier + " not available");
+                customerDto.setSuccess(false);
+                return customerDto;
+            }
             customerDto.setMessage("Customer with identifier - " + identifier + " already exists");
             customerDto.setSuccess(false);
             return customerDto;
         }
+        Long phoneNo = customerDto.getPhoneNo();
+        String phoneNoStr = String.valueOf(phoneNo);
         AddressDto billAddr = customerDto.getBillingAddress();
         AddressDto shipAddr = customerDto.getShippingAddress();
-        billAddr.setPhoneNo(customerDto.getPhoneNo());
-        shipAddr.setPhoneNo(customerDto.getPhoneNo());
+        billAddr.setPhoneNo(phoneNo);
+        shipAddr.setPhoneNo(phoneNo);
         billAddr.setAddressType(BILLING_ADDRESS);
         shipAddr.setAddressType(SHIPPING_ADDRESS);
         addressService.save(billAddr);
         addressService.save(shipAddr);
         Customer customer = modelMapper.map(customerDto, Customer.class);
+        setAuditFields(customer, true);
         customerRepository.save(customer);
+        CartDto cartDto = new CartDto();
+        cartDto.setIdentifier(phoneNoStr);
+        cartService.save(cartDto);
         return customerDto;
     }
 
@@ -75,18 +95,20 @@ public class CustomerServiceImpl implements CustomerService {
             customerDto.setSuccess(false);
             return customerDto;
         }
+        Long phoneNo = customerDto.getPhoneNo();
         AddressDto billAddr = customerDto.getBillingAddress();
         AddressDto shipAddr = customerDto.getShippingAddress();
-        billAddr.setPhoneNo(customerDto.getPhoneNo());
-        shipAddr.setPhoneNo(customerDto.getPhoneNo());
+        billAddr.setPhoneNo(phoneNo);
+        shipAddr.setPhoneNo(phoneNo);
         billAddr.setAddressType(BILLING_ADDRESS);
         shipAddr.setAddressType(SHIPPING_ADDRESS);
         addressService.update(billAddr);
         addressService.update(shipAddr);
         modelMapper.map(customerDto, existingCustomer);
-        customerDto.setBillingAddress(addressService.findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), BILLING_ADDRESS));
-        customerDto.setShippingAddress(addressService.findByPhoneNoAndAddressType(existingCustomer.getPhoneNo(), SHIPPING_ADDRESS));
+        setAuditFields(existingCustomer, false);
         customerRepository.save(existingCustomer);
+        customerDto.setBillingAddress(addressService.findByPhoneNoAndAddressType(phoneNo, BILLING_ADDRESS));
+        customerDto.setShippingAddress(addressService.findByPhoneNoAndAddressType(phoneNo, SHIPPING_ADDRESS));
         return customerDto;
     }
 
@@ -94,21 +116,30 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public void delete(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
-        customerRepository.deleteByIdentifier(identifier);
+        if (customer == null) { return; }
+        String phoneNo = String.valueOf(customer.getPhoneNo());
+        cartEntryService.deleteAllByCart(phoneNo);
+        cartService.delete(phoneNo);
         addressRepository.deleteByPhoneNo(customer.getPhoneNo());
+        customerRepository.delete(customer);
     }
 
     @Override
-    public List<CustomerDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<CustomerDto>>() {
-        }.getType();
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
         Page<Customer> customerPage = customerRepository.findAll(pageable);
-        return modelMapper.map(customerPage.getContent(), listType);
+        WsDto<CustomerDto> customerDtoWsDto = new WsDto<>();
+        customerDtoWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        customerDtoWsDto.setTotalRecords(customerPage.getTotalElements());
+        customerDtoWsDto.setTotalPages(customerPage.getTotalPages());
+        customerDtoWsDto.setSizePerPage(pageable.getPageSize());
+        customerDtoWsDto.setPage(pageable.getPageNumber());
+        return customerDtoWsDto;
     }
 
     @Override
     public String buildAddressIdentifier(AddressDto address) {
-        if (address == null) return null;
+        if (address == null) { return null; }
         return address.getAddressLine().trim().toUpperCase()
                 + "-" + address.getZipcode()
                 + "-" + address.getAddressType().toUpperCase();

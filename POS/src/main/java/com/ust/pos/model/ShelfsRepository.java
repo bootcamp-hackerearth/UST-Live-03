@@ -1,5 +1,7 @@
 package com.ust.pos.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -10,4 +12,8 @@ public interface ShelfsRepository extends JpaRepository<Shelfs, Long> {
     void deleteByIdentifier(String identifier);
 
     List<Shelfs> findByStatusTrue();
+
+    Page<Shelfs> findByIsDeletedFalse(Pageable pageable);
+
+    List<Shelfs> findByStatusTrueAndIsDeletedFalse();
 }

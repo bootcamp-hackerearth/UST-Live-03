@@ -1,5 +1,5 @@
 package com.ust.pos.node.service.impl;
-
+import com.ust.pos.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Node;
@@ -10,28 +10,26 @@ import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.*;
 
 @Service
 @Transactional
-public class NodeServiceImpl implements NodeService {
+public class NodeServiceImpl extends CommonService implements NodeService {
+    private final UserRepository userRepository;
+    private final NodeRepository nodeRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private NodeRepository nodeRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.nodeRepository = nodeRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public List<NodeDto> getNodesForRoles() {
@@ -50,7 +48,7 @@ public class NodeServiceImpl implements NodeService {
             return Collections.emptyList();
         }
         Set<Node> allowedNodes = new HashSet<>();
-        List<Node> nodes = nodeRepository.findAll();
+        List<Node> nodes = nodeRepository.findByIsDeletedFalse();
         for (String role : currentUser.getRoles()) {
             for (Node node : nodes) {
                 if (node.getRoles().contains(role)) {
@@ -70,11 +68,17 @@ public class NodeServiceImpl implements NodeService {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode != null) {
+            if(existingNode.isDeleted()){
+                nodeDto.setMessage("Node identifier - " + identifier + " not available");
+                nodeDto.setSuccess(false);
+                return nodeDto;
+            }
             nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
         Node node = modelMapper.map(nodeDto, Node.class);
+        setAuditFields(node,true);
         nodeRepository.save(node);
         return nodeDto;
     }
@@ -89,20 +93,22 @@ public class NodeServiceImpl implements NodeService {
             return nodeDto;
         }
         modelMapper.map(nodeDto, existingNode);
+        setAuditFields(existingNode,false);
         nodeRepository.save(existingNode);
         return nodeDto;
     }
 
     @Override
     public void delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
+        Node node=nodeRepository.findByIdentifier(identifier.trim());
+        softDelete(node);
+        setAuditFields(node,false);
     }
 
     @Override
     public WsDto<NodeDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<NodeDto>>() {
-        }.getType();
-        Page<Node> nodePage = nodeRepository.findAll(pageable);
+        Type listType = new TypeToken<List<NodeDto>>() {}.getType();
+        Page<Node> nodePage = nodeRepository.findByIsDeletedFalse(pageable);
         WsDto<NodeDto> nodeWsDto = new WsDto<>();
         nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
         nodeWsDto.setTotalRecords(nodePage.getTotalElements());

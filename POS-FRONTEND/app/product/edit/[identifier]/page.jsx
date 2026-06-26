@@ -1,18 +1,21 @@
 "use client";
+
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import PropTypes from "prop-types";
 import Update from "../../../../components/edit";
 import SingleDropdown from "../../../../components/SingleDropdown";
+import { useAuditField } from "../../../../utils/useAuditField";
 
 function CategoryField({ value, onChange }) {
   return (
     <SingleDropdown
       value={value}
       label="Category"
-      apiPath="category"
+      apiPath="category/list"
       required
       onChange={onChange}
+      urlMethod={"post"}
     />
   );
 }
@@ -22,9 +25,10 @@ function UnitField({ value, onChange }) {
     <SingleDropdown
       value={value}
       label="Unit"
-      apiPath="unit"
+      apiPath="unit/list"
       required
       onChange={onChange}
+      urlMethod={"post"}
     />
   );
 }
@@ -34,9 +38,10 @@ function BrandField({ value, onChange }) {
     <SingleDropdown
       value={value}
       label="Brand"
-      apiPath="brand"
+      apiPath="brand/list"
       required
       onChange={onChange}
+      urlMethod={"post"}
     />
   );
 }
@@ -46,9 +51,10 @@ function ModelField({ value, onChange }) {
     <SingleDropdown
       value={value}
       label="Model"
-      apiPath="modelProduct"
+      apiPath="modelProduct/list"
       required
       onChange={onChange}
+      urlMethod={"post"}
     />
   );
 }
@@ -79,6 +85,7 @@ export default function EditProduct() {
   const [unit, setUnit] = useState("");
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
+  const auditField = useAuditField();
 
   const extraFields = [
     {
@@ -113,6 +120,7 @@ export default function EditProduct() {
       onLoad: (val) => setModel(val),
       component: <ModelField value={model} onChange={(val) => setModel(val)} />,
     },
+    auditField,
   ];
 
   return (

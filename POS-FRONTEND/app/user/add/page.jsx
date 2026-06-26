@@ -9,7 +9,7 @@ function RolesFieldAdd(formData, onChange) {
     <MultiDropdown
       value={formData.roles || []}
       label="Roles"
-      apiPath="role"
+      apiPath="role/list"
       required
       onChange={(val) => onChange(val)}
     />

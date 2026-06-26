@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import Add from "../../../components/add";
 
@@ -29,9 +30,11 @@ function PriceAdd() {
       title="Price"
       apiPath="price"
       showDescription={false}
-      identifierDropdownApi="product"
+      identifierDropdownApi="product/getAllActive"
       extraFields={extraFields}
+      urlMethod={"get"}
     />
   );
 }
+
 export default PriceAdd;

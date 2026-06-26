@@ -4,6 +4,8 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface ProductService {
     ProductDto save(ProductDto userDto);
 
@@ -16,4 +18,6 @@ public interface ProductService {
     ProductDto findByIdentifier(String identifier);
 
     void toggleStatus(String identifier);
+
+    List<ProductDto> findAllActive();
 }

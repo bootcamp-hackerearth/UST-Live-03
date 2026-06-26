@@ -5,154 +5,208 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
-class StockServiceTest {
+class StockServiceImplTest {
 
     @Mock
     private StockRepository stockRepository;
 
     @Mock
-    private org.modelmapper.ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @InjectMocks
     private StockServiceImpl stockService;
 
-    @Test
-    void saveSuccessTest() {
-        StockDto dto = new StockDto();
-        dto.setIdentifier("STOCK1");
+    private Stock stock;
+    private StockDto dto;
 
-        Stock stock = new Stock();
-        stock.setIdentifier("STOCK1");
+    @BeforeEach
+    void setup() {
+        stock = new Stock();
+        stock.setIdentifier("ST1");
+        stock.setDeleted(false);
+        stock.setStatus(true);
 
-        Mockito.when(stockRepository.findByIdentifier("STOCK1")).thenReturn(null);
-        Mockito.when(modelMapper.map(dto, Stock.class)).thenReturn(stock);
-
-        StockDto result = stockService.save(dto);
-
-        Assertions.assertEquals("STOCK1", result.getIdentifier());
-
-        Mockito.verify(stockRepository).save(stock);
+        dto = new StockDto();
+        dto.setIdentifier("ST1");
     }
 
     @Test
-    void saveFailureAlreadyExistsTest() {
-        Stock existing = new Stock();
-        existing.setIdentifier("STOCK1");
+    void findByIdentifierTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+        when(modelMapper.map(stock, StockDto.class)).thenReturn(dto);
 
-        StockDto dto = new StockDto();
-        dto.setIdentifier("STOCK1");
+        StockDto result = stockService.findByIdentifier("ST1");
 
-        Mockito.when(stockRepository.findByIdentifier("STOCK1")).thenReturn(existing);
+        assertNotNull(result);
+        assertEquals("ST1", result.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNullTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(null);
+        when(modelMapper.map(null, StockDto.class)).thenReturn(null);
+
+        StockDto result = stockService.findByIdentifier("ST1");
+
+        assertNull(result);
+    }
+
+    @Test
+    void saveNewStockTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(null);
+        when(modelMapper.map(dto, Stock.class)).thenReturn(stock);
 
         StockDto result = stockService.save(dto);
 
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Stock with identifier - STOCK1 already exists", result.getMessage());
+        assertNotNull(result);
+        verify(stockRepository).save(stock);
+    }
 
-        Mockito.verify(stockRepository, Mockito.never()).save(Mockito.any());
+    @Test
+    void saveAlreadyExistsTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+
+        StockDto result = stockService.save(dto);
+
+        assertFalse(result.isSuccess());
+        assertEquals("Stock with identifier - ST1 already exists", result.getMessage());
+    }
+
+    @Test
+    void saveDeletedStockTest() {
+        stock.setDeleted(true);
+
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+
+        StockDto result = stockService.save(dto);
+
+        assertFalse(result.isSuccess());
+        assertEquals("Stock identifier - ST1 not available", result.getMessage());
     }
 
     @Test
     void updateSuccessTest() {
-        Stock existing = new Stock();
-        existing.setIdentifier("STOCK2");
-
-        StockDto dto = new StockDto();
-        dto.setIdentifier("STOCK2");
-
-        Mockito.when(stockRepository.findByIdentifier("STOCK2")).thenReturn(existing);
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
 
         StockDto result = stockService.update(dto);
 
-        Assertions.assertEquals("STOCK2", result.getIdentifier());
-
-        Mockito.verify(modelMapper).map(dto, existing);
-        Mockito.verify(stockRepository).save(existing);
+        assertNotNull(result);
+        verify(stockRepository).save(stock);
     }
 
     @Test
-    void updateFailureNotFoundTest() {
-        StockDto dto = new StockDto();
-        dto.setIdentifier("UNKNOWN");
-
-        Mockito.when(stockRepository.findByIdentifier("UNKNOWN")).thenReturn(null);
+    void updateNotFoundTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(null);
 
         StockDto result = stockService.update(dto);
 
-        Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Stock with identifier - UNKNOWN not found", result.getMessage());
+        assertFalse(result.isSuccess());
+        assertEquals("Stock with identifier - ST1 not found", result.getMessage());
     }
 
     @Test
-    void findByIdentifierSuccessTest() {
-        Stock stock = new Stock();
-        stock.setIdentifier("STOCK3");
-
-        StockDto dto = new StockDto();
-        dto.setIdentifier("STOCK3");
-
-        Mockito.when(stockRepository.findByIdentifier("STOCK3")).thenReturn(stock);
-        Mockito.when(modelMapper.map(stock, StockDto.class)).thenReturn(dto);
-
-        StockDto result = stockService.findByIdentifier("STOCK3");
-
-        Assertions.assertEquals("STOCK3", result.getIdentifier());
+    void updateVerifyMapperCalledTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+        stockService.update(dto);
+        verify(modelMapper).map(dto, stock);
     }
 
     @Test
     void deleteTest() {
-        stockService.delete("STOCK4");
-        Mockito.verify(stockRepository).deleteByIdentifier("STOCK4");
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+        stockService.delete("ST1");
+        verify(stockRepository).findByIdentifier("ST1");
     }
 
     @Test
-    void findAllSuccessTest() {
-        Stock s1 = new Stock();
-        s1.setIdentifier("S1");
+    void deleteNullStockTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(null);
+        assertThrows(NullPointerException.class, () -> stockService.delete("ST1"));
+        verify(stockRepository).findByIdentifier("ST1");
+        verify(stockRepository, never()).save(any());
+    }
 
-        Stock s2 = new Stock();
-        s2.setIdentifier("S2");
+    @Test
+    void toggleStatusTrueToFalseTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
 
-        List<Stock> stocks = List.of(s1, s2);
+        stockService.toggleStatus("ST1");
 
-        StockDto d1 = new StockDto();
-        d1.setIdentifier("S1");
+        assertFalse(stock.getStatus());
+        verify(stockRepository).save(stock);
+    }
 
-        StockDto d2 = new StockDto();
-        d2.setIdentifier("S2");
+    @Test
+    void toggleStatusFalseToTrueTest() {
+        stock.setStatus(false);
 
-        List<StockDto> stockDtos = List.of(d1, d2);
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
 
-        Pageable pageable = PageRequest.of(0, 10);
+        stockService.toggleStatus("ST1");
 
-        Page<Stock> stockPage = new PageImpl<>(stocks, pageable, stocks.size());
+        assertTrue(stock.getStatus());
+        verify(stockRepository).save(stock);
+    }
 
-        Mockito.when(stockRepository.findAll(pageable)).thenReturn(stockPage);
-        Mockito.when(modelMapper.map(Mockito.eq(stocks), Mockito.any(Type.class))).thenReturn(stockDtos);
+    @Test
+    void toggleStatusNullTest() {
+        stock.setStatus(null);
+
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+
+        stockService.toggleStatus("ST1");
+
+        assertTrue(stock.getStatus());
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void toggleStatusNotFoundTest() {
+        when(stockRepository.findByIdentifier("ST1")).thenReturn(null);
+        stockService.toggleStatus("ST1");
+        verify(stockRepository, never()).save(any());
+    }
+
+    @Test
+    void findAllTest() {
+        Pageable pageable = mock(Pageable.class);
+        Page<Stock> page = mock(Page.class);
+
+        List<Stock> stockList = List.of(stock);
+        List<StockDto> dtoList = List.of(dto);
+
+        when(stockRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
+        when(page.getContent()).thenReturn(stockList);
+        when(page.getTotalElements()).thenReturn(1L);
+        when(page.getTotalPages()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(modelMapper.map(eq(stockList), any(java.lang.reflect.Type.class))).thenReturn(dtoList);
 
         WsDto<StockDto> result = stockService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.getDtoList().size());
-        Assertions.assertEquals("S1", result.getDtoList().get(0).getIdentifier());
-        Assertions.assertEquals("S2", result.getDtoList().get(1).getIdentifier());
-
-        Mockito.verify(stockRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(Mockito.eq(stocks), Mockito.any(Type.class));
+        assertNotNull(result);
+        assertNotNull(result.getDtoList());
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
     }
 }

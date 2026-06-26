@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import Add from "../../../components/add";
 import MultiDropdown from "../../../components/MultiDropdown";
@@ -24,9 +25,10 @@ function ProductAdd() {
         <MultiDropdown
           value={categories}
           label="Category"
-          apiPath="category"
+          apiPath="category/list"
           required
           onChange={(val) => setCategories(val)}
+          urlMethod={"post"}
         />
       ),
     },
@@ -37,9 +39,10 @@ function ProductAdd() {
         <SingleDropdown
           value={unit}
           label="Unit"
-          apiPath="unit"
+          apiPath="unit/getAllActive"
           required
           onChange={(val) => setUnit(val)}
+          urlMethod={"get"}
         />
       ),
     },
@@ -50,9 +53,10 @@ function ProductAdd() {
         <SingleDropdown
           value={brand}
           label="Brand"
-          apiPath="brand"
+          apiPath="brand/getAllActive"
           required
           onChange={(val) => setBrand(val)}
+          urlMethod={"get"}
         />
       ),
     },
@@ -63,9 +67,10 @@ function ProductAdd() {
         <SingleDropdown
           value={model}
           label="Model"
-          apiPath="modelProduct"
+          apiPath="modelProduct/getAllActive"
           required
           onChange={(val) => setModel(val)}
+          urlMethod={"get"}
         />
       ),
     },

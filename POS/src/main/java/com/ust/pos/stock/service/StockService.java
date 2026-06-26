@@ -14,4 +14,6 @@ public interface StockService {
     StockDto findByIdentifier(String identifier);
 
     StockDto update(StockDto stockDto);
+
+    void toggleStatus(String identifier);
 }

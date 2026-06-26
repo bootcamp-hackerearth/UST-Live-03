@@ -5,7 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.stock.service.StockService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +13,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/stock")
 public class StockApiController extends BaseController {
 
-    @Autowired
-    private StockService stockService;
+    private final StockService stockService;
+
+    public StockApiController(StockService stockService) {
+        this.stockService = stockService;
+    }
 
     @PostMapping("/list")
     public WsDto<StockDto> home(@RequestBody PaginationDto paginationDto) {
@@ -34,12 +36,12 @@ public class StockApiController extends BaseController {
         return stockService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             stockService.delete(identifier);
@@ -47,5 +49,15 @@ public class StockApiController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggleStatus")
+    public boolean toggleStatus(@RequestBody StockDto dto) {
+        try {
+            stockService.toggleStatus(dto.getIdentifier());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

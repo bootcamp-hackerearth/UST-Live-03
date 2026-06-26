@@ -5,22 +5,28 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/brand")
 public class BrandApiController extends BaseController {
 
-    @Autowired
-    private BrandService brandService;
+    private final BrandService brandService;
+
+    public BrandApiController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @PostMapping("/list")
     public WsDto<BrandDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField());
         return brandService.findAll(pageable);
     }
 
@@ -30,32 +36,37 @@ public class BrandApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    public BrandDto update(@RequestParam String identifier) {
+    public BrandDto get(@RequestParam String identifier) {
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
-    @GetMapping("/delete")
-    public boolean delete(Model model, @RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
+            return true;
         } catch (Exception e) {
             return false;
         }
-        return true;
     }
 
     @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestBody String identifier) {
+    public boolean toggleStatus(@RequestBody BrandDto dto) {
         try {
-            brandService.toggleStatus(identifier);
+            brandService.toggleStatus(dto.getIdentifier());
+            return true;
         } catch (Exception e) {
             return false;
         }
-        return true;
+    }
+
+    @GetMapping("/getAllActive")
+    public List<BrandDto> getAllActive() {
+        return brandService.findAllActive();
     }
 }

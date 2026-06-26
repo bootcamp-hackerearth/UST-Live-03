@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +14,11 @@ public class UnitController extends BaseController {
 
     public static final String UNITS = "units";
     public static final String REDIRECT_UNIT_LIST = "redirect:/unit/list";
-    @Autowired
-    private UnitService unitService;
+    private final UnitService unitService;
+
+    public UnitController(UnitService unitService) {
+        this.unitService = unitService;
+    }
 
     @GetMapping("/list")
     public String home(Model unit) {

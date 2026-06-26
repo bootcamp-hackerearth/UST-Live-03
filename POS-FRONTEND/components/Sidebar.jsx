@@ -1,4 +1,5 @@
 "use client";
+
 import PropTypes from "prop-types";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -106,5 +107,4 @@ function Sidebar({ onToggle }) {
 Sidebar.propTypes = {
   onToggle: PropTypes.func,
 };
-
 export default Sidebar;

@@ -1,25 +1,27 @@
 package com.ust.pos.address.service.impl;
 
+import com.ust.pos.CommonService;
 import com.ust.pos.address.service.AddressService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl extends CommonService implements AddressService {
 
-    @Autowired
-    private AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto findByPhoneNoAndAddressType(Long phoneNo, String addressType) {
@@ -40,8 +42,7 @@ public class AddressServiceImpl implements AddressService {
             addressDto.setMessage("Phone number is required to save address");
             return addressDto;
         }
-        Address existingAddress = addressRepository.findByPhoneNoAndAddressType(
-                addressDto.getPhoneNo(), addressDto.getAddressType());
+        Address existingAddress = addressRepository.findByPhoneNoAndAddressType(addressDto.getPhoneNo(), addressDto.getAddressType());
         if (existingAddress != null) {
             addressDto.setSuccess(false);
             addressDto.setMessage("Address already exists");
@@ -49,6 +50,7 @@ public class AddressServiceImpl implements AddressService {
         }
         Address address = modelMapper.map(addressDto, Address.class);
         address.setId(null);
+        setAuditFields(address,true);
         addressRepository.save(address);
         addressDto.setSuccess(true);
         addressDto.setMessage("Address saved successfully");
@@ -71,6 +73,7 @@ public class AddressServiceImpl implements AddressService {
         Long existingId = existingAddress.getId();
         modelMapper.map(addressDto, existingAddress);
         existingAddress.setId(existingId);
+        setAuditFields(existingAddress,false);
         addressRepository.save(existingAddress);
         addressDto.setSuccess(true);
         addressDto.setMessage("Address updated successfully");

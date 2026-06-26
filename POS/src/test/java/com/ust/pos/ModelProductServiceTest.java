@@ -19,10 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
-
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ModelProductServiceTest {
@@ -40,7 +37,6 @@ class ModelProductServiceTest {
     void saveSuccessTest() {
         ModelProductDto dto = new ModelProductDto();
         dto.setIdentifier("MP1");
-
         ModelProduct entity = new ModelProduct();
         entity.setIdentifier("MP1");
 
@@ -51,14 +47,13 @@ class ModelProductServiceTest {
 
         Assertions.assertEquals("MP1", result.getIdentifier());
 
-        verify(modelProductRepository).save(entity);
+        Mockito.verify(modelProductRepository).save(entity);
     }
 
     @Test
     void saveFailureAlreadyExistsTest() {
         ModelProduct existing = new ModelProduct();
         existing.setIdentifier("MP1");
-
         ModelProductDto dto = new ModelProductDto();
         dto.setIdentifier("MP1");
 
@@ -67,14 +62,31 @@ class ModelProductServiceTest {
         ModelProductDto result = modelProductService.save(dto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("already exists"));
+        Assertions.assertEquals("Price already exists for identifier: MP1", result.getMessage());
+    }
+
+    @Test
+    void saveFailureDeletedIdentifierTest() {
+        ModelProduct existing = new ModelProduct();
+        existing.setIdentifier("MP1");
+        existing.setDeleted(true);
+        ModelProductDto dto = new ModelProductDto();
+        dto.setIdentifier("MP1");
+
+        Mockito.when(modelProductRepository.findByIdentifier("MP1")).thenReturn(existing);
+
+        ModelProductDto result = modelProductService.save(dto);
+
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertEquals("ModelProduct identifier - MP1 not available", result.getMessage());
+
+        Mockito.verify(modelProductRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
     void updateSuccessTest() {
         ModelProduct existing = new ModelProduct();
         existing.setIdentifier("MP2");
-
         ModelProductDto dto = new ModelProductDto();
         dto.setIdentifier("MP2");
 
@@ -84,8 +96,8 @@ class ModelProductServiceTest {
 
         Assertions.assertEquals("MP2", result.getIdentifier());
 
-        verify(modelMapper).map(dto, existing);
-        verify(modelProductRepository).save(existing);
+        Mockito.verify(modelMapper).map(dto, existing);
+        Mockito.verify(modelProductRepository).save(existing);
     }
 
     @Test
@@ -98,7 +110,7 @@ class ModelProductServiceTest {
         ModelProductDto result = modelProductService.update(dto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("not found"));
+        Assertions.assertEquals("Price not found for identifier: UNKNOWN", result.getMessage());
     }
 
     @Test
@@ -120,27 +132,38 @@ class ModelProductServiceTest {
 
     @Test
     void deleteTest() {
+        ModelProduct modelProduct = new ModelProduct();
+        modelProduct.setIdentifier("MP4");
+
+        Mockito.when(modelProductRepository.findByIdentifier("MP4")).thenReturn(modelProduct);
+
         modelProductService.delete("MP4");
-        verify(modelProductRepository).deleteByIdentifier("MP4");
+
+        Assertions.assertTrue(modelProduct.isDeleted());
     }
 
     @Test
     void findAllTest() {
-        List<ModelProduct> entities = Arrays.asList(new ModelProduct(), new ModelProduct());
-        List<ModelProductDto> dtoList = Arrays.asList(new ModelProductDto(), new ModelProductDto());
+        ModelProduct entity = new ModelProduct();
+        entity.setIdentifier("MP1");
+        ModelProductDto dto = new ModelProductDto();
+        dto.setIdentifier("MP1");
+
+        List<ModelProduct> entities = List.of(entity);
+        List<ModelProductDto> dtoList = List.of(dto);
 
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ModelProduct> modelProductPage = new PageImpl<>(entities, pageable, entities.size());
+        Page<ModelProduct> page = new PageImpl<>(entities, pageable, entities.size());
 
-        Mockito.when(modelProductRepository.findAll(pageable)).thenReturn(modelProductPage);
+        Mockito.when(modelProductRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         Mockito.when(modelMapper.map(Mockito.eq(entities), Mockito.any(Type.class))).thenReturn(dtoList);
 
         WsDto<ModelProductDto> result = modelProductService.findAll(pageable);
 
-        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
 
-        Mockito.verify(modelProductRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(Mockito.eq(entities), Mockito.any(Type.class));
+        Mockito.verify(modelProductRepository).findByIsDeletedFalse(pageable);
     }
 
     @Test
@@ -154,6 +177,43 @@ class ModelProductServiceTest {
         modelProductService.toggleStatus("MP1");
 
         Assertions.assertFalse(modelProduct.getStatus());
+
+        Mockito.verify(modelProductRepository).save(modelProduct);
+    }
+
+    @Test
+    void findAllActiveTest() {
+        ModelProduct modelProduct = new ModelProduct();
+        modelProduct.setIdentifier("MP1");
+        modelProduct.setStatus(true);
+
+        ModelProductDto dto = new ModelProductDto();
+        dto.setIdentifier("MP1");
+
+        List<ModelProduct> entities = List.of(modelProduct);
+        List<ModelProductDto> dtos = List.of(dto);
+
+        Mockito.when(modelProductRepository.findByStatusTrueAndIsDeletedFalse()).thenReturn(entities);
+        Mockito.when(modelMapper.map(Mockito.eq(entities), Mockito.any(Type.class))).thenReturn(dtos);
+
+        List<ModelProductDto> result = modelProductService.findAllActive();
+
+        Assertions.assertEquals(1, result.size());
+
+        Mockito.verify(modelProductRepository).findByStatusTrueAndIsDeletedFalse();
+    }
+
+    @Test
+    void toggleStatusFalseToTrueTest() {
+        ModelProduct modelProduct = new ModelProduct();
+        modelProduct.setIdentifier("MP2");
+        modelProduct.setStatus(false);
+
+        Mockito.when(modelProductRepository.findByIdentifier("MP2")).thenReturn(modelProduct);
+
+        modelProductService.toggleStatus("MP2");
+
+        Assertions.assertTrue(modelProduct.getStatus());
 
         Mockito.verify(modelProductRepository).save(modelProduct);
     }

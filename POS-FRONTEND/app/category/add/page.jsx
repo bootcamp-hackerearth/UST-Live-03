@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Add from "../../../components/add";
@@ -16,8 +17,9 @@ function CategoryAdd() {
         <SingleDropdown
           value={selectedSuperCategory}
           label="Super Category"
-          apiPath="category"
+          apiPath="category/list"
           onChange={(value) => setSelectedSuperCategory(value)}
+          urlMethod={"post"}
         />
       ),
     },

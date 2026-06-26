@@ -3,7 +3,6 @@ package com.ust.pos;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -21,8 +20,10 @@ import javax.sql.DataSource;
 @ComponentScan({"com.ust.pos.web.controller", "com.ust.pos"})
 public class PosApplication {
 
-    @Autowired
-    Environment environment;
+   private final Environment environment;
+    public PosApplication(Environment environment) {
+        this.environment = environment;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(PosApplication.class, args);
@@ -31,8 +32,7 @@ public class PosApplication {
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper mapper = new ModelMapper();
-        mapper.getConfiguration()
-                .setMatchingStrategy(MatchingStrategies.STRICT);
+        mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         mapper.getConfiguration().setSkipNullEnabled(true);
         mapper.getConfiguration().setCollectionsMergeEnabled(false);
         return mapper;
@@ -50,7 +50,6 @@ public class PosApplication {
         ds.setUsername(environment.getProperty("spring.datasource.username"));
         ds.setPassword(environment.getProperty("spring.datasource.password"));
         String drivercls = environment.getProperty("spring.datasource.driver-class-name");
-
         if (drivercls != null) {
             ds.setDriverClassName(drivercls);
         }

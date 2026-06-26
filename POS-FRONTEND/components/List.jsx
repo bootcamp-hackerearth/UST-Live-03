@@ -52,6 +52,7 @@ function List({
           }),
         },
       );
+
       const result = await response.json();
       setDataRows(result.dtoList || []);
       setTotalPages(result.totalPages || 0);
@@ -79,6 +80,7 @@ function List({
           }),
         },
       );
+
       const firstResult = await firstResponse.json();
       const total = firstResult.totalPages || 1;
       setTotalPages(total);
@@ -99,7 +101,9 @@ function List({
               sortField: "identifier",
               sortDirection: "ASC",
             }),
-          }).then((r) => r.json()),
+          }).then((r) => {
+            return r.json();
+          }),
         );
       }
 
@@ -142,10 +146,11 @@ function List({
       const response = await fetch(
         `http://localhost:8080/api/${apiPath}/delete?identifier=${id}`,
         {
-          method: "GET",
+          method: "DELETE",
           headers: { Authorization: "Bearer " + token },
         },
       );
+
       if (!response.ok) throw new Error("Delete request failed");
       setDeleteTarget(null);
       setSuccessMessage(`"${id}" removed successfully`);
@@ -170,6 +175,7 @@ function List({
           body: JSON.stringify({ identifier: id }),
         },
       );
+
       if (!response.ok) throw new Error("Status toggle request failed");
       setDataRows((prev) =>
         prev.map((item) =>
@@ -468,4 +474,5 @@ List.propTypes = {
   showStatusToggle: PropTypes.bool,
   identifierKey: PropTypes.string,
 };
+
 export default List;

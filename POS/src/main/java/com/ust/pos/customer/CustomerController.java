@@ -1,12 +1,9 @@
 package com.ust.pos.customer;
-
 import com.ust.pos.address.service.AddressService;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,14 +13,13 @@ import org.springframework.web.bind.annotation.*;
 public class CustomerController extends BaseController {
 
     public static final String REDIRECT_ROLE_LIST = "redirect:/customer/list";
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
+    private final AddressService addressService;
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private AddressService addressService;
+    public CustomerController(CustomerService customerService, AddressService addressService) {
+        this.customerService = customerService;
+        this.addressService = addressService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

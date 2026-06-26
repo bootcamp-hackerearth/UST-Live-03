@@ -12,12 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) {
-        return config.getAuthenticationManager();
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
             http
@@ -41,5 +35,11 @@ public class SecurityConfig {
         } catch (Exception e) {
             throw new IllegalStateException("Security configuration failed", e);
         }
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config) {
+        return config.getAuthenticationManager();
     }
 }

@@ -11,6 +11,7 @@ function SingleDropdown({
   required = false,
   valueField = "identifier",
   displayField = "identifier",
+  urlMethod,
 }) {
   const [options, setOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,19 +26,17 @@ function SingleDropdown({
         return;
       }
       try {
-        const fullUrl = `http://localhost:8080/api/${apiPath}/list`;
+        const fullUrl = `http://localhost:8080/api/${apiPath}`;
         const response = await fetch(fullUrl, {
-          method: "POST",
+          method: urlMethod === "get" ? "GET" : "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            page: 0,
-            sizePerPage: 1000,
-            sortField: "identifier",
-            sortDirection: "ASC",
-          }),
+          body:
+            urlMethod === "get"
+              ? undefined
+              : JSON.stringify({ page: 0, sizePerPage: 100 }),
         });
 
         if (!response.ok) {
@@ -48,7 +47,9 @@ function SingleDropdown({
         }
 
         const result = await response.json();
-        const listData = Array.isArray(result) ? result : result.dtoList || [];
+        const listData = Array.isArray(result)
+          ? result
+          : (result?.dtoList ?? []);
         setOptions(listData);
       } catch (error) {
         console.error("Dropdown fetch error:", error);
@@ -61,6 +62,8 @@ function SingleDropdown({
     loadDropdownData();
   }, [apiPath]);
 
+  const selectId = `single-${apiPath}`;
+
   return (
     <div style={{ width: "100%" }}>
       <label
@@ -71,12 +74,14 @@ function SingleDropdown({
           fontSize: 14,
           color: "#111827",
         }}
+        htmlFor={selectId}
       >
         {label}
         {required && <span style={{ color: "red", marginLeft: 4 }}>*</span>}
       </label>
 
       <select
+        id={selectId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
@@ -99,20 +104,32 @@ function SingleDropdown({
           <>
             <option value="">Select {label}</option>
 
-            {options.map((item, index) => {
+            {options.map((item) => {
               const optionValue =
-                typeof item === "string" ? item : item[valueField];
+                typeof item === "string" ? item : item?.[valueField];
               let optionLabel;
               if (typeof displayField === "function") {
                 optionLabel = displayField(item);
               } else if (typeof item === "string") {
                 optionLabel = item;
               } else {
-                optionLabel = item[displayField];
+                optionLabel = item?.[displayField];
+              }
+
+              let keyVal;
+              if (optionValue !== undefined && optionValue !== null) {
+                keyVal = String(optionValue);
+              } else if (item && typeof item === "object") {
+                keyVal =
+                  item?.id !== undefined && item?.id !== null
+                    ? String(item.id)
+                    : JSON.stringify(item);
+              } else {
+                keyVal = String(optionValue ?? "");
               }
 
               return (
-                <option key={optionValue || index} value={optionValue}>
+                <option key={keyVal} value={optionValue}>
                   {optionLabel}
                 </option>
               );
@@ -132,5 +149,6 @@ SingleDropdown.propTypes = {
   required: PropTypes.bool,
   valueField: PropTypes.string,
   displayField: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+  urlMethod: PropTypes.string,
 };
 export default SingleDropdown;

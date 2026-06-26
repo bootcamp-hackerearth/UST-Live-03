@@ -1,5 +1,6 @@
 package com.ust.pos.unit.service.impl;
-
+import com.ust.pos.CommonService;
+import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
@@ -7,36 +8,42 @@ import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional
-public class UnitServiceImpl implements UnitService {
+public class UnitServiceImpl extends CommonService implements UnitService {
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+    private final UnitRepository unitRepository;
 
-    @Autowired
-    private UnitRepository unitRepository;
+    public UnitServiceImpl(ModelMapper modelMapper, UnitRepository unitRepository) {
+        this.modelMapper = modelMapper;
+        this.unitRepository = unitRepository;
+    }
 
     @Override
     public UnitDto save(UnitDto unitDto) {
         String identifier = unitDto.getIdentifier();
         Unit existingmodel = unitRepository.findByIdentifier(identifier);
         if (existingmodel != null) {
+            if(existingmodel.isDeleted()){
+                unitDto.setMessage("Unit identifier - " + identifier + " not available");
+                unitDto.setSuccess(false);
+                return unitDto;
+            }
             unitDto.setMessage("Model - " + identifier + " already exists");
             unitDto.setSuccess(false);
             return unitDto;
         }
         Unit unit = modelMapper.map(unitDto, Unit.class);
+        setAuditFields(unit,true);
         unitRepository.save(unit);
         return unitDto;
     }
@@ -56,6 +63,7 @@ public class UnitServiceImpl implements UnitService {
                 return unitDto;
             } else {
                 modelMapper.map(unitDto, existingmodel);
+                setAuditFields(existingmodel,false);
                 unitRepository.save(existingmodel);
                 unitDto.setSuccess(true);
             }
@@ -70,9 +78,8 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public WsDto<UnitDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<UnitDto>>() {
-        }.getType();
-        Page<Unit> unitPage = unitRepository.findAll(pageable);
+        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
+        Page<Unit> unitPage = unitRepository.findByIsDeletedFalse(pageable);
         WsDto<UnitDto> unitDtoWsDto = new WsDto<>();
         unitDtoWsDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
         unitDtoWsDto.setTotalRecords(unitPage.getTotalElements());
@@ -84,13 +91,23 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void delete(String identifier) {
-        unitRepository.deleteByIdentifier(identifier);
+        Unit unit=unitRepository.findByIdentifier(identifier.trim());
+        softDelete(unit);
+        setAuditFields(unit,false);
     }
 
     @Override
     public void toggleStatus(String identifier) {
         Unit unit = unitRepository.findByIdentifier(identifier);
         unit.setStatus(!unit.getStatus());
+        setAuditFields(unit,false);
         unitRepository.save(unit);
+    }
+
+    @Override
+    public List<UnitDto> findAllActive() {
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        return modelMapper.map(unitRepository.findByStatusTrueAndIsDeletedFalse(), listType);
     }
 }

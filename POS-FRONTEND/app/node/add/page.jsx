@@ -9,9 +9,10 @@ function RolesField({ roles, onChange }) {
     <MultiDropdown
       value={roles}
       label="Roles"
-      apiPath="role"
+      apiPath="role/list"
       required
       onChange={onChange}
+      urlMethod={"post"}
     />
   );
 }

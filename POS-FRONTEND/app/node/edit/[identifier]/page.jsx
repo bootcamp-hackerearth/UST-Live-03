@@ -1,35 +1,39 @@
 "use client";
-import PropTypes from "prop-types";
+
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import Update from "../../../../components/edit";
 import MultiDropdown from "../../../../components/MultiDropdown";
+import PropTypes from "prop-types";
+import { useAuditField } from "../../../../utils/useAuditField";
 
 function RolesField({ value, onChange }) {
   return (
     <MultiDropdown
       value={value}
       label="Roles"
-      apiPath="role"
+      apiPath="role/list"
       required
       onChange={onChange}
+      urlMethod={"post"}
     />
   );
 }
 
 RolesField.propTypes = {
-  value: PropTypes.array,
+  value: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
   onChange: PropTypes.func.isRequired,
 };
 
 export default function EditNode() {
   const params = useParams();
   const [roles, setRoles] = useState([]);
+  const auditField = useAuditField();
+
   const extraFields = [
     {
       key: "path",
       label: "Path",
-      type: "text",
       required: true,
     },
     {
@@ -37,17 +41,14 @@ export default function EditNode() {
       type: "custom",
       onLoad: (value) => {
         if (value) {
-          setRoles(
-            Array.isArray(value)
-              ? value
-              : value.split(",").map((item) => item.trim()),
-          );
+          setRoles(Array.isArray(value) ? value : value.split(","));
         }
       },
       component: (
-        <RolesField value={roles} onChange={(value) => setRoles(value)} />
+        <RolesField value={roles} onChange={setRoles} />
       ),
     },
+    auditField,
   ];
 
   return (
@@ -56,9 +57,7 @@ export default function EditNode() {
       apiPath="node"
       title="Node"
       extraFields={extraFields}
-      extraData={{
-        roles,
-      }}
+      extraData={{ roles }}
       showDescription={false}
     />
   );

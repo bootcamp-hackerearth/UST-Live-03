@@ -1,5 +1,5 @@
 package com.ust.pos.user.service.impl;
-
+import com.ust.pos.CommonService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
@@ -8,30 +8,29 @@ import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends CommonService implements UserService {
 
     public static final String USER_WITH_USERNAME_EMAIL = "User with username - ";
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UserDto findByUserName(String username) {
@@ -45,12 +44,18 @@ public class UserServiceImpl implements UserService {
         String username = userDto.getUsername();
         User existingUser = userRepository.findByUsername(username);
         if (existingUser != null) {
+            if(existingUser.isDeleted()){
+                userDto.setMessage("User with userEmail - " + username + " not available");
+                userDto.setSuccess(false);
+                return userDto;
+            }
             userDto.setMessage(USER_WITH_USERNAME_EMAIL + username + " already exists");
             userDto.setSuccess(false);
             return userDto;
         }
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        setAuditFields(user,true);
         userRepository.save(user);
         return userDto;
     }
@@ -77,20 +82,21 @@ public class UserServiceImpl implements UserService {
         if (userDto.getPassword() != null && !userDto.getPassword().isBlank()) {
             existingUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
         }
+        setAuditFields(existingUser,false);
         userRepository.save(existingUser);
         return userDto;
     }
 
     @Override
     public void delete(String username) {
-        userRepository.deleteByUsername(username);
-    }
+        User user=userRepository.findByUsername(username.trim());
+        softDelete(user);
+        setAuditFields(user,false);    }
 
     @Override
     public WsDto<UserDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<UserDto>>() {
-        }.getType();
-        Page<User> userPage = userRepository.findAll(pageable);
+        Type listType = new TypeToken<List<UserDto>>() {}.getType();
+        Page<User> userPage = userRepository.findByIsDeletedFalse(pageable);
         WsDto<UserDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
         userWsDto.setTotalRecords(userPage.getTotalElements());

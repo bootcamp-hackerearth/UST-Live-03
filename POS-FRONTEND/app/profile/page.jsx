@@ -101,7 +101,7 @@ function Profile() {
 
     try {
       const response = await fetch("http://localhost:8080/api/user/update", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

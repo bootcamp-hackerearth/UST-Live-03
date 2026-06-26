@@ -15,6 +15,7 @@ function Add({
   hideIdentifier = false,
   onClose,
   onSuccess,
+  urlMethod,
 }) {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
@@ -33,32 +34,51 @@ function Add({
     return value === undefined || value === null || String(value).trim() === "";
   };
 
+  const validatePhoneNo = (value) => {
+    if (!/^\d{10}$/.test(String(value).trim()))
+      return "Phone number must be exactly 10 digits.";
+    return "";
+  };
+
+  const validatePassword = (value) => {
+    const password = String(value);
+    const passwordPolicy =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=])[A-Za-z\d@$!%*?&#^()_+\-=]{8,}$/;
+
+    if (!passwordPolicy.test(password)) {
+      return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+    }
+    if (/\s/.test(password)) {
+      return "Password must not contain spaces.";
+    }
+    return "";
+  };
+
+  const validateUsername = (value) => {
+    if (!String(value).trim().endsWith("@gmail.com"))
+      return "Username must be a valid Gmail address (e.g. example@gmail.com).";
+    return "";
+  };
+
+  const validatePincode = (value) => {
+    if (!/^\d{5}$/.test(String(value).trim()))
+      return "Pincode must be exactly 5 digits.";
+    return "";
+  };
+
   const validateField = (field, value) => {
     if (isMissing(field, value))
       return `${field.label || field.key} is required.`;
 
-    if (field.key === "phoneNo" && value) {
-      if (!/^\d{10}$/.test(String(value).trim()))
-        return "Phone number must be exactly 10 digits.";
-    }
+    const fieldValidators = {
+      phoneNo: validatePhoneNo,
+      password: validatePassword,
+      username: validateUsername,
+      pincode: validatePincode,
+    };
 
-    if (field.key === "password" && value) {
-      const password = String(value);
-      const passwordPolicy =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=])[A-Za-z\d@$!%*?&#^()_+\-=]{8,}$/;
-      if (!passwordPolicy.test(password)) {
-        return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
-      }
-      if (/\s/.test(password)) {
-        return "Password must not contain spaces.";
-      }
-    }
-
-    if (field.key === "username" && value) {
-      if (!String(value).trim().endsWith("@gmail.com"))
-        return "Username must be a valid Gmail address (e.g. example@gmail.com).";
-    }
-    return "";
+    const validator = fieldValidators[field.key];
+    return validator ? validator(value) : "";
   };
 
   const validate = (rawDomData) => {
@@ -129,9 +149,14 @@ function Add({
         }
       } else {
         const errorText = await response.text();
-        throw new Error(
-          errorText || `Server returned status code ${response.status}`,
-        );
+        let serverMessage = errorText;
+        try {
+          const json = JSON.parse(errorText);
+          serverMessage = json.message || errorText;
+        } catch {
+        }
+        setError(serverMessage || `Server returned status code ${response.status}`);
+        return;
       }
     } catch (err) {
       console.error("Submission Error Details:", err);
@@ -253,6 +278,7 @@ function Add({
                   apiPath={identifierDropdownApi}
                   required
                   onChange={(value) => setIdentifier(value)}
+                  urlMethod={urlMethod}
                 />
               ) : (
                 <>
@@ -374,6 +400,7 @@ Add.propTypes = {
   hideIdentifier: PropTypes.bool,
   onClose: PropTypes.func,
   onSuccess: PropTypes.func,
+  urlMethod: PropTypes.string,
 };
 
 export default Add;

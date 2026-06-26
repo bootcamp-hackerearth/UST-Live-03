@@ -6,7 +6,6 @@ function Node() {
     { key: "identifier", label: "IDENTIFIER" },
     { key: "path", label: "PATH" },
     { key: "roles", label: "ROLES" },
-    // { key: 'description', label: 'Description' }
   ];
 
   return (

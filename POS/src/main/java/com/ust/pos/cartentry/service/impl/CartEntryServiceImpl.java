@@ -1,5 +1,4 @@
 package com.ust.pos.cartentry.service.impl;
-
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
@@ -8,37 +7,32 @@ import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
-import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private PriceService priceService;
-
-    @Autowired
-    private PriceRepository priceRepository;
-
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
+    private final PriceRepository priceRepository;
     @Lazy
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
+
+    public CartEntryServiceImpl(CartEntryRepository cartEntryRepository, ModelMapper modelMapper,PriceRepository priceRepository, CartService cartService) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+        this.priceRepository = priceRepository;
+        this.cartService = cartService;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -50,6 +44,12 @@ public class CartEntryServiceImpl implements CartEntryService {
         if (cartEntry != null) {
             BigDecimal existingQty = cartEntry.getQuantity();
             newQty = existingQty.add(newQty);
+            if (newQty.compareTo(BigDecimal.ZERO) <= 0) {
+                cartEntryRepository.delete(cartEntry);
+                cartService.recalculate(cartEntryDto.getCart());
+                cartEntryDto.setQuantity(BigDecimal.ZERO);
+                return cartEntryDto;
+            }
         } else {
             cartEntry = new CartEntry();
         }
@@ -68,8 +68,7 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     @Override
     public WsDto<CartEntryDto> findAllEntriesForCart(Pageable pageable) {
-        Type listType = new TypeToken<List<CartEntryDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<CartEntryDto>>() {}.getType();
         Page<CartEntry> cartEntryPage = cartEntryRepository.findAll(pageable);
         WsDto<CartEntryDto> cartEntryDtoWsDto = new WsDto<>();
         cartEntryDtoWsDto.setDtoList(modelMapper.map(cartEntryPage.getContent(), listType));

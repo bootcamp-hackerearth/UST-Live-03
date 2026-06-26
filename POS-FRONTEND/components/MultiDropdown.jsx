@@ -1,8 +1,16 @@
 "use client";
+
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 
-function MultiDropdown({ value, onChange, label, apiPath, required = false }) {
+function MultiDropdown({
+  value,
+  onChange,
+  label,
+  apiPath,
+  required = false,
+  urlMethod,
+}) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -10,22 +18,17 @@ function MultiDropdown({ value, onChange, label, apiPath, required = false }) {
     const fetchOptions = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          `http://localhost:8080/api/${apiPath}/list`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              page: 0,
-              sizePerPage: 100,
-              sortDirection: "ASC",
-              sortField: "identifier",
-            }),
+        const response = await fetch(`http://localhost:8080/api/${apiPath}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+          body:
+            urlMethod === "get"
+              ? undefined
+              : JSON.stringify({ page: 0, sizePerPage: 100 }),
+        });
 
         if (!response.ok) throw new Error(`API Failed: ${response.status}`);
         const data = await response.json();
@@ -47,6 +50,8 @@ function MultiDropdown({ value, onChange, label, apiPath, required = false }) {
     return <p className="text-sm text-red-400">No {label} options found.</p>;
   }
 
+  const selectId = `multi-${apiPath}`;
+
   return (
     <div style={{ width: "100%" }}>
       <label
@@ -56,11 +61,13 @@ function MultiDropdown({ value, onChange, label, apiPath, required = false }) {
           marginBottom: "6px",
           fontSize: "14px",
         }}
+        htmlFor={selectId}
       >
         {label}
       </label>
 
       <select
+        id={selectId}
         multiple
         value={value}
         onChange={(e) => {
@@ -106,5 +113,6 @@ MultiDropdown.propTypes = {
   label: PropTypes.string.isRequired,
   apiPath: PropTypes.string.isRequired,
   required: PropTypes.bool,
+  urlMethod: PropTypes.string,
 };
 export default MultiDropdown;

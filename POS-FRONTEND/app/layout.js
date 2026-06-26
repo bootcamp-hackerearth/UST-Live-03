@@ -1,28 +1,28 @@
 "use client";
+
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import PropTypes from "prop-types";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
+const PUBLIC_ROUTES = new Set(["/login", "/register"]);
+
 export default function RootLayout({ children }) {
   const path = usePathname();
   const router = useRouter();
-
-  const publicRoutes = new Set(["/login", "/register"]);
-  const showLayout = !publicRoutes.has(path);
+  const showLayout = !PUBLIC_ROUTES.has(path);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token && !publicRoutes.has(path)) {
+    if (!token && !PUBLIC_ROUTES.has(path)) {
       router.replace("/login");
     }
-  }, [path]);
+  }, [path, router]);
 
   useEffect(() => {
     const originalFetch = globalThis.fetch;
-
     globalThis.fetch = async (...args) => {
       try {
         const response = await originalFetch(...args);
@@ -45,7 +45,7 @@ export default function RootLayout({ children }) {
     return () => {
       globalThis.fetch = originalFetch;
     };
-  }, []);
+  }, [router]);
 
   return (
     <html lang="en">
@@ -64,7 +64,6 @@ export default function RootLayout({ children }) {
             <Sidebar onToggle={setSidebarOpen} />
           </>
         )}
-
         <div
           style={{
             position: "fixed",
@@ -86,6 +85,7 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
 RootLayout.propTypes = {
   children: PropTypes.node.isRequired,
 };
