@@ -1,5 +1,6 @@
 package com.ust.pos.node.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.*;
@@ -7,7 +8,6 @@ import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -21,15 +21,18 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class NodeServiceImpl implements NodeService {
-    @Autowired
-    private UserRepository userRepository;
+public class NodeServiceImpl extends CommonService implements NodeService {
+    private final UserRepository userRepository;
 
-    @Autowired
-    private NodeRepository nodeRepository;
+    private final NodeRepository nodeRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.nodeRepository = nodeRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
@@ -40,7 +43,7 @@ public class NodeServiceImpl implements NodeService {
     public WsDto<NodeDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> userPage = nodeRepository.findAll(pageable);
+        Page<Node> userPage = nodeRepository.findByDeletedFalse(pageable);
 
         WsDto<NodeDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
@@ -57,12 +60,18 @@ public class NodeServiceImpl implements NodeService {
         String identifier = nodeDto.getIdentifier();
         Node existingNode = nodeRepository.findByIdentifier(identifier);
         if (existingNode != null) {
+            if(existingNode.isDeleted()) {
+                nodeDto.setMessage("Brand with identifier - " + identifier + "has been soft deleted.(Rollback by changing status");
+                nodeDto.setSuccess(false);
+                return nodeDto;
+            }
             nodeDto.setMessage("Node with identifier - " + identifier + " already exists");
             nodeDto.setSuccess(false);
             return nodeDto;
         }
-        Node role = modelMapper.map(nodeDto, Node.class);
-        nodeRepository.save(role);
+        Node node = modelMapper.map(nodeDto, Node.class);
+        setAuditFields(node, true);
+        nodeRepository.save(node);
         return nodeDto;
     }
 
@@ -76,6 +85,7 @@ public class NodeServiceImpl implements NodeService {
             return nodeDto;
         }
         modelMapper.map(nodeDto, existingNode);
+        setAuditFields(existingNode,false);
         nodeRepository.save(existingNode);
         return nodeDto;
     }
@@ -83,7 +93,10 @@ public class NodeServiceImpl implements NodeService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        nodeRepository.deleteByIdentifier(identifier);
+        Node node = nodeRepository.findByIdentifier(identifier);
+        softDelete(node);
+        setAuditFields(node,false);
+        nodeRepository.save(node);
     }
 
     public List<NodeDto> getNodesForRoles() {

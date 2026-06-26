@@ -4,7 +4,6 @@ import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,10 +17,15 @@ public class CustomerController {
     public static final String CUSTOMER = "customer";
     public static final String REDIRECT_CUSTOMER_LIST = "redirect:/customer/list";
     public static final String CUSTOMERS = "customers";
-    @Autowired
-    CustomerService customerService;
-    @Autowired
-    AddressService addressService;
+
+    private final CustomerService customerService;
+
+    private final AddressService addressService;
+
+    public CustomerController(CustomerService customerService, AddressService addressService) {
+        this.customerService = customerService;
+        this.addressService = addressService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

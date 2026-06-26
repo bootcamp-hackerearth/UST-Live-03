@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
@@ -8,7 +9,6 @@ import com.ust.pos.product.service.ProductService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,17 +17,23 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ProductServiceImpl implements ProductService {
-    @Autowired
-    ModelMapper modelMapper;
-    @Autowired
-    ProductRepository productRepository;
+public class ProductServiceImpl extends CommonService implements ProductService {
+
+    private final ModelMapper modelMapper;
+
+    private final ProductRepository productRepository;
+
+    public ProductServiceImpl(ModelMapper modelMapper, ProductRepository productRepository) {
+        this.modelMapper = modelMapper;
+        this.productRepository = productRepository;
+    }
 
     @Override
     public ProductDto update(ProductDto productDto) {
         String identifier = productDto.getIdentifier();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         modelMapper.map(productDto, existingProduct);
+        setAuditFields(existingProduct,false);
         productRepository.save(existingProduct);
         return productDto;
     }
@@ -36,7 +42,7 @@ public class ProductServiceImpl implements ProductService {
     public WsDto<ProductDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
-        Page<Product> userPage = productRepository.findAll(pageable);
+        Page<Product> userPage = productRepository.findByDeletedFalse(pageable);
 
         WsDto<ProductDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
@@ -53,11 +59,17 @@ public class ProductServiceImpl implements ProductService {
         String identifier = productDto.getIdentifier();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct != null) {
+            if(existingProduct.isDeleted()) {
+                productDto.setMessage("Product with identifier - " + identifier + "has been soft deleted.(Rollback by changing status");
+                productDto.setSuccess(false);
+                return productDto;
+            }
             productDto.setMessage("Product with identifier - " + identifier + " already exists");
             productDto.setSuccess(false);
             return productDto;
         }
         Product product = modelMapper.map(productDto, Product.class);
+        setAuditFields(product, true);
         productRepository.save(product);
         return productDto;
     }
@@ -65,7 +77,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        productRepository.deleteByIdentifier(identifier);
+        Product product = productRepository.findByIdentifier(identifier);
+        softDelete(product);
+        setAuditFields(product,false);
+        productRepository.save(product);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.ust.pos.warehouse.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Warehouse;
@@ -8,7 +9,6 @@ import com.ust.pos.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,17 +17,22 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class WarehouseServiceImpl implements WarehouseService {
-    @Autowired
-    ModelMapper modelMapper;
-    @Autowired
-    WarehouseRepository warehouseRepository;
+public class WarehouseServiceImpl extends CommonService implements WarehouseService {
+    
+    private final ModelMapper modelMapper;
+    
+    private final WarehouseRepository warehouseRepository;
+
+    public WarehouseServiceImpl(ModelMapper modelMapper, WarehouseRepository warehouseRepository) {
+        this.modelMapper = modelMapper;
+        this.warehouseRepository = warehouseRepository;
+    }
 
     @Override
     public WsDto<WarehouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
-        Page<Warehouse> userPage = warehouseRepository.findAll(pageable);
+        Page<Warehouse> userPage = warehouseRepository.findByDeletedFalse(pageable);
 
         WsDto<WarehouseDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
@@ -49,6 +54,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             return warehouseDto;
         }
         Warehouse warehouse = modelMapper.map(warehouseDto, Warehouse.class);
+        setAuditFields(warehouse, true);
         warehouseRepository.save(warehouse);
         return warehouseDto;
     }
@@ -56,8 +62,10 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        warehouseRepository.deleteByIdentifier(identifier);
-    }
+        Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
+        softDelete(warehouse);
+        setAuditFields(warehouse,false);
+        warehouseRepository.save(warehouse);    }
 
     @Override
     public WarehouseDto findByIdentifier(String identifier) {
@@ -70,6 +78,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         String identifier = warehouseDto.getIdentifier();
         Warehouse existingWarehouse = warehouseRepository.findByIdentifier(identifier);
         modelMapper.map(warehouseDto, existingWarehouse);
+        setAuditFields(existingWarehouse,false);
         warehouseRepository.save(existingWarehouse);
         return warehouseDto;
     }

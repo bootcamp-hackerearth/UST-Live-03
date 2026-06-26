@@ -1,5 +1,6 @@
 package com.ust.pos.unit.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
@@ -8,7 +9,6 @@ import com.ust.pos.unit.service.UnitService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,12 +17,16 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class UnitServiceImpl implements UnitService {
-    @Autowired
-    ModelMapper modelMapper;
+public class UnitServiceImpl extends CommonService implements UnitService {
+    
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    UnitRepository unitRepository;
+    private final UnitRepository unitRepository;
+
+    public UnitServiceImpl(ModelMapper modelMapper, UnitRepository unitRepository) {
+        this.modelMapper = modelMapper;
+        this.unitRepository = unitRepository;
+    }
 
     @Override
     public UnitDto findByIdentifier(String identifier) {
@@ -33,12 +37,18 @@ public class UnitServiceImpl implements UnitService {
     public UnitDto save(UnitDto unitDto) {
         Unit existing = unitRepository.findByIdentifier(unitDto.getIdentifier());
         if (existing != null) {
+            if(existing.isDeleted()) {
+                unitDto.setMessage("Unit with identifier - " + unitDto.getIdentifier() + "has been soft deleted.(Rollback by changing status");
+                unitDto.setSuccess(false);
+                return unitDto;
+            }
             unitDto.setSuccess(false);
             unitDto.setMessage("Unit already exists : " + unitDto.getIdentifier());
             return unitDto;
         }
 
         Unit unit = modelMapper.map(unitDto, Unit.class);
+        setAuditFields(unit, true);
         unitRepository.save(unit);
         return unitDto;
     }
@@ -52,6 +62,8 @@ public class UnitServiceImpl implements UnitService {
             return unitDto;
         }
         modelMapper.map(unitDto, existing);
+        setAuditFields(existing,false);
+
         unitRepository.save(existing);
         return unitDto;
     }
@@ -59,14 +71,16 @@ public class UnitServiceImpl implements UnitService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        unitRepository.deleteByIdentifier(identifier);
-    }
+        Unit unit = unitRepository.findByIdentifier(identifier);
+        softDelete(unit);
+        setAuditFields(unit,false);
+        unitRepository.save(unit);    }
 
     @Override
     public WsDto<UnitDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
-        Page<Unit> userPage = unitRepository.findAll(pageable);
+        Page<Unit> userPage = unitRepository.findByDeletedFalse(pageable);
 
         WsDto<UnitDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));

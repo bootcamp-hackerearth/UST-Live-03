@@ -31,16 +31,20 @@ export default function NodeList() {
 
         return (
           <div className="flex flex-wrap gap-1">
-            {roles.map((role) => {
+            {roles.map((role, index) => {
               const trimmedRole = String(role).trim();
-              const roleKey = trimmedRole || `role-${Math.random().toString(36).slice(2, 8)}`;
+             
+             
+              const roleKey = trimmedRole 
+                ? `role-${item.id || ""}-${trimmedRole}-${index}`
+                : `fallback-key-${item.id || ""}-${index}`;
 
               return (
                 <span
                   key={roleKey}
                   className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs"
                 >
-                  {trimmedRole}
+                  {trimmedRole || "Unnamed Role"}
                 </span>
               );
             })}

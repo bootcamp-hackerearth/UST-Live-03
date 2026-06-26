@@ -81,10 +81,10 @@ function Layout({ children, user, nodes, logout }) {
         overflow: "hidden",
       }}
     >
-      {/* SIDEBAR */}
+
       <Sidebar nodes={layoutNodes} user={layoutUser} />
 
-      {/* RIGHT SIDE */}
+
       <div
         style={{
           flex: 1,
@@ -93,14 +93,14 @@ function Layout({ children, user, nodes, logout }) {
           overflow: "hidden",
         }}
       >
-        {/* HEADER */}
+
         <Header
           user={layoutUser}
           logout={activeLogout}
           router={router}
         />
 
-        {/* PAGE CONTENT */}
+
         <div
           style={{
             flex: 1,

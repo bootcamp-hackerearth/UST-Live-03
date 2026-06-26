@@ -22,4 +22,6 @@ public interface CustomerService {
     CustomerDto update(CustomerDto customerDto);
 
     CustomerDto changeToggleStatus(String identifier, boolean status);
+
+    List<CustomerDto> findActiveStatus();
 }

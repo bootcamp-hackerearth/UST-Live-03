@@ -1,5 +1,6 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Model;
@@ -8,7 +9,6 @@ import com.ust.pos.models.service.ModelService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,16 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class ModelServiceImpl implements ModelService {
+public class ModelServiceImpl extends CommonService implements ModelService {
 
-    @Autowired
-    ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    ModelRepository modelRepository;
+    private final ModelRepository modelRepository;
+
+    public ModelServiceImpl(ModelMapper modelMapper, ModelRepository modelRepository) {
+        this.modelMapper = modelMapper;
+        this.modelRepository = modelRepository;
+    }
 
     @Override
     public ModelDto findByIdentifier(String identifier) {
@@ -34,12 +37,18 @@ public class ModelServiceImpl implements ModelService {
     public ModelDto save(ModelDto modelDto) {
         Model existing = modelRepository.findByIdentifier(modelDto.getIdentifier());
         if (existing != null) {
+            if(existing.isDeleted()) {
+                modelDto.setMessage("Model with identifier - " + modelDto.getIdentifier() + "has been soft deleted.(Rollback by changing status");
+                modelDto.setSuccess(false);
+                return modelDto;
+            }
             modelDto.setSuccess(false);
             modelDto.setMessage("Model already exists : " + modelDto.getIdentifier());
             return modelDto;
         }
 
         Model model = modelMapper.map(modelDto, Model.class);
+        setAuditFields(model, true);
         modelRepository.save(model);
         return modelDto;
     }
@@ -54,6 +63,7 @@ public class ModelServiceImpl implements ModelService {
         }
 
         modelMapper.map(modelDto, existing);
+        setAuditFields(existing,false);
         modelRepository.save(existing);
         return modelDto;
     }
@@ -61,14 +71,16 @@ public class ModelServiceImpl implements ModelService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        modelRepository.deleteByIdentifier(identifier);
-    }
+        Model model = modelRepository.findByIdentifier(identifier);
+        softDelete(model);
+        setAuditFields(model,false);
+        modelRepository.save(model);    }
 
     @Override
     public WsDto<ModelDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
-        Page<Model> userPage = modelRepository.findAll(pageable);
+        Page<Model> userPage = modelRepository.findByDeletedFalse(pageable);
 
         WsDto<ModelDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));

@@ -1,14 +1,14 @@
 package com.ust.pos.customer.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.address.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.*;
-import com.ust.pos.model.CustomerRepository;
 import com.ust.pos.model.Customer;
+import com.ust.pos.model.CustomerRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,24 +17,29 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends CommonService implements CustomerService {
+
     public static final String SHIPPING = "shipping";
+
     public static final String BILLING = "billing";
 
-    @Autowired
-    ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
 
-    @Autowired
-    AddressService addressService;
+    private final AddressService addressService;
+
+    public CustomerServiceImpl(ModelMapper modelMapper, CustomerRepository customerRepository, AddressService addressService) {
+        this.modelMapper = modelMapper;
+        this.customerRepository = customerRepository;
+        this.addressService = addressService;
+    }
 
     @Override
     public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
-        Page<Customer> userPage = customerRepository.findAll(pageable);
+        Page<Customer> userPage = customerRepository.findByDeletedFalse(pageable);
 
         WsDto<CustomerDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
@@ -50,12 +55,18 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDto save(CustomerDto customerDto) {
         Customer existing = customerRepository.findByIdentifier(customerDto.getIdentifier());
         if (existing != null) {
+            if(existing.isDeleted()) {
+                customerDto.setMessage("Customer with identifier - " + customerDto.getIdentifier() + "has been soft deleted.(Rollback by changing status");
+                customerDto.setSuccess(false);
+                return customerDto;
+            }
             customerDto.setSuccess(false);
             customerDto.setMessage("Customer already exists : " + customerDto.getIdentifier());
             return customerDto;
         }
 
         Customer customer = modelMapper.map(customerDto, Customer.class);
+        setAuditFields(customer, true);
         customerRepository.save(customer);
         if (customerDto.getBillingAddress() != null) {
             AddressDto billingAddress = customerDto.getBillingAddress();
@@ -83,8 +94,10 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public boolean delete(String identifier) {
-        customerRepository.deleteByIdentifier(identifier);
-        addressService.delete(identifier);
+        Customer customer = customerRepository.findByIdentifier(identifier);
+        softDelete(customer);
+        setAuditFields(customer,false);
+        customerRepository.save(customer);
         return true;
     }
 
@@ -97,7 +110,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerDto> findAllActive() {
-        Type listType = new TypeToken<List<CategoryDto>>() {
+        Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         return modelMapper.map(customerRepository.findAllByStatus(true), listType);
     }
@@ -119,6 +132,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         modelMapper.map(customerDto, existingCustomer);
+        setAuditFields(existingCustomer,false);
         customerRepository.save(existingCustomer);
         List<AddressDto> existingAddresses = addressService.findAllByPhoneNumber(identifier);
         AddressDto existingBilling = null;
@@ -165,5 +179,15 @@ public class CustomerServiceImpl implements CustomerService {
             customerRepository.save(customer);
         }
         return modelMapper.map(customer, CustomerDto.class);
+    }
+
+    @Override
+    public List<CustomerDto> findActiveStatus() {
+        List<Customer> allCustomers = customerRepository.findAll();
+        List<Customer> activeCustomers = allCustomers.stream().filter(Customer::isStatus).toList();
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        return modelMapper.map(activeCustomers, listType);
     }
 }

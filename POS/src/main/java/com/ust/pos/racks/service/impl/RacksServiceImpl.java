@@ -1,5 +1,6 @@
 package com.ust.pos.racks.service.impl;
 
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
@@ -8,7 +9,6 @@ import com.ust.pos.racks.service.RacksService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,19 +17,22 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class RacksServiceImpl implements RacksService {
+public class RacksServiceImpl extends CommonService implements RacksService {
 
-    @Autowired
-    ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    RacksRepository racksRepository;
+    private final RacksRepository racksRepository;
+
+    public RacksServiceImpl(ModelMapper modelMapper, RacksRepository racksRepository) {
+        this.modelMapper = modelMapper;
+        this.racksRepository = racksRepository;
+    }
 
     @Override
     public WsDto<RacksDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
-        Page<Racks> userPage = racksRepository.findAll(pageable);
+        Page<Racks> userPage = racksRepository.findByDeletedFalse(pageable);
 
         WsDto<RacksDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
@@ -46,11 +49,17 @@ public class RacksServiceImpl implements RacksService {
         String identifier = racksDto.getIdentifier();
         Racks existingRacks = racksRepository.findByIdentifier(identifier);
         if (existingRacks != null) {
+            if(existingRacks.isDeleted()) {
+                racksDto.setMessage("Racks with identifier - " + identifier + "has been soft deleted.(Rollback by changing status");
+                racksDto.setSuccess(false);
+                return racksDto;
+            }
             racksDto.setMessage("Racks with identifier - " + identifier + " already exists");
             racksDto.setSuccess(false);
             return racksDto;
         }
         Racks racks = modelMapper.map(racksDto, Racks.class);
+        setAuditFields(racks, true);
         racksRepository.save(racks);
         return racksDto;
     }
@@ -58,8 +67,10 @@ public class RacksServiceImpl implements RacksService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        racksRepository.deleteByIdentifier(identifier);
-    }
+        Racks rack = racksRepository.findByIdentifier(identifier);
+        softDelete(rack);
+        setAuditFields(rack,false);
+        racksRepository.save(rack);    }
 
     @Override
     public RacksDto findByIdentifier(String identifier) {
@@ -71,6 +82,7 @@ public class RacksServiceImpl implements RacksService {
         String identifier = racksDto.getIdentifier();
         Racks existingRacks = racksRepository.findByIdentifier(identifier);
         modelMapper.map(racksDto, existingRacks);
+        setAuditFields(existingRacks,false);
         racksRepository.save(existingRacks);
         return racksDto;
     }

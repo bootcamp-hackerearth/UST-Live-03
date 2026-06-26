@@ -3,7 +3,6 @@ package com.ust.pos.racks;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.racks.service.RacksService;
 import com.ust.pos.shelfs.sevice.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +15,14 @@ public class RacksController {
     public static final String REDIRECT_RACK_LIST = "redirect:/rack/list";
     public static final String RACKS = "racks";
 
-    @Autowired
-    RacksService racksService;
+    private final RacksService racksService;
 
-    @Autowired
-    ShelfsService shelfsService;
+    private final ShelfsService shelfsService;
+
+    public RacksController(RacksService racksService, ShelfsService shelfsService) {
+        this.racksService = racksService;
+        this.shelfsService = shelfsService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

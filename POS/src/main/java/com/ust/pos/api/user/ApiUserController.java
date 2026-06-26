@@ -4,11 +4,8 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.UserRepository;
-import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -20,14 +17,12 @@ import java.util.List;
 @RequestMapping("/api/user")
 public class ApiUserController extends BaseController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private RoleService roleService;
+    public ApiUserController(UserService userService) {
+        this.userService = userService;
+    }
 
-    @Autowired
-    private UserRepository userRepository;
 
     @PostMapping("/list")
     public WsDto<UserDto> list(@RequestBody PaginationDto paginationDto) {
@@ -46,16 +41,16 @@ public class ApiUserController extends BaseController {
         return userService.findByUserName(username);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
     @Transactional
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String username) {
         try {
-            userRepository.deleteByUsername(username);
+            userService.delete(username);
         }
         catch(Exception e){
             return false;

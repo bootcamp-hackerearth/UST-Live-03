@@ -4,17 +4,21 @@ import com.ust.pos.address.service.impl.AddressServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AddressServiceTest {
@@ -25,169 +29,124 @@ class AddressServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
+    @Spy
     @InjectMocks
     private AddressServiceImpl addressService;
 
+    private Address address;
+    private AddressDto addressDto;
 
-    @Test
-    void save_success_whenAddressNotExists() {
+    @BeforeEach
+    void setUp() {
+        address = new Address();
+        address.setIdentifier("ID1");
 
-        AddressDto input = new AddressDto();
-        input.setIdentifier("ADDR01");
-
-        Address entity = new Address();
-
-        Mockito.when(addressRepository.findByIdentifier("ADDR01"))
-                .thenReturn(null);
-        Mockito.when(modelMapper.map(input, Address.class))
-                .thenReturn(entity);
-        Mockito.when(addressRepository.save(entity))
-                .thenReturn(entity);
-
-        AddressDto response = addressService.save(input);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("ADDR01", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess()); // default true
+        addressDto = new AddressDto();
+        addressDto.setIdentifier("ID1");
     }
 
     @Test
-    void save_failure_whenAddressExists() {
+    void testFindAll() {
+        List<Address> addressList = Collections.singletonList(address);
+        List<AddressDto> dtoList = Collections.singletonList(addressDto);
 
-        AddressDto input = new AddressDto();
-        input.setIdentifier("ADDR01");
+        when(addressRepository.findAll()).thenReturn(addressList);
+        when(modelMapper.map(eq(addressList), any(Type.class))).thenReturn(dtoList);
 
-        Mockito.when(addressRepository.findByIdentifier("ADDR01"))
-                .thenReturn(new Address());
+        List<AddressDto> result = addressService.findAll();
 
-        AddressDto response = addressService.save(input);
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
-    }
-
-
-    @Test
-    void findByIdentifier_success() {
-
-        Address address = new Address();
-        address.setIdentifier("ADDR01");
-
-        AddressDto dto = new AddressDto();
-        dto.setIdentifier("ADDR01");
-
-        Mockito.when(addressRepository.findByIdentifier("ADDR01"))
-                .thenReturn(address);
-        Mockito.when(modelMapper.map(address, AddressDto.class))
-                .thenReturn(dto);
-
-        AddressDto response = addressService.findByIdentifier("ADDR01");
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("ADDR01", response.getIdentifier());
+        assertNotNull(result);
+        assertEquals(1, result.size());
     }
 
     @Test
-    void findByIdentifier_notFound() {
+    void testSave_Success() {
+        when(addressRepository.findByIdentifier("ID1")).thenReturn(null);
+        when(modelMapper.map(addressDto, Address.class)).thenReturn(address);
 
-        Mockito.when(addressRepository.findByIdentifier("ADDR01"))
-                .thenReturn(null);
+        doNothing().when(addressService).setAuditFields(any(), eq(true));
 
-        AddressDto response = addressService.findByIdentifier("ADDR01");
+        AddressDto result = addressService.save(addressDto);
 
-        Assertions.assertNull(response);
+        assertNotNull(result);
+        verify(addressRepository).save(address);
     }
 
     @Test
-    void update_success() {
+    void testSave_AlreadyExists() {
+        when(addressRepository.findByIdentifier("ID1")).thenReturn(address);
 
-        AddressDto input = new AddressDto();
-        input.setIdentifier("ADDR01");
+        AddressDto result = addressService.save(addressDto);
 
-        Address existing = new Address();
-
-        Mockito.when(addressRepository.findByIdentifier("ADDR01"))
-                .thenReturn(existing);
-
-        Mockito.doNothing()
-                .when(modelMapper).map(input, existing);
-
-        Mockito.when(addressRepository.save(existing))
-                .thenReturn(existing);
-
-        AddressDto response = addressService.update(input);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("ADDR01", response.getIdentifier());
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("Address already exists"));
     }
 
     @Test
-    void update_failure_whenNotFound() {
+    void testDelete() {
+        when(addressRepository.findByIdentifier("ID1")).thenReturn(address);
 
-        AddressDto input = new AddressDto();
-        input.setIdentifier("ADDR01");
+        doNothing().when(addressService).softDelete(address);
+        doNothing().when(addressService).setAuditFields(address, false);
 
-        Mockito.when(addressRepository.findByIdentifier("ADDR01"))
-                .thenReturn(null);
+        addressService.delete("ID1");
 
-        AddressDto response = addressService.update(input);
-
-        Assertions.assertFalse(response.isSuccess());
+        verify(addressRepository).save(address);
     }
 
     @Test
-    void delete_success() {
+    void testFindByIdentifier_Found() {
+        when(addressRepository.findByIdentifier("ID1")).thenReturn(address);
+        when(modelMapper.map(address, AddressDto.class)).thenReturn(addressDto);
 
-        Mockito.doNothing()
-                .when(addressRepository).deleteByIdentifier("ADDR01");
+        AddressDto result = addressService.findByIdentifier("ID1");
 
-        addressService.delete("ADDR01");
-
-        Mockito.verify(addressRepository)
-                .deleteByIdentifier("ADDR01");
+        assertNotNull(result);
     }
 
     @Test
-    void findAll_success() {
+    void testFindByIdentifier_NotFound() {
+        when(addressRepository.findByIdentifier("ID1")).thenReturn(null);
 
-        Address address = new Address();
-        address.setIdentifier("ADDR01");
+        AddressDto result = addressService.findByIdentifier("ID1");
 
-        AddressDto dto = new AddressDto();
-        dto.setIdentifier("ADDR01");
-
-        Mockito.when(addressRepository.findAll())
-                .thenReturn(List.of(address));
-        Mockito.when(modelMapper.map(
-                        Mockito.eq(List.of(address)),
-                        Mockito.any(Type.class)))
-                .thenReturn(List.of(dto));
-
-        List<AddressDto> response = addressService.findAll();
-
-        Assertions.assertEquals(1, response.size());
+        assertNull(result);
     }
 
     @Test
-    void findAllByPhoneNumber_success() {
+    void testUpdate_Success() {
+        when(addressRepository.findByIdentifier("ID1")).thenReturn(address);
 
-        Address address = new Address();
-        address.setIdentifier("ADDR01");
+        doNothing().when(modelMapper).map(addressDto, address);
+        doNothing().when(addressService).setAuditFields(address, false);
 
-        AddressDto dto = new AddressDto();
-        dto.setIdentifier("ADDR01");
+        AddressDto result = addressService.update(addressDto);
 
-        Mockito.when(addressRepository.findAllByPhoneNo("9999999999"))
-                .thenReturn(List.of(address));
+        assertNotNull(result);
+        verify(addressRepository).save(address);
+    }
 
-        Mockito.when(modelMapper.map(
-                        Mockito.eq(List.of(address)),
-                        Mockito.any(Type.class)))
-                .thenReturn(List.of(dto));
+    @Test
+    void testUpdate_NotFound() {
+        when(addressRepository.findByIdentifier("ID1")).thenReturn(null);
 
-        List<AddressDto> response =
-                addressService.findAllByPhoneNumber("9999999999");
+        AddressDto result = addressService.update(addressDto);
 
-        Assertions.assertEquals(1, response.size());
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("Address not found"));
+    }
+
+    @Test
+    void testFindAllByPhoneNumber() {
+        List<Address> addressList = Collections.singletonList(address);
+        List<AddressDto> dtoList = Collections.singletonList(addressDto);
+
+        when(addressRepository.findAllByPhoneNo("9999999999")).thenReturn(addressList);
+        when(modelMapper.map(eq(addressList), any(Type.class))).thenReturn(dtoList);
+
+        List<AddressDto> result = addressService.findAllByPhoneNumber("9999999999");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
     }
 }

@@ -5,8 +5,6 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
-import com.ust.pos.shelfs.sevice.ShelfsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +15,12 @@ import java.util.List;
 @RequestMapping("/api/rack")
 public class ApiRacksController extends BaseController {
 
-    @Autowired
-    RacksService racksService;
+    private final RacksService racksService;
 
-    @Autowired
-    ShelfsService shelfsService;
+    public ApiRacksController(RacksService racksService) {
+        this.racksService = racksService;
+    }
+
 
     @PostMapping("/list")
     public WsDto<RacksDto> list(@RequestBody PaginationDto paginationDto) {
@@ -34,7 +33,7 @@ public class ApiRacksController extends BaseController {
         return racksService.save(racksDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);
@@ -49,7 +48,7 @@ public class ApiRacksController extends BaseController {
         return racksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RacksDto updatePrice(@RequestBody RacksDto racksDto) {
         return racksService.update(racksDto);
     }

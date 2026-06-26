@@ -19,16 +19,19 @@ const ProductList = () => {
           categories = String(item.category).split(",").filter(Boolean);
         }
 
-        return categories.map((c) => {
+        return categories.map((c, index) => {
           const trimmedCategory = String(c).trim();
-          const key = trimmedCategory || `category-${Math.random().toString(36).slice(2, 8)}`;
+          
+          const key = trimmedCategory 
+            ? `prod-${item.id || item.identifier || "cat"}-${trimmedCategory}-${index}`
+            : `prod-${item.id || item.identifier || "fallback"}-index-${index}`;
 
           return (
             <span
               key={key}
               className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs mr-1"
             >
-              {trimmedCategory}
+              {trimmedCategory || "Uncategorized"}
             </span>
           );
         });

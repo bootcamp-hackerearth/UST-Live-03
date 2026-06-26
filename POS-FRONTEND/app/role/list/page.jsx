@@ -18,6 +18,10 @@ export default function RoleList() {
       label: "Status",
       field: "status",
     },
+    {
+      label: "Description",
+      field: "description",
+    },
   ];
 
   return (

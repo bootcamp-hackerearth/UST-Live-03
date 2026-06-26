@@ -79,8 +79,7 @@ const router = useRouter();
 
     try {
 
-      const res = await axiosInstance.post(
-`/${urlName}/list`,
+      const res = await axiosInstance.post(`/${urlName}/list`,
 
         {
           page: currentPage,
@@ -117,46 +116,45 @@ const router = useRouter();
   };
 
   const deleteItem = async (itemValue) => {
+  if (
+    urlName === "user" &&
+    itemValue?.toLowerCase() === getLoggedInUsername().toLowerCase()
+  ) {
+    const message = "Logged-in user cannot be deleted.";
+    if (globalThis.window !== undefined) globalThis.alert(message);
+    setError(message);
+    return;
+  }
 
-    if (
-      urlName === "user" &&
-      itemValue?.toLowerCase() === getLoggedInUsername().toLowerCase()
-    ) {
-      const message = "Logged-in user cannot be deleted.";
-      alert(message);
-      setError(message);
-      return;
-    }
+  const confirmDelete = globalThis.window !== undefined && globalThis.confirm(`Are you sure you want to delete this ${urlName}?`);
+  if (!confirmDelete) return;
 
-    const confirmDelete = globalThis.confirm(
-      "Delete this item?"
+  try {
+    const response = await axiosInstance.delete(
+      `/${urlName}/delete?${getDeleteParamName()}=${encodeURIComponent(itemValue)}`
     );
 
-    if (!confirmDelete) return;
-
-    try {
-
-      const response = await axiosInstance.get(
-
-        `/${urlName}/delete?${getDeleteParamName()}=${encodeURIComponent(itemValue)}`
-
-      );
-
-      if (response.data === false) {
-        setError(`Unable to delete ${urlName}.`);
-        return;
+    if (globalThis.window !== undefined) {
+      if (response.data?.message) {
+        globalThis.alert(response.data.message);
+      } else {
+        globalThis.alert(`${title} item has been successfully soft deleted!`);
       }
-
-      fetchData();
-
-    } catch (err) {
-
-      console.error("Delete Error:", err);
-      setError(err?.response?.data?.message || err.message || "Unable to delete item.");
-
     }
-  };
 
+    fetchData();
+
+  } catch (err) {
+    console.error("Delete Error:", err);
+    
+    const serverErrorMessage = err?.response?.data?.message || err.message || "Unable to delete item.";
+    
+    if (globalThis.window !== undefined) {
+      globalThis.alert(`Error: ${serverErrorMessage}`);
+    }
+    setError(serverErrorMessage);
+  }
+};
   const toggleStatus = async (item) => {
 
     try {
@@ -184,7 +182,6 @@ const router = useRouter();
 
   <div className="w-full min-h-screen bg-white p-6 rounded-3xl">
 
-    {/* HEADER */}
     <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -198,7 +195,7 @@ const router = useRouter();
     Manage all {urlName} records
   </p>
 
-  {/* SEARCH BAR */}
+
   <div className="mt-4">
     <input
       type="text"
@@ -353,11 +350,7 @@ const router = useRouter();
                     <div className="flex items-center justify-center gap-3">
 
                       <button
-                        onClick={() =>
- router.push(
-  `${getPageBasePath()}/edit?identifier=${encodeURIComponent(getItemValue(item))}`
-)
-} 
+                        onClick={() =>router.push(`${getPageBasePath()}/edit?identifier=${encodeURIComponent(getItemValue(item))}`)} 
             className="rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition duration-300 hover:bg-indigo-700 hover:scale-105"
                       >
                         Edit
@@ -386,9 +379,9 @@ const router = useRouter();
 
         </div>
 
-\        <div className="mt-8 flex flex-col items-center justify-between gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-lg md:flex-row">
+       <div className="mt-8 flex flex-col items-center justify-between gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-lg md:flex-row">
 
-]          <div className="text-sm font-semibold text-slate-700">
+          <div className="text-sm font-semibold text-slate-700">
 
             Page{" "}
             <span className="rounded-lg bg-indigo-100 px-3 py-1 text-indigo-700">
@@ -403,7 +396,7 @@ const router = useRouter();
 
           <div className="flex items-center gap-4">
 
-]            <button
+            <button
               disabled={currentPage === 0}
               onClick={() =>
                 setCurrentPage((prev) => prev - 1)

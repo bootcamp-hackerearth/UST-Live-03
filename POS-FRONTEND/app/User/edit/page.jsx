@@ -58,7 +58,6 @@ function EditUser() {
         extraFields={extraFields}
         lookupParam="username"
         identityField="username"
-        showDescription={false}
         onSuccessPath="/User/list"
       />
 

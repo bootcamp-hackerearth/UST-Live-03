@@ -12,5 +12,4 @@ public class StockDto extends CommonDto {
     private String warehouse;
     private String unit;
 
-
 }

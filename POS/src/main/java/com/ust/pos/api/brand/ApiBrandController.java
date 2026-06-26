@@ -5,8 +5,8 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,10 +15,14 @@ import java.util.List;
 @RequestMapping("/api/brand")
 public class ApiBrandController extends BaseController {
 
-    @Autowired
-    BrandService brandService;
+    private final BrandService brandService;
+
+    public ApiBrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -26,11 +30,12 @@ public class ApiBrandController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin', 'Manager')")
     public BrandDto addproduct(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -41,13 +46,14 @@ public class ApiBrandController extends BaseController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('Admin')")
     public BrandDto update(@RequestParam String identifier) {
 
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public BrandDto updateCategory(@RequestBody BrandDto brandDto) {
+    @PutMapping("/update")
+    public BrandDto updateBrand(@RequestBody BrandDto brandDto) {
 
         return brandService.update(brandDto);
     }

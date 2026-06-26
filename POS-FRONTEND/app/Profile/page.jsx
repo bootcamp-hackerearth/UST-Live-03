@@ -9,37 +9,30 @@ function Profile() {
     const [user, setUser] = useState(null);
     const navigate = useRouter();
 
-   useEffect(() => {
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const token = localStorage.getItem("token");
 
-    const fetchProfile = async () => {
-
-        try {
-
-            const token = localStorage.getItem("token");
-
-            const response = await axios.get(
-                "http://localhost:8080/api/user/profile",
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
+                const response = await axios.get(
+                    "http://localhost:8080/api/user/profile",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
                     }
-                }
-            );
+                );
 
-            console.log("PROFILE RESPONSE:", response.data);
+                console.log("PROFILE RESPONSE:", response.data);
+                setUser(response.data);
 
-            setUser(response.data);
+            } catch (error) {
+                console.error("Profile fetch error:", error);
+            }
+        };
 
-        } catch (error) {
-
-            console.error("Profile fetch error:", error);
-
-        }
-    };
-
-    fetchProfile();
-
-}, []);
+        fetchProfile();
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -95,7 +88,7 @@ function Profile() {
                     width: "380px"
                 }}>
 
-                {/* Avatar */}
+
                 <div style={{
                     width: "70px",
                     height: "70px",
@@ -125,25 +118,25 @@ function Profile() {
                     User Profile
                 </h2>
 
-                {/* Name */}
+
                 <div style={rowStyle}>
                     <span style={labelStyle}>Name</span>
                     <span style={valueStyle}>{user.name || "—"}</span>
                 </div>
 
-                {/* Email */}
+
                 <div style={rowStyle}>
                     <span style={labelStyle}>Email</span>
                     <span style={valueStyle}>{user.username || "—"}</span>
                 </div>
 
-                {/* Phone */}
+
                 <div style={rowStyle}>
                     <span style={labelStyle}>Phone</span>
                     <span style={valueStyle}>{user.phoneNo || "—"}</span>
                 </div>
 
-                {/* Roles */}
+
                 <div style={{ ...rowStyle, alignItems: "flex-start" }}>
                     <span style={labelStyle}>Roles</span>
                     <div style={{
@@ -152,12 +145,17 @@ function Profile() {
                         gap: "8px"
                     }}>
                         {user.roles && user.roles.length > 0 ? (
-                            user.roles.map((role) => {
+                            user.roles.map((role, index) => {
                                 const trimmedRole = String(role).trim();
-                                const key = trimmedRole || `role-${Math.random().toString(36).slice(2, 8)}`;
+                                
+                    
+                                const key = trimmedRole 
+                                    ? `profile-role-${trimmedRole}-${index}` 
+                                    : `profile-role-fallback-${user.username || "user"}-${index}`;
+                                    
                                 return (
                                     <span key={key} style={badgeStyle}>
-                                        {trimmedRole}
+                                        {trimmedRole || "Role"}
                                     </span>
                                 );
                             })
@@ -169,7 +167,7 @@ function Profile() {
                     </div>
                 </div>
 
-                {/* Back Button */}
+
                 <button
                     onClick={() => navigate.push("/Dashboard")}
                     style={{
@@ -181,7 +179,7 @@ function Profile() {
                     ← Back
                 </button>
 
-                {/* Logout Button */}
+
                 <button
                     onClick={handleLogout}
                     style={{

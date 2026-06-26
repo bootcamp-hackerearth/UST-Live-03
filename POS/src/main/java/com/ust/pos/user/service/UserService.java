@@ -20,4 +20,5 @@ public interface UserService {
     UserDto changeToggleStatus(Long id, boolean status);
 
     List<UserDto> findActiveStatus();
+
 }

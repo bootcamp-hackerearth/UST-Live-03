@@ -31,7 +31,6 @@ function Header({ user, logout }) {
       }}
     >
 
-      {/* TITLE */}
       <div>
         <h2 style={{ margin: 0, color: "#fff" }}>
           POS Dashboard
@@ -42,7 +41,6 @@ function Header({ user, logout }) {
         </small>
       </div>
 
-      {/* BUTTONS */}
       <div style={{ display: "flex", gap: "10px" }}>
 
         <button

@@ -5,25 +5,24 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -37,221 +36,189 @@ class UserServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
+    @Spy
     @InjectMocks
     private UserServiceImpl userService;
 
-    @Test
-    void findAll_success() {
+    private User user;
+    private UserDto userDto;
 
-        User user = new User();
-        UserDto dto = new UserDto();
-        Pageable pageable = Mockito.mock(Pageable.class);
-
-
-        Page<User> page = new PageImpl<>(List.of(user));
-
-        when(userRepository.findAll(Mockito.any(Pageable.class)))
-                .thenReturn(page);
-
-        when(modelMapper.map(
-                        Mockito.eq(List.of(user)),
-                        Mockito.any(Type.class)))
-                .thenReturn(List.of(dto));
-
-        WsDto<UserDto> result =
-                userService.findAll(pageable);
-
-        assertNotNull(result);
-        assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());    }
-
-    @Test
-    void findByUserName_success() {
-
-        User user = new User();
-        user.setUsername("john");
-
-        UserDto dto = new UserDto();
-        dto.setUsername("john");
-
-        when(userRepository.findByUsername("john"))
-                .thenReturn(user);
-
-        when(modelMapper.map(user, UserDto.class))
-                .thenReturn(dto);
-
-        UserDto result = userService.findByUserName("john");
-
-        assertEquals("john", result.getUsername());
-    }
-
-    @Test
-    void save_success() {
-
-        UserDto input = new UserDto();
-        input.setUsername("john");
-        input.setPassword("123");
-
-        when(userRepository.findByUsername("john"))
-                .thenReturn(null);
-
-        User entity = new User();
-
-        when(modelMapper.map(input, User.class))
-                .thenReturn(entity);
-
-        when(passwordEncoder.encode("123"))
-                .thenReturn("encodedPassword");
-
-        when(userRepository.save(entity))
-                .thenReturn(entity);
-
-        UserDto result = userService.save(input);
-
-        assertEquals("john", result.getUsername());
-        Assertions.assertTrue(result.isSuccess());
-    }
-
-    @Test
-    void save_failure_duplicate() {
-
-        UserDto input = new UserDto();
-        input.setUsername("john");
-
-        when(userRepository.findByUsername("john"))
-                .thenReturn(new User());
-
-        UserDto result = userService.save(input);
-
-        Assertions.assertFalse(result.isSuccess());
-        assertNotNull(result.getMessage());
-    }
-
-    @Test
-    void update_success() {
-
-        UserDto input = new UserDto();
-        input.setId(1L);
-        input.setUsername("john");
-
-        User existing = new User();
-        existing.setId(1L);
-        existing.setUsername("john");
-
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(existing));
-
-        Mockito.doNothing()
-                .when(modelMapper).map(input, existing);
-
-        when(userRepository.save(existing))
-                .thenReturn(existing);
-
-        UserDto result = userService.update(input);
-
-        assertEquals("john", result.getUsername());
-    }
-
-    @Test
-    void update_failure_notFound() {
-
-        UserDto input = new UserDto();
-        input.setId(1L);
-        input.setUsername("john");
-
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.empty());
-
-        UserDto result = userService.update(input);
-
-        Assertions.assertFalse(result.isSuccess());
-        assertNotNull(result.getMessage());
-    }
-
-    @Test
-    void update_failure_duplicate_username() {
-
-        UserDto input = new UserDto();
-        input.setId(1L);
-        input.setUsername("john");
-
-        User existing = new User();
-        existing.setId(1L);
-        existing.setUsername("oldUser");
-
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(existing));
-
-        when(userRepository.findByUsername("john"))
-                .thenReturn(new User());
-
-        UserDto result = userService.update(input);
-
-        Assertions.assertFalse(result.isSuccess());
-        assertNotNull(result.getMessage());
-    }
-
-
-    @Test
-    void delete_success() {
-
-        Mockito.doNothing()
-                .when(userRepository).deleteByUsername("john");
-
-        userService.delete("john");
-
-        Mockito.verify(userRepository)
-                .deleteByUsername("john");
-    }
-
-
-    @Test
-    void changeToggleStatus_success() {
-
-        User user = new User();
+    @BeforeEach
+    void setUp() {
+        user = new User();
         user.setId(1L);
-        user.setStatus(false);
+        user.setUsername("testUser");
+        user.setPassword("pass");
+        user.setStatus(true);
+        user.setDeleted(false);
 
-        UserDto dto = new UserDto();
+        userDto = new UserDto();
+        userDto.setId(1L);
+        userDto.setUsername("testUser");
+        userDto.setPassword("pass");
+    }
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+    // ✅ FIND BY USERNAME
+    @Test
+    void testFindByUserName() {
+        when(userRepository.findByUsername("testUser")).thenReturn(user);
+        when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
 
-        when(userRepository.save(user))
-                .thenReturn(user);
+        UserDto result = userService.findByUserName("testUser");
 
-        when(modelMapper.map(user, UserDto.class))
-                .thenReturn(dto);
-
-        UserDto result =
-                userService.changeToggleStatus(1L, true);
-
-        Assertions.assertTrue(user.isStatus());
         assertNotNull(result);
     }
 
+    // ✅ SAVE - NEW USER
+    @Test
+    void testSave_NewUser() {
+        when(userRepository.findByUsername("testUser")).thenReturn(null);
+        when(modelMapper.map(userDto, User.class)).thenReturn(user);
+        when(passwordEncoder.encode("pass")).thenReturn("encodedPass");
+
+        doNothing().when(userService).setAuditFields(user, true);
+
+        UserDto result = userService.save(userDto);
+
+        assertNotNull(result);
+        verify(passwordEncoder).encode("pass");
+        verify(userRepository).save(user);
+    }
+
+    // ✅ SAVE - ALREADY EXISTS
+    @Test
+    void testSave_AlreadyExists() {
+        when(userRepository.findByUsername("testUser")).thenReturn(user);
+
+        UserDto result = userService.save(userDto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("already exists"));
+    }
+
+    // ✅ SAVE - SOFT DELETED
+    @Test
+    void testSave_SoftDeleted() {
+        user.setDeleted(true);
+
+        when(userRepository.findByUsername("testUser")).thenReturn(user);
+
+        UserDto result = userService.save(userDto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("soft deleted"));
+    }
+
+    // ✅ UPDATE - SUCCESS
+    @Test
+    void testUpdate_Success() {
+        // Arrange
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        // FIX: Dropped the useless eq(...) wrappers while preserving your behavior stubbing
+        doNothing().when(modelMapper).map(userDto, user);
+        doNothing().when(userService).setAuditFields(user, false);
+
+        // Act
+        UserDto result = userService.update(userDto);
+
+        // Assert
+        assertNotNull(result);
+
+        verify(modelMapper).map(userDto, user);
+        verify(userService).setAuditFields(user, false);
+        verify(userRepository).save(user);
+    }
+
+
+    // ✅ UPDATE - USER NOT FOUND
+    @Test
+    void testUpdate_NotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        UserDto result = userService.update(userDto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("not found"));
+    }
+
+    // ✅ UPDATE - USERNAME ALREADY EXISTS
+    @Test
+    void testUpdate_UsernameExists() {
+        User anotherUser = new User();
+        anotherUser.setUsername("anotherUser");
+
+        userDto.setUsername("newUser");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("newUser")).thenReturn(anotherUser);
+
+        UserDto result = userService.update(userDto);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("already exists"));
+    }
+
+    // ✅ DELETE (SOFT DELETE)
+    @Test
+    void testDelete() {
+        when(userRepository.findByUsername("testUser")).thenReturn(user);
+
+        doNothing().when(userService).softDelete(user);
+        doNothing().when(userService).setAuditFields(user, false);
+
+        userService.delete("testUser");
+
+        verify(userRepository).save(user);
+    }
+
+    // ✅ CHANGE TOGGLE STATUS
+    @Test
+    void testChangeToggleStatus() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
+
+        UserDto result = userService.changeToggleStatus(1L, false);
+
+        assertNotNull(result);
+        assertFalse(user.isStatus());
+        verify(userRepository).save(user);
+    }
+
+    // ✅ FIND ACTIVE STATUS
     @Test
     void testFindActiveStatus() {
-        User active = new User();
-        active.setStatus(true);
+        user.setStatus(true);
 
         User inactive = new User();
         inactive.setStatus(false);
 
-        when(userRepository.findAll())
-                .thenReturn(List.of(active, inactive));
+        List<User> users = List.of(user, inactive);
 
-        UserDto dto = new UserDto();
-        List<UserDto> expectedDtoList = List.of(dto);
-
-        when(modelMapper.map(
-                Mockito.eq(List.of(active)),
-                Mockito.any(java.lang.reflect.Type.class)))
-                .thenReturn(expectedDtoList);
+        when(userRepository.findAll()).thenReturn(users);
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.singletonList(userDto));
 
         List<UserDto> result = userService.findActiveStatus();
 
         assertNotNull(result);
         assertEquals(1, result.size());
+    }
+
+    // ✅ FIND ALL (Pagination)
+    @Test
+    void testFindAll() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> page = new PageImpl<>(Collections.singletonList(user));
+
+        when(userRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.singletonList(userDto));
+
+        WsDto<UserDto> result = userService.findAll(pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
     }
 }

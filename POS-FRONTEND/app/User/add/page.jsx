@@ -51,7 +51,6 @@ export default function AddUser() {
         addEndpoint="/user/register"
         extraFields={extraFields}
         onSuccessPath="/User/list"
-        showIdentifierDescription={false}
       />
     </Layout>
   );

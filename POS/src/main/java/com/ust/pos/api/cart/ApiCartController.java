@@ -6,7 +6,6 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.CartDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,10 +14,15 @@ import java.util.List;
 @RequestMapping("/api/cart")
 
 public class ApiCartController extends BaseController {
-    @Autowired
-    CartService cartService;
-    @Autowired
-    CartEntryService cartEntryService;
+
+    private final CartService cartService;
+
+    private final CartEntryService cartEntryService;
+
+    public ApiCartController(CartService cartService, CartEntryService cartEntryService) {
+        this.cartService = cartService;
+        this.cartEntryService = cartEntryService;
+    }
 
     @PostMapping("/add")
     public CartDto addCart(@RequestBody CartDto cartDto) {
@@ -36,7 +40,7 @@ public class ApiCartController extends BaseController {
         return cartService.recalculate(cartEntryDto.getCart());
     }
 
-    @GetMapping("/deleteCart")
+    @DeleteMapping("/deleteCart")
     public boolean deleteCart(@RequestBody CartDto cartDto) {
         try {
             cartService.deleteByIdentifier(cartDto.getIdentifier());
@@ -46,7 +50,7 @@ public class ApiCartController extends BaseController {
         return true;
     }
 
-    @GetMapping("/deleteEntry")
+    @DeleteMapping("/deleteEntry")
     public boolean deleteEntry(@RequestBody CartEntryDto cartEntryDto){
         String identifier= cartEntryDto.getProduct()+"-"+cartEntryDto.getCart();
         try{

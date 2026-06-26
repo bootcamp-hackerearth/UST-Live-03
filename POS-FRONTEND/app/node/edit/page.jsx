@@ -20,6 +20,23 @@ export default function EditNode() {
       apiPath: "role",
       required: true,
     },
+    {
+      key: "status",
+      label: "Status",
+      type: "select",
+      valueType: "boolean",
+      required: true,
+      options: [
+        {
+          label: "Active",
+          value: "true",
+        },
+        {
+          label: "Inactive",
+          value: "false",
+        },
+      ],
+    },
   ];
 
   return (
@@ -30,6 +47,8 @@ export default function EditNode() {
         identifierParam="identifier"
         extraFields={extraFields}
         onSuccessPath="/node/list"
+        showDescription = {false}
+
       />
     </Layout>
   );

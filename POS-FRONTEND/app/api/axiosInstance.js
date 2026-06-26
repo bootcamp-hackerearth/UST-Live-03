@@ -4,19 +4,18 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: "http://localhost:8080/api",
+  withCredentials: true, 
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Public APIs that do not need JWT token
 const PUBLIC_URLS = [
   "/authenticate",
   "/user/register",
-  "/role/findActiveStatus",
+  "/role/findActiveStatus"
 ];
 
-// Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -25,7 +24,6 @@ axiosInstance.interceptors.request.use(
       config.url?.includes(url)
     );
 
-    // Protected API without token
     if (!token && !isPublicApi) {
       localStorage.clear();
       globalThis.location.href = "/Login";
@@ -34,9 +32,17 @@ axiosInstance.interceptors.request.use(
       );
     }
 
-    // Add JWT token to request
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    const csrfToken = globalThis.document?.cookie
+      ?.split("; ")
+      ?.find((row) => row.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1];
+
+    if (csrfToken) {
+      config.headers["X-XSRF-TOKEN"] = decodeURIComponent(csrfToken);
     }
 
     return config;
@@ -44,17 +50,22 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor
 axiosInstance.interceptors.response.use(
   (response) => response,
 
   (error) => {
     const status = error.response?.status;
 
-    // Token expired or invalid
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       localStorage.clear();
       globalThis.location.href = "/Login";
+    }
+
+    if (status === 500) {
+      console.warn("Global Interceptor: 500 Error detected. Redirecting to /500...");
+      if (globalThis.window !== undefined) {
+        globalThis.location.href = "/500";
+      }
     }
 
     return Promise.reject(error);

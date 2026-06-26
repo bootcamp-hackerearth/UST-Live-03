@@ -5,7 +5,6 @@ import com.ust.pos.model.UserRepository;
 import com.ust.pos.role.service.RoleService;
 import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,15 +15,24 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/user")
 public class UserController {
+
     public static final String USER_USER1 = "user/user";
+
     public static final String USER_USER = "user/user";
+
     public static final String REDIRECT_USER_LIST = "redirect:/user/list";
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private RoleService roleService;
-    @Autowired
-    private UserRepository userRepository;
+
+    private final UserService userService;
+
+    private final RoleService roleService;
+
+    private final UserRepository userRepository;
+
+    public UserController(UserService userService, RoleService roleService, UserRepository userRepository) {
+        this.userService = userService;
+        this.roleService = roleService;
+        this.userRepository = userRepository;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

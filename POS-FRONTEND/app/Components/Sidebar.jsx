@@ -50,7 +50,7 @@ function Sidebar({ nodes = [], user }) {
       }}
     >
 
-      {/* USER INFO */}
+
       <div
         style={{
           textAlign: "center",

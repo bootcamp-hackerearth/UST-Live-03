@@ -14,9 +14,8 @@ function CommonEdit({
   onSuccessPath,
   lookupParam = "identifier",
   identityField = "identifier",
-  showDescription = true,
-}) {
-
+}) 
+{
   const searchParams = useSearchParams();
   const identifier = searchParams.get("identifier");
   const router = useRouter();
@@ -27,13 +26,19 @@ function CommonEdit({
 
   const [formData, setFormData] = useState({
     identifier: "",
-    description: "",
+  });
+
+  const [auditInfo, setAuditInfo] = useState({
+    createdBy: null,
+    createdOn: null,
+    modifiedBy: null,
+    modifiedOn: null,
   });
 
   useEffect(() => {
     if (!identifier) {
       setError("Missing identifier.");
-      setLoading(false);
+      if (loading) setLoading(false);
       return;
     }
 
@@ -54,7 +59,7 @@ function CommonEdit({
         id: data.id,
         identifier: data.identifier || "",
         username: data.username || "",
-        description: data.description || "",
+
       };
 
       extraFields.forEach((field) => {
@@ -63,6 +68,12 @@ function CommonEdit({
 
       setFormData(values);
 
+      setAuditInfo({
+        createdBy: data.createdBy || "System",
+        createdOn: data.createdOn ? formatDate(data.createdOn) : null,
+        modifiedBy: data.modifiedBy || null,
+        modifiedOn: data.modifiedOn ? formatDate(data.modifiedOn) : null,
+      });
     } catch (err) {
 
       console.error(err);
@@ -71,7 +82,23 @@ function CommonEdit({
     } finally {
 
       setLoading(false);
+    }
+  };
 
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (Number.isNaN(date.getTime())) return dateString;
+      return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return dateString;
     }
   };
 
@@ -89,21 +116,21 @@ function CommonEdit({
     const payload = { ...formData };
 
     extraFields.forEach((field) => {
-
-      if (
-        field.valueFormat === "csv" &&
-        Array.isArray(payload[field.key])
-      ) {
+      if (field.valueFormat === "csv" && Array.isArray(payload[field.key])) {
         payload[field.key] = payload[field.key].join(",");
       }
 
       if (field.valueType === "boolean") {
         payload[field.key] =
-          payload[field.key] === true ||
-          payload[field.key] === "true";
+          payload[field.key] === true || payload[field.key] === "true";
       }
 
-      if (field.type === "number" && payload[field.key] !== "" && payload[field.key] !== null && payload[field.key] !== undefined) {
+      if (
+        field.type === "number" &&
+        payload[field.key] !== "" &&
+        payload[field.key] !== null &&
+        payload[field.key] !== undefined
+      ) {
         const parsedNumber = Number(payload[field.key]);
         if (Number.isFinite(parsedNumber)) {
           payload[field.key] = parsedNumber;
@@ -123,19 +150,14 @@ function CommonEdit({
     setError("");
 
     try {
-
-      const response = await axiosInstance.post(
+      const response = await axiosInstance.put(
         `/${apiPath}/update`,
         buildPayload()
       );
 
-      if (response.data.success === false) {
-
-        setError(
-          response.data.message ||
-          `Failed to update ${title}`
-        );
-
+      // SonarQube Compliant Code Smell Check (! instead of === false)
+      if (response.data && !response.data.success) {
+        setError(response.data.message || `Failed to update ${title}`);
         return;
       }
 
@@ -147,8 +169,8 @@ function CommonEdit({
 
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Unable to update record."
+          err.message ||
+          "Unable to update record."
       );
 
     } finally {
@@ -214,7 +236,7 @@ function CommonEdit({
       <div className="flex flex-col gap-1">
 
         <label className="text-sm font-semibold text-black">
-          {field.label}
+          {field.label}       
         </label>
 
         <input
@@ -222,12 +244,10 @@ function CommonEdit({
           inputMode={inputMode}
           step={step}
           value={formData[field.key] ?? ""}
-          onChange={(e) =>
-            handleChange(field.key, e.target.value)
-          }
+          onChange={(e) => handleChange(field.key, e.target.value)}
           className="border border-gray-300 rounded-xl px-4 py-3 text-black"
         />
-
+        
       </div>
     );
   };
@@ -240,94 +260,71 @@ function CommonEdit({
 
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-3xl mx-auto">
+        <h2 className="text-2xl font-bold mb-6">Edit {title}</h2>
 
-        <h2 className="text-2xl font-bold mb-6">
-          Edit {title}
-        </h2>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-600 rounded">
+            {error}
+          </div>
+        )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-600 rounded">
-          {error}
-        </div>
-      )}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white p-6 rounded-3xl shadow"
+        >
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <label htmlFor="identityField" className="block mb-1 font-semibold text-black">
+                {identityField === "username" ? "Username" : "Identifier"}
+              </label>
+              <input
+                id="identityField"
+                value={formData[identityField] || ""}
+                disabled
+                className="w-full border rounded-xl px-4 py-3 bg-gray-100 text-black"
+              />
+            </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-3xl shadow"
-      >
-
-        <div className="grid gap-5 md:grid-cols-2">
-
-          <div>
-
-            <label htmlFor="identityField" className="block mb-1 font-semibold text-black">
-              {identityField === "username" ? "Username" : "Identifier"}
-            </label>
-
-            <input
-              id="identityField"
-              value={formData[identityField] || ""}
-              disabled
-              className="w-full border rounded-xl px-4 py-3 bg-gray-100 text-black"
-            />
-
+            {extraFields.map((field) => (
+              <div key={field.key}>{renderField(field)}</div>
+            ))}
           </div>
 
-          {showDescription && (
-            <div className="md:col-span-2">
-
-              <label htmlFor="editDescription" className="block mb-1 font-semibold text-black">
-                Description
-              </label>
-
-              <textarea
-                id="editDescription"
-                rows={3}
-                value={formData.description}
-                onChange={(e) =>
-                  handleChange(
-                    "description",
-                    e.target.value
-                  )
-                }
-                className="w-full border rounded-xl px-4 py-3 text-black"
-              />
-
+          {(auditInfo.createdOn || auditInfo.modifiedOn) && (
+            <div className="mt-8 pt-4 border-t border-gray-100 text-xs text-gray-500 space-y-1">
+              {auditInfo.createdOn && (
+                <div>
+                  Created at <span className="font-medium text-gray-700">{auditInfo.createdOn}</span> by <span className="font-semibold text-indigo-600">{auditInfo.createdBy}</span>
+                </div>
+              )}
+              {auditInfo.modifiedOn && (
+                <div>
+                  Last modified at <span className="font-medium text-gray-700">{auditInfo.modifiedOn}</span> by <span className="font-semibold text-indigo-600">{auditInfo.modifiedBy || "System"}</span>
+                </div>
+              )}
             </div>
           )}
 
-          {extraFields.map((field) => (
-            <div key={field.key}>
-              {renderField(field)}
-            </div>
-          ))}
 
-        </div>
-
-        <div className="mt-8 flex justify-end gap-3">
-
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-5 py-3 rounded-xl bg-gray-200"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-5 py-3 rounded-xl bg-indigo-600 text-white"
-          >
-            {saving ? "Updating..." : `Update ${title}`}
-          </button>
-
-        </div>
-
-      </form>
-
+          <div className="mt-8 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-5 py-3 rounded-xl bg-gray-200 text-black"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-5 py-3 rounded-xl bg-indigo-600 text-white"
+            >
+              {saving ? "Updating..." : `Update ${title}`}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
   );
 }
 
@@ -352,14 +349,14 @@ CommonEdit.propTypes = {
   onSuccessPath: PropTypes.string.isRequired,
   lookupParam: PropTypes.string,
   identityField: PropTypes.string,
-  showDescription: PropTypes.bool,
+
 };
 
 CommonEdit.defaultProps = {
   extraFields: [],
   lookupParam: "identifier",
   identityField: "identifier",
-  showDescription: true,
+
 };
 
 export default CommonEdit;

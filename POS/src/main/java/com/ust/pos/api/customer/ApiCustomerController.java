@@ -1,25 +1,25 @@
 package com.ust.pos.api.customer;
 
-import com.ust.pos.address.service.AddressService;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
 @RequestMapping("/api/customer")
 public class ApiCustomerController extends BaseController {
 
-    @Autowired
-    CustomerService customerService;
+    private final CustomerService customerService;
 
-    @Autowired
-    AddressService addressService;
+    public ApiCustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
     @PostMapping("/list")
     public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
@@ -34,7 +34,7 @@ public class ApiCustomerController extends BaseController {
 
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);
@@ -50,13 +50,18 @@ public class ApiCustomerController extends BaseController {
 
     }
 
-    @PostMapping("/update")
-    public CustomerDto updatePrice(@RequestBody CustomerDto customerDto) {
+    @PutMapping("/update")
+    public CustomerDto updateCustomer(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
     @PostMapping("/toggle")
     public CustomerDto toggle(@RequestBody CustomerDto customerDto) {
         return customerService.changeToggleStatus(customerDto.getIdentifier(), customerDto.isStatus());
+    }
+
+    @PostMapping("/findActiveStatus")
+    public List<CustomerDto> findActive() {
+        return customerService.findActiveStatus();
     }
 }

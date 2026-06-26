@@ -6,6 +6,13 @@ import CommonAdd from "../../Components/CommonAdd";
 export default function AddRole() {
   const extraFields = [
     {
+      key: "description",
+      label: "Description",
+      type: "textarea", 
+      placeholder: "Enter role description",
+      required: false,
+    },
+    {
       key: "status",
       label: "Status",
       type: "select",
