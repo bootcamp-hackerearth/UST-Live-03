@@ -1,7 +1,8 @@
 "use client";
 
-import CommonList from "@/components/CommonList";
+import PropTypes from "prop-types";
 import CommonForm from "@/components/CommonForm";
+import CommonList from "@/components/CommonList";
 
 const priceFields = [
   {
@@ -37,10 +38,6 @@ const priceFields = [
 const priceValidate = (formData) => {
   const errors = {};
 
-  if (!formData.identifier?.trim()) {
-    errors.identifier = "Identifier is required";
-  }
-
   if (!formData.product) {
     errors.product = "Product is required";
   }
@@ -61,9 +58,50 @@ const priceValidate = (formData) => {
 const PriceForm = (props) => {
   const rest = { ...props };
   delete rest.fields;
+
+  const isEdit = !!(props.data || props.initialData);
+
+  const filteredFields = isEdit
+    ? priceFields
+    : priceFields.filter((field) => field.name !== "identifier");
+
   return (
-    <CommonForm {...rest} title="Price" fields={priceFields} validate={priceValidate} />
+    <CommonForm
+      {...rest}
+      title="Price"
+      fields={filteredFields}
+      validate={priceValidate}
+    />
   );
+};
+
+PriceForm.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+  data: PropTypes.shape({
+    identifier: PropTypes.string,
+    product: PropTypes.string,
+    priceAmount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    priceType: PropTypes.string,
+  }),
+  initialData: PropTypes.shape({
+    identifier: PropTypes.string,
+    product: PropTypes.string,
+    priceAmount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    priceType: PropTypes.string,
+  }),
+  fields: PropTypes.arrayOf(PropTypes.object),
+  mode: PropTypes.string,
+  onClose: PropTypes.func,
+  validate: PropTypes.func,
+};
+
+PriceForm.defaultProps = {
+  data: null,
+  initialData: null,
+  fields: [],
+  mode: "add",
+  onClose: () => {},
+  validate: null,
 };
 
 export default function PricePage() {

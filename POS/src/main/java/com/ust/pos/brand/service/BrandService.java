@@ -4,7 +4,6 @@ import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 
-
 public interface BrandService {
     BrandDto save(BrandDto brandDto);
 

@@ -4,8 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.node.service.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,11 +13,11 @@ import java.util.List;
 @RequestMapping("/api/cartentry")
 public class CartEntryApiController extends BaseController {
 
-    @Autowired
-    private CartEntryService cartEntryService;
+    private final CartEntryService cartEntryService;
 
-    @Autowired
-    private NodeService nodeService;
+    public CartEntryApiController(CartEntryService cartEntryService) {
+        this.cartEntryService = cartEntryService;
+    }
 
     @PostMapping("/list")
     public List<CartEntryDto> home(@RequestBody PaginationDto paginationDto) {
@@ -37,23 +35,36 @@ public class CartEntryApiController extends BaseController {
         return cartEntryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/delete")
-    public boolean delete(@RequestBody String cartId, @RequestBody String product) {
+    @DeleteMapping("/delete")
+    public boolean delete(@RequestBody CartEntryDto cartEntryDto) {
         try {
-            cartEntryService.delete(cartId, product);
+            cartEntryService.delete(
+                    cartEntryDto.getCartId(),
+                    cartEntryDto.getProduct()
+            );
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    @GetMapping("/clearCart")
-    public boolean deleteAll(@RequestParam String cartId) {
+    @DeleteMapping("/clearCart")
+    public boolean deleteAll(@RequestBody String cartId) {
         try {
             cartEntryService.deleteAllByCartId(cartId);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @GetMapping
+    public List<CartEntryDto> findByCartId(@RequestParam String cartId) {
+        return cartEntryService.findByCartId(cartId);
+    }
+
+    @PutMapping("/updateQuantity")
+    public CartEntryDto updateQuantity(@RequestBody CartEntryDto userDto) {
+        return cartEntryService.updateQuantity(userDto);
     }
 }

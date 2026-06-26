@@ -20,8 +20,6 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,106 +35,117 @@ class ShelvesServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void findByIdentifier() {
+    void findByIdentifier_Found() {
 
-        Shelves entity = new Shelves();
-        entity.setIdentifier("SH001");
+        Shelves shelves = new Shelves();
+        shelves.setIdentifier("S1");
 
         ShelvesDto dto = new ShelvesDto();
-        dto.setIdentifier("SH001");
+        dto.setIdentifier("S1");
 
-        when(shelvesRepository.findByIdentifier("SH001")).thenReturn(entity);
-        when(modelMapper.map(entity, ShelvesDto.class)).thenReturn(dto);
+        when(shelvesRepository.findByIdentifier("S1"))
+                .thenReturn(shelves);
 
-        ShelvesDto result = shelvesService.findByIdentifier("SH001");
+        when(modelMapper.map(shelves, ShelvesDto.class))
+                .thenReturn(dto);
+
+        ShelvesDto result = shelvesService.findByIdentifier("S1");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("SH001", result.getIdentifier());
+        Assertions.assertEquals("S1", result.getIdentifier());
     }
 
     @Test
-    void saveSuccess() {
+    void save_NewShelves() {
 
         ShelvesDto dto = new ShelvesDto();
-        dto.setIdentifier("SH001");
+        dto.setIdentifier("S1");
 
-        Shelves entity = new Shelves();
-        entity.setIdentifier("SH001");
+        Shelves shelves = new Shelves();
 
-        when(shelvesRepository.findByIdentifier("SH001")).thenReturn(null);
-        when(modelMapper.map(dto, Shelves.class)).thenReturn(entity);
+        when(shelvesRepository.findByIdentifier("S1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(dto, Shelves.class))
+                .thenReturn(shelves);
+
+        when(shelvesRepository.save(shelves))
+                .thenReturn(shelves);
 
         ShelvesDto result = shelvesService.save(dto);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("SH001", result.getIdentifier());
-
-        verify(shelvesRepository).save(entity);
+        Assertions.assertEquals("S1", result.getIdentifier());
+        verify(shelvesRepository).save(shelves);
     }
 
     @Test
-    void saveFailure() {
-
-        ShelvesDto dto = new ShelvesDto();
-        dto.setIdentifier("SH001");
+    void save_ShelvesExists() {
 
         Shelves existing = new Shelves();
 
-        when(shelvesRepository.findByIdentifier("SH001")).thenReturn(existing);
+        ShelvesDto dto = new ShelvesDto();
+        dto.setIdentifier("S1");
+
+        when(shelvesRepository.findByIdentifier("S1"))
+                .thenReturn(existing);
 
         ShelvesDto result = shelvesService.save(dto);
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertNotNull(result.getMessage());
-
         verify(shelvesRepository, never()).save(any());
     }
 
     @Test
-    void updateSuccess() {
+    void update_ShelvesExists() {
+
+        Shelves existing = new Shelves();
 
         ShelvesDto dto = new ShelvesDto();
-        dto.setIdentifier("SH001");
+        dto.setIdentifier("S1");
 
-        Shelves entity = new Shelves();
-        entity.setIdentifier("SH001");
+        when(shelvesRepository.findByIdentifier("S1"))
+                .thenReturn(existing);
 
-        when(shelvesRepository.findByIdentifier("SH001")).thenReturn(entity);
-        when(shelvesRepository.save(entity)).thenReturn(entity);
+        when(shelvesRepository.save(existing))
+                .thenReturn(existing);
 
         ShelvesDto result = shelvesService.update(dto);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("SH001", result.getIdentifier());
-
-        verify(modelMapper).map(dto, entity);
-        verify(shelvesRepository).save(entity);
+        Assertions.assertEquals("S1", result.getIdentifier());
+        verify(modelMapper).map(dto, existing);
+        verify(shelvesRepository).save(existing);
     }
 
     @Test
-    void updateFailure() {
+    void update_ShelvesNotFound() {
 
         ShelvesDto dto = new ShelvesDto();
-        dto.setIdentifier("SH001");
+        dto.setIdentifier("S1");
 
-        when(shelvesRepository.findByIdentifier("SH001")).thenReturn(null);
+        when(shelvesRepository.findByIdentifier("S1"))
+                .thenReturn(null);
 
         ShelvesDto result = shelvesService.update(dto);
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertNotNull(result.getMessage());
-
         verify(shelvesRepository, never()).save(any());
     }
 
     @Test
     void deleteTest() {
 
-        doNothing().when(shelvesRepository).deleteByIdentifier("SH001");
+        Shelves shelves = new Shelves();
 
-        shelvesService.delete("SH001");
+        when(shelvesRepository.findByIdentifier("S1"))
+                .thenReturn(shelves);
 
-        verify(shelvesRepository).deleteByIdentifier("SH001");
+        shelvesService.delete("S1");
+
+        verify(shelvesRepository).findByIdentifier("S1");
     }
 
     @Test
@@ -144,23 +153,42 @@ class ShelvesServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Shelves> list = List.of(new Shelves(), new Shelves());
+        Shelves shelves1 = new Shelves();
+        Shelves shelves2 = new Shelves();
 
-        Page<Shelves> page = new PageImpl<>(list, pageable, 2);
+        Page<Shelves> page = new PageImpl<>(
+                List.of(shelves1, shelves2),
+                pageable,
+                2
+        );
 
-        List<ShelvesDto> dtoList = List.of(new ShelvesDto(), new ShelvesDto());
+        List<ShelvesDto> dtoList =
+                List.of(new ShelvesDto(), new ShelvesDto());
 
-        when(shelvesRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(dtoList);
+        when(shelvesRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
-        WsDto<ShelvesDto> result = shelvesService.findAll(pageable);
+        when(modelMapper.map(
+                eq(page.getContent()), any(Type.class)))
+                .thenReturn(dtoList);
+
+        WsDto<ShelvesDto> result =
+                shelvesService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(2, result.getContent().size());
-        Assertions.assertEquals(0, result.getPage());
-        Assertions.assertEquals(10, result.getSizePerPage());
-        Assertions.assertEquals(1, result.getTotalPages());
-        Assertions.assertEquals(2, result.getTotalRecords());
+        Assertions.assertEquals(2,
+                result.getContent().size());
+        Assertions.assertEquals(0,
+                result.getPage());
+        Assertions.assertEquals(10,
+                result.getSizePerPage());
+        Assertions.assertEquals(1,
+                result.getTotalPages());
+        Assertions.assertEquals(2,
+                result.getTotalRecords());
+
+        verify(shelvesRepository)
+                .findByIsDeletedFalse(pageable);
     }
 
     @Test
@@ -168,55 +196,68 @@ class ShelvesServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Shelves> list = List.of();
+        Page<Shelves> page =
+                new PageImpl<>(List.of(), pageable, 0);
 
-        Page<Shelves> page = new PageImpl<>(list, pageable, 0);
+        when(shelvesRepository.findByIsDeletedFalse(pageable))
+                .thenReturn(page);
 
-        when(shelvesRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(List.of());
+        when(modelMapper.map(
+                eq(page.getContent()), any(Type.class)))
+                .thenReturn(List.of());
 
-        WsDto<ShelvesDto> result = shelvesService.findAll(pageable);
+        WsDto<ShelvesDto> result =
+                shelvesService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.getContent().isEmpty());
-        Assertions.assertEquals(0, result.getTotalRecords());
+        Assertions.assertTrue(
+                result.getContent().isEmpty());
+        Assertions.assertEquals(0,
+                result.getTotalRecords());
 
-        verify(shelvesRepository).findAll(pageable);
+        verify(shelvesRepository)
+                .findByIsDeletedFalse(pageable);
     }
 
     @Test
-    void findActiveShelvesTest() {
+    void findActiveShelves_Test() {
 
-        List<Shelves> active = List.of(new Shelves(), new Shelves());
+        List<Shelves> shelvesList =
+                List.of(new Shelves(), new Shelves());
 
-        when(shelvesRepository.findByStatus("Active")).thenReturn(active);
+        when(shelvesRepository.findByStatus("Active"))
+                .thenReturn(shelvesList);
 
-        List<Shelves> result = shelvesService.findActiveShelves();
+        List<Shelves> result =
+                shelvesService.findActiveShelves();
 
+        Assertions.assertNotNull(result);
         Assertions.assertEquals(2, result.size());
         verify(shelvesRepository).findByStatus("Active");
     }
 
     @Test
-    void toggleStatusFound() {
+    void toggleStatus_Test() {
 
         Shelves shelves = new Shelves();
         shelves.setStatus(true);
 
-        when(shelvesRepository.findByIdentifier("SH001")).thenReturn(shelves);
+        when(shelvesRepository.findByIdentifier("S1"))
+                .thenReturn(shelves);
 
-        shelvesService.toggleStatus("SH001");
+        shelvesService.toggleStatus("S1");
 
         Assertions.assertFalse(shelves.isStatus());
         verify(shelvesRepository).save(shelves);
     }
 
     @Test
-    void toggleStatusNotFound() {
+    void toggleStatus_NotFound() {
 
-        when(shelvesRepository.findByIdentifier("SH001")).thenReturn(null);
+        when(shelvesRepository.findByIdentifier("S1"))
+                .thenReturn(null);
 
-        shelvesService.toggleStatus("SH001");
+        shelvesService.toggleStatus("S1");
 
         verify(shelvesRepository, never()).save(any());
     }

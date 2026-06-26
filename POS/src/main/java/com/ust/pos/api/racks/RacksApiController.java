@@ -5,19 +5,18 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/racks")
 public class RacksApiController extends BaseController {
 
-    @Autowired
-    private RacksService racksService;
+    private final RacksService racksService;
+
+    public RacksApiController(RacksService racksService) {
+        this.racksService = racksService;
+    }
 
     @PostMapping("/list")
     public WsDto<RacksDto> home(@RequestBody PaginationDto paginationDto) {
@@ -31,7 +30,6 @@ public class RacksApiController extends BaseController {
     @PostMapping("/add")
     public RacksDto addPost(@RequestBody RacksDto racksDto) {
         return racksService.save(racksDto);
-
     }
 
     @PostMapping("/get")
@@ -39,13 +37,13 @@ public class RacksApiController extends BaseController {
         return racksService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public RacksDto updatePost(@RequestBody RacksDto racksDto) {
         return racksService.update(racksDto);
 
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestBody String identifier) {
         try {
             racksService.delete(identifier);
@@ -53,5 +51,11 @@ public class RacksApiController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public String toggleStatus(@RequestBody String identifier) {
+        racksService.toggleStatus(identifier);
+        return identifier;
     }
 }

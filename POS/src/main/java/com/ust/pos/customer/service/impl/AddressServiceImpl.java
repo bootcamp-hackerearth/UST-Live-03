@@ -1,5 +1,6 @@
 package com.ust.pos.customer.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.WsDto;
@@ -7,7 +8,6 @@ import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,15 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl extends BaseService implements AddressService {
 
-    @Autowired
-    private AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+        this.addressRepository = addressRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AddressDto findByPhoneNoAndAddressType(Long phoneNo, String addressType) {
@@ -31,12 +33,10 @@ public class AddressServiceImpl implements AddressService {
                 .findByPhoneNoAndAddressType(phoneNo, addressType);
 
         if (address == null) {
-            return new AddressDto(); // return empty DTO instead of crashing
+            return new AddressDto();
         }
-
         return modelMapper.map(address, AddressDto.class);
     }
-
 
     @Override
     public AddressDto save(AddressDto addressDto) {
@@ -46,12 +46,19 @@ public class AddressServiceImpl implements AddressService {
                         addressDto.getAddressType());
 
         if (existingAddress != null) {
-            addressDto.setMessage("Address with identifier - " + addressDto.getAddressType() + " already exists");
+            addressDto.setMessage(
+                    existingAddress.isDeleted()
+                            ? " Brand with identifier - " + addressDto.getAddressType()
+                            + " already exists but was deleted, Please contact Administrator."
+                            : " Brand with identifier - " + addressDto.getAddressType()
+                            + " already exists."
+            );
             addressDto.setSuccess(false);
             return addressDto;
         }
 
         Address address = modelMapper.map(addressDto, Address.class);
+        setCreatedDetails(address);
         addressRepository.save(address);
         return addressDto;
     }
@@ -70,6 +77,7 @@ public class AddressServiceImpl implements AddressService {
         }
 
         modelMapper.map(addressDto, existingAddress);
+        setModifiedDetails(existingAddress);
         addressRepository.save(existingAddress);
 
         return addressDto;
@@ -81,7 +89,7 @@ public class AddressServiceImpl implements AddressService {
         Type listType = new TypeToken<List<AddressDto>>() {
         }.getType();
 
-        Page<Address> addressPage = addressRepository.findAll(pageable);
+        Page<Address> addressPage = addressRepository.findByIsDeletedFalse(pageable);
 
         List<AddressDto> addressDtos = modelMapper.map(
                 addressPage.getContent(),
@@ -102,8 +110,12 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public void deleteByPhoneNo(Long phoneNo) {
-        addressRepository.deleteByPhoneNo(phoneNo);
 
+        List<Address> addresses = addressRepository.findByPhoneNo(phoneNo);
+        for (Address address : addresses) {
+            setModifiedDetails(address);
+            softDelete(address);
+            addressRepository.save(address);
+        }
     }
-
 }

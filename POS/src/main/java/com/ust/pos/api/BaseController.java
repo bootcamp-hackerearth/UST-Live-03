@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 public class BaseController {
     protected Pageable getPageable(int pageNumber, int pageSize,
                                    String sortDirection, String... sort) {

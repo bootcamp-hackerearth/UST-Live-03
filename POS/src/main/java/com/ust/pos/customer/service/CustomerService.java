@@ -16,4 +16,5 @@ public interface CustomerService {
     CustomerDto findByIdentifier(String identifier);
 
     void toggleStatus(String identifier);
+
 }

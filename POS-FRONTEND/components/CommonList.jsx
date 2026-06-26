@@ -33,7 +33,7 @@ const CommonList = ({
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ page, sizePerPage: 10 }),
+        body: JSON.stringify({ page, sizePerPage: 3 }),
       });
 
       if (!res.ok) {
@@ -60,7 +60,7 @@ const CommonList = ({
     if (!confirmDelete) return;
 
     const res = await fetch(`http://localhost:8080/api/${routeName}/delete`, {
-      method: "POST",
+      method: "DELETE",
       headers: {
         "Content-Type": "text/plain",
       },
@@ -121,6 +121,59 @@ const CommonList = ({
     }
     return null;
   };
+  const toggleStatus = async (item) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/${routeName}/toggle`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain",
+        },
+        credentials: "include",
+        body: item.identifier,
+      });
+
+      if (!res.ok) {
+        throw new Error("Status update failed");
+      }
+
+      fetchData();
+    } catch (error) {
+      console.error("Status update failed:", error);
+      alert("Failed to update status");
+    }
+  };
+
+  const renderCellContent = (item, k) => {
+    const isStatusColumn = k === "status" && ["brand", "models", "racks", "shelves", "unit", "customer"].includes(routeName);
+    if (isStatusColumn) {
+      return (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => toggleStatus(item)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${item.status ? "bg-green-500" : "bg-red-500"
+              }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${item.status ? "translate-x-6" : "translate-x-1"
+                }`}
+            />
+          </button>
+
+          <span
+            className={`text-xs font-medium ${item.status ? "text-green-600" : "text-red-600"
+              }`}
+          >
+            {item.status ? "Active" : "Inactive"}
+          </span>
+        </div>
+      );
+    }
+    if (Array.isArray(item[k])) {
+      return item[k].join(", ");
+    }
+    return item[k];
+  };
 
   const handleSubmit = async (formData) => {
 
@@ -136,7 +189,7 @@ const CommonList = ({
       url = `http://localhost:8080/api/${routeName}/update`;
     }
     const res = await fetch(url, {
-      method: "POST",
+      method: mode === "add" ? "POST" : "PUT",
       headers: {
         "Content-Type": "application/json",
       },
@@ -232,7 +285,7 @@ const CommonList = ({
                 <tr key={rowKey} className="hover:bg-gray-50">
                   {keys.map((k) => (
                     <td key={k} className="border px-3 py-2">
-                      {Array.isArray(item[k]) ? item[k].join(", ") : item[k]}
+                      {renderCellContent(item, k)}
                     </td>
                   ))}
 

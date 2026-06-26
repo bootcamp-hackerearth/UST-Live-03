@@ -48,12 +48,10 @@ class ProductServiceTest {
         when(modelMapper.map(product, ProductDto.class))
                 .thenReturn(dto);
 
-        ProductDto result =
-                productService.findByIdentifier("PROD001");
+        ProductDto result = productService.findByIdentifier("PROD001");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("PROD001",
-                result.getIdentifier());
+        Assertions.assertEquals("PROD001", result.getIdentifier());
     }
 
     @Test
@@ -76,9 +74,7 @@ class ProductServiceTest {
         ProductDto result = productService.save(dto);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("PROD001",
-                result.getIdentifier());
-
+        Assertions.assertEquals("PROD001", result.getIdentifier());
         verify(productRepository).save(product);
     }
 
@@ -97,7 +93,6 @@ class ProductServiceTest {
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertNotNull(result.getMessage());
-
         verify(productRepository, never()).save(any());
     }
 
@@ -118,9 +113,7 @@ class ProductServiceTest {
         ProductDto result = productService.update(dto);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("PROD001",
-                result.getIdentifier());
-
+        Assertions.assertEquals("PROD001", result.getIdentifier());
         verify(modelMapper).map(dto, existing);
         verify(productRepository).save(existing);
     }
@@ -138,20 +131,20 @@ class ProductServiceTest {
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertNotNull(result.getMessage());
-
         verify(productRepository, never()).save(any());
     }
 
     @Test
     void deleteTest() {
 
-        doNothing().when(productRepository)
-                .deleteByIdentifier("PROD001");
+        Product product = new Product();
+
+        when(productRepository.findByIdentifier("PROD001"))
+                .thenReturn(product);
 
         productService.delete("PROD001");
 
-        verify(productRepository)
-                .deleteByIdentifier("PROD001");
+        verify(productRepository).findByIdentifier("PROD001");
     }
 
     @Test
@@ -171,7 +164,7 @@ class ProductServiceTest {
         ProductDto dto1 = new ProductDto();
         ProductDto dto2 = new ProductDto();
 
-        when(productRepository.findAll(pageable))
+        when(productRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(page);
 
         when(modelMapper.map(product1, ProductDto.class))
@@ -180,47 +173,20 @@ class ProductServiceTest {
         when(modelMapper.map(product2, ProductDto.class))
                 .thenReturn(dto2);
 
-        WsDto<ProductDto> result =
-                productService.findAll(pageable);
+        WsDto<ProductDto> result = productService.findAll(pageable);
 
         Assertions.assertNotNull(result);
+        Assertions.assertEquals(2, result.getContent().size());
+        Assertions.assertEquals(dto1, result.getContent().get(0));
+        Assertions.assertEquals(dto2, result.getContent().get(1));
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(2, result.getTotalRecords());
 
-        Assertions.assertEquals(
-                2,
-                result.getContent().size());
-
-        Assertions.assertEquals(
-                dto1,
-                result.getContent().get(0));
-
-        Assertions.assertEquals(
-                dto2,
-                result.getContent().get(1));
-
-        Assertions.assertEquals(
-                0,
-                result.getPage());
-
-        Assertions.assertEquals(
-                10,
-                result.getSizePerPage());
-
-        Assertions.assertEquals(
-                1,
-                result.getTotalPages());
-
-        Assertions.assertEquals(
-                2,
-                result.getTotalRecords());
-
-        verify(productRepository)
-                .findAll(pageable);
-
-        verify(modelMapper)
-                .map(product1, ProductDto.class);
-
-        verify(modelMapper)
-                .map(product2, ProductDto.class);
+        verify(productRepository).findByIsDeletedFalse(pageable);
+        verify(modelMapper).map(product1, ProductDto.class);
+        verify(modelMapper).map(product2, ProductDto.class);
     }
 
     @Test
@@ -228,27 +194,18 @@ class ProductServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<Product> page =
-                new PageImpl<>(List.of());
+        Page<Product> page = new PageImpl<>(List.of(), pageable, 0);
 
-        when(productRepository.findAll(pageable))
+        when(productRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(page);
 
-        WsDto<ProductDto> result =
-                productService.findAll(pageable);
+        WsDto<ProductDto> result = productService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertTrue(
-                result.getContent().isEmpty());
+        Assertions.assertTrue(result.getContent().isEmpty());
+        Assertions.assertEquals(0, result.getTotalRecords());
 
-        Assertions.assertEquals(0,
-                result.getTotalRecords());
-
-        verify(productRepository)
-                .findAll(pageable);
-
-        verify(modelMapper, never())
-                .map(any(Product.class),
-                        eq(ProductDto.class));
+        verify(productRepository).findByIsDeletedFalse(pageable);
+        verify(modelMapper, never()).map(any(Product.class), eq(ProductDto.class));
     }
 }

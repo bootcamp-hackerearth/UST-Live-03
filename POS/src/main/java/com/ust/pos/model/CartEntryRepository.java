@@ -1,5 +1,7 @@
 package com.ust.pos.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,5 +18,7 @@ public interface CartEntryRepository extends JpaRepository<CartEntry, Long> {
     void deleteByCartIdAndProduct(String cartId, String product);
 
     void deleteAllByCartId(String cartId);
+
+    Page<CartEntry> findByIsDeletedFalse(Pageable pageable);
 
 }

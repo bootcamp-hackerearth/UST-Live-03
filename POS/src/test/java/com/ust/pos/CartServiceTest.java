@@ -5,6 +5,7 @@ import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Cart;
+import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.CartRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,13 +33,16 @@ class CartServiceTest {
     private CartRepository cartRepository;
 
     @Mock
+    private CartEntryRepository cartEntryRepository;
+
+    @Mock
     private ModelMapper modelMapper;
 
     @Mock
     private CartEntryService cartEntryService;
 
     @Test
-    void findByIdentifier_Found() {
+    void findByIdentifierFound() {
 
         Cart cart = new Cart();
         cart.setIdentifier("CART001");
@@ -47,23 +50,17 @@ class CartServiceTest {
         CartDto dto = new CartDto();
         dto.setIdentifier("CART001");
 
-        when(cartRepository.findByIdentifier("CART001"))
-                .thenReturn(cart);
+        when(cartRepository.findByIdentifier("CART001")).thenReturn(cart);
+        when(modelMapper.map(cart, CartDto.class)).thenReturn(dto);
 
-        when(modelMapper.map(cart, CartDto.class))
-                .thenReturn(dto);
-
-        CartDto result =
-                cartService.findByIdentifier("CART001");
+        CartDto result = cartService.findByIdentifier("CART001");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(
-                "CART001",
-                result.getIdentifier());
+        Assertions.assertEquals("CART001", result.getIdentifier());
     }
 
     @Test
-    void save_NewCart() {
+    void saveNewCart() {
 
         CartDto dto = new CartDto();
         dto.setIdentifier("CART001");
@@ -71,112 +68,69 @@ class CartServiceTest {
         Cart cart = new Cart();
         cart.setIdentifier("CART001");
 
-        when(cartRepository.findByIdentifier("CART001"))
-                .thenReturn(null);
+        when(cartRepository.findByIdentifier("CART001")).thenReturn(null);
+        when(modelMapper.map(dto, Cart.class)).thenReturn(cart);
+        when(cartRepository.save(cart)).thenReturn(cart);
 
-        when(modelMapper.map(dto, Cart.class))
-                .thenReturn(cart);
-
-        when(cartRepository.save(cart))
-                .thenReturn(cart);
-
-        CartDto result =
-                cartService.save(dto);
+        CartDto result = cartService.save(dto);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(
-                "CART001",
-                result.getIdentifier());
+        Assertions.assertEquals("CART001", result.getIdentifier());
 
-        verify(cartRepository)
-                .save(cart);
-
-        verify(cartEntryService)
-                .recalculate("CART001");
+        verify(cartRepository).save(cart);
+        verify(cartEntryService).recalculate("CART001");
     }
 
     @Test
-    void save_CartAlreadyExists() {
+    void saveAlreadyExists() {
 
         Cart existing = new Cart();
+        existing.setDeleted(false);
 
         CartDto dto = new CartDto();
         dto.setIdentifier("CART001");
 
-        when(cartRepository.findByIdentifier("CART001"))
-                .thenReturn(existing);
+        when(cartRepository.findByIdentifier("CART001")).thenReturn(existing);
 
-        CartDto result =
-                cartService.save(dto);
+        CartDto result = cartService.save(dto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("already exists"));
 
-        verify(cartRepository, never())
-                .save(any());
-
-        verify(cartEntryService, never())
-                .recalculate(any());
+        verify(cartRepository, never()).save(any());
+        verify(cartEntryService, never()).recalculate(any());
     }
 
     @Test
-    void update_CartExists() {
+    void saveAlreadyDeleted() {
 
         Cart existing = new Cart();
+        existing.setDeleted(true);
 
         CartDto dto = new CartDto();
         dto.setIdentifier("CART001");
 
-        when(cartRepository.findByIdentifier("CART001"))
-                .thenReturn(existing);
+        when(cartRepository.findByIdentifier("CART001")).thenReturn(existing);
 
-        when(cartRepository.save(existing))
-                .thenReturn(existing);
-
-        CartDto result =
-                cartService.update(dto);
-
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(
-                "CART001",
-                result.getIdentifier());
-
-        verify(modelMapper)
-                .map(dto, existing);
-
-        verify(cartRepository)
-                .save(existing);
-    }
-
-    @Test
-    void update_CartNotFound() {
-
-        CartDto dto = new CartDto();
-        dto.setIdentifier("CART001");
-
-        when(cartRepository.findByIdentifier("CART001"))
-                .thenReturn(null);
-
-        CartDto result =
-                cartService.update(dto);
+        CartDto result = cartService.save(dto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertNotNull(result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("was deleted"));
 
-        verify(cartRepository, never())
-                .save(any());
+        verify(cartRepository, never()).save(any());
+        verify(cartEntryService, never()).recalculate(any());
     }
 
     @Test
     void deleteTest() {
 
-        doNothing().when(cartRepository)
-                .deleteByIdentifier("CART001");
+        doNothing().when(cartEntryRepository).deleteAllByCartId("CART001");
+        doNothing().when(cartRepository).deleteByIdentifier("CART001");
 
         cartService.delete("CART001");
 
-        verify(cartRepository)
-                .deleteByIdentifier("CART001");
+        verify(cartEntryRepository).deleteAllByCartId("CART001");
+        verify(cartRepository).deleteByIdentifier("CART001");
     }
 
     @Test
@@ -190,14 +144,7 @@ class CartServiceTest {
         Cart cart2 = new Cart();
         cart2.setIdentifier("CART002");
 
-        List<Cart> carts = List.of(cart1, cart2);
-
-        Page<Cart> page =
-                new PageImpl<>(
-                        carts,
-                        pageable,
-                        2
-                );
+        Page<Cart> page = new PageImpl<>(List.of(cart1, cart2), pageable, 2);
 
         CartDto dto1 = new CartDto();
         dto1.setIdentifier("CART001");
@@ -205,51 +152,24 @@ class CartServiceTest {
         CartDto dto2 = new CartDto();
         dto2.setIdentifier("CART002");
 
-        when(cartRepository.findAll(pageable))
-                .thenReturn(page);
+        when(cartRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
+        when(modelMapper.map(cart1, CartDto.class)).thenReturn(dto1);
+        when(modelMapper.map(cart2, CartDto.class)).thenReturn(dto2);
 
-        when(modelMapper.map(cart1, CartDto.class))
-                .thenReturn(dto1);
+        when(cartEntryService.findByCartId("CART001")).thenReturn(List.of());
+        when(cartEntryService.findByCartId("CART002")).thenReturn(List.of());
 
-        when(modelMapper.map(cart2, CartDto.class))
-                .thenReturn(dto2);
-
-        when(cartEntryService.findByCartId("CART001"))
-                .thenReturn(List.of());
-
-        when(cartEntryService.findByCartId("CART002"))
-                .thenReturn(List.of());
-
-        WsDto<CartDto> result =
-                cartService.findAll(pageable);
+        WsDto<CartDto> result = cartService.findAll(pageable);
 
         Assertions.assertNotNull(result);
+        Assertions.assertEquals(2, result.getContent().size());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(2, result.getTotalRecords());
 
-        Assertions.assertEquals(
-                2,
-                result.getContent().size());
-
-        Assertions.assertEquals(
-                0,
-                result.getPage());
-
-        Assertions.assertEquals(
-                10,
-                result.getSizePerPage());
-
-        Assertions.assertEquals(
-                1,
-                result.getTotalPages());
-
-        Assertions.assertEquals(
-                2,
-                result.getTotalRecords());
-
-        verify(cartEntryService)
-                .findByCartId("CART001");
-
-        verify(cartEntryService)
-                .findByCartId("CART002");
+        verify(cartEntryService).findByCartId("CART001");
+        verify(cartEntryService).findByCartId("CART002");
     }
 
     @Test
@@ -257,28 +177,17 @@ class CartServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<Cart> page =
-                new PageImpl<>(List.of());
+        Page<Cart> page = new PageImpl<>(List.of(), pageable, 0);
 
-        when(cartRepository.findAll(pageable))
-                .thenReturn(page);
+        when(cartRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
 
-        WsDto<CartDto> result =
-                cartService.findAll(pageable);
+        WsDto<CartDto> result = cartService.findAll(pageable);
 
         Assertions.assertNotNull(result);
+        Assertions.assertTrue(result.getContent().isEmpty());
+        Assertions.assertEquals(0, result.getTotalRecords());
 
-        Assertions.assertTrue(
-                result.getContent().isEmpty());
-
-        Assertions.assertEquals(
-                0,
-                result.getTotalRecords());
-
-        verify(cartRepository)
-                .findAll(pageable);
-
-        verify(cartEntryService, never())
-                .findByCartId(any());
+        verify(cartRepository).findByIsDeletedFalse(pageable);
+        verify(cartEntryService, never()).findByCartId(any());
     }
 }

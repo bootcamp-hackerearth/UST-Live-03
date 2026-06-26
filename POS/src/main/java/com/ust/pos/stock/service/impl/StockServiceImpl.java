@@ -1,5 +1,6 @@
 package com.ust.pos.stock.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
@@ -7,7 +8,6 @@ import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,12 +17,15 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-public class StockServiceImpl implements StockService {
-    @Autowired
-    private StockRepository stockRepository;
+public class StockServiceImpl extends BaseService implements StockService {
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final StockRepository stockRepository;
+    private final ModelMapper modelMapper;
+
+    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper) {
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public StockDto findByIdentifier(String identifier) {
@@ -33,13 +36,20 @@ public class StockServiceImpl implements StockService {
     public StockDto save(StockDto stockDto) {
         stockDto.setIdentifier(stockDto.getProduct() + stockDto.getWarehouse());
         String identifier = stockDto.getIdentifier();
-        Stock existingRole = stockRepository.findByIdentifier(identifier);
-        if (existingRole != null) {
-            stockDto.setMessage("Stock with identifier - " + identifier + " already exists");
+        Stock existingStock = stockRepository.findByIdentifier(identifier);
+        if (existingStock != null) {
+            stockDto.setMessage(
+                    existingStock.isDeleted()
+                            ? " Stock with identifier - " + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : " Stock with identifier - " + identifier
+                            + " already exists."
+            );
             stockDto.setSuccess(false);
             return stockDto;
         }
         Stock stock = modelMapper.map(stockDto, Stock.class);
+        setCreatedDetails(stock);
         stockRepository.save(stock);
         return stockDto;
     }
@@ -54,13 +64,17 @@ public class StockServiceImpl implements StockService {
             return stockDto;
         }
         modelMapper.map(stockDto, existingRole);
+        setModifiedDetails(existingRole);
         stockRepository.save(existingRole);
         return stockDto;
     }
 
     @Transactional
     public void delete(String identifier) {
-        stockRepository.deleteByIdentifier(identifier);
+
+        Stock stock = stockRepository.findByIdentifier(identifier);
+        setModifiedDetails(stock);
+        softDelete(stock);
     }
 
     @Override
@@ -69,7 +83,7 @@ public class StockServiceImpl implements StockService {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
 
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
+        Page<Stock> stockPage = stockRepository.findByIsDeletedFalse(pageable);
 
         List<StockDto> stockDtos = modelMapper.map(
                 stockPage.getContent(),

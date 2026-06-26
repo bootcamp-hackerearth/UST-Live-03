@@ -6,8 +6,6 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,14 +14,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/customer")
 public class CustomerApiController extends BaseController {
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
+    private final AddressService addressService;
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private AddressService addressService;
+    public CustomerApiController(CustomerService customerService, AddressService addressService) {
+        this.customerService = customerService;
+        this.addressService = addressService;
+    }
 
     @PostMapping("/list")
     public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
@@ -51,18 +48,27 @@ public class CustomerApiController extends BaseController {
         return response;
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestBody String identifier) {
         try {
             customerService.delete(identifier);
         } catch (Exception e) {
-            return false;
+            e.printStackTrace();
+            throw e;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public String toggleStatus(@RequestBody String identifier) {
+
+        customerService.toggleStatus(identifier);
+
+        return identifier;
     }
 }

@@ -1,10 +1,14 @@
 package com.ust.pos;
 
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
+import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Address;
+import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Assertions;
@@ -40,44 +44,40 @@ class CustomerServiceTest {
     @Mock
     private AddressService addressService;
 
+    @Mock
+    private CartService cartService;
+
+    @Mock
+    private AddressRepository addressRepository;
+
     @Test
     void findByIdentifier_Found() {
-
         Customer customer = new Customer();
         customer.setIdentifier("CUS001");
 
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("CUS001");
 
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(customer);
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(customer);
+        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(dto);
 
-        when(modelMapper.map(customer, CustomerDto.class))
-                .thenReturn(dto);
-
-        CustomerDto result =
-                customerService.findByIdentifier("CUS001");
+        CustomerDto result = customerService.findByIdentifier("CUS001");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("CUS001",
-                result.getIdentifier());
+        Assertions.assertEquals("CUS001", result.getIdentifier());
     }
 
     @Test
     void findByIdentifier_NotFound() {
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(null);
 
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(null);
-
-        CustomerDto result =
-                customerService.findByIdentifier("CUS001");
+        CustomerDto result = customerService.findByIdentifier("CUS001");
 
         Assertions.assertNull(result);
     }
 
     @Test
     void save_NewCustomer() {
-
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("CUS001");
         dto.setPhoneNo(9876543210L);
@@ -93,42 +93,33 @@ class CustomerServiceTest {
 
         Customer customer = new Customer();
 
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(null);
-
-        when(modelMapper.map(dto, Customer.class))
-                .thenReturn(customer);
-
-        when(customerRepository.save(customer))
-                .thenReturn(customer);
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(null);
+        when(modelMapper.map(dto, Customer.class)).thenReturn(customer);
+        when(customerRepository.save(customer)).thenReturn(customer);
+        when(cartService.save(any(CartDto.class))).thenReturn(null);
 
         CustomerDto result = customerService.save(dto);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("CUS001",
-                result.getIdentifier());
+        Assertions.assertEquals("CUS001", result.getIdentifier());
 
         verify(addressService).save(billing);
         verify(addressService).save(shipping);
         verify(customerRepository).save(customer);
+        verify(cartService).save(any(CartDto.class));
 
-        Assertions.assertEquals(9876543210L,
-                billing.getPhoneNo());
-
-        Assertions.assertEquals(9876543210L,
-                shipping.getPhoneNo());
+        Assertions.assertEquals(9876543210L, billing.getPhoneNo());
+        Assertions.assertEquals(9876543210L, shipping.getPhoneNo());
     }
 
     @Test
     void save_CustomerAlreadyExists() {
-
         Customer existing = new Customer();
 
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("CUS001");
 
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(existing);
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(existing);
 
         CustomerDto result = customerService.save(dto);
 
@@ -137,11 +128,11 @@ class CustomerServiceTest {
 
         verify(addressService, never()).save(any());
         verify(customerRepository, never()).save(any());
+        verify(cartService, never()).save(any());
     }
 
     @Test
     void update_CustomerExists() {
-
         Customer existing = new Customer();
         existing.setPhoneNo(9876543210L);
 
@@ -164,18 +155,9 @@ class CustomerServiceTest {
         AddressDto updatedShipping = new AddressDto();
         updatedShipping.setAddressType("shippingAddress");
 
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(existing);
-
-        when(addressService.findByPhoneNoAndAddressType(
-                9876543210L,
-                "billingAddress"))
-                .thenReturn(updatedBilling);
-
-        when(addressService.findByPhoneNoAndAddressType(
-                9876543210L,
-                "shippingAddress"))
-                .thenReturn(updatedShipping);
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(existing);
+        when(addressService.findByPhoneNoAndAddressType(9876543210L, "billingAddress")).thenReturn(updatedBilling);
+        when(addressService.findByPhoneNoAndAddressType(9876543210L, "shippingAddress")).thenReturn(updatedShipping);
 
         CustomerDto result = customerService.update(dto);
 
@@ -183,26 +165,19 @@ class CustomerServiceTest {
 
         verify(addressService).update(billing);
         verify(addressService).update(shipping);
-
         verify(modelMapper).map(dto, existing);
-
         verify(customerRepository).save(existing);
 
-        Assertions.assertEquals(updatedBilling,
-                result.getBillingAddress());
-
-        Assertions.assertEquals(updatedShipping,
-                result.getShippingAddress());
+        Assertions.assertEquals(updatedBilling, result.getBillingAddress());
+        Assertions.assertEquals(updatedShipping, result.getShippingAddress());
     }
 
     @Test
     void update_CustomerNotFound() {
-
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("CUS001");
 
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(null);
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(null);
 
         CustomerDto result = customerService.update(dto);
 
@@ -210,101 +185,70 @@ class CustomerServiceTest {
         Assertions.assertNotNull(result.getMessage());
 
         verify(customerRepository, never()).save(any());
-
         verify(addressService, never()).update(any());
     }
 
     @Test
     void delete_CustomerExists() {
-
         Customer customer = new Customer();
         customer.setPhoneNo(9876543210L);
 
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(customer);
+        Address address = new Address();
+        address.setPhoneNo(9876543210L);
+
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(customer);
+        when(addressRepository.findByPhoneNo(9876543210L)).thenReturn((List<Address>) address);
 
         customerService.delete("CUS001");
 
-        verify(addressService)
-                .deleteByPhoneNo(9876543210L);
-
-        verify(customerRepository)
-                .deleteByIdentifier("CUS001");
+        verify(customerRepository).deleteByIdentifier("CUS001");
     }
 
     @Test
     void delete_CustomerNotFound() {
-
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(null);
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(null);
 
         customerService.delete("CUS001");
 
-        verify(addressService, never())
-                .deleteByPhoneNo(anyLong());
-
-        verify(customerRepository)
-                .deleteByIdentifier("CUS001");
+        verify(addressRepository, never()).findByPhoneNo(anyLong());
+        verify(customerRepository).deleteByIdentifier("CUS001");
     }
 
     @Test
     void findAllTest() {
-
         Pageable pageable = PageRequest.of(0, 10);
+        List<Customer> customers = List.of(new Customer(), new Customer());
+        Page<Customer> page = new PageImpl<>(customers, pageable, customers.size());
+        List<CustomerDto> dtoList = List.of(new CustomerDto(), new CustomerDto());
 
-        List<Customer> customers =
-                List.of(new Customer(), new Customer());
+        when(customerRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
+        when(modelMapper.map(eq(customers), any(Type.class))).thenReturn(dtoList);
 
-        Page<Customer> page =
-                new PageImpl<>(customers);
-
-        List<CustomerDto> dtoList =
-                List.of(new CustomerDto(),
-                        new CustomerDto());
-
-        when(customerRepository.findAll(pageable))
-                .thenReturn(page);
-
-        when(modelMapper.map(eq(customers),
-                any(Type.class)))
-                .thenReturn(dtoList);
-
-        WsDto<CustomerDto> result =
-                customerService.findAll(pageable);
+        WsDto<CustomerDto> result = customerService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-
-        Assertions.assertEquals(
-                2,
-                result.getContent().size());
+        Assertions.assertEquals(2, result.getContent().size());
     }
 
     @Test
     void toggleStatus_CustomerFound() {
-
         Customer customer = new Customer();
         customer.setStatus(true);
 
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(customer);
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(customer);
 
         customerService.toggleStatus("CUS001");
 
         Assertions.assertFalse(customer.isStatus());
-
-        verify(customerRepository)
-                .save(customer);
+        verify(customerRepository).save(customer);
     }
 
     @Test
     void toggleStatus_CustomerNotFound() {
-
-        when(customerRepository.findByIdentifier("CUS001"))
-                .thenReturn(null);
+        when(customerRepository.findByIdentifier("CUS001")).thenReturn(null);
 
         customerService.toggleStatus("CUS001");
 
-        verify(customerRepository, never())
-                .save(any());
+        verify(customerRepository, never()).save(any());
     }
 }

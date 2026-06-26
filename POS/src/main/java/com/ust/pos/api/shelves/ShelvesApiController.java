@@ -5,19 +5,18 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelvesDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelves.service.ShelvesService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/shelves")
 public class ShelvesApiController extends BaseController {
 
-    @Autowired
-    private ShelvesService shelvesService;
+    private final ShelvesService shelvesService;
+
+    public ShelvesApiController(ShelvesService shelvesService) {
+        this.shelvesService = shelvesService;
+    }
 
     @PostMapping("/list")
     public WsDto<ShelvesDto> home(@RequestBody PaginationDto paginationDto) {
@@ -31,7 +30,6 @@ public class ShelvesApiController extends BaseController {
     @PostMapping("/add")
     public ShelvesDto addPost(@RequestBody ShelvesDto shelvesDto) {
         return shelvesService.save(shelvesDto);
-
     }
 
     @PostMapping("/get")
@@ -39,13 +37,12 @@ public class ShelvesApiController extends BaseController {
         return shelvesService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelvesDto updatePost(@RequestBody ShelvesDto shelvesDto) {
         return shelvesService.update(shelvesDto);
-
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestBody String identifier) {
         try {
             shelvesService.delete(identifier);
@@ -53,5 +50,11 @@ public class ShelvesApiController extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/toggle")
+    public String toggleStatus(@RequestBody String identifier) {
+        shelvesService.toggleStatus(identifier);
+        return identifier;
     }
 }

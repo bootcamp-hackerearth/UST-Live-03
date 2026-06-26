@@ -20,8 +20,6 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,35 +38,32 @@ class UnitServiceTest {
     void findByIdentifier_Found() {
 
         Unit unit = new Unit();
-        unit.setIdentifier("UNIT001");
+        unit.setIdentifier("U1");
 
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("UNIT001");
+        dto.setIdentifier("U1");
 
-        when(unitRepository.findByIdentifier("UNIT001"))
+        when(unitRepository.findByIdentifier("U1"))
                 .thenReturn(unit);
 
         when(modelMapper.map(unit, UnitDto.class))
                 .thenReturn(dto);
 
-        UnitDto result =
-                unitService.findByIdentifier("UNIT001");
+        UnitDto result = unitService.findByIdentifier("U1");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(
-                "UNIT001",
-                result.getIdentifier());
+        Assertions.assertEquals("U1", result.getIdentifier());
     }
 
     @Test
     void save_NewUnit() {
 
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("UNIT001");
+        dto.setIdentifier("U1");
 
         Unit unit = new Unit();
 
-        when(unitRepository.findByIdentifier("UNIT001"))
+        when(unitRepository.findByIdentifier("U1"))
                 .thenReturn(null);
 
         when(modelMapper.map(dto, Unit.class))
@@ -77,34 +72,28 @@ class UnitServiceTest {
         when(unitRepository.save(unit))
                 .thenReturn(unit);
 
-        UnitDto result =
-                unitService.save(dto);
+        UnitDto result = unitService.save(dto);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(
-                "UNIT001",
-                result.getIdentifier());
-
+        Assertions.assertEquals("U1", result.getIdentifier());
         verify(unitRepository).save(unit);
     }
 
     @Test
-    void save_UnitAlreadyExists() {
+    void save_UnitExists() {
 
         Unit existing = new Unit();
 
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("UNIT001");
+        dto.setIdentifier("U1");
 
-        when(unitRepository.findByIdentifier("UNIT001"))
+        when(unitRepository.findByIdentifier("U1"))
                 .thenReturn(existing);
 
-        UnitDto result =
-                unitService.save(dto);
+        UnitDto result = unitService.save(dto);
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertNotNull(result.getMessage());
-
         verify(unitRepository, never()).save(any());
     }
 
@@ -114,22 +103,18 @@ class UnitServiceTest {
         Unit existing = new Unit();
 
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("UNIT001");
+        dto.setIdentifier("U1");
 
-        when(unitRepository.findByIdentifier("UNIT001"))
+        when(unitRepository.findByIdentifier("U1"))
                 .thenReturn(existing);
 
         when(unitRepository.save(existing))
                 .thenReturn(existing);
 
-        UnitDto result =
-                unitService.update(dto);
+        UnitDto result = unitService.update(dto);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(
-                "UNIT001",
-                result.getIdentifier());
-
+        Assertions.assertEquals("U1", result.getIdentifier());
         verify(modelMapper).map(dto, existing);
         verify(unitRepository).save(existing);
     }
@@ -138,30 +123,29 @@ class UnitServiceTest {
     void update_UnitNotFound() {
 
         UnitDto dto = new UnitDto();
-        dto.setIdentifier("UNIT001");
+        dto.setIdentifier("U1");
 
-        when(unitRepository.findByIdentifier("UNIT001"))
+        when(unitRepository.findByIdentifier("U1"))
                 .thenReturn(null);
 
-        UnitDto result =
-                unitService.update(dto);
+        UnitDto result = unitService.update(dto);
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertNotNull(result.getMessage());
-
         verify(unitRepository, never()).save(any());
     }
 
     @Test
     void deleteTest() {
 
-        doNothing().when(unitRepository)
-                .deleteByIdentifier("UNIT001");
+        Unit unit = new Unit();
 
-        unitService.delete("UNIT001");
+        when(unitRepository.findByIdentifier("U1"))
+                .thenReturn(unit);
 
-        verify(unitRepository)
-                .deleteByIdentifier("UNIT001");
+        unitService.delete("U1");
+
+        verify(unitRepository).findByIdentifier("U1");
     }
 
     @Test
@@ -169,55 +153,42 @@ class UnitServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Unit> units =
-                List.of(new Unit(), new Unit());
+        Unit unit1 = new Unit();
+        Unit unit2 = new Unit();
 
-        Page<Unit> page =
-                new PageImpl<>(
-                        units,
-                        pageable,
-                        2
-                );
+        Page<Unit> page = new PageImpl<>(
+                List.of(unit1, unit2),
+                pageable,
+                2
+        );
 
         List<UnitDto> dtoList =
                 List.of(new UnitDto(), new UnitDto());
 
-        when(unitRepository.findAll(pageable))
+        when(unitRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(page);
 
-        when(modelMapper.map(eq(units), any(Type.class)))
+        when(modelMapper.map(
+                eq(page.getContent()), any(Type.class)))
                 .thenReturn(dtoList);
 
         WsDto<UnitDto> result =
                 unitService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-
-        Assertions.assertEquals(
-                2,
+        Assertions.assertEquals(2,
                 result.getContent().size());
-
-        Assertions.assertEquals(
-                0,
+        Assertions.assertEquals(0,
                 result.getPage());
-
-        Assertions.assertEquals(
-                10,
+        Assertions.assertEquals(10,
                 result.getSizePerPage());
-
-        Assertions.assertEquals(
-                1,
+        Assertions.assertEquals(1,
                 result.getTotalPages());
-
-        Assertions.assertEquals(
-                2,
+        Assertions.assertEquals(2,
                 result.getTotalRecords());
 
         verify(unitRepository)
-                .findAll(pageable);
-
-        verify(modelMapper)
-                .map(eq(units), any(Type.class));
+                .findByIsDeletedFalse(pageable);
     }
 
     @Test
@@ -225,59 +196,52 @@ class UnitServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Unit> emptyList = List.of();
-
         Page<Unit> page =
-                new PageImpl<>(emptyList);
+                new PageImpl<>(List.of(), pageable, 0);
 
-        when(unitRepository.findAll(pageable))
+        when(unitRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(page);
 
-        when(modelMapper.map(eq(emptyList), any(Type.class)))
+        when(modelMapper.map(
+                eq(page.getContent()), any(Type.class)))
                 .thenReturn(List.of());
 
         WsDto<UnitDto> result =
                 unitService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-
         Assertions.assertTrue(
                 result.getContent().isEmpty());
-
-        Assertions.assertEquals(
-                0,
+        Assertions.assertEquals(0,
                 result.getTotalRecords());
 
         verify(unitRepository)
-                .findAll(pageable);
+                .findByIsDeletedFalse(pageable);
     }
 
     @Test
-    void toggleStatus_UnitFound() {
+    void toggleStatus_Test() {
 
         Unit unit = new Unit();
         unit.setStatus(true);
 
-        when(unitRepository.findByIdentifier("UNIT001"))
+        when(unitRepository.findByIdentifier("U1"))
                 .thenReturn(unit);
 
-        unitService.toggleStatus("UNIT001");
+        unitService.toggleStatus("U1");
 
         Assertions.assertFalse(unit.isStatus());
-
-        verify(unitRepository)
-                .save(unit);
+        verify(unitRepository).save(unit);
     }
 
     @Test
-    void toggleStatus_UnitNotFound() {
+    void toggleStatus_NotFound() {
 
-        when(unitRepository.findByIdentifier("UNIT001"))
+        when(unitRepository.findByIdentifier("U1"))
                 .thenReturn(null);
 
-        unitService.toggleStatus("UNIT001");
+        unitService.toggleStatus("U1");
 
-        verify(unitRepository, never())
-                .save(any());
+        verify(unitRepository, never()).save(any());
     }
 }

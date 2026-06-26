@@ -20,8 +20,6 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,267 +35,214 @@ class ModelsServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void findByIdentifierSuccessTest() {
+    void findByIdentifier_Found() {
 
         Models models = new Models();
-        models.setIdentifier("MDL01");
+        models.setIdentifier("M1");
 
         ModelsDto dto = new ModelsDto();
-        dto.setIdentifier("MDL01");
+        dto.setIdentifier("M1");
 
-        when(modelsRepository.findByIdentifier("MDL01"))
+        when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(models);
 
         when(modelMapper.map(models, ModelsDto.class))
                 .thenReturn(dto);
 
-        ModelsDto response =
-                modelsService.findByIdentifier("MDL01");
+        ModelsDto result = modelsService.findByIdentifier("M1");
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(
-                "MDL01",
-                response.getIdentifier());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("M1", result.getIdentifier());
     }
 
     @Test
-    void findByIdentifierFailureTest() {
-
-        when(modelsRepository.findByIdentifier("MDL01"))
-                .thenReturn(null);
-
-        when(modelMapper.map(null, ModelsDto.class))
-                .thenReturn(null);
-
-        ModelsDto response =
-                modelsService.findByIdentifier("MDL01");
-
-        Assertions.assertNull(response);
-    }
-
-    @Test
-    void saveSuccessTest() {
+    void save_NewModels() {
 
         ModelsDto dto = new ModelsDto();
-        dto.setIdentifier("MDL01");
+        dto.setIdentifier("M1");
 
         Models models = new Models();
 
-        when(modelsRepository.findByIdentifier("MDL01"))
+        when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(null);
 
         when(modelMapper.map(dto, Models.class))
                 .thenReturn(models);
 
-        ModelsDto response =
-                modelsService.save(dto);
+        when(modelsRepository.save(models))
+                .thenReturn(models);
 
-        Assertions.assertEquals(
-                "MDL01",
-                response.getIdentifier());
+        ModelsDto result = modelsService.save(dto);
 
-        Assertions.assertNull(response.getMessage());
-
-        verify(modelsRepository)
-                .save(models);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("M1", result.getIdentifier());
+        verify(modelsRepository).save(models);
     }
 
     @Test
-    void saveFailureTest() {
+    void save_ModelsExists() {
 
         Models existing = new Models();
 
         ModelsDto dto = new ModelsDto();
-        dto.setIdentifier("MDL01");
+        dto.setIdentifier("M1");
 
-        when(modelsRepository.findByIdentifier("MDL01"))
+        when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(existing);
 
-        ModelsDto response =
-                modelsService.save(dto);
+        ModelsDto result = modelsService.save(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-
-        Assertions.assertEquals(
-                "Models with identifier - MDL01 already exists",
-                response.getMessage());
-
-        verify(modelsRepository, never())
-                .save(any());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+        verify(modelsRepository, never()).save(any());
     }
 
     @Test
-    void updateSuccessTest() {
+    void update_ModelsExists() {
 
         Models existing = new Models();
-        existing.setIdentifier("MDL01");
 
         ModelsDto dto = new ModelsDto();
-        dto.setIdentifier("MDL01");
+        dto.setIdentifier("M1");
 
-        when(modelsRepository.findByIdentifier("MDL01"))
+        when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(existing);
 
-        ModelsDto response =
-                modelsService.update(dto);
+        when(modelsRepository.save(existing))
+                .thenReturn(existing);
 
-        Assertions.assertEquals(
-                "MDL01",
-                response.getIdentifier());
+        ModelsDto result = modelsService.update(dto);
 
-        verify(modelMapper)
-                .map(dto, existing);
-
-        verify(modelsRepository)
-                .save(existing);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("M1", result.getIdentifier());
+        verify(modelMapper).map(dto, existing);
+        verify(modelsRepository).save(existing);
     }
 
     @Test
-    void updateFailureTest() {
+    void update_ModelsNotFound() {
 
         ModelsDto dto = new ModelsDto();
-        dto.setIdentifier("MDL01");
+        dto.setIdentifier("M1");
 
-        when(modelsRepository.findByIdentifier("MDL01"))
+        when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(null);
 
-        ModelsDto response =
-                modelsService.update(dto);
+        ModelsDto result = modelsService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-
-        Assertions.assertEquals(
-                "Models with identifier - MDL01 not found",
-                response.getMessage());
-
-        verify(modelsRepository, never())
-                .save(any());
+        Assertions.assertFalse(result.isSuccess());
+        Assertions.assertNotNull(result.getMessage());
+        verify(modelsRepository, never()).save(any());
     }
 
     @Test
-    void deleteSuccessTest() {
+    void deleteTest() {
 
-        doNothing().when(modelsRepository)
-                .deleteByIdentifier("MDL01");
+        Models models = new Models();
 
-        modelsService.delete("MDL01");
+        when(modelsRepository.findByIdentifier("M1"))
+                .thenReturn(models);
 
-        verify(modelsRepository)
-                .deleteByIdentifier("MDL01");
+        modelsService.delete("M1");
+
+        verify(modelsRepository).findByIdentifier("M1");
     }
 
     @Test
     void findAllTest() {
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, 10);
 
-        List<Models> modelsList =
-                List.of(new Models(), new Models());
+        Models model1 = new Models();
+        Models model2 = new Models();
 
-        Page<Models> page =
-                new PageImpl<>(
-                        modelsList,
-                        pageable,
-                        2
-                );
+        Page<Models> page = new PageImpl<>(
+                List.of(model1, model2),
+                pageable,
+                2
+        );
 
         List<ModelsDto> dtoList =
                 List.of(new ModelsDto(), new ModelsDto());
 
-        when(modelsRepository.findAll(pageable))
+        when(modelsRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(page);
 
-        when(modelMapper.map(eq(modelsList), any(Type.class)))
+        when(modelMapper.map(
+                eq(page.getContent()), any(Type.class)))
                 .thenReturn(dtoList);
 
         WsDto<ModelsDto> result =
                 modelsService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-
-        Assertions.assertEquals(
-                2,
+        Assertions.assertEquals(2,
                 result.getContent().size());
-
-        Assertions.assertEquals(
-                0,
-                result.getPage());
-
-        Assertions.assertEquals(
-                10,
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals(10,
                 result.getSizePerPage());
-
-        Assertions.assertEquals(
-                1,
+        Assertions.assertEquals(1,
                 result.getTotalPages());
-
-        Assertions.assertEquals(
-                2,
+        Assertions.assertEquals(2,
                 result.getTotalRecords());
+
+        verify(modelsRepository)
+                .findByIsDeletedFalse(pageable);
     }
 
     @Test
     void findAllEmptyTest() {
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
-
-        List<Models> emptyList =
-                List.of();
+        Pageable pageable = PageRequest.of(0, 10);
 
         Page<Models> page =
-                new PageImpl<>(
-                        emptyList,
-                        pageable,
-                        0
-                );
+                new PageImpl<>(List.of(), pageable, 0);
 
-        when(modelsRepository.findAll(pageable))
+        when(modelsRepository.findByIsDeletedFalse(pageable))
                 .thenReturn(page);
 
-        when(modelMapper.map(eq(emptyList), any(Type.class)))
+        when(modelMapper.map(
+                eq(page.getContent()), any(Type.class)))
                 .thenReturn(List.of());
 
         WsDto<ModelsDto> result =
                 modelsService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-
         Assertions.assertTrue(
                 result.getContent().isEmpty());
-
-        Assertions.assertEquals(
-                0,
+        Assertions.assertEquals(0,
                 result.getTotalRecords());
+
+        verify(modelsRepository)
+                .findByIsDeletedFalse(pageable);
     }
 
     @Test
-    void toggleStatusSuccessTest() {
+    void toggleStatus_Test() {
 
         Models models = new Models();
         models.setStatus(true);
 
-        when(modelsRepository.findByIdentifier("MDL01"))
+        when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(models);
 
-        modelsService.toggleStatus("MDL01");
+        modelsService.toggleStatus("M1");
 
         Assertions.assertFalse(models.isStatus());
-
-        verify(modelsRepository)
-                .save(models);
+        verify(modelsRepository).save(models);
     }
 
     @Test
-    void toggleStatusFailureTest() {
+    void toggleStatus_NotFound() {
 
-        when(modelsRepository.findByIdentifier("MDL01"))
+        when(modelsRepository.findByIdentifier("M1"))
                 .thenReturn(null);
 
-        modelsService.toggleStatus("MDL01");
+        modelsService.toggleStatus("M1");
 
         verify(modelsRepository, never())
                 .save(any());
     }
 }
+

@@ -1,12 +1,12 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,12 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class ProductServiceImpl implements ProductService {
-    @Autowired
-    private ProductRepository productRepository;
+public class ProductServiceImpl extends BaseService implements ProductService {
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ProductRepository productRepository;
+    private final ModelMapper modelMapper;
+
+    public ProductServiceImpl(ProductRepository productRepository, ModelMapper modelMapper) {
+        this.productRepository = productRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
@@ -32,11 +35,18 @@ public class ProductServiceImpl implements ProductService {
         String identifier = productDto.getIdentifier();
         Product existingProduct = productRepository.findByIdentifier(identifier);
         if (existingProduct != null) {
-            productDto.setMessage("Product with identifier - " + identifier + " already exists");
+            productDto.setMessage(
+                    existingProduct.isDeleted()
+                            ? " Product with identifier - " + identifier
+                            + " already exists but was deleted, Please contact Administrator."
+                            : " Product with identifier - " + identifier
+                            + " already exists."
+            );
             productDto.setSuccess(false);
             return productDto;
         }
         Product product = modelMapper.map(productDto, Product.class);
+        setCreatedDetails(product);
         productRepository.save(product);
         return productDto;
     }
@@ -51,19 +61,23 @@ public class ProductServiceImpl implements ProductService {
             return productDto;
         }
         modelMapper.map(productDto, existingProduct);
+        setModifiedDetails(existingProduct);
         productRepository.save(existingProduct);
         return productDto;
     }
 
     @Transactional
     public void delete(String identifier) {
-        productRepository.deleteByIdentifier(identifier);
+
+        Product product = productRepository.findByIdentifier(identifier);
+        setModifiedDetails(product);
+        softDelete(product);
     }
 
     @Override
     public WsDto<ProductDto> findAll(Pageable pageable) {
 
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<Product> productPage = productRepository.findByIsDeletedFalse(pageable);
         WsDto<ProductDto> wsDto = new WsDto<>();
 
         List<ProductDto> productDtos = productPage.getContent()
