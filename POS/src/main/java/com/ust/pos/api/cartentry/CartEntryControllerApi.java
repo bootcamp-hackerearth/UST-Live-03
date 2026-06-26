@@ -1,10 +1,9 @@
 package com.ust.pos.api.cartentry;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.cartentry.service.CartEntryService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.CartEntryDto;
+import com.ust.pos.dto.PaginationDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,12 +13,21 @@ import java.util.List;
 @RequestMapping("/api/cartentry")
 public class CartEntryControllerApi extends BaseController {
     public static final String REDIRECT_ROLE_LIST = "redirect:/cartentry/list";
-    @Autowired
-    private CartEntryService cartentryService;
+
+    private final CartEntryService cartentryService;
+
+    public CartEntryControllerApi(CartEntryService cartentryService) {
+        this.cartentryService = cartentryService;
+    }
 
     @PostMapping("/list")
     public List<CartEntryDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField()
+        );
         return cartentryService.findAll(pageable);
     }
 
@@ -33,11 +41,21 @@ public class CartEntryControllerApi extends BaseController {
         return cartentryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public CartEntryDto updatePost(@RequestBody CartEntryDto cartentryDto) {return cartentryService.update(cartentryDto);
+    @PostMapping("/getByCartId")
+    public List<CartEntryDto> getByCartId(
+            @RequestBody CartEntryDto cartEntryDto
+    ) {
+        return cartentryService.findAllCarts(
+                cartEntryDto.getCartIdentifier()
+        );
     }
 
-    @GetMapping("/delete")
+    @PutMapping("/update")
+    public CartEntryDto updatePost(@RequestBody CartEntryDto cartentryDto) {
+        return cartentryService.update(cartentryDto);
+    }
+
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             cartentryService.delete(identifier);

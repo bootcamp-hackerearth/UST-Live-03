@@ -1,5 +1,6 @@
 package com.ust.pos.stock.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Stock;
@@ -8,7 +9,6 @@ import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,25 +18,34 @@ import java.util.List;
 
 @Service
 @Transactional
-public class StockServiceImpl implements StockService {
-    public static final WsDto<StockDto> STOCK_DTO_WS_DTO = new WsDto<>();
-    @Autowired
-    private StockRepository stockRepository;
+public class StockServiceImpl extends BaseService implements StockService {
+    private final StockRepository stockRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public StockServiceImpl(StockRepository stockRepository,
+                            ModelMapper modelMapper) {
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public StockDto save(StockDto stockDto) {
+        stockDto.setIdentifier(
+                stockDto.getProduct() + "_" + stockDto.getWarehouse()
+        );
         String identifier = stockDto.getIdentifier();
         Stock existingStock = stockRepository.findByIdentifier(identifier);
         if (existingStock != null) {
-            stockDto.setMessage("stock with identifier - " + identifier + " already exists");
+            if (Boolean.TRUE.equals(existingStock.getDeleted())) {
+                stockDto.setMessage("Stock - " + identifier + " was deleted and cannot be recreated");
+            } else {
+                stockDto.setMessage("stock with identifier - " + identifier + " already exists");
+            }
             stockDto.setSuccess(false);
             return stockDto;
         }
-        stockDto.setIdentifier(stockDto.getProduct() + "_" + stockDto.getWarehouse());
         Stock stock = modelMapper.map(stockDto, Stock.class);
+        setCreatedDetails(stock);
         stockRepository.save(stock);
         stockDto.setSuccess(true);
         return stockDto;
@@ -45,37 +54,48 @@ public class StockServiceImpl implements StockService {
     @Override
     public StockDto update(StockDto stockDto) {
         String identifier = stockDto.getIdentifier();
-        Stock existingStock = stockRepository.findByIdentifier(identifier);
+        Stock existingStock = stockRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingStock == null) {
             stockDto.setMessage("Stock with identifier - " + identifier + " not found");
             stockDto.setSuccess(false);
             return stockDto;
         }
         modelMapper.map(stockDto, existingStock);
+        setModifiedDetails(existingStock);
         stockRepository.save(existingStock);
+        stockDto.setSuccess(true);
         return stockDto;
     }
 
     @Override
     public void delete(String identifier) {
-        stockRepository.deleteByIdentifier(identifier);
+        Stock stock = stockRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (stock != null) {
+            softDelete(stock);
+            setModifiedDetails(stock);
+            stockRepository.save(stock);
+        }
     }
 
     @Override
     public WsDto<StockDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
-        STOCK_DTO_WS_DTO.setDtoList(modelMapper.map(stockPage.getContent(), listType));
-        STOCK_DTO_WS_DTO.setTotalRecords(stockPage.getTotalElements());
-        STOCK_DTO_WS_DTO.setTotalPages(stockPage.getTotalPages());
-        STOCK_DTO_WS_DTO.setSizePerPage(pageable.getPageSize());
-        STOCK_DTO_WS_DTO.setPage(pageable.getPageNumber());
-        return STOCK_DTO_WS_DTO;
+        Page<Stock> stockPage = stockRepository.findByDeletedFalse(pageable);
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
+        wsDto.setTotalRecords(stockPage.getTotalElements());
+        wsDto.setTotalPages(stockPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        return modelMapper.map(stockRepository.findByIdentifier(identifier), StockDto.class);
+        return modelMapper.map(
+                stockRepository.findByIdentifierAndDeletedFalse(identifier),
+                StockDto.class
+        );
     }
 }

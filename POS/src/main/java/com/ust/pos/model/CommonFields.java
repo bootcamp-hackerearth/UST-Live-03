@@ -1,11 +1,10 @@
 package com.ust.pos.model;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -17,4 +16,10 @@ public class CommonFields {
     private String identifier;
     private Boolean status = true;
     private String description;
+    private LocalDateTime createdOn;
+    private String createdBy;
+    private String modifiedBy;
+    private LocalDateTime modifiedOn;
+    @Column(nullable = false)
+    private Boolean deleted = false;
 }

@@ -28,6 +28,28 @@ export default function List({ urlName, keys }) {
 
   const displayKeys = keys.filter((k) => k !== "status");
 
+  const getStockStatus = (quantity, minimumstock) => {
+    if (quantity === 0) {
+      return (
+        <span className="text-red-600 font-semibold">
+          Out of Stock
+        </span>
+      );
+    } else if (quantity < minimumstock) {
+      return (
+        <span className="text-yellow-500 font-semibold">
+          Low Stock
+        </span>
+      );
+    } else {
+      return (
+        <span className="text-green-600 font-semibold">
+          Available
+        </span>
+      );
+    }
+  };
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -84,7 +106,7 @@ export default function List({ urlName, keys }) {
     const value = row.identifier || row.username;
 
     try {
-      await api.post(`/${urlName}/toggle`, null, {
+      await api.patch(`/${urlName}/toggle`, null, {
         params: {
           identifier: value,
           status: newStatus,
@@ -124,7 +146,7 @@ export default function List({ urlName, keys }) {
     if (!confirm(confirmMessage)) return;
 
     try {
-      await api.get(`/${urlName}/delete`, {
+      await api.delete(`/${urlName}/delete`, {
         params: { identifier: value },
       });
 
@@ -169,6 +191,10 @@ export default function List({ urlName, keys }) {
             ))}
 
             {keys.includes("status") && (
+              <th className="p-3 border">Status</th>
+            )}
+
+            {urlName === "stock" && (
               <th className="p-3 border">Status</th>
             )}
 
@@ -226,6 +252,15 @@ export default function List({ urlName, keys }) {
                         handleToggle(row, newStatus);
                       }}
                     />
+                  </td>
+                )}
+
+                {urlName === "stock" && (
+                  <td className="p-3 border">
+                    {getStockStatus(
+                      row.quantity,
+                      row.minimumstock
+                    )}
                   </td>
                 )}
 
@@ -293,6 +328,7 @@ export default function List({ urlName, keys }) {
             >
               Home
             </button>
+
           </div>
         </div>
 
@@ -365,6 +401,7 @@ export default function List({ urlName, keys }) {
     </div>
   );
 }
+
 List.propTypes = {
   urlName: PropTypes.string.isRequired,
   keys: PropTypes.arrayOf(PropTypes.string).isRequired,

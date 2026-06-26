@@ -2,8 +2,9 @@ package com.ust.pos.api.brand;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
-import com.ust.pos.dto.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,12 +15,21 @@ import java.util.List;
 @RequestMapping("/api/brand")
 public class BrandControllerApi extends BaseController {
     public static final String REDIRECT_BRAND_LIST = "redirect:/brand/list";
-    @Autowired
-    private BrandService brandService;
+
+    private final BrandService brandService;
+
+    public BrandControllerApi(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @PostMapping("/list")
     public WsDto<BrandDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField()
+        );
         return brandService.findAll(pageable);
     }
 
@@ -33,12 +43,12 @@ public class BrandControllerApi extends BaseController {
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -48,10 +58,11 @@ public class BrandControllerApi extends BaseController {
         return true;
     }
 
-    @PostMapping("/toggle")
-    public String toggle(@RequestParam String identifier,
-                         @RequestParam boolean status) {
-
+    @PatchMapping("/toggle")
+    public String toggle(
+            @RequestParam String identifier,
+            @RequestParam boolean status
+    ) {
         brandService.updateStatus(identifier, status);
         return "success";
     }

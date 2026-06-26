@@ -2,7 +2,6 @@ package com.ust.pos.shelf;
 
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/shelf")
 public class ShelfController {
     public static final String REDIRECT_SHELF_LIST = "redirect:/shelf/list";
-    @Autowired
-    private ShelfService shelfService;
+    private final ShelfService shelfService;
+
+    public ShelfController(ShelfService shelfService) {
+        this.shelfService = shelfService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {

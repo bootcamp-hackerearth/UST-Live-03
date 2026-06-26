@@ -5,22 +5,31 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/shelf")
 public class ShelfControllerApi extends BaseController {
     public static final String REDIRECT_SHELF_LIST = "redirect:/shelf/list";
-    @Autowired
-    private ShelfService shelfService;
+
+    private final ShelfService shelfService;
+
+    public ShelfControllerApi(ShelfService shelfService) {
+        this.shelfService = shelfService;
+    }
 
     @PostMapping("/list")
     public WsDto<ShelfDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField()
+        );
         return shelfService.findAll(pageable);
     }
 
@@ -34,12 +43,12 @@ public class ShelfControllerApi extends BaseController {
         return shelfService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ShelfDto updatePost(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             shelfService.delete(identifier);
@@ -49,7 +58,7 @@ public class ShelfControllerApi extends BaseController {
         return true;
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public boolean toggle(@RequestParam String identifier, boolean status) {
         try {
             shelfService.updateStatus(identifier, status);
@@ -57,5 +66,10 @@ public class ShelfControllerApi extends BaseController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/list-active")
+    public List<ShelfDto> listActive() {
+        return shelfService.findAllActive();
     }
 }

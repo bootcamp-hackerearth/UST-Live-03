@@ -11,7 +11,6 @@ import java.util.List;
 
 @Component
 public class RoleDaoImpl implements RoleDao {
-
     private final JdbcTemplate jdbcTemplate;
 
     public RoleDaoImpl(JdbcTemplate jdbcTemplate) {
@@ -20,53 +19,42 @@ public class RoleDaoImpl implements RoleDao {
 
     @Override
     public Role findByIdentifier(String identifier) {
-
         String sql = "SELECT * FROM ROLE WHERE identifier = ?";
-
         List<Role> roleList = jdbcTemplate.query(
                 sql,
                 new BeanPropertyRowMapper<>(Role.class),
                 identifier
         );
-
         return roleList.isEmpty() ? null : roleList.get(0);
     }
 
     @Override
     public Role save(RoleDto roleDto) {
-
         String sql = "INSERT INTO ROLE (identifier, description,status) VALUES (?,?,?)";
-
         jdbcTemplate.update(
                 sql,
                 roleDto.getIdentifier(),
                 roleDto.getDescription(),
                 roleDto.getStatus()
         );
-
         return findByIdentifier(roleDto.getIdentifier());
     }
 
     @Override
     public Role update(RoleDto roleDto) {
-
         String sql = "UPDATE ROLE SET description = ?,status =?  WHERE identifier = ?";
-
         jdbcTemplate.update(
                 sql,
                 roleDto.getDescription(),
                 roleDto.getStatus(),
                 roleDto.getIdentifier()
         );
-
         return findByIdentifier(roleDto.getIdentifier());
     }
 
     @Override
     public void deleteByIdentifier(String identifier) {
-
         String sql = "DELETE FROM ROLE WHERE identifier = ?";
-
         jdbcTemplate.update(sql, identifier);
     }
 }

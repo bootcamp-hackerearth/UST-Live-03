@@ -4,11 +4,7 @@ import Add from "@/app/components/CommonAdd";
 
 export default function Page() {
   const fields = [
-    {
-      name: "identifier",
-      label: "Name",
-      type: "text",
-    },
+    
     {
       name: "product",  
       label: "Product",

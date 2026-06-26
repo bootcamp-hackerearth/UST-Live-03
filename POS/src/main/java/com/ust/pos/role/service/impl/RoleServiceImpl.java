@@ -1,5 +1,6 @@
 package com.ust.pos.role.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Role;
@@ -8,7 +9,6 @@ import com.ust.pos.role.service.RoleService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,17 +18,22 @@ import java.util.List;
 
 @Service
 @Transactional
-public class RoleServiceImpl implements RoleService {
-    public static final WsDto<RoleDto> ROLE_WS_DTO = new WsDto<>();
-    @Autowired
-    private RoleRepository roleRepository;
+public class RoleServiceImpl extends BaseService implements RoleService {
+    private final RoleRepository roleRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public RoleServiceImpl(RoleRepository roleRepository,
+                           ModelMapper modelMapper) {
+        this.roleRepository = roleRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+        return modelMapper.map(
+                roleRepository.findByIdentifierAndDeletedFalse(identifier),
+                RoleDto.class
+        );
     }
 
     @Override
@@ -36,11 +41,16 @@ public class RoleServiceImpl implements RoleService {
         String identifier = roleDto.getIdentifier();
         Role existingRole = roleRepository.findByIdentifier(identifier);
         if (existingRole != null) {
-            roleDto.setMessage("Role with identifier - " + identifier + " already exists");
+            if (Boolean.TRUE.equals(existingRole.getDeleted())) {
+                roleDto.setMessage("Role - " + identifier + " was deleted and cannot be recreated");
+            } else {
+                roleDto.setMessage("Role with identifier - " + identifier + " already exists");
+            }
             roleDto.setSuccess(false);
             return roleDto;
         }
         Role role = modelMapper.map(roleDto, Role.class);
+        setCreatedDetails(role);
         roleRepository.save(role);
         roleDto.setSuccess(true);
         return roleDto;
@@ -49,32 +59,40 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public RoleDto update(RoleDto roleDto) {
         String identifier = roleDto.getIdentifier();
-        Role existingRole = roleRepository.findByIdentifier(identifier);
+        Role existingRole = roleRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingRole == null) {
             roleDto.setMessage("Role with identifier - " + identifier + " not found");
             roleDto.setSuccess(false);
             return roleDto;
         }
         modelMapper.map(roleDto, existingRole);
+        setModifiedDetails(existingRole);
         roleRepository.save(existingRole);
+        roleDto.setSuccess(true);
         return roleDto;
     }
 
     @Override
     public void delete(String identifier) {
-        roleRepository.deleteByIdentifier(identifier);
+        Role role = roleRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (role != null) {
+            softDelete(role);
+            setModifiedDetails(role);
+            roleRepository.save(role);
+        }
     }
 
     @Override
     public WsDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        Page<Role> rolePage = roleRepository.findAll(pageable);
-        ROLE_WS_DTO.setDtoList(modelMapper.map(rolePage.getContent(), listType));
-        ROLE_WS_DTO.setTotalRecords(rolePage.getTotalElements());
-        ROLE_WS_DTO.setTotalPages(rolePage.getTotalPages());
-        ROLE_WS_DTO.setSizePerPage(pageable.getPageSize());
-        ROLE_WS_DTO.setPage(pageable.getPageNumber());
-        return ROLE_WS_DTO;
+        Page<Role> rolePage = roleRepository.findByDeletedFalse(pageable);
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+        wsDto.setTotalRecords(rolePage.getTotalElements());
+        wsDto.setTotalPages(rolePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 }

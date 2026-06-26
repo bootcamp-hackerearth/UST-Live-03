@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import api from "../api";
 
-const MultiDropdown = ({
-  name,
-  value,
-  onChange,
-  apiUrl,
-  disabled = false,
-}) => {
+const extractOptions = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.dtoList)) return data.dtoList;
+  if (Array.isArray(data?.content)) return data.content;
+  return [];
+};
+
+const useDropdownOptions = (apiUrl, name) => {
   const [options, setOptions] = useState([]);
 
   useEffect(() => {
@@ -19,12 +20,38 @@ const MultiDropdown = ({
     api
       .post(apiUrl, { page: 0, sizePerPage: 10 })
       .then((res) => {
-        setOptions(res.data.dtoList || res.data || []);
+        setOptions(extractOptions(res.data));
       })
       .catch(() => {
         console.error("Failed to load dropdown:", name);
+        setOptions([]);
       });
   }, [apiUrl, name]);
+
+  return options;
+};
+
+const renderOptions = (options, displayKey) => {
+  if (options.length === 0) {
+    return <option disabled>No options available</option>;
+  }
+
+  return options.map((opt) => (
+    <option key={opt.identifier} value={opt.identifier}>
+      {opt[displayKey] || opt.identifier}
+    </option>
+  ));
+};
+
+const MultiDropdown = ({
+  name,
+  value,
+  onChange,
+  apiUrl,
+  disabled = false,
+  displayKey = "name",
+}) => {
+  const options = useDropdownOptions(apiUrl, name);
 
   const handleMultiChange = (e) => {
     if (disabled) return;
@@ -52,18 +79,7 @@ const MultiDropdown = ({
         disabled ? "bg-gray-200 cursor-not-allowed" : ""
       }`}
     >
-      {options.length === 0 ? (
-        <option disabled>No options available</option>
-      ) : (
-        options.map((opt) => (
-          <option
-            key={opt.id || opt.identifier}
-            value={opt.identifier}
-          >
-            {opt.identifier}
-          </option>
-        ))
-      )}
+      {renderOptions(options, displayKey)}
     </select>
   );
 };
@@ -75,32 +91,15 @@ const SingleDropdown = ({
   apiUrl,
   placeholder,
   disabled = false,
+  displayKey = "name",
 }) => {
-  const [options, setOptions] = useState([]);
-
-  useEffect(() => {
-    if (!apiUrl) return;
-
-    api
-      .post(apiUrl, { page: 0, sizePerPage: 10 })
-      .then((res) => {
-        setOptions(res.data.content || res.data || []);
-      })
-      .catch(() => {
-        console.error("Failed to load dropdown:", name);
-      });
-  }, [apiUrl, name]);
-
-  const handleChange = (e) => {
-    if (disabled) return;
-    onChange(e);
-  };
+  const options = useDropdownOptions(apiUrl, name);
 
   return (
     <select
       name={name}
       value={value || ""}
-      onChange={handleChange}
+      onChange={onChange}
       disabled={disabled}
       className={`w-full p-3 border rounded ${
         disabled ? "bg-gray-200 cursor-not-allowed" : ""
@@ -110,14 +109,7 @@ const SingleDropdown = ({
         {placeholder || "-- Select --"}
       </option>
 
-      {options.map((opt) => (
-        <option
-          key={opt.id || opt.identifier}
-          value={opt.identifier}
-        >
-          {opt.identifier}
-        </option>
-      ))}
+      {renderOptions(options, displayKey)}
     </select>
   );
 };
@@ -128,6 +120,7 @@ MultiDropdown.propTypes = {
   onChange: PropTypes.func.isRequired,
   apiUrl: PropTypes.string,
   disabled: PropTypes.bool,
+  displayKey: PropTypes.string,
 };
 
 SingleDropdown.propTypes = {
@@ -137,6 +130,7 @@ SingleDropdown.propTypes = {
   apiUrl: PropTypes.string,
   placeholder: PropTypes.string,
   disabled: PropTypes.bool,
+  displayKey: PropTypes.string,
 };
 
 export { MultiDropdown, SingleDropdown };

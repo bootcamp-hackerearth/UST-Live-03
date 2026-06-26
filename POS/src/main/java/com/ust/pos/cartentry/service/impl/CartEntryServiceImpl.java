@@ -1,15 +1,16 @@
 package com.ust.pos.cartentry.service.impl;
 
+import com.ust.pos.cart.service.CartService;
+import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
-import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,14 +22,22 @@ import java.util.List;
 @Service
 @Transactional
 public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    private final CartEntryRepository cartEntryRepository;
+    private final ModelMapper modelMapper;
+    private final PriceRepository priceRepository;
+    private final CartService cartService;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private PriceRepository priceRepository;
+    public CartEntryServiceImpl(
+            CartEntryRepository cartEntryRepository,
+            ModelMapper modelMapper,
+            PriceRepository priceRepository,
+            @Lazy CartService cartService
+    ) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.modelMapper = modelMapper;
+        this.priceRepository = priceRepository;
+        this.cartService = cartService;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -45,19 +54,26 @@ public class CartEntryServiceImpl implements CartEntryService {
             cartEntry.setCartIdentifier(cartEntryDto.getCartIdentifier());
             cartEntry.setProductIdentifier(cartEntryDto.getProductIdentifier());
         }
-        Price sellingPrice = priceRepository.findByProductAndPriceType(cartEntryDto.getProductIdentifier(), "sellingPrice");
-        Price mrp = priceRepository.findByProductAndPriceType(cartEntryDto.getProductIdentifier(), "Mrp");
+        Price sellingPrice = priceRepository.findByProductAndPriceType(
+                cartEntryDto.getProductIdentifier(),
+                "sellingPrice"
+        );
+        Price mrp = priceRepository.findByProductAndPriceType(
+                cartEntryDto.getProductIdentifier(),
+                "Mrp"
+        );
         BigDecimal unitPrice = sellingPrice.getSumPrice();
         BigDecimal mrpPrice = mrp.getSumPrice();
         cartEntry.setQuantity(quantity);
         cartEntry.setUnitPrice(unitPrice);
-        BigDecimal originalPrice = quantity.multiply(unitPrice);
+        BigDecimal originalPrice = quantity.multiply(mrpPrice);
         cartEntry.setOriginalPrice(originalPrice);
         BigDecimal discountPerUnit = mrpPrice.subtract(unitPrice);
         BigDecimal totalDiscount = discountPerUnit.multiply(quantity);
         cartEntry.setDiscount(totalDiscount);
         cartEntry.setTotalPrice(originalPrice.subtract(totalDiscount));
         cartEntryRepository.save(cartEntry);
+        cartService.recalculate(cartEntry.getCartIdentifier());
         return modelMapper.map(cartEntry, CartEntryDto.class);
     }
 
@@ -90,7 +106,10 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
-        return modelMapper.map(cartEntryRepository.findByIdentifier(identifier), CartEntryDto.class);
+        return modelMapper.map(
+                cartEntryRepository.findByIdentifier(identifier),
+                CartEntryDto.class
+        );
     }
 
     @Override

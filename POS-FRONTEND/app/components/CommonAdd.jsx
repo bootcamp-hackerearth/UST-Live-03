@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 import api from "../api";
 import { SingleDropdown, MultiDropdown } from "./Dropdown";
 
-const Add = ({ urlName, fields }) => {
+const Add = ({ urlName, fields, customSubmit }) => {
   const router = useRouter();
 
   const [formData, setFormData] = useState({});
@@ -71,6 +71,12 @@ const Add = ({ urlName, fields }) => {
     }
 
     if (!value) return "";
+    
+if (field.name === "quantity" || field.name === "minimumstock") {
+    if (Number(value) < 0) {
+      return `${field.label} cannot be negative`;
+    }
+}
 
     if (field.type === "email") {
       if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(value.trim())) {
@@ -119,21 +125,16 @@ const Add = ({ urlName, fields }) => {
     }
 
     try {
+      if (customSubmit) {
+        await customSubmit(formData);
+        return;
+      }
+
       const res = await api.post(`/${urlName}/add`, formData);
       const responseData = res.data;
 
-      if (
-        (typeof responseData === "string" &&
-          responseData.toLowerCase().includes("exist")) ||
-        responseData?.message?.toLowerCase().includes("exist")
-      ) {
-        setMessage("Email already exists");
-
-        setErrors((prev) => ({
-          ...prev,
-          username: "Email already exists",
-        }));
-
+      if (responseData?.success === false) {
+        setMessage(responseData.message || "Already exists");
         return;
       }
 
@@ -143,7 +144,7 @@ const Add = ({ urlName, fields }) => {
         router.push(`/${urlName}/list`);
       }, 1000);
     } catch (err) {
-      console.error("ADD ERROR:", err.response || err);
+      console.error("ADD ERROR:", err.response?.data || err);
       setMessage("Add failed");
     }
   };
@@ -151,12 +152,16 @@ const Add = ({ urlName, fields }) => {
   return (
     <div className="min-h-screen flex justify-center items-center bg-gray-100 p-6">
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
-        <button
-          onClick={() => router.push(`/${urlName}/list`)}
-          className="mb-4 text-gray-500 text-sm hover:text-gray-700"
-        >
-          ← Back to List
-        </button>
+
+        <div className="flex justify-between items-center mb-4">
+          
+          <button
+            onClick={() => router.push(`/${urlName}/list`)}
+            className="text-gray-500 text-sm hover:text-gray-700"
+          >
+            ← Back to List
+          </button>
+        </div>
 
         <h2 className="text-xl font-bold text-center mb-4">
           Add {urlName}
@@ -276,6 +281,7 @@ Add.propTypes = {
       required: PropTypes.bool,
     })
   ).isRequired,
+  customSubmit: PropTypes.func,
 };
 
 export default Add;

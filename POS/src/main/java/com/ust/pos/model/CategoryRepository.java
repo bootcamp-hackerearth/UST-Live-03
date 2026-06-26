@@ -1,20 +1,22 @@
 package com.ust.pos.model;
 
-import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-@Transactional
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+
     Category findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String identifier);
+    Category findByIdentifierAndDeletedFalse(String identifier);
 
-    List<Category> findBySuperCategoryIsNot(String category);
+    Page<Category> findByDeletedFalse(Pageable pageable);
 
-    List<Category> findByStatus(boolean status);
+    List<Category> findBySuperCategoryIsNotAndDeletedFalse(String category);
 
-    boolean existsBySuperCategory(String identifier);
+    List<Category> findByStatusAndDeletedFalse(boolean status);
 
+    boolean existsBySuperCategoryAndDeletedFalse(String identifier);
 }

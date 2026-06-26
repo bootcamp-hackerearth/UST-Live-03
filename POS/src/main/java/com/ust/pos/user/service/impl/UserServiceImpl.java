@@ -1,5 +1,6 @@
 package com.ust.pos.user.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.User;
@@ -8,7 +9,6 @@ import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,20 +20,29 @@ import java.util.Optional;
 
 @Transactional
 @Service
-public class UserServiceImpl implements UserService {
-    public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
-    @Autowired
-    private UserRepository userRepository;
+public class UserServiceImpl extends BaseService implements UserService {
+    public static final String USER_WITH_USERNAME_EMAIL =
+            "User with username/email - ";
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public UserServiceImpl(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            ModelMapper modelMapper
+    ) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UserDto findByUserName(String username) {
-        return modelMapper.map(userRepository.findByUsername(username), UserDto.class);
+        return modelMapper.map(
+                userRepository.findByUsernameAndDeletedFalse(username),
+                UserDto.class
+        );
     }
 
     @Override
@@ -41,40 +50,71 @@ public class UserServiceImpl implements UserService {
         String username = userDto.getUsername();
         User existingUser = userRepository.findByUsername(username);
         if (existingUser != null) {
-            userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
+            if (Boolean.TRUE.equals(existingUser.getDeleted())) {
+                userDto.setMessage(
+                        USER_WITH_USERNAME_EMAIL + username + " was deleted and cannot be recreated"
+                );
+            } else {
+                userDto.setMessage(
+                        USER_WITH_USERNAME_EMAIL + username + " already exists"
+                );
+            }
             userDto.setSuccess(false);
             return userDto;
         }
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        setCreatedDetails(user);
         userRepository.save(user);
+        userDto.setSuccess(true);
         return userDto;
     }
 
     @Override
     public UserDto update(UserDto userDto) {
-        String username = userDto.getUsername();
         Optional<User> userOptional = userRepository.findById(userDto.getId());
         if (userOptional.isEmpty()) {
-            userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " not found");
+            userDto.setMessage(
+                    USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " not found"
+            );
             userDto.setSuccess(false);
             return userDto;
-        } else {
-            User existingUser = userOptional.get();
-            if (!username.equalsIgnoreCase(existingUser.getUsername()) && (userRepository.findByUsername(username) != null)) {
-                userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
-                userDto.setSuccess(false);
-                return userDto;
-            }
-            modelMapper.map(userDto, existingUser);
-            userRepository.save(existingUser);
         }
+        User existingUser = userOptional.get();
+        if (Boolean.TRUE.equals(existingUser.getDeleted())) {
+            userDto.setMessage(
+                    USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " not found"
+            );
+            userDto.setSuccess(false);
+            return userDto;
+        }
+        String username = userDto.getUsername();
+        if (!username.equalsIgnoreCase(existingUser.getUsername())
+                && userRepository.findByUsername(username) != null) {
+            userDto.setMessage(
+                    USER_WITH_USERNAME_EMAIL + username + " already exists"
+            );
+            userDto.setSuccess(false);
+            return userDto;
+        }
+        modelMapper.map(userDto, existingUser);
+        if (userDto.getPassword() != null) {
+            existingUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        }
+        setModifiedDetails(existingUser);
+        userRepository.save(existingUser);
+        userDto.setSuccess(true);
         return userDto;
     }
 
     @Override
     public boolean delete(String username) {
-        userRepository.deleteByUsername(username);
+        User user = userRepository.findByUsernameAndDeletedFalse(username);
+        if (user != null) {
+            softDelete(user);
+            setModifiedDetails(user);
+            userRepository.save(user);
+        }
         return true;
     }
 
@@ -82,13 +122,13 @@ public class UserServiceImpl implements UserService {
     public WsDto<UserDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        Page<User> userPage = userRepository.findAll(pageable);
-        WsDto<UserDto> userWsDto = new WsDto<>();
-        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
-        userWsDto.setTotalRecords(userPage.getTotalElements());
-        userWsDto.setTotalPages(userPage.getTotalPages());
-        userWsDto.setSizePerPage(pageable.getPageSize());
-        userWsDto.setPage(pageable.getPageNumber());
-        return userWsDto;
+        Page<User> userPage = userRepository.findByDeletedFalse(pageable);
+        WsDto<UserDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        wsDto.setTotalRecords(userPage.getTotalElements());
+        wsDto.setTotalPages(userPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 }

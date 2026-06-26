@@ -1,15 +1,14 @@
 package com.ust.pos.cart.service.impl;
 
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
-import com.ust.pos.cart.service.CartService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,16 +19,20 @@ import java.util.List;
 
 @Service
 @Transactional
-
 public class CartServiceImpl implements CartService {
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
+    private final ModelMapper modelMapper;
+    private final CartEntryService cartEntryService;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private CartEntryService cartEntryService;
+    public CartServiceImpl(
+            CartRepository cartRepository,
+            ModelMapper modelMapper,
+            CartEntryService cartEntryService
+    ) {
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+        this.cartEntryService = cartEntryService;
+    }
 
     @Override
     public CartDto save(CartDto cartDto) {
@@ -75,7 +78,10 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto findByIdentifier(String identifier) {
-        return modelMapper.map(cartRepository.findByIdentifier(identifier), CartDto.class);
+        return modelMapper.map(
+                cartRepository.findByIdentifier(identifier),
+                CartDto.class
+        );
     }
 
     @Override
@@ -84,8 +90,8 @@ public class CartServiceImpl implements CartService {
         Cart cartModel = cartRepository.findByIdentifier(cart);
         BigDecimal totalPrice = BigDecimal.ZERO;
         BigDecimal totalDiscount = BigDecimal.ZERO;
-        BigDecimal originalPrice=BigDecimal.ZERO;
-        for(CartEntryDto cartEntryDto: cartEntries){
+        BigDecimal originalPrice = BigDecimal.ZERO;
+        for (CartEntryDto cartEntryDto : cartEntries) {
             totalPrice = totalPrice.add(cartEntryDto.getTotalPrice());
             totalDiscount = totalDiscount.add(cartEntryDto.getDiscount());
             originalPrice = originalPrice.add(cartEntryDto.getOriginalPrice());

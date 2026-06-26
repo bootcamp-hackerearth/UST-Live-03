@@ -1,9 +1,10 @@
 package com.ust.pos.api.unit;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.*;
+import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +14,21 @@ import java.util.List;
 @RequestMapping("/api/unit")
 public class UnitControllerApi extends BaseController {
     public static final String REDIRECT_UNIT_LIST = "redirect:/unit/list";
-    @Autowired
-    private UnitService unitService;
+
+    private final UnitService unitService;
+
+    public UnitControllerApi(UnitService unitService) {
+        this.unitService = unitService;
+    }
 
     @PostMapping("/list")
     public WsDto<UnitDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField()
+        );
         return unitService.findAll(pageable);
     }
 
@@ -32,12 +42,12 @@ public class UnitControllerApi extends BaseController {
         return unitService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
@@ -47,7 +57,7 @@ public class UnitControllerApi extends BaseController {
         return true;
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public String toggle(@RequestParam String identifier,
                          @RequestParam boolean status) {
 
@@ -55,7 +65,7 @@ public class UnitControllerApi extends BaseController {
         return "success";
     }
 
-     @PostMapping("/list-active")
+    @PostMapping("/list-active")
     public List<UnitDto> listActive() {
         return unitService.findAllActive();
     }

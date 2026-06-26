@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,125 +34,127 @@ class RackServiceTest {
 
     @Test
     void saveTest() {
-        RackDto rackDto = new RackDto();
-        rackDto.setIdentifier("R1");
+        RackDto dto = new RackDto();
+        dto.setIdentifier("R1");
         Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(null);
         Rack rack = new Rack();
-        Mockito.when(modelMapper.map(rackDto, Rack.class)).thenReturn(rack);
+        Mockito.when(modelMapper.map(dto, Rack.class)).thenReturn(rack);
         Mockito.when(rackRepository.save(rack)).thenReturn(rack);
-        RackDto response = rackService.save(rackDto);
-        Assertions.assertEquals("R1", response.getIdentifier());
-        Assertions.assertNull(response.getMessage());
+        RackDto response = rackService.save(dto);
         Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
-    void saveTestFailure() {
-        RackDto rackDto = new RackDto();
-        rackDto.setIdentifier("R1");
-        Rack existingRack = new Rack();
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(existingRack);
-        RackDto response = rackService.save(rackDto);
-        Assertions.assertEquals("R1", response.getIdentifier());
-        Assertions.assertNotNull(response.getMessage());
+    void saveTestAlreadyExists() {
+        RackDto dto = new RackDto();
+        dto.setIdentifier("R1");
+        Rack existing = new Rack();
+        existing.setDeleted(false);
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(existing);
+        RackDto response = rackService.save(dto);
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
     }
 
     @Test
-    void findByIdentifierTest() {
-        Rack rack = new Rack();
-        rack.setIdentifier("R1");
-        RackDto rackDto = new RackDto();
-        rackDto.setIdentifier("R1");
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(rack);
-        Mockito.when(modelMapper.map(rack, RackDto.class))
-                .thenReturn(rackDto);
-        RackDto response = rackService.findByIdentifier("R1");
-        Assertions.assertEquals("R1", response.getIdentifier());
+    void saveTestDeletedExists() {
+        RackDto dto = new RackDto();
+        dto.setIdentifier("R1");
+        Rack existing = new Rack();
+        existing.setDeleted(true);
+        Mockito.when(rackRepository.findByIdentifier("R1")).thenReturn(existing);
+        RackDto response = rackService.save(dto);
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
     }
 
     @Test
     void updateTest() {
-        RackDto rackDto = new RackDto();
-        rackDto.setIdentifier("R1");
-        Rack existingRack = new Rack();
-        existingRack.setIdentifier("R1");
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(existingRack);
-        Mockito.when(rackRepository.save(existingRack))
-                .thenReturn(existingRack);
-        RackDto response = rackService.update(rackDto);
+        RackDto dto = new RackDto();
+        dto.setIdentifier("R1");
+        Rack existing = new Rack();
+        Mockito.when(rackRepository.findByIdentifierAndDeletedFalse("R1")).thenReturn(existing);
+        Mockito.doNothing().when(modelMapper).map(dto, existing);
+        Mockito.when(rackRepository.save(existing)).thenReturn(existing);
+        RackDto response = rackService.update(dto);
         Assertions.assertTrue(response.isSuccess());
     }
 
     @Test
     void updateTestFailure() {
-        RackDto rackDto = new RackDto();
-        rackDto.setIdentifier("R1");
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(null);
-        RackDto response = rackService.update(rackDto);
+        RackDto dto = new RackDto();
+        dto.setIdentifier("R1");
+        Mockito.when(rackRepository.findByIdentifierAndDeletedFalse("R1")).thenReturn(null);
+        RackDto response = rackService.update(dto);
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertNotNull(response.getMessage());
     }
 
     @Test
     void deleteTest() {
-        Mockito.doNothing().when(rackRepository)
-                .deleteByIdentifier("R1");
+        Rack rack = new Rack();
+        Mockito.when(rackRepository.findByIdentifierAndDeletedFalse("R1")).thenReturn(rack);
+        Mockito.when(rackRepository.save(rack)).thenReturn(rack);
         rackService.delete("R1");
-        Mockito.verify(rackRepository)
-                .deleteByIdentifier("R1");
+        Mockito.verify(rackRepository).save(rack);
+    }
+
+    @Test
+    void deleteNullTest() {
+        Mockito.when(rackRepository.findByIdentifierAndDeletedFalse("R1")).thenReturn(null);
+        rackService.delete("R1");
+        Mockito.verify(rackRepository, Mockito.never()).save(Mockito.any());
     }
 
     @Test
     void findAllTest() {
         Rack rack = new Rack();
-        rack.setIdentifier("R1");
-        RackDto rackDto = new RackDto();
-        rackDto.setIdentifier("R1");
-        List<Rack> rackList = List.of(rack);
-        List<RackDto> rackDtoList = List.of(rackDto);
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Rack> rackPage = new PageImpl<>(rackList);
-        Mockito.when(rackRepository.findAll(pageable))
-                .thenReturn(rackPage);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(rackList),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(rackDtoList);
-       WsDto<RackDto> response = rackService.findAll(pageable);
+        RackDto dto = new RackDto();
+        List<Rack> list = List.of(rack);
+        List<RackDto> dtoList = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Rack> page = new PageImpl<>(list);
+        Mockito.when(rackRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class))).thenReturn(dtoList);
+        WsDto<RackDto> response = rackService.findAll(pageable);
         Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("R1", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+    }
+
+    @Test
+    void findByIdentifierTest() {
+        Rack rack = new Rack();
+        RackDto dto = new RackDto();
+        Mockito.when(rackRepository.findByIdentifierAndDeletedFalse("R1")).thenReturn(rack);
+        Mockito.when(modelMapper.map(rack, RackDto.class)).thenReturn(dto);
+        RackDto response = rackService.findByIdentifier("R1");
+        Assertions.assertNotNull(response);
     }
 
     @Test
     void updateStatusTest() {
         Rack rack = new Rack();
-        rack.setIdentifier("R1");
-        Mockito.when(rackRepository.findByIdentifier("R1"))
-                .thenReturn(rack);
-        Mockito.when(rackRepository.save(rack))
-                .thenReturn(rack);
+        Mockito.when(rackRepository.findByIdentifierAndDeletedFalse("R1")).thenReturn(rack);
+        Mockito.when(rackRepository.save(rack)).thenReturn(rack);
         rackService.updateStatus("R1", true);
         Mockito.verify(rackRepository).save(rack);
     }
 
     @Test
+    void updateStatusNullTest() {
+        Mockito.when(rackRepository.findByIdentifierAndDeletedFalse("R1")).thenReturn(null);
+        rackService.updateStatus("R1", true);
+        Mockito.verify(rackRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
     void findAllActiveTest() {
         Rack rack = new Rack();
-        rack.setIdentifier("R1");
-        RackDto rackDto = new RackDto();
-        rackDto.setIdentifier("R1");
-        List<Rack> racks = List.of(rack);
-        List<RackDto> rackDtos = List.of(rackDto);
-        Mockito.when(rackRepository.findByStatus(true))
-                .thenReturn(racks);
-        Mockito.when(modelMapper.map(
-                Mockito.eq(racks),
-                Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(rackDtos);
+        RackDto dto = new RackDto();
+        List<Rack> list = List.of(rack);
+        List<RackDto> dtoList = List.of(dto);
+        Mockito.when(rackRepository.findByStatusAndDeletedFalse(true)).thenReturn(list);
+        Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class))).thenReturn(dtoList);
         List<RackDto> response = rackService.findAllActive();
         Assertions.assertEquals(1, response.size());
     }

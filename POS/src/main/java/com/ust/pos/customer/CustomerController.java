@@ -3,22 +3,24 @@ package com.ust.pos.customer;
 import com.ust.pos.customer.service.AddressService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-
 @Controller
 @RequestMapping("/customer")
 public class CustomerController {
     public static final String REDIRECT_ROLE_LIST = "redirect:/customer/list";
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
+    private final AddressService addressService;
 
-    @Autowired
-    private AddressService addressService;
+    public CustomerController(
+            CustomerService customerService,
+            AddressService addressService) {
+        this.customerService = customerService;
+        this.addressService = addressService;
+    }
 
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
@@ -46,8 +48,12 @@ public class CustomerController {
     @GetMapping("/get")
     public String update(Model model, @RequestParam String identifier) {
         CustomerDto response = customerService.findByIdentifier(identifier);
-        response.setBillingAddress(addressService.findByPhoneNoAndAddressType(response.getPhoneNo(), "billingAddress"));
-        response.setShippingAddress(addressService.findByPhoneNoAndAddressType(response.getPhoneNo(), "shippingAddress"));
+        response.setBillingAddress(
+                addressService.findByPhoneNoAndAddressType(
+                        response.getPhoneNo(), "billingAddress"));
+        response.setShippingAddress(
+                addressService.findByPhoneNoAndAddressType(
+                        response.getPhoneNo(), "shippingAddress"));
         model.addAttribute("customerDto", response);
         return "customer/customer";
     }

@@ -5,7 +5,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,12 +14,21 @@ import java.util.List;
 @RequestMapping("/api/category")
 public class CategoryControllerApi extends BaseController {
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
-    @Autowired
-    private CategoryService categoryService;
+
+    private final CategoryService categoryService;
+
+    public CategoryControllerApi(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @PostMapping("/list")
     public WsDto<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField()
+        );
         return categoryService.findAll(pageable);
     }
 
@@ -34,12 +42,12 @@ public class CategoryControllerApi extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
-    public CategoryDto updatePost( @RequestBody CategoryDto categoryDto) {
+    @PutMapping("/update")
+    public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -49,9 +57,11 @@ public class CategoryControllerApi extends BaseController {
         return true;
     }
 
-    @PostMapping("/toggle")
-    public String toggle(@RequestParam String identifier,
-                         @RequestParam boolean status) {
+    @PatchMapping("/toggle")
+    public String toggle(
+            @RequestParam String identifier,
+            @RequestParam boolean status
+    ) {
         categoryService.updateStatus(identifier, status);
         return "success";
     }

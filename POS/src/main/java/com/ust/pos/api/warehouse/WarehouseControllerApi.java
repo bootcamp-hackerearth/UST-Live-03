@@ -5,8 +5,8 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,12 +15,22 @@ import java.util.List;
 @RequestMapping("/api/warehouse")
 public class WarehouseControllerApi extends BaseController {
     public static final String REDIRECT_WAREHOUSE_LIST = "redirect:/warehouse/list";
-    @Autowired
-    private WarehouseService warehouseService;
+
+    private final WarehouseService warehouseService;
+
+    public WarehouseControllerApi(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('manager')")
     public WsDto<WarehouseDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(),
+                paginationDto.getSortField()
+        );
         return warehouseService.findAll(pageable);
     }
 
@@ -34,23 +44,22 @@ public class WarehouseControllerApi extends BaseController {
         return warehouseService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);
         } catch (Exception e) {
             return false;
-
         }
         return true;
     }
 
-    @PostMapping("/toggle")
+    @PatchMapping("/toggle")
     public String toggle(@RequestParam String identifier,
                          @RequestParam boolean status) {
         warehouseService.updateStatus(identifier, status);

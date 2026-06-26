@@ -1,5 +1,6 @@
 package com.ust.pos.unit.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
@@ -8,7 +9,6 @@ import com.ust.pos.unit.service.UnitService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,23 +18,31 @@ import java.util.List;
 
 @Service
 @Transactional
-public class UnitServiceImpl implements UnitService {
-    @Autowired
-    private UnitRepository unitRepository;
+public class UnitServiceImpl extends BaseService implements UnitService {
+    private final UnitRepository unitRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public UnitServiceImpl(UnitRepository unitRepository,
+                           ModelMapper modelMapper) {
+        this.unitRepository = unitRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UnitDto save(UnitDto unitDto) {
         String identifier = unitDto.getIdentifier();
         Unit existingUnit = unitRepository.findByIdentifier(identifier);
         if (existingUnit != null) {
-            unitDto.setMessage("Unit with identifier - " + identifier + " already exists");
+            if (Boolean.TRUE.equals(existingUnit.getDeleted())) {
+                unitDto.setMessage("Unit - " + identifier + " was deleted and cannot be recreated");
+            } else {
+                unitDto.setMessage("Unit with identifier - " + identifier + " already exists");
+            }
             unitDto.setSuccess(false);
             return unitDto;
         }
         Unit unit = modelMapper.map(unitDto, Unit.class);
+        setCreatedDetails(unit);
         unitRepository.save(unit);
         unitDto.setSuccess(true);
         return unitDto;
@@ -43,52 +51,68 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public UnitDto update(UnitDto unitDto) {
         String identifier = unitDto.getIdentifier();
-        Unit existingUnit = unitRepository.findByIdentifier(identifier);
+        Unit existingUnit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingUnit == null) {
             unitDto.setMessage("Unit with identifier - " + identifier + " not found");
             unitDto.setSuccess(false);
             return unitDto;
         }
         modelMapper.map(unitDto, existingUnit);
+        setModifiedDetails(existingUnit);
         unitRepository.save(existingUnit);
+        unitDto.setSuccess(true);
         return unitDto;
     }
 
     @Override
     public void delete(String identifier) {
-        unitRepository.deleteByIdentifier(identifier);
+        Unit unit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (unit != null) {
+            softDelete(unit);
+            setModifiedDetails(unit);
+            unitRepository.save(unit);
+        }
     }
 
     @Override
     public WsDto<UnitDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
-        Page<Unit> unitPage = unitRepository.findAll(pageable);
-        WsDto<UnitDto> unitDtoWsDto = new WsDto<>();
-        unitDtoWsDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
-        unitDtoWsDto.setTotalRecords(unitPage.getTotalElements());
-        unitDtoWsDto.setTotalPages(unitPage.getTotalPages());
-        unitDtoWsDto.setSizePerPage(pageable.getPageSize());
-        unitDtoWsDto.setPage(pageable.getPageNumber());
-        return unitDtoWsDto;
+        Page<Unit> unitPage = unitRepository.findByDeletedFalse(pageable);
+        WsDto<UnitDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
+        wsDto.setTotalRecords(unitPage.getTotalElements());
+        wsDto.setTotalPages(unitPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override
     public UnitDto findByIdentifier(String identifier) {
-        return modelMapper.map(unitRepository.findByIdentifier(identifier), UnitDto.class);
+        return modelMapper.map(
+                unitRepository.findByIdentifierAndDeletedFalse(identifier),
+                UnitDto.class
+        );
     }
 
     @Override
     public void updateStatus(String identifier, boolean status) {
-        Unit unit = unitRepository.findByIdentifier(identifier);
-        unit.setStatus(status);
-        unitRepository.save(unit);
+        Unit unit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (unit != null) {
+            unit.setStatus(status);
+            setModifiedDetails(unit);
+            unitRepository.save(unit);
+        }
     }
 
     @Override
     public List<UnitDto> findAllActive() {
         Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
-        return modelMapper.map(unitRepository.findByStatus(true), listType);
+        return modelMapper.map(
+                unitRepository.findByStatusAndDeletedFalse(true),
+                listType
+        );
     }
 }

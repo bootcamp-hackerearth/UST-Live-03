@@ -1,14 +1,13 @@
 package com.ust.pos.models.service.impl;
 
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ModelsDto;
-import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,76 +18,102 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ModelsServiceImpl implements ModelsService {
-    @Autowired
-    private ModelMapper modelMapper;
+public class ModelsServiceImpl extends BaseService implements ModelsService {
+    public static final String MODEL = "Model - ";
+    private final ModelMapper modelMapper;
+    private final ModelsRepository modelsRepository;
 
-    @Autowired
-    private ModelsRepository modelsRepository;
+    public ModelsServiceImpl(ModelMapper modelMapper,
+                             ModelsRepository modelsRepository) {
+        this.modelMapper = modelMapper;
+        this.modelsRepository = modelsRepository;
+    }
 
     @Override
     public ModelsDto save(ModelsDto modelsDto) {
         String identifier = modelsDto.getIdentifier();
-        Models existingmodel = modelsRepository.findByIdentifier(identifier);
-        if (existingmodel != null) {
-            modelsDto.setMessage("Model - " + identifier + " already exists");
+        Models existingModel = modelsRepository.findByIdentifier(identifier);
+        if (existingModel != null) {
+            if (Boolean.TRUE.equals(existingModel.getDeleted())) {
+                modelsDto.setMessage(MODEL + identifier + " was deleted and cannot be recreated");
+            } else {
+                modelsDto.setMessage(MODEL + identifier + " already exists");
+            }
             modelsDto.setSuccess(false);
             return modelsDto;
         }
         Models models = modelMapper.map(modelsDto, Models.class);
+        setCreatedDetails(models);
         modelsRepository.save(models);
+        modelsDto.setSuccess(true);
         return modelsDto;
     }
 
     @Override
     public ModelsDto update(ModelsDto modelsDto) {
         String identifier = modelsDto.getIdentifier();
-        Models existingmodel = modelsRepository.findByIdentifier(identifier);
-        if (existingmodel == null) {
-            modelsDto.setMessage("Model - " + identifier + " not found");
+        Models existingModel = modelsRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (existingModel == null) {
+            modelsDto.setMessage(MODEL + identifier + " not found");
             modelsDto.setSuccess(false);
             return modelsDto;
         }
-        Models models = modelMapper.map(modelsDto, Models.class);
-        modelsRepository.save(models);
+        modelMapper.map(modelsDto, existingModel);
+        setModifiedDetails(existingModel);
+        modelsRepository.save(existingModel);
+        modelsDto.setSuccess(true);
         return modelsDto;
     }
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
-        return modelMapper.map(modelsRepository.findByIdentifier(identifier), ModelsDto.class);
+        return modelMapper.map(
+                modelsRepository.findByIdentifierAndDeletedFalse(identifier),
+                ModelsDto.class
+        );
     }
 
     @Override
     public WsDto<ModelsDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        Page<Models> modelsPage = modelsRepository.findAll(pageable);
-        WsDto<ModelsDto> modelsDtoWsDto = new WsDto<>();
-        modelsDtoWsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
-        modelsDtoWsDto.setTotalRecords(modelsPage.getTotalElements());
-        modelsDtoWsDto.setTotalPages(modelsPage.getTotalPages());
-        modelsDtoWsDto.setSizePerPage(pageable.getPageSize());
-        modelsDtoWsDto.setPage(pageable.getPageNumber());
-        return modelsDtoWsDto;
+        Page<Models> modelsPage = modelsRepository.findByDeletedFalse(pageable);
+        WsDto<ModelsDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
+        wsDto.setTotalRecords(modelsPage.getTotalElements());
+        wsDto.setTotalPages(modelsPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override
     public void delete(String identifier) {
-        modelsRepository.deleteByIdentifier(identifier);
+        Models model = modelsRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (model != null) {
+            softDelete(model);
+            setModifiedDetails(model);
+            modelsRepository.save(model);
+        }
     }
 
     @Override
     public void updateStatus(String identifier, boolean status) {
-        Models models = modelsRepository.findByIdentifier(identifier);
-        models.setStatus(status);
-        modelsRepository.save(models);
+        Models model = modelsRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (model != null) {
+            model.setStatus(status);
+            setModifiedDetails(model);
+            modelsRepository.save(model);
+        }
     }
 
     @Override
     public List<ModelsDto> findAllActive() {
-        Type listType = new TypeToken<List<WarehouseDto>>() {
+        Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
-        return modelMapper.map(modelsRepository.findByStatus(true), listType);
+        return modelMapper.map(
+                modelsRepository.findByStatusAndDeletedFalse(true),
+                listType
+        );
     }
 }

@@ -9,9 +9,9 @@ import java.util.List;
 @Getter
 @Setter
 public class CartDto extends CommonDto {
+    List<CartEntryDto> cartEntryList;
     private BigDecimal totalPrice;
     private BigDecimal discount;
     private String coupon;
     private BigDecimal originalPrice;
-    List<CartEntryDto> cartEntryList;
 }

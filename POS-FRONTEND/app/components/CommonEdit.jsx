@@ -20,13 +20,21 @@ const mapFieldValue = (field, value) => {
   }
 
   if (field.type === "select") {
-    return value?.value || value || "";
+    return value ?? "";
   }
 
   return value;
 };
 
-const Edit = ({ urlName, fields, identifier = "identifier" }) => {
+const Edit = ({
+  urlName,
+  fields,
+  identifier = "identifier",
+  showAudit = true,
+  transformFetchData,
+  customSubmit
+}) => {
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const identifierValue = searchParams.get("identifier");
@@ -55,12 +63,19 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
           ...initial,
           id: data.id,
           identifier: data.identifier,
+
+          createdBy: data.createdBy || "",
+          createdOn: data.createdOn || "",
+          modifiedBy: data.modifiedBy || "",
+          modifiedOn: data.modifiedOn || "",
         };
 
         fields.forEach((field) => {
+          const backendKey = field.backendName || field.name;
+
           const mapped = mapFieldValue(
             field,
-            data[field.name]
+            data[backendKey]
           );
 
           if (mapped !== undefined) {
@@ -68,11 +83,22 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
           }
         });
 
-        setFormData(transformedData);
+        const finalData = transformFetchData
+          ? transformFetchData(data, transformedData)
+          : transformedData;
+
+        setFormData(finalData);
+
       } catch (err) {
-        console.error(err);
-        setMessage("Failed to load data");
-      }
+  console.error(err);
+
+  const errorMessage =
+    err?.response?.data?.message ||
+    err?.response?.data?.error ||
+    "Failed to load data";
+
+  setMessage(errorMessage);
+}
     };
 
     if (identifierValue) fetchData();
@@ -98,13 +124,13 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
     let newValue = value;
 
     if (field?.validation === "phone") {
-      newValue = value.replaceAll(/\D/g, "").slice(0, 10);
+newValue = value.replaceAll(/\D/g, "").slice(0, 10);
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: newValue,
-    }));
+   setFormData((prev) => ({
+  ...prev,
+  [name]: newValue, 
+}));
 
     setErrors((prev) => ({
       ...prev,
@@ -169,49 +195,59 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validateForm()) return;
+  if (!validateForm()) return;
 
+  try {
+    if (customSubmit) {
+      await customSubmit(formData);
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      id: formData.id,
+      identifier: formData.identifier,
+    };
+
+    const res = await api.put(
+      `/${urlName}/update`,
+      payload
+    );
+
+    if (res.data?.success === false) {
+      setMessage(res.data.message);
+      return;
+    }
+
+    setMessage("Updated successfully");
+
+    setTimeout(() => {
+      router.push(`/${urlName}/list`);
+    }, 1000);
+  } catch (err) {
+    const errorMessage =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      "Update failed";
+
+    setMessage(errorMessage);
+  }
+};
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return "";
     try {
-      const payload = {
-        ...formData,
-        id: formData.id,
-        identifier: formData.identifier,
-      };
-
-      if (!payload.password?.trim()) {
-        delete payload.password;
-      }
-
-      const res = await api.post(
-        `/${urlName}/update`,
-        payload
-      );
-
-      if (res.data?.success === false) {
-        setMessage(res.data.message);
-        return;
-      }
-
-      setMessage("Updated successfully");
-
-      setTimeout(() => {
-        router.push(`/${urlName}/list`);
-      }, 1000);
-    } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        "Update failed";
-
-      setMessage(errorMessage);
+      return new Date(dateTime).toLocaleString();
+    } catch {
+      return dateTime;
     }
   };
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-gray-100 p-6">
-      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
+      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-2xl">
+
         <button
           onClick={() => router.push(`/${urlName}/list`)}
           className="mb-4 text-gray-500 text-sm hover:text-gray-700"
@@ -240,26 +276,28 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
             const isReadOnly =
               field.readOnly || field.name === identifier;
 
-            let inputType = "text";
-            if (field.validation === "password")
-              inputType = "password";
-            else if (field.validation === "phone")
-              inputType = "tel";
+           let inputType = "text";
+
+if (field.type === "email") {
+  inputType = "email";
+} else if (field.validation === "password") {
+  inputType = "password";
+} else if (field.validation === "phone") {
+  inputType = "tel";
+}
 
             return (
               <div key={field.name}>
                 <label className="block mb-1 font-medium">
                   {field.label}
-                  {!isReadOnly &&
-                    field.required !== false && (
-                      <span className="text-red-500 ml-1">
-                        *
-                      </span>
-                    )}
+                  {!isReadOnly && field.required !== false && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
                 </label>
 
                 {(field.type === "text" ||
-                  field.type === "number") && (
+  field.type === "number" ||
+  field.type === "email") && (
                   <input
                     type={inputType}
                     name={field.name}
@@ -267,9 +305,7 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
                     onChange={handleChange}
                     disabled={isReadOnly}
                     maxLength={
-                      field.validation === "phone"
-                        ? 10
-                        : undefined
+                      field.validation === "phone" ? 10 : undefined
                     }
                     className={`w-full p-3 rounded border ${
                       errors[field.name]
@@ -286,13 +322,37 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
                 {field.type === "singleDropdown" && (
                   <SingleDropdown
                     name={field.name}
-                    value={formData[field.name] || ""}
+                    value={formData[field.name] || null}
                     onChange={handleChange}
                     apiUrl={field.api}
                     disabled={isReadOnly}
                   />
                 )}
+                {field.type === "select" && (
+                  <select
+                    name={field.name}
+                    value={formData[field.name] || ""}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                    className={`w-full p-3 rounded border ${
+                      errors[field.name]
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } ${
+                      isReadOnly
+                        ? "bg-gray-200 cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    <option value="">Select {field.label}</option>
 
+                    {field.options?.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {field.type === "multiDropdown" && (
                   <MultiDropdown
                     name={field.name}
@@ -312,9 +372,18 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
             );
           })}
 
+          {showAudit && (
+            <div className="mt-6 text-sm text-gray-600 space-y-2">
+              <p><b>Created By:</b> {formData.createdBy || "-"}</p>
+              <p><b>Created On:</b> {formatDateTime(formData.createdOn) || "-"}</p>
+              <p><b>Modified By:</b> {formData.modifiedBy || "-"}</p>
+              <p><b>Modified On:</b> {formatDateTime(formData.modifiedOn) || "-"}</p>
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded transition"
+            className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded"
           >
             Update
           </button>
@@ -327,6 +396,9 @@ const Edit = ({ urlName, fields, identifier = "identifier" }) => {
 Edit.propTypes = {
   urlName: PropTypes.string.isRequired,
   identifier: PropTypes.string,
+  showAudit: PropTypes.bool,
+  transformFetchData: PropTypes.func,  
+  customSubmit: PropTypes.func,         
   fields: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
@@ -335,7 +407,7 @@ Edit.propTypes = {
       validation: PropTypes.string,
       readOnly: PropTypes.bool,
       api: PropTypes.string,
-      required: PropTypes.bool, 
+      required: PropTypes.bool,
     })
   ).isRequired,
 };
