@@ -78,6 +78,12 @@ const ListTemplate = ({
       );
     } catch (err) {
       console.error("Fetch Error:", err);
+      const status = err?.response?.status;
+      if (status === 500) {
+        // redirect to custom 500 page
+        router.push('/500');
+        return;
+      }
     } finally {
       setLoading(false);
     }
@@ -104,6 +110,11 @@ const ListTemplate = ({
       fetchData(page);
     } catch (err) {
       console.error("Delete Error:", err);
+      const status = err?.response?.status;
+      if (status === 500) {
+        router.push('/500');
+        return;
+      }
     }
   };
 
@@ -116,6 +127,11 @@ const ListTemplate = ({
       fetchData(page);
     } catch (err) {
       console.error("Toggle Error:", err);
+      const status = err?.response?.status;
+      if (status === 500) {
+        router.push('/500');
+        return;
+      }
     }
   };
 
