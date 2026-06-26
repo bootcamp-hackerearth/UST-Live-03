@@ -3,25 +3,41 @@ package com.ust.pos.api.stock;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.stock.service.StockService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/stock")
 public class StockApiController extends BaseController {
 
-    @Autowired
-    private StockService stockService;
+    private final StockService stockService;
+
+    public StockApiController(StockService stockService) {
+        this.stockService = stockService;
+    }
 
     @PostMapping("/list")
-    public List<StockDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
-        return stockService.findAll(pageable);
+    public WsDto<StockDto> home(@RequestBody PaginationDto paginationDto) {
+
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortField()
+        );
+
+        Page<StockDto> pageResult =
+                stockService.findAll(pageable, paginationDto.getSearch());
+
+        WsDto<StockDto> output = new WsDto<>();
+        output.setContent(pageResult.getContent());
+        output.setPage(pageResult.getNumber());
+        output.setSizePerPage(pageResult.getSize());
+        output.setTotalPages(pageResult.getTotalPages());
+
+        return output;
     }
 
     @PostMapping("/add")
@@ -34,12 +50,12 @@ public class StockApiController extends BaseController {
         return stockService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             stockService.delete(identifier);
@@ -50,7 +66,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
-    public boolean toggleStatus(@RequestBody String identifier) {
+    public boolean toggleStatus(@RequestParam String identifier) {
         try {
             stockService.toggleStatus(identifier);
         } catch (Exception e) {

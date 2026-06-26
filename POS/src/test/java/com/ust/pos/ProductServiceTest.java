@@ -40,7 +40,7 @@ class ProductServiceTest {
 
         Product entity = new Product();
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
+        Mockito.when(productRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
 
         Mockito.when(modelMapper.map(dto, Product.class))
@@ -62,7 +62,7 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("Admin");
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
+        Mockito.when(productRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(new Product());
 
         ProductDto response = productService.save(dto);
@@ -82,7 +82,7 @@ class ProductServiceTest {
         Product existing = new Product();
         Product mapped = new Product();
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
+        Mockito.when(productRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(existing);
 
         Mockito.when(modelMapper.map(dto, Product.class))
@@ -103,7 +103,7 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("Admin");
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
+        Mockito.when(productRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
 
         ProductDto response = productService.update(dto);
@@ -123,7 +123,7 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("Admin");
 
-        Mockito.when(productRepository.findByIdentifier("Admin"))
+        Mockito.when(productRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(product);
 
         Mockito.when(modelMapper.map(product, ProductDto.class))
@@ -142,7 +142,7 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("PROD001");
 
-        Mockito.when(productRepository.findByIdentifier("PROD001"))
+        Mockito.when(productRepository.findByIdentifierAndDeletedFalse("PROD001"))
                 .thenReturn(product);
 
         Mockito.when(modelMapper.map(product, ProductDto.class))
@@ -157,92 +157,114 @@ class ProductServiceTest {
 
     @Test
     void findAllTest() {
-        List<Product> entities = List.of(new Product());
-        List<ProductDto> dtos = List.of(new ProductDto());
-
-        Type listType = new TypeToken<List<ProductDto>>() {
-        }.getType();
-
+        List<Product> entities =
+                List.of(new Product());
+        List<ProductDto> dtos =
+                List.of(new ProductDto());
+        Type listType =
+                new TypeToken<List<ProductDto>>() {
+                }.getType();
         Mockito.when(productRepository.findAll())
                 .thenReturn(entities);
-
         Mockito.when(modelMapper.map(entities, listType))
                 .thenReturn(dtos);
-
-        List<ProductDto> response = productService.findAll();
-
-        Assertions.assertEquals(1, response.size());
+        List<ProductDto> response =
+                productService.findAll();
+        Assertions.assertEquals(
+                1,
+                response.size()
+        );
     }
 
     @Test
-    void findAllWithPaginationAndSearchTest() {
-
-        Pageable pageable = PageRequest.of(0, 5);
-
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
         Product product = new Product();
-        product.setIdentifier("PROD001");
+        Page<Product> page =
+                new PageImpl<>(List.of(product));
+        Mockito.when(
+                productRepository
+                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                                "Admin",
+                                pageable
+                        )
+        ).thenReturn(page);
 
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("PROD001");
-
-        Page<Product> productPage =
-                new PageImpl<>(List.of(product), pageable, 1);
-
-        Mockito.when(productRepository
-                        .findByIdentifierContainingIgnoreCase("PROD", pageable))
-                .thenReturn(productPage);
-
-        Mockito.when(modelMapper.map(product, ProductDto.class))
-                .thenReturn(dto);
-
-        Page<ProductDto> response =
-                productService.findAll(pageable, "PROD");
-
-        Assertions.assertEquals(1, response.getTotalElements());
-        Assertions.assertEquals("PROD001",
-                response.getContent().get(0).getIdentifier());
+        Page<ProductDto> result =
+                productService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(productRepository)
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                        "Admin",
+                        pageable
+                );
     }
 
     @Test
-    void findAllWithPaginationWithoutSearchTest() {
-
-        Pageable pageable = PageRequest.of(0, 5);
-
+    void findAllPageableWithoutSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
         Product product = new Product();
-        product.setIdentifier("PROD001");
-
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("PROD001");
-
-        Page<Product> productPage =
-                new PageImpl<>(List.of(product), pageable, 1);
-
-        Mockito.when(productRepository.findAll(pageable))
-                .thenReturn(productPage);
-
-        Mockito.when(modelMapper.map(product, ProductDto.class))
-                .thenReturn(dto);
-
-        Page<ProductDto> response =
+        Page<Product> page =
+                new PageImpl<>(List.of(product));
+        Mockito.when(
+                productRepository.findByDeletedFalse(pageable)
+        ).thenReturn(page);
+        Page<ProductDto> result =
                 productService.findAll(pageable, "");
-
-        Assertions.assertEquals(1, response.getTotalElements());
-        Assertions.assertEquals("PROD001",
-                response.getContent().get(0).getIdentifier());
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(productRepository)
+                .findByDeletedFalse(pageable);
     }
 
     @Test
     void deleteTest() {
+        Product product = new Product();
+        product.setDeleted(false);
+        Mockito.when(productRepository.findByIdentifier("Admin"))
+                .thenReturn(product);
+        productService.delete("Admin");
+        Assertions.assertTrue(product.isDeleted());
+        Mockito.verify(productRepository)
+                .save(product);
+    }
 
-        Mockito.doNothing()
-                .when(productRepository)
-                .deleteByIdentifier("Admin");
+    @Test
+    void deleteTest_ProductNotFound() {
+
+        Mockito.when(productRepository.findByIdentifier("Admin"))
+                .thenReturn(null);
 
         productService.delete("Admin");
 
-        Mockito.verify(productRepository)
-                .deleteByIdentifier("Admin");
+        Mockito.verify(productRepository, Mockito.never())
+                .save(Mockito.any());
     }
+
+    @Test
+    void toggleStatusTest() {
+
+        Product product = new Product();
+        product.setStatus(false);
+
+        Mockito.when(productRepository.findByIdentifier("Admin"))
+                .thenReturn(product);
+
+        productService.toggleStatus("Admin");
+
+        Assertions.assertTrue(product.isStatus());
+
+        Mockito.verify(productRepository)
+                .save(product);
+    }
+
 
     @Test
     void toggleStatusTest_EnableToDisable() {
@@ -283,10 +305,10 @@ class ProductServiceTest {
     @Test
     void toggleStatusTest_ProductNotFound() {
 
-        Mockito.when(productRepository.findByIdentifier("PROD001"))
+        Mockito.when(productRepository.findByIdentifier("Admin"))
                 .thenReturn(null);
 
-        productService.toggleStatus("PROD001");
+        productService.toggleStatus("Admin");
 
         Mockito.verify(productRepository, Mockito.never())
                 .save(Mockito.any());

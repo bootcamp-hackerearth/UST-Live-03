@@ -29,16 +29,13 @@ class CategoryServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-
-
     @Test
     void saveTest_Success() {
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setIdentifier("Admin");
         categoryDto.setSuperCategory("");
         Category category = new Category();
-        Mockito.when(categoryRepository.findByIdentifier("Admin"))
-                .thenReturn(null);
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("Admin")).thenReturn(null);
         Mockito.when(modelMapper.map(categoryDto, Category.class))
                 .thenReturn(category);
         Mockito.when(categoryRepository.save(category))
@@ -54,7 +51,7 @@ class CategoryServiceTest {
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setIdentifier("Admin");
         Category existingCategory = new Category();
-        Mockito.when(categoryRepository.findByIdentifier("Admin"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(existingCategory);
         CategoryDto response = categoryService.save(categoryDto);
         Assertions.assertFalse(response.isSuccess());
@@ -65,28 +62,39 @@ class CategoryServiceTest {
 
     @Test
     void updateTest_Success() {
+
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setIdentifier("Admin");
         categoryDto.setSuperCategory("");
+
         Category existingCategory = new Category();
         existingCategory.setIdentifier("Admin");
-        Category mappedCategory = new Category();
-        Mockito.when(categoryRepository.findByIdentifier("Admin"))
-                .thenReturn(existingCategory);
-        Mockito.when(modelMapper.map(categoryDto, Category.class))
-                .thenReturn(mappedCategory);
-        Mockito.when(categoryRepository.save(mappedCategory))
-                .thenReturn(mappedCategory);
+
+        Mockito.when(
+                categoryRepository.findByIdentifierAndDeletedFalse("Admin")
+        ).thenReturn(existingCategory);
+
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(categoryDto, existingCategory);
+
+        Mockito.when(
+                categoryRepository.save(existingCategory)
+        ).thenReturn(existingCategory);
+
         CategoryDto response = categoryService.update(categoryDto);
+
         Assertions.assertTrue(response.isSuccess());
-        Mockito.verify(categoryRepository).save(mappedCategory);
+
+        Mockito.verify(categoryRepository)
+                .save(existingCategory);
     }
 
     @Test
     void updateTest_Failure_WhenCategoryNotFound() {
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setIdentifier("Admin");
-        Mockito.when(categoryRepository.findByIdentifier("Admin"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
         CategoryDto response = categoryService.update(categoryDto);
         Assertions.assertFalse(response.isSuccess());
@@ -101,7 +109,7 @@ class CategoryServiceTest {
         category.setIdentifier("Admin");
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setIdentifier("Admin");
-        Mockito.when(categoryRepository.findByIdentifier("Admin"))
+        Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(category);
         Mockito.when(modelMapper.map(category, CategoryDto.class))
                 .thenReturn(categoryDto);
@@ -113,8 +121,9 @@ class CategoryServiceTest {
     void findAllTest() {
         List<Category> categories = List.of(new Category());
         List<CategoryDto> categoryDtos = List.of(new CategoryDto());
-        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
-        Mockito.when(categoryRepository.findAll())
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        Mockito.when(categoryRepository.findByDeletedFalse())
                 .thenReturn(categories);
         Mockito.when(modelMapper.map(categories, listType))
                 .thenReturn(categoryDtos);
@@ -130,7 +139,8 @@ class CategoryServiceTest {
         dto2.setSuperCategory(null);
         List<Category> entities = List.of(new Category(), new Category());
         List<CategoryDto> dtoList = List.of(dto1, dto2);
-        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
         Mockito.when(categoryRepository.findAll())
                 .thenReturn(entities);
         Mockito.when(modelMapper.map(entities, listType))
@@ -142,11 +152,68 @@ class CategoryServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(categoryRepository)
-                .deleteByIdentifier("Admin");
+        Category category = new Category();
+        category.setIdentifier("Admin");
+        category.setDeleted(false);
+
+        Mockito.when(
+                categoryRepository.findByIdentifierAndDeletedFalse("Admin")
+        ).thenReturn(category);
+
         categoryService.delete("Admin");
+
+        Assertions.assertTrue(category.isDeleted());
+
         Mockito.verify(categoryRepository)
-                .deleteByIdentifier("Admin");
+                .save(category);
+    }
+
+    @Test
+    void deleteTest_WhenCategoryNotFound() {
+
+        Mockito.when(
+                categoryRepository.findByIdentifierAndDeletedFalse("Admin")
+        ).thenReturn(null);
+
+        categoryService.delete("Admin");
+
+        Mockito.verify(
+                categoryRepository,
+                Mockito.never()
+        ).save(Mockito.any());
+    }
+
+    @Test
+    void toggleStatusTest() {
+
+        Category category = new Category();
+        category.setIdentifier("Admin");
+        category.setStatus(true);
+
+        Mockito.when(
+                categoryRepository.findByIdentifier("Admin")
+        ).thenReturn(category);
+
+        categoryService.toggleStatus("Admin");
+
+        Assertions.assertFalse(category.isStatus());
+
+        Mockito.verify(categoryRepository)
+                .save(category);
+    }
+
+    @Test
+    void toggleStatus_WhenCategoryNotFound() {
+
+        Mockito.when(
+                categoryRepository.findByIdentifier("Admin")
+        ).thenReturn(null);
+
+        categoryService.toggleStatus("Admin");
+
+        Mockito.verify(
+                categoryRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 }

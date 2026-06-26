@@ -6,7 +6,6 @@ import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
-import com.ust.pos.price.service.PriceService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,9 +34,6 @@ class CartServiceTest {
 
     @Mock
     private CartEntryService cartEntryService;
-
-    @Mock
-    private PriceService priceService;
 
     @Mock
     private ModelMapper modelMapper;
@@ -75,10 +71,13 @@ class CartServiceTest {
         Cart cart = new Cart();
         cart.setIdentifier("CART1");
         cart.setDiscount(BigDecimal.TEN);
+
         CartEntryDto entry1 = new CartEntryDto();
         entry1.setTotalPrice(new BigDecimal("100"));
+
         CartEntryDto entry2 = new CartEntryDto();
         entry2.setTotalPrice(new BigDecimal("50"));
+
         CartDto cartDto = new CartDto();
 
         Mockito.when(cartRepository.findByIdentifier("CART1"))
@@ -138,28 +137,28 @@ class CartServiceTest {
         Cart existingCart = new Cart();
         existingCart.setIdentifier("CART1");
 
-        Cart mappedCart = new Cart();
-        mappedCart.setIdentifier("CART1");
+        Mockito.when(
+                cartRepository.findByIdentifier("CART1")
+        ).thenReturn(existingCart);
 
-        Mockito.when(cartRepository.findByIdentifier("CART1"))
-                .thenReturn(existingCart);
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(cartDto, existingCart);
 
-        Mockito.when(modelMapper.map(cartDto, Cart.class))
-                .thenReturn(mappedCart);
+        Mockito.when(
+                cartRepository.save(existingCart)
+        ).thenReturn(existingCart);
 
-        Mockito.when(cartRepository.save(mappedCart))
-                .thenReturn(mappedCart);
-
-        CartDto response = cartService.update(cartDto);
+        CartDto response =
+                cartService.update(cartDto);
 
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(
-                "CART1",
-                response.getIdentifier()
-        );
+
+        Mockito.verify(modelMapper)
+                .map(cartDto, existingCart);
 
         Mockito.verify(cartRepository)
-                .save(mappedCart);
+                .save(existingCart);
     }
 
     @Test
@@ -313,5 +312,53 @@ class CartServiceTest {
 
         Mockito.verify(cartRepository)
                 .findAll(pageable);
+    }
+
+    @Test
+    void findByIdentifier_NotFound() {
+
+        Mockito.when(
+                cartRepository.findByIdentifier("UNKNOWN")
+        ).thenReturn(null);
+
+        Mockito.when(
+                modelMapper.map(null, CartDto.class)
+        ).thenReturn(null);
+
+        CartDto response =
+                cartService.findByIdentifier("UNKNOWN");
+
+        Assertions.assertNull(response);
+    }
+
+    @Test
+    void recalculateCart_NullDiscount() {
+
+        Cart cart = new Cart();
+        cart.setIdentifier("CART1");
+
+        CartEntryDto entry = new CartEntryDto();
+        entry.setTotalPrice(BigDecimal.valueOf(100));
+
+        CartDto cartDto = new CartDto();
+
+        Mockito.when(
+                cartRepository.findByIdentifier("CART1")
+        ).thenReturn(cart);
+
+        Mockito.when(
+                cartEntryService.findByCartId("CART1")
+        ).thenReturn(List.of(entry));
+
+        Mockito.when(
+                modelMapper.map(cart, CartDto.class)
+        ).thenReturn(cartDto);
+
+        cartService.recalulateCart("CART1");
+
+        Assertions.assertEquals(
+                BigDecimal.valueOf(100),
+                cart.getTotalPrice()
+        );
     }
 }

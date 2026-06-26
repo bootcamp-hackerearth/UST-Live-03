@@ -34,29 +34,11 @@ class WarehouseServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void findAll_WithPagination_ShouldReturnWarehouseDtos() {
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Warehouse> warehouses = List.of(new Warehouse());
-        Page<Warehouse> page = new PageImpl<>(warehouses);
-        List<WarehouseDto> warehouseDtos = List.of(new WarehouseDto());
-        Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
-        Mockito.when(warehouseRepository.findAll(pageable))
-                .thenReturn(page);
-        Mockito.when(modelMapper.map(warehouses, listType))
-                .thenReturn(warehouseDtos);
-        List<WarehouseDto> response = warehouseService.findAll(pageable);
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Mockito.verify(warehouseRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(warehouses, listType);
-    }
-
-    @Test
     void saveTest_Success() {
         WarehouseDto dto = new WarehouseDto();
         dto.setIdentifier("WH1");
         Warehouse entity = new Warehouse();
-        Mockito.when(warehouseRepository.findByIdentifier("WH1"))
+        Mockito.when(warehouseRepository.findByIdentifierAndDeletedFalse("WH1"))
                 .thenReturn(null);
         Mockito.when(modelMapper.map(dto, Warehouse.class))
                 .thenReturn(entity);
@@ -71,7 +53,7 @@ class WarehouseServiceTest {
     void saveTest_Failure_WhenAlreadyExists() {
         WarehouseDto dto = new WarehouseDto();
         dto.setIdentifier("WH1");
-        Mockito.when(warehouseRepository.findByIdentifier("WH1"))
+        Mockito.when(warehouseRepository.findByIdentifierAndDeletedFalse("WH1"))
                 .thenReturn(new Warehouse());
         WarehouseDto response = warehouseService.save(dto);
         Assertions.assertFalse(response.isSuccess());
@@ -86,7 +68,7 @@ class WarehouseServiceTest {
         dto.setIdentifier("WH1");
         Warehouse existing = new Warehouse();
         existing.setIdentifier("WH1");
-        Mockito.when(warehouseRepository.findByIdentifier("WH1"))
+        Mockito.when(warehouseRepository.findByIdentifierAndDeletedFalse("WH1"))
                 .thenReturn(existing);
         Mockito.doNothing()
                 .when(modelMapper).map(dto, existing);
@@ -101,7 +83,7 @@ class WarehouseServiceTest {
     void updateTest_Failure_WhenNotFound() {
         WarehouseDto dto = new WarehouseDto();
         dto.setIdentifier("WH1");
-        Mockito.when(warehouseRepository.findByIdentifier("WH1"))
+        Mockito.when(warehouseRepository.findByIdentifierAndDeletedFalse("WH1"))
                 .thenReturn(null);
         WarehouseDto response = warehouseService.update(dto);
         Assertions.assertFalse(response.isSuccess());
@@ -116,7 +98,7 @@ class WarehouseServiceTest {
         warehouse.setIdentifier("WH1");
         WarehouseDto dto = new WarehouseDto();
         dto.setIdentifier("WH1");
-        Mockito.when(warehouseRepository.findByIdentifier("WH1"))
+        Mockito.when(warehouseRepository.findByIdentifierAndDeletedFalse("WH1"))
                 .thenReturn(warehouse);
         Mockito.when(modelMapper.map(warehouse, WarehouseDto.class))
                 .thenReturn(dto);
@@ -128,8 +110,9 @@ class WarehouseServiceTest {
     void findAllTest() {
         List<Warehouse> entities = List.of(new Warehouse());
         List<WarehouseDto> dtos = List.of(new WarehouseDto());
-        Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
-        Mockito.when(warehouseRepository.findAll())
+        Type listType = new TypeToken<List<WarehouseDto>>() {
+        }.getType();
+        Mockito.when(warehouseRepository.findByDeletedFalse())
                 .thenReturn(entities);
         Mockito.when(modelMapper.map(entities, listType))
                 .thenReturn(dtos);
@@ -139,11 +122,74 @@ class WarehouseServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(warehouseRepository)
-                .deleteByIdentifier("WH1");
+        Warehouse warehouse = new Warehouse();
+        warehouse.setDeleted(false);
+        Mockito.when(
+                warehouseRepository.findByIdentifierAndDeletedFalse("WH1")
+        ).thenReturn(warehouse);
+        Mockito.when(
+                warehouseRepository.save(warehouse)
+        ).thenReturn(warehouse);
         warehouseService.delete("WH1");
+        Assertions.assertTrue(warehouse.isDeleted());
         Mockito.verify(warehouseRepository)
-                .deleteByIdentifier("WH1");
+                .save(warehouse);
+    }
+
+    @Test
+    void deleteTest_NotFound() {
+        Mockito.when(
+                warehouseRepository.findByIdentifierAndDeletedFalse("WH1")
+        ).thenReturn(null);
+        warehouseService.delete("WH1");
+        Mockito.verify(
+                warehouseRepository,
+                Mockito.never()
+        ).save(Mockito.any());
+    }
+
+    @Test
+    void findAllPageableWithoutSearchTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Warehouse warehouse = new Warehouse();
+        Page<Warehouse> page =
+                new PageImpl<>(List.of(warehouse));
+        Mockito.when(
+                warehouseRepository.findByDeletedFalse(pageable)
+        ).thenReturn(page);
+        Page<WarehouseDto> result =
+                warehouseService.findAll(pageable, null);
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(warehouseRepository)
+                .findByDeletedFalse(pageable);
+    }
+
+    @Test
+    void findAllPageableWithSearchTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Warehouse warehouse = new Warehouse();
+        Page<Warehouse> page =
+                new PageImpl<>(List.of(warehouse));
+        Mockito.when(
+                warehouseRepository
+                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                                "WH",
+                                pageable
+                        )
+        ).thenReturn(page);
+        Page<WarehouseDto> result =
+                warehouseService.findAll(pageable, "WH");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(warehouseRepository)
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                        "WH",
+                        pageable
+                );
     }
 }

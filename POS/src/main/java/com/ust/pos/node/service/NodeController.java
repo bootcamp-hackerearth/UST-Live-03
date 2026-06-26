@@ -2,7 +2,6 @@ package com.ust.pos.node.service;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,11 +11,13 @@ import org.springframework.web.bind.annotation.*;
 public class NodeController {
 
     public static final String REDIRECT_NODE_LIST = "redirect:/node/list";
-    @Autowired
-    private NodeService nodeService;
+    private final NodeService nodeService;
+    private final RoleService roleService;
 
-    @Autowired
-    private RoleService roleService;
+    public NodeController(NodeService nodeService, RoleService roleService) {
+        this.nodeService = nodeService;
+        this.roleService = roleService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {

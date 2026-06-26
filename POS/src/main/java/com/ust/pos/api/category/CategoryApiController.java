@@ -5,7 +5,6 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +15,11 @@ import java.util.List;
 @RequestMapping("/api/category")
 public class CategoryApiController extends BaseController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryApiController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public List<CategoryDto> list() {
@@ -26,17 +28,23 @@ public class CategoryApiController extends BaseController {
 
     @PostMapping("/list")
     public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
+
         Pageable pageable = getPageable(
                 paginationDto.getPage(),
                 paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(),
-                paginationDto.getSortField());
-        Page<CategoryDto> category = categoryService.findAll(pageable, paginationDto.getSearch());
+                paginationDto.getSortField()
+        );
+
+        Page<CategoryDto> category =
+                categoryService.findAll(pageable, paginationDto.getSearch());
+
         WsDto<CategoryDto> output = new WsDto<>();
         output.setContent(category.getContent());
         output.setPage(category.getNumber());
         output.setSizePerPage(category.getSize());
         output.setTotalPages(category.getTotalPages());
+
         return output;
     }
 
@@ -50,12 +58,12 @@ public class CategoryApiController extends BaseController {
         return categoryService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);

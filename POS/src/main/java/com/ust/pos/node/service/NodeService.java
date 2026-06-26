@@ -19,5 +19,5 @@ public interface NodeService {
 
     NodeDto findByIdentifier(String identifier);
 
-    Page<NodeDto> findAll(Pageable pageable,String search);
+    Page<NodeDto> findAll(Pageable pageable, String search);
 }

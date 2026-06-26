@@ -35,29 +35,11 @@ class UnitServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void findAll_WithPagination_ShouldReturnUnitDtos() {
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Unit> units = List.of(new Unit());
-        Page<Unit> page = new PageImpl<>(units);
-        List<UnitDto> unitDtos = List.of(new UnitDto());
-        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
-        Mockito.when(unitRepository.findAll(pageable))
-                .thenReturn(page);
-        Mockito.when(modelMapper.map(units, listType))
-                .thenReturn(unitDtos);
-        List<UnitDto> response = unitService.findAll(pageable);
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Mockito.verify(unitRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(units, listType);
-    }
-
-    @Test
     void saveTest_Success() {
         UnitDto dto = new UnitDto();
         dto.setIdentifier("U1");
         Unit entity = new Unit();
-        Mockito.when(unitRepository.findByIdentifier("U1"))
+        Mockito.when(unitRepository.findByIdentifierAndDeletedFalse("U1"))
                 .thenReturn(null);
         Mockito.when(modelMapper.map(dto, Unit.class))
                 .thenReturn(entity);
@@ -72,7 +54,7 @@ class UnitServiceTest {
     void saveTest_Failure_WhenAlreadyExists() {
         UnitDto dto = new UnitDto();
         dto.setIdentifier("U1");
-        Mockito.when(unitRepository.findByIdentifier("U1"))
+        Mockito.when(unitRepository.findByIdentifierAndDeletedFalse("U1"))
                 .thenReturn(new Unit());
         UnitDto response = unitService.save(dto);
         Assertions.assertFalse(response.isSuccess());
@@ -121,7 +103,7 @@ class UnitServiceTest {
         existing.setIdentifier("OLD");
         Mockito.when(unitRepository.findById(1L))
                 .thenReturn(Optional.of(existing));
-        Mockito.when(unitRepository.findByIdentifier("NEW"))
+        Mockito.when(unitRepository.findByIdentifierAndDeletedFalse("NEW"))
                 .thenReturn(new Unit());
         UnitDto response = unitService.update(dto);
         Assertions.assertFalse(response.isSuccess());
@@ -134,7 +116,7 @@ class UnitServiceTest {
         unit.setIdentifier("U1");
         UnitDto dto = new UnitDto();
         dto.setIdentifier("U1");
-        Mockito.when(unitRepository.findByIdentifier("U1"))
+        Mockito.when(unitRepository.findByIdentifierAndDeletedFalse("U1"))
                 .thenReturn(unit);
         Mockito.when(modelMapper.map(unit, UnitDto.class))
                 .thenReturn(dto);
@@ -146,8 +128,9 @@ class UnitServiceTest {
     void findAllTest() {
         List<Unit> entities = List.of(new Unit());
         List<UnitDto> dtos = List.of(new UnitDto());
-        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
-        Mockito.when(unitRepository.findAll())
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
+        Mockito.when(unitRepository.findByDeletedFalse())
                 .thenReturn(entities);
         Mockito.when(modelMapper.map(entities, listType))
                 .thenReturn(dtos);
@@ -159,7 +142,7 @@ class UnitServiceTest {
     void toggleStatusTest() {
         Unit unit = new Unit();
         unit.setStatus(false);
-        Mockito.when(unitRepository.findByIdentifier("U1"))
+        Mockito.when(unitRepository.findByIdentifierAndDeletedFalse("U1"))
                 .thenReturn(unit);
         Mockito.when(unitRepository.save(unit))
                 .thenReturn(unit);
@@ -170,11 +153,59 @@ class UnitServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(unitRepository)
-                .deleteByIdentifier("U1");
+        Unit unit = new Unit();
+        unit.setIdentifier("U1");
+        Mockito.when(
+                unitRepository.findByIdentifierAndDeletedFalse("U1")
+        ).thenReturn(unit);
         unitService.delete("U1");
+        Assertions.assertTrue(unit.isDeleted());
         Mockito.verify(unitRepository)
-                .deleteByIdentifier("U1");
+                .save(unit);
+    }
+
+    @Test
+    void findAllPageableWithSearchTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Unit unit = new Unit();
+        Page<Unit> page =
+                new PageImpl<>(List.of(unit));
+        Mockito.when(
+                unitRepository
+                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                                "Unit",
+                                pageable
+                        )
+        ).thenReturn(page);
+        Page<UnitDto> result =
+                unitService.findAll(pageable, "Unit");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(unitRepository)
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                        "Unit",
+                        pageable
+                );
+    }
+
+    @Test
+    void findAllPageableWithoutSearchTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Unit unit = new Unit();
+        Page<Unit> page =
+                new PageImpl<>(List.of(unit));
+        Mockito.when(
+                unitRepository.findByDeletedFalse(pageable)
+        ).thenReturn(page);
+        Page<UnitDto> result =
+                unitService.findAll(pageable, "");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(unitRepository)
+                .findByDeletedFalse(pageable);
     }
 }

@@ -5,11 +5,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     Category findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String identifier);
+    Category findByIdentifierAndDeletedFalse(String identifier);
 
-    Page<Category> findByIdentifierContainingIgnoreCase(String identifier, Pageable pageable);
+    Page<Category> findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+            String identifier,
+            Pageable pageable
+    );
+
+    Page<Category> findByDeletedFalse(Pageable pageable);
+
+    List<Category> findByDeletedFalse();
 }

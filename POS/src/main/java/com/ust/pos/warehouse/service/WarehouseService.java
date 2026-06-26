@@ -1,6 +1,7 @@
 package com.ust.pos.warehouse.service;
 
 import com.ust.pos.dto.WarehouseDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -16,5 +17,5 @@ public interface WarehouseService {
 
     void delete(String identifier);
 
-    List<WarehouseDto> findAll(Pageable pageable);
+    Page<WarehouseDto> findAll(Pageable pageable, String search);
 }

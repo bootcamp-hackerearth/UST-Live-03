@@ -5,8 +5,6 @@ import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
-import com.ust.pos.role.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -16,25 +14,36 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/node")
 public class NodeApiController extends BaseController {
-    @Autowired
-    private RoleService roleService;
+    private final NodeService nodeService;
 
-    @Autowired
-    private NodeService nodeService;
+    public NodeApiController(
+            NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
 
     @PostMapping("/list")
     public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(),paginationDto.getSortField());
-        Page<NodeDto> pageResult = nodeService.findAll(pageable,paginationDto.getSearch());
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
+                paginationDto.getSortField()
+        );
+
+        Page<NodeDto> pageResult =
+                nodeService.findAll(
+                        pageable,
+                        paginationDto.getSearch()
+                );
+
         WsDto<NodeDto> output = new WsDto<>();
         output.setContent(pageResult.getContent());
         output.setPage(pageResult.getNumber());
         output.setSizePerPage(pageResult.getSize());
         output.setTotalPages(pageResult.getTotalPages());
+
         return output;
     }
-    
+
     @GetMapping("/list")
     public List<NodeDto> list() {
         return nodeService.findAll();
@@ -55,12 +64,12 @@ public class NodeApiController extends BaseController {
         return nodeService.getNodesForRoles();
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto nodeDto) {
         return nodeService.update(nodeDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             nodeService.delete(identifier);

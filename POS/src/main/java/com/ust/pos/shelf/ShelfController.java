@@ -2,7 +2,6 @@ package com.ust.pos.shelf;
 
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.shelf.service.ShelfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,12 +12,15 @@ public class ShelfController {
 
     public static final String REDIRECT_SHELF_LIST = "redirect:/shelf/list";
 
-    @Autowired
-    private ShelfService shelfService;
+    private final ShelfService shelfService;
+
+    public ShelfController(ShelfService shelfService) {
+        this.shelfService = shelfService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
-        model.addAttribute("shelfs", shelfService.findAll(null));
+        model.addAttribute("shelfs", shelfService.findAll());
         return "shelf/list";
     }
 
@@ -47,7 +49,7 @@ public class ShelfController {
         return "shelf/shelf";
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public String updatePost(Model model, @ModelAttribute ShelfDto shelfDto) {
         ShelfDto response = shelfService.update(shelfDto);
         if (!response.isSuccess()) {
@@ -58,8 +60,8 @@ public class ShelfController {
         return REDIRECT_SHELF_LIST;
     }
 
-    @GetMapping("/delete")
-    public String delete(Model model, @RequestParam String identifier) {
+    @DeleteMapping("/delete")
+    public String delete(@RequestParam String identifier) {
         shelfService.delete(identifier);
         return REDIRECT_SHELF_LIST;
     }

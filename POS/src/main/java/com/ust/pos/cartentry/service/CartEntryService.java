@@ -8,6 +8,8 @@ import java.util.List;
 public interface CartEntryService {
     CartEntryDto save(CartEntryDto cartEntryDto);
 
+    CartEntryDto decreaseQuantity(String identifier);
+
     CartEntryDto update(CartEntryDto cartEntryDto);
 
     void delete(String identifier);

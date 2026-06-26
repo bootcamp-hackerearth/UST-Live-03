@@ -3,6 +3,8 @@ package com.ust.pos.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class CommonDto extends PaginationDto {
@@ -11,5 +13,11 @@ public class CommonDto extends PaginationDto {
     private String message;
     private boolean success = true;
     private boolean status = true;
+    private boolean deleted = false;
     private String description;
+
+    private String createdBy;
+    private LocalDateTime createdOn;
+    private String modifiedBy;
+    private LocalDateTime modifiedOn;
 }

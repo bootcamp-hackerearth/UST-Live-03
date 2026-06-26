@@ -9,5 +9,4 @@ import lombok.Setter;
 @Setter
 public class Brand extends CommonFields {
     private String icon;
-
 }

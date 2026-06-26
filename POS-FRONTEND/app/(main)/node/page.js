@@ -21,6 +21,7 @@ const NodePage = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [viewNode, setViewNode] = useState(null);
 
   const sizePerPage = 5;
 
@@ -62,11 +63,11 @@ const NodePage = () => {
 
       setTotalPages(
         res?.totalPages ||
-          Math.ceil(
-            (res?.totalElements || data.length) /
-              sizePerPage
-          ) ||
-          1
+        Math.ceil(
+          (res?.totalElements || data.length) /
+          sizePerPage
+        ) ||
+        1
       );
     } catch (err) {
       console.error(err);
@@ -78,35 +79,45 @@ const NodePage = () => {
 
   useEffect(() => {
     fetchNodes();
-  }, [page,searchTerm]);
+  }, [page, searchTerm]);
 
- const handleAddNode = async () => {
-  const exists = nodes.some(
-    (node) =>
-      node.identifier?.trim().toLowerCase() ===
-      newNode.identifier?.trim().toLowerCase()
-  );
+  const handleAddNode = async () => {
+    if (!newNode.identifier?.trim()) {
+      alert("Identifier is required");
+      return;
+    }
 
-  if (exists) {
-    alert(`${newNode.identifier} already exists`);
-    return;
-  }
+    if (!newNode.path?.trim()) {
+      alert("Path is required");
+      return;
+    }
 
-  try {
-    await addItem("node", newNode);
+    const exists = nodes.some(
+      (node) =>
+        node.identifier?.trim().toLowerCase() ===
+        newNode.identifier?.trim().toLowerCase()
+    );
 
-    setNewNode({
-      identifier: "",
-      path: "",
-      roles: [],
-    });
+    if (exists) {
+      alert(`${newNode.identifier} already exists`);
+      return;
+    }
 
-    fetchNodes();
-  } catch (err) {
-    console.error(err);
-    alert("Add failed");
-  }
-};
+    try {
+      await addItem("node", newNode);
+
+      setNewNode({
+        identifier: "",
+        path: "",
+        roles: [],
+      });
+
+      fetchNodes();
+    } catch (err) {
+      console.error(err);
+      alert("Add failed");
+    }
+  };
 
   const handleUpdate = async () => {
     try {
@@ -172,6 +183,10 @@ const NodePage = () => {
   ];
 
   const actions = [
+    {
+      label: "👁 View",
+      onClick: (row) => setViewNode(row),
+    },
     {
       label: "✏️ Edit",
       onClick: (row) => setEditNode(row),
@@ -239,7 +254,7 @@ const NodePage = () => {
       totalPages={totalPages}
       searchTerm={searchTerm}
       setSearchTerm={setSearchTerm}
-      onAdd={() => {}}
+      onAdd={() => { }}
       addButtonText="+ Add Node"
       newItem={newNode}
       setNewItem={setNewNode}
@@ -250,6 +265,8 @@ const NodePage = () => {
       handleUpdate={handleUpdate}
       editFields={editFields}
       actions={actions}
+      viewItem={viewNode}
+      setViewItem={setViewNode}
       emptyMessage="No nodes found"
     />
   );

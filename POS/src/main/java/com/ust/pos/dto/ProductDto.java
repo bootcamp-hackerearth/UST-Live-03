@@ -8,4 +8,6 @@ import lombok.Setter;
 public class ProductDto extends CommonDto {
     private Long supplierId;
     private String category;
+    private String unit;
+    private String brand;
 }

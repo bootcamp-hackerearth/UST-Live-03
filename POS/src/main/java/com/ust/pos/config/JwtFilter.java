@@ -3,7 +3,6 @@ package com.ust.pos.config;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,36 +15,59 @@ import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
-    @Autowired
-    private com.ust.pos.config.JWTUtility jwtUtility;
-    @Autowired
-    private UserDetailsService userService;
+
+    private final JWTUtility jwtUtility;
+    private final UserDetailsService userService;
+
+    public JwtFilter(JWTUtility jwtUtility, UserDetailsService userService) {
+        this.jwtUtility = jwtUtility;
+        this.userService = userService;
+    }
 
     @Override
-    protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest httpServletRequest,
-                                    jakarta.servlet.http.HttpServletResponse httpServletResponse, jakarta.servlet.FilterChain filterChain)
+    protected void doFilterInternal(
+            jakarta.servlet.http.HttpServletRequest httpServletRequest,
+            jakarta.servlet.http.HttpServletResponse httpServletResponse,
+            jakarta.servlet.FilterChain filterChain)
             throws jakarta.servlet.ServletException, IOException {
+
         String authorization = httpServletRequest.getHeader("Authorization");
         String token = null;
         String userName = null;
+
         try {
-            if (null != authorization && authorization.startsWith("Bearer ")) {
+            if (authorization != null && authorization.startsWith("Bearer ")) {
                 token = authorization.substring(7);
                 userName = jwtUtility.getUsernameFromToken(token);
             }
-            if (null != userName && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            if (userName != null
+                    && SecurityContextHolder.getContext().getAuthentication() == null) {
+
                 UserDetails userDetails = userService.loadUserByUsername(userName);
+
                 if (BooleanUtils.isTrue(jwtUtility.validateToken(token, userDetails))) {
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-                    usernamePasswordAuthenticationToken
-                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
-                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities());
+
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource()
+                                    .buildDetails(httpServletRequest));
+
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(authentication);
                 }
             }
+
             filterChain.doFilter(httpServletRequest, httpServletResponse);
+
         } catch (ExpiredJwtException e) {
-            httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "The token is not valid.");
+            httpServletResponse.sendError(
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "The token is not valid.");
         }
     }
 }

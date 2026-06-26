@@ -50,51 +50,51 @@ function Register() {
     setError("");
 
     if (!username.trim()) {
-  setError("Username is required");
-  return;
-}
+      setError("Username is required");
+      return;
+    }
 
-if (!name.trim()) {
-  setError("Name is required");
-  return;
-}
+    if (!name.trim()) {
+      setError("Name is required");
+      return;
+    }
 
-if (!phoneNo.trim()) {
-  setError("Phone number is required");
-  return;
-}
+    if (!phoneNo.trim()) {
+      setError("Phone number is required");
+      return;
+    }
 
-if (selectedRoles.length === 0) {
-  setError("Please select at least one role");
-  return;
-}
+    if (selectedRoles.length === 0) {
+      setError("Please select at least one role");
+      return;
+    }
 
-if (!password.trim()) {
-  setError("Password is required");
-  return;
-}
+    if (!password.trim()) {
+      setError("Password is required");
+      return;
+    }
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if (!emailRegex.test(username)) {
-  setError("Enter a valid email address");
-  return;
-}
+    if (!emailRegex.test(username)) {
+      setError("Enter a valid email address");
+      return;
+    }
 
-if (!/^\d{10}$/.test(phoneNo)) {
-  setError("Phone number must contain exactly 10 digits");
-  return;
-}
+    if (!/^\d{10}$/.test(phoneNo)) {
+      setError("Phone number must contain exactly 10 digits");
+      return;
+    }
 
-const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#]).{8,}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#]).{8,}$/;
 
-if (!passwordRegex.test(password)) {
-  setError(
-    "Password must contain 8+ characters, uppercase, lowercase, number and special character"
-  );
-  return;
-}
+    if (!passwordRegex.test(password)) {
+      setError(
+        "Password must contain 8+ characters, uppercase, lowercase, number and special character"
+      );
+      return;
+    }
 
     try {
       const response = await axios.post(
@@ -107,27 +107,27 @@ if (!passwordRegex.test(password)) {
           password,
         }
       );
- 
+
       console.log(
         "REGISTER RESPONSE:",
         response.data
       );
- 
+
       if (response.data?.success === false) {
         setError(
           response.data.message ||
-            "User already exists"
+          "User already exists"
         );
         return;
       }
- 
+
       alert("Registration Successful ");
- 
+
       router.push("/login");
     } catch (error) {
       setError(
         error.response?.data?.message ||
-          "Registration Failed "
+        "Registration Failed "
       );
     }
   };

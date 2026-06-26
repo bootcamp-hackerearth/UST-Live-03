@@ -7,7 +7,6 @@ import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,35 +20,48 @@ import java.util.Optional;
 @Transactional
 public class UserServiceImpl implements UserService {
 
-    public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
-    @Autowired
-    private UserRepository userRepository;
+    private static final String USER_EXISTS_MSG =
+            "User with username/email - ";
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public UserServiceImpl(UserRepository userRepository,
+                           PasswordEncoder passwordEncoder,
+                           ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UserDto findByUserName(String username) {
-        return modelMapper.map(userRepository.findByUsername(username), UserDto.class);
+        User user = userRepository.findByUsernameAndDeletedFalse(username);
+
+        if (user == null) {
+            UserDto dto = new UserDto();
+            dto.setSuccess(false);
+            dto.setMessage("User not found - " + username);
+            return dto;
+        }
+
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
     public UserDto save(UserDto userDto) {
         String username = userDto.getUsername();
-        User existingUser = userRepository.findByUsername(username);
+        User existingUser = userRepository.findByUsernameAndDeletedFalse(username);
         if (existingUser != null) {
-            userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
+            userDto.setMessage(USER_EXISTS_MSG + username + " already exists");
             userDto.setSuccess(false);
             return userDto;
         }
+
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         userRepository.save(user);
-
-
         userDto.setMessage("Registration successful");
         userDto.setSuccess(true);
         return userDto;
@@ -57,54 +69,68 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto update(UserDto userDto) {
-        String username = userDto.getUsername();
-        Optional<User> userOptional = userRepository.findById(userDto.getId());
-
+        Optional<User> userOptional =
+                userRepository.findById(userDto.getId());
         if (userOptional.isEmpty()) {
-            userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " not found");
+            userDto.setMessage(USER_EXISTS_MSG + userDto.getUsername() + " not found");
             userDto.setSuccess(false);
             return userDto;
-        } else {
-            User existingUser = userOptional.get();
-            if (!username.equalsIgnoreCase(existingUser.getUsername()) && userRepository.findByUsername(username) != null) {
-                userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
-                userDto.setSuccess(false);
-                return userDto;
-
-            }
-            modelMapper.map(userDto, existingUser);
-            userRepository.save(existingUser);
         }
+
+        User existingUser = userOptional.get();
+        String username = userDto.getUsername();
+        if (!username.equalsIgnoreCase(existingUser.getUsername())
+                && userRepository.findByUsernameAndDeletedFalse(username) != null) {
+
+            userDto.setMessage(USER_EXISTS_MSG + username + " already exists");
+            userDto.setSuccess(false);
+            return userDto;
+        }
+
+        modelMapper.map(userDto, existingUser);
+        if (userDto.getPassword() != null && !userDto.getPassword().isBlank()) {
+            existingUser.setPassword(
+                    passwordEncoder.encode(userDto.getPassword())
+            );
+        }
+        userRepository.save(existingUser);
+        userDto.setSuccess(true);
+        userDto.setMessage("User updated successfully");
         return userDto;
     }
 
     @Override
     public void delete(String username) {
-        userRepository.deleteByUsername(username);
+        User user =
+                userRepository.findByUsernameAndDeletedFalse(username);
+        if (user != null) {
+            user.setDeleted(true);
+            userRepository.save(user);
+        }
     }
 
     @Override
     public List<UserDto> findAll() {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
-        return modelMapper.map(userRepository.findAll(), listType);
+        return modelMapper.map(userRepository.findByDeletedFalse(), listType);
     }
 
     @Override
-    public Page<UserDto> findAll(Pageable pageable , String search ) {
+    public Page<UserDto> findAll(Pageable pageable, String search) {
         Page<User> userPage;
-        if(search != null && !search.trim().isEmpty()){
+        if (search != null && !search.trim().isEmpty()) {
             userPage =
-                    userRepository
-                            .findByNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(
-                                    search,
-                                    search,
-                                    pageable
-                            );
+                    userRepository.findByNameContainingIgnoreCaseOrUsernameContainingIgnoreCaseAndDeletedFalse(
+                            search,
+                            search,
+                            pageable
+                    );
+        } else {
+            userPage = userRepository.findByDeletedFalse(pageable);
         }
-        else {
-            userPage = userRepository.findAll(pageable);
-        }
-        return userPage.map(node ->modelMapper.map(node , UserDto.class));
+        return userPage.map(user ->
+                modelMapper.map(user, UserDto.class)
+        );
     }
 }

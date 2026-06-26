@@ -1,0 +1,181 @@
+.order-page {
+  padding: 22px;
+  background: #f8fafc;
+  /* LIGHT background for visibility */
+  min-height: 100vh;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto;
+}
+
+/* ================= TOP CARDS ================= */
+
+.order-stats {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  margin-bottom: 22px;
+}
+
+.stat-card {
+  min-width: 210px;
+  height: 92px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stat-card:hover {
+  border-color: #3b82f6;
+}
+
+.stat-title {
+  font-size: 12px;
+  color: #475569;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.green {
+  color: #16a34a;
+}
+
+.blue {
+  color: #2563eb;
+}
+
+/* ================= ORDER CARD ================= */
+
+.order-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.order-header {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-header:hover {
+  background: #f1f5f9;
+}
+
+.order-no {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.order-user {
+  font-size: 13px;
+  color: #475569;
+}
+
+.order-right {
+  text-align: right;
+}
+
+.order-date {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.order-total {
+  font-weight: 800;
+  margin-top: 6px;
+  color: #0f172a;
+}
+
+/* ================= STATUS ================= */
+
+.order-status {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.confirmed {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.delivered {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+
+.pending {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+/* ================= DETAILS ================= */
+
+.order-details {
+  background: #ffffff;
+  padding: 16px;
+  border-top: 2px solid #3b82f6;
+  animation: slideDown 0.2s ease-in-out;
+}
+
+.table {
+  width: 100%;
+  margin-top: 12px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.table th {
+  background: #f1f5f9;
+  text-align: left;
+  color: #0f172a;
+}
+
+.grand-total {
+  text-align: right;
+  margin-top: 12px;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

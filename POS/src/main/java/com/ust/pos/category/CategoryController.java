@@ -2,7 +2,6 @@ package com.ust.pos.category;
 
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +13,11 @@ public class CategoryController {
     public static final String REDIRECT_CATEGORY_LIST = "redirect:/category/list";
     public static final String CATEGORIES = "categories";
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("/list")
     public String home(Model model) {
@@ -48,7 +50,7 @@ public class CategoryController {
         return "category/category";
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public String updatePost(Model model, @ModelAttribute CategoryDto categoryDto) {
         CategoryDto response = categoryService.update(categoryDto);
         if (!response.isSuccess()) {
@@ -59,7 +61,7 @@ public class CategoryController {
         return REDIRECT_CATEGORY_LIST;
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public String delete(Model model, @RequestParam String identifier) {
         categoryService.delete(identifier);
         return REDIRECT_CATEGORY_LIST;

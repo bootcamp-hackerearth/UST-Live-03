@@ -17,5 +17,5 @@ public interface RoleService {
 
     RoleDto findByIdentifier(String identifier);
 
-    Page<RoleDto> findAll(Pageable pageable,String search);
+    Page<RoleDto> findAll(Pageable pageable, String search);
 }

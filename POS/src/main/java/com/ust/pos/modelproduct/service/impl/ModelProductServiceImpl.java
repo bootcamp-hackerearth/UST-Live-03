@@ -6,7 +6,6 @@ import com.ust.pos.model.ModelProductRepository;
 import com.ust.pos.modelproduct.service.ModelProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,22 +18,27 @@ import java.util.List;
 @Transactional
 public class ModelProductServiceImpl implements ModelProductService {
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+    private final ModelProductRepository modelProductRepository;
 
-    @Autowired
-    private ModelProductRepository modelProductRepository;
+    public ModelProductServiceImpl(ModelMapper modelMapper,
+                                   ModelProductRepository modelProductRepository) {
+        this.modelMapper = modelMapper;
+        this.modelProductRepository = modelProductRepository;
+    }
 
     @Override
     public ModelProductDto save(ModelProductDto modelProductDto) {
         String identifier = modelProductDto.getIdentifier();
-        ModelProduct existingmodel = modelProductRepository.findByIdentifier(identifier);
-        if (existingmodel != null) {
+        ModelProduct existingModel =
+                modelProductRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (existingModel != null) {
             modelProductDto.setMessage("Model - " + identifier + " already exists");
             modelProductDto.setSuccess(false);
             return modelProductDto;
         }
-        ModelProduct modelProduct = modelMapper.map(modelProductDto, ModelProduct.class);
+        ModelProduct modelProduct =
+                modelMapper.map(modelProductDto, ModelProduct.class);
         modelProductRepository.save(modelProduct);
         return modelProductDto;
     }
@@ -42,46 +46,67 @@ public class ModelProductServiceImpl implements ModelProductService {
     @Override
     public ModelProductDto update(ModelProductDto modelProductDto) {
         String identifier = modelProductDto.getIdentifier();
-        ModelProduct existingmodel = modelProductRepository.findByIdentifier(identifier);
-        if (existingmodel == null) {
+        ModelProduct existingModel =
+                modelProductRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (existingModel == null) {
             modelProductDto.setMessage("Model - " + identifier + " not found");
             modelProductDto.setSuccess(false);
             return modelProductDto;
         }
-        ModelProduct modelProduct = modelMapper.map(modelProductDto, ModelProduct.class);
+        ModelProduct modelProduct =
+                modelMapper.map(modelProductDto, ModelProduct.class);
         modelProductRepository.save(modelProduct);
         return modelProductDto;
     }
 
     @Override
     public ModelProductDto findByIdentifier(String identifier) {
-        return modelMapper.map(modelProductRepository.findByIdentifier(identifier), ModelProductDto.class);
+        return modelMapper.map(
+                modelProductRepository.findByIdentifierAndDeletedFalse(identifier),
+                ModelProductDto.class
+        );
     }
 
     @Override
     public List<ModelProductDto> findAll() {
-        Type listType = new TypeToken<List<ModelProductDto>>() {
+        Type listOfType = new TypeToken<List<ModelProductDto>>() {
         }.getType();
-        return modelMapper.map(modelProductRepository.findAll(), listType);
+        return modelMapper.map(
+                modelProductRepository.findByDeletedFalse(),
+                listOfType
+        );
     }
 
     @Override
     public void delete(String identifier) {
-        modelProductRepository.deleteByIdentifier(identifier);
+        ModelProduct modelProduct =
+                modelProductRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (modelProduct != null) {
+            modelProduct.setDeleted(true);
+            modelProductRepository.save(modelProduct);
+        }
     }
 
     @Override
     public void toggleStatus(String identifier) {
-        ModelProduct modelProduct = modelProductRepository.findByIdentifier(identifier);
-        modelProduct.setStatus(!modelProduct.isStatus());
-        modelProductRepository.save(modelProduct);
+        ModelProduct modelProduct =
+                modelProductRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (modelProduct != null) {
+            modelProduct.setStatus(!modelProduct.isStatus());
+            modelProductRepository.save(modelProduct);
+        }
     }
 
     @Override
-    public List<ModelProductDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ModelProductDto>>() {
-        }.getType();
-        Page<ModelProduct> modelProductPage = modelProductRepository.findAll(pageable);
-        return modelMapper.map(modelProductPage.getContent(), listType);
+    public Page<ModelProductDto> findAll(Pageable pageable, String search) {
+        Page<ModelProduct> modelProducts;
+        if (search != null && !search.trim().isEmpty()) {
+            modelProducts = modelProductRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+        } else {
+            modelProducts = modelProductRepository.findByDeletedFalse(pageable);
+        }
+        return modelProducts.map(model ->
+                modelMapper.map(model, ModelProductDto.class)
+        );
     }
 }

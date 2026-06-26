@@ -1,15 +1,13 @@
 package com.ust.pos.cart.service.impl;
 
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
-import com.ust.pos.cart.service.CartService;
-import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,17 +20,18 @@ import java.util.List;
 @Service
 @Transactional
 public class CartServiceImpl implements CartService {
-    @Autowired
-    private CartEntryService cartEntryService;
 
-    @Autowired
-    private PriceService priceService;
+    private final CartEntryService cartEntryService;
+    private final CartRepository cartRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CartServiceImpl(CartEntryService cartEntryService,
+                           CartRepository cartRepository,
+                           ModelMapper modelMapper) {
+        this.cartEntryService = cartEntryService;
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartDto save(CartDto cartDto) {
@@ -60,9 +59,9 @@ public class CartServiceImpl implements CartService {
         }
         cart.setTotalPrice(totalPrice.subtract(discount));
         cartRepository.save(cart);
-        CartDto cartDto1 = modelMapper.map(cart, CartDto.class);
-        cartDto1.setCartEntries(entries);
-        return cartDto1;
+        CartDto cartDto = modelMapper.map(cart, CartDto.class);
+        cartDto.setCartEntries(entries);
+        return cartDto;
     }
 
     @Override
@@ -74,8 +73,8 @@ public class CartServiceImpl implements CartService {
             cartDto.setSuccess(false);
             return cartDto;
         }
-        Cart cart = modelMapper.map(cartDto, Cart.class);
-        cartRepository.save(cart);
+        modelMapper.map(cartDto, existingCart);
+        cartRepository.save(existingCart);
         return cartDto;
     }
 
@@ -91,21 +90,24 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public List<CartDto> findAll() {
-        Type listOfType = new TypeToken<List<CartDto>>() {
+        Type listType = new TypeToken<List<CartDto>>() {
         }.getType();
-        return modelMapper.map(cartRepository.findAll(), listOfType);
+        return modelMapper.map(cartRepository.findAll(), listType);
     }
 
     @Override
     public CartDto findByIdentifier(String identifier) {
-        return modelMapper.map(cartRepository.findByIdentifier(identifier), CartDto.class);
+        return modelMapper.map(
+                cartRepository.findByIdentifier(identifier),
+                CartDto.class
+        );
     }
 
     @Override
     public List<CartDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<CartDto>>() {
-        }.getType();
         Page<Cart> cartPage = cartRepository.findAll(pageable);
-        return modelMapper.map(cartPage.getContent(), listOfType);
+        Type listType = new TypeToken<List<CartDto>>() {
+        }.getType();
+        return modelMapper.map(cartPage.getContent(), listType);
     }
 }

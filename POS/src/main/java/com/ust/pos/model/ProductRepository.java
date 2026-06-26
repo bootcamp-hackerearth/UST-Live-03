@@ -7,10 +7,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
     Product findByIdentifier(String identifier);
 
-    void deleteByIdentifier(String identifier);
+    Product findByIdentifierAndDeletedFalse(String identifier);
 
-    Page<Product> findByIdentifierContainingIgnoreCase(String identifier, Pageable pageable);
+    Page<Product> findByDeletedFalse(Pageable pageable);
 
+    Page<Product> findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+            String identifier,
+            Pageable pageable
+    );
 }
