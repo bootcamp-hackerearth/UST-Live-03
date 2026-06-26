@@ -31,4 +31,6 @@ public class OrderDto extends CommonDto {
     private LocalDateTime createdAt;
 
     private List<OrderItemDto> items;
+
+    private String customer;
 }

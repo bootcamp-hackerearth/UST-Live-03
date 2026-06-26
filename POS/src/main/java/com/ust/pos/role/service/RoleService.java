@@ -1,7 +1,6 @@
 package com.ust.pos.role.service;
 
 import com.ust.pos.dto.RoleDto;
-import com.ust.pos.dto.UserDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,5 +17,5 @@ public interface RoleService {
 
     RoleDto findByIdentifier(String identifier);
 
-    Page<RoleDto> findAll(Pageable pageable, String search);
+    Page<RoleDto> findAll(String search, Pageable pageable);
 }

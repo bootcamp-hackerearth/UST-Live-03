@@ -1,47 +1,46 @@
-
 "use client";
- 
+
 import { useState } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
- 
+
 const Login = () => {
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
   });
- 
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
- 
+
   const handleChange = (e) => {
     setCredentials({
       ...credentials,
       [e.target.name]: e.target.value,
     });
   };
- 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
- 
+
     if (!credentials.username || !credentials.password) {
       setError("Please fill all fields");
       setLoading(false);
       return;
     }
-   
+
     try {
       const response = await api.post("/api/authenticate", credentials);
       const data = response.data;
- 
+
       if (data.token && data.token !== "Error") {
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", credentials.username);
- 
+
         router.push("/dashboard1");
       } else {
         setError("Incorrect username or password ❌");
@@ -50,15 +49,15 @@ const Login = () => {
       console.error("LOGIN ERROR:", error);
       setError("Server error ❗");
     }
- 
+
     setLoading(false);
   };
- 
+
   return (
     <div style={styles.container}>
       <form onSubmit={handleSubmit} style={styles.card}>
         <h2 style={styles.title}>Login</h2>
- 
+
         <input
           name="username"
           placeholder="Username"
@@ -66,7 +65,7 @@ const Login = () => {
           onChange={handleChange}
           style={styles.input}
         />
- 
+
         <input
           name="password"
           type="password"
@@ -75,13 +74,13 @@ const Login = () => {
           onChange={handleChange}
           style={styles.input}
         />
- 
+
         {error && <p style={styles.error}>{error}</p>}
- 
+
         <button type="submit" disabled={loading} style={styles.button}>
           {loading ? "Logging in..." : "Login"}
         </button>
- 
+
         <p style={styles.text}>
           Don’t have account?{" "}
           <Link href="/register" style={styles.link}>
@@ -92,9 +91,9 @@ const Login = () => {
     </div>
   );
 };
- 
+
 export default Login;
- 
+
 /* ================= STYLES ================= */
 const styles = {
   container: {
@@ -108,7 +107,7 @@ const styles = {
     position: "relative",
     overflow: "hidden",
   },
- 
+
   // Background circles
   bgCircle1: {
     position: "absolute",
@@ -120,7 +119,7 @@ const styles = {
     left: "-100px",
     filter: "blur(30px)",
   },
- 
+
   bgCircle2: {
     position: "absolute",
     width: "300px",
@@ -131,7 +130,7 @@ const styles = {
     right: "-80px",
     filter: "blur(30px)",
   },
- 
+
   card: {
     width: "100%",
     maxWidth: "420px",
@@ -147,14 +146,14 @@ const styles = {
     position: "relative",
     zIndex: 10,
   },
- 
+
   logoSection: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     marginBottom: "10px",
   },
- 
+
   logoCircle: {
     width: "72px",
     height: "72px",
@@ -169,33 +168,33 @@ const styles = {
     marginBottom: "15px",
     boxShadow: "0 10px 25px rgba(99,102,241,0.3)",
   },
- 
+
   title: {
     margin: 0,
     fontSize: "30px",
     fontWeight: "700",
     color: "#111827",
   },
- 
+
   subtitle: {
     marginTop: "8px",
     fontSize: "14px",
     color: "#6b7280",
     textAlign: "center",
   },
- 
+
   inputGroup: {
     display: "flex",
     flexDirection: "column",
     gap: "6px",
   },
- 
+
   label: {
     fontSize: "13px",
     fontWeight: "600",
     color: "#374151",
   },
- 
+
   input: {
     padding: "14px",
     borderRadius: "14px",
@@ -207,7 +206,7 @@ const styles = {
     color: "#111827",
     boxSizing: "border-box",
   },
- 
+
   button: {
     padding: "14px",
     border: "none",
@@ -221,7 +220,7 @@ const styles = {
     transition: "0.3s ease",
     boxShadow: "0 10px 20px rgba(99,102,241,0.25)",
   },
- 
+
   error: {
     background: "#fee2e2",
     color: "#dc2626",
@@ -231,18 +230,17 @@ const styles = {
     fontSize: "14px",
     border: "1px solid #fecaca",
   },
- 
+
   text: {
     textAlign: "center",
     marginTop: "8px",
     color: "#6b7280",
     fontSize: "14px",
   },
- 
+
   link: {
     color: "#6366f1",
     textDecoration: "none",
     fontWeight: "600",
   },
 };
- 

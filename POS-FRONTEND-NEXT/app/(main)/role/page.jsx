@@ -3,12 +3,7 @@
 import { useEffect, useState } from "react";
 import CommonList from "@/components/CommonList";
 
-import {
-  listItems,
-  deleteItem,
-  updateItem,
-  addItem,
-} from "@/services/api";
+import { listItems, deleteItem, updateItem, addItem } from "@/services/api";
 
 const RoleList = () => {
   const [roles, setRoles] = useState([]);
@@ -21,7 +16,19 @@ const RoleList = () => {
 
   const [editRole, setEditRole] = useState(null);
 
+  const [auditData, setAuditData] = useState(null);
+
   const sizePerPage = 5;
+
+  const formatAuditDate = (value) => {
+    if (!value) return "-";
+
+    try {
+      return new Date(value).toLocaleString();
+    } catch {
+      return value;
+    }
+  };
 
   const fetchRoles = async () => {
     try {
@@ -47,11 +54,8 @@ const RoleList = () => {
 
       setTotalPages(
         res?.totalPages ||
-          Math.ceil(
-            (res?.totalRecords || data.length) /
-              sizePerPage
-          ) ||
-          1
+          Math.ceil((res?.totalRecords || data.length) / sizePerPage) ||
+          1,
       );
     } catch (err) {
       console.error(err);
@@ -66,18 +70,12 @@ const RoleList = () => {
   }, [page, search]);
 
   const handleDelete = async (identifier) => {
-    const confirmDelete = globalThis.confirm(
-      `Delete role ${identifier}?`
-    );
+    const confirmDelete = globalThis.confirm(`Delete role ${identifier}?`);
 
     if (!confirmDelete) return;
 
     try {
-      await deleteItem(
-        "role",
-        identifier,
-        "identifier"
-      );
+      await deleteItem("role", identifier, "identifier");
 
       fetchRoles();
     } catch (err) {
@@ -89,34 +87,23 @@ const RoleList = () => {
   const handleUpdate = async () => {
     try {
       if (editRole?.isNew) {
-        const allRolesResponse = await listItems(
-          "role",
-          {
-            page: 0,
-            sizePerPage: 10000,
-          }
-        );
+        const allRolesResponse = await listItems("role", {
+          page: 0,
+          sizePerPage: 10000,
+        });
 
-        const allRoles = Array.isArray(
-          allRolesResponse
-        )
+        const allRoles = Array.isArray(allRolesResponse)
           ? allRolesResponse
           : allRolesResponse?.content || [];
 
         const duplicateExists = allRoles.some(
           (role) =>
-            role.identifier
-              ?.trim()
-              .toLowerCase() ===
-            editRole.identifier
-              ?.trim()
-              .toLowerCase()
+            role.identifier?.trim().toLowerCase() ===
+            editRole.identifier?.trim().toLowerCase(),
         );
 
         if (duplicateExists) {
-          alert(
-            `Role with identifier "${editRole.identifier}" already exists`
-          );
+          alert(`Role with identifier "${editRole.identifier}" already exists`);
           return;
         }
       }
@@ -143,11 +130,7 @@ const RoleList = () => {
     } catch (err) {
       console.error(err);
 
-      alert(
-        editRole?.isNew
-          ? "Failed to add role"
-          : "Failed to update role"
-      );
+      alert(editRole?.isNew ? "Failed to add role" : "Failed to update role");
     }
   };
 
@@ -168,6 +151,10 @@ const RoleList = () => {
 
   const actions = [
     {
+      label: "📋 Audit",
+      onClick: (row) => setAuditData(row),
+    },
+    {
       label: "✏️ Edit",
       onClick: (row) =>
         setEditRole({
@@ -178,8 +165,7 @@ const RoleList = () => {
     },
     {
       label: "🗑 Delete",
-      onClick: (row) =>
-        handleDelete(row.identifier),
+      onClick: (row) => handleDelete(row.identifier),
     },
   ];
 
@@ -199,89 +185,159 @@ const RoleList = () => {
       label: "Description",
     },
   ];
-
   return (
-  <>
-    {/* LOADING OVERLAY */}
-    {loading && (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "200px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        Loading...
-      </div>
-    )}
-
-    {/* ERROR STATE */}
-    {!loading && error && (
-      <div style={{ color: "red" }}>
-        {error}
-      </div>
-    )}
-
-    {/* MAIN CONTENT */}
-    {!loading && !error && (
-      <>
+    <>
+      {loading && (
         <div
           style={{
             display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "16px",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+            fontSize: "16px",
+            fontWeight: "600",
           }}
         >
-          <button
-            onClick={() =>
-              setEditRole({
-                id: "",
-                identifier: "",
-                description: "",
-                status: true,
-                isNew: true,
-                formTitle: "Add Role",
-              })
-            }
+          Loading...{" "}
+        </div>
+      )}
+      ```
+      {!loading && error && <div style={{ color: "red" }}>{error}</div>}
+      {!loading && !error && (
+        <>
+          <div
             style={{
-              background: "#1976d2",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              padding: "10px 18px",
-              cursor: "pointer",
-              fontWeight: "600",
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: "16px",
             }}
           >
-            + Add Role
-          </button>
-        </div>
+            <button
+              onClick={() =>
+                setEditRole({
+                  id: "",
+                  identifier: "",
+                  description: "",
+                  status: true,
+                  isNew: true,
+                  formTitle: "Add Role",
+                })
+              }
+              style={{
+                background: "#1976d2",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                padding: "10px 18px",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              + Add Role
+            </button>
+          </div>
 
-        <CommonList
-          title="Roles"
-          data={roles}
-          loading={loading}
-          error={error}
-          page={page}
-          setPage={setPage}
-          totalPages={totalPages}
-          search={search}
-          setSearch={setSearch}
-          columns={columns}
-          actions={actions}
-          editItem={editRole}
-          setEditItem={setEditRole}
-          handleUpdate={handleUpdate}
-          editFields={editFields}
-          popupTitle={editRole?.formTitle}
-          emptyMessage="No roles found"
-        />
-      </>
-    )}
-  </>
-);
-}
+          <CommonList
+            title="Roles"
+            data={roles}
+            loading={loading}
+            error={error}
+            page={page}
+            setPage={setPage}
+            totalPages={totalPages}
+            search={search}
+            setSearch={setSearch}
+            columns={columns}
+            actions={actions}
+            editItem={editRole}
+            setEditItem={setEditRole}
+            handleUpdate={handleUpdate}
+            editFields={editFields}
+            popupTitle={editRole?.formTitle}
+            emptyMessage="No roles found"
+          />
+        </>
+      )}
+      {auditData && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: "24px",
+              borderRadius: "12px",
+              width: "450px",
+              maxWidth: "90%",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+            }}
+          >
+            <h2
+              style={{
+                marginTop: 0,
+                marginBottom: "20px",
+              }}
+            >
+              Audit Details
+            </h2>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "140px 1fr",
+                gap: "12px",
+              }}
+            >
+              <strong>Created By</strong>
+              <span>{auditData.createdBy || "-"}</span>
+
+              <strong>Created On</strong>
+              <span>{formatAuditDate(auditData.createdOn)}</span>
+
+              <strong>Modified By</strong>
+              <span>{auditData.modifiedBy || "-"}</span>
+
+              <strong>Modified On</strong>
+              <span>{formatAuditDate(auditData.modifiedOn)}</span>
+
+              <strong>Status</strong>
+              <span>{auditData.status ? "Active" : "Inactive"}</span>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginTop: "24px",
+              }}
+            >
+              <button
+                onClick={() => setAuditData(null)}
+                style={{
+                  background: "#1976d2",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "10px 18px",
+                  cursor: "pointer",
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 export default RoleList;

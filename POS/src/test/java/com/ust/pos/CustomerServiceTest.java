@@ -50,7 +50,7 @@ class CustomerServiceTest {
         dto.setBilling(billing);
         dto.setShipping(shipping);
 
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
 
         Mockito.doNothing()
@@ -74,7 +74,7 @@ class CustomerServiceTest {
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("Admin");
 
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(new Customer());
 
         CustomerDto response = customerService.save(dto);
@@ -98,7 +98,7 @@ class CustomerServiceTest {
         dto.setBilling(billing);
         dto.setShipping(shipping);
 
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(new Customer());
 
         Customer mappedCustomer = new Customer();
@@ -122,7 +122,7 @@ class CustomerServiceTest {
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("Admin");
 
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
 
         CustomerDto response = customerService.update(dto);
@@ -144,7 +144,7 @@ class CustomerServiceTest {
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("Admin");
 
-        Mockito.when(customerRepository.findByIdentifier("Admin"))
+        Mockito.when(customerRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(customer);
         Mockito.when(modelMapper.map(customer, CustomerDto.class))
                 .thenReturn(dto);
@@ -184,46 +184,172 @@ class CustomerServiceTest {
     // ---------------- DELETE ----------------
 
     @Test
-    void deleteTest() {
-        Mockito.doNothing()
-                .when(addressService).delete("Admin");
-        Mockito.doNothing()
-                .when(customerRepository).deleteByIdentifier("Admin");
+    void deleteByIdentifier_ShouldMarkCustomerDeleted_WhenCustomerExists() {
+        // Arrange
+        String identifier = "CUST001";
 
-        customerService.deleteByIdentifier("Admin");
+        Customer customer = new Customer();
+        customer.setIdentifier(identifier);
+        customer.setDeleted(false);
 
-        Mockito.verify(addressService).delete("Admin");
-        Mockito.verify(customerRepository).deleteByIdentifier("Admin");
+        Mockito.when(
+                customerRepository
+                        .findByIdentifierAndDeletedFalse(
+                                identifier
+                        )
+        ).thenReturn(customer);
+
+        // Act
+        customerService.deleteByIdentifier(
+                identifier
+        );
+
+        // Assert
+        Assertions.assertTrue(
+                customer.isDeleted()
+        );
+
+        Mockito.verify(customerRepository)
+                .findByIdentifierAndDeletedFalse(
+                        identifier
+                );
+
+        Mockito.verify(customerRepository)
+                .save(customer);
     }
 
     @Test
-    void findAll_WithPagination_ShouldReturnCustomerDtos() {
+    void deleteByIdentifier_ShouldDoNothing_WhenCustomerNotFound() {
         // Arrange
-        Pageable pageable = PageRequest.of(0, 10);
+        String identifier = "CUST001";
 
-        List<Customer> customers = List.of(new Customer());
-        Page<Customer> customerPage = new PageImpl<>(customers);
-
-        List<CustomerDto> customerDtos = List.of(new CustomerDto());
-
-        Type listType = new TypeToken<List<CustomerDto>>() {
-        }.getType();
-
-        Mockito.when(customerRepository.findAll(pageable))
-                .thenReturn(customerPage);
-
-        Mockito.when(modelMapper.map(customers, listType))
-                .thenReturn(customerDtos);
+        Mockito.when(
+                customerRepository
+                        .findByIdentifierAndDeletedFalse(
+                                identifier
+                        )
+        ).thenReturn(null);
 
         // Act
-        List<CustomerDto> response = customerService.findAll(pageable);
+        customerService.deleteByIdentifier(
+                identifier
+        );
+
+        // Assert
+        Mockito.verify(customerRepository)
+                .findByIdentifierAndDeletedFalse(
+                        identifier
+                );
+
+        Mockito.verify(
+                customerRepository,
+                Mockito.never()
+        ).save(Mockito.any(Customer.class));
+    }
+
+    @Test
+    void findAll_WithSearch_ShouldReturnCustomerDtos() {
+        // Arrange
+        String search = "CUS";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Customer customer = new Customer();
+        CustomerDto customerDto = new CustomerDto();
+
+        Page<Customer> customerPage =
+                new PageImpl<>(List.of(customer));
+
+        Mockito.when(
+                customerRepository
+                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                                search,
+                                pageable
+                        )
+        ).thenReturn(customerPage);
+
+        Mockito.when(
+                modelMapper.map(
+                        customer,
+                        CustomerDto.class
+                )
+        ).thenReturn(customerDto);
+
+        // Act
+        Page<CustomerDto> response =
+                customerService.findAll(
+                        search,
+                        pageable
+                );
 
         // Assert
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals(
+                1,
+                response.getContent().size()
+        );
 
-        Mockito.verify(customerRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(customers, listType);
+        Mockito.verify(customerRepository)
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                        search,
+                        pageable
+                );
+
+        Mockito.verify(modelMapper)
+                .map(
+                        customer,
+                        CustomerDto.class
+                );
+    }
+
+    @Test
+    void findAll_WithoutSearch_ShouldReturnCustomerDtos() {
+        // Arrange
+        String search = "";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Customer customer = new Customer();
+        CustomerDto customerDto = new CustomerDto();
+
+        Page<Customer> customerPage =
+                new PageImpl<>(List.of(customer));
+
+        Mockito.when(
+                customerRepository.findByDeletedFalse(
+                        pageable
+                )
+        ).thenReturn(customerPage);
+
+        Mockito.when(
+                modelMapper.map(
+                        customer,
+                        CustomerDto.class
+                )
+        ).thenReturn(customerDto);
+
+        // Act
+        Page<CustomerDto> response =
+                customerService.findAll(
+                        search,
+                        pageable
+                );
+
+        // Assert
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(
+                1,
+                response.getContent().size()
+        );
+
+        Mockito.verify(customerRepository)
+                .findByDeletedFalse(
+                        pageable
+                );
+
+        Mockito.verify(modelMapper)
+                .map(
+                        customer,
+                        CustomerDto.class
+                );
     }
 
 

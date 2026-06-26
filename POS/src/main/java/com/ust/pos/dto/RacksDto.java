@@ -8,5 +8,5 @@ import java.util.List;
 @Getter
 @Setter
 public class RacksDto extends CommonDto {
-    private List<String> shelfs;
+    private List<String> shelves;
 }

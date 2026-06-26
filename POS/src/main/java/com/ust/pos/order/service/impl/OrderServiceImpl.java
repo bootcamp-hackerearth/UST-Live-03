@@ -1,7 +1,5 @@
 package com.ust.pos.order.service.impl;
 
-import com.ust.pos.model.Cart;
-import com.ust.pos.model.CartRepository;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.OrderDto;
@@ -10,7 +8,6 @@ import com.ust.pos.model.*;
 import com.ust.pos.order.service.OrderService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,21 +23,20 @@ import java.util.List;
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
+    private final CartRepository cartRepository;
+    private final CartEntryService cartEntryService;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartEntryService cartEntryService;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public OrderServiceImpl(CartRepository cartRepository, CartEntryService cartEntryService,
+                            OrderRepository orderRepository, OrderItemRepository orderItemRepository, ModelMapper modelMapper) {
+        this.modelMapper = modelMapper;
+        this.cartEntryService = cartEntryService;
+        this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.cartRepository = cartRepository;
+    }
 
     @Override
     public OrderDto createOrder(String cartId, String paymentMethod) {
@@ -66,6 +62,7 @@ public class OrderServiceImpl implements OrderService {
         order.setIdentifier(orderNo);
 
         order.setCustomerId(cartId);
+        order.setCustomer(cart.getCustomer());
 
         order.setSubtotal(
                 cart.getTotalPrice().add(
@@ -87,13 +84,13 @@ public class OrderServiceImpl implements OrderService {
                         : BigDecimal.ZERO
         );
 
-        order.setCouponCode(cart.getCouponCode());
+        order.setCouponCode(cart.getCoupon());
 
         order.setPaymentMethod(paymentMethod);
 
         order.setPaymentCompleted(true);
 
-        order.setOrderStatus(OrderStatus.PENDING);
+        order.setOrderStatus(OrderStatus.CONFIRMED);
 
         order.setCreatedAt(LocalDateTime.now());
 
@@ -144,10 +141,11 @@ public class OrderServiceImpl implements OrderService {
 
         return dto;
     }
+
     @Override
     public OrderDto updateStatus(String orderId, String status) {
 
-        Order order = orderRepository.findByIdentifier(orderId);
+        Order order = orderRepository.findByIdentifierAndDeletedFalse(orderId);
 
         OrderDto dto = new OrderDto();
 
@@ -170,7 +168,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDto findByIdentifier(String identifier) {
 
-        Order order = orderRepository.findByIdentifier(identifier);
+        Order order = orderRepository.findByIdentifierAndDeletedFalse(identifier);
 
         OrderDto dto = new OrderDto();
 
@@ -182,9 +180,10 @@ public class OrderServiceImpl implements OrderService {
 
         dto = modelMapper.map(order, OrderDto.class);
 
-        List<OrderItem> items = orderItemRepository.findByOrderIdentifier(identifier);
+        List<OrderItem> items = orderItemRepository.findByOrderIdentifierAndDeletedFalse(identifier);
 
-        Type listType = new TypeToken<List<OrderItemDto>>() {}.getType();
+        Type listType = new TypeToken<List<OrderItemDto>>() {
+        }.getType();
         dto.setItems(modelMapper.map(items, listType));
 
         return dto;
@@ -193,33 +192,35 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderDto> findAll() {
 
-        Type listType = new TypeToken<List<OrderDto>>() {}.getType();
+        Type listType = new TypeToken<List<OrderDto>>() {
+        }.getType();
 
         return modelMapper.map(orderRepository.findAll(), listType);
     }
 
     @Override
-    public Page<OrderDto> findAll(Pageable pageable, String search) {
+    public Page<OrderDto> findAll(String search, Pageable pageable) {
 
         Page<Order> page;
 
         if (search != null && !search.trim().isEmpty()) {
-            page = orderRepository.findByIdentifierContainingIgnoreCase(pageable, search);
+            page = orderRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
         } else {
             page = orderRepository.findAll(pageable);
         }
-
-        Type listType = new TypeToken<List<OrderDto>>() {}.getType();
-
-        return modelMapper.map(page.getContent(), listType);
+        return page.map(order -> modelMapper.map(order, OrderDto.class));
     }
 
     @Override
     public void delete(String identifier) {
 
-        List<OrderItem> items = orderItemRepository.findByOrderIdentifier(identifier);
+        List<OrderItem> items = orderItemRepository.findByOrderIdentifierAndDeletedFalse(identifier);
         orderItemRepository.deleteAll(items);
 
-        orderRepository.deleteByIdentifier(identifier);
+        Order order = orderRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (order != null) {
+            order.setDeleted(true);
+            orderRepository.save(order);
+        }
     }
 }

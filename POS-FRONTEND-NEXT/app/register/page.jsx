@@ -117,9 +117,7 @@ function Register() {
           type="text"
           placeholder="Phone Number"
           value={phoneNo}
-          onChange={(e) =>
-            setPhoneNo(e.target.value.replaceAll(/\D/g, ""))
-          }
+          onChange={(e) => setPhoneNo(e.target.value.replaceAll(/\D/g, ""))}
           maxLength={10}
           style={styles.input}
         />
@@ -129,9 +127,7 @@ function Register() {
           multiple
           value={role}
           onChange={(e) =>
-            setRole(
-              [...e.target.selectedOptions].map((o) => o.value)
-            )
+            setRole([...e.target.selectedOptions].map((o) => o.value))
           }
           style={styles.input}
         >
@@ -140,14 +136,11 @@ function Register() {
           </option>
 
           {!loadingRoles &&
-  roles.map((r) => (
-    <option
-      key={r.identifier}
-      value={r.identifier}
-    >
-      {r.identifier}
-    </option>
-  ))}
+            roles.map((r) => (
+              <option key={r.identifier} value={r.identifier}>
+                {r.identifier}
+              </option>
+            ))}
         </select>
 
         <input
@@ -165,18 +158,18 @@ function Register() {
         <p style={styles.linkText}>
           Already have an account?{" "}
           <button
-  type="button"
-  style={{
-    ...styles.link,
-    background: "none",
-    border: "none",
-    padding: 0,
-    cursor: "pointer",
-  }}
-  onClick={() => router.push("/login")}
->
-  Login
-</button>
+            type="button"
+            style={{
+              ...styles.link,
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+            }}
+            onClick={() => router.push("/login")}
+          >
+            Login
+          </button>
         </p>
       </form>
     </div>

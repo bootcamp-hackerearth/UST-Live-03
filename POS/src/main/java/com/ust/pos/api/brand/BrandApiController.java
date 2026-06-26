@@ -4,26 +4,44 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ust.pos.dto.WsDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/brand")
 public class BrandApiController extends BaseController {
+    private final BrandService brandService;
 
+    public BrandApiController(
+            BrandService brandService) {
+        this.brandService = brandService;
+    }
 
-    @Autowired
-    private BrandService brandService;
 
     @PostMapping("/list")
-    public List<BrandDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+    public WsDto<BrandDto> home(
+            @RequestBody PaginationDto paginationDto) {
+
+        Pageable pageable = getPageable(
+                paginationDto.getPage(),
+                paginationDto.getSizePerPage(),
                 paginationDto.getSortField());
-        return brandService.findAll(pageable);
+
+        Page<BrandDto> pageResult =
+                brandService.findAll(
+                        paginationDto.getSearch(), pageable);
+
+        WsDto<BrandDto> response = new WsDto<>();
+
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+
+        return response;
     }
 
     @PostMapping("/add")
@@ -36,7 +54,7 @@ public class BrandApiController extends BaseController {
         return brandService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
@@ -52,7 +70,7 @@ public class BrandApiController extends BaseController {
         return true;
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             brandService.delete(identifier);

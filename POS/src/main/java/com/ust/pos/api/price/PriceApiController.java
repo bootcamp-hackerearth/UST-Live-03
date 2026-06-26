@@ -1,10 +1,10 @@
 package com.ust.pos.api.price;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.*;
+import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.price.service.PriceService;
-import com.ust.pos.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -14,12 +14,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/price")
 public class PriceApiController extends BaseController {
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private PriceService priceService;
+    private final PriceService priceService;
+
+    public PriceApiController(PriceService priceService) {
+        this.priceService = priceService;
+    }
+
     @GetMapping("/list")
-    public List<PriceDto> findall(){
+    public List<PriceDto> findall() {
         return priceService.findAll();
     }
 
@@ -34,8 +36,7 @@ public class PriceApiController extends BaseController {
 
         Page<PriceDto> pageResult =
                 priceService.findAll(
-                        pageable,
-                        paginationDto.getSearch());
+                        paginationDto.getSearch(), pageable);
 
         WsDto<PriceDto> response = new WsDto<>();
 
@@ -57,12 +58,12 @@ public class PriceApiController extends BaseController {
         return priceService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public PriceDto doupdate(@RequestBody PriceDto priceDto) {
         return priceService.update(priceDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             priceService.delete(identifier);

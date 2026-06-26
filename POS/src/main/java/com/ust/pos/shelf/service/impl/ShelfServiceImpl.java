@@ -6,7 +6,6 @@ import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,16 +18,18 @@ import java.util.Optional;
 @Service
 @Transactional
 public class ShelfServiceImpl implements ShelfService {
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+    private final ShelfRepository shelfRepository;
 
-    @Autowired
-    private ShelfRepository shelfRepository;
+    public ShelfServiceImpl(ShelfRepository shelfRepository, ModelMapper modelMapper) {
+        this.shelfRepository = shelfRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ShelfDto save(ShelfDto shelfDto) {
         String identifier = shelfDto.getIdentifier();
-        Shelf existingshelf = shelfRepository.findByIdentifier(identifier);
+        Shelf existingshelf = shelfRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingshelf != null) {
             shelfDto.setMessage("Shelf already exists");
             shelfDto.setSuccess(false);
@@ -48,7 +49,7 @@ public class ShelfServiceImpl implements ShelfService {
             return shelfDto;
         } else {
             Shelf existingshelf = optionalShelf.get();
-            if (!identifier.equalsIgnoreCase(existingshelf.getIdentifier()) && shelfRepository.findByIdentifier(identifier) != null) {
+            if (!identifier.equalsIgnoreCase(existingshelf.getIdentifier()) && shelfRepository.findByIdentifierAndDeletedFalse(identifier) != null) {
                 shelfDto.setSuccess(false);
                 shelfDto.setMessage("Shelf already exists");
                 return shelfDto;
@@ -63,24 +64,28 @@ public class ShelfServiceImpl implements ShelfService {
 
     @Override
     public ShelfDto findByIdentifier(String identifier) {
-        return modelMapper.map(shelfRepository.findByIdentifier(identifier), ShelfDto.class);
+        return modelMapper.map(shelfRepository.findByIdentifierAndDeletedFalse(identifier), ShelfDto.class);
     }
 
     @Override
     public List<ShelfDto> findAll() {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        return modelMapper.map(shelfRepository.findAll(), listType);
+        return modelMapper.map(shelfRepository.findByDeletedFalse(), listType);
     }
 
     @Override
     public void delete(String identifier) {
-        shelfRepository.deleteByIdentifier(identifier);
+        Shelf shelf = shelfRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (shelf != null) {
+            shelf.setDeleted(true);
+            shelfRepository.save(shelf);
+        }
     }
 
     @Override
     public void updateStatusOnly(String identifier, boolean status) {
-        Shelf shelf = shelfRepository.findByIdentifier(identifier);
+        Shelf shelf = shelfRepository.findByIdentifierAndDeletedFalse(identifier);
         shelf.setStatus(status);
         shelfRepository.save(shelf);
     }
@@ -89,15 +94,18 @@ public class ShelfServiceImpl implements ShelfService {
     public List<ShelfDto> findAllByStatus() {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        List<ShelfDto> shelfDtos = modelMapper.map(shelfRepository.findAll(), listType);
+        List<ShelfDto> shelfDtos = modelMapper.map(shelfRepository.findByDeletedFalse(), listType);
         return shelfDtos.stream().filter(s -> s.getStatus()).toList();
     }
 
     @Override
-    public List<ShelfDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<ShelfDto>>() {
-        }.getType();
-        Page<Shelf> rolePage = shelfRepository.findAll(pageable);
-        return modelMapper.map(rolePage.getContent(), listOfType);
+    public Page<ShelfDto> findAll(String search, Pageable pageable) {
+        Page<Shelf> rolePage;
+        if (search != null && !search.trim().isEmpty()) {
+            rolePage = shelfRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+        } else {
+            rolePage = shelfRepository.findByDeletedFalse(pageable);
+        }
+        return rolePage.map(shelf -> modelMapper.map(shelf, ShelfDto.class));
     }
 }

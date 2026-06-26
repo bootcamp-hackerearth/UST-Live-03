@@ -2,7 +2,6 @@ package com.ust.pos.unit;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.unit.service.UnitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +11,11 @@ import org.springframework.web.bind.annotation.*;
 public class UnitController {
     private static final String UNITS = "units";
     private static final String REDIRECT = "redirect:/unit/list";
+    private final UnitService unitService;
 
-    @Autowired
-    private UnitService unitService;
+    public UnitController(UnitService unitService) {
+        this.unitService = unitService;
+    }
 
     @GetMapping("/list")
     public String home(Model unit) {

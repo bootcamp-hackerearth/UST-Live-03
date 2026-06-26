@@ -2,11 +2,9 @@ package com.ust.pos.api.user;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/user")
 public class UserApiController extends BaseController {
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    public UserApiController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/list")
     public WsDto<UserDto> home(
@@ -29,8 +29,7 @@ public class UserApiController extends BaseController {
 
         Page<UserDto> pageResult =
                 userService.findAll(
-                        pageable,
-                        paginationDto.getSearch());
+                        paginationDto.getSearch(), pageable);
 
         WsDto<UserDto> response = new WsDto<>();
 
@@ -47,12 +46,12 @@ public class UserApiController extends BaseController {
         return userService.findByUserName(username);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String username) {
         try {
             userService.delete(username);

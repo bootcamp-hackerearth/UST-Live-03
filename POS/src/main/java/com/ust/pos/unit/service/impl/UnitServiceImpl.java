@@ -6,7 +6,6 @@ import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,17 +18,18 @@ import java.util.Optional;
 @Service
 @Transactional
 public class UnitServiceImpl implements UnitService {
+    private final ModelMapper modelMapper;
+    private final UnitRepository unitRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private UnitRepository unitRepository;
+    public UnitServiceImpl(UnitRepository unitRepository, ModelMapper modelMapper) {
+        this.modelMapper = modelMapper;
+        this.unitRepository = unitRepository;
+    }
 
     @Override
     public UnitDto save(UnitDto unitDto) {
         String identifier = unitDto.getIdentifier();
-        Unit existingmodel = unitRepository.findByIdentifier(identifier);
+        Unit existingmodel = unitRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingmodel != null) {
             unitDto.setMessage("Model - " + identifier + " already exists");
             unitDto.setSuccess(false);
@@ -49,7 +49,7 @@ public class UnitServiceImpl implements UnitService {
             return unitDto;
         } else {
             Unit existingmodel = optionalUnit.get();
-            if (!identifier.equals(existingmodel.getIdentifier()) && unitRepository.findByIdentifier(identifier) != null) {
+            if (!identifier.equals(existingmodel.getIdentifier()) && unitRepository.findByIdentifierAndDeletedFalse(identifier) != null) {
                 unitDto.setSuccess(false);
                 unitDto.setMessage("Model Already Exists");
                 return unitDto;
@@ -65,7 +65,7 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public UnitDto findByIdentifier(String identifier) {
-        return modelMapper.map(unitRepository.findByIdentifier(identifier), UnitDto.class);
+        return modelMapper.map(unitRepository.findByIdentifierAndDeletedFalse(identifier), UnitDto.class);
     }
 
     @Override
@@ -77,21 +77,28 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void delete(String identifier) {
-        unitRepository.deleteByIdentifier(identifier);
+        Unit unit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (unit != null) {
+            unit.setDeleted(true);
+            unitRepository.save(unit);
+        }
     }
 
     @Override
     public void updateStatusOnly(String identifier, boolean status) {
-        Unit unit = unitRepository.findByIdentifier(identifier);
+        Unit unit = unitRepository.findByIdentifierAndDeletedFalse(identifier);
         unit.setStatus(status);
         unitRepository.save(unit);
     }
 
     @Override
-    public List<UnitDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<UnitDto>>() {
-        }.getType();
-        Page<Unit> unitPage = unitRepository.findAll(pageable);
-        return modelMapper.map(unitPage.getContent(), listOfType);
+    public Page<UnitDto> findAll(String search, Pageable pageable) {
+        Page<Unit> rolePage;
+        if (search != null && !search.trim().isEmpty()) {
+            rolePage = unitRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+        } else {
+            rolePage = unitRepository.findByDeletedFalse(pageable);
+        }
+        return rolePage.map(unit -> modelMapper.map(unit, UnitDto.class));
     }
 }

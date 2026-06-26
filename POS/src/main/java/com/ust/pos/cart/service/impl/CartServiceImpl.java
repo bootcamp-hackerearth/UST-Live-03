@@ -1,17 +1,14 @@
 package com.ust.pos.cart.service.impl;
 
 import com.ust.pos.cart.service.CartService;
-import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.CartRepository;
-import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,17 +21,16 @@ import java.util.List;
 @Service
 @Transactional
 public class CartServiceImpl implements CartService {
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
+    private final CartEntryRepository cartEntryRepository;
+    private final CartRepository cartRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private PriceService priceService;
-
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public CartServiceImpl(CartRepository cartRepository,
+                           CartEntryRepository cartEntryRepository, ModelMapper modelMapper) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.cartRepository = cartRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartDto save(
@@ -121,6 +117,7 @@ public class CartServiceImpl implements CartService {
 
         return cartDto;
     }
+
     @Override
     public void deleteAll() {
         cartRepository.deleteAll();

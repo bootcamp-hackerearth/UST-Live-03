@@ -46,7 +46,7 @@ class StockServiceTest {
 
         Mockito.when(modelMapper.map(dto, Stock.class))
                 .thenReturn(entity);
-        Mockito.when(stockRepository.findByIdentifier("P1"))
+        Mockito.when(stockRepository.findByIdentifierAndDeletedFalse("P1"))
                 .thenReturn(null);
         Mockito.when(stockRepository.save(entity))
                 .thenReturn(entity);
@@ -68,7 +68,7 @@ class StockServiceTest {
 
         Mockito.when(modelMapper.map(dto, Stock.class))
                 .thenReturn(entity);
-        Mockito.when(stockRepository.findByIdentifier("P1"))
+        Mockito.when(stockRepository.findByIdentifierAndDeletedFalse("P1"))
                 .thenReturn(null);
         Mockito.when(stockRepository.save(entity))
                 .thenReturn(entity);
@@ -90,7 +90,7 @@ class StockServiceTest {
 
         Mockito.when(modelMapper.map(dto, Stock.class))
                 .thenReturn(entity);
-        Mockito.when(stockRepository.findByIdentifier("P1"))
+        Mockito.when(stockRepository.findByIdentifierAndDeletedFalse("P1"))
                 .thenReturn(new Stock());
 
         StockDto response = stockService.save(dto);
@@ -112,7 +112,7 @@ class StockServiceTest {
         Stock existing = new Stock();
         existing.setIdentifier("P1");
 
-        Mockito.when(stockRepository.findByIdentifier("P1"))
+        Mockito.when(stockRepository.findByIdentifierAndDeletedFalse("P1"))
                 .thenReturn(existing);
 
         Mockito.doNothing()
@@ -132,7 +132,7 @@ class StockServiceTest {
         StockDto dto = new StockDto();
         dto.setIdentifier("P1");
 
-        Mockito.when(stockRepository.findByIdentifier("P1"))
+        Mockito.when(stockRepository.findByIdentifierAndDeletedFalse("P1"))
                 .thenReturn(null);
 
         StockDto response = stockService.update(dto);
@@ -153,7 +153,7 @@ class StockServiceTest {
         StockDto dto = new StockDto();
         dto.setIdentifier("P1");
 
-        Mockito.when(stockRepository.findByIdentifier("P1"))
+        Mockito.when(stockRepository.findByIdentifierAndDeletedFalse("P1"))
                 .thenReturn(stock);
         Mockito.when(modelMapper.map(stock, StockDto.class))
                 .thenReturn(dto);
@@ -167,20 +167,26 @@ class StockServiceTest {
 
     @Test
     void findAllTest() {
+
         List<Stock> entities = List.of(new Stock());
         List<StockDto> dtos = List.of(new StockDto());
 
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
 
-        Mockito.when(stockRepository.findAll())
+        Mockito.when(stockRepository.findByDeletedFalse())
                 .thenReturn(entities);
+
         Mockito.when(modelMapper.map(entities, listType))
                 .thenReturn(dtos);
 
         List<StockDto> response = stockService.findAll();
 
+        Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
+
+        Mockito.verify(stockRepository)
+                .findByDeletedFalse();
     }
 
     // ---------------- UPDATE STATUS ONLY ----------------
@@ -190,7 +196,7 @@ class StockServiceTest {
         Stock stock = new Stock();
         stock.setStatus(false);
 
-        Mockito.when(stockRepository.findByIdentifier("P1"))
+        Mockito.when(stockRepository.findByIdentifierAndDeletedFalse("P1"))
                 .thenReturn(stock);
         Mockito.when(stockRepository.save(stock))
                 .thenReturn(stock);
@@ -205,39 +211,99 @@ class StockServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(stockRepository)
-                .deleteByIdentifier("P1");
+
+        Stock stock = new Stock();
+        stock.setIdentifier("P1");
+        stock.setDeleted(false);
+
+        Mockito.when(
+                        stockRepository.findByIdentifierAndDeletedFalse("P1"))
+                .thenReturn(stock);
 
         stockService.delete("P1");
 
+        Assertions.assertTrue(stock.isDeleted());
+
         Mockito.verify(stockRepository)
-                .deleteByIdentifier("P1");
+                .findByIdentifierAndDeletedFalse("P1");
+
+        Mockito.verify(stockRepository)
+                .save(stock);
     }
 
     @Test
     void findAll_WithPagination_ShouldReturnStockDtos() {
+
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Stock> stocks = List.of(new Stock());
-        Page<Stock> page = new PageImpl<>(stocks);
+        Stock stock = new Stock();
+        stock.setIdentifier("P1");
 
-        List<StockDto> stockDtos = List.of(new StockDto());
+        Page<Stock> stockPage =
+                new PageImpl<>(List.of(stock));
 
-        Type listType = new TypeToken<List<StockDto>>() {
-        }.getType();
+        StockDto stockDto = new StockDto();
+        stockDto.setIdentifier("P1");
 
-        Mockito.when(stockRepository.findAll(pageable))
-                .thenReturn(page);
-        Mockito.when(modelMapper.map(stocks, listType))
-                .thenReturn(stockDtos);
+        Mockito.when(
+                        stockRepository.findByDeletedFalse(pageable))
+                .thenReturn(stockPage);
 
-        List<StockDto> response = stockService.findAll(pageable);
+        Mockito.when(
+                        modelMapper.map(stock, StockDto.class))
+                .thenReturn(stockDto);
+
+        Page<StockDto> response =
+                stockService.findAll("", pageable);
 
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Mockito.verify(stockRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(stocks, listType);
+        Assertions.assertEquals(1, response.getContent().size());
+
+        Mockito.verify(stockRepository)
+                .findByDeletedFalse(pageable);
+
+        Mockito.verify(modelMapper)
+                .map(stock, StockDto.class);
+    }
+
+    @Test
+    void findAll_WithSearch_ShouldReturnFilteredStockDtos() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Stock stock = new Stock();
+        stock.setIdentifier("P1");
+
+        Page<Stock> stockPage =
+                new PageImpl<>(List.of(stock));
+
+        StockDto stockDto = new StockDto();
+        stockDto.setIdentifier("P1");
+
+        Mockito.when(
+                        stockRepository
+                                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                                        "P1",
+                                        pageable))
+                .thenReturn(stockPage);
+
+        Mockito.when(
+                        modelMapper.map(stock, StockDto.class))
+                .thenReturn(stockDto);
+
+        Page<StockDto> response =
+                stockService.findAll("P1", pageable);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getContent().size());
+
+        Mockito.verify(stockRepository)
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                        "P1",
+                        pageable);
+
+        Mockito.verify(modelMapper)
+                .map(stock, StockDto.class);
     }
 }
 

@@ -1,7 +1,6 @@
 package com.ust.pos.price.service;
 
 import com.ust.pos.dto.PriceDto;
-import com.ust.pos.dto.RoleDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,5 +17,5 @@ public interface PriceService {
 
     PriceDto findByIdentifier(String identifier);
 
-    Page<PriceDto> findAll(Pageable pageable,String search);
+    Page<PriceDto> findAll(String search, Pageable pageable);
 }

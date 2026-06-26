@@ -16,7 +16,7 @@ public interface OrderService {
 
     List<OrderDto> findAll();
 
-    Page<OrderDto> findAll(Pageable pageable, String search);
+    Page<OrderDto> findAll(String search, Pageable pageable);
 
     void delete(String identifier);
 }

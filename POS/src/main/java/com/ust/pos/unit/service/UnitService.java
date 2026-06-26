@@ -1,6 +1,7 @@
 package com.ust.pos.unit.service;
 
 import com.ust.pos.dto.UnitDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -18,5 +19,5 @@ public interface UnitService {
 
     void updateStatusOnly(String identifier, boolean status);
 
-    List<UnitDto> findAll(Pageable pageable);
+    Page<UnitDto> findAll(String search, Pageable pageable);
 }

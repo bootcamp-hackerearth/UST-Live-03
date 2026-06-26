@@ -2,7 +2,6 @@ package com.ust.pos.api.cart;
 
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,9 +9,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/cart")
 public class CartApiController {
+    private final CartService cartService;
 
-    @Autowired
-    private CartService cartService;
+    public CartApiController(CartService cartService) {
+        this.cartService = cartService;
+    }
 
     @PostMapping("/add")
     public CartDto add(@RequestBody CartDto cartDto) {
@@ -31,7 +32,7 @@ public class CartApiController {
         return cartService.findAll();
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(
             @RequestParam String identifier
     ) {

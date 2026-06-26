@@ -57,6 +57,7 @@ const styles = {
     color: "#fff",
     fontWeight: "700",
     fontSize: "16px",
+    flexShrink: 0,
   },
 
   profileName: {
@@ -83,7 +84,6 @@ const styles = {
     margin: 0,
     fontSize: "30px",
     fontWeight: "700",
-    color: "#fff",
   },
 
   heroText: {
@@ -102,7 +102,6 @@ export default function Dashboard1() {
     role: "Administrator",
   });
 
-  // ================= USER API =================
   const fetchUser = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -113,15 +112,12 @@ export default function Dashboard1() {
         return;
       }
 
-      const res = await axios.get(
-        "http://localhost:8080/api/user/get",
-        {
-          params: { username },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await axios.get("http://localhost:8080/api/user/get", {
+        params: { username },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setUser({
         name: res.data?.name || username,
@@ -132,10 +128,8 @@ export default function Dashboard1() {
     } catch (err) {
       console.error("USER FETCH ERROR:", err);
 
-      const username = localStorage.getItem("username");
-
       setUser({
-        name: username || "Admin",
+        name: localStorage.getItem("username") || "Admin",
         role: "Administrator",
       });
     }
@@ -145,30 +139,39 @@ export default function Dashboard1() {
     fetchUser();
   }, [fetchUser]);
 
-  // ================= UI =================
   return (
     <div style={styles.page}>
-      {/* TOPBAR */}
       <div style={styles.topbar}>
         <div>
           <h1 style={styles.pageTitle}>Dashboard</h1>
-          <p style={styles.pageSubtitle}>Welcome back </p>
+          <p style={styles.pageSubtitle}>Welcome back</p>
         </div>
-
-        {/* USER PROFILE */}
         <button
-  type="button"
-  style={{
-    ...styles.profile,
-    border: "none",
-    background: "transparent",
-    padding: 0,
-    cursor: "pointer",
-  }}
-  onClick={() => router.push("/user/profile")}
->
-  {/* Profile Content */}
-</button>
+          type="button"
+          onClick={() => router.push("/cart")}
+          style={{
+            padding: "12px 18px",
+            border: "none",
+            borderRadius: "12px",
+            cursor: "pointer",
+            background: "#111827",
+            color: "#fff",
+            fontWeight: "600",
+          }}
+        >
+          🛒 Cart
+        </button>
+
+        {/* FIXED PROFILE BUTTON */}
+        <button
+          type="button"
+          aria-label="Open user profile"
+          onClick={() => router.push("/user/profile")}
+          style={{
+            ...styles.profile,
+            border: "none",
+          }}
+        >
           <div style={styles.avatar}>
             {user.name?.charAt(0)?.toUpperCase() || "A"}
           </div>
@@ -177,20 +180,15 @@ export default function Dashboard1() {
             <h4 style={styles.profileName}>{user.name}</h4>
             <p style={styles.profileRole}>{user.role}</p>
           </div>
-        
+        </button>
       </div>
 
-      {/* HERO */}
       <div style={styles.heroCard}>
-        <div>
-          <h2 style={styles.heroTitle}>
-            Manage your POS business
-          </h2>
+        <h2 style={styles.heroTitle}>Manage your POS business</h2>
 
-          <p style={styles.heroText}>
-            Track sales, orders and users in one place.
-          </p>
-        </div>
+        <p style={styles.heroText}>
+          Track sales, orders and users in one place.
+        </p>
       </div>
     </div>
   );

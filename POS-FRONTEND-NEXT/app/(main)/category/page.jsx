@@ -12,97 +12,73 @@ import {
 } from "@/services/api";
 
 const CategoryList = () => {
-  const [categories, setCategories] =
-    useState([]);
+  const [categories, setCategories] = useState([]);
+
   const [search, setSearch] = useState("");
 
-  const [allCategories, setAllCategories] =
-    useState([]);
+  const [allCategories, setAllCategories] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
 
-  const [page, setPage] =
-    useState(0);
+  const [page, setPage] = useState(0);
 
-  const [totalPages, setTotalPages] =
-    useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [editCategory, setEditCategory] =
-    useState(null);
+  const [editCategory, setEditCategory] = useState(null);
+
+  const [auditCategory, setAuditCategory] = useState(null);
 
   const sizePerPage = 5;
 
-  const fetchCategories =
-    async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        const res = await listItems(
-          "category",
-          {
-            page,
-            sizePerPage,
-            sortField: "identifier",
-            search,
-          }
-        );
+      const res = await listItems("category", {
+        page,
+        sizePerPage,
+        sortField: "identifier",
+        search,
+      });
 
-        let data = [];
+      let data = [];
 
-        if (Array.isArray(res)) {
-          data = res;
-        } else if (
-          Array.isArray(res?.content)
-        ) {
-          data = res.content;
-        }
-
-        setCategories(data);
-
-        setTotalPages(
-          res?.totalPages ||
-            Math.ceil(
-              (res?.totalRecords ||
-                data.length) /
-                sizePerPage
-            ) ||
-            1
-        );
-      } catch (err) {
-        console.error(err);
-        setError(
-          "Failed to load categories"
-        );
-      } finally {
-        setLoading(false);
+      if (Array.isArray(res)) {
+        data = res;
+      } else if (Array.isArray(res?.content)) {
+        data = res.content;
       }
-    };
 
-  const fetchAllCategories =
-    async () => {
-      try {
-        const response =
-          await getListItems(
-            "category"
-          );
+      setCategories(data);
 
-        const data =
-          Array.isArray(response)
-            ? response
-            : response?.content ||
-              [];
+      setTotalPages(
+        res?.totalPages ||
+        Math.ceil((res?.totalRecords || data.length) / sizePerPage) ||
+        1,
+      );
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load categories");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setAllCategories(data);
-      } catch (err) {
-        console.error(err);
-        setAllCategories([]);
-      }
-    };
+  const fetchAllCategories = async () => {
+    try {
+      const response = await getListItems("category");
+
+      const data = Array.isArray(response) ? response : response?.content || [];
+
+      setAllCategories(data);
+    } catch (err) {
+      console.error(err);
+      setAllCategories([]);
+    }
+  };
 
   useEffect(() => {
     fetchAllCategories();
@@ -112,22 +88,13 @@ const CategoryList = () => {
     fetchCategories();
   }, [page, search]);
 
-  const handleDelete = async (
-    identifier
-  ) => {
-    const confirmDelete =
-      globalThis.confirm(
-        `Delete category ${identifier}?`
-      );
+  const handleDelete = async (identifier) => {
+    const confirmDelete = globalThis.confirm(`Delete category ${identifier}?`);
 
     if (!confirmDelete) return;
 
     try {
-      await deleteItem(
-        "category",
-        identifier,
-        "identifier"
-      );
+      await deleteItem("category", identifier, "identifier");
 
       fetchCategories();
     } catch (err) {
@@ -148,15 +115,9 @@ const CategoryList = () => {
       if (editCategory.isNew) {
         delete payload.id;
 
-        await addItem(
-          "category",
-          payload
-        );
+        await addItem("category", payload);
       } else {
-        await updateItem(
-          "category",
-          payload
-        );
+        await updateItem("category", payload);
       }
 
       await fetchCategories();
@@ -167,7 +128,7 @@ const CategoryList = () => {
       alert(
         editCategory?.isNew
           ? "Failed to add category"
-          : "Failed to update category"
+          : "Failed to update category",
       );
     }
   };
@@ -185,27 +146,24 @@ const CategoryList = () => {
       label: "Super Category",
       key: "superCategory",
     },
-    
-  
   ];
-
   const actions = [
+    {
+      label: "📋 Audit Details",
+      onClick: (row) => setAuditCategory(row),
+    },
     {
       label: "✏️ Edit",
       onClick: (row) =>
         setEditCategory({
           ...row,
           isNew: false,
-          formTitle:
-            "Edit Category",
+          formTitle: "Edit Category",
         }),
     },
     {
       label: "🗑 Delete",
-      onClick: (row) =>
-        handleDelete(
-          row.identifier
-        ),
+      onClick: (row) => handleDelete(row.identifier),
     },
   ];
 
@@ -218,22 +176,16 @@ const CategoryList = () => {
     {
       name: "identifier",
       label: "Identifier",
-      disabled:
-        !editCategory?.isNew,
+      disabled: !editCategory?.isNew,
     },
     {
       name: "superCategory",
       label: "Super Category",
       type: "select",
-      options:
-        allCategories.map(
-          (cat) => ({
-            label:
-              cat.identifier,
-            value:
-              cat.identifier,
-          })
-        ),
+      options: allCategories.map((cat) => ({
+        label: cat.identifier,
+        value: cat.identifier,
+      })),
     },
     {
       name: "status",
@@ -247,8 +199,7 @@ const CategoryList = () => {
       <div
         style={{
           display: "flex",
-          justifyContent:
-            "flex-end",
+          justifyContent: "flex-end",
           marginBottom: "16px",
         }}
       >
@@ -260,18 +211,15 @@ const CategoryList = () => {
               superCategory: "",
               status: true,
               isNew: true,
-              formTitle:
-                "Add Category",
+              formTitle: "Add Category",
             })
           }
           style={{
-            background:
-              "#1976d2",
+            background: "#1976d2",
             color: "#fff",
             border: "none",
             borderRadius: "6px",
-            padding:
-              "10px 18px",
+            padding: "10px 18px",
             cursor: "pointer",
             fontWeight: "600",
           }}
@@ -292,23 +240,82 @@ const CategoryList = () => {
         columns={columns}
         actions={actions}
         editItem={editCategory}
-        setEditItem={
-          setEditCategory
-        }
-        handleUpdate={
-          handleUpdate
-        }
-        editFields={
-          editFields
-        }
-        popupTitle={
-          editCategory
-            ?.formTitle
-        }
+        setEditItem={setEditCategory}
+        handleUpdate={handleUpdate}
+        editFields={editFields}
+        popupTitle={editCategory?.formTitle}
         search={search}
         setSearch={setSearch}
         emptyMessage="No categories found"
       />
+
+      {auditCategory && (
+        <div className="modalOverlay">
+          <div
+            className="modal"
+            style={{
+              width: "500px",
+              padding: "20px",
+            }}
+          >
+            <h2>Audit Details</h2>
+
+            <div
+              style={{
+                display: "grid",
+                gap: "12px",
+                marginTop: "16px",
+              }}
+            >
+              <div>
+                <strong>Category:</strong> {auditCategory.identifier}
+              </div>
+
+              <div>
+                <strong>Created By:</strong> {auditCategory.createdBy || "N/A"}
+              </div>
+
+              <div>
+                <strong>Created On:</strong>{" "}
+                {auditCategory.createdOn
+                  ? new Date(auditCategory.createdOn).toLocaleString()
+                  : "N/A"}
+              </div>
+
+              <div>
+                <strong>Modified By:</strong>{" "}
+                {auditCategory.modifiedBy || "N/A"}
+              </div>
+
+              <div>
+                <strong>Modified On:</strong>{" "}
+                {auditCategory.modifiedOn
+                  ? new Date(auditCategory.modifiedOn).toLocaleString()
+                  : "N/A"}
+              </div>
+
+              <div>
+                <strong>Status:</strong>{" "}
+                {auditCategory.status ? "Active" : "Inactive"}
+              </div>
+
+              <div>
+                <strong>Super Category:</strong>{" "}
+                {auditCategory.superCategory || "N/A"}
+              </div>
+            </div>
+
+            <div
+              className="modalActions"
+              style={{
+                marginTop: "20px",
+              }}
+            >
+              <button onClick={() => setAuditCategory(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

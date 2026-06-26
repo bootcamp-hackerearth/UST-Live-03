@@ -9,10 +9,16 @@ import java.util.List;
 
 @Repository
 public interface NodeRepository extends JpaRepository<Node, Long> {
-    Node findByIdentifier(String identifier);
 
     List<Node> findByRoles(List<String> roles);
 
-    void deleteByIdentifier(String identifier);
-    Page<Node> findByIdentifierContainingIgnoreCase(String identifier, Pageable pageable);
+    Node findByIdentifierAndDeletedFalse(String indentifier);
+
+    Page<Node> findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+            String identifier, Pageable pageable
+    );
+
+    List<Node> findByDeletedFalse();
+
+    Page<Node> findByDeletedFalse(Pageable pageable);
 }

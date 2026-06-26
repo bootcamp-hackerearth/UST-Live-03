@@ -6,12 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    Order findByIdentifier(String identifier);
+    Order findByIdentifierAndDeletedFalse(String identifier);
 
-    boolean existsByIdentifier(String identifier);
+    boolean existsByIdentifierAndDeletedFalse(String identifier);
 
-    void deleteByIdentifier(String identifier);
 
-    Page<Order> findByIdentifierContainingIgnoreCase(Pageable pageable, String search);
+    Page<Order> findByIdentifierContainingIgnoreCaseAndDeletedFalse(String search, Pageable pageable);
 
 }

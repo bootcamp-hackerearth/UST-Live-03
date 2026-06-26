@@ -5,7 +5,6 @@ import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.order.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +15,11 @@ import java.util.List;
 @RequestMapping("/api/order")
 public class OrderApiController extends BaseController {
 
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+
+    public OrderApiController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     @GetMapping("/list")
     public List<OrderDto> home() {
@@ -32,7 +34,7 @@ public class OrderApiController extends BaseController {
                 paginationDto.getSizePerPage(),
                 paginationDto.getSortField());
         Page<OrderDto> pageResult =
-                orderService.findAll(pageable,paginationDto.getSearch());
+                orderService.findAll(paginationDto.getSearch(), pageable);
 
         WsDto<OrderDto> response = new WsDto<>();
         response.setContent(pageResult.getContent());
@@ -42,11 +44,11 @@ public class OrderApiController extends BaseController {
         return response;
     }
 
-    @PostMapping("/create")
+    @PostMapping("/add")
     public OrderDto createOrder(
             @RequestParam String cartId,
             @RequestParam String paymentMethod) {
-        return orderService.createOrder(cartId,paymentMethod);
+        return orderService.createOrder(cartId, paymentMethod);
     }
 
     @GetMapping("/get")
@@ -55,7 +57,7 @@ public class OrderApiController extends BaseController {
         return orderService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/updateStatus")
+    @PutMapping("/updateStatus")
     public OrderDto updateStatus(
             @RequestParam String orderId,
             @RequestParam String status) {
@@ -63,7 +65,7 @@ public class OrderApiController extends BaseController {
         return orderService.updateStatus(orderId, status);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
 
         try {

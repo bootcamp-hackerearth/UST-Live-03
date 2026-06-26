@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
-
 const styles = {
   wrapper: {
     display: "flex",
@@ -126,18 +125,15 @@ export default function MainLayout({ children }) {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        router.push("/Login");
+        router.push("/login");
         return;
       }
 
-      const res = await axios.get(
-        "http://localhost:8080/api/node/roles",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await axios.get("http://localhost:8080/api/node/roles", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       console.log("ROLE BASED MENU:", res.data);
 
@@ -148,7 +144,7 @@ export default function MainLayout({ children }) {
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("username");
-        router.push("/Login");
+        router.push("/login");
       }
 
       setMenu([]);
@@ -172,50 +168,33 @@ export default function MainLayout({ children }) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
-    router.push("/Login");
+    router.push("/login");
   };
 
   let renderMenu = null;
 
   if (loading) {
-    renderMenu = (
-      <div style={styles.loadingBox}>
-        Loading menu...
-      </div>
-    );
+    renderMenu = <div style={styles.loadingBox}>Loading menu...</div>;
   } else if (!menu || menu.length === 0) {
     renderMenu = (
-      <div style={styles.loadingBox}>
-        No accessible menu available
-      </div>
+      <div style={styles.loadingBox}>No accessible menu available</div>
     );
   } else {
     renderMenu = (
       <ul style={styles.menuList}>
         {menu.map((item, index) => (
-          <li
-            key={
-              item.id ??
-              item.identifier ??
-              item.path ??
-              index
-            }
-          >
+          <li key={item.id ?? item.identifier ?? item.path ?? index}>
             <button
               style={styles.menuItem}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  "rgba(255,255,255,0.08)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.08)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background =
-                  "transparent";
+                e.currentTarget.style.background = "transparent";
               }}
               onClick={() => handleMenuClick(item.path)}
             >
-              {item.displayName ||
-                item.name ||
-                item.identifier}
+              {item.displayName || item.name || item.identifier}
             </button>
           </li>
         ))}
@@ -224,7 +203,6 @@ export default function MainLayout({ children }) {
   }
 
   return (
-    
     <div style={styles.wrapper}>
       <aside style={styles.sidebar}>
         <div>
@@ -243,16 +221,12 @@ export default function MainLayout({ children }) {
 
             <div>
               <h2 style={styles.brand}>POS System</h2>
-              <p style={styles.brandSub}>
-                Management Panel
-              </p>
+              <p style={styles.brandSub}>Management Panel</p>
             </div>
           </button>
 
           <div style={styles.menuContainer}>
-            <p style={styles.menuLabel}>
-              MAIN MENU
-            </p>
+            <p style={styles.menuLabel}>MAIN MENU</p>
 
             {renderMenu}
           </div>
@@ -261,12 +235,10 @@ export default function MainLayout({ children }) {
         <button
           style={styles.logoutBtn}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background =
-              "rgba(255,255,255,0.12)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.12)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background =
-              "rgba(255,255,255,0.06)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
           }}
           onClick={handleLogout}
         >
@@ -274,11 +246,8 @@ export default function MainLayout({ children }) {
         </button>
       </aside>
 
-      <main style={styles.main}>
-        {children}
-      </main>
+      <main style={styles.main}>{children}</main>
     </div>
-    
   );
 }
 

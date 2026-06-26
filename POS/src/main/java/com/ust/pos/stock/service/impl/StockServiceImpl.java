@@ -7,7 +7,6 @@ import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,21 +17,23 @@ import java.util.List;
 @Service
 @Transactional
 public class StockServiceImpl implements StockService {
-    @Autowired
-    ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+    private final StockRepository stockRepository;
 
-    @Autowired
-    StockRepository stockRepository;
+    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper) {
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public StockDto save(StockDto stockDto) {
         if (stockDto.getQuantity() > 0) {
-            stockDto.setStockStatus("Available");
+            stockDto.setStockStatus("IN_STOCK");
         } else {
-            stockDto.setStockStatus("Not Available");
+            stockDto.setStockStatus("OUT_OF_STOCK");
         }
         Stock stock = modelMapper.map(stockDto, Stock.class);
-        if (stockRepository.findByIdentifier(stock.getIdentifier()) != null) {
+        if (stockRepository.findByIdentifierAndDeletedFalse(stock.getIdentifier()) != null) {
             stockDto.setMessage("The Product " + stockDto.getIdentifier() + "Already Exists");
             stockDto.setSuccess(false);
             return stockDto;
@@ -43,16 +44,16 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public StockDto update(StockDto stockDto) {
-        Stock existingStock = stockRepository.findByIdentifier(stockDto.getIdentifier());
+        Stock existingStock = stockRepository.findByIdentifierAndDeletedFalse(stockDto.getIdentifier());
         if (existingStock == null) {
             stockDto.setMessage("Stock with " + stockDto.getIdentifier() + "not found.");
             stockDto.setSuccess(false);
             return stockDto;
         }
         if (stockDto.getQuantity() > 0) {
-            stockDto.setStockStatus("Available");
+            stockDto.setStockStatus("IN_STOCK");
         } else {
-            stockDto.setStockStatus("Not Available");
+            stockDto.setStockStatus("OUT_OF_STOCK");
         }
         modelMapper.map(stockDto, existingStock);
         stockRepository.save(existingStock);
@@ -63,32 +64,39 @@ public class StockServiceImpl implements StockService {
     public List<StockDto> findAll() {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
-        return modelMapper.map(stockRepository.findAll(), listType);
+        return modelMapper.map(stockRepository.findByDeletedFalse(), listType);
     }
 
     @Override
     public void delete(String identifier) {
-        stockRepository.deleteByIdentifier(identifier);
+        Stock stock = stockRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (stock != null) {
+            stock.setDeleted(true);
+            stockRepository.save(stock);
+        }
     }
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        Stock stock = stockRepository.findByIdentifier(identifier);
+        Stock stock = stockRepository.findByIdentifierAndDeletedFalse(identifier);
         return modelMapper.map(stock, StockDto.class);
     }
 
     @Override
     public void updateStatusOnly(String identifier, boolean status) {
-        Stock stock = stockRepository.findByIdentifier(identifier);
+        Stock stock = stockRepository.findByIdentifierAndDeletedFalse(identifier);
         stock.setStatus(status);
         stockRepository.save(stock);
     }
 
     @Override
-    public List<StockDto> findAll(Pageable pageable) {
-        Type listOfType = new TypeToken<List<StockDto>>() {
-        }.getType();
-        Page<Stock> stockPage = stockRepository.findAll(pageable);
-        return modelMapper.map(stockPage.getContent(), listOfType);
+    public Page<StockDto> findAll(String search, Pageable pageable) {
+        Page<Stock> rolePage;
+        if (search != null && !search.trim().isEmpty()) {
+            rolePage = stockRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+        } else {
+            rolePage = stockRepository.findByDeletedFalse(pageable);
+        }
+        return rolePage.map(stock -> modelMapper.map(stock, StockDto.class));
     }
 }

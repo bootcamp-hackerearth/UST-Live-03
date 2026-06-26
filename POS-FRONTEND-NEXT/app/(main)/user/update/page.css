@@ -1,4 +1,3 @@
-
 .update-wrapper {
   min-height: 100vh;
   display: flex;
@@ -9,11 +8,11 @@
   padding: 20px;
   box-sizing: border-box;
 }
- 
+
 /* =========================
    CARD
 ========================= */
- 
+
 .update-card {
   width: 450px;
   background: #ffffff;
@@ -22,11 +21,11 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   transition: 0.3s ease;
 }
- 
+
 .update-card:hover {
   transform: translateY(-2px);
 }
- 
+
 /* Title */
 .update-title {
   text-align: center;
@@ -35,11 +34,11 @@
   color: #111827;
   margin-bottom: 20px;
 }
- 
+
 /* =========================
    FORM ROW
 ========================= */
- 
+
 .update-row {
   display: flex;
   justify-content: space-between;
@@ -48,81 +47,81 @@
   border-bottom: 1px solid #f1f5f9;
   gap: 10px;
 }
- 
+
 .update-row label {
   font-size: 14px;
   color: #6b7280;
   font-weight: 500;
   width: 40%;
 }
- 
+
 /* INPUT */
 .update-row input {
   width: 60%;
   padding: 10px 12px;
- 
+
   border: 1px solid #e5e7eb;
   border-radius: 10px;
- 
+
   font-size: 14px;
   color: #111827;
- 
+
   background: #f9fafb;
   outline: none;
   transition: 0.2s ease;
 }
- 
+
 .update-row input:focus {
   border-color: #6366f1;
   background: #fff;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
- 
+
 .update-row input:disabled {
   background: #e5e7eb;
   color: #4b5563;
   cursor: not-allowed;
 }
- 
+
 /* =========================
    BUTTONS
 ========================= */
- 
+
 .update-btn {
   width: 100%;
   height: 46px;
   margin-top: 18px;
- 
+
   border: none;
   border-radius: 12px;
- 
+
   background: #18192c;
   color: #ffffff;
   justify-content: center;
 }
- 
+
 .update-btn:hover {
   transform: translateY(-2px);
   opacity: 0.95;
 }
- 
+
 .update-btn:active {
   transform: scale(0.98);
 }
- 
+
 /* Cancel button variant */
 .update-btn.cancel {
   background: linear-gradient(135deg, #111827, #1f2937);
 }
- 
+
 .update-btn.cancel:hover {
   background: linear-gradient(135deg, #1f2937, #374151);
 }
- 
+
 /* =========================
    LOADING
 ========================= */
- 
+
 .update-loading {
   min-height: 100vh;
   display: flex;
@@ -131,26 +130,26 @@
   font-size: 18px;
   color: #6b7280;
 }
- 
+
 /* =========================
    RESPONSIVE
 ========================= */
- 
+
 @media (max-width: 500px) {
   .update-card {
     width: 100%;
     padding: 22px;
   }
- 
+
   .update-row {
     flex-direction: column;
     align-items: flex-start;
   }
- 
+
   .update-row input {
     width: 100%;
   }
- 
+
   .update-row label {
     width: 100%;
   }

@@ -49,7 +49,7 @@ class UserServiceTest {
         User user = new User();
         user.setUsername("admin");
 
-        Mockito.when(userRepository.findByUsername("admin"))
+        Mockito.when(userRepository.findByUsernameAndDeletedFalse("admin"))
                 .thenReturn(null);
         Mockito.when(modelMapper.map(dto, User.class))
                 .thenReturn(user);
@@ -69,7 +69,7 @@ class UserServiceTest {
         UserDto dto = new UserDto();
         dto.setUsername("admin");
 
-        Mockito.when(userRepository.findByUsername("admin"))
+        Mockito.when(userRepository.findByUsernameAndDeletedFalse("admin"))
                 .thenReturn(new User());
 
         UserDto response = userService.save(dto);
@@ -90,7 +90,7 @@ class UserServiceTest {
         UserDto dto = new UserDto();
         dto.setUsername("admin");
 
-        Mockito.when(userRepository.findByUsername("admin"))
+        Mockito.when(userRepository.findByUsernameAndDeletedFalse("admin"))
                 .thenReturn(user);
         Mockito.when(modelMapper.map(user, UserDto.class))
                 .thenReturn(dto);
@@ -156,7 +156,7 @@ class UserServiceTest {
 
         Mockito.when(userRepository.findById(1L))
                 .thenReturn(Optional.of(existing));
-        Mockito.when(userRepository.findByUsername("newname"))
+        Mockito.when(userRepository.findByUsernameAndDeletedFalse("newname"))
                 .thenReturn(new User());
 
         UserDto response = userService.update(dto);
@@ -169,58 +169,136 @@ class UserServiceTest {
 
     @Test
     void findAllTest() {
+
         List<User> users = List.of(new User());
         List<UserDto> dtos = List.of(new UserDto());
 
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
 
-        Mockito.when(userRepository.findAll())
+        Mockito.when(userRepository.findByDeletedFalse())
                 .thenReturn(users);
+
         Mockito.when(modelMapper.map(users, listType))
                 .thenReturn(dtos);
-
-        List<UserDto> response = userService.findAll();
-
-        Assertions.assertEquals(1, response.size());
-    }
-
-    // DELETE
-
-    @Test
-    void deleteTest() {
-        Mockito.doNothing()
-                .when(userRepository)
-                .deleteByUsername("admin");
-
-        userService.delete("admin");
-
-        Mockito.verify(userRepository)
-                .deleteByUsername("admin");
-    }
-
-    @Test
-    void findAll_ShouldReturnUserDtos() {
-
-        List<User> users = List.of(new User());
-
-        List<UserDto> userDtos = List.of(new UserDto());
-
-        Type listType = new TypeToken<List<UserDto>>() {
-        }.getType();
-
-        Mockito.when(userRepository.findAll())
-                .thenReturn(users);
-
-        Mockito.when(modelMapper.map(users, listType))
-                .thenReturn(userDtos);
 
         List<UserDto> response = userService.findAll();
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
 
-        Mockito.verify(userRepository).findAll();
-        Mockito.verify(modelMapper).map(users, listType);
+        Mockito.verify(userRepository)
+                .findByDeletedFalse();
+    }
+    // DELETE
+
+    @Test
+    void deleteTest() {
+        User user = new User();
+        user.setUsername("admin");
+        user.setDeleted(false);
+
+        Mockito.when(
+                        userRepository.findByUsernameAndDeletedFalse("admin"))
+                .thenReturn(user);
+
+        userService.delete("admin");
+
+        Assertions.assertTrue(user.isDeleted());
+
+        Mockito.verify(userRepository)
+                .findByUsernameAndDeletedFalse("admin");
+
+        Mockito.verify(userRepository)
+                .save(user);
+    }
+
+    @Test
+    void findAll_WithPagination_ShouldReturnUserDtos() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        User user = new User();
+        user.setUsername("admin");
+
+        UserDto userDto = new UserDto();
+        userDto.setUsername("admin");
+
+        Page<User> page =
+                new PageImpl<>(List.of(user));
+
+        Mockito.when(
+                        userRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        Mockito.when(
+                        modelMapper.map(user, UserDto.class))
+                .thenReturn(userDto);
+
+        Page<UserDto> response =
+                userService.findAll(null, pageable);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(
+                1,
+                response.getContent().size()
+        );
+
+        Assertions.assertEquals(
+                "admin",
+                response.getContent().get(0).getUsername()
+        );
+
+        Mockito.verify(userRepository)
+                .findByDeletedFalse(pageable);
+
+        Mockito.verify(modelMapper)
+                .map(user, UserDto.class);
+    }
+
+    @Test
+    void findAll_WithSearch_ShouldReturnUserDtos() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        User user = new User();
+        user.setUsername("admin");
+
+        UserDto userDto = new UserDto();
+        userDto.setUsername("admin");
+
+        Page<User> page =
+                new PageImpl<>(List.of(user));
+
+        Mockito.when(
+                        userRepository
+                                .findByUsernameContainingIgnoreCaseAndDeletedFalse(
+                                        "admin",
+                                        pageable))
+                .thenReturn(page);
+
+        Mockito.when(
+                        modelMapper.map(user, UserDto.class))
+                .thenReturn(userDto);
+
+        Page<UserDto> response =
+                userService.findAll("admin", pageable);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(
+                1,
+                response.getContent().size()
+        );
+
+        Assertions.assertEquals(
+                "admin",
+                response.getContent().get(0).getUsername()
+        );
+
+        Mockito.verify(userRepository)
+                .findByUsernameContainingIgnoreCaseAndDeletedFalse(
+                        "admin",
+                        pageable);
+
+        Mockito.verify(modelMapper)
+                .map(user, UserDto.class);
     }
 }

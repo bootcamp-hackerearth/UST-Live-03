@@ -49,14 +49,14 @@ const CommonList = ({
   const [localSearch, setLocalSearch] = useState(search || "");
 
   const isControlledSearch =
-    typeof setSearch === "function" &&
-    typeof search === "string";
+    typeof setSearch === "function" && typeof search === "string";
 
-  const searchValue = isControlledSearch
-    ? localSearch
-    : internalSearch;
+  const searchValue = isControlledSearch ? localSearch : internalSearch;
 
-  const pageNumbers = Array.from({ length: Math.max(0, totalPages) }, (_, n) => n);
+  const pageNumbers = Array.from(
+    { length: Math.max(0, totalPages) },
+    (_, n) => n,
+  );
 
   // Debounce parent updates
   useEffect(() => {
@@ -70,18 +70,10 @@ const CommonList = ({
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [
-    localSearch,
-    search,
-    setSearch,
-    setPage,
-    isControlledSearch,
-  ]);
+  }, [localSearch, search, setSearch, setPage, isControlledSearch]);
 
   const toggleMenu = (id) => {
-    setOpenMenu((prev) =>
-      prev === id ? null : id
-    );
+    setOpenMenu((prev) => (prev === id ? null : id));
   };
 
   const filteredData = useMemo(() => {
@@ -91,28 +83,31 @@ const CommonList = ({
       Object.values(row || {}).some((value) =>
         String(value || "")
           .toLowerCase()
-          .includes(term)
-      )
+          .includes(term),
+      ),
     );
   }, [safeData, searchValue]);
 
   if (loading) return <div>Loading...</div>;
 
   if (error) {
-    return (
-      <div style={{ color: "red" }}>
-        {error}
-      </div>
-    );
+    return <div style={{ color: "red" }}>{error}</div>;
   }
+  const formatAuditDate = (value) => {
+    if (!value) return "-";
+
+    try {
+      return new Date(value).toLocaleString();
+    } catch {
+      return value;
+    }
+  };
 
   return (
     <div className="section">
       {/* HEADER */}
       <div className="tableHeader">
-        <h2 className="sectionTitle">
-          {title}
-        </h2>
+        <h2 className="sectionTitle">{title}</h2>
 
         <div className="headerActions">
           <input
@@ -145,95 +140,93 @@ const CommonList = ({
           )}
         </div>
       </div>
-            {/* TABLE */}
+      {/* TABLE */}
       <div className="tableWrapper">
         <table className="productTable">
           <thead>
             <tr>
               {columns.map((col, i) => (
-                <th key={col.key ?? col.label ?? `col-${i}`}>
-                  {col.label}
-                </th>
+                <th key={col.key ?? col.label ?? `col-${i}`}>{col.label}</th>
               ))}
-              {actions.length > 0 && (
-                <th>Actions</th>
-              )}
+              {actions.length > 0 && <th>Actions</th>}
             </tr>
           </thead>
 
-         <tbody>
-  {filteredData.length > 0 ? (
-    filteredData.map((row, rowIndex) => {
-      const rowId =
-        row.id ??
-        row._id ??
-        row.identifier ??
-        row.username ??
-        `row-${rowIndex}`;
+          <tbody>
+            {filteredData.length > 0 ? (
+              filteredData.map((row, rowIndex) => {
+                const rowId =
+                  row.id ??
+                  row._id ??
+                  row.identifier ??
+                  row.username ??
+                  `row-${rowIndex}`;
 
-      return (
-        <tr key={rowId}>
-          {columns.map((col, i) => {
-            const cellKey = col.key ?? col.label ?? `col-${i}`;
-            const cellValue = col.render
-              ? col.render(row)
-              : row?.[col.key] ?? "-";
+                return (
+                  <tr key={rowId}>
+                    {columns.map((col, i) => {
+                      const cellKey = col.key ?? col.label ?? `col-${i}`;
+                      let cellValue;
 
-            return (
-              <td key={cellKey}>
-                {cellValue}
-              </td>
-            );
-          })}
+                      if (col.render) {
+                        cellValue = col.render(row);
+                      } else if (
+                        ["createdOn", "modifiedOn"].includes(col.key)
+                      ) {
+                        cellValue = formatAuditDate(row?.[col.key]);
+                      } else {
+                        cellValue = row?.[col.key] ?? "-";
+                      }
 
-          {actions.length > 0 && (
-            <td>
-              <div className="actionMenu">
-                <button
-                  className="menuBtn"
-                  onClick={() => toggleMenu(rowId)}
+                      return <td key={cellKey}>{cellValue}</td>;
+                    })}
+
+                    {actions.length > 0 && (
+                      <td>
+                        <div className="actionMenu">
+                          <button
+                            className="menuBtn"
+                            onClick={() => toggleMenu(rowId)}
+                          >
+                            ⋮
+                          </button>
+
+                          {openMenu === rowId && (
+                            <div className="dropdownMenu">
+                              {actions.map((action, idx) => (
+                                <button
+                                  key={action.label ?? `action-${idx}`}
+                                  className="dropdownItem"
+                                  onClick={() => {
+                                    action.onClick(row);
+                                    setOpenMenu(null);
+                                  }}
+                                >
+                                  {action.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length + (actions.length > 0 ? 1 : 0)}
+                  className="emptyRow"
                 >
-                  ⋮
-                </button>
-
-                {openMenu === rowId && (
-                  <div className="dropdownMenu">
-                    {actions.map((action, idx) => (
-                      <button
-                        key={action.label ?? `action-${idx}`}
-                        className="dropdownItem"
-                        onClick={() => {
-                          action.onClick(row);
-                          setOpenMenu(null);
-                        }}
-                      >
-                        {action.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </td>
-          )}
-        </tr>
-      );
-    })
-  ) : (
-    <tr>
-      <td
-        colSpan={
-          columns.length + (actions.length > 0 ? 1 : 0)
-        }
-        className="emptyRow"
-      >
-        {emptyMessage}
-      </td>
-    </tr>
-  )}
-</tbody>
+                  {emptyMessage}
+                </td>
+              </tr>
+            )}
+          </tbody>
         </table>
       </div>
-            {/* PAGINATION */}
+      {/* PAGINATION */}
       {setPage && totalPages > 0 && (
         <div className="pagination">
           <button
@@ -287,81 +280,81 @@ const CommonList = ({
 
             {addFields.map((field, index) => {
               const key = field.name ?? field.label ?? index;
-              const addFieldValue = field.multiple ? (newItem?.[field.name] || []) : (newItem?.[field.name] || "");
+              const addFieldValue = field.multiple
+                ? newItem?.[field.name] || []
+                : newItem?.[field.name] || "";
 
               let fieldContent;
 
-if (field.type === "select") {
-  fieldContent = (
-    <select
-      multiple={field.multiple}
-      value={addFieldValue}
-      onChange={(e) => {
-        const value = field.multiple
-          ? [...e.target.selectedOptions].map((o) => o.value)
-          : e.target.value;
+              if (field.type === "select") {
+                fieldContent = (
+                  <select
+                    multiple={field.multiple}
+                    value={addFieldValue}
+                    onChange={(e) => {
+                      const value = field.multiple
+                        ? [...e.target.selectedOptions].map((o) => o.value)
+                        : e.target.value;
 
-        setNewItem({
-          ...newItem,
-          [field.name]: value,
-        });
-      }}
-    >
-      {!field.multiple && (
-        <option value="">{field.label}</option>
-      )}
+                      setNewItem({
+                        ...newItem,
+                        [field.name]: value,
+                      });
+                    }}
+                  >
+                    {!field.multiple && <option value="">{field.label}</option>}
 
-      {field.options?.map((opt, i) => (
-        <option
-          key={opt.value ?? opt.label ?? `opt-${i}`}
-          value={opt.value}
-        >
-          {opt.label}
-        </option>
-      ))}
-    </select>
-  );
-} else if (field.type === "checkbox") {
-  fieldContent = (
-    <div className="toggleContainer">
-      <span>{field.label}</span>
+                    {field.options?.map((opt, i) => (
+                      <option
+                        key={opt.value ?? opt.label ?? `opt-${i}`}
+                        value={opt.value}
+                      >
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                );
+              } else if (field.type === "checkbox") {
+                fieldContent = (
+                  <div className="toggleContainer">
+                    <span>{field.label}</span>
 
-      <label className="switch" aria-label={field.label}>
-        <input
-          type="checkbox"
-          checked={newItem?.[field.name] || false}
-          onChange={(e) =>
-            setNewItem({
-              ...newItem,
-              [field.name]: e.target.checked,
-            })
-          }
-        />
-        <span className="slider round"></span>
-      </label>
-    </div>
-  );
-} else {
-  fieldContent = (
-    <input
-      type={field.type || "text"}
-      placeholder={field.label}
-      value={newItem?.[field.name] || ""}
-      onChange={(e) =>
-        setNewItem({
-          ...newItem,
-          [field.name]: e.target.value,
-        })
-      }
-    />
-  );
-}
+                    <label className="switch" aria-label={field.label}>
+                      <input
+                        type="checkbox"
+                        checked={newItem?.[field.name] || false}
+                        onChange={(e) =>
+                          setNewItem({
+                            ...newItem,
+                            [field.name]: e.target.checked,
+                          })
+                        }
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                  </div>
+                );
+              } else {
+                fieldContent = (
+                  <input
+                    type={field.type || "text"}
+                    placeholder={field.label}
+                    value={newItem?.[field.name] || ""}
+                    onChange={(e) =>
+                      setNewItem({
+                        ...newItem,
+                        [field.name]: e.target.value,
+                      })
+                    }
+                  />
+                );
+              }
 
-return (
-  <div key={key} style={{ marginBottom: "10px" }}>
-    {fieldContent}
-  </div>
-);
+              return (
+                <div key={key} style={{ marginBottom: "10px" }}>
+                  {fieldContent}
+                </div>
+              );
             })}
 
             <div className="modalActions">
@@ -375,14 +368,12 @@ return (
                         String(item?.identifier || "")
                           .trim()
                           .toLowerCase() ===
-                        String(newItem.identifier)
-                          .trim()
-                          .toLowerCase()
+                        String(newItem.identifier).trim().toLowerCase(),
                     );
 
                     if (duplicateExists) {
                       setAddError(
-                        `${title} with identifier "${newItem.identifier}" already exists`
+                        `${title} with identifier "${newItem.identifier}" already exists`,
                       );
                       return;
                     }
@@ -416,82 +407,83 @@ return (
 
             {editFields.map((field, index) => {
               const key = field.name ?? field.label ?? index;
-              const editFieldValue = field.multiple ? (editItem?.[field.name] || []) : (editItem?.[field.name] || "");
+              const editFieldValue = field.multiple
+                ? editItem?.[field.name] || []
+                : editItem?.[field.name] || "";
 
               let fieldContent;
 
-if (field.type === "select") {
-  fieldContent = (
-    <select
-      multiple={field.multiple}
-      value={editFieldValue}
-      onChange={(e) => {
-        const value = field.multiple
-          ? [...e.target.selectedOptions].map((o) => o.value)
-          : e.target.value;
+              if (field.type === "select") {
+                fieldContent = (
+                  <select
+                    multiple={field.multiple}
+                    value={editFieldValue}
+                    onChange={(e) => {
+                      const value = field.multiple
+                        ? [...e.target.selectedOptions].map((o) => o.value)
+                        : e.target.value;
 
-        setEditItem({
-          ...editItem,
-          [field.name]: value,
-        });
-      }}
-    >
-      {!field.multiple && (
-        <option value="">{field.label}</option>
-      )}
+                      setEditItem({
+                        ...editItem,
+                        [field.name]: value,
+                      });
+                    }}
+                  >
+                    {!field.multiple && <option value="">{field.label}</option>}
 
-      {field.options?.map((opt, i) => (
-        <option
-          key={opt.value ?? opt.label ?? `opt-${i}`}
-          value={opt.value}
-        >
-          {opt.label}
-        </option>
-      ))}
-    </select>
-  );
-} else if (field.type === "checkbox") {
-  fieldContent = (
-    <div className="toggleContainer">
-      <span>{field.label}</span>
+                    {field.options?.map((opt, i) => (
+                      <option
+                        key={opt.value ?? opt.label ?? `opt-${i}`}
+                        value={opt.value}
+                      >
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                );
+              } else if (field.type === "checkbox") {
+                fieldContent = (
+                  <div className="toggleContainer">
+                    <span>{field.label}</span>
 
-      <label className="switch" aria-label={field.label}>
-        <input
-          type="checkbox"
-          checked={editItem?.[field.name] || false}
-          onChange={(e) =>
-            setEditItem({
-              ...editItem,
-              [field.name]: e.target.checked,
-            })
-          }
-        />
-        <span className="slider round"></span>
-      </label>
-    </div>
-  );
-} else {
-  fieldContent = (
-    <input
-      type={field.type || "text"}
-      placeholder={field.label}
-      disabled={field.disabled}
-      value={editItem?.[field.name] || ""}
-      onChange={(e) =>
-        setEditItem({
-          ...editItem,
-          [field.name]: e.target.value,
-        })
-      }
-    />
-  );
-}
+                    <label className="switch" aria-label={field.label}>
+                      <input
+                        type="checkbox"
+                        checked={editItem?.[field.name] || false}
+                        onChange={(e) =>
+                          setEditItem({
+                            ...editItem,
+                            [field.name]: e.target.checked,
+                          })
+                        }
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                  </div>
+                );
+              } else {
+                fieldContent = (
+                  <input
+                    type={field.type || "text"}
+                    placeholder={field.label}
+                    disabled={field.disabled}
+                    value={editItem?.[field.name] || ""}
+                    onChange={(e) =>
+                      setEditItem({
+                        ...editItem,
+                        [field.name]: e.target.value,
+                      })
+                    }
+                  />
+                );
+              }
 
-return (
-  <div key={key} style={{ marginBottom: "10px" }}>
-    {fieldContent}
-  </div>
-); })}
+              return (
+                <div key={key} style={{ marginBottom: "10px" }}>
+                  {fieldContent}
+                </div>
+              );
+            })}
 
             <div className="modalActions">
               <button
@@ -502,14 +494,12 @@ return (
                         String(item?.identifier || "")
                           .trim()
                           .toLowerCase() ===
-                        String(editItem.identifier)
-                          .trim()
-                          .toLowerCase()
+                        String(editItem.identifier).trim().toLowerCase(),
                     );
 
                     if (duplicateExists) {
                       alert(
-                        `${title} with identifier "${editItem.identifier}" already exists`
+                        `${title} with identifier "${editItem.identifier}" already exists`,
                       );
                       return;
                     }
@@ -521,9 +511,7 @@ return (
                 {editItem?.isNew ? "Add" : "Update"}
               </button>
 
-              <button onClick={() => setEditItem(null)}>
-                Cancel
-              </button>
+              <button onClick={() => setEditItem(null)}>Cancel</button>
             </div>
           </div>
         </div>
@@ -540,7 +528,7 @@ CommonList.propTypes = {
       label: PropTypes.node,
       key: PropTypes.string,
       render: PropTypes.func,
-    })
+    }),
   ),
   loading: PropTypes.bool,
   error: PropTypes.string,

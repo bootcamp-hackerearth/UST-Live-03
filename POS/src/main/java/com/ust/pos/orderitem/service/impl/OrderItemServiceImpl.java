@@ -6,7 +6,6 @@ import com.ust.pos.model.OrderItemRepository;
 import com.ust.pos.orderitem.service.OrderItemService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,19 +17,20 @@ import java.util.List;
 @Service
 @Transactional
 public class OrderItemServiceImpl implements OrderItemService {
+    private final OrderItemRepository orderItemRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public OrderItemServiceImpl(OrderItemRepository orderItemRepository, ModelMapper modelMapper) {
+        this.modelMapper = modelMapper;
+        this.orderItemRepository = orderItemRepository;
+    }
 
     @Override
     public OrderItemDto save(OrderItemDto dto) {
 
         dto.setIdentifier(dto.getOrderIdentifier() + "_" + dto.getProduct());
 
-        OrderItem existing = orderItemRepository.findByIdentifier(dto.getIdentifier());
+        OrderItem existing = orderItemRepository.findByIdentifierAndDeletedFalse(dto.getIdentifier());
 
         if (existing == null) {
             existing = new OrderItem();
@@ -46,7 +46,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Override
     public OrderItemDto update(OrderItemDto dto) {
 
-        OrderItem existing = orderItemRepository.findByIdentifier(dto.getIdentifier());
+        OrderItem existing = orderItemRepository.findByIdentifierAndDeletedFalse(dto.getIdentifier());
 
         if (existing == null) {
             dto.setSuccess(false);
@@ -63,12 +63,16 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public void delete(String identifier) {
-        orderItemRepository.deleteByIdentifier(identifier);
+        OrderItem orderItem = orderItemRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (orderItem != null) {
+            orderItem.setDeleted(true);
+            orderItemRepository.save(orderItem);
+        }
     }
 
     @Override
     public OrderItemDto findByIdentifier(String identifier) {
-        OrderItem item = orderItemRepository.findByIdentifier(identifier);
+        OrderItem item = orderItemRepository.findByIdentifierAndDeletedFalse(identifier);
 
         if (item == null) {
             OrderItemDto dto = new OrderItemDto();
@@ -82,13 +86,15 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public List<OrderItemDto> findAll() {
-        Type listType = new TypeToken<List<OrderItemDto>>() {}.getType();
-        return modelMapper.map(orderItemRepository.findAll(), listType);
+        Type listType = new TypeToken<List<OrderItemDto>>() {
+        }.getType();
+        return modelMapper.map(orderItemRepository.findByDeletedFalse(), listType);
     }
 
     @Override
     public List<OrderItemDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<OrderItemDto>>() {}.getType();
+        Type listType = new TypeToken<List<OrderItemDto>>() {
+        }.getType();
 
         Page<OrderItem> page = orderItemRepository.findAll(pageable);
 
@@ -97,9 +103,10 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public List<OrderItemDto> findByOrderIdentifier(String orderIdentifier) {
-        Type listType = new TypeToken<List<OrderItemDto>>() {}.getType();
+        Type listType = new TypeToken<List<OrderItemDto>>() {
+        }.getType();
 
-        List<OrderItem> items = orderItemRepository.findByOrderIdentifier(orderIdentifier);
+        List<OrderItem> items = orderItemRepository.findByOrderIdentifierAndDeletedFalse(orderIdentifier);
 
         return modelMapper.map(items, listType);
     }

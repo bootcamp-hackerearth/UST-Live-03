@@ -27,19 +27,33 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // ================= GLOBAL ERROR HANDLING =================
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (
-      error.response?.status === 401 &&
-      globalThis.window !== undefined
-    ) {
-      globalThis.localStorage.removeItem("token");
-      globalThis.location.replace("/login");
+    const status = error?.response?.status;
+
+    if (typeof globalThis !== "undefined") {
+      switch (status) {
+        case 401:
+          localStorage.removeItem("token");
+          globalThis.location.replace("/login");
+          break;
+
+        case 404:
+          globalThis.location.replace("/not-found");
+          break;
+
+        case 500:
+          globalThis.location.replace("/server-error");
+          break;
+
+        default:
+          break;
+      }
     }
 
     return Promise.reject(error);
@@ -86,17 +100,13 @@ export const getItem = async (model, identifier) => {
 
 // ================= UPDATE =================
 export const updateItem = async (model, data) => {
-  const response = await api.post(`/api/${model}/update`, data);
+  const response = await api.put(`/api/${model}/update`, data);
   return response.data;
 };
 
 // ================= DELETE =================
-export const deleteItem = async (
-  model,
-  value,
-  key = "identifier"
-) => {
-  const response = await api.get(`/api/${model}/delete`, {
+export const deleteItem = async (model, value, key = "identifier") => {
+  const response = await api.delete(`/api/${model}/delete`, {
     params: {
       [key]: value,
     },
@@ -107,13 +117,9 @@ export const deleteItem = async (
 
 // ================= TOGGLE STATUS =================
 export const toggleItem = async (model, identifier) => {
-  const response = await api.post(
-    `/api/${model}/toggleStatus`,
-    null,
-    {
-      params: { identifier },
-    }
-  );
+  const response = await api.post(`/api/${model}/toggleStatus`, null, {
+    params: { identifier },
+  });
 
   return response.data;
 };
@@ -129,10 +135,7 @@ export const loginUser = async (username, password) => {
 };
 
 export const registerUser = async (userData) => {
-  const response = await api.post(
-    "/api/user/register",
-    userData
-  );
+  const response = await api.post("/api/user/register", userData);
 
   return response.data;
 };
@@ -143,10 +146,7 @@ export const getCurrentUser = async () => {
 };
 
 export const updateUser = async (userData) => {
-  const response = await api.post(
-    "/api/user/update",
-    userData
-  );
+  const response = await api.put("/api/user/update", userData);
 
   return response.data;
 };
@@ -156,4 +156,63 @@ export const fetchRoles = async () => {
   return response.data;
 };
 
+// ================= CART =================
+
+export const createCart = async (data) => {
+  const response = await api.post("/api/cart/add", data);
+  return response.data;
+};
+
+export const getCart = async (identifier) => {
+  const response = await api.get("/api/cart/get", {
+    params: { identifier },
+  });
+
+  return response.data;
+};
+
+// ================= CART ENTRY =================
+
+export const addCartEntry = async (data) => {
+  const response = await api.post("/api/cartentry/add", data);
+
+  return response.data;
+};
+
+export const getCartEntries = async (cartId) => {
+  const response = await api.post("/api/cartentry/getByCartId", {
+    cartId,
+  });
+
+  return response.data;
+};
+
+export const deleteCartEntry = async (identifier) => {
+  const response = await api.delete("/api/cartentry/delete", {
+    params: {
+      identifier,
+    },
+  });
+
+  return response.data;
+};
+
+export const updateCartEntry = async (data) => {
+  const response = await api.put("/api/cartentry/update", data);
+
+  return response.data;
+};
+
+// ================= ORDER =================
+
+export const createOrder = async (cartId, paymentMethod) => {
+  const response = await api.post("/api/order/add", null, {
+    params: {
+      cartId,
+      paymentMethod,
+    },
+  });
+
+  return response.data;
+};
 export default api;

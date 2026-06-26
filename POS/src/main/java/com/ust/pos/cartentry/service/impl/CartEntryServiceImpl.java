@@ -8,7 +8,6 @@ import com.ust.pos.model.*;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,18 +20,23 @@ import java.util.List;
 @Service
 @Transactional
 public class CartEntryServiceImpl implements CartEntryService {
-    @Autowired
-    private PriceService priceService;
-    @Autowired
-    private CartService cartService;
-    @Autowired
-    private PriceRepository priceRepository;
-    @Autowired
-    private CartEntryRepository cartEntryRepository;
-    @Autowired
-    private CartRepository cartRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final PriceService priceService;
+    private final CartService cartService;
+    private final PriceRepository priceRepository;
+    private final CartEntryRepository cartEntryRepository;
+    private final CartRepository cartRepository;
+    private final ModelMapper modelMapper;
+
+    public CartEntryServiceImpl(PriceService priceService, CartEntryRepository cartEntryRepository,
+                                CartService cartService, PriceRepository priceRepository,
+                                CartRepository cartRepository, ModelMapper modelMapper) {
+        this.cartEntryRepository = cartEntryRepository;
+        this.cartRepository = cartRepository;
+        this.cartService = cartService;
+        this.priceService = priceService;
+        this.priceRepository = priceRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CartEntryDto save(CartEntryDto cartEntryDto) {
@@ -69,7 +73,7 @@ public class CartEntryServiceImpl implements CartEntryService {
         }
 
         Price price =
-                priceRepository.findByIdentifier(
+                priceRepository.findByIdentifierAndDeletedFalse(
                         cartEntryDto.getProduct()
                 );
 
@@ -233,5 +237,10 @@ public class CartEntryServiceImpl implements CartEntryService {
         }.getType();
         List<CartEntry> cartEntryList = cartEntryRepository.findByCartId(cart);
         return modelMapper.map(cartEntryList, listOfType);
+    }
+
+    @Override
+    public void deleteAll(String cartID) {
+        cartEntryRepository.deleteByCartId(cartID);
     }
 }

@@ -17,7 +17,7 @@ public interface ProductService {
 
     ProductDto findByIdentifier(String identifier);
 
-    Page<ProductDto> findAll(String search,Pageable pageable);
+    Page<ProductDto> findAll(String search, Pageable pageable);
 
     void toggleStatus(String identifier);
 

@@ -1,14 +1,11 @@
 package com.ust.pos.product.service.impl;
 
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.ProductDto;
-import com.ust.pos.model.Node;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,17 +17,18 @@ import java.util.List;
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
+    private final ProductRepository productRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public ProductServiceImpl(ProductRepository productRepository, ModelMapper modelMapper) {
+        this.productRepository = productRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public ProductDto save(ProductDto productDto) {
         String identifier = productDto.getIdentifier();
-        Product existingProduct = productRepository.findByIdentifier(identifier);
+        Product existingProduct = productRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingProduct != null) {
             productDto.setMessage("Product with identifier - " + identifier + " already exists");
             productDto.setSuccess(false);
@@ -44,7 +42,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto update(ProductDto productDto) {
         String identifier = productDto.getIdentifier();
-        Product existingProduct = productRepository.findByIdentifier(identifier);
+        Product existingProduct = productRepository.findByIdentifierAndDeletedFalse(identifier);
         if (existingProduct == null) {
             productDto.setMessage("Product with identifier - " + identifier + " is not found");
             productDto.setSuccess(false);
@@ -57,37 +55,40 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void delete(String identifier) {
-        productRepository.deleteByIdentifier(identifier);
+        Product product = productRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (product != null) {
+            product.setDeleted(true);
+            productRepository.save(product);
+        }
     }
 
     @Override
     public List<ProductDto> findAll() {
         Type listOfType = new TypeToken<List<ProductDto>>() {
         }.getType();
-        return modelMapper.map(productRepository.findAll(), listOfType);
+        return modelMapper.map(productRepository.findByDeletedFalse(), listOfType);
     }
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
-        return modelMapper.map(productRepository.findByIdentifier(identifier), ProductDto.class);
+        return modelMapper.map(productRepository.findByIdentifierAndDeletedFalse(identifier), ProductDto.class);
     }
-
 
 
     @Override
     public Page<ProductDto> findAll(String search, Pageable pageable) {
         Page<Product> rolePage;
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = productRepository.findByIdentifierContainingIgnoreCase(search, pageable);
+            rolePage = productRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
         } else {
-            rolePage = productRepository.findAll(pageable);
+            rolePage = productRepository.findByDeletedFalse(pageable);
         }
         return rolePage.map(product -> modelMapper.map(product, ProductDto.class));
     }
 
     @Override
     public void toggleStatus(String identifier) {
-        Product products = productRepository.findByIdentifier(identifier);
+        Product products = productRepository.findByIdentifierAndDeletedFalse(identifier);
         if (products != null) {
             products.setStatus(!products.getStatus());
             productRepository.save(products);

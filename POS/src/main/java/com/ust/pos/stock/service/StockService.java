@@ -1,6 +1,7 @@
 package com.ust.pos.stock.service;
 
 import com.ust.pos.dto.StockDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -18,6 +19,6 @@ public interface StockService {
 
     void updateStatusOnly(String identifier, boolean status);
 
-    List<StockDto> findAll(Pageable pageable);
+    Page<StockDto> findAll(String search, Pageable pageable);
 
 }

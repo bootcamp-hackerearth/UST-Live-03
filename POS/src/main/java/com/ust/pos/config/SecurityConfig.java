@@ -14,12 +14,12 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config)  {
+            AuthenticationConfiguration config) {
         return config.getAuthenticationManager();
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http)  {
+    public SecurityFilterChain filterChain(HttpSecurity http) {
 
         http
                 .csrf(csrf -> csrf.disable()) // Disable for testing

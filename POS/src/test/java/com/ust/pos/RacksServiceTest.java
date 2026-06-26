@@ -42,7 +42,7 @@ class RacksServiceTest {
 
         Racks entity = new Racks();
 
-        Mockito.when(racksRepository.findByIdentifier("R1"))
+        Mockito.when(racksRepository.findByIdentifierAndDeletedFalse("R1"))
                 .thenReturn(null);
         Mockito.when(modelMapper.map(dto, Racks.class))
                 .thenReturn(entity);
@@ -61,7 +61,7 @@ class RacksServiceTest {
         RacksDto dto = new RacksDto();
         dto.setIdentifier("R1");
 
-        Mockito.when(racksRepository.findByIdentifier("R1"))
+        Mockito.when(racksRepository.findByIdentifierAndDeletedFalse("R1"))
                 .thenReturn(new Racks());
 
         RacksDto response = racksService.save(dto);
@@ -82,7 +82,7 @@ class RacksServiceTest {
 
         Racks existing = new Racks();
 
-        Mockito.when(racksRepository.findByIdentifier("R1"))
+        Mockito.when(racksRepository.findByIdentifierAndDeletedFalse("R1"))
                 .thenReturn(existing);
         Mockito.doNothing()
                 .when(modelMapper).map(dto, existing);
@@ -100,7 +100,7 @@ class RacksServiceTest {
         RacksDto dto = new RacksDto();
         dto.setIdentifier("R1");
 
-        Mockito.when(racksRepository.findByIdentifier("R1"))
+        Mockito.when(racksRepository.findByIdentifierAndDeletedFalse("R1"))
                 .thenReturn(null);
 
         RacksDto response = racksService.update(dto);
@@ -121,7 +121,7 @@ class RacksServiceTest {
         RacksDto dto = new RacksDto();
         dto.setIdentifier("R1");
 
-        Mockito.when(racksRepository.findByIdentifier("R1"))
+        Mockito.when(racksRepository.findByIdentifierAndDeletedFalse("R1"))
                 .thenReturn(racks);
         Mockito.when(modelMapper.map(racks, RacksDto.class))
                 .thenReturn(dto);
@@ -158,7 +158,7 @@ class RacksServiceTest {
         Racks racks = new Racks();
         racks.setStatus(false);
 
-        Mockito.when(racksRepository.findByIdentifier("R1"))
+        Mockito.when(racksRepository.findByIdentifierAndDeletedFalse("R1"))
                 .thenReturn(racks);
         Mockito.when(racksRepository.save(racks))
                 .thenReturn(racks);
@@ -171,7 +171,7 @@ class RacksServiceTest {
 
     @Test
     void toggleStatusTest_WhenRackNotFound() {
-        Mockito.when(racksRepository.findByIdentifier("R1"))
+        Mockito.when(racksRepository.findByIdentifierAndDeletedFalse("R1"))
                 .thenReturn(null);
 
         racksService.toggleStatus("R1");
@@ -184,39 +184,103 @@ class RacksServiceTest {
 
     @Test
     void deleteTest() {
-        Mockito.doNothing()
-                .when(racksRepository)
-                .deleteByIdentifier("R1");
+
+        Racks rack = new Racks();
+        rack.setIdentifier("R1");
+        rack.setDeleted(false);
+
+        Mockito.when(
+                        racksRepository.findByIdentifierAndDeletedFalse("R1"))
+                .thenReturn(rack);
 
         racksService.delete("R1");
 
+        Assertions.assertTrue(rack.isDeleted());
+
         Mockito.verify(racksRepository)
-                .deleteByIdentifier("R1");
+                .findByIdentifierAndDeletedFalse("R1");
+
+        Mockito.verify(racksRepository)
+                .save(rack);
     }
 
     @Test
     void findAll_WithPagination_ShouldReturnRacksDtos() {
+
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Racks> racks = List.of(new Racks());
-        Page<Racks> page = new PageImpl<>(racks);
+        Racks rack = new Racks();
+        rack.setIdentifier("R1");
 
-        List<RacksDto> racksDtos = List.of(new RacksDto());
+        Page<Racks> racksPage =
+                new PageImpl<>(List.of(rack));
 
-        Type listType = new TypeToken<List<RacksDto>>() {
-        }.getType();
+        RacksDto racksDto = new RacksDto();
+        racksDto.setIdentifier("R1");
 
-        Mockito.when(racksRepository.findAll(pageable))
-                .thenReturn(page);
-        Mockito.when(modelMapper.map(racks, listType))
-                .thenReturn(racksDtos);
+        Mockito.when(
+                        racksRepository.findByDeletedFalse(pageable))
+                .thenReturn(racksPage);
 
-        List<RacksDto> response = racksService.findAll(pageable);
+        Mockito.when(
+                        modelMapper.map(rack, RacksDto.class))
+                .thenReturn(racksDto);
+
+        Page<RacksDto> response =
+                racksService.findAll("", pageable);
 
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Mockito.verify(racksRepository).findAll(pageable);
-        Mockito.verify(modelMapper).map(racks, listType);
+        Assertions.assertEquals(
+                1,
+                response.getContent().size());
+
+        Mockito.verify(racksRepository)
+                .findByDeletedFalse(pageable);
+
+        Mockito.verify(modelMapper)
+                .map(rack, RacksDto.class);
+    }
+
+    @Test
+    void findAll_WithSearch_ShouldReturnRacksDtos() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Racks rack = new Racks();
+        rack.setIdentifier("R1");
+
+        Page<Racks> racksPage =
+                new PageImpl<>(List.of(rack));
+
+        RacksDto racksDto = new RacksDto();
+        racksDto.setIdentifier("R1");
+
+        Mockito.when(
+                        racksRepository
+                                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                                        "R1",
+                                        pageable))
+                .thenReturn(racksPage);
+
+        Mockito.when(
+                        modelMapper.map(rack, RacksDto.class))
+                .thenReturn(racksDto);
+
+        Page<RacksDto> response =
+                racksService.findAll("R1", pageable);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(
+                1,
+                response.getContent().size());
+
+        Mockito.verify(racksRepository)
+                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
+                        "R1",
+                        pageable);
+
+        Mockito.verify(modelMapper)
+                .map(rack, RacksDto.class);
     }
 
 }

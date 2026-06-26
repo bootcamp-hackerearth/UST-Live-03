@@ -5,7 +5,6 @@ import com.ust.pos.dto.OrderItemDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.orderitem.service.OrderItemService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +13,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/orderitem")
 public class OrderItemApiController extends BaseController {
+    private final OrderItemService orderItemService;
 
-    @Autowired
-    private OrderItemService orderItemService;
+    public OrderItemApiController(OrderItemService orderItemService) {
+        this.orderItemService = orderItemService;
+    }
 
     @GetMapping("/list")
     public List<OrderItemDto> home() {
@@ -49,13 +50,13 @@ public class OrderItemApiController extends BaseController {
         return orderItemService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public OrderItemDto update(@RequestBody OrderItemDto dto) {
 
         return orderItemService.update(dto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
 
         try {

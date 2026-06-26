@@ -6,7 +6,6 @@ import com.ust.pos.model.ModelProductRepository;
 import com.ust.pos.modelproduct.service.ModelProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,12 +17,13 @@ import java.util.List;
 @Service
 @Transactional
 public class ModelProductServiceImpl implements ModelProductService {
+    private final ModelMapper modelMapper;
+    private final ModelProductRepository modelProductRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private ModelProductRepository modelProductRepository;
+    public ModelProductServiceImpl(ModelMapper modelMapper, ModelProductRepository modelProductRepository) {
+        this.modelMapper = modelMapper;
+        this.modelProductRepository = modelProductRepository;
+    }
 
     @Override
     public ModelProductDto save(ModelProductDto modelProductDto) {

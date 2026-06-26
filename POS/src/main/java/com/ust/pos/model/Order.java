@@ -1,6 +1,9 @@
 package com.ust.pos.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,4 +33,5 @@ public class Order extends CommonFields {
     private OrderStatus orderStatus;
 
     private LocalDateTime createdAt;
+    private String customer;
 }

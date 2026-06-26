@@ -8,12 +8,14 @@ import java.util.List;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
-    List<OrderItem> findByOrderIdentifier(String orderIdentifier);
+    List<OrderItem> findByOrderIdentifierAndDeletedFalse(String orderIdentifier);
 
-    OrderItem findByIdentifier(String identifier);
+    List<OrderItem> findByDeletedFalse(Pageable pageable);
 
-    void deleteByIdentifier(String identifier);
+    OrderItem findByIdentifierAndDeletedFalse(String identifier);
 
-    Page<OrderItem> findByIdentifierContainingIgnoreCase(Pageable pageable, String search);
+    List<OrderItem> findByDeletedFalse();
+
+    Page<OrderItem> findByIdentifierContainingIgnoreCaseAndDeletedFalse(Pageable pageable, String search);
 
 }

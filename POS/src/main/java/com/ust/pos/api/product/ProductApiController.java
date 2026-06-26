@@ -1,15 +1,10 @@
 package com.ust.pos.api.product;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.category.service.CategoryService;
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
-import com.ust.pos.stock.service.StockService;
-import com.ust.pos.warehouse.service.WarehouseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -19,17 +14,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/product")
 public class ProductApiController extends BaseController {
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
 
-    @Autowired
-    private StockService stockService;
-
-    @Autowired
-    private WarehouseService warehouseService;
-
-    @Autowired
-    private CategoryService categoryService;
+    public ProductApiController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping("/list")
     public WsDto<ProductDto> home(
@@ -42,7 +31,7 @@ public class ProductApiController extends BaseController {
 
         Page<ProductDto> pageResult =
                 productService.findAll(
-                        paginationDto.getSearch(),pageable);
+                        paginationDto.getSearch(), pageable);
 
         WsDto<ProductDto> response = new WsDto<>();
 
@@ -53,10 +42,12 @@ public class ProductApiController extends BaseController {
 
         return response;
     }
+
     @GetMapping("/list")
-    public List<ProductDto> list(){
+    public List<ProductDto> list() {
         return productService.findAll();
     }
+
     @PostMapping("/add")
     public ProductDto addPost(@RequestBody ProductDto productDto) {
         return productService.save(productDto);
@@ -68,12 +59,12 @@ public class ProductApiController extends BaseController {
         return productService.findByIdentifier(identifier);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ProductDto doupdate(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     public boolean delete(@RequestParam String identifier) {
         try {
             productService.delete(identifier);

@@ -5,10 +5,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    User findByUsername(String username);
+    User findByUsernameAndDeletedFalse(String username);
 
-    void deleteByUsername(String username);
-    Page<User> findByUsernameContainingIgnoreCase(String username, Pageable pageable);
+    Page<User> findByUsernameContainingIgnoreCaseAndDeletedFalse(
+            String username, Pageable pageable
+    );
+
+    List<User> findByDeletedFalse();
+
+    Page<User> findByDeletedFalse(Pageable pageable);
 }
