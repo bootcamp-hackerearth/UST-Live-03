@@ -81,8 +81,6 @@ export default function EditFormSkeleton({
 
         const data = res.data;
         const prefilled = {};
-
-        // 1. Map editable fields
         fields.forEach((field) => {
           let value = data[field.name];
           if (!value && field.name === "username") {

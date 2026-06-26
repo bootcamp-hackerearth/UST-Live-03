@@ -117,8 +117,6 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-
-        // ✅ Node-style filtering
         Page<Role> page = roleRepository.findByDeletedFalse(pageable);
 
         WsDto<RoleDto> wsDto = new WsDto<>();

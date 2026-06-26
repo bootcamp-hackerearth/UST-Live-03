@@ -5,7 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthInputField from "@/app/components/auth/authInputField";
-import { containerStyle, cardStyle, iconStyle } from "@/app/components/auth/authstyle"
+import { containerStyle, cardStyle, iconStyle } from "@/app/components/auth/authstyle";
 
 export default function Register() {
   const [rolesList, setRolesList] = useState([]);
@@ -50,11 +50,45 @@ export default function Register() {
   };
 
   const validate = () => {
-    if (user.roles.length === 0) return "Select at least one terminal security role";
-    if (!/^\d{10}$/.test(user.phoneNo)) return "Phone number must be exactly 10 digits";
-    if (user.password.length < 6) return "Password must be at least 6 characters long";
-    if (!/[A-Z]/.test(user.password)) return "Add at least one uppercase letter (A-Z)";
-    if (!/\d/.test(user.password)) return "Add at least one numerical digit (0-9)";
+    if (!user.name.trim()) {
+      return "Full Name is required";
+    }
+    if (user.name.trim().length < 2) {
+      return "Full Name must be at least 2 characters long";
+    }
+
+    if (!user.username.trim()) {
+      return "Email address is required";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(user.username)) {
+      return "Please enter a valid email address";
+    }
+
+    if (!user.phoneNo.trim()) {
+      return "Contact number is required";
+    }
+    if (!/^\d{10}$/.test(user.phoneNo)) {
+      return "Phone number must be exactly 10 digits";
+    }
+
+    if (!user.password) {
+      return "Password is required";
+    }
+    if (user.password.length < 6) {
+      return "Password must be at least 6 characters long";
+    }
+    if (!/[A-Z]/.test(user.password)) {
+      return "Password must contain at least one uppercase letter (A-Z)";
+    }
+    if (!/\d/.test(user.password)) {
+      return "Password must contain at least one numerical digit (0-9)";
+    }
+
+    if (user.roles.length === 0) {
+      return "Select at least one terminal security role";
+    }
+
     return null;
   };
 

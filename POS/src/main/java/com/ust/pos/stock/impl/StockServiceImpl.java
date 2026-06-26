@@ -36,8 +36,6 @@ public class StockServiceImpl extends CommonService implements StockService {
         if (dto == null || dto.getProductIdentifier() == null || dto.getWarehouseIdentifier() == null) {
             throw new IllegalArgumentException("Product and Warehouse are required");
         }
-
-        // ✅ Generate identifier first
         String identifier = "STK_" + dto.getProductIdentifier() + "_" + dto.getWarehouseIdentifier();
         dto.setIdentifier(identifier);
 
@@ -57,8 +55,6 @@ public class StockServiceImpl extends CommonService implements StockService {
         }
 
         Stock stock = modelMapper.map(dto, Stock.class);
-
-        // ✅ FIX: audit should be on new object
         setAuditFields(stock, true);
 
         stockRepository.save(stock);

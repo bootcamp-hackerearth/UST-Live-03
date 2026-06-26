@@ -802,8 +802,6 @@ export default function POSPage() {
           </div>
         </div>
       </div>
-
-      {/* Dynamic Overlay Gateway Checkout Modal Integration */}
       {isProcessingPayment && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-sm w-full p-6 text-center space-y-6 animate-in fade-in zoom-in-95 duration-150">

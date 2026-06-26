@@ -28,8 +28,8 @@ const CommonList = ({ title, columns, urlName, showStatus = false, editKey = "id
   const [totalRecords, setTotalRecords] = useState(0);
 
   const [search, setSearch] = useState("");
-  const [sortField ] = useState("identifier");
-  const [sortDirection] = useState("DESC");
+  const [sortField ] = useState("id");
+  const [sortDirection] = useState("ASC");
 
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
 

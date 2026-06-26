@@ -21,7 +21,6 @@ const StockList = () => {
               OUT
             </span>
           );
-        // FIX: Compare item.quantity with item.minimumStock
         } else if (item.quantity < item.minimumStock) { 
           return (
             <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-100">

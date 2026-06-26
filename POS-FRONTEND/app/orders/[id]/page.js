@@ -67,7 +67,7 @@ export default function OrderInvoiceDetailsView() {
       </div>
       <div className="max-w-md mx-auto bg-white border border-slate-200 p-6 shadow-sm rounded-xl print:border-none print:shadow-none font-mono text-xs">
         <div className="text-center space-y-1 mb-4">
-          <h2 className="text-base font-bold tracking-tight text-slate-900">RETAIL TERMINAL SYSTEM</h2>
+          <h2 className="text-base font-bold tracking-tight text-slate-900">COSTCO RETAIL SYSTEM</h2>
           <p className="text-slate-500">Warehouse Node Location: {order.warehouseIdentifier}</p>
           <div className="border-b border-dashed border-slate-300 my-2"></div>
         </div>

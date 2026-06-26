@@ -81,9 +81,9 @@ public class OrderServiceImpl implements OrderService {
 
         Type listType = new TypeToken<List<OrderEntryDto>>() {
         }.getType();
-        responseDto.setEntryList(savedEntryDtos != null
-                ? modelMapper.map(savedEntryDtos, listType)
-                : Collections.emptyList());
+        responseDto.setEntryList(savedEntryDtos.isEmpty()
+                ? Collections.emptyList()
+                : modelMapper.map(savedEntryDtos, listType));
 
         return responseDto;
     }

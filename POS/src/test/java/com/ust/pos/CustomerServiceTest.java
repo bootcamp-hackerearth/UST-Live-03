@@ -125,6 +125,7 @@ class CustomerServiceTest {
         CustomerDto resultNullDto = customerService.save(null);
         assertNull(resultNullDto);
     }
+
     @Test
     void testSave_CustomerAlreadyExists() {
         customer.setDeleted(false);

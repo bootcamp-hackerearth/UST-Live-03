@@ -59,8 +59,6 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
         }
 
         Shelf shelf = modelMapper.map(dto, Shelf.class);
-
-        // ✅ FIX: audit applied on new object (not null existing)
         setAuditFields(shelf, true);
 
         shelfRepository.save(shelf);
