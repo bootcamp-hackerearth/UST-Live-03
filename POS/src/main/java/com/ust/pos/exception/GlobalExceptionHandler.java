@@ -30,11 +30,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ErrorResponse handleAuthorizationDeniedException(Exception ex, HttpServletRequest request) {
-        log.error("Authorization Denied exception occurred", ex);
+    public ErrorResponse handleAuthorizationDeniedException(AuthorizationDeniedException ex, HttpServletRequest request) {
+        log.warn("Authorization Denied: {}", ex.getMessage());
         return new ErrorResponse(
                 HttpStatus.FORBIDDEN.value(),
-                ex.getMessage(),
+                "You do not have authority to perform this action.",
                 request.getRequestURI()
         );
     }

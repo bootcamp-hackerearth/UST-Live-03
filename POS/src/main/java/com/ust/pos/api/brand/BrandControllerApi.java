@@ -22,7 +22,7 @@ public class BrandControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAnyAuthority('Manager')")
+    @PreAuthorize("hasAnyAuthority('Manager','Admin')")
     public WsDto<BrandDto> list(@RequestBody PaginationDto pagination) {
         Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
                 pagination.getSortDirection(), pagination.getSortfield());
