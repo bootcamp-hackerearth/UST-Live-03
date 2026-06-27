@@ -84,7 +84,7 @@ public class ProductServiceImpl extends BaseService implements ProductService {
     public WsDto<ProductDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
-        Page<Product> productPage = productRepository.findALlByDeletedFalse(pageable);
+        Page<Product> productPage = productRepository.findAllByDeletedFalse(pageable);
         WsDto<ProductDto> productWsDto = new WsDto<>();
         productWsDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
         productWsDto.setTotalRecords(productPage.getTotalElements());

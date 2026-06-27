@@ -108,7 +108,7 @@ class RoleServiceTest {
         List<Role> roles = List.of(role);
         List<RoleDto> dtos = List.of(dto);
         Page<Role> page = new PageImpl<>(roles, pageable, roles.size());
-        when(roleRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(roleRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(roles), any(Type.class))).thenReturn(dtos);
         WsDto<RoleDto> result = roleService.findAll(pageable);
         Assertions.assertNotNull(result);
@@ -118,7 +118,7 @@ class RoleServiceTest {
         Assertions.assertEquals(1, result.getTotalPage());
         Assertions.assertEquals(50, result.getSizePerPage());
         Assertions.assertEquals(0, result.getPage());
-        verify(roleRepository).findALlByDeletedFalse(pageable);
+        verify(roleRepository).findAllByDeletedFalse(pageable);
     }
 
     @Test
@@ -133,7 +133,7 @@ class RoleServiceTest {
     void findAllEmptyPageTest() {
         Pageable pageable = PageRequest.of(0, 50);
         Page<Role> page = new PageImpl<>(List.of(), pageable, 0);
-        when(roleRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(roleRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(List.of()), any(Type.class))).thenReturn(List.of());
         WsDto<RoleDto> result = roleService.findAll(pageable);
         Assertions.assertNotNull(result);

@@ -14,7 +14,7 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
 
     Unit findByIdentifierAndDeletedFalse (String identifier);
 
-    Page<Unit> findALlByDeletedFalse (Pageable pageable);
+    Page<Unit> findAllByDeletedFalse (Pageable pageable);
 
     List<Unit> findByStatusTrueAndDeletedFalse();
 

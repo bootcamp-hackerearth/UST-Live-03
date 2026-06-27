@@ -88,7 +88,7 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
     public WsDto<WarehouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
-        Page<Warehouse> warehousePage = warehouseRepository.findALlByDeletedFalse(pageable);
+        Page<Warehouse> warehousePage = warehouseRepository.findAllByDeletedFalse(pageable);
         WsDto<WarehouseDto> warehouseWsDto = new WsDto<>();
         warehouseWsDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
         warehouseWsDto.setTotalRecords(warehousePage.getTotalElements());

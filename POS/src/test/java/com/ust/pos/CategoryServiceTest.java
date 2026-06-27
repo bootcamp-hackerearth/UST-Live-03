@@ -183,7 +183,7 @@ class CategoryServiceTest {
         CategoryDto dto = new CategoryDto();
         Pageable pageable = PageRequest.of(0, 10);
         Page<Category> page = new PageImpl<>(List.of(category), pageable, 1);
-        when(categoryRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(categoryRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(List.of(category)), any(Type.class))).thenReturn(List.of(dto));
         WsDto<CategoryDto> result = categoryService.findAll(pageable);
         assertEquals(1, result.getDtoList().size());

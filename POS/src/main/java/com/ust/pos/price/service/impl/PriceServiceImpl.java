@@ -101,7 +101,7 @@ public class PriceServiceImpl extends BaseService implements PriceService {
     @Override
     public WsDto<PriceDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<PriceDto>>() {}.getType();
-        Page<Price> pricePage = priceRepository.findALlByDeletedFalse(pageable);
+        Page<Price> pricePage = priceRepository.findAllByDeletedFalse(pageable);
         WsDto<PriceDto> priceWsDto = new WsDto<>();
         priceWsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
         priceWsDto.setTotalRecords(pricePage.getTotalElements());

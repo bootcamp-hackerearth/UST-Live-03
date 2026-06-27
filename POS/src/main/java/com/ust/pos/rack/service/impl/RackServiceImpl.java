@@ -83,7 +83,7 @@ public class RackServiceImpl extends BaseService implements RackService {
     public WsDto<RackDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
-        Page<Rack> rackPage = rackRepository.findALlByDeletedFalse(pageable);
+        Page<Rack> rackPage = rackRepository.findAllByDeletedFalse(pageable);
         WsDto<RackDto> rackWsDto = new WsDto<>();
         rackWsDto.setDtoList(modelMapper.map(rackPage.getContent(), listType));
         rackWsDto.setTotalRecords(rackPage.getTotalElements());

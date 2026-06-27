@@ -86,7 +86,7 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
     public WsDto<ShelfDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
-        Page<Shelf> shelfPage = shelfRepository.findALlByDeletedFalse(pageable);
+        Page<Shelf> shelfPage = shelfRepository.findAllByDeletedFalse(pageable);
         WsDto<ShelfDto> shelfWsDto = new WsDto<>();
         shelfWsDto.setDtoList(modelMapper.map(shelfPage.getContent(), listType));
         shelfWsDto.setTotalRecords(shelfPage.getTotalElements());

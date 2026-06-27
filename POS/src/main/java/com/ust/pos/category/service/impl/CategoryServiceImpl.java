@@ -128,7 +128,7 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
     @Override
     public WsDto<CategoryDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
-        Page<Category> categoryPage = categoryRepository.findALlByDeletedFalse(pageable);
+        Page<Category> categoryPage = categoryRepository.findAllByDeletedFalse(pageable);
         WsDto<CategoryDto> categoryWsDto = new WsDto<>();
         categoryWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
         categoryWsDto.setTotalRecords(categoryPage.getTotalElements());

@@ -16,6 +16,6 @@ public interface ModelRepository extends JpaRepository<Model, Long> {
 
     Model findByIdentifierAndDeletedFalse (String identifier);
 
-    Page<Model> findALlByDeletedFalse (Pageable pageable);
+    Page<Model> findAllByDeletedFalse (Pageable pageable);
 
 }

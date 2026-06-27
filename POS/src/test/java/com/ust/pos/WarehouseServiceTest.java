@@ -129,7 +129,7 @@ class WarehouseServiceTest {
         warehouse.setIdentifier("A1");
         Pageable pageable = PageRequest.of(0, 50);
         Page<Warehouse> page = new PageImpl<>(List.of(warehouse), pageable, 1);
-        when(warehouseRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(warehouseRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(page.getContent()), any(java.lang.reflect.Type.class))).thenReturn(List.of(new WarehouseDto()));
         WsDto<WarehouseDto> response = warehouseService.findAll(pageable);
         Assertions.assertEquals(1, response.getDtoList().size());

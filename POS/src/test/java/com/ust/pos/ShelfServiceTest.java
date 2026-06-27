@@ -114,7 +114,7 @@ class ShelfServiceTest {
         List<Shelf> list = List.of(shelf);
         Pageable pageable = PageRequest.of(0, 50);
         Page<Shelf> page = new PageImpl<>(list, pageable, 1);
-        when(shelfRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(shelfRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(list), any(java.lang.reflect.Type.class))).thenReturn(List.of(new ShelfDto()));
         WsDto<ShelfDto> result = shelfService.findAll(pageable);
         assertEquals(1, result.getDtoList().size());

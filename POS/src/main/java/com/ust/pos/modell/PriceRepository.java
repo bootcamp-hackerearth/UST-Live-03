@@ -12,7 +12,7 @@ public interface PriceRepository extends JpaRepository<Price, Long> {
 
     Price findByIdentifierAndDeletedFalse (String identifier);
 
-    Page<Price> findALlByDeletedFalse (Pageable pageable);
+    Page<Price> findAllByDeletedFalse (Pageable pageable);
 
 
 }

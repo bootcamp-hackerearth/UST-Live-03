@@ -120,7 +120,7 @@ class ModelServiceTest {
         List<ModelDto> modelDtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 50);
         Page<Model> page = new PageImpl<>(models, pageable, 1);
-        when(modelRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(modelRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(models), any(Type.class))).thenReturn(modelDtos);
         WsDto<ModelDto> response = modelService.findAll(pageable);
         assertNotNull(response);
@@ -129,14 +129,14 @@ class ModelServiceTest {
         assertEquals(1, response.getTotalPage());
         assertEquals(50, response.getSizePerPage());
         assertEquals(0, response.getPage());
-        verify(modelRepository).findALlByDeletedFalse(pageable);
+        verify(modelRepository).findAllByDeletedFalse(pageable);
     }
 
     @Test
     void findAllEmptyTest() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Model> page = new PageImpl<>(List.of(), pageable, 0);
-        when(modelRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(modelRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(any(List.class), any(Type.class))).thenReturn(List.of());
         WsDto<ModelDto> response = modelService.findAll(pageable);
         assertEquals(0, response.getTotalRecords());

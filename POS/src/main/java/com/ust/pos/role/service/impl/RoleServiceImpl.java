@@ -84,7 +84,7 @@ public class RoleServiceImpl extends BaseService implements RoleService {
     public WsDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        Page<Role> rolePage = roleRepository.findALlByDeletedFalse(pageable);
+        Page<Role> rolePage = roleRepository.findAllByDeletedFalse(pageable);
         WsDto<RoleDto> roleWsDto = new WsDto<>();
         roleWsDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
         roleWsDto.setTotalRecords(rolePage.getTotalElements());

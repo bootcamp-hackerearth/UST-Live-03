@@ -109,7 +109,7 @@ class UnitServiceTest {
         List<UnitDto> dtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 50);
         Page<Unit> page = new PageImpl<>(units, pageable, 1);
-        when(unitRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(unitRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(units), any(java.lang.reflect.Type.class))).thenReturn(dtos);
         WsDto<UnitDto> result = unitService.findAll(pageable);
         assertNotNull(result);
@@ -119,7 +119,7 @@ class UnitServiceTest {
         assertEquals(1, result.getTotalPage());
         assertEquals(50, result.getSizePerPage());
         assertEquals(0, result.getPage());
-        verify(unitRepository).findALlByDeletedFalse(pageable);
+        verify(unitRepository).findAllByDeletedFalse(pageable);
     }
 
     @Test

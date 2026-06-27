@@ -110,7 +110,7 @@ class RackServiceTest {
         List<Rack> racks = List.of(rack);
         List<RackDto> dtos = List.of(dto);
         Page<Rack> page = new PageImpl<>(racks, pageable, racks.size());
-        when(rackRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(rackRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(racks), any(Type.class))).thenReturn(dtos);
         WsDto<RackDto> result = rackService.findAll(pageable);
         Assertions.assertEquals(1, result.getDtoList().size());

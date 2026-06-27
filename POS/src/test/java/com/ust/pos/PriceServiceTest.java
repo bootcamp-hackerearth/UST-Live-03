@@ -149,7 +149,7 @@ class PriceServiceTest {
         List<Price> prices = List.of(price);
         List<PriceDto> dtoList = List.of(new PriceDto());
         Page<Price> page = new PageImpl<>(prices, pageable, prices.size());
-        when(priceRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(priceRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(prices), any(Type.class))).thenReturn(dtoList);
         WsDto<PriceDto> result = priceService.findAll(pageable);
         Assertions.assertNotNull(result);

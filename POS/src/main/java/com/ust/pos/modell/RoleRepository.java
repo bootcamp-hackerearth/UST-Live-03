@@ -10,7 +10,7 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
     Role findByIdentifierAndDeletedFalse(String identifier);
 
-    Page<Role> findALlByDeletedFalse(Pageable pageable);
+    Page<Role> findAllByDeletedFalse(Pageable pageable);
 
     Role findByIdentifier(String identifier);
 }

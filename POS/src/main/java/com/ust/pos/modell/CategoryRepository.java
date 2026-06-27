@@ -18,7 +18,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     Category findByIdentifierAndDeletedFalse (String identifier);
 
-    Page<Category> findALlByDeletedFalse (Pageable pageable);
+    Page<Category> findAllByDeletedFalse (Pageable pageable);
 
 }
 

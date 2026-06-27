@@ -113,7 +113,7 @@ class ProductServiceTest {
         List<ProductDto> dtos = List.of(dto);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Product> page = new PageImpl<>(products, pageable, products.size());
-        when(productRepository.findALlByDeletedFalse(pageable)).thenReturn(page);
+        when(productRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(products), any(Type.class))).thenReturn(dtos);
         WsDto<ProductDto> response = productService.findAll(pageable);
         Assertions.assertNotNull(response);
@@ -122,7 +122,7 @@ class ProductServiceTest {
         Assertions.assertEquals(1, response.getTotalPage());
         Assertions.assertEquals(10, response.getSizePerPage());
         Assertions.assertEquals(0, response.getPage());
-        verify(productRepository).findALlByDeletedFalse(pageable);
+        verify(productRepository).findAllByDeletedFalse(pageable);
     }
 
     @Test
