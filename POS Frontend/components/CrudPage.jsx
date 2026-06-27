@@ -497,7 +497,7 @@ export default function CrudPage({ config }) {
   const [dynOptions, setDynOptions] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef(null);
-  const togglingRef = useRef(new Set()); // Track records being toggled to prevent race conditions
+  const togglingRef = useRef(new Set());
 
   useEffect(() => {
     loadOptions?.()
@@ -539,7 +539,7 @@ export default function CrudPage({ config }) {
       });
       setAllRecords(rows);
     } catch (e) {
-      if (e.message !== "Unauthorized") setError("Failed to load records.");
+      if (e.message !== "Unauthorized") setError(e.message || "Failed to load records.");
     } finally {
       setListLoading(false);
     }
@@ -634,7 +634,7 @@ export default function CrudPage({ config }) {
       setEditId(record[idKey]);
       setModal("edit");
     } catch (e) {
-      if (e.message !== "Unauthorized") setError("Failed to load record.");
+      if (e.message !== "Unauthorized") setError(e.message || "Failed to load record.");
     }
   };
 
@@ -685,34 +685,34 @@ export default function CrudPage({ config }) {
     );
 
     try {
-  let response;
+      let response;
 
-  if (modal === "add") {
-    response = await fetchWithAuth(saveEndpoint, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  } else if (customUpdateRecord) {
-    response = await customUpdateRecord(editId, payload);
-  } else {
-    response = await fetchWithAuth(updateEndpoint(editId), {
-      method: "PUT",
-      body: JSON.stringify(payload),
-    });
-  }
+      if (modal === "add") {
+        response = await fetchWithAuth(saveEndpoint, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      } else if (customUpdateRecord) {
+        response = await customUpdateRecord(editId, payload);
+      } else {
+        response = await fetchWithAuth(updateEndpoint(editId), {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+      }
 
-  if (response?.success === false) {
-    setError(response.message || "Operation failed");
-    return;
-  }
+      if (response?.success === false) {
+        setError(response.message || "Operation failed.");
+        return;
+      }
 
-  closeModal();
-  fetchList();
-} catch (e) {
-  setError(e.message || "Save failed. Please try again.");
-} finally {
-  setSaving(false);
-}
+      closeModal();
+      fetchList();
+    } catch (e) {
+      setError(e.message || "Save failed. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -759,25 +759,22 @@ export default function CrudPage({ config }) {
 
   const handleToggleResponse = async (recordId, response) => {
     const updatedRecord = extractUpdatedRecord(response);
-    
+
     if (updatedRecord) {
       setAllRecords((prev) =>
-        prev.map((r) =>
-          r[idKey] === recordId ? updatedRecord : r,
-        ),
+        prev.map((r) => (r[idKey] === recordId ? updatedRecord : r)),
       );
       return;
     }
 
-    const isSuccessIndicator = typeof response === "boolean" || response === true || response === null;
+    const isSuccessIndicator =
+      typeof response === "boolean" || response === true || response === null;
     if (isSuccessIndicator && getEndpoint) {
       try {
         const refetchedRecord = await fetchWithAuth(getEndpoint(recordId));
         if (refetchedRecord) {
           setAllRecords((prev) =>
-            prev.map((r) =>
-              r[idKey] === recordId ? refetchedRecord : r,
-            ),
+            prev.map((r) => (r[idKey] === recordId ? refetchedRecord : r)),
           );
         }
       } catch {
@@ -787,47 +784,45 @@ export default function CrudPage({ config }) {
 
   const getToggleFieldName = (record) => {
     let fieldName = toggleField;
-    if (!record.hasOwnProperty(fieldName)) {
-      fieldName = record.hasOwnProperty('active') ? 'active' : 'status';
+    if (!Object.hasOwn(record, fieldName)) {
+      fieldName = Object.hasOwn(record, "active")
+        ? "active"
+        : "status";
     }
     return fieldName;
   };
 
   const handleToggle = async (record) => {
     if (!toggleEndpoint) return;
-    
+
     const recordId = record[idKey];
-    if (togglingRef.current.has(recordId)) {
-      return;
-    }
-    
+    if (togglingRef.current.has(recordId)) return;
+
     togglingRef.current.add(recordId);
     const originalRecord = { ...record };
     const toggleFieldName = getToggleFieldName(record);
     const currentValue = record[toggleFieldName];
-    
+
     setAllRecords((prev) =>
       prev.map((r) =>
         r[idKey] === recordId ? { ...r, [toggleFieldName]: !currentValue } : r,
       ),
     );
-    
+
     try {
       const response = await fetchWithAuth(toggleEndpoint(recordId), {
         method: "POST",
         body: JSON.stringify({}),
       });
-      
+
       if (response) {
         await handleToggleResponse(recordId, response);
       }
-    } catch {
+    } catch (e) {
       setAllRecords((prev) =>
-        prev.map((r) =>
-          r[idKey] === recordId ? originalRecord : r,
-        ),
+        prev.map((r) => (r[idKey] === recordId ? originalRecord : r)),
       );
-      setError(`Failed to toggle ${singularTitle?.toLowerCase() || "record"}: ${error.message}`);
+      setError(e.message || "Failed to toggle. You may not have permission to perform this action.");
     } finally {
       togglingRef.current.delete(recordId);
     }
@@ -1031,7 +1026,6 @@ export default function CrudPage({ config }) {
               </div>
             );
           })}
-          {/* Audit Details - Show in Edit Mode */}
           {modal === "edit" && (
             <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #e8e8e8" }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 9 }}>Audit Information</p>

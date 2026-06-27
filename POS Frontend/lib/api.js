@@ -33,7 +33,7 @@ export const authHeaders = () => ({
 
 export const fetchWithAuth = async (url, options = {}) => {
   const fullUrl = `${BASE}${url}`;
-  
+
   const res = await fetch(fullUrl, {
     ...options,
     headers: options.headers
@@ -44,7 +44,7 @@ export const fetchWithAuth = async (url, options = {}) => {
   if (res.status === HTTP_STATUS.UNAUTHORIZED) {
     removeStorageItem(STORAGE_KEYS.TOKEN);
     removeStorageItem(STORAGE_KEYS.USERNAME);
-    
+
     if (globalThis.window?.location) {
       globalThis.window.location.href = PATHS.LOGIN;
     }
@@ -58,16 +58,16 @@ export const fetchWithAuth = async (url, options = {}) => {
     } catch {
       body = null;
     }
-    
+
     const msg = body?.message || body || ERROR_MESSAGES.SERVER_ERROR;
     const errorMessage = typeof msg === "string" ? msg : ERROR_MESSAGES.SERVER_ERROR;
-    
+
     throw Object.assign(
       new Error(errorMessage),
       { status: res.status, body },
     );
   }
-  
+
   const ct = res.headers.get("content-type") || "";
   if (ct.includes("application/json")) return res.json();
   return null;
