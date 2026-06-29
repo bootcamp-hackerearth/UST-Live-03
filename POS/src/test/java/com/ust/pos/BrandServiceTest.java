@@ -79,7 +79,7 @@ class BrandServiceTest {
                 .thenReturn(existing);
         Mockito.when(brandRepository.save(existing)).thenReturn(existing);
         BrandDto response = brandService.update(dto);
-        Assertions.assertNull(response.getMessage()); // success path
+        Assertions.assertNull(response.getMessage());
     }
 
     @Test
