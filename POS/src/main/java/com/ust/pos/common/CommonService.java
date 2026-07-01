@@ -30,6 +30,7 @@ public abstract class CommonService {
         }
         return authentication.getName();
     }
+
     protected void softDelete(CommonFields entity) {
         entity.setDeleted(true);
         entity.setStatus(false);
