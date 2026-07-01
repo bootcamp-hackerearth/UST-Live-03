@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import PropTypes from "prop-types";
 import axios from "../components/axiosConfig";
-import { emailValidation } from "@/validation/validation";
+import { emailValidation, phoneValidation } from "@/validation/validation";
 
 const CustomerAddModal = ({ setCurrentCustomer, onClose }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,10 +87,7 @@ const CustomerAddModal = ({ setCurrentCustomer, onClose }) => {
                     </label>
                     <input 
                         id="phoneNo"
-                        {...register("identifier", { 
-                            required: "Phone no is required",
-                            pattern: { value: /^\d+$/, message: "Please enter numbers only" }
-                        })} 
+                        {...register("identifier",phoneValidation)} 
                         type="tel"
                         placeholder="9876543210"
                         className={`w-full text-xs font-mono border rounded-lg px-2.5 py-1.5 bg-white outline-none transition-colors ${
@@ -118,6 +115,11 @@ const CustomerAddModal = ({ setCurrentCustomer, onClose }) => {
                         placeholder="name@domain.com"
                         className="w-full text-xs border border-zinc-200 rounded-lg px-2.5 py-1.5 bg-white outline-none focus:border-zinc-400 transition-colors"
                     />
+                    {errors.email && (
+                        <p className="text-[10px] font-medium text-red-600 mt-0.5">
+                            {errors.email.message}
+                        </p>
+                    )}
                 </div>
 
                
