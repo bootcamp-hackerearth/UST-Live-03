@@ -27,6 +27,6 @@ export default function BrandPage() {
         { header: "Description", field: "description" },
         { header: "Status", field: "status" },
       ]}
-    /
+    ></CommonList>
   );
 }
