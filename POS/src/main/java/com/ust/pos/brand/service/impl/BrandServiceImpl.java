@@ -4,6 +4,7 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import jakarta.transaction.Transactional;
@@ -24,7 +25,7 @@ public class BrandServiceImpl extends BaseService implements BrandService {
     private final BrandRepository brandRepository;
     private final ModelMapper modelMapper;
 
-    public BrandServiceImpl(BrandRepository brandRepository,ModelMapper modelMapper) {
+    public BrandServiceImpl(BrandRepository brandRepository, ModelMapper modelMapper) {
         this.brandRepository = brandRepository;
         this.modelMapper = modelMapper;
     }
@@ -87,9 +88,7 @@ public class BrandServiceImpl extends BaseService implements BrandService {
         Brand brand = brandRepository.findByIdentifier(dto.getIdentifier());
 
         if (brand == null || Boolean.TRUE.equals(brand.getDeleted())) {
-            dto.setSuccess(false);
-            dto.setMessage("Brand not found");
-            return dto;
+            throw new ResourceNotFoundException("Brand not found: " + dto.getIdentifier());
         }
 
         brand.setBrandName(dto.getBrandName());
@@ -108,7 +107,10 @@ public class BrandServiceImpl extends BaseService implements BrandService {
 
         Brand brand = brandRepository.findByIdentifier(identifier);
 
-        if (brand == null) return;
+        if (brand == null || Boolean.TRUE.equals(brand.getDeleted())) {
+            throw new ResourceNotFoundException("Brand not found: " + identifier);
+        }
+
         brand.setDeleted(true);
         setModifiedDetails(brand);
         brandRepository.save(brand);
@@ -119,7 +121,7 @@ public class BrandServiceImpl extends BaseService implements BrandService {
 
         Brand brand = brandRepository.findByIdentifier(identifier);
         if (brand == null || Boolean.TRUE.equals(brand.getDeleted())) {
-            return null;
+            throw new ResourceNotFoundException("Brand not found: " + identifier);
         }
         return modelMapper.map(brand, BrandDto.class);
     }
@@ -141,22 +143,25 @@ public class BrandServiceImpl extends BaseService implements BrandService {
     @Override
     public BrandDto toggleStatus(String identifier) {
 
-        BrandDto dto = new BrandDto();
-
         Brand brand = brandRepository.findByIdentifier(identifier);
 
         if (brand == null || Boolean.TRUE.equals(brand.getDeleted())) {
-            dto.setSuccess(false);
-            dto.setMessage("Brand not found");
-            return dto;
+            throw new ResourceNotFoundException("Brand not found: " + identifier);
         }
 
         brand.setStatus(!Boolean.TRUE.equals(brand.getStatus()));
         setModifiedDetails(brand);
         Brand saved = brandRepository.save(brand);
-        dto = modelMapper.map(saved, BrandDto.class);
+        BrandDto dto = modelMapper.map(saved, BrandDto.class);
         dto.setSuccess(true);
         dto.setMessage("Status updated successfully");
         return dto;
+    }
+
+    private static final List<String> SEARCH_FIELDS = List.of("brandName", "description");
+
+    @Override
+    public WsDto<BrandDto> search(String keyword, Pageable pageable) {
+        return search(brandRepository, keyword, SEARCH_FIELDS, pageable, modelMapper, BrandDto.class);
     }
 }

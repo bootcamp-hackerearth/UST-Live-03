@@ -21,4 +21,6 @@ public interface BrandService {
     BrandDto toggleStatus(String identifier);
 
     List<BrandDto> findActiveBrands();
+
+    WsDto<BrandDto> search(String keyword, Pageable pageable);
 }

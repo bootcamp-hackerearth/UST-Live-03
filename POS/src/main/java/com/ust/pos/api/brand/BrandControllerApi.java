@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.SearchDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,5 +73,13 @@ public class BrandControllerApi extends BaseController {
     @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public List<BrandDto> active() {
         return brandService.findActiveBrands();
+    }
+
+    @PostMapping("/search")
+    @PreAuthorize("hasAnyAuthority('Manager','Admin')")
+    public WsDto<BrandDto> search(@RequestBody SearchDto searchDto) {
+        Pageable pageable = getPageable(searchDto.getPage(), searchDto.getSizePerPage(),
+                searchDto.getSortDirection(), searchDto.getSortfield());
+        return brandService.search(searchDto.getKeyword(), pageable);
     }
 }
