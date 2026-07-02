@@ -19,4 +19,5 @@ public class PaginationDto {
     private int totalPages;
     private long totalRecords;
     private String search;
+    private String keyword;
 }

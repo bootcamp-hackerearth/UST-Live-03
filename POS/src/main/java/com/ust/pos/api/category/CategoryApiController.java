@@ -31,8 +31,7 @@ public class CategoryApiController extends BaseController {
 
         Page<CategoryDto> pageResult =
                 categoryService.findAll(
-                        pageable,
-                        paginationDto.getSearch());
+                        paginationDto.getSearch(), pageable);
 
         WsDto<CategoryDto> response = new WsDto<>();
 

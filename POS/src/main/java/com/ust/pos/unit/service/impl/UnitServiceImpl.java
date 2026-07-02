@@ -1,5 +1,6 @@
 package com.ust.pos.unit.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
@@ -8,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +19,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class UnitServiceImpl implements UnitService {
+public class UnitServiceImpl extends BaseService implements UnitService {
     private final ModelMapper modelMapper;
     private final UnitRepository unitRepository;
 
@@ -93,12 +95,17 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public Page<UnitDto> findAll(String search, Pageable pageable) {
-        Page<Unit> rolePage;
+        Page<Unit> units;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = unitRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Unit> specification =
+                    buildGlobalSearchSpec(Unit.class, search);
+            units = unitRepository.findAll(specification, pageable);
         } else {
-            rolePage = unitRepository.findByDeletedFalse(pageable);
+            units = unitRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(unit -> modelMapper.map(unit, UnitDto.class));
+
+        return units.map(unit ->
+                modelMapper.map(unit, UnitDto.class));
     }
 }

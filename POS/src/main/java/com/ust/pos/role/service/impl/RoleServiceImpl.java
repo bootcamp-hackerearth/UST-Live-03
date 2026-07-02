@@ -1,5 +1,6 @@
 package com.ust.pos.role.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
@@ -9,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class RoleServiceImpl implements RoleService {
+public class RoleServiceImpl extends BaseService implements RoleService {
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
 
@@ -76,13 +78,18 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Page<RoleDto> findAll(String search, Pageable pageable) {
-        Page<Role> rolePage;
+    public Page<RoleDto> findAll(String search,Pageable pageable) {
+        Page<Role> roles;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = roleRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Role> specification =
+                    buildGlobalSearchSpec(Role.class, search);
+            roles = roleRepository.findAll(specification, pageable);
         } else {
-            rolePage = roleRepository.findByDeletedFalse(pageable);
+            roles = roleRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(role -> modelMapper.map(role, RoleDto.class));
+
+        return roles.map(role ->
+                modelMapper.map(role, RoleDto.class));
     }
 }

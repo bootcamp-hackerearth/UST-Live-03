@@ -1,13 +1,16 @@
 package com.ust.pos.price.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
+import com.ust.pos.model.Warehouse;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +19,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class PriceServiceImpl implements PriceService {
+public class PriceServiceImpl extends BaseService implements PriceService {
     private final PriceRepository priceRepository;
     private final ModelMapper modelMapper;
 
@@ -76,15 +79,19 @@ public class PriceServiceImpl implements PriceService {
         return modelMapper.map(priceRepository.findByIdentifierAndDeletedFalse(identifier), PriceDto.class);
     }
 
+
     @Override
     public Page<PriceDto> findAll(String search, Pageable pageable) {
-        Page<Price> rolePage;
+        Page<Price> Prices;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = priceRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Price> specification = buildGlobalSearchSpec(Price.class, search);
+            Prices = priceRepository.findAll(specification, pageable);
         } else {
-            rolePage = priceRepository.findByDeletedFalse(pageable);
+            Prices = priceRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(price -> modelMapper.map(price, PriceDto.class));
+
+        return Prices.map(price -> modelMapper.map(price, PriceDto.class));
     }
 
 }

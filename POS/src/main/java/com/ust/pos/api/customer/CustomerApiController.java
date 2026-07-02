@@ -6,8 +6,11 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,7 +40,8 @@ public class CustomerApiController extends BaseController {
 
         Page<CustomerDto> pageResult =
                 customerService.findAll(
-                        paginationDto.getSearch(), pageable);
+                        pageable,
+                        paginationDto.getSearch());
 
         WsDto<CustomerDto> response = new WsDto<>();
 

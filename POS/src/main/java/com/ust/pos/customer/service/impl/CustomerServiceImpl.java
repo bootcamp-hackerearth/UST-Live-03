@@ -1,15 +1,18 @@
 package com.ust.pos.customer.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.api.BaseService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +21,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends BaseService implements CustomerService {
     private final CustomerRepository customerRepository;
     private final ModelMapper modelMapper;
     private final AddressService addressService;
@@ -124,6 +127,43 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public WsDto<CustomerDto> findAll(Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+
+        Page<Customer> page =
+                customerRepository.findAll(pageable);
+
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+
+        wsDto.setContent(
+                modelMapper.map(
+                        page.getContent(),
+                        listType
+                )
+        );
+
+        wsDto.setTotalRecords(
+                page.getTotalElements()
+        );
+
+        wsDto.setTotalPages(
+                page.getTotalPages()
+        );
+
+        wsDto.setSizePerPage(
+                page.getSize()
+        );
+
+        wsDto.setPage(
+                page.getNumber()
+        );
+
+        return wsDto;
+    }
+
+    @Override
     public List<CustomerDto> findAll() {
         Type listtype = new TypeToken<List<CustomerDto>>() {
         }.getType();
@@ -140,14 +180,19 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<CustomerDto> findAll(String search, Pageable pageable) {
-        Page<Customer> rolePage;
+    public Page<CustomerDto> findAll(Pageable pageable, String search) {
+        Page<Customer> customers;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = customerRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Customer> specification =
+                    buildGlobalSearchSpec(Customer.class, search);
+            customers = customerRepository.findAll(specification, pageable);
         } else {
-            rolePage = customerRepository.findByDeletedFalse(pageable);
+            customers = customerRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(customer -> modelMapper.map(customer, CustomerDto.class));
+
+        return customers.map(customer ->
+                modelMapper.map(customer, CustomerDto.class));
     }
 }
 

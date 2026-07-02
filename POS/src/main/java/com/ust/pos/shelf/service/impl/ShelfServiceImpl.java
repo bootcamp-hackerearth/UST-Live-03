@@ -1,5 +1,6 @@
 package com.ust.pos.shelf.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
@@ -8,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +19,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class ShelfServiceImpl implements ShelfService {
+public class ShelfServiceImpl extends BaseService implements ShelfService {
     private final ModelMapper modelMapper;
     private final ShelfRepository shelfRepository;
 
@@ -100,12 +102,17 @@ public class ShelfServiceImpl implements ShelfService {
 
     @Override
     public Page<ShelfDto> findAll(String search, Pageable pageable) {
-        Page<Shelf> rolePage;
+        Page<Shelf> shelves;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = shelfRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Shelf> specification =
+                    buildGlobalSearchSpec(Shelf.class, search);
+            shelves = shelfRepository.findAll(specification, pageable);
         } else {
-            rolePage = shelfRepository.findByDeletedFalse(pageable);
+            shelves = shelfRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(shelf -> modelMapper.map(shelf, ShelfDto.class));
+
+        return shelves.map(shelf ->
+                modelMapper.map(shelf, ShelfDto.class));
     }
 }

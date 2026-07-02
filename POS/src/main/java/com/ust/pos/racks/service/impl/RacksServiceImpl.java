@@ -1,5 +1,6 @@
 package com.ust.pos.racks.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
@@ -8,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class RacksServiceImpl implements RacksService {
+public class RacksServiceImpl extends BaseService implements RacksService {
     private final RacksRepository racksRepository;
     private final ModelMapper modelMapper;
 
@@ -85,12 +87,17 @@ public class RacksServiceImpl implements RacksService {
 
     @Override
     public Page<RacksDto> findAll(String search, Pageable pageable) {
-        Page<Racks> rolePage;
+        Page<Racks> racks;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = racksRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Racks> specification =
+                    buildGlobalSearchSpec(Racks.class, search);
+            racks = racksRepository.findAll(specification, pageable);
         } else {
-            rolePage = racksRepository.findByDeletedFalse(pageable);
+            racks = racksRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(racks -> modelMapper.map(racks, RacksDto.class));
+
+        return racks.map(rack ->
+                modelMapper.map(rack, RacksDto.class));
     }
 }

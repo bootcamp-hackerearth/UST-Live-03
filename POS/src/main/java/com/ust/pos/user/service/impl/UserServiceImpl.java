@@ -1,5 +1,6 @@
 package com.ust.pos.user.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
@@ -9,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,7 @@ import java.util.Optional;
 
 @Transactional
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends BaseService implements UserService {
     public static final String USER_WITH_USERNAME_EMAIL = "User with username/email - ";
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -96,12 +98,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<UserDto> findAll(String search, Pageable pageable) {
-        Page<User> rolePage;
+        Page<User> users;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = userRepository.findByUsernameContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<User> specification =
+                    buildGlobalSearchSpec(User.class, search);
+            users = userRepository.findAll(specification, pageable);
         } else {
-            rolePage = userRepository.findByDeletedFalse(pageable);
+            users = userRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(user -> modelMapper.map(user, UserDto.class));
+
+        return users.map(user ->
+                modelMapper.map(user, UserDto.class));
     }
 }

@@ -1,14 +1,19 @@
 package com.ust.pos.category.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.category.service.CategoryService;
+import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.model.Brand;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -16,7 +21,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl extends BaseService implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
@@ -91,13 +96,16 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Page<CategoryDto> findAll(Pageable pageable, String search) {
-        Page<Category> rolePage;
+    public Page<CategoryDto> findAll(String search, Pageable pageable) {
+        Page<Category> brands;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = categoryRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Category> specification = buildGlobalSearchSpec(Category.class, search);
+            brands = categoryRepository.findAll(specification, pageable);
         } else {
-            rolePage = categoryRepository.findByDeletedFalse(pageable);
+            brands = categoryRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(category -> modelMapper.map(category, CategoryDto.class));
+
+        return brands.map(category -> modelMapper.map(category, CategoryDto.class));
     }
 }

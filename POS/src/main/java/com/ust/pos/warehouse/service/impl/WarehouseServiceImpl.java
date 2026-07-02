@@ -1,5 +1,6 @@
 package com.ust.pos.warehouse.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -8,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class WarehouseServiceImpl implements WarehouseService {
+public class WarehouseServiceImpl extends BaseService implements WarehouseService {
     private final WarehouseRepository warehouseRepository;
     private final ModelMapper modelMapper;
 
@@ -75,12 +77,17 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public Page<WarehouseDto> findAll(String search, Pageable pageable) {
-        Page<Warehouse> rolePage;
+        Page<Warehouse> warehouses;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = warehouseRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Warehouse> specification =
+                    buildGlobalSearchSpec(Warehouse.class, search);
+            warehouses = warehouseRepository.findAll(specification, pageable);
         } else {
-            rolePage = warehouseRepository.findByDeletedFalse(pageable);
+            warehouses = warehouseRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(warehouse -> modelMapper.map(warehouse, WarehouseDto.class));
+
+        return warehouses.map(warehouse ->
+                modelMapper.map(warehouse, WarehouseDto.class));
     }
 }

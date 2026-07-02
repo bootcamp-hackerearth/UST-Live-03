@@ -1,5 +1,6 @@
 package com.ust.pos.product.service.impl;
 
+import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -8,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl extends BaseService implements ProductService {
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
 
@@ -77,13 +79,18 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductDto> findAll(String search, Pageable pageable) {
-        Page<Product> rolePage;
+        Page<Product> products;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = productRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Product> specification =
+                    buildGlobalSearchSpec(Product.class, search);
+            products = productRepository.findAll(specification, pageable);
         } else {
-            rolePage = productRepository.findByDeletedFalse(pageable);
+            products = productRepository.findByDeletedFalse(pageable);
         }
-        return rolePage.map(product -> modelMapper.map(product, ProductDto.class));
+
+        return products.map(product ->
+                modelMapper.map(product, ProductDto.class));
     }
 
     @Override
