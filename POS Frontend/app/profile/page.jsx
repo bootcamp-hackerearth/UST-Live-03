@@ -88,7 +88,7 @@ export default function ProfilePage() {
       const response = await fetchWithAuth(
         `/api/user/update/${encodeURIComponent(user.username)}`,
         {
-          method: "POST",
+          method: "PUT",
           body: JSON.stringify({
             id: user.id,
             username: user.username,
