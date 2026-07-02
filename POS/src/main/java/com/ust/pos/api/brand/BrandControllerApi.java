@@ -4,7 +4,10 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.model.Brand;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +25,12 @@ public class BrandControllerApi extends BaseController {
 
     @PostMapping("/list")
     @PreAuthorize("hasAuthority('Admin')")
-    public PageDto<BrandDto> brand(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
+    public PageDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Brand> spec = buildGlobalSearchSpec(Brand.class, paginationDto.getKeyword());
+            return brandService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
         return brandService.findAll(pageable);
     }
 
@@ -53,7 +60,6 @@ public class BrandControllerApi extends BaseController {
             return false;
         }
         return true;
-
     }
 
     @PostMapping("/toggleStatus")

@@ -3,7 +3,9 @@ package com.ust.pos.category.service;
 import com.ust.pos.dto.CategoryDto;
 
 import com.ust.pos.dto.PageDto;
+import com.ust.pos.model.Category;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 
 import java.util.List;
@@ -24,4 +26,6 @@ public interface CategoryService {
     void toggleStatus(String identifier);
 
     List<CategoryDto> findActiveCategories();
+
+    PageDto<CategoryDto> findAll(Specification<Category> spec, Pageable pageable, String keyword);
 }

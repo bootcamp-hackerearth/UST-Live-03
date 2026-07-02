@@ -1,7 +1,9 @@
 package com.ust.pos.stock.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
+import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -9,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -88,6 +91,21 @@ public class StockServiceImpl extends CommonService implements StockService {
         pageDto.setSizePerPage(pageable.getPageSize());
         pageDto.setPage(pageable.getPageNumber());
         return pageDto;
+    }
+
+    @Override
+    public PageDto<StockDto> findAll(Specification<Stock> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Stock> stockPage = stockRepository.findAll(spec, pageable);
+        PageDto<StockDto> PageDto = new PageDto<>();
+        PageDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
+        PageDto.setTotalRecords(stockPage.getTotalElements());
+        PageDto.setTotalPages(stockPage.getTotalPages());
+        PageDto.setSizePerPage(pageable.getPageSize());
+        PageDto.setPage(pageable.getPageNumber());
+        PageDto.setKeyword(keyword);
+        return PageDto;
     }
 
     @Override

@@ -4,8 +4,11 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.model.Price;
 import com.ust.pos.price.service.PriceService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +24,13 @@ public class PriceControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    public PageDto<PriceDto> price(PaginationDto paginationDto) {
-        Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
-     return  priceService.findAll(pageable);
+    public PageDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Price> spec = buildGlobalSearchSpec(Price.class, paginationDto.getKeyword());
+            return priceService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
+        return priceService.findAll(pageable);
     }
 
     @GetMapping("/identifier")

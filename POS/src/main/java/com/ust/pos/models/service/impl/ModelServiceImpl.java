@@ -2,15 +2,19 @@ package com.ust.pos.models.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.ModelDto;
+import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.Price;
 import com.ust.pos.models.service.ModelService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -88,6 +92,21 @@ public class ModelServiceImpl extends CommonService implements ModelService {
         pageDto.setSizePerPage(pageable.getPageSize());
         pageDto.setPage(pageable.getPageNumber());
         return pageDto;
+    }
+
+    @Override
+    public PageDto<ModelDto> findAll(Specification<Model> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<ModelDto>>() {
+        }.getType();
+        Page<Model> ModelPage = modelRepository.findAll(spec, pageable);
+        PageDto<ModelDto> PageDto = new PageDto<>();
+        PageDto.setDtoList(modelMapper.map(ModelPage.getContent(), listType));
+        PageDto.setTotalRecords(ModelPage.getTotalElements());
+        PageDto.setTotalPages(ModelPage.getTotalPages());
+        PageDto.setSizePerPage(pageable.getPageSize());
+        PageDto.setPage(pageable.getPageNumber());
+        PageDto.setKeyword(keyword);
+        return PageDto;
     }
 
     @Override

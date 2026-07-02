@@ -3,14 +3,17 @@ package com.ust.pos.price.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
+import com.ust.pos.model.Product;
 import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -92,6 +95,22 @@ public class PriceServiceImpl extends CommonService implements PriceService{
         pageDto.setPage(pageable.getPageNumber());
         return pageDto;
     }
+
+    @Override
+    public PageDto<PriceDto> findAll(Specification<Price> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Price> productPage = priceRepository.findAll(spec, pageable);
+        PageDto<PriceDto> PageDto = new PageDto<>();
+        PageDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
+        PageDto.setTotalRecords(productPage.getTotalElements());
+        PageDto.setTotalPages(productPage.getTotalPages());
+        PageDto.setSizePerPage(pageable.getPageSize());
+        PageDto.setPage(pageable.getPageNumber());
+        PageDto.setKeyword(keyword);
+        return PageDto;
+    }
+
 
     @Override
     public PriceDto findByIdentifier(String identifier) {

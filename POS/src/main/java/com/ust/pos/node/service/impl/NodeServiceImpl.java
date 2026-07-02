@@ -4,12 +4,15 @@ package com.ust.pos.node.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PageDto;
+import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -155,5 +158,20 @@ public class NodeServiceImpl extends CommonService implements NodeService {
         pageDto.setSizePerPage(pageable.getPageSize());
         pageDto.setPage(pageable.getPageNumber());
         return pageDto;
+    }
+
+    @Override
+    public PageDto<NodeDto> findAll(Specification<Node> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> NodePage = nodeRepository.findAll(spec, pageable);
+        PageDto<NodeDto> PageDto = new PageDto<>();
+        PageDto.setDtoList(modelMapper.map(NodePage.getContent(), listType));
+        PageDto.setTotalRecords(NodePage.getTotalElements());
+        PageDto.setTotalPages(NodePage.getTotalPages());
+        PageDto.setSizePerPage(pageable.getPageSize());
+        PageDto.setPage(pageable.getPageNumber());
+        PageDto.setKeyword(keyword);
+        return PageDto;
     }
 }

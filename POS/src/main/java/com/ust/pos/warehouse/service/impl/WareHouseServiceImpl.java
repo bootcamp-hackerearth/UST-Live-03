@@ -2,8 +2,10 @@ package com.ust.pos.warehouse.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
+import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.model.User;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WareHouseService;
@@ -11,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -100,6 +103,21 @@ public class WareHouseServiceImpl extends CommonService implements WareHouseServ
         pageDto.setSizePerPage(pageable.getPageSize());
         pageDto.setPage(pageable.getPageNumber());
         return pageDto;
+    }
+
+    @Override
+    public PageDto<WareHouseDto> findAll(Specification<Warehouse> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<WareHouseDto>>() {
+        }.getType();
+        Page<Warehouse> warehousePage = warehouseRepository.findAll(spec, pageable);
+        PageDto<WareHouseDto> PageDto = new PageDto<>();
+        PageDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
+        PageDto.setTotalRecords(warehousePage.getTotalElements());
+        PageDto.setTotalPages(warehousePage.getTotalPages());
+        PageDto.setSizePerPage(pageable.getPageSize());
+        PageDto.setPage(pageable.getPageNumber());
+        PageDto.setKeyword(keyword);
+        return PageDto;
     }
 
     @Override

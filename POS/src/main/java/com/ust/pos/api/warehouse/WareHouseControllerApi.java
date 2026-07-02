@@ -2,9 +2,14 @@ package com.ust.pos.api.warehouse;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WareHouseDto;
+import com.ust.pos.model.Warehouse;
 import com.ust.pos.warehouse.service.WareHouseService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +26,12 @@ public class WareHouseControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    public PageDto<WareHouseDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
+    public PageDto<WareHouseDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Warehouse> spec = buildGlobalSearchSpec(Warehouse.class, paginationDto.getKeyword());
+            return wareHouseService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
         return wareHouseService.findAll(pageable);
     }
 

@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -177,6 +178,21 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         pageDto.setSizePerPage(pageable.getPageSize());
         pageDto.setPage(pageable.getPageNumber());
         return pageDto;
+    }
+
+    @Override
+    public PageDto<CustomerDto> findAll(Specification<Customer> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> customerPage = customerRepository.findAll(spec, pageable);
+        PageDto<CustomerDto> PageDto = new PageDto<>();
+        PageDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        PageDto.setTotalRecords(customerPage.getTotalElements());
+        PageDto.setTotalPages(customerPage.getTotalPages());
+        PageDto.setSizePerPage(pageable.getPageSize());
+        PageDto.setPage(pageable.getPageNumber());
+        PageDto.setKeyword(keyword);
+        return PageDto;
     }
 
     @Override

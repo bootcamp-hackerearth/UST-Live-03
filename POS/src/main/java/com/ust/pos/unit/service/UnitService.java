@@ -1,10 +1,11 @@
 package com.ust.pos.unit.service;
 
-
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.model.Unit;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -23,4 +24,6 @@ public interface UnitService {
     void toggleStatus(String identifier);
 
     List<UnitDto> findActiveUnits();
+
+    PageDto<UnitDto> findAll(Specification<Unit> spec, Pageable pageable, String keyword);
 }

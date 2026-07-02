@@ -4,7 +4,10 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.model.Category;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,8 +23,12 @@ public class CategoryControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    public PageDto<CategoryDto> category(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
+    public PageDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Category> spec = buildGlobalSearchSpec(Category.class, paginationDto.getKeyword());
+            return categoryService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
         return categoryService.findAll(pageable);
     }
 

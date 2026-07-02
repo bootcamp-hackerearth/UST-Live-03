@@ -2,6 +2,7 @@ package com.ust.pos.unit.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
+import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -90,6 +92,21 @@ public class UnitServiceImpl extends CommonService implements UnitService {
         pageDto.setSizePerPage(pageable.getPageSize());
         pageDto.setPage(pageable.getPageNumber());
         return pageDto;
+    }
+
+    @Override
+    public PageDto<UnitDto> findAll(Specification<Unit> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Unit> unitPage = unitRepository.findAll(spec, pageable);
+        PageDto<UnitDto> PageDto = new PageDto<>();
+        PageDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
+        PageDto.setTotalRecords(unitPage.getTotalElements());
+        PageDto.setTotalPages(unitPage.getTotalPages());
+        PageDto.setSizePerPage(pageable.getPageSize());
+        PageDto.setPage(pageable.getPageNumber());
+        PageDto.setKeyword(keyword);
+        return PageDto;
     }
 
     @Override

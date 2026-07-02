@@ -3,8 +3,11 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfsDto;
+import com.ust.pos.model.Shelfs;
 import com.ust.pos.shelfs.service.ShelfsService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,10 +25,15 @@ public class ShelfsControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    public PageDto<ShelfsDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
-      return shelfsService.findAll(pageable);
+    public PageDto<ShelfsDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Shelfs> spec = buildGlobalSearchSpec(Shelfs.class, paginationDto.getKeyword());
+            return shelfsService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
+        return shelfsService.findAll(pageable);
     }
+
 
     @GetMapping("/identifier")
     public ShelfsDto getShelfsByIdentifier(@RequestParam String identifier) {

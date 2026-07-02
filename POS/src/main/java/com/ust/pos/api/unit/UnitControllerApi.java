@@ -3,8 +3,11 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.model.Unit;
 import com.ust.pos.unit.service.UnitService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,9 +25,13 @@ public class UnitControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    public PageDto<UnitDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable=getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),paginationDto.getSortDirection(),paginationDto.getSortField());
-       return unitService.findAll(pageable);
+    public PageDto<UnitDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Unit> spec = buildGlobalSearchSpec(Unit.class, paginationDto.getKeyword());
+            return unitService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
+        return unitService.findAll(pageable);
     }
 
     @GetMapping("/identifier")

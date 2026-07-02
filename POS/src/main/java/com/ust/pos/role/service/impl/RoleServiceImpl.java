@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -113,5 +114,20 @@ public class RoleServiceImpl extends CommonService implements RoleService {
         pageDto.setSizePerPage(pageable.getPageSize());
         pageDto.setPage(pageable.getPageNumber());
         return pageDto;
+    }
+
+    @Override
+    public PageDto<RoleDto> findAll(Specification<Role> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> rolePage = roleRepository.findAll(spec, pageable);
+        PageDto<RoleDto> PageDto = new PageDto<>();
+        PageDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+        PageDto.setTotalRecords(rolePage.getTotalElements());
+        PageDto.setTotalPages(rolePage.getTotalPages());
+        PageDto.setSizePerPage(pageable.getPageSize());
+        PageDto.setPage(pageable.getPageNumber());
+        PageDto.setKeyword(keyword);
+        return PageDto;
     }
 }
