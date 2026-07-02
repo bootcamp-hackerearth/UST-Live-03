@@ -27,16 +27,16 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<BrandDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortField());
-        Page<BrandDto> brand = brandService.findAll(pageable, paginationDto.getSearch());
-        WsDto<BrandDto> result = new WsDto<>();
-        result.setContent(brand.getContent());
-        result.setSizePerPage(brand.getSize());
-        result.setPage(brand.getNumber());
-        result.setTotalPages(brand.getTotalPages());
-        return result;
+    public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(),
+                paginationDto.getSizePerPage(), paginationDto.getSortField());
+        Page<BrandDto> pageResult = brandService.findAll(pageable, paginationDto.getSearch());
+        WsDto<BrandDto> response = new WsDto<>();
+        response.setContent(pageResult.getContent());
+        response.setPage(pageResult.getNumber());
+        response.setSizePerPage(pageResult.getSize());
+        response.setTotalPages(pageResult.getTotalPages());
+        return response;
     }
 
     @PostMapping("/add")

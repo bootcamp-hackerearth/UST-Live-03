@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,14 +97,16 @@ public class BrandServiceImpl extends CommonService implements BrandService {
 
     @Override
     public Page<BrandDto> findAll(Pageable pageable, String search) {
-        Page<Brand> brandPage;
+        Page<Brand> brands;
+
         if (search != null && !search.trim().isEmpty()) {
-            brandPage = brandRepository.findByIdentifierContainingIgnoreCaseAndIsDeleteFalse
-                    (search, pageable);
+            Specification<Brand> specification = buildGlobalSearchSpec(Brand.class, search);
+            brands = brandRepository.findAll(specification, pageable);
         } else {
-            brandPage = brandRepository.findByIsDeleteFalse(pageable);
+            brands = brandRepository.findByIsDeleteFalse(pageable);
         }
-        return brandPage.map(brand -> modelMapper.map(brand, BrandDto.class));
+
+        return brands.map(brand -> modelMapper.map(brand, BrandDto.class));
     }
 
     @Override

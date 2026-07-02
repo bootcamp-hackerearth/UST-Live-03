@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -110,13 +111,15 @@ public class UserServiceImpl extends CommonService implements UserService {
 
     @Override
     public Page<UserDto> findAll(Pageable pageable, String search) {
-        Page<User> userPage;
+        Page<User> users;
+
         if (search != null && !search.trim().isEmpty()) {
-            userPage = userRepository.findByUsernameContainingIgnoreCaseAndIsDeleteFalse
-                    (search, pageable);
+            Specification<User> specification = buildGlobalSearchSpec(User.class, search);
+            users = userRepository.findAll(specification, pageable);
         } else {
-            userPage = userRepository.findByIsDeleteFalse(pageable);
+            users = userRepository.findByIsDeleteFalse(pageable);
         }
-        return userPage.map(user -> modelMapper.map(user, UserDto.class));
+
+        return users.map(user -> modelMapper.map(user, UserDto.class));
     }
 }

@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,13 +91,15 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
 
     @Override
     public Page<WarehouseDto> findAll(Pageable pageable, String search) {
-        Page<Warehouse> warehousePage;
+        Page<Warehouse> warehouses;
+
         if (search != null && !search.trim().isEmpty()) {
-            warehousePage = warehouseRepository.findByIdentifierContainingIgnoreCaseAndIsDeleteFalse
-                    (search, pageable);
+            Specification<Warehouse> specification = buildGlobalSearchSpec(Warehouse.class, search);
+            warehouses = warehouseRepository.findAll(specification, pageable);
         } else {
-            warehousePage = warehouseRepository.findByIsDeleteFalse(pageable);
+            warehouses = warehouseRepository.findByIsDeleteFalse(pageable);
         }
-        return warehousePage.map(warehouse -> modelMapper.map(warehouse, WarehouseDto.class));
+
+        return warehouses.map(warehouse -> modelMapper.map(warehouse, WarehouseDto.class));
     }
 }

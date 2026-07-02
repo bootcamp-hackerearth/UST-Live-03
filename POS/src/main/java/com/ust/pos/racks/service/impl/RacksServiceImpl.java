@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,15 +102,15 @@ public class RacksServiceImpl extends CommonService implements RacksService {
 
     @Override
     public Page<RacksDto> findAll(Pageable pageable, String search) {
+        Page<Racks> racks;
 
-        Page<Racks> racksPage;
         if (search != null && !search.trim().isEmpty()) {
-            racksPage = racksRepository.findByIdentifierContainingIgnoreCaseAndIsDeleteFalse
-                    (search, pageable);
+            Specification<Racks> specification = buildGlobalSearchSpec(Racks.class, search);
+            racks = racksRepository.findAll(specification, pageable);
         } else {
-            racksPage = racksRepository.findByIsDeleteFalse(pageable);
+            racks = racksRepository.findByIsDeleteFalse(pageable);
         }
-        return racksPage.map(product ->
-                modelMapper.map(product, RacksDto.class));
+
+        return racks.map(rack -> modelMapper.map(rack, RacksDto.class));
     }
 }

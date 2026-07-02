@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -85,13 +86,15 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public Page<RoleDto> findAll(Pageable pageable, String search) {
-        Page<Role> rolePage;
+        Page<Role> roles;
+
         if (search != null && !search.trim().isEmpty()) {
-            rolePage = roleRepository.findByIdentifierContainingIgnoreCaseAndIsDeleteFalse
-                    (search, pageable);
+            Specification<Role> specification = buildGlobalSearchSpec(Role.class, search);
+            roles = roleRepository.findAll(specification, pageable);
         } else {
-            rolePage = roleRepository.findByIsDeleteFalse(pageable);
+            roles = roleRepository.findByIsDeleteFalse(pageable);
         }
-        return rolePage.map(role -> modelMapper.map(role, RoleDto.class));
+
+        return roles.map(role -> modelMapper.map(role, RoleDto.class));
     }
 }

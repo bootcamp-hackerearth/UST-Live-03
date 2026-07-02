@@ -1,6 +1,7 @@
 package com.ust.pos.order.service.impl;
 
 import com.ust.pos.cartentry.service.CartEntryService;
+import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.OrderItemDto;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +24,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl extends CommonService implements OrderService {
 
     private final CartRepository cartRepository;
     private final CartEntryService cartEntryService;
@@ -166,14 +168,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderDto> findAll(Pageable pageable, String search) {
-        Page<Order> page;
+        Page<Order> orders;
+
         if (search != null && !search.trim().isEmpty()) {
-            page = orderRepository.
-                    findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(search, pageable);
+            Specification<Order> specification = buildGlobalSearchSpec(Order.class, search);
+            orders = orderRepository.findAll(specification, pageable);
         } else {
-            page = orderRepository.findAll(pageable);
+            orders = orderRepository.findByIsDeleteFalse(pageable);
         }
-        return page.map(order -> modelMapper.map(order, OrderDto.class));
+
+        return orders.map(order -> modelMapper.map(order, OrderDto.class));
     }
 
     @Override

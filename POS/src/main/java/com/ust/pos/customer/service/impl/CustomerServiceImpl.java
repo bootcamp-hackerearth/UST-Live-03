@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,13 +121,15 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
 
     @Override
     public Page<CustomerDto> findAll(Pageable pageable, String search) {
-        Page<Customer> customerPage;
+        Page<Customer> customers;
+
         if (search != null && !search.trim().isEmpty()) {
-            customerPage = customerRepository.findByIdentifierContainingIgnoreCaseAndIsDeleteFalse
-                    (search, pageable);
+            Specification<Customer> specification = buildGlobalSearchSpec(Customer.class, search);
+            customers = customerRepository.findAll(specification, pageable);
         } else {
-            customerPage = customerRepository.findByIsDeleteFalse(pageable);
+            customers = customerRepository.findByIsDeleteFalse(pageable);
         }
-        return customerPage.map(customer -> modelMapper.map(customer, CustomerDto.class));
+
+        return customers.map(customer -> modelMapper.map(customer, CustomerDto.class));
     }
 }

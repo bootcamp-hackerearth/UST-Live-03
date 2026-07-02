@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -106,13 +107,15 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public Page<CategoryDto> findAll(Pageable pageable, String search) {
-        Page<Category> categories;
+        Page<Category> categorys;
+
         if (search != null && !search.trim().isEmpty()) {
-            categories = categoryRepository.
-                    findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(search, pageable);
+            Specification<Category> specification = buildGlobalSearchSpec(Category.class, search);
+            categorys = categoryRepository.findAll(specification, pageable);
         } else {
-            categories = categoryRepository.findByIsDeleteFalse(pageable);
+            categorys = categoryRepository.findByIsDeleteFalse(pageable);
         }
-        return categories.map(category -> modelMapper.map(category, CategoryDto.class));
+
+        return categorys.map(category -> modelMapper.map(category, CategoryDto.class));
     }
 }

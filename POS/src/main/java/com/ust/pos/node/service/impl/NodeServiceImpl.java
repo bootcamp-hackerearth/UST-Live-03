@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -122,13 +123,15 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
     @Override
     public Page<NodeDto> findAll(Pageable pageable, String search) {
-        Page<Node> nodePage;
+        Page<Node> nodes;
+
         if (search != null && !search.trim().isEmpty()) {
-            nodePage = nodeRepository.findByIdentifierContainingIgnoreCaseAndIsDeleteFalse
-                    (search, pageable);
+            Specification<Node> specification = buildGlobalSearchSpec(Node.class, search);
+            nodes = nodeRepository.findAll(specification, pageable);
         } else {
-            nodePage = nodeRepository.findByIsDeleteFalse(pageable);
+            nodes = nodeRepository.findByIsDeleteFalse(pageable);
         }
-        return nodePage.map(node -> modelMapper.map(node, NodeDto.class));
+
+        return nodes.map(brand -> modelMapper.map(brand, NodeDto.class));
     }
 }

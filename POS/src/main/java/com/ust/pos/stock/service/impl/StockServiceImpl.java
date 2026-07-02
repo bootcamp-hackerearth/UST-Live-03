@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -104,13 +105,15 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public Page<StockDto> findAll(Pageable pageable, String search) {
-        Page<Stock> stockPage;
+        Page<Stock> stocks;
+
         if (search != null && !search.trim().isEmpty()) {
-            stockPage = stockRepository.findByIdentifierContainingIgnoreCaseAndIsDeleteFalse
-                    (search, pageable);
+            Specification<Stock> specification = buildGlobalSearchSpec(Stock.class, search);
+            stocks = stockRepository.findAll(specification, pageable);
         } else {
-            stockPage = stockRepository.findByIsDeleteFalse(pageable);
+            stocks = stockRepository.findByIsDeleteFalse(pageable);
         }
-        return stockPage.map(stock -> modelMapper.map(stock, StockDto.class));
+
+        return stocks.map(stock -> modelMapper.map(stock, StockDto.class));
     }
 }

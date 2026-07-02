@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,13 +87,15 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
     @Override
     public Page<PriceDto> findAll(Pageable pageable, String search) {
-        Page<Price> pricePage;
+        Page<Price> prices;
+
         if (search != null && !search.trim().isEmpty()) {
-            pricePage = priceRepository.
-                    findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(search, pageable);
+            Specification<Price> specification = buildGlobalSearchSpec(Price.class, search);
+            prices = priceRepository.findAll(specification, pageable);
         } else {
-            pricePage = priceRepository.findByIsDeleteFalse(pageable);
+            prices = priceRepository.findByIsDeleteFalse(pageable);
         }
-        return pricePage.map(price -> modelMapper.map(price, PriceDto.class));
+
+        return prices.map(price -> modelMapper.map(price, PriceDto.class));
     }
 }
