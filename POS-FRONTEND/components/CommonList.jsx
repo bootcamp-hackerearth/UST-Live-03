@@ -43,41 +43,38 @@ function CommonList({
   }, []);
 
   useEffect(() => {
-    if (token) {
-      fetchList();
-    }
-  }, [token]);
+  if (token) {
+    fetchList();
+  }
+}, [token, page, search]);
 
   const fetchList = async () => {
-    try {
-      const storedToken = localStorage.getItem("token") || token;
-      const res = await axios.post(
-        apiUrl,
-        {
-          page: 0,
-          sizePerPage: 100000,
-          sortDirection: "ASC",
-          sortField: "identifier",
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${storedToken}`,
-          },
-          withCredentials: true,
-        }
-      );
+  try {
+    const storedToken = localStorage.getItem("token") || token;
 
-      let responseData = [];
-      if (Array.isArray(res.data)) {
-        responseData = res.data;
-      } else {
-        responseData = res.data.dtoList || [];
+    const res = await axios.post(
+      apiUrl,
+      {
+        page,
+        sizePerPage,
+        sortDirection: "ASC",
+        sortField: "identifier",
+        keyword: search,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${storedToken}`,
+        },
+        withCredentials: true,
       }
-      setAllData(responseData);
-    } catch (err) {
-      console.error("Fetch list error:", err);
-    }
-  };
+    );
+
+    setAllData(res.data.dtoList || []);
+    setTotalPages(res.data.totalPages || 1);
+  } catch (err) {
+    console.error("Fetch list error:", err);
+  }
+};
 
   const handleStatusToggle = async (item) => {
     const toggleKey = item.identifier || item.username;
@@ -120,20 +117,8 @@ function CommonList({
     }
   };
 
-  const filteredData = allData.filter((item) =>
-    searchKeys?.some((key) =>
-      item[key]?.toString().toLowerCase().includes(search.toLowerCase())
-    )
-  );
+  const paginatedData = allData;
 
-  const paginatedData = filteredData.slice(
-    page * sizePerPage,
-    (page + 1) * sizePerPage
-  );
-
-  useEffect(() => {
-    setTotalPages(Math.ceil(filteredData.length / sizePerPage) || 1);
-  }, [filteredData]);
 
   const handleDelete = async (item) => {
     const confirmDelete = globalThis.confirm("Delete item?");
@@ -240,7 +225,7 @@ function CommonList({
 
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="text-xs font-medium text-[#8888a0] bg-[#eef0f6] px-3 py-1 rounded-xl">
-          {filteredData.length} active {title ? title.toLowerCase() : "items"}
+          {allData.length} active {title ? title.toLowerCase() : "items"}
         </div>
 
         <div className="flex items-center gap-4">
