@@ -1,7 +1,9 @@
 package com.ust.pos.user.service.impl;
 import com.ust.pos.CommonService;
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -10,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
@@ -124,5 +127,20 @@ public class UserServiceImpl extends CommonService implements UserService {
         dto.setPhoneNo(user.getPhoneNo());
         dto.setRoles(user.getRoles());
         return dto;
+    }
+
+    @Override
+    public WsDto<UserDto> findAll(Specification<User> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> page = userRepository.findAll(example, pageable);
+        WsDto<UserDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

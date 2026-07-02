@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.lang.reflect.Type;
@@ -121,13 +122,13 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         cartEntryService.deleteAllByCart(phoneNo);
         cartService.delete(phoneNo);
         addressRepository.deleteByPhoneNo(customer.getPhoneNo());
-        customerRepository.delete(customer);
+        softDelete(customer);
     }
 
     @Override
     public WsDto<CustomerDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
+        Page<Customer> customerPage = customerRepository.findByIsDeletedFalse(pageable);
         WsDto<CustomerDto> customerDtoWsDto = new WsDto<>();
         customerDtoWsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
         customerDtoWsDto.setTotalRecords(customerPage.getTotalElements());
@@ -143,5 +144,20 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         return address.getAddressLine().trim().toUpperCase()
                 + "-" + address.getZipcode()
                 + "-" + address.getAddressType().toUpperCase();
+    }
+
+    @Override
+    public WsDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable,String keyword) {
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> page = customerRepository.findAll(example, pageable);
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

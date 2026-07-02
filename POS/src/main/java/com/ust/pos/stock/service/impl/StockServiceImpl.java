@@ -1,7 +1,9 @@
 package com.ust.pos.stock.service.impl;
 import com.ust.pos.CommonService;
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -10,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -98,5 +101,22 @@ public class StockServiceImpl extends CommonService implements StockService {
             stockRepository.save(stock);
         }
     }
+
+    @Override
+    public WsDto<StockDto> findAll(Specification<Stock> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Stock> page = stockRepository.findAll(example, pageable);
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
+    }
+
+
 }
 

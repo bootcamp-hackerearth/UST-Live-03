@@ -32,4 +32,5 @@ public abstract class CommonService {
     public void softDelete(CommonFields entity){
         entity.setDeleted(true);
     }
+
 }

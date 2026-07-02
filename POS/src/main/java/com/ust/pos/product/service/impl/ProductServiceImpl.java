@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,5 +107,20 @@ public class ProductServiceImpl extends CommonService implements ProductService 
     public List<ProductDto> findAllActive() {
         Type listType = new TypeToken<List<ProductDto>>() {}.getType();
         return modelMapper.map(productRepository.findByStatusTrueAndIsDeletedFalse(), listType);
+    }
+
+    @Override
+    public WsDto<ProductDto> findAll(Specification<Product> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Product> page = productRepository.findAll(example, pageable);
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

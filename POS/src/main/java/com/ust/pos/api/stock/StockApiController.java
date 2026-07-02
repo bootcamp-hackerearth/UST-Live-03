@@ -4,8 +4,11 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Stock;
 import com.ust.pos.stock.service.StockService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +23,14 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<StockDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
+    public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Stock> example = buildGlobalSearchSpec(Stock.class, paginationDto.getKeyword());
+            if (example != null) {
+                return stockService.findAll(example, pageable, paginationDto.getKeyword());
+            }
+        }
         return stockService.findAll(pageable);
     }
 

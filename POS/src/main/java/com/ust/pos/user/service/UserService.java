@@ -1,8 +1,12 @@
 package com.ust.pos.user.service;
 
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
+import com.ust.pos.model.User;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 public interface UserService {
     UserDto findByUserName(String username);
@@ -18,4 +22,6 @@ public interface UserService {
     UserDto findByIdentifier(String identifier);
 
     UserDto getUserDetails(String username);
+
+    WsDto<UserDto> findAll(Specification<User> example, Pageable pageable, String keyword);
 }

@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -86,5 +87,20 @@ public class PriceServiceImpl extends CommonService implements PriceService {
         priceDtoWsDto.setSizePerPage(pageable.getPageSize());
         priceDtoWsDto.setPage(pageable.getPageNumber());
         return priceDtoWsDto;
+    }
+
+    @Override
+    public WsDto<PriceDto> findAll(Specification<Price> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        Page<Price> page = priceRepository.findAll(example, pageable);
+        WsDto<PriceDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }
