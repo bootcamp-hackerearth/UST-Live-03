@@ -1,5 +1,6 @@
 package com.ust.pos.order.service.impl;
 
+import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.OrderEntryDto;
 import com.ust.pos.cartentry.service.CartEntryService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -115,5 +117,20 @@ public class OrderServiceImpl implements OrderService {
         orderWsDto.setSizePerPage(pageable.getPageSize());
         orderWsDto.setPage(pageable.getPageNumber());
         return orderWsDto;
+    }
+
+    @Override
+    public WsDto<OrderDto> findAll(Specification<Order> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<OrderDto>>() {
+        }.getType();
+        Page<Order> orderPage = orderRepository.findAll(example, pageable);
+        WsDto<OrderDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(orderPage.getContent(), listType));
+        wsDto.setTotalRecords(orderPage.getTotalElements());
+        wsDto.setTotalPages(orderPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

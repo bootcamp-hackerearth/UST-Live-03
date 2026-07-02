@@ -214,7 +214,12 @@ export default function ListingSkeleton({
   const [data, setData] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
+
+  // Raw text as the user types it (updates every keystroke, drives the input).
+  const [searchInput, setSearchInput] = useState("");
+  // Debounced value that is actually sent to the backend as `keyword`.
   const [searchTerm, setSearchTerm] = useState("");
+
   const [pagination, setPagination] = useState({
     page: 0, sizePerPage: 5, sortDirection: "ASC", sortField: "id",
   });
@@ -229,39 +234,33 @@ export default function ListingSkeleton({
 
   const { currentPage, goToPage, getVisiblePages } = usePageNavigation(pagination, setPagination);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput.trim());
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setPagination((prev) => (prev.page === 0 ? prev : { ...prev, page: 0 }));
+  }, [searchTerm]);
+
   const loadList = useCallback(async () => {
     try {
-      if (searchTerm.trim()) {
-        const res = await api.post(apis.list, { ...pagination, page: 0, sizePerPage: 1000 });
-        const allData = Array.isArray(res.data) ? res.data : res.data.dtoList ?? [];
-        const escaped = searchTerm.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-        const regex = new RegExp(String.raw`\b${escaped}`, "i");
-        const filtered = allData.filter((item) => {
-          const idMatch = regex.test(String(item[paramKey] ?? ""));
-          const fieldMatch = fields.some((f) => {
-            const v = item[f];
-            return regex.test(Array.isArray(v) ? v.join(" ") : String(v ?? ""));
-          });
-          return idMatch || fieldMatch;
-        });
-        setData(filtered);
+      const res = await api.post(apis.list, { ...pagination, keyword: searchTerm });
+
+      if (Array.isArray(res.data)) {
+        setData(res.data);
         setTotalPages(1);
-        setTotalRecords(filtered.length);
+        setTotalRecords(res.data.length);
       } else {
-        const res = await api.post(apis.list, pagination);
-        if (Array.isArray(res.data)) {
-          setData(res.data);
-          setTotalPages(1);
-          setTotalRecords(res.data.length);
-        } else {
-          setData(res.data.dtoList ?? []);
-          setTotalPages(res.data.totalPages ?? 1);
-          setTotalRecords(
-            res.data.totalElements ??
-            res.data.totalRecords ??
-            (res.data.totalPages ?? 1) * pagination.sizePerPage
-          );
-        }
+        setData(res.data.dtoList ?? []);
+        setTotalPages(res.data.totalPages ?? 1);
+        setTotalRecords(
+          res.data.totalRecords ??
+          res.data.totalElements ??
+          (res.data.totalPages ?? 1) * pagination.sizePerPage
+        );
       }
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.log(err);
@@ -270,7 +269,7 @@ export default function ListingSkeleton({
         setHttpError({ statusCode: status, message: err.response?.data?.message || null });
       }
     }
-  }, [apis.list, pagination, searchTerm, fields, paramKey]);
+  }, [apis.list, pagination, searchTerm]);
 
   useEffect(() => { loadList(); }, [loadList]);
 
@@ -377,8 +376,8 @@ export default function ListingSkeleton({
             <input
               type="text"
               placeholder={`Search ${title}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               style={{
                 padding: "6px 12px", background: "#f7f8fc",
                 border: `1.5px solid ${C.border}`, borderRadius: "6px",
@@ -530,7 +529,7 @@ export default function ListingSkeleton({
                   {" "}entries
                 </span>
 
-                {searchTerm.trim() === "" && totalPages > 1 && visiblePages.length > 0 && (
+                {totalPages > 1 && visiblePages.length > 0 && (
                   <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                     <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 0}
                       style={pgBtn(currentPage === 0, false)}>‹</button>
@@ -566,4 +565,4 @@ ListingSkeleton.propTypes = {
   paramKey: PropTypes.string,
   identifierLabel: PropTypes.string,
   deleteStyle: PropTypes.string,
-};      
+};

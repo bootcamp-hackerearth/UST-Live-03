@@ -12,17 +12,44 @@ export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const pathname = usePathname();
 
-  useEffect(() => {
+  // ── extracted so both useEffects can call the same logic ──
+  function syncUserFromStorage() {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
 
     if (token) {
-      const storedName = localStorage.getItem("email") || localStorage.getItem("username") || "User";
-      setUserInitial(storedName.charAt(0).toUpperCase());
-      const cleanName = storedName.includes("@") ? storedName.split("@")[0] : storedName;
-      setDisplayName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
+      const storedName =
+        localStorage.getItem("name") ||       // full name preferred
+        localStorage.getItem("username") ||
+        localStorage.getItem("email") ||
+        "User";
+
+      const cleanName = storedName.includes("@")
+        ? storedName.split("@")[0]
+        : storedName;
+
+      const formatted =
+        cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+      setDisplayName(formatted);
+      setUserInitial(formatted.charAt(0).toUpperCase());
+    } else {
+      setDisplayName("User");
+      setUserInitial("U");
     }
+  }
+
+  // runs on route change (covers page refresh / navigation)
+  useEffect(() => {
+    syncUserFromStorage();
   }, [pathname]);
+
+  // ── NEW: runs immediately when login succeeds ──
+  useEffect(() => {
+    const handleLogin = () => syncUserFromStorage();
+    globalThis.addEventListener("user-login", handleLogin);
+    return () => globalThis.removeEventListener("user-login", handleLogin);
+  }, []);
 
   useEffect(() => {
     const handleToggle = (e) => setIsSidebarOpen(e.detail.isOpen);
@@ -35,10 +62,9 @@ export default function Navbar() {
       e.preventDefault();
       const nextState = !isSidebarOpen;
       setIsSidebarOpen(nextState);
-      const event = new CustomEvent("sidebar-toggle", {
-        detail: { isOpen: nextState },
-      });
-      globalThis.dispatchEvent(event);
+      globalThis.dispatchEvent(
+        new CustomEvent("sidebar-toggle", { detail: { isOpen: nextState } })
+      );
     }
   };
 
@@ -99,7 +125,6 @@ export default function Navbar() {
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {isLoggedIn ? (
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              {/* Welcome text */}
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.55)", fontWeight: "400" }}>
                   Welcome back,

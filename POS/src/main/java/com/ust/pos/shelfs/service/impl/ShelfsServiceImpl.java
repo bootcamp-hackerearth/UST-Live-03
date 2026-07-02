@@ -1,8 +1,10 @@
 package com.ust.pos.shelfs.service.impl;
 
 import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Role;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.shelfs.service.ShelfsService;
@@ -10,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -110,5 +113,20 @@ public class ShelfsServiceImpl extends CommonService implements ShelfsService {
         Type listType = new TypeToken<List<ShelfsDto>>() {
         }.getType();
         return modelMapper.map(shelfsRepository.findByStatusIsTrueAndDeletedFalse(), listType);
+    }
+
+    @Override
+    public WsDto<ShelfsDto> findAll(Specification<Shelfs> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<ShelfsDto>>() {
+        }.getType();
+        Page<Shelfs>  shelfsPage= shelfsRepository.findAll(example, pageable);
+        WsDto<ShelfsDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(shelfsPage.getContent(), listType));
+        wsDto.setTotalRecords(shelfsPage.getTotalElements());
+        wsDto.setTotalPages(shelfsPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

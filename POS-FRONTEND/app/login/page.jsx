@@ -1,4 +1,3 @@
-// app/login/page.jsx
 "use client";
 
 import { useState } from "react";
@@ -8,8 +7,8 @@ import api from "@/api/axios";
 import AuthLayout, { C, sharedStyles } from "@/components/AuthLayout";
 
 export default function Login() {
-  const [username, setUsername] = useState(""); 
-  const [password, setPassword] = useState(""); 
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,6 +32,8 @@ export default function Login() {
       if (response.data?.token) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("id", response.data.id);
+        localStorage.setItem("username", username); // ← save logged-in username
+        globalThis.dispatchEvent(new CustomEvent("user-login")); // ← notify navbar
         router.push("/home");
       } else {
         setServerError("Invalid username or password.");

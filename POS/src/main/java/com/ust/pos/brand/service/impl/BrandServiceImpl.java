@@ -3,13 +3,16 @@ package com.ust.pos.brand.service.impl;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
+import com.ust.pos.model.Customer;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -109,5 +112,20 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
         return modelMapper.map(brandRepository.findByStatusIsTrueAndDeletedFalse(), listType);
+    }
+
+    @Override
+    public WsDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Page<Brand> brandPage = brandRepository.findAll(example, pageable);
+        WsDto<BrandDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));
+        wsDto.setTotalRecords(brandPage.getTotalElements());
+        wsDto.setTotalPages(brandPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

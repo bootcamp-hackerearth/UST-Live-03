@@ -22,32 +22,32 @@ public class ApiWareHouseController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN','INVENTORY_MANAGER')")
     public WsDto<WareHouseDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return wareHouseService.findAll(pageable);
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('MANAGER')")
+    @PreAuthorize("hasAuthority('ADMIN','INVENTORY_MANAGER')")
     public WareHouseDto addPost(@RequestBody WareHouseDto wareHouseDto) {
         return wareHouseService.save(wareHouseDto);
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN','INVENTORY_MANAGER')")
     public WareHouseDto update(@RequestParam String identifier) {
         return wareHouseService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN','INVENTORY_MANAGER')")
     public WareHouseDto updatePost(@RequestBody WareHouseDto wareHouseDto) {
         return wareHouseService.update(wareHouseDto);
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN','INVENTORY_MANAGER')")
     public boolean delete(@RequestParam String identifier) {
         try {
             wareHouseService.delete(identifier);
@@ -58,13 +58,13 @@ public class ApiWareHouseController extends BaseController {
     }
 
     @PostMapping("/toggle-status")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN','INVENTORY_MANAGER')")
     public WareHouseDto toggle(@RequestParam String identifier) {
         return wareHouseService.toggleStatus(identifier);
     }
 
     @GetMapping("/findByStatus")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN','INVENTORY_MANAGER')")
     public List<WareHouseDto> findByStatus() {
         return wareHouseService.findIfTrue();
     }
