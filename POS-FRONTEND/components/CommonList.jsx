@@ -11,7 +11,6 @@ export default function CommonList({
   FormComponent,
   headers,
 }) {
-  const [allData, setAllData] = useState([]);
   const [displayData, setDisplayData] = useState([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -19,65 +18,65 @@ export default function CommonList({
   const [mode, setMode] = useState("add");
   const [editData, setEditData] = useState(null);
   const [search, setSearch] = useState("");
-  const sizePerPage = 5;
+  const sizePerPage = 2;
 
   useEffect(() => {
-    fetchData();
-  }, [routeName]);
+    setPage(0);
+    fetchData(0, "");
+}, [routeName]);
 
   useEffect(() => {
-    handleSearchAndPagination();
-  }, [search, allData, page]);
+    fetchData(page, search);
+}, [page, search]);
 
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`http://localhost:8080/api/${routeName}/list`, {
+  const fetchData = async (currentPage = page, keyword = search) => {
+  try {
+    const res = await fetch(
+      `http://localhost:8080/api/${routeName}/list`,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ page: 0, sizePerPage: 100, sortDirection: "ASC", sortField: editField }),
-      });
+        body: JSON.stringify({
+          page: currentPage,
+          sizePerPage,
+          sortDirection: "ASC",
+          sortField: editField,
+          keyword,
+        }),
+      }
+    );
 
-      if (!res.ok) throw new Error("Request failed");
+    if (!res.ok) {
+  const errorText = await res.text();
+  console.log("Status:", res.status);
+  console.log("Error:", errorText);
+  throw new Error(errorText);
+}
 
-      const text = await res.text();
-      const result = text ? JSON.parse(text) : {};
-      const responseData = result.content || result.dtoList || result.data || result || [];
+    const result = await res.json();
 
-      const verifiedArray = Array.isArray(responseData) ? responseData : [];
-      setAllData(verifiedArray);
-      setPage(0);
-    } catch (error) {
-      console.error(error);
-      setAllData([]);
-    }
-  };
+    const responseData =
+      result.content ||
+      result.dtoList ||
+      result.data ||
+      [];
 
-  const handleSearchAndPagination = () => {
-    let filtered = allData;
+    setDisplayData(responseData);
 
-    if (search.trim() !== "") {
-      filtered = allData.filter((item) =>
-        (keys || []).some((key) => {
-          const value = item[key];
-          if (value === null || value === undefined) return false;
-          if (Array.isArray(value)) {
-            return value.join(", ").toLowerCase().includes(search.toLowerCase());
-          }
-          return value.toString().toLowerCase().includes(search.toLowerCase());
-        })
-      );
-    }
-
-    const total = Math.ceil(filtered.length / sizePerPage);
-    setTotalPages(total || 1);
-
-    const start = page * sizePerPage;
-    const end = start + sizePerPage;
-    setDisplayData(filtered.slice(start, end));
-  };
+    setTotalPages(
+      result.totalPages ||
+      result.paginationDto?.totalPages ||
+      1
+    );
+  } catch (error) {
+    console.error(error);
+    setDisplayData([]);
+    setTotalPages(1);
+  }
+};
 
   const deleteData = async (identifier) => {
     const confirmDelete = globalThis.confirm("Delete this item?");
@@ -95,7 +94,7 @@ export default function CommonList({
 
       const result = await res.json().catch(() => null);
       if (result === true || result?.success === true) {
-        fetchData();
+        fetchData(page, search);
       } else {
         alert("Delete failed");
       }
@@ -247,9 +246,9 @@ export default function CommonList({
                 placeholder="Search..."
                 value={search}
                 onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(0);
-                }}
+    setSearch(e.target.value);
+    setPage(0);
+}}
                 className="w-full h-10 rounded-xl border border-neutral-200 bg-neutral-50/50 pl-10 pr-4 text-xs text-neutral-800 outline-none focus:border-neutral-900 focus:bg-white transition-all focus:ring-2 focus:ring-neutral-900/5"
               />
             </div>

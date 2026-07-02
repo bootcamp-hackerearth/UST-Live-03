@@ -38,4 +38,5 @@ public class BaseService {
     protected void softDelete(CommonFields entity) {
         entity.setDeleted(true);
     }
+
 }
