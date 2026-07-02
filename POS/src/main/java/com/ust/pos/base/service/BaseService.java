@@ -3,7 +3,6 @@ package com.ust.pos.base.service;
 import com.ust.pos.model.CommonFields;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.ust.pos.base.service.GenericSpecification;
 import com.ust.pos.dto.WsDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -41,30 +40,5 @@ public class BaseService {
     protected void softDelete(CommonFields entity){
         entity.setDeleted(true);
         entity.setStatus(false);
-    }
-
-    protected <T, D> WsDto<D> search(
-            JpaSpecificationExecutor<T> repository,
-            String keyword,
-            List<String> searchFields,
-            Pageable pageable,
-            ModelMapper modelMapper,
-            Class<D> dtoClass) {
-
-        Specification<T> spec = GenericSpecification.search(keyword, searchFields);
-        Page<T> page = repository.findAll(spec, pageable);
-
-        List<D> dtoList = page.getContent().stream()
-                .map(entity -> modelMapper.map(entity, dtoClass))
-                .collect(Collectors.toList());
-
-        WsDto<D> ws = new WsDto<>();
-        ws.setDtoList(dtoList);
-        ws.setTotalRecords(page.getTotalElements());
-        ws.setTotalPages(page.getTotalPages());
-        ws.setSizePerPage(pageable.getPageSize());
-        ws.setPage(pageable.getPageNumber());
-
-        return ws;
     }
 }

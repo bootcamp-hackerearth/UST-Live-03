@@ -74,12 +74,4 @@ public class BrandControllerApi extends BaseController {
     public List<BrandDto> active() {
         return brandService.findActiveBrands();
     }
-
-    @PostMapping("/search")
-    @PreAuthorize("hasAnyAuthority('Manager','Admin')")
-    public WsDto<BrandDto> search(@RequestBody SearchDto searchDto) {
-        Pageable pageable = getPageable(searchDto.getPage(), searchDto.getSizePerPage(),
-                searchDto.getSortDirection(), searchDto.getSortfield());
-        return brandService.search(searchDto.getKeyword(), pageable);
-    }
 }

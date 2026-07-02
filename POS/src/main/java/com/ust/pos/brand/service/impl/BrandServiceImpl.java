@@ -157,11 +157,4 @@ public class BrandServiceImpl extends BaseService implements BrandService {
         dto.setMessage("Status updated successfully");
         return dto;
     }
-
-    private static final List<String> SEARCH_FIELDS = List.of("brandName", "description");
-
-    @Override
-    public WsDto<BrandDto> search(String keyword, Pageable pageable) {
-        return search(brandRepository, keyword, SEARCH_FIELDS, pageable, modelMapper, BrandDto.class);
-    }
 }

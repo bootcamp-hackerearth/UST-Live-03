@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
@@ -145,13 +146,24 @@ class WarehouseServiceTest {
         when(warehouseRepository.findByIdentifier("W1"))
                 .thenReturn(null);
 
-        WarehouseDto response =
-                warehouseService.findByIdentifier("W1");
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> warehouseService.findByIdentifier("W1")
+        );
+    }
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                "Warehouse not found",
-                response.getMessage()
+    @Test
+    void find_deleted() {
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setDeleted(true);
+
+        when(warehouseRepository.findByIdentifier("W1"))
+                .thenReturn(warehouse);
+
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> warehouseService.findByIdentifier("W1")
         );
     }
 

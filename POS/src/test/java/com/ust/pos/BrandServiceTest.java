@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Test;
@@ -170,10 +171,7 @@ class BrandServiceTest {
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(null);
 
-        BrandDto response = brandService.update(dto);
-
-        assertFalse(response.isSuccess());
-        assertEquals("Brand not found", response.getMessage());
+        assertThrows(ResourceNotFoundException.class, () -> brandService.update(dto));
 
         verify(brandRepository, never()).save(any());
     }
@@ -190,10 +188,7 @@ class BrandServiceTest {
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(brand);
 
-        BrandDto response = brandService.update(dto);
-
-        assertFalse(response.isSuccess());
-        assertEquals("Brand not found", response.getMessage());
+        assertThrows(ResourceNotFoundException.class, () -> brandService.update(dto));
 
         verify(brandRepository, never()).save(any());
     }
@@ -223,9 +218,7 @@ class BrandServiceTest {
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(null);
 
-        BrandDto response = brandService.findByIdentifier("Nike");
-
-        assertNull(response);
+        assertThrows(ResourceNotFoundException.class, () -> brandService.findByIdentifier("Nike"));
     }
 
     @Test
@@ -237,9 +230,7 @@ class BrandServiceTest {
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(brand);
 
-        BrandDto response = brandService.findByIdentifier("Nike");
-
-        assertNull(response);
+        assertThrows(ResourceNotFoundException.class, () -> brandService.findByIdentifier("Nike"));
     }
 
     @Test
@@ -267,7 +258,7 @@ class BrandServiceTest {
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(null);
 
-        brandService.delete("Nike");
+        assertThrows(ResourceNotFoundException.class, () -> brandService.delete("Nike"));
 
         verify(brandRepository, never()).save(any());
     }
@@ -355,10 +346,7 @@ class BrandServiceTest {
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(null);
 
-        BrandDto response = brandService.toggleStatus("Nike");
-
-        assertFalse(response.isSuccess());
-        assertEquals("Brand not found", response.getMessage());
+        assertThrows(ResourceNotFoundException.class, () -> brandService.toggleStatus("Nike"));
     }
 
     @Test
@@ -370,9 +358,6 @@ class BrandServiceTest {
         when(brandRepository.findByIdentifier("Nike"))
                 .thenReturn(brand);
 
-        BrandDto response = brandService.toggleStatus("Nike");
-
-        assertFalse(response.isSuccess());
-        assertEquals("Brand not found", response.getMessage());
+        assertThrows(ResourceNotFoundException.class, () -> brandService.toggleStatus("Nike"));
     }
 }
