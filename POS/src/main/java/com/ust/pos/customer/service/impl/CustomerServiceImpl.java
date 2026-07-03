@@ -13,11 +13,11 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -153,11 +153,19 @@ public class CustomerServiceImpl extends BaseService implements CustomerService 
     }
 
     @Override
-    public List<CustomerDto> searchCustomer(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<Customer> customers = customerRepository.searchActiveCustomers(query);
-        return customers.stream().map(c -> modelMapper.map(c, CustomerDto.class)).toList();
+    public WsDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> page = customerRepository.findAll(example, pageable);
+
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

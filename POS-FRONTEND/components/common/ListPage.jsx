@@ -59,56 +59,36 @@ const handleApiError = (err, defaultMessage) => {
     alert(defaultMessage);
   }
 };
-  const fetchData = async () => {
-    try {
-      const isSearchEmpty = searchQuery.trim() === "";
+const fetchData = async () => {
+  try {
+    const res = await api.post(`/${modelName}/list`, {
+      page,
+      sizePerPage,
+      keyword: searchQuery,
+    });
 
-      if (isSearchEmpty) {
-        const res = await api.post(`/${modelName}/list`, {
-          page,
-          sizePerPage,
-        });
+    const data = res.data;
 
-        const data = res.data;
+    setListData(data.dtoList || []);
+    setTotalPages(data.totalPages || 0);
+    setTotalRecords(data.totalRecords || 0);
 
-        setListData(data.dtoList || []);
-        setTotalPages(data.totalPages || 0);
-        setTotalRecords(data.totalRecords || 0);
-      } else {
-        const res = await api.post(`/${modelName}/list`, {
-          page: 0,
-          sizePerPage: 1000,
-        });
-
-        const data = res.data;
-        const fullData = data.dtoList || [];
-
-        const filtered = fullData.filter((item) =>
-          Object.values(item).some((value) =>
-            String(value).toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        );
-
-        setListData(filtered);
-        setTotalPages(1);
-        setTotalRecords(filtered.length);
-      }
-    } catch (err) {
-  handleApiError(
-    err,
-    "Failed to fetch data"
-  );
-}
-  };
+  } catch (err) {
+    handleApiError(
+      err,
+      "Failed to fetch data"
+    );
+  }
+};
 
   useEffect(() => {
     fetchData();
   }, [page, refresh, searchQuery]);
 
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    setPage(0);
-  };
+const handleSearchChange = (e) => {
+  setSearchQuery(e.target.value);
+  setPage(0);
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -321,7 +301,7 @@ const handleApiError = (err, defaultMessage) => {
           )}
           <div className="flex justify-center items-center gap-3 mt-4">
             <button
-              disabled={page === 0 || searchQuery !== ""}
+              disabled={page === 0}
               onClick={() => setPage(prev => prev - 1)}
               className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
             >
@@ -331,7 +311,7 @@ const handleApiError = (err, defaultMessage) => {
               Page {page + 1} of {totalPages}
             </span>
             <button
-              disabled={page + 1 === totalPages || searchQuery !== ""}
+              disabled={page + 1 >= totalPages}
               onClick={() => setPage(prev => prev + 1)}
               className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
             >

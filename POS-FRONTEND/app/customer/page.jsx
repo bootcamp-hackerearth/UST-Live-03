@@ -19,48 +19,39 @@ export default function CustomerPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchCustomers = async () => {
-    try {
-      setLoading(true);
-      const isSearchEmpty = searchQuery.trim() === "";
+const fetchCustomers = async () => {
+  try {
+    setLoading(true);
 
-      if (isSearchEmpty) {
-        const response = await api.post("/customer/list", pagination);
-        setCustomers(response.data?.dtoList || []);
-        setTotalPages(response.data?.totalPages || 0);
-      } else {
-        const response = await api.post("/customer/list", {
-          ...pagination,
-          page: 0,
-          sizePerPage: 1000,
-        });
+    const response = await api.post("/customer/list", {
+      ...pagination,
+      keyword: searchQuery,
+    });
 
-        const fullData = response.data?.dtoList || [];
-        const filtered = fullData.filter((item) =>
-          Object.values(item).some((value) =>
-            String(value).toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        );
+    setCustomers(response.data?.dtoList || []);
+    setTotalPages(response.data?.totalPages || 0);
 
-        setCustomers(filtered);
-        setTotalPages(1);
-      }
-    } catch (error) {
-      console.log(error);
-      alert("Unable to load customers");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  } catch (error) {
+    console.log(error);
+    alert(
+      error?.response?.data?.message ||
+      "Unable to load customers"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
     fetchCustomers();
   }, [pagination, searchQuery]); 
 
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    setPagination((prev) => ({ ...prev, page: 0 })); 
-  };
+const handleSearchChange = (e) => {
+  setSearchQuery(e.target.value);
+  setPagination((prev) => ({
+    ...prev,
+    page: 0,
+  }));
+};
 
   const handleDelete = async (identifier) => {
     const confirmDelete = globalThis.confirm("Delete customer?");
@@ -287,7 +278,7 @@ export default function CustomerPage() {
           </div>
           <div className="flex justify-center items-center gap-3 mt-4">
             <button
-              disabled={pagination.page === 0 || searchQuery !== ""}
+              disabled={pagination.page === 0}
               onClick={() =>
                 setPagination((prev) => ({
                   ...prev,
@@ -302,7 +293,7 @@ export default function CustomerPage() {
               Page {pagination.page + 1} of {totalPages}
             </span>
             <button
-              disabled={pagination.page + 1 >= totalPages || searchQuery !== ""}
+              disabled={pagination.page + 1 >= totalPages}
               onClick={() =>
                 setPagination((prev) => ({
                   ...prev,

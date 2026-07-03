@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -99,5 +100,22 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
         return modelMapper.map(categoryRepository.findBySuperCategoryIsNotNull(), listType);
+    }
+
+    @Override
+    public WsDto<CategoryDto> findAll(Specification<Category> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        Page<Category> page = categoryRepository.findAll(example, pageable);
+
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

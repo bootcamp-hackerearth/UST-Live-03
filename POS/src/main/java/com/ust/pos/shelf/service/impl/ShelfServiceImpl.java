@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -107,5 +108,22 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
         Type listType = new TypeToken<List<ShelfDto>>() {
         }.getType();
         return modelMapper.map(shelfRepository.findByStatusTrue(), listType);
+    }
+
+    @Override
+    public WsDto<ShelfDto> findAll(Specification<Shelf> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
+        Page<Shelf> page = shelfRepository.findAll(example, pageable);
+
+        WsDto<ShelfDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

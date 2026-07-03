@@ -90,7 +90,7 @@ option: (base, state) => {
 },
 };
 
-const CustomerField = ({ value, onChange, customers }) => {
+const CustomerField = ({ value, onChange, customers, onSearch, }) => {
   const options = customers.map((c) => ({
     value: c.identifier,
     label: c.name ?? c.identifier,
@@ -108,15 +108,18 @@ return (
     </label>
 
     <div className="flex items-center bg-white border-2 border-gray-300 rounded-xl hover:border-gray-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100 transition-all px-2 shadow-sm">
-      <Select
-        inputId="customer-select"
-        options={options}
-        value={selectedOption}
-        onChange={(opt) => onChange(opt?.value || "")}
-        placeholder="Search customer…"
-        className="flex-1 text-sm"
-        styles={customSelectStyles}
-      />
+<Select
+  inputId="customer-select"
+  options={options}
+  value={selectedOption}
+  onChange={(opt) => onChange(opt?.value || "")}
+  onInputChange={(input) => {
+    onSearch(input);
+  }}
+  placeholder="Search customer…"
+  className="flex-1 text-sm"
+  styles={customSelectStyles}
+/>
     </div>
   </div>
 );
@@ -232,7 +235,8 @@ const CartPage = () => {
   const [entries, setEntries] = useState([]);
   const [products, setProducts] = useState([]);
   const [prices, setPrices] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [productSearch, setProductSearch] = useState("");
   const [savingId, setSavingId] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [receivedAmount, setReceivedAmount] = useState("");
@@ -246,13 +250,61 @@ const CartPage = () => {
     const token = globalThis.localStorage?.getItem("token");
     return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
   };
+  const loadCustomers = async (keyword = "") => {
+  try {
+    const res = await api.post(
+      "/customer/list",
+      {
+        page: 0,
+        sizePerPage: 500,
+        keyword,
+      },
+      {
+        headers: getHeaders(),
+      }
+    );
 
-  useEffect(() => {
-    const headers = getHeaders();
-    api.post("/product/list", { page: 0, sizePerPage: 500 }, { headers }).then((res) => setProducts(res.data.dtoList ?? [])).catch(console.error);
-    api.post("/price/list", { page: 0, sizePerPage: 500 }, { headers }).then((res) => setPrices(res.data.dtoList ?? [])).catch(console.error);
-    api.post("/customer/list", { page: 0, sizePerPage: 500 }, { headers }).then((res) => setCustomers(res.data.dtoList ?? [])).catch(console.error);
-  }, []);
+    setCustomers(res.data.dtoList ?? []);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const loadProducts = async (keyword = "") => {
+  try {
+    const res = await api.post(
+      "/product/list",
+      {
+        page: 0,
+        sizePerPage: 500,
+        keyword,
+      },
+      {
+        headers: getHeaders(),
+      }
+    );
+
+    setProducts(res.data.dtoList ?? []);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+useEffect(() => {
+  const headers = getHeaders();
+
+  loadProducts("");
+  loadCustomers("");
+
+  api.post(
+    "/price/list",
+    { page: 0, sizePerPage: 500 },
+    { headers }
+  )
+    .then((res) => setPrices(res.data.dtoList ?? []))
+    .catch(console.error);
+
+}, []);
 
   const fetchCart = async (customerId) => {
     if (!customerId) { setCartData(null); setEntries([]); return; }
@@ -267,6 +319,22 @@ const CartPage = () => {
   };
 
   useEffect(() => { fetchCart(customer); }, [customer]);
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    loadCustomers(customerSearch);
+  }, 300);
+
+  return () => clearTimeout(timer);
+
+}, [customerSearch]);
+useEffect(() => {
+  const timer = setTimeout(() => {
+    loadProducts(productSearch);
+  }, 300);
+
+  return () => clearTimeout(timer);
+
+}, [productSearch]);
 
   const handleSelectProduct = async (productIdentifier) => {
     if (!customer) { showMessage("Please select a customer first!"); return; }
@@ -422,11 +490,6 @@ const CartPage = () => {
     }
   };
 
-  const filteredProducts = products.filter((p) => {
-    const matchString = `${p.productName} ${p.identifier}`.toLowerCase();
-    return matchString.includes(searchQuery.toLowerCase());
-  });
-
   return (
     <Sidebar>
       <div className="min-h-screen bg-gray-50/50 p-4 md:p-6 lg:p-8">
@@ -456,7 +519,12 @@ const CartPage = () => {
           )}
           <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-sm p-4 mb-6">
             <div className="flex flex-wrap gap-4 items-end">
-              <CustomerField value={customer} onChange={setCustomer} customers={customers} />
+              <CustomerField
+  value={customer}
+  onChange={setCustomer}
+  customers={customers}
+  onSearch={setCustomerSearch}
+/>
               <button
                 onClick={() => setShowCustomerPopup(true)}
                 className="flex items-center justify-center gap-2 h-[44px] px-4 rounded-xl bg-blue-50 text-blue-600 text-sm font-bold hover:bg-blue-100 border-2 border-blue-200 active:scale-98 transition-all"
@@ -482,7 +550,7 @@ const CartPage = () => {
                     <Package size={16} className="text-blue-600" /> Items Catalog
                   </h2>
                   <span className="px-2.5 py-0.5 text-[11px] font-bold bg-gray-200 text-gray-700 rounded-full">
-                    {filteredProducts.length} items
+                    {products.length} items items
                   </span>
                 </div>
                 <div className="relative flex items-center">
@@ -490,19 +558,19 @@ const CartPage = () => {
                   <input
                     type="text"
                     placeholder="Search by product name or code..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={productSearch}
+onChange={(e) => setProductSearch(e.target.value)}
                     className="w-full h-10 pl-10 pr-4 bg-white border-2 border-gray-300 rounded-xl text-sm font-semibold placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all shadow-xs"
                   />
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2.5 bg-gray-50/30">
-                {filteredProducts.length === 0 ? (
+                {products.length === 0 ? (
                   <div className="text-center py-12 text-sm font-medium text-gray-400">
                     No matching products found.
                   </div>
                 ) : (
-                  filteredProducts.map((p) => {
+                 products.map((p) => {
                     const sPrice = prices.find((pr) => pr.product === p.identifier && pr.priceType === "SELLING PRICE")?.amount || 0;
                     const mrpPrice = prices.find((pr) => pr.product === p.identifier && pr.priceType === "MRP")?.amount || 0;
 
@@ -741,6 +809,7 @@ CustomerField.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   customers: PropTypes.array.isRequired,
+  onSearch: PropTypes.func.isRequired,
 };
 
 CartTable.propTypes = {
