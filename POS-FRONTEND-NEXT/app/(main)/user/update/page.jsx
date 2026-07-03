@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import "./page.css";
 
 const UpdateProfile = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const username = searchParams.get("username");
 
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState("");
 
   const [formData, setFormData] = useState({
     id: "",
@@ -21,7 +19,23 @@ const UpdateProfile = () => {
     roles: [],
   });
 
-  const fetchUser = useCallback(async () => {
+  // ✅ FIX: safely read query param on client only
+  useEffect(() => {
+    if (typeof globalThis !== "undefined") {
+      const params = new URLSearchParams(globalThis.location.search);
+      const uname = params.get("username");
+
+      if (!uname) {
+        alert("Username not found");
+        router.push("/user/profile");
+        return;
+      }
+
+      setUsername(uname);
+    }
+  }, [router]);
+
+  const fetchUser = useCallback(async (uname) => {
     try {
       setLoading(true);
 
@@ -32,19 +46,13 @@ const UpdateProfile = () => {
         return;
       }
 
-      if (!username) {
-        alert("Username not found");
-        router.push("/user/profile");
-        return;
-      }
-
       const response = await axios.get(
-        `http://localhost:8080/api/user/get?username=${username}`,
+        `http://localhost:8080/api/user/get?username=${uname}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
       const data = response.data;
@@ -58,16 +66,18 @@ const UpdateProfile = () => {
       });
     } catch (error) {
       console.error("FETCH USER ERROR:", error);
-
       alert("Failed to fetch user details");
     } finally {
       setLoading(false);
     }
-  }, [router, username]);
+  }, [router]);
 
+  // ✅ fetch only after username is ready
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    if (username) {
+      fetchUser(username);
+    }
+  }, [username, fetchUser]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -95,9 +105,7 @@ const UpdateProfile = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -110,18 +118,20 @@ const UpdateProfile = () => {
         roles: formData.roles,
       };
 
-      await axios.post("http://localhost:8080/api/user/update", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.put(
+        "http://localhost:8080/api/user/update",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       alert("Profile updated successfully");
-
       router.push("/user/profile");
     } catch (error) {
       console.error("UPDATE ERROR:", error);
-
       alert("Failed to update profile");
     }
   };
@@ -138,7 +148,6 @@ const UpdateProfile = () => {
         <form onSubmit={handleUpdate}>
           <div className="update-row">
             <label htmlFor="name">Name</label>
-
             <input
               id="name"
               type="text"
@@ -151,8 +160,8 @@ const UpdateProfile = () => {
 
           <div className="update-row">
             <label htmlFor="phoneNo">Phone No</label>
-
             <input
+              id="phoneNo"
               type="text"
               name="phoneNo"
               value={formData.phoneNo}
@@ -163,7 +172,6 @@ const UpdateProfile = () => {
 
           <div className="update-row">
             <label htmlFor="username">Username</label>
-
             <input
               id="username"
               type="text"
@@ -174,9 +182,10 @@ const UpdateProfile = () => {
 
           <div className="update-row">
             <div>Roles</div>
-
             <span>
-              {formData.roles.length > 0 ? formData.roles.join(", ") : "-"}
+              {formData.roles?.length
+                ? formData.roles.join(", ")
+                : "-"}
             </span>
           </div>
 

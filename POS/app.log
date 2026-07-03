@@ -1,16 +1,16 @@
-2026-07-02 09:55:51 - Starting PosApplication using Java 22.0.2 with PID 18704 (C:\Users\308331\Desktop\Training\Hacker_Earth\UST-Live-03\POS\target\classes started by 308331 in C:\Users\308331\Desktop\Training\Hacker_Earth\UST-Live-03\POS)
-2026-07-02 09:55:51 - No active profile set, falling back to 1 default profile: "default"
-2026-07-02 09:55:53 - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-07-02 09:55:53 - Finished Spring Data repository scanning in 308 ms. Found 19 JPA repository interfaces.
-2026-07-02 09:55:55 - Tomcat initialized with port 8080 (http)
-2026-07-02 09:55:55 - Starting service [Tomcat]
-2026-07-02 09:55:55 - Starting Servlet engine: [Apache Tomcat/11.0.20]
-2026-07-02 09:55:56 - At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
-2026-07-02 09:55:56 - Root WebApplicationContext: initialization completed in 4872 ms
-2026-07-02 09:55:56 - HHH008540: Processing PersistenceUnitInfo [name: default]
-2026-07-02 09:55:57 - HHH000001: Hibernate ORM core version 7.2.7.Final
-2026-07-02 09:55:59 - No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-07-02 09:56:01 - HHH10001005: Database info:
+2026-07-03 12:55:07 - Starting PosApplication using Java 22.0.2 with PID 25880 (C:\Users\308331\Desktop\Training\Hacker_Earth\UST-Live-03\POS\target\classes started by 308331 in C:\Users\308331\Desktop\Training\Hacker_Earth\UST-Live-03\POS)
+2026-07-03 12:55:07 - No active profile set, falling back to 1 default profile: "default"
+2026-07-03 12:55:10 - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-03 12:55:10 - Finished Spring Data repository scanning in 410 ms. Found 19 JPA repository interfaces.
+2026-07-03 12:55:12 - Tomcat initialized with port 8080 (http)
+2026-07-03 12:55:12 - Starting service [Tomcat]
+2026-07-03 12:55:12 - Starting Servlet engine: [Apache Tomcat/11.0.20]
+2026-07-03 12:55:13 - At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+2026-07-03 12:55:13 - Root WebApplicationContext: initialization completed in 5595 ms
+2026-07-03 12:55:14 - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-07-03 12:55:14 - HHH000001: Hibernate ORM core version 7.2.7.Final
+2026-07-03 12:55:15 - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-03 12:55:16 - HHH10001005: Database info:
 	Database JDBC URL [jdbc:mysql://localhost:3306/posdb]
 	Database driver: MySQL Connector/J
 	Database dialect: MySQLDialect
@@ -22,674 +22,261 @@
 	Pool: DataSourceConnectionProvider
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-07-02 09:56:07 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-07-02 09:56:07 - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-07-02 09:56:08 - Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-07-02 09:56:11 - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-07-02 09:56:11 - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
-2026-07-02 09:56:11 - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
-2026-07-02 09:56:12 - 206 mappings in 'requestMappingHandlerMapping'
-2026-07-02 09:56:12 - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
-2026-07-02 09:56:12 - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 2 RequestBodyAdvice, 1 ResponseBodyAdvice
-2026-07-02 09:56:12 - ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
-2026-07-02 09:56:13 - MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.6.4"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/OpenLogic/22.0.2+9-adhoc.Administrator.jdk22u"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@13b52853, com.mongodb.Jep395RecordCodecProvider@1a89d045, com.mongodb.KotlinCodecProvider@4d2d0eda, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=UNSPECIFIED, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
-2026-07-02 09:56:13 - Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=38142300, minRoundTripTimeNanos=0}
-2026-07-02 09:56:13 - Tomcat started on port 8080 (http) with context path '/'
-2026-07-02 09:56:13 - Started PosApplication in 23.334 seconds (process running for 24.675)
-2026-07-02 09:56:57 - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-07-02 09:56:57 - Initializing Servlet 'dispatcherServlet'
-2026-07-02 09:56:57 - Detected StandardServletMultipartResolver
-2026-07-02 09:56:57 - Detected AcceptHeaderLocaleResolver
-2026-07-02 09:56:57 - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@1e3469df
-2026-07-02 09:56:57 - Detected org.springframework.web.servlet.support.SessionFlashMapManager@2cf09576
-2026-07-02 09:56:57 - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
-2026-07-02 09:56:57 - Completed initialization in 10 ms
-2026-07-02 09:56:57 - POST "/api/authenticate", parameters={}
-2026-07-02 09:56:57 - Mapped to com.ust.pos.api.TokenGenerationController#authenticate(UserDto)
-2026-07-02 09:56:58 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:01 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:01 - Completed 200 OK
-2026-07-02 09:57:02 - GET "/api/user/get?username=yesh%40gmail.com", parameters={masked}
-2026-07-02 09:57:02 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
-2026-07-02 09:57:02 - GET "/api/node/roles", parameters={}
-2026-07-02 09:57:02 - Mapped to com.ust.pos.api.node.NodeApiController#getNodesForRoles()
-2026-07-02 09:57:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:02 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:02 - Completed 200 OK
-2026-07-02 09:57:02 - GET "/api/user/get?username=yesh%40gmail.com", parameters={masked}
-2026-07-02 09:57:02 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
-2026-07-02 09:57:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:02 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:02 - Completed 200 OK
-2026-07-02 09:57:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:02 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 09:57:02 - Completed 200 OK
-2026-07-02 09:57:02 - GET "/api/node/roles", parameters={}
-2026-07-02 09:57:02 - Mapped to com.ust.pos.api.node.NodeApiController#getNodesForRoles()
-2026-07-02 09:57:03 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:03 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 09:57:03 - Completed 200 OK
-2026-07-02 09:57:09 - POST "/api/brand/list", parameters={}
-2026-07-02 09:57:09 - POST "/api/brand/list", parameters={}
-2026-07-02 09:57:09 - Mapped to com.ust.pos.api.brand.BrandApiController#home(PaginationDto)
-2026-07-02 09:57:09 - Mapped to com.ust.pos.api.brand.BrandApiController#home(PaginationDto)
-2026-07-02 09:57:09 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:09 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:09 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:09 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:09 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 09:57:09 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 09:57:09 - Completed 200 OK
-2026-07-02 09:57:09 - Completed 200 OK
-2026-07-02 09:57:16 - GET "/api/category/list", parameters={}
-2026-07-02 09:57:16 - Mapped to com.ust.pos.api.category.CategoryApiController#home()
-2026-07-02 09:57:16 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:16 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:16 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:16 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:16 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 09:57:16 - Completed 200 OK
-2026-07-02 09:57:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:16 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 09:57:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:16 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 09:57:16 - Completed 200 OK
-2026-07-02 09:57:16 - Completed 200 OK
-2026-07-02 09:57:16 - GET "/api/category/list", parameters={}
-2026-07-02 09:57:16 - Mapped to com.ust.pos.api.category.CategoryApiController#home()
-2026-07-02 09:57:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:16 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 09:57:16 - Completed 200 OK
-2026-07-02 09:57:18 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:18 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:18 - Read "application/json;charset=UTF-8" to [PaginationDto(page=1, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:18 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:18 - Writing [PaginationDto(page=1, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 09:57:18 - Completed 200 OK
-2026-07-02 09:57:21 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:21 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:21 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:21 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:21 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 09:57:21 - Completed 200 OK
-2026-07-02 09:57:23 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:23 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:23 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:24 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 09:57:24 - Completed 200 OK
-2026-07-02 09:57:26 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:26 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:26 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:26 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:26 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 09:57:26 - Completed 200 OK
-2026-07-02 09:57:29 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:29 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:29 - Read "application/json;charset=UTF-8" to [PaginationDto(page=2, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:29 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:29 - Writing [PaginationDto(page=2, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 09:57:29 - Completed 200 OK
-2026-07-02 09:57:30 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:31 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:31 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:31 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:31 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 09:57:31 - Completed 200 OK
-2026-07-02 09:57:35 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:35 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:35 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:35 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:35 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 09:57:35 - Completed 200 OK
-2026-07-02 09:57:39 - POST "/api/category/list", parameters={}
-2026-07-02 09:57:39 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 09:57:39 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:39 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:39 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 09:57:39 - Completed 200 OK
-2026-07-02 09:57:43 - POST "/api/price/list", parameters={}
-2026-07-02 09:57:43 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:57:43 - POST "/api/price/list", parameters={}
-2026-07-02 09:57:43 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:57:43 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:43 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:43 - GET "/api/product/list", parameters={}
-2026-07-02 09:57:43 - Mapped to com.ust.pos.api.product.ProductApiController#list()
-2026-07-02 09:57:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:44 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 09:57:44 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 09:57:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:44 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 09:57:44 - Completed 200 OK
-2026-07-02 09:57:44 - Completed 200 OK
-2026-07-02 09:57:44 - Completed 200 OK
-2026-07-02 09:57:44 - GET "/api/product/list", parameters={}
-2026-07-02 09:57:44 - Mapped to com.ust.pos.api.product.ProductApiController#list()
-2026-07-02 09:57:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:44 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 09:57:44 - Completed 200 OK
-2026-07-02 09:57:47 - POST "/api/price/list", parameters={}
-2026-07-02 09:57:47 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:57:47 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:47 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:47 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:47 - Completed 200 OK
-2026-07-02 09:57:51 - POST "/api/price/list", parameters={}
-2026-07-02 09:57:51 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:57:51 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:51 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:51 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 09:57:51 - Completed 200 OK
-2026-07-02 09:57:56 - POST "/api/price/list", parameters={}
-2026-07-02 09:57:56 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:57:56 - Read "application/json;charset=UTF-8" to [PaginationDto(page=1, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:56 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:56 - Writing [PaginationDto(page=1, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 09:57:56 - Completed 200 OK
-2026-07-02 09:57:58 - POST "/api/price/list", parameters={}
-2026-07-02 09:57:58 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:57:58 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:57:58 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:57:58 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 09:57:58 - Completed 200 OK
-2026-07-02 09:58:00 - POST "/api/price/list", parameters={}
-2026-07-02 09:58:00 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:58:00 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:00 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:58:00 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 09:58:00 - Completed 200 OK
-2026-07-02 09:58:03 - POST "/api/price/list", parameters={}
-2026-07-02 09:58:03 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:58:03 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:03 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:58:03 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 09:58:03 - Completed 200 OK
-2026-07-02 09:58:05 - POST "/api/price/list", parameters={}
-2026-07-02 09:58:05 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:58:05 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:05 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:58:05 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:05 - Completed 200 OK
-2026-07-02 09:58:08 - POST "/api/price/list", parameters={}
-2026-07-02 09:58:08 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:58:08 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:08 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:58:08 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:08 - Completed 200 OK
-2026-07-02 09:58:12 - POST "/api/price/list", parameters={}
-2026-07-02 09:58:12 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:58:12 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:12 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:58:12 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:12 - Completed 200 OK
-2026-07-02 09:58:14 - POST "/api/price/list", parameters={}
-2026-07-02 09:58:14 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:58:14 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:14 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:58:14 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:14 - Completed 200 OK
-2026-07-02 09:58:16 - POST "/api/price/list", parameters={}
-2026-07-02 09:58:16 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 09:58:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 09:58:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 09:58:16 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 09:58:16 - Completed 200 OK
-2026-07-02 10:08:29 - POST "/api/brand/list", parameters={}
-2026-07-02 10:08:29 - POST "/api/brand/list", parameters={}
-2026-07-02 10:08:29 - Mapped to com.ust.pos.api.brand.BrandApiController#home(PaginationDto)
-2026-07-02 10:08:29 - Mapped to com.ust.pos.api.brand.BrandApiController#home(PaginationDto)
-2026-07-02 10:08:29 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:08:29 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:08:29 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:08:29 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:08:29 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:08:29 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:08:29 - Completed 200 OK
-2026-07-02 10:08:29 - Completed 200 OK
-2026-07-02 10:08:33 - GET "/api/category/list", parameters={}
-2026-07-02 10:08:33 - Mapped to com.ust.pos.api.category.CategoryApiController#home()
-2026-07-02 10:08:33 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:08:33 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:08:33 - Completed 200 OK
-2026-07-02 10:08:33 - POST "/api/category/list", parameters={}
-2026-07-02 10:08:33 - POST "/api/category/list", parameters={}
-2026-07-02 10:08:33 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 10:08:33 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 10:08:33 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:08:33 - GET "/api/category/list", parameters={}
-2026-07-02 10:08:33 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:08:33 - Mapped to com.ust.pos.api.category.CategoryApiController#home()
-2026-07-02 10:08:33 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:08:33 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:08:33 - Completed 200 OK
-2026-07-02 10:08:33 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:08:33 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:08:33 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 10:08:33 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
-2026-07-02 10:08:33 - Completed 200 OK
-2026-07-02 10:08:33 - Completed 200 OK
-2026-07-02 10:08:36 - POST "/api/category/list", parameters={}
-2026-07-02 10:08:36 - Mapped to com.ust.pos.api.category.CategoryApiController#home(PaginationDto)
-2026-07-02 10:08:36 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:08:36 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:08:36 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:08:36 - Completed 200 OK
-2026-07-02 10:09:00 - GET "/api/product/list", parameters={}
-2026-07-02 10:09:00 - POST "/api/price/list", parameters={}
-2026-07-02 10:09:00 - Mapped to com.ust.pos.api.product.ProductApiController#list()
-2026-07-02 10:09:00 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 10:09:00 - POST "/api/price/list", parameters={}
-2026-07-02 10:09:00 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 10:09:00 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:09:00 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:09:00 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:00 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:09:00 - Completed 200 OK
-2026-07-02 10:09:00 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:00 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:00 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:09:00 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:09:00 - Completed 200 OK
-2026-07-02 10:09:00 - Completed 200 OK
-2026-07-02 10:09:00 - GET "/api/product/list", parameters={}
-2026-07-02 10:09:00 - Mapped to com.ust.pos.api.product.ProductApiController#list()
-2026-07-02 10:09:00 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:00 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:09:00 - Completed 200 OK
-2026-07-02 10:09:11 - POST "/api/price/list", parameters={}
-2026-07-02 10:09:11 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 10:09:11 - Read "application/json;charset=UTF-8" to [PaginationDto(page=1, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:09:11 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:11 - Writing [PaginationDto(page=1, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:09:11 - Completed 200 OK
-2026-07-02 10:09:12 - POST "/api/price/list", parameters={}
-2026-07-02 10:09:12 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 10:09:12 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:09:12 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:12 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:09:12 - Completed 200 OK
-2026-07-02 10:09:14 - POST "/api/price/list", parameters={}
-2026-07-02 10:09:14 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 10:09:14 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:09:14 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:14 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:09:14 - Completed 200 OK
-2026-07-02 10:09:19 - POST "/api/price/list", parameters={}
-2026-07-02 10:09:19 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 10:09:19 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:09:19 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:19 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:09:19 - Completed 200 OK
-2026-07-02 10:09:21 - POST "/api/price/list", parameters={}
-2026-07-02 10:09:21 - Mapped to com.ust.pos.api.price.PriceApiController#home(PaginationDto)
-2026-07-02 10:09:21 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:09:21 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:09:21 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:09:21 - Completed 200 OK
-2026-07-02 10:47:23 - Commencing graceful shutdown. Waiting for active requests to complete
-2026-07-02 10:47:23 - Graceful shutdown complete
-2026-07-02 10:47:23 - Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-07-02 10:47:34 - Starting PosApplication using Java 22.0.2 with PID 28580 (C:\Users\308331\Desktop\Training\Hacker_Earth\UST-Live-03\POS\target\classes started by 308331 in C:\Users\308331\Desktop\Training\Hacker_Earth\UST-Live-03\POS)
-2026-07-02 10:47:34 - No active profile set, falling back to 1 default profile: "default"
-2026-07-02 10:47:37 - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-07-02 10:47:37 - Finished Spring Data repository scanning in 302 ms. Found 19 JPA repository interfaces.
-2026-07-02 10:47:38 - Tomcat initialized with port 8080 (http)
-2026-07-02 10:47:38 - Starting service [Tomcat]
-2026-07-02 10:47:38 - Starting Servlet engine: [Apache Tomcat/11.0.20]
-2026-07-02 10:47:39 - At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
-2026-07-02 10:47:39 - Root WebApplicationContext: initialization completed in 4729 ms
-2026-07-02 10:47:40 - HHH008540: Processing PersistenceUnitInfo [name: default]
-2026-07-02 10:47:40 - HHH000001: Hibernate ORM core version 7.2.7.Final
-2026-07-02 10:47:40 - No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-07-02 10:47:41 - HHH10001005: Database info:
-	Database JDBC URL [jdbc:mysql://localhost:3306/posdb]
-	Database driver: MySQL Connector/J
-	Database dialect: MySQLDialect
-	Database version: 8.0.44
-	Default catalog/schema: posdb/undefined
-	Autocommit mode: undefined/unknown
-	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
-	JDBC fetch size: none
-	Pool: DataSourceConnectionProvider
-	Minimum pool size: undefined/unknown
-	Maximum pool size: undefined/unknown
-2026-07-02 10:47:42 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-07-02 10:47:43 - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-07-02 10:47:43 - Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-07-02 10:47:44 - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-07-02 10:47:44 - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
-2026-07-02 10:47:44 - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
-2026-07-02 10:47:45 - 206 mappings in 'requestMappingHandlerMapping'
-2026-07-02 10:47:45 - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
-2026-07-02 10:47:45 - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 2 RequestBodyAdvice, 1 ResponseBodyAdvice
-2026-07-02 10:47:45 - ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
-2026-07-02 10:47:45 - MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.6.4"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/OpenLogic/22.0.2+9-adhoc.Administrator.jdk22u"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@f4ecbbf, com.mongodb.Jep395RecordCodecProvider@7c3b7d7c, com.mongodb.KotlinCodecProvider@579e8a7, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=UNSPECIFIED, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
-2026-07-02 10:47:45 - Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=26179500, minRoundTripTimeNanos=0}
-2026-07-02 10:47:46 - Tomcat started on port 8080 (http) with context path '/'
-2026-07-02 10:47:46 - Started PosApplication in 12.128 seconds (process running for 13.287)
-2026-07-02 10:48:03 - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-07-02 10:48:03 - Initializing Servlet 'dispatcherServlet'
-2026-07-02 10:48:03 - Detected StandardServletMultipartResolver
-2026-07-02 10:48:03 - Detected AcceptHeaderLocaleResolver
-2026-07-02 10:48:03 - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@12c66345
-2026-07-02 10:48:03 - Detected org.springframework.web.servlet.support.SessionFlashMapManager@614427b2
-2026-07-02 10:48:03 - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
-2026-07-02 10:48:03 - Completed initialization in 7 ms
-2026-07-02 10:48:05 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:05 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:05 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:05 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:05 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:05 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:06 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:06 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:06 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:48:06 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:48:06 - Completed 200 OK
-2026-07-02 10:48:06 - Completed 200 OK
-2026-07-02 10:48:12 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:12 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:12 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:13 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:13 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:13 - Completed 200 OK
-2026-07-02 10:48:16 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:16 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:16 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:48:16 - Completed 200 OK
-2026-07-02 10:48:22 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:22 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:22 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:22 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:22 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:22 - Completed 200 OK
-2026-07-02 10:48:24 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:24 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:24 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:24 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:24 - Completed 200 OK
-2026-07-02 10:48:26 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:26 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:26 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:26 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:26 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:26 - Completed 200 OK
-2026-07-02 10:48:29 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:29 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:29 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:29 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:29 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:29 - Completed 200 OK
-2026-07-02 10:48:31 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:31 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:31 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:31 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:31 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:48:31 - Completed 200 OK
-2026-07-02 10:48:47 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:47 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:47 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:47 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:47 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:48:47 - Completed 200 OK
-2026-07-02 10:48:50 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:50 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:50 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:50 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:48:50 - Completed 200 OK
-2026-07-02 10:48:54 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:48:54 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:48:54 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:48:55 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:48:55 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:48:55 - Completed 200 OK
-2026-07-02 10:49:12 - PUT "/api/warehouse/update", parameters={}
-2026-07-02 10:49:12 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#doupdate(WarehouseDto)
-2026-07-02 10:49:12 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:49:12 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:49:12 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:49:12 - Completed 200 OK
-2026-07-02 10:49:12 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:49:12 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:49:12 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:49:12 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:49:12 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:49:12 - Completed 200 OK
-2026-07-02 10:49:44 - PUT "/api/warehouse/update", parameters={}
-2026-07-02 10:49:44 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#doupdate(WarehouseDto)
-2026-07-02 10:49:44 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:49:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:49:44 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:49:44 - Completed 200 OK
-2026-07-02 10:49:44 - POST "/api/warehouse/list", parameters={}
-2026-07-02 10:49:44 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#home(PaginationDto)
-2026-07-02 10:49:44 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:49:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:49:44 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:49:44 - Completed 200 OK
-2026-07-02 10:49:57 - POST "/api/product/list", parameters={}
-2026-07-02 10:49:57 - Mapped to com.ust.pos.api.product.ProductApiController#home(PaginationDto)
-2026-07-02 10:49:57 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:49:57 - POST "/api/product/list", parameters={}
-2026-07-02 10:49:57 - Mapped to com.ust.pos.api.product.ProductApiController#home(PaginationDto)
-2026-07-02 10:49:57 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:49:57 - GET "/api/category/list", parameters={}
-2026-07-02 10:49:57 - Mapped to com.ust.pos.api.category.CategoryApiController#home()
-2026-07-02 10:49:57 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:49:57 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:49:57 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:49:57 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:49:57 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:49:57 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:49:57 - Completed 200 OK
-2026-07-02 10:49:57 - Completed 200 OK
-2026-07-02 10:49:57 - Completed 200 OK
-2026-07-02 10:49:57 - GET "/api/category/list", parameters={}
-2026-07-02 10:49:57 - Mapped to com.ust.pos.api.category.CategoryApiController#home()
-2026-07-02 10:49:57 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:49:57 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:49:57 - Completed 200 OK
-2026-07-02 10:50:23 - PUT "/api/product/update", parameters={}
-2026-07-02 10:50:23 - Mapped to com.ust.pos.api.product.ProductApiController#doupdate(ProductDto)
-2026-07-02 10:50:23 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:50:23 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:23 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:50:23 - Completed 200 OK
-2026-07-02 10:50:23 - POST "/api/product/list", parameters={}
-2026-07-02 10:50:23 - Mapped to com.ust.pos.api.product.ProductApiController#home(PaginationDto)
-2026-07-02 10:50:23 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:50:23 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:23 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:50:23 - Completed 200 OK
-2026-07-02 10:50:34 - POST "/api/product/list", parameters={}
-2026-07-02 10:50:34 - Mapped to com.ust.pos.api.product.ProductApiController#home(PaginationDto)
-2026-07-02 10:50:34 - Read "application/json;charset=UTF-8" to [PaginationDto(page=1, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:50:34 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:34 - Writing [PaginationDto(page=1, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:50:34 - Completed 200 OK
-2026-07-02 10:50:42 - POST "/api/product/list", parameters={}
-2026-07-02 10:50:42 - Mapped to com.ust.pos.api.product.ProductApiController#home(PaginationDto)
-2026-07-02 10:50:42 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:50:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:42 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
-2026-07-02 10:50:42 - Completed 200 OK
-2026-07-02 10:50:50 - POST "/api/stock/list", parameters={}
-2026-07-02 10:50:50 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 10:50:50 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:50:50 - GET "/api/warehouse/list", parameters={}
-2026-07-02 10:50:50 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#list()
-2026-07-02 10:50:50 - GET "/api/product/list", parameters={}
-2026-07-02 10:50:50 - Mapped to com.ust.pos.api.product.ProductApiController#list()
-2026-07-02 10:50:50 - POST "/api/stock/list", parameters={}
-2026-07-02 10:50:50 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 10:50:50 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 10:50:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:50 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:50:50 - Completed 200 OK
-2026-07-02 10:50:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:50 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:50:50 - Completed 200 OK
-2026-07-02 10:50:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:50 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 10:50:50 - Completed 200 OK
-2026-07-02 10:50:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:50 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:50:50 - Completed 200 OK
-2026-07-02 10:50:50 - GET "/api/warehouse/list", parameters={}
-2026-07-02 10:50:50 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#list()
-2026-07-02 10:50:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:50 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:50:50 - Completed 200 OK
-2026-07-02 10:50:50 - GET "/api/product/list", parameters={}
-2026-07-02 10:50:50 - Mapped to com.ust.pos.api.product.ProductApiController#list()
-2026-07-02 10:50:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 10:50:50 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 10:50:50 - Completed 200 OK
-2026-07-02 11:30:44 - GET "/api/product/list", parameters={}
-2026-07-02 11:30:44 - POST "/api/stock/list", parameters={}
-2026-07-02 11:30:44 - GET "/api/node/roles", parameters={}
-2026-07-02 11:30:44 - GET "/api/warehouse/list", parameters={}
-2026-07-02 11:30:44 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:30:44 - Mapped to com.ust.pos.api.product.ProductApiController#list()
-2026-07-02 11:30:44 - Mapped to com.ust.pos.api.node.NodeApiController#getNodesForRoles()
-2026-07-02 11:30:44 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#list()
-2026-07-02 11:30:44 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:30:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:30:44 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:30:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:30:44 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 11:30:44 - Completed 200 OK
-2026-07-02 11:30:44 - Completed 200 OK
-2026-07-02 11:30:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:30:44 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 11:30:44 - Completed 200 OK
-2026-07-02 11:30:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:30:44 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 11:30:44 - Completed 200 OK
-2026-07-02 11:30:46 - PUT "/api/stock/update", parameters={}
-2026-07-02 11:30:46 - Mapped to com.ust.pos.api.stock.StockApiController#update(StockDto)
-2026-07-02 11:30:46 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:30:46 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:30:46 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:30:46 - Completed 200 OK
-2026-07-02 11:30:46 - POST "/api/stock/list", parameters={}
-2026-07-02 11:30:46 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:30:46 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:30:46 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:30:46 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:30:46 - Completed 200 OK
-2026-07-02 11:30:48 - PUT "/api/stock/update", parameters={}
-2026-07-02 11:30:48 - Mapped to com.ust.pos.api.stock.StockApiController#update(StockDto)
-2026-07-02 11:30:48 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:30:48 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:30:48 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:30:48 - Completed 200 OK
-2026-07-02 11:30:48 - POST "/api/stock/list", parameters={}
-2026-07-02 11:30:48 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:30:48 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:30:48 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:30:48 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:30:48 - Completed 200 OK
-2026-07-02 11:31:01 - PUT "/api/stock/update", parameters={}
-2026-07-02 11:31:01 - Mapped to com.ust.pos.api.stock.StockApiController#update(StockDto)
-2026-07-02 11:31:01 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:01 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:01 - Completed 200 OK
-2026-07-02 11:31:01 - POST "/api/stock/list", parameters={}
-2026-07-02 11:31:01 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:31:01 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:01 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:31:01 - Completed 200 OK
-2026-07-02 11:31:07 - PUT "/api/stock/update", parameters={}
-2026-07-02 11:31:07 - Mapped to com.ust.pos.api.stock.StockApiController#update(StockDto)
-2026-07-02 11:31:07 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:07 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:07 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:07 - Completed 200 OK
-2026-07-02 11:31:07 - POST "/api/stock/list", parameters={}
-2026-07-02 11:31:07 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:31:07 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:08 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:08 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:31:08 - Completed 200 OK
-2026-07-02 11:31:16 - PUT "/api/stock/update", parameters={}
-2026-07-02 11:31:16 - Mapped to com.ust.pos.api.stock.StockApiController#update(StockDto)
-2026-07-02 11:31:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:16 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:16 - Completed 200 OK
-2026-07-02 11:31:16 - POST "/api/stock/list", parameters={}
-2026-07-02 11:31:16 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:31:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:16 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:31:16 - Completed 200 OK
-2026-07-02 11:31:20 - POST "/api/stock/list", parameters={}
-2026-07-02 11:31:20 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:31:20 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:31:20 - GET "/api/node/roles", parameters={}
-2026-07-02 11:31:20 - Mapped to com.ust.pos.api.node.NodeApiController#getNodesForRoles()
-2026-07-02 11:31:20 - GET "/api/warehouse/list", parameters={}
-2026-07-02 11:31:20 - GET "/api/product/list", parameters={}
-2026-07-02 11:31:20 - Mapped to com.ust.pos.api.product.ProductApiController#list()
-2026-07-02 11:31:20 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:20 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:31:20 - Mapped to com.ust.pos.api.warehouse.WarehouseApiController#list()
-2026-07-02 11:31:20 - Completed 200 OK
-2026-07-02 11:31:20 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:20 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 11:31:20 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:20 - Completed 200 OK
-2026-07-02 11:31:20 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 11:31:20 - Completed 200 OK
-2026-07-02 11:31:20 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:31:20 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
-2026-07-02 11:31:20 - Completed 200 OK
-2026-07-02 11:32:35 - PUT "/api/stock/update", parameters={}
-2026-07-02 11:32:35 - Mapped to com.ust.pos.api.stock.StockApiController#update(StockDto)
-2026-07-02 11:32:35 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:32:35 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:32:35 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:32:35 - Completed 200 OK
-2026-07-02 11:32:35 - POST "/api/stock/list", parameters={}
-2026-07-02 11:32:35 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:32:35 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:32:35 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:32:35 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:32:35 - Completed 200 OK
-2026-07-02 11:32:42 - PUT "/api/stock/update", parameters={}
-2026-07-02 11:32:42 - Mapped to com.ust.pos.api.stock.StockApiController#update(StockDto)
-2026-07-02 11:32:42 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:32:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:32:42 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:32:42 - Completed 200 OK
-2026-07-02 11:32:42 - POST "/api/stock/list", parameters={}
-2026-07-02 11:32:42 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:32:42 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:32:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:32:42 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:32:42 - Completed 200 OK
-2026-07-02 11:39:25 - PUT "/api/stock/update", parameters={}
-2026-07-02 11:39:25 - Mapped to com.ust.pos.api.stock.StockApiController#update(StockDto)
-2026-07-02 11:39:25 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:39:25 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:39:25 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:39:25 - Completed 200 OK
-2026-07-02 11:39:25 - POST "/api/stock/list", parameters={}
-2026-07-02 11:39:25 - Mapped to com.ust.pos.api.stock.StockApiController#home(PaginationDto)
-2026-07-02 11:39:25 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
-2026-07-02 11:39:25 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
-2026-07-02 11:39:25 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=1, totalRe (truncated)...]
-2026-07-02 11:39:25 - Completed 200 OK
+2026-07-03 12:55:18 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-03 12:55:18 - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-03 12:55:18 - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-07-03 12:55:20 - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-03 12:55:21 - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-07-03 12:55:21 - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-07-03 12:55:21 - 206 mappings in 'requestMappingHandlerMapping'
+2026-07-03 12:55:21 - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2026-07-03 12:55:21 - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 2 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-07-03 12:55:22 - ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-07-03 12:55:22 - MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.6.4"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/OpenLogic/22.0.2+9-adhoc.Administrator.jdk22u"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1eb21f22, com.mongodb.Jep395RecordCodecProvider@7e4f42c0, com.mongodb.KotlinCodecProvider@22265a8d, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=UNSPECIFIED, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-07-03 12:55:22 - Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=40079600, minRoundTripTimeNanos=0}
+2026-07-03 12:55:22 - Tomcat started on port 8080 (http) with context path '/'
+2026-07-03 12:55:22 - Started PosApplication in 16.055 seconds (process running for 17.366)
+2026-07-03 12:56:24 - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-03 12:56:24 - Initializing Servlet 'dispatcherServlet'
+2026-07-03 12:56:24 - Detected StandardServletMultipartResolver
+2026-07-03 12:56:24 - Detected AcceptHeaderLocaleResolver
+2026-07-03 12:56:24 - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@50d507ab
+2026-07-03 12:56:24 - Detected org.springframework.web.servlet.support.SessionFlashMapManager@5dd2e62a
+2026-07-03 12:56:24 - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-07-03 12:56:24 - Completed initialization in 10 ms
+2026-07-03 12:56:24 - POST "/api/authenticate", parameters={}
+2026-07-03 12:56:24 - Mapped to com.ust.pos.api.TokenGenerationController#authenticate(UserDto)
+2026-07-03 12:56:24 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 12:56:27 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:27 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 12:56:27 - Completed 200 OK
+2026-07-03 12:56:28 - GET "/api/node/roles", parameters={}
+2026-07-03 12:56:28 - Mapped to com.ust.pos.api.node.NodeApiController#getNodesForRoles()
+2026-07-03 12:56:28 - GET "/api/user/get?username=yesh%40gmail.com", parameters={masked}
+2026-07-03 12:56:28 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 12:56:29 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:29 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 12:56:29 - Completed 200 OK
+2026-07-03 12:56:29 - GET "/api/user/get?username=yesh%40gmail.com", parameters={masked}
+2026-07-03 12:56:29 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 12:56:29 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:29 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 12:56:29 - Completed 200 OK
+2026-07-03 12:56:29 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:29 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
+2026-07-03 12:56:29 - Completed 200 OK
+2026-07-03 12:56:29 - GET "/api/node/roles", parameters={}
+2026-07-03 12:56:29 - Mapped to com.ust.pos.api.node.NodeApiController#getNodesForRoles()
+2026-07-03 12:56:29 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:29 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
+2026-07-03 12:56:29 - Completed 200 OK
+2026-07-03 12:56:32 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 12:56:32 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 12:56:32 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:32 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 12:56:32 - Completed 200 OK
+2026-07-03 12:56:33 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 12:56:33 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 12:56:33 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:33 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 12:56:33 - Completed 200 OK
+2026-07-03 12:56:36 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 12:56:36 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 12:56:36 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:36 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 12:56:36 - Completed 200 OK
+2026-07-03 12:56:41 - POST "/api/user/update", parameters={}
+2026-07-03 12:56:41 - Using @ExceptionHandler com.ust.pos.exception.GlobalExceptionHandler#handleGeneric(Exception, HttpServletRequest)
+2026-07-03 12:56:41 - Unhandled exception occurred
+org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'POST' is not supported
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.handleNoMatch(RequestMappingInfoHandlerMapping.java:260)
+	at org.springframework.web.servlet.handler.AbstractHandlerMethodMapping.lookupHandlerMethod(AbstractHandlerMethodMapping.java:434)
+	at org.springframework.web.servlet.handler.AbstractHandlerMethodMapping.getHandlerInternal(AbstractHandlerMethodMapping.java:376)
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.getHandlerInternal(RequestMappingInfoHandlerMapping.java:116)
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.getHandlerInternal(RequestMappingInfoHandlerMapping.java:68)
+	at org.springframework.web.servlet.handler.AbstractHandlerMapping.getHandler(AbstractHandlerMapping.java:544)
+	at org.springframework.web.servlet.DispatcherServlet.getHandler(DispatcherServlet.java:1157)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:951)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:371)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at com.ust.pos.config.JwtFilter.doFilterInternal(JwtFilter.java:49)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1779)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
+	at java.base/java.lang.Thread.run(Unknown Source)
+2026-07-03 12:56:41 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 12:56:41 - Writing [com.ust.pos.exception.ErrorResponse@1b7db134]
+2026-07-03 12:56:41 - Resolved [org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'POST' is not supported]
+2026-07-03 12:56:41 - Completed 500 INTERNAL_SERVER_ERROR
+2026-07-03 13:00:30 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:00:30 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:00:30 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:30 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:30 - Completed 200 OK
+2026-07-03 13:00:36 - GET "/api/node/roles", parameters={}
+2026-07-03 13:00:36 - Mapped to com.ust.pos.api.node.NodeApiController#getNodesForRoles()
+2026-07-03 13:00:36 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:00:36 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:00:36 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:36 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:36 - Completed 200 OK
+2026-07-03 13:00:36 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:36 - Writing [[PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalR (truncated)...]
+2026-07-03 13:00:36 - Completed 200 OK
+2026-07-03 13:00:43 - PUT "/api/user/update", parameters={}
+2026-07-03 13:00:43 - Mapped to com.ust.pos.api.user.UserApiController#updatePost(UserDto)
+2026-07-03 13:00:43 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:43 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:43 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:43 - Completed 200 OK
+2026-07-03 13:00:46 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:00:46 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:00:46 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:46 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:46 - Completed 200 OK
+2026-07-03 13:00:46 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:00:46 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:00:46 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:46 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:46 - Completed 200 OK
+2026-07-03 13:00:48 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:00:48 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:00:48 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:48 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:48 - Completed 200 OK
+2026-07-03 13:00:52 - PUT "/api/user/update", parameters={}
+2026-07-03 13:00:52 - Mapped to com.ust.pos.api.user.UserApiController#updatePost(UserDto)
+2026-07-03 13:00:52 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:53 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:53 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:53 - Completed 200 OK
+2026-07-03 13:00:54 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:00:54 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:00:55 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:55 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:55 - Completed 200 OK
+2026-07-03 13:00:55 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:00:55 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:00:55 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:00:55 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:00:55 - Completed 200 OK
+2026-07-03 13:19:42 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:19:42 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:19:42 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:19:42 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:42 - Completed 200 OK
+2026-07-03 13:19:46 - PUT "/api/user/update", parameters={}
+2026-07-03 13:19:46 - Mapped to com.ust.pos.api.user.UserApiController#updatePost(UserDto)
+2026-07-03 13:19:46 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:46 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:19:46 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:46 - Completed 200 OK
+2026-07-03 13:19:49 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:19:49 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:19:49 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:19:49 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:49 - Completed 200 OK
+2026-07-03 13:19:49 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:19:49 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:19:49 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:19:49 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:49 - Completed 200 OK
+2026-07-03 13:19:50 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:19:50 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:19:50 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:19:50 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:50 - Completed 200 OK
+2026-07-03 13:19:54 - PUT "/api/user/update", parameters={}
+2026-07-03 13:19:54 - Mapped to com.ust.pos.api.user.UserApiController#updatePost(UserDto)
+2026-07-03 13:19:54 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:54 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:19:54 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:54 - Completed 200 OK
+2026-07-03 13:19:56 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:19:56 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:19:56 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:19:56 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:56 - Completed 200 OK
+2026-07-03 13:19:56 - GET "/api/user/get?username=yesh@gmail.com", parameters={masked}
+2026-07-03 13:19:56 - Mapped to com.ust.pos.api.user.UserApiController#update(String)
+2026-07-03 13:19:56 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-03 13:19:56 - Writing [PaginationDto(page=0, sizePerPage=0, sortDirection=DESC, sortField=identifier, totalPages=0, totalRe (truncated)...]
+2026-07-03 13:19:56 - Completed 200 OK
