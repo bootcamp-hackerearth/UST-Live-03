@@ -352,3 +352,10 @@ const tdStyle = {
   textAlign: "left",
   borderBottom: "1px solid #eee",
 };
+export default function OrderPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrderContent />
+    </Suspense>
+  );
+}
