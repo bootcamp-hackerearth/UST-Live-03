@@ -2,7 +2,7 @@
 
 import PropTypes from 'prop-types';
 import UpdatePage from "../../../../components/common/UpdatePage";
-import Categories from "../../../components/dropdown/Categories";
+import Categories from "../../../../components/dropdown/Categories";
 
 function SuperCategoryField({ value, onChange }) {
   return (

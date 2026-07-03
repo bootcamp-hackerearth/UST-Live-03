@@ -2,7 +2,7 @@
 
 import PropTypes from 'prop-types';
 import UpdatePage from "../../../../components/common/UpdatePage";
-import Role from "../../../components/dropdown/Role";
+import Role from "../../../../components/dropdown/Role";
 
 function RoleField({ value, onChange }) {
   return (
