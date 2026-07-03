@@ -42,3 +42,11 @@ next-env.d.ts
 sonar-project.properties
 .scannerwork/.sonar_lock
 .scannerwork/report-task.txt
+/.idea/POS-FRONTEND.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+# Default ignored files
+/shelf/
+/workspace.xml
+/.idea/workspace.xml
