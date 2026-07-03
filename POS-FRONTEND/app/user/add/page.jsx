@@ -1,7 +1,7 @@
 'use client';
 
 import PropTypes from 'prop-types';
-import AddPage from "../../../components/Common/AddPage";
+import AddPage from "../../../components/common/AddPage";
 import Role from "../../../components/dropdown/Role";
 
 function RoleField({ value, onChange }) {

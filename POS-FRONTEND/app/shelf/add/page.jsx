@@ -1,6 +1,6 @@
 'use client';
 
-import AddPage from "../../../components/Common/AddPage";
+import AddPage from "../../../components/common/AddPage";
 
 export default function ShelfAdd() {
   const fields = [

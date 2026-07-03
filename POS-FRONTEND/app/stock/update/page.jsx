@@ -1,6 +1,6 @@
 'use client';
 
-import UpdatePage from "../../../components/Common/UpdatePage";
+import UpdatePage from "../../../components/common/UpdatePage";
 import Sidebar from "../../../components/layout/Sidebar";
 
 import Product from "../../../components/dropdown/Product";

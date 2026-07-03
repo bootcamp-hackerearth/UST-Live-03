@@ -1,5 +1,5 @@
 'use client';
-import AddPage from "../../../components/Common/AddPage";
+import AddPage from "../../../components/common/AddPage";
 
 import Product from "../../../components/dropdown/Product";
 import Warehouse from "../../../components/dropdown/Warehouse";

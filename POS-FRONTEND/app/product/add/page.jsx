@@ -4,7 +4,7 @@ import Category from "../../../components/dropdown/Category";
 import Brand from "../../../components/dropdown/Brand";
 import Model from "../../../components/dropdown/Model";
 
-import AddPage from "../../../components/Common/AddPage";
+import AddPage from "../../../components/common/AddPage";
 
 const ProductAdd = () => {
   const fields = [

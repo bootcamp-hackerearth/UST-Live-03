@@ -1,7 +1,7 @@
 'use client';
 
 import PropTypes from 'prop-types';
-import AddPage from "../../../components/Common/AddPage";
+import AddPage from "../../../components/common/AddPage";
 import Categories from "../../../components/dropdown/Categories";
 
 function SuperCategoryField({ value, onChange }) {
