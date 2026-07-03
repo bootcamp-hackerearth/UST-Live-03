@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {useSearchParams,useRouter} from "next/navigation";
 import PropTypes from "prop-types";
 import {
@@ -23,7 +23,7 @@ const money = (v) =>
     minimumFractionDigits: 2,
   })}`;
 
-export default function OrderPage() {
+function OrderPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState([]);
@@ -535,3 +535,10 @@ Amount.propTypes = {
   isDiscount: PropTypes.bool,
   isChange: PropTypes.bool,
 };
+export default function OrderPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrderPageContent />
+    </Suspense>
+  );
+}
