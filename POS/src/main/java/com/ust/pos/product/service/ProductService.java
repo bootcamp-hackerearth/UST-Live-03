@@ -2,7 +2,9 @@ package com.ust.pos.product.service;
 
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Product;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -21,4 +23,5 @@ public interface ProductService {
 
     boolean delete(String identifier);
 
+    WsDto<ProductDto> findAll(Specification<Product> example, Pageable pageable);
 }

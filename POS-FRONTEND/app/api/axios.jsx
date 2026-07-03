@@ -35,8 +35,24 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+const isClient =
+  typeof globalThis !== "undefined" &&
+  globalThis.window !== undefined &&
+  globalThis.localStorage !== undefined;
+
+const clearAuthStorage = () => {
+  if (!isClient) return;
+  globalThis.localStorage.removeItem("token");
+  globalThis.localStorage.removeItem("tokenLoginTime");
+  globalThis.localStorage.removeItem("username");
+};
+
+const redirectTo = (path) => {
+  if (!isClient) return;
+  globalThis.window.location.assign(path);
+};
+
 api.interceptors.response.use(
-  // 2xx — pass through unchanged
   (response) => response,
 
   (error) => {
@@ -50,24 +66,20 @@ api.interceptors.response.use(
 
     if (status === 401 && !isOpenEndpoint(requestUrl)) {
       console.warn("Unauthorized - redirecting to login");
-
-      if (typeof globalThis !== "undefined" && globalThis.localStorage) {
-        globalThis.localStorage.removeItem("token");
-        globalThis.localStorage.removeItem("tokenLoginTime");
-        globalThis.localStorage.removeItem("username");
-
-        if (globalThis.window) {
-          globalThis.window.location.href = "/login";
-        }
+      clearAuthStorage();
+      if (isClient) {
+        globalThis.window.location.href = "/login";
       }
-
       return Promise.reject(error);
     }
 
     if (status === 404) {
-      if (typeof globalThis !== "undefined" && globalThis.window) {
-        globalThis.window.location.assign("/not found");
-      }
+      redirectTo("/pos/not_found");
+      return Promise.reject(error);
+    }
+
+    if (status === 403) {
+      redirectTo("/pos/unauthorized");
       return Promise.reject(error);
     }
 

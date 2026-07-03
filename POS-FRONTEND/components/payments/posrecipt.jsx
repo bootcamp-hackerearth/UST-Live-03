@@ -223,7 +223,7 @@ function BarcodeStripes({ text }) {
         <div style={{ display: "inline-flex", alignItems: "flex-end", gap: "1px", height: "14mm" }}>
             {chars.map((char, i) => {
                 const codePoint = char.codePointAt(0) || 0;
-                const height = 50 + ((codePoint * 7 + i * 13) % 50); // 50–100%
+                const height = 50 + ((codePoint * 7 + i * 13) % 50);
                 const width  = (codePoint % 2 === 0) ? "1px" : "2px";
                 return (
                     <div

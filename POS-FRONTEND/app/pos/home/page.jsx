@@ -151,7 +151,7 @@ ModuleTile.propTypes = {
 export default function HomePage() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [roles, setRoles] = useState([]);   // string[]
+  const [roles, setRoles] = useState([]);
   const [sessionTime, setSessionTime] = useState("");
 
   useEffect(() => {
