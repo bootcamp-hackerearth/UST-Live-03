@@ -32,10 +32,28 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      globalThis.location.href = "/login";
+    const status = error?.response?.status;
+ 
+    if (typeof globalThis !== "undefined") {
+      switch (status) {
+        case 401:
+          localStorage.removeItem("token");
+          globalThis.location.replace("/login");
+          break;
+ 
+        case 404:
+          globalThis.location.replace("/not-found");
+          break;
+ 
+        case 500:
+          globalThis.location.replace("/server-error");
+          break;
+ 
+        default:
+          break;
+      }
     }
+ 
     return Promise.reject(error);
   }
 );

@@ -65,10 +65,12 @@ const WarehouseList = () => {
     } finally {
       setLoading(false);
     }
+    console.log("WarehouseList Render");
   };
 
   useEffect(() => {
-    fetchWarehouses();
+ console.count("WarehouseList useEffect");
+     fetchWarehouses();
   }, [page, searchTerm]);
 
   // ================= ADD =================
