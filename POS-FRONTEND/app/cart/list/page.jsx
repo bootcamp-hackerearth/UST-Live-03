@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import PropTypes from "prop-types";
 import axiosInstance from "../../api/axiosInstance";
 import Layout from "@/app/Components/Layout";
@@ -429,9 +429,8 @@ PaymentSimulator.propTypes = {
   dueAmount: PropTypes.number.isRequired,
 };
 
-export default function SupermarketPosBillingScreen() {
+function SupermarketPosBillingScreen({ initialPhone = null }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [cartId, setCartId] = useState("");
   const [cart, setCart] = useState(null);
@@ -563,11 +562,10 @@ export default function SupermarketPosBillingScreen() {
   useEffect(() => { fetchMasterCatalogData(); }, []);
 
   useEffect(() => {
-    const phoneFromQuery = searchParams.get("customerPhone") || searchParams.get("phone");
-    if (phoneFromQuery) {
-      void performCustomerSearch(phoneFromQuery);
+    if (initialPhone) {
+      void performCustomerSearch(initialPhone);
     }
-  }, [searchParams]);
+  }, [initialPhone]);
 
   const resolveSearchFailure = (error) => {
     const statusCode = error.response?.status;
@@ -1390,5 +1388,37 @@ export default function SupermarketPosBillingScreen() {
 
       </div>
     </Layout>
+  );
+}
+
+SupermarketPosBillingScreen.propTypes = {
+  initialPhone: PropTypes.string,
+};
+
+function LoadingFallback() {
+  return (
+    <Layout>
+      <div className="flex flex-col h-screen bg-slate-100 text-slate-800 font-sans overflow-hidden select-none items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white text-base mx-auto mb-4 animate-pulse">POS</div>
+          <p className="text-sm font-semibold text-slate-600">Initializing terminal…</p>
+        </div>
+      </div>
+    </Layout>
+  );
+}
+
+function SearchParamsWrapper() {
+  const searchParams = useSearchParams();
+  const phoneFromQuery = searchParams.get("customerPhone") || searchParams.get("phone");
+
+  return <SupermarketPosBillingScreen initialPhone={phoneFromQuery} />;
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <SearchParamsWrapper />
+    </Suspense>
   );
 }
