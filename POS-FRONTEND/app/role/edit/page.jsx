@@ -1,13 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
+function RoleEdit() {
   const fields = [
     {
       name: "identifier",
       label: "Role Name",
-      type: "text", 
+      type: "text",
     },
     {
       name: "description",
@@ -15,11 +16,20 @@ export default function Page() {
       type: "text",
     },
   ];
+
   return (
     <Edit
       urlName="role"
       fields={fields}
-      identifier="identifier" 
+      identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RoleEdit />
+    </Suspense>
   );
 }
