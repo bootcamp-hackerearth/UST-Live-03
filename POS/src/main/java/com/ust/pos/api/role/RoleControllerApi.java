@@ -5,8 +5,11 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Role;
 import com.ust.pos.role.service.RoleService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,10 +28,14 @@ public class RoleControllerApi extends BaseController {
 
     @PostMapping("/list")
     public WsDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
-
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Role> example = buildGlobalSearchSpec(Role.class, paginationDto.getKeyword());
+            if (example != null) {
+                return roleService.findAll(example, pageable);
+            }
+        }
         return roleService.findAll(pageable);
-
     }
 
     @PostMapping("/add")

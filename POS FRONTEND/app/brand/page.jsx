@@ -21,7 +21,7 @@ export default function BrandList() {
       deleteParam="identifier"
       statusKey="identifier"
       addButtonLabel="Brand"
-      pageSize={10}
+      pageSize={2}
     />
   );
 }

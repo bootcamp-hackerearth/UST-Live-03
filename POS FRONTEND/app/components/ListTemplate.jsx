@@ -1,6 +1,6 @@
 "use client";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axiosInstance from "../api/axiosInstance";
 
@@ -45,20 +45,23 @@ const ListTemplate = ({
   const [totalRecords, setTotalRecords] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteError, setDeleteError] = useState("");
+  const debounceRef = useRef(null);
   const router = useRouter();
-
-  const filteredData = data.filter((item) =>
-    columns.some((col) => {
-      if (!col.field) return false;
-      return String(item[col.field] ?? "").toLowerCase().includes(searchTerm.toLowerCase());
-    })
-  );
 
   useEffect(() => {
     fetchData(page);
   }, [page, rowsPerPage]);
 
-  const fetchData = async (currentPage = 0) => {
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(0);
+      fetchData(0, searchTerm);
+    }, 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [searchTerm]);
+
+  const fetchData = async (currentPage = 0, keyword = searchTerm) => {
     setLoading(true);
     try {
       const res = await axiosInstance.post(`/${urlName}/list`, {
@@ -66,6 +69,7 @@ const ListTemplate = ({
         sizePerPage: rowsPerPage,
         sortDirection: "ASC",
         sortField,
+        ...(keyword ? { keyword } : {}),
       });
 
       const responseData = res.data || {};
@@ -193,13 +197,13 @@ const ListTemplate = ({
         </div>
       )}
 
-      {!loading && filteredData.length === 0 && (
+      {!loading && data.length === 0 && (
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
           {searchTerm ? `No results for "${searchTerm}".` : "No records available."}
         </div>
       )}
 
-      {!loading && filteredData.length > 0 && (
+      {!loading && data.length > 0 && (
         <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
           <table className="min-w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-900 text-white">
@@ -218,7 +222,7 @@ const ListTemplate = ({
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((item) => (
+              {data.map((item) => (
                 <tr
                   key={item[rowKey] ?? item.identifier ?? item.id}
                   className="border-t border-slate-200 hover:bg-slate-50"
@@ -257,7 +261,7 @@ const ListTemplate = ({
         </div>
       )}
 
-      {!loading && filteredData.length > 0 && (
+      {!loading && data.length > 0 && (
         <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-600">
             Page {Math.min(page + 1, Math.max(totalPages, 1))} of{" "}

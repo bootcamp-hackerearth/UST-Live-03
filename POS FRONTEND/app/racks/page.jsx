@@ -22,7 +22,7 @@ export default function RacksList() {
       deleteParam="identifier"
       statusKey="identifier"
       addButtonLabel="Rack"
-      pageSize={10}
+      pageSize={2}
     />
   );
 }

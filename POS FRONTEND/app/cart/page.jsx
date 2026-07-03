@@ -7,5 +7,6 @@ export default function CartPage() {
     <Suspense fallback={null}>
       <CartView />
     </Suspense>
+    //15:08 03
   );
 }

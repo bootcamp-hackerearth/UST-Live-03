@@ -15,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -85,7 +86,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
     public CustomerDto findByIdentifier(String identifier) {
 
         Customer customer = customerRepository.findByIdentifier(identifier);
-        if (customer == null) {
+        if (customer == null || customer.isDeleted()) {
             throw new IllegalArgumentException("Customer not found");
         }
 
@@ -133,6 +134,19 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         customerWsDto.setPage(pageable.getPageNumber());
 
         return customerWsDto;
+    }
+
+    @Override
+    public WsDto<CustomerDto> findAll(Specification<Customer> spec, Pageable pageable) {
+        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
+        Page<Customer> page = customerRepository.findAll(spec, pageable);
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override

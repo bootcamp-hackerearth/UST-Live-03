@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -78,6 +79,19 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
         warehouseWsDto.setPage(pageable.getPageNumber());
 
         return warehouseWsDto;
+    }
+
+    @Override
+    public WsDto<WarehouseDto> findAll(Specification<Warehouse> spec, Pageable pageable) {
+        Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
+        Page<Warehouse> page = warehouseRepository.findAll(spec, pageable);
+        WsDto<WarehouseDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override

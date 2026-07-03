@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -70,6 +71,19 @@ public class UnitServiceImpl extends CommonService implements UnitService {
         unitWsDto.setPage(pageable.getPageNumber());
 
         return unitWsDto;
+    }
+
+    @Override
+    public WsDto<UnitDto> findAll(Specification<Unit> spec, Pageable pageable) {
+        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
+        Page<Unit> page = unitRepository.findAll(spec, pageable);
+        WsDto<UnitDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override

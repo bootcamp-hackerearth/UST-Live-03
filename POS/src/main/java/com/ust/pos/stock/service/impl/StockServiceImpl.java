@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -90,6 +91,19 @@ public class StockServiceImpl extends CommonService implements StockService {
         stockWsDto.setPage(pageable.getPageNumber());
 
         return stockWsDto;
+    }
+
+    @Override
+    public WsDto<StockDto> findAll(Specification<Stock> spec, Pageable pageable) {
+        Type listType = new TypeToken<List<StockDto>>() {}.getType();
+        Page<Stock> page = stockRepository.findAll(spec, pageable);
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override
