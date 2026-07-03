@@ -33,7 +33,7 @@ export default async function ErrorPage({
         {message}
       </p>
 
-      To}
+      returnTo}
         className="mt-8 px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
       >
         Back to List
