@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import api from "../api";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function OrderPage() {
+ function OrderContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -352,6 +352,7 @@ const tdStyle = {
   textAlign: "left",
   borderBottom: "1px solid #eee",
 };
+
 export default function OrderPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
