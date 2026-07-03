@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react"; // 1. Added Suspense import
 import { useRouter, useSearchParams } from "next/navigation";
 import axiosInstance from "@/app/api/axiosInstance";
 import Layout from "@/app/Components/Layout";
 
-export default function AddCustomerPage() {
+function AddCustomerForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -136,7 +136,6 @@ export default function AddCustomerPage() {
       <div className="min-h-screen bg-slate-100 py-8 px-4">
         <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow border">
 
-          {/* Header */}
           <div className="bg-indigo-600 text-white px-8 py-6 rounded-t-2xl">
             <h1 className="text-2xl font-bold">
               Add Customer
@@ -183,103 +182,102 @@ export default function AddCustomerPage() {
 
             </div>
 
-            <div className="mt-8 bg-slate-50 border rounded-xl p-4">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={enableDelivery}
-                  onChange={(e) => setEnableDelivery(e.target.checked)}
-                  className="h-5 w-5"
-                />
-                <span className="font-semibold text-slate-700">
-                  Customer wants product delivery
-                </span>
-              </label>
-            </div>
+          <div className="mt-8 bg-slate-50 border rounded-xl p-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={enableDelivery}
+                onChange={(e) => setEnableDelivery(e.target.checked)}
+                className="h-5 w-5"
+              />
+              <span className="font-semibold text-slate-700">
+                Customer wants product delivery
+              </span>
+            </label>
+          </div>
 
-            {enableDelivery && (
-              <div className="mt-8 space-y-8">
+          {enableDelivery && (
+            <div className="mt-8 space-y-8">
 
-                {/* Billing */}
-                <div>
-                  <h2 className="text-lg font-bold text-indigo-600 mb-4">
-                    Billing Address
-                  </h2>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <input
-                      id="billingAddressLine"
-                      placeholder="Address Line"
-                      value={formData.billingAddress.addressLine}
-                      onChange={(e) => updateBilling("addressLine", e.target.value)}
-                      className="border rounded-xl px-4 py-3"
-                    />
-                    <input
-                      placeholder="City"
-                      value={formData.billingAddress.city}
-                      onChange={(e) => updateBilling("city", e.target.value)}
-                      className="border rounded-xl px-4 py-3"
-                    />
-                    <input
-                      placeholder="State"
-                      value={formData.billingAddress.state}
-                      onChange={(e) => updateBilling("state", e.target.value)}
-                      className="border rounded-xl px-4 py-3"
-                    />
-                    <input
-                      placeholder="Zip Code"
-                      value={formData.billingAddress.zipcode}
-                      onChange={(e) => updateBilling("zipcode", e.target.value)}
-                      className="border rounded-xl px-4 py-3"
-                    />
-                    <input
-                      placeholder="Country"
-                      value={formData.billingAddress.country}
-                      onChange={(e) => updateBilling("country", e.target.value)}
-                      className="md:col-span-2 border rounded-xl px-4 py-3"
-                    />
-                  </div>
+              <div>
+                <h2 className="text-lg font-bold text-indigo-600 mb-4">
+                  Billing Address
+                </h2>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <input
+                    id="billingAddressLine"
+                    placeholder="Address Line"
+                    value={formData.billingAddress.addressLine}
+                    onChange={(e) => updateBilling("addressLine", e.target.value)}
+                    className="border rounded-xl px-4 py-3"
+                  />
+                  <input
+                    placeholder="City"
+                    value={formData.billingAddress.city}
+                    onChange={(e) => updateBilling("city", e.target.value)}
+                    className="border rounded-xl px-4 py-3"
+                  />
+                  <input
+                    placeholder="State"
+                    value={formData.billingAddress.state}
+                    onChange={(e) => updateBilling("state", e.target.value)}
+                    className="border rounded-xl px-4 py-3"
+                  />
+                  <input
+                    placeholder="Zip Code"
+                    value={formData.billingAddress.zipcode}
+                    onChange={(e) => updateBilling("zipcode", e.target.value)}
+                    className="border rounded-xl px-4 py-3"
+                  />
+                  <input
+                    placeholder="Country"
+                    value={formData.billingAddress.country}
+                    onChange={(e) => updateBilling("country", e.target.value)}
+                    className="md:col-span-2 border rounded-xl px-4 py-3"
+                  />
                 </div>
-
-                <div>
-                  <h2 className="text-lg font-bold text-red-600 mb-4">
-                    Shipping Address
-                  </h2>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <input
-                      placeholder="Address Line"
-                      value={formData.shippingAddress.addressLine}
-                      onChange={(e) => updateShipping("addressLine", e.target.value)}
-                      className="border rounded-xl px-4 py-3"
-                    />
-                    <input
-                      placeholder="City"
-                      value={formData.shippingAddress.city}
-                      onChange={(e) => updateShipping("city", e.target.value)}
-                      className="border rounded-xl px-4 py-3"
-                    />
-                    <input
-                      placeholder="State"
-                      value={formData.shippingAddress.state}
-                      onChange={(e) => updateShipping("state", e.target.value)}
-                      className="border rounded-xl px-4 py-3"
-                    />
-                    <input
-                      placeholder="Zip Code"
-                      value={formData.shippingAddress.zipcode}
-                      onChange={(e) => updateShipping("zipcode", e.target.value)}
-                      className="border rounded-xl px-4 py-3"
-                    />
-                    <input
-                      placeholder="Country"
-                      value={formData.shippingAddress.country}
-                      onChange={(e) => updateShipping("country", e.target.value)}
-                      className="md:col-span-2 border rounded-xl px-4 py-3"
-                    />
-                  </div>
-                </div>
-
               </div>
-            )}
+
+              <div>
+                <h2 className="text-lg font-bold text-red-600 mb-4">
+                  Shipping Address
+                </h2>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <input
+                    placeholder="Address Line"
+                    value={formData.shippingAddress.addressLine}
+                    onChange={(e) => updateShipping("addressLine", e.target.value)}
+                    className="border rounded-xl px-4 py-3"
+                  />
+                  <input
+                    placeholder="City"
+                    value={formData.shippingAddress.city}
+                    onChange={(e) => updateShipping("city", e.target.value)}
+                    className="border rounded-xl px-4 py-3"
+                  />
+                  <input
+                    placeholder="State"
+                    value={formData.shippingAddress.state}
+                    onChange={(e) => updateShipping("state", e.target.value)}
+                    className="border rounded-xl px-4 py-3"
+                  />
+                  <input
+                    placeholder="Zip Code"
+                    value={formData.shippingAddress.zipcode}
+                    onChange={(e) => updateShipping("zipcode", e.target.value)}
+                    className="border rounded-xl px-4 py-3"
+                  />
+                  <input
+                    placeholder="Country"
+                    value={formData.shippingAddress.country}
+                    onChange={(e) => updateShipping("country", e.target.value)}
+                    className="md:col-span-2 border rounded-xl px-4 py-3"
+                  />
+                </div>
+              </div>
+
+            </div>
+          )}
 
             <div className="flex gap-4 mt-10">
               <button
@@ -303,5 +301,13 @@ export default function AddCustomerPage() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function AddCustomerPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-slate-500">Loading form components...</div>}>
+      <AddCustomerForm />
+    </Suspense>
   );
 }
