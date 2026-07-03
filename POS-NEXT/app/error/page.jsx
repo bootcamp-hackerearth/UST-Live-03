@@ -1,16 +1,6 @@
 import Link from "next/link";
 
-type ErrorPageProps = {
-  searchParams: Promise<{
-    status?: string;
-    message?: string;
-    returnTo?: string;
-  }>;
-};
-
-export default async function ErrorPage({
-  searchParams,
-}: ErrorPageProps) {
+export default async function ErrorPage({ searchParams }) {
   const params = await searchParams;
 
   const status = params.status || "404";
@@ -33,7 +23,8 @@ export default async function ErrorPage({
         {message}
       </p>
 
-      returnTo}
+      <Link
+        href={returnTo}
         className="mt-8 px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
       >
         Back to List
