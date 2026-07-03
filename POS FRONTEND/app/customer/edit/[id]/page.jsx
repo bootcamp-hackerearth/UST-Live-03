@@ -1,7 +1,12 @@
 "use client";
+import { Suspense } from "react";
 import CustomerForm from "../../CustomerForm";
 
 export default function CustomerEditPage() {
-  return <CustomerForm mode="edit" />;
+  return (
+    <Suspense fallback={null}>
+      <CustomerForm mode="edit" />
+    </Suspense>
+  );
 }
 
