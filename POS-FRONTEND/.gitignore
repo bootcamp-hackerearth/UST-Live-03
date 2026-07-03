@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/POS-FRONTEND.iml
+/.idea/vcs.xml
+/.idea/workspace.xml
+/.idea/misc.xml

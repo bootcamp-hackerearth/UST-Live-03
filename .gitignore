@@ -1,0 +1,5 @@
+/POS/app.log
+
+*.gz# Default ignored files
+    /shelf/
+    /workspace.xml
