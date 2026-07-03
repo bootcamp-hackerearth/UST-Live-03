@@ -8,7 +8,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
-public class ApiOrderController{
+public class
+ApiOrderController{
 
     private final OrderService orderService;
 

@@ -3,14 +3,17 @@ package com.ust.pos.brand.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.BrandRepository;
+import com.ust.pos.model.Brand;
 import com.ust.pos.model.Brand;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import com.ust.pos.exception.ResourceNotFoundException;
 
@@ -45,6 +48,23 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         userWsDto.setPage(pageable.getPageNumber());
 
         return userWsDto;
+    }
+
+    @Override
+    public WsDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Page<Brand> page = brandRepository.findAll(example, pageable);
+
+        WsDto<BrandDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -42,6 +43,21 @@ public class RacksServiceImpl extends CommonService implements RacksService {
         userWsDto.setPage(pageable.getPageNumber());
 
         return userWsDto;
+    }
+
+    @Override
+    public WsDto<RacksDto> findAll(Specification<Racks> example, Pageable pageable) {
+        Type listType = new TypeToken<List<RacksDto>>() {
+        }.getType();
+        Page<Racks> page = racksRepository.findAll(example, pageable);
+
+        WsDto<RacksDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
     @Override

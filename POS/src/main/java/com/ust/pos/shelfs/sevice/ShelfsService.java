@@ -2,7 +2,9 @@ package com.ust.pos.shelfs.sevice;
 import java.util.List;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Shelfs;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 public interface ShelfsService {
     ShelfsDto findByIdentifier(String identifier);
@@ -14,6 +16,8 @@ public interface ShelfsService {
     void delete(String identifier);
 
     WsDto<ShelfsDto> findAll(Pageable pageable);
+
+    WsDto<ShelfsDto> findAll(Specification<Shelfs>example,Pageable pageable);
 
     List<ShelfsDto> findActiveStatus();
 

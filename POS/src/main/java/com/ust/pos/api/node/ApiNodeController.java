@@ -4,8 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Model;
+import com.ust.pos.model.Node;
 import com.ust.pos.node.service.NodeService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +29,12 @@ public class ApiNodeController extends BaseController {
     @PostMapping("/list")
     public WsDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable= getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Node> example = buildGlobalSearchSpec(Node.class, paginationDto.getKeyword());
+            if (example != null) {
+                return nodeService.findAll(example, pageable);
+            }
+        }
         return nodeService.findAll(pageable);
     }
 

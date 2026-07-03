@@ -1,13 +1,19 @@
 package com.ust.pos.category.service;
 
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Category;
+import com.ust.pos.model.Customer;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
 public interface CategoryService {
     WsDto<CategoryDto> findAll(Pageable pageable);
+
+    WsDto<CategoryDto> findAll(Specification<Category> example, Pageable pageable);
 
     CategoryDto save(CategoryDto categoryDto);
 

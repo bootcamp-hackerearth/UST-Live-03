@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -94,14 +95,17 @@ public class RoleServiceImpl extends CommonService implements RoleService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        roleRepository.deleteByIdentifier(identifier);
+        Role role=roleRepository.findByIdentifier(identifier);
+        softDelete(role);
+        setAuditFields(role,false);
+        roleRepository.save(role);
     }
 
     @Override
     public WsDto<RoleDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
-        Page<Role> userPage = roleRepository.findAll(pageable);
+        Page<Role> userPage = roleRepository.findByDeletedFalse(pageable);
 
         WsDto<RoleDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
@@ -111,5 +115,20 @@ public class RoleServiceImpl extends CommonService implements RoleService {
         userWsDto.setPage(pageable.getPageNumber());
 
         return userWsDto;
+    }
+
+    @Override
+    public WsDto<RoleDto> findAll(Specification<Role> example, Pageable pageable) {
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> page = roleRepository.findAll(example, pageable);
+
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 }
