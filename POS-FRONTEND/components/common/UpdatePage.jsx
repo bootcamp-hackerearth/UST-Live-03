@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import PropTypes from "prop-types";
-import api from "../../../services/api";
+import api from "../../services/api";
 
 const UpdatePage = ({ fields = [], modelName }) => {
   const router = useRouter();

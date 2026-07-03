@@ -1,7 +1,7 @@
 'use client';
 
 import UpdatePage from "../../../components/common/UpdatePage";
-import shelves from "../../../../components/dropdown/shelves";
+import shelves from "../../../components/dropdown/shelves";
 
 export default function RackUpdate() {
 const fields = [

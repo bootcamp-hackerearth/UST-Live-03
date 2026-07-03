@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import Modal from "../components/common/Modal";
+import Modal from "../../../components/common/Modal";
 
 const RoleUpdate = () => {
   const [showModal, setShowModal] = useState(false);
