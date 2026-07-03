@@ -1,7 +1,7 @@
 'use client';
 
 import AddPage from "../../../components/common/AddPage";
-import Shelves from "../../../components/dropdown/shelves";
+import shelves from "../../../components/dropdown/shelves";
 
 export default function RackAdd() {
 const fields = [
@@ -18,7 +18,7 @@ type: "text",
 {
 name: "shelves",
 label: "Shelves",
-component: Shelves,
+component: shelves,
 },
 ];
 

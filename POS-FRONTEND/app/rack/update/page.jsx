@@ -1,8 +1,7 @@
 'use client';
 
-import UpdatePage from "../../../../components/common/UpdatePage";
-import Sidebar from "../../../../components/layout/Sidebar";
-import Shelves from "../../../../components/dropdown/shelves";
+import UpdatePage from "../../../components/common/UpdatePage";
+import shelves from "../../../../components/dropdown/shelves";
 
 export default function RackUpdate() {
 const fields = [
@@ -14,15 +13,15 @@ type: "text",
 {
 name: "shelves",
 label: "Shelves",
-component: Shelves,
+component: shelves,
 multiple: true,
 },
 ];
 
 return (
-     <Sidebar> <UpdatePage
+     <UpdatePage
      fields={fields}
      modelName="rack"
-   /> </Sidebar>
+   />
 );
 }

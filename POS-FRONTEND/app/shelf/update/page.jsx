@@ -1,6 +1,6 @@
 'use client';
 
-import UpdatePage from "../../../../components/common/UpdatePage";
+import UpdatePage from "../../../components/common/UpdatePage";
 
 export default function ShelfUpdate() {
   const fields = [

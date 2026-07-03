@@ -6,7 +6,7 @@ import Category from "../../../components/dropdown/Category";
 import Brand from "../../../components/dropdown/Brand";
 import Model from "../../../components/dropdown/Model";
 
-import Modal from "../components/common/Modal";
+import Modal from "../../../components/common/Modal";
 
 const ProductUpdate = () => {
   const [showModal, setShowModal] = useState(false);
