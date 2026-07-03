@@ -1,33 +1,49 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
-
+function UserEdit() {
   const fields = [
     {
-      name: "identifier",
-      label: "Warehouse Name",
-      type: "text",
-      readOnly: true, 
-    },
-    {
-      name: "country",
-      label: "Country",
+      name: "name",
+      label: "Name",
       type: "text",
     },
     {
-      name: "region",
-      label: "Region",
+      name: "username",
+      label: "Username (Email)",
       type: "text",
+      validation: "email",
+      readOnly: true,
+    },
+    {
+      name: "roles",
+      label: "Roles",
+      type: "multiDropdown",
+      api: "/role/list",
+    },
+    {
+      name: "phoneNo",
+      label: "Phone Number",
+      type: "text",
+      validation: "phone",
     },
   ];
 
   return (
     <Edit
-      urlName="warehouse"
+      urlName="user"
       fields={fields}
       identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <UserEdit />
+    </Suspense>
   );
 }
