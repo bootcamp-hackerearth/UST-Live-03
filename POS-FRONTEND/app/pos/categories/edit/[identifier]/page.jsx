@@ -2,7 +2,7 @@
 
 "use client";
 import BaseEditForm from "@/components/edit/BaseEditForm";
-import SingleDropdown from "@/components/dropdowns/singleDropDown";
+import SingleDropdown from "@/components/dropDowns/singleDropDown";
 import { useState } from "react";
 
 export default function EditCategoryPage() {
