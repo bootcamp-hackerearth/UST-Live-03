@@ -1,12 +1,12 @@
 "use client";
-import React, { useEffect, useState, Suspense } from "react"; // 1. Added Suspense import
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import PropTypes from "prop-types";
 import axiosInstance from "@/app/api/axiosInstance";
 import Layout from "@/app/Components/Layout";
 
-function AddCustomerForm() {
+function AddCustomerFormContent({ initialPhone = null }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(false);
   const [enableDelivery, setEnableDelivery] = useState(false);
@@ -33,14 +33,13 @@ function AddCustomerForm() {
   });
 
   useEffect(() => {
-    const phoneFromQuery = searchParams.get("phone");
-    if (phoneFromQuery) {
+    if (initialPhone) {
       setFormData((prev) => ({
         ...prev,
-        identifier: phoneFromQuery,
+        identifier: initialPhone,
       }));
     }
-  }, [searchParams]);
+  }, [initialPhone]);
 
   const updateField = (name, value) => {
     setFormData((prev) => ({
@@ -304,10 +303,21 @@ function AddCustomerForm() {
   );
 }
 
+AddCustomerFormContent.propTypes = {
+  initialPhone: PropTypes.string,
+};
+
 export default function AddCustomerPage() {
   return (
     <Suspense fallback={<div className="p-12 text-center text-slate-500">Loading form components...</div>}>
-      <AddCustomerForm />
+      <SearchParamsWrapper />
     </Suspense>
   );
+}
+
+function SearchParamsWrapper() {
+  const searchParams = useSearchParams();
+  const phoneFromQuery = searchParams.get("phone");
+
+  return <AddCustomerFormContent initialPhone={phoneFromQuery} />;
 }

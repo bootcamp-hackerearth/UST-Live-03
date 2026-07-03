@@ -1,23 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PropTypes from "prop-types";
 import axiosInstance from "../api/axiosInstance";
 import SingleSelectDropdown from "./SingleSelectDropdown";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 
-function CommonEdit({
+function CommonEditContent({
   title,
   apiPath,
   extraFields = [],
   onSuccessPath,
   lookupParam = "identifier",
   identityField = "identifier",
+  identifier = null,
 }) 
 {
-  const searchParams = useSearchParams();
-  const identifier = searchParams.get("identifier");
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -328,7 +327,7 @@ function CommonEdit({
   );
 }
 
-CommonEdit.propTypes = {
+CommonEditContent.propTypes = {
   title: PropTypes.string.isRequired,
   apiPath: PropTypes.string.isRequired,
   extraFields: PropTypes.arrayOf(
@@ -349,7 +348,74 @@ CommonEdit.propTypes = {
   onSuccessPath: PropTypes.string.isRequired,
   lookupParam: PropTypes.string,
   identityField: PropTypes.string,
+  identifier: PropTypes.string,
+};
 
+CommonEditContent.defaultProps = {
+  extraFields: [],
+  lookupParam: "identifier",
+  identityField: "identifier",
+  identifier: null,
+};
+
+function SearchParamsWrapper({
+  title,
+  apiPath,
+  extraFields,
+  onSuccessPath,
+  lookupParam,
+  identityField,
+}) {
+  const searchParams = useSearchParams();
+  const identifier = searchParams.get("identifier");
+
+  return (
+    <CommonEditContent
+      title={title}
+      apiPath={apiPath}
+      extraFields={extraFields}
+      onSuccessPath={onSuccessPath}
+      lookupParam={lookupParam}
+      identityField={identityField}
+      identifier={identifier}
+    />
+  );
+}
+
+SearchParamsWrapper.propTypes = {
+  title: PropTypes.string.isRequired,
+  apiPath: PropTypes.string.isRequired,
+  extraFields: PropTypes.arrayOf(PropTypes.object),
+  onSuccessPath: PropTypes.string.isRequired,
+  lookupParam: PropTypes.string,
+  identityField: PropTypes.string,
+};
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <p className="text-lg font-semibold text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+function CommonEdit(props) {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <SearchParamsWrapper {...props} />
+    </Suspense>
+  );
+}
+
+CommonEdit.propTypes = {
+  title: PropTypes.string.isRequired,
+  apiPath: PropTypes.string.isRequired,
+  extraFields: PropTypes.arrayOf(PropTypes.object),
+  onSuccessPath: PropTypes.string.isRequired,
+  lookupParam: PropTypes.string,
+  identityField: PropTypes.string,
 };
 
 CommonEdit.defaultProps = {
