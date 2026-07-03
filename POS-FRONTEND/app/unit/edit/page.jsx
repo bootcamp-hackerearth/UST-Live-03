@@ -1,9 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
-
+function UnitEdit() {
   const fields = [
     {
       name: "identifier",
@@ -11,7 +11,6 @@ export default function Page() {
       type: "text",
       readOnly: true,
     },
-
     {
       name: "description",
       label: "Description",
@@ -25,5 +24,13 @@ export default function Page() {
       fields={fields}
       identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <UnitEdit />
+    </Suspense>
   );
 }
