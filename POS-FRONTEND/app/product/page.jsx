@@ -4,7 +4,7 @@ import Brand from "../../components/dropdown/Brand";
 import Category from "../../components/dropdown/Category";
 import Model from "../../components/dropdown/Model";
 
-import ListPage from "../../components/Common/ListPage";
+import ListPage from "../../components/common/ListPage";
 import Sidebar from "../../components/layout/Sidebar";
 
 const Products = () => {

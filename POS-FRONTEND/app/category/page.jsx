@@ -3,7 +3,7 @@
 import PropTypes from 'prop-types';
 
 import Sidebar from "../../components/layout/Sidebar";
-import ListPage from "../../components/Common/ListPage";
+import ListPage from "../../components/common/ListPage";
 import Categories from "../../components/dropdown/Categories";
 
 function IdentifierField({ value }) {

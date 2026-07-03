@@ -1,6 +1,6 @@
 'use client';
 
-import ListPage from "../../components/Common/ListPage";
+import ListPage from "../../components/common/ListPage";
 import Sidebar from "../../components/layout/Sidebar";
 
 import Product from "../../components/dropdown/Product";

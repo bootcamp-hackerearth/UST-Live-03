@@ -1,7 +1,7 @@
 'use client';
 
 import PropTypes from 'prop-types';
-import ListPage from "../../components/Common/ListPage";
+import ListPage from "../../components/common/ListPage";
 import Role from "../../components//dropdown/Role";
 import Sidebar from "../../components/layout/Sidebar";
 

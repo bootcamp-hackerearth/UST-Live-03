@@ -1,6 +1,6 @@
 'use client';
 
-import ListPage from "../../components/Common/ListPage";
+import ListPage from "../../components/common/ListPage";
 import Sidebar from "../../components/layout/Sidebar";
 
 export default function ShelfList() {
