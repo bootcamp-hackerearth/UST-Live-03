@@ -247,11 +247,11 @@ const handleSearchChange = (e) => {
                       <td className="py-2 px-3 text-center">
                         <div className="flex gap-3 justify-center items-center">
                           <button
-                            onClick={() =>
-                              router.push(
-                                `/customer/update?identifier=${customer.identifier}`
-                              )
-                            }
+onClick={() =>
+  router.push(
+    `/customer/update/${customer.identifier}`
+  )
+}
                             className="text-green-600 hover:text-green-800 p-1 transition-colors"
                             title="Update Customer"
                           >
