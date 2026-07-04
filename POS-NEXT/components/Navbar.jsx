@@ -12,7 +12,7 @@ const Navbar = () => {
     phoneNo: "",
     roles: [],
   });
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://3.104.111.192/api";
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
