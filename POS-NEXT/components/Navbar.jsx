@@ -12,7 +12,7 @@ const Navbar = () => {
     phoneNo: "",
     roles: [],
   });
-  const baseUrl = "http://3.104.111.192/api";
+  const baseUrl = "http://3.104.111.192:8080/api";
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
