@@ -4,12 +4,14 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController("customerApiController")
 @RequestMapping("/api/customers")
@@ -21,15 +23,13 @@ public class CustomerController extends BaseController {
     }
 
     @PostMapping("/list")
-    public ResponseEntity<List<CustomerDto>> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(
-                paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(),
-                paginationDto.getSortField()
-        );
-        List<CustomerDto> customers = customerService.findAll(pageable);
-        return ResponseEntity.ok(customers);
+    public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Customer> spec = buildGlobalSearchSpec(Customer.class, paginationDto.getKeyword());
+            return customerService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
+        return customerService.findAll(pageable);
     }
 
     @GetMapping("/{identifier}")
@@ -53,9 +53,7 @@ public class CustomerController extends BaseController {
     }
 
     @PutMapping("/update/{identifier}")
-    public ResponseEntity<CustomerDto> update(
-            @PathVariable String identifier,
-            @RequestBody CustomerDto customerDto) {
+    public ResponseEntity<CustomerDto> update(@PathVariable String identifier, @RequestBody CustomerDto customerDto) {
         customerDto.setIdentifier(identifier);
         customerDto.setSuccess(true);
         CustomerDto response = customerService.update(customerDto);

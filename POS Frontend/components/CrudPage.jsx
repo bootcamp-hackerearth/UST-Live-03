@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import { fetchWithAuth } from "@/lib/api";
+
+const SEARCH_DEBOUNCE_MS = 400;
 
 function validateField(f, val) {
   if (typeof f.validate === "function") return f.validate(val);
@@ -254,7 +256,7 @@ function Pagination({
   pageSize,
 }) {
   if (totalPages <= 1) return null;
-  const from = page * pageSize + 1;
+  const from = totalRecords === 0 ? 0 : page * pageSize + 1;
   const to = Math.min((page + 1) * pageSize, totalRecords);
   const pages = (() => {
     const delta = 2;
@@ -389,6 +391,8 @@ select.fi option{font-family:'Barlow',sans-serif}
 .cr-search:focus{border-color:#005dab;box-shadow:0 0 0 3px rgba(0,93,171,0.1)}
 .cr-search::placeholder{color:#aaa;font-weight:400}
 .cr-search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:#bbb;font-size:15px;line-height:1}
+.cr-search-spin{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;border:2px solid #dde5ee;border-top-color:#005dab;border-radius:50%;animation:crspin .6s linear infinite}
+@keyframes crspin{to{transform:translateY(-50%) rotate(360deg)}}
 .cr-search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#bbb;font-size:12px;line-height:1;padding:2px;display:flex;align-items:center;justify-content:center;border-radius:3px;transition:color .13s,background .13s}
 .cr-search-clear:hover{color:#555;background:#f0f0f0}
 .btn-back{width:32px;height:32px;border-radius:6px;border:1.5px solid #ddd;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:#555;transition:background .13s;text-decoration:none;font-weight:700;flex-shrink:0}
@@ -447,18 +451,6 @@ tbody tr:hover{background:#f8f9fb}
 .pg-err{padding:10px 14px;background:#fff0f3;border:1px solid #fbbcca;border-radius:6px;font-size:13px;color:#c0152a;margin-bottom:14px;font-weight:600}
 `;
 
-function recordToSearchString(record, listFields) {
-  return listFields
-    .map((f) => {
-      const v = record[f.key];
-      if (v === null || v === undefined) return "";
-      if (Array.isArray(v)) return v.join(" ");
-      return String(v);
-    })
-    .join(" ")
-    .toLowerCase();
-}
-
 export default function CrudPage({ config }) {
   const {
     title,
@@ -484,7 +476,11 @@ export default function CrudPage({ config }) {
     customUpdateRecord,
   } = config;
 
-  const [allRecords, setAllRecords] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(0);
+
   const [form, setForm] = useState({});
   const [modal, setModal] = useState(null);
   const [editId, setEditId] = useState(null);
@@ -493,11 +489,12 @@ export default function CrudPage({ config }) {
   const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
-  const [page, setPage] = useState(0);
   const [dynOptions, setDynOptions] = useState({});
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef(null);
   const togglingRef = useRef(new Set());
+  const fetchSeqRef = useRef(0);
 
   useEffect(() => {
     loadOptions?.()
@@ -511,65 +508,73 @@ export default function CrudPage({ config }) {
 
   const listFields = resolvedFields.filter((f) => !f.hideInList);
 
-  const fetchList = useCallback(async () => {
-    setListLoading(true);
-    setError("");
-    try {
-      const data = await fetchWithAuth(listEndpoint, {
-        method: "POST",
-        body: JSON.stringify({ page: 0, sizePerPage: 10000 }),
-      });
-      const dataList = Array.isArray(data) ? data : (data?.dtoList ?? []);
-      const multiKeys = new Set(
-        fields.filter((f) => f.multiple).map((f) => f.key),
-      );
-      const rows = dataList.map((record) => {
-        const out = { ...record };
-        for (const key of multiKeys) {
-          if (typeof out[key] === "string") {
-            out[key] = out[key]
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean);
-          } else if (!Array.isArray(out[key])) {
-            out[key] = [];
-          }
-        }
-        return out;
-      });
-      setAllRecords(rows);
-    } catch (e) {
-      if (e.message !== "Unauthorized") setError(e.message || "Failed to load records.");
-    } finally {
-      setListLoading(false);
-    }
-  }, [listEndpoint, fields]);
-
   useEffect(() => {
-    fetchList();
-  }, [fetchList]);
-
-  const filteredRecords = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return allRecords;
-    return allRecords.filter((r) =>
-      recordToSearchString(r, listFields).includes(q),
-    );
-  }, [allRecords, searchQuery, listFields]);
-
-  const totalRecords = filteredRecords.length;
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
-  const safePage = Math.min(page, totalPages - 1);
-  const pageRecords = filteredRecords.slice(
-    safePage * pageSize,
-    (safePage + 1) * pageSize,
-  );
+    const t = setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   useEffect(() => {
     setPage(0);
   }, [searchQuery]);
 
-  const handlePageChange = (p) => setPage(p);
+  const fetchList = useCallback(
+    async (pageArg, keywordArg) => {
+      const seq = ++fetchSeqRef.current;
+      setListLoading(true);
+      setError("");
+      try {
+        const data = await fetchWithAuth(listEndpoint, {
+          method: "POST",
+          body: JSON.stringify({
+            page: pageArg,
+            sizePerPage: pageSize,
+            keyword: keywordArg || "",
+          }),
+        });
+        if (seq !== fetchSeqRef.current) return;
+
+        const dataList = Array.isArray(data) ? data : (data?.dtoList ?? []);
+        const multiKeys = new Set(
+          fields.filter((f) => f.multiple).map((f) => f.key),
+        );
+        const rows = dataList.map((record) => {
+          const out = { ...record };
+          for (const key of multiKeys) {
+            if (typeof out[key] === "string") {
+              out[key] = out[key]
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            } else if (!Array.isArray(out[key])) {
+              out[key] = [];
+            }
+          }
+          return out;
+        });
+
+        setRecords(rows);
+        setTotalRecords(data?.totalRecords ?? rows.length);
+        setTotalPages(Math.max(1, data?.totalPages ?? 1));
+      } catch (e) {
+        if (seq !== fetchSeqRef.current) return;
+        if (e.message !== "Unauthorized")
+          setError(e.message || "Failed to load records.");
+      } finally {
+        if (seq === fetchSeqRef.current) setListLoading(false);
+      }
+    },
+    [listEndpoint, fields, pageSize],
+  );
+
+  useEffect(() => {
+    fetchList(page, searchQuery);
+  }, [fetchList, page, searchQuery]);
+
+  const handlePageChange = (p) => {
+    setPage(Math.max(0, Math.min(p, totalPages - 1)));
+  };
 
   const closeModal = () => {
     setModal(null);
@@ -686,8 +691,9 @@ export default function CrudPage({ config }) {
 
     try {
       let response;
+      const wasAdd = modal === "add";
 
-      if (modal === "add") {
+      if (wasAdd) {
         response = await fetchWithAuth(saveEndpoint, {
           method: "POST",
           body: JSON.stringify(payload),
@@ -707,7 +713,11 @@ export default function CrudPage({ config }) {
       }
 
       closeModal();
-      fetchList();
+      if (wasAdd && page !== 0) {
+        setPage(0);
+      } else {
+        fetchList(page, searchQuery);
+      }
     } catch (e) {
       setError(e.message || "Save failed. Please try again.");
     } finally {
@@ -736,7 +746,11 @@ export default function CrudPage({ config }) {
         return;
       }
       closeModal();
-      fetchList();
+      if (records.length === 1 && page > 0) {
+        setPage(page - 1);
+      } else {
+        fetchList(page, searchQuery);
+      }
     } catch (e) {
       setError(e.message || "Delete failed.");
     } finally {
@@ -761,7 +775,7 @@ export default function CrudPage({ config }) {
     const updatedRecord = extractUpdatedRecord(response);
 
     if (updatedRecord) {
-      setAllRecords((prev) =>
+      setRecords((prev) =>
         prev.map((r) => (r[idKey] === recordId ? updatedRecord : r)),
       );
       return;
@@ -773,7 +787,7 @@ export default function CrudPage({ config }) {
       try {
         const refetchedRecord = await fetchWithAuth(getEndpoint(recordId));
         if (refetchedRecord) {
-          setAllRecords((prev) =>
+          setRecords((prev) =>
             prev.map((r) => (r[idKey] === recordId ? refetchedRecord : r)),
           );
         }
@@ -803,7 +817,7 @@ export default function CrudPage({ config }) {
     const toggleFieldName = getToggleFieldName(record);
     const currentValue = record[toggleFieldName];
 
-    setAllRecords((prev) =>
+    setRecords((prev) =>
       prev.map((r) =>
         r[idKey] === recordId ? { ...r, [toggleFieldName]: !currentValue } : r,
       ),
@@ -819,7 +833,7 @@ export default function CrudPage({ config }) {
         await handleToggleResponse(recordId, response);
       }
     } catch (e) {
-      setAllRecords((prev) =>
+      setRecords((prev) =>
         prev.map((r) => (r[idKey] === recordId ? originalRecord : r)),
       );
       setError(e.message || "Failed to toggle. You may not have permission to perform this action.");
@@ -841,9 +855,9 @@ export default function CrudPage({ config }) {
   else saveButtonText = `Update ${singularTitle ?? ""}`;
 
   let tableBody;
-  if (listLoading) {
+  if (listLoading && records.length === 0) {
     tableBody = <div className="tbl-empty">Loading…</div>;
-  } else if (pageRecords.length === 0) {
+  } else if (records.length === 0) {
     tableBody = (
       <div className="tbl-empty">
         {searchQuery.trim()
@@ -865,7 +879,7 @@ export default function CrudPage({ config }) {
             </tr>
           </thead>
           <tbody>
-            {pageRecords.map((record) => (
+            {records.map((record) => (
               <tr key={record[idKey] ?? record.identifier ?? record.id}>
                 {listFields.map((f) => (
                   <td key={f.key}>
@@ -905,7 +919,7 @@ export default function CrudPage({ config }) {
           </tbody>
         </table>
         <Pagination
-          page={safePage}
+          page={page}
           totalPages={totalPages}
           totalRecords={totalRecords}
           pageSize={pageSize}
@@ -927,8 +941,8 @@ export default function CrudPage({ config }) {
               </a>
             )}
             <h1 className="cr-title">{title}</h1>
-            {allRecords.length > 0 && (
-              <span className="cr-badge">{allRecords.length}</span>
+            {totalRecords > 0 && (
+              <span className="cr-badge">{totalRecords}</span>
             )}
             <div className="cr-search-wrap">
               <span className="cr-search-icon" aria-hidden="true">
@@ -959,15 +973,20 @@ export default function CrudPage({ config }) {
                 type="text"
                 className="cr-search"
                 placeholder={`Search ${title.toLowerCase()}…`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 aria-label={`Search ${title}`}
               />
-              {searchQuery && (
+              {searchInput && listLoading && (
+                <span className="cr-search-spin" aria-hidden="true" />
+              )}
+              {searchInput && !listLoading && (
                 <button
                   className="cr-search-clear"
                   onClick={() => {
+                    setSearchInput("");
                     setSearchQuery("");
+                    setPage(0);
                     searchRef.current?.focus();
                   }}
                   type="button"

@@ -3,8 +3,12 @@ package com.ust.pos.api.warehouse;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Warehouse;
 import com.ust.pos.warehouse.service.WarehouseService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,10 +27,13 @@ public class WarehouseController extends BaseController {
 
     @PostMapping("/list")
     @PreAuthorize("hasAuthority('Admin')")
-    public ResponseEntity<List<WarehouseDto>> list(@RequestBody PaginationDto paginationDto) {
+    public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        List<WarehouseDto> warehouses = warehouseService.findAll(pageable);
-        return ResponseEntity.ok(warehouses);
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Warehouse> spec = buildGlobalSearchSpec(Warehouse.class, paginationDto.getKeyword());
+            return warehouseService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
+        return warehouseService.findAll(pageable);
     }
 
     @GetMapping("/{identifier}")

@@ -5,23 +5,22 @@ import { useRouter } from "next/navigation";
 import OrderPage from "@/components/OrderPage";
 import { fetchWithAuth } from "@/lib/api";
 
-const PB = JSON.stringify({
-  page: 0,
-  sizePerPage: 50,
-  sortDirection: "DESC",
-  sortField: "id",
-});
+const PAGE_SIZE = 50;
+const SEARCH_DEBOUNCE_MS = 400;
 
 export default function OrderRoute() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [pageErr, setPageErr] = useState("");
   const [pageOk, setPageOk] = useState("");
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
+
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [viewOrder, setViewOrder] = useState(null);
 
@@ -35,65 +34,94 @@ export default function OrderRoute() {
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const receiptRef = useRef(null);
+  const fetchSeqRef = useRef(0);
 
-  const loadOrders = useCallback(async (pageNum = 0) => {
+  const loadOrders = useCallback(async (pageNum, keyword) => {
+    const seq = ++fetchSeqRef.current;
     setLoading(true);
+    setPageErr("");
     try {
-      const body = JSON.stringify({
-        page: pageNum,
-        sizePerPage: 50,
-        sortDirection: "DESC",
-        sortField: "id",
+      const data = await fetchWithAuth("/api/orders/list", {
+        method: "POST",
+        body: JSON.stringify({
+          page: pageNum,
+          sizePerPage: PAGE_SIZE,
+          sortDirection: "DESC",
+          sortField: "id",
+          keyword: keyword || "",
+        }),
       });
-      const data = await fetchWithAuth("/api/orders/list", { method: "POST", body });
-      const ordersList = Array.isArray(data) ? data : data?.dtoList ?? [];
+      if (seq !== fetchSeqRef.current) return;
+      const ordersList = Array.isArray(data) ? data : (data?.dtoList ?? []);
       setOrders(ordersList);
       setCurrentPage(pageNum);
-      if (data && typeof data === "object" && data.totalRecords !== undefined) {
-        setTotalPages(Math.ceil(data.totalRecords / 50));
-      } else if (ordersList.length < 50) {
-        setTotalPages(pageNum + 1);
-      }
+      setTotalRecords(data?.totalRecords ?? ordersList.length);
+      setTotalPages(Math.max(1, data?.totalPages ?? 1));
     } catch (e) {
-      setPageErr(e.message || "Failed to load orders.");
+      if (seq !== fetchSeqRef.current) return;
+      if (e.message !== "Unauthorized") setPageErr(e.message || "Failed to load orders.");
     } finally {
-      setLoading(false);
+      if (seq === fetchSeqRef.current) setLoading(false);
     }
   }, []);
 
+  useEffect(() => {
+    const t = setTimeout(() => setSearchQuery(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    loadOrders(currentPage, searchQuery);
+  }, [loadOrders, currentPage, searchQuery]);
+
   const handlePageChange = (newPage) => {
-    if (newPage >= 0 && newPage < totalPages) {
-      loadOrders(newPage);
-    }
+    if (newPage >= 0 && newPage < totalPages) setCurrentPage(newPage);
   };
 
   const loadCarts = useCallback(async () => {
     try {
-      const data = await fetchWithAuth("/api/cart/list", { method: "POST", body: PB });
-      setCarts(Array.isArray(data) ? data : data?.dtoList ?? []);
+      const data = await fetchWithAuth("/api/cart/list", {
+        method: "POST",
+        body: JSON.stringify({ page: 0, sizePerPage: 200 }),
+      });
+      setCarts(Array.isArray(data) ? data : (data?.dtoList ?? []));
     } catch {
       setCarts([]);
     }
   }, []);
 
   useEffect(() => {
-    loadOrders();
     loadCarts();
-  }, [loadOrders, loadCarts]);
+  }, [loadCarts]);
 
   const handlePlaceOrder = async () => {
-    if (!poCartId.trim()) { setPoErr("Please select a cart."); return; }
-    setPoSaving(true); setPoErr("");
+    if (!poCartId.trim()) {
+      setPoErr("Please select a cart.");
+      return;
+    }
+    setPoSaving(true);
+    setPoErr("");
     try {
       await fetchWithAuth("/api/orders/place", {
         method: "POST",
-        body: JSON.stringify({ cartIdentifier: poCartId, paymentMode: poPayment }),
+        body: JSON.stringify({
+          cartIdentifier: poCartId,
+          paymentMode: poPayment,
+        }),
       });
       setShowPlaceOrder(false);
       setPoCartId("");
       setPoPayment("CASH");
       setPageOk("Order placed successfully.");
-      await loadOrders();
+      if (currentPage === 0) {
+        loadOrders(0, searchQuery);
+      } else {
+        setCurrentPage(0);
+      }
       await loadCarts();
     } catch (e) {
       setPoErr(e.message || "Failed to place order.");
@@ -104,7 +132,8 @@ export default function OrderRoute() {
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
-    setBusy(true); setPageErr("");
+    setBusy(true);
+    setPageErr("");
     try {
       await fetchWithAuth(`/api/orders/delete/${confirmDelete.identifier}`, {
         method: "DELETE",
@@ -112,7 +141,11 @@ export default function OrderRoute() {
       });
       setConfirmDelete(null);
       setPageOk("Order cancelled.");
-      await loadOrders();
+      if (orders.length === 1 && currentPage > 0) {
+        setCurrentPage(currentPage - 1);
+      } else {
+        loadOrders(currentPage, searchQuery);
+      }
     } catch (e) {
       setPageErr(e.message || "Failed to cancel order.");
     } finally {
@@ -123,73 +156,47 @@ export default function OrderRoute() {
   const handlePrintReceipt = () => {
     if (!receiptRef.current) return;
     const receiptHTML = receiptRef.current.innerHTML;
-
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Receipt</title>
           <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-              background: #fff;
-              padding: 20px;
-            }
-            .no-print { display: none !important; }
-            @media print {
-              body { padding: 0; }
-            }
-            p { margin: 0; }
+            *{margin:0;padding:0;box-sizing:border-box}
+            body{font-family:'Barlow',-apple-system,sans-serif;background:#fff;padding:20px}
+            .no-print{display:none!important}
+            @media print{body{padding:0}}
+            p{margin:0}
           </style>
         </head>
         <body>
-          <div style="max-width: 500px; margin: 0 auto; font-size: 14px;">
-            ${receiptHTML}
-          </div>
-          <script>
-            window.onload = function() {
-              window.print();
-            };
-          </script>
+          <div style="max-width:500px;margin:0 auto;font-size:14px">${receiptHTML}</div>
+          <script>window.onload=function(){window.print()}</script>
         </body>
       </html>
     `;
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=UTF-8' });
+    const blob = new Blob([htmlContent], { type: "text/html;charset=UTF-8" });
     const url = URL.createObjectURL(blob);
-    const newWindow = window.open(url, '_blank');
+    const newWindow = globalThis.window?.open(url, "_blank");
     if (newWindow) {
-      newWindow.addEventListener('load', () => {
-        newWindow.print();
-      }, { once: true });
+      newWindow.addEventListener("load", () => newWindow.print(), { once: true });
     }
   };
 
   const handleGoToCart = () => router.push("/cart");
 
-  const q = search.trim().toLowerCase();
-  const filteredOrders = q
-    ? orders.filter(
-        (o) =>
-          o.orderId?.toLowerCase().includes(q) ||
-          o.customer?.customerName?.toLowerCase().includes(q) ||
-          o.customerIdentifier?.toLowerCase().includes(q) ||
-          o.paymentMode?.toLowerCase().includes(q)
-      )
-    : orders;
-
   return (
     <OrderPage
-      orders={filteredOrders}
-      allOrders={orders}
+      orders={orders}
+      totalRecords={totalRecords}
+      pageSize={PAGE_SIZE}
       loading={loading}
       busy={busy}
       pageErr={pageErr}
       pageOk={pageOk}
-      search={search}
-      setSearch={setSearch}
+      search={searchInput}
+      setSearch={setSearchInput}
       viewOrder={viewOrder}
       setViewOrder={setViewOrder}
       receiptRef={receiptRef}

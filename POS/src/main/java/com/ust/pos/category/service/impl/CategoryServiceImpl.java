@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -34,7 +35,6 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public CategoryDto save(CategoryDto dto) {
-
         Category existing = categoryRepository.findByIdentifier(dto.getIdentifier());
         if (existing != null) {
             if (existing.isDeleted()) {
@@ -46,22 +46,17 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
             dto.setMessage(CATEGORY_WITH_IDENTIFIER + dto.getIdentifier() + " already exists");
             return dto;
         }
-
         Category category = new Category();
         category.setIdentifier(dto.getIdentifier());
         category.setStatus(true);
-
         String superCategory = dto.getSuperCategory();
-
         if (superCategory == null || superCategory.trim().isEmpty()) {
             category.setSuperCategory(null);
         } else {
             category.setSuperCategory(superCategory.trim());
         }
-
         setAuditFields(category, true);
         categoryRepository.save(category);
-
         CategoryDto response = modelMapper.map(category, CategoryDto.class);
         response.setSuccess(true);
         return response;
@@ -69,26 +64,20 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public CategoryDto update(CategoryDto dto) {
-
         Category category = categoryRepository.findByIdentifier(dto.getIdentifier());
-
         if (category == null) {
             dto.setSuccess(false);
             dto.setMessage(CATEGORY_WITH_IDENTIFIER + dto.getIdentifier() + " not found");
             return dto;
         }
-
         String superCategory = dto.getSuperCategory();
-
         if (superCategory == null || superCategory.trim().isEmpty()) {
             category.setSuperCategory(null);
         } else {
             category.setSuperCategory(superCategory.trim());
         }
-
         setAuditFields(category, false);
         categoryRepository.save(category);
-
         CategoryDto response = modelMapper.map(category, CategoryDto.class);
         response.setSuccess(true);
         return response;
@@ -120,12 +109,25 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         return wsDto;
     }
 
+    @Override
+    public WsDto<CategoryDto> findAll(Specification<Category> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        Page<Category> categoryPage = categoryRepository.findAll(spec, pageable);
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        wsDto.setTotalRecords(categoryPage.getTotalElements());
+        wsDto.setTotalPages(categoryPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
+    }
 
     @Override
     public List<CategoryDto> findSuperCategories() {
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-
         return modelMapper.map(categoryRepository.findBySuperCategoryIsNull(), listType);
     }
 
@@ -134,25 +136,19 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
     public CategoryDto toggleStatus(String identifier) {
         Category category = categoryRepository.findByIdentifier(identifier);
         if (category == null) return null;
-
         if (category.getSuperCategory() == null) {
             return modelMapper.map(category, CategoryDto.class);
         }
-
         category.setStatus(!category.isStatus());
         categoryRepository.save(category);
-
         return modelMapper.map(category, CategoryDto.class);
     }
 
     @Override
     public List<CategoryDto> findIfTrue() {
-
         Type listType = new TypeToken<List<CategoryDto>>() {
         }.getType();
-
         List<Category> categories = categoryRepository.findBySuperCategoryIsNotNull().stream().filter(Category::isStatus).toList();
-
         return modelMapper.map(categories, listType);
     }
 }

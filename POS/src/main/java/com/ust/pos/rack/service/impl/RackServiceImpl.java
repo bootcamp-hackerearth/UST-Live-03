@@ -2,6 +2,7 @@ package com.ust.pos.rack.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -9,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -64,11 +66,30 @@ public class RackServiceImpl extends CommonService implements RackService {
     }
 
     @Override
-    public List<RackDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<RackDto>>() {
-        }.getType();
+    public WsDto<RackDto> findAll(Pageable pageable) {
+        Type listType = new TypeToken<List<RackDto>>() {}.getType();
         Page<Rack> rackPage = rackRepository.findByDeletedFalse(pageable);
-        return modelMapper.map(rackPage.getContent(), listType);
+        WsDto<RackDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(rackPage.getContent(), listType));
+        wsDto.setTotalRecords(rackPage.getTotalElements());
+        wsDto.setTotalPages(rackPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<RackDto> findAll(Specification<Rack> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<RackDto>>() {}.getType();
+        Page<Rack> rackPage = rackRepository.findAll(spec, pageable);
+        WsDto<RackDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(rackPage.getContent(), listType));
+        wsDto.setTotalRecords(rackPage.getTotalElements());
+        wsDto.setTotalPages(rackPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 
     @Override

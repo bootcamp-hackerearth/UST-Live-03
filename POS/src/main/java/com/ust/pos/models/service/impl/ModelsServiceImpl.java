@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -98,6 +99,21 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
         wsDto.setTotalPages(modelsPage.getTotalPages());
         wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<ModelsDto> findAll(Specification<Models> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<ModelsDto>>() {
+        }.getType();
+        Page<Models> modelsPage = modelsRepository.findAll(spec, pageable);
+        WsDto<ModelsDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(modelsPage.getContent(), listType));
+        wsDto.setTotalRecords(modelsPage.getTotalElements());
+        wsDto.setTotalPages(modelsPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
         return wsDto;
     }
 

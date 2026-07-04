@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -110,6 +111,27 @@ public class ProductServiceImpl extends CommonService implements ProductService 
         wsDto.setTotalPages(productPage.getTotalPages());
         wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<ProductDto> findAll(Specification<Product> spec, Pageable pageable, String keyword) {
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+        List<ProductDto> productDtos = productPage.getContent().stream().map(product -> {
+            ProductDto productDto = modelMapper.map(product, ProductDto.class);
+            Price price = priceRepository.findByProductId(product.getId());
+            if (price != null) {
+                productDto.setPrice(modelMapper.map(price, PriceDto.class));
+            }
+            return productDto;
+        }).toList();
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(productDtos);
+        wsDto.setTotalRecords(productPage.getTotalElements());
+        wsDto.setTotalPages(productPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
         return wsDto;
     }
 

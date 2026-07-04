@@ -3,9 +3,12 @@ package com.ust.pos.api.product;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.*;
+import com.ust.pos.model.Product;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +30,11 @@ public class ProductController extends BaseController {
 
     @PostMapping("/list")
     public WsDto<ProductDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(
-                paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(),
-                paginationDto.getSortField());
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Product> spec = buildGlobalSearchSpec(Product.class, paginationDto.getKeyword());
+            return productService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
         return productService.findAll(pageable);
     }
 

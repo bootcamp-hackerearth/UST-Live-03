@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -103,6 +104,21 @@ public class UserServiceImpl extends CommonService implements UserService {
         userWsDto.setTotalPages(userPage.getTotalPages());
         userWsDto.setSizePerPage(pageable.getPageSize());
         userWsDto.setPage(pageable.getPageNumber());
+        return userWsDto;
+    }
+
+    @Override
+    public WsDto<UserDto> findAll(Specification<User> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> userPage = userRepository.findAll(spec, pageable);
+        WsDto<UserDto> userWsDto = new WsDto<>();
+        userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        userWsDto.setTotalRecords(userPage.getTotalElements());
+        userWsDto.setTotalPages(userPage.getTotalPages());
+        userWsDto.setSizePerPage(pageable.getPageSize());
+        userWsDto.setPage(pageable.getPageNumber());
+        userWsDto.setKeyword(keyword);
         return userWsDto;
     }
 }

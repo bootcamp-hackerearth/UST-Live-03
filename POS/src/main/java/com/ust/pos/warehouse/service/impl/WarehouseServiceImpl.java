@@ -2,6 +2,7 @@ package com.ust.pos.warehouse.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -83,13 +85,33 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
     }
 
     @Override
-    public List<WarehouseDto> findAll(Pageable pageable) {
+    public WsDto<WarehouseDto> findAll(Pageable pageable) {
         Type listType = new TypeToken<List<WarehouseDto>>() {
         }.getType();
         Page<Warehouse> warehousePage = warehouseRepository.findByDeletedFalse(pageable);
-        return modelMapper.map(warehousePage.getContent(), listType);
+        WsDto<WarehouseDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
+        wsDto.setTotalRecords(warehousePage.getTotalElements());
+        wsDto.setTotalPages(warehousePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 
+    @Override
+    public WsDto<WarehouseDto> findAll(Specification<Warehouse> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<WarehouseDto>>() {
+        }.getType();
+        Page<Warehouse> warehousePage = warehouseRepository.findAll(spec, pageable);
+        WsDto<WarehouseDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
+        wsDto.setTotalRecords(warehousePage.getTotalElements());
+        wsDto.setTotalPages(warehousePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
+    }
 
     @Override
     @Transactional

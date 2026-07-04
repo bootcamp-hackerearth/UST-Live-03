@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 
 import { fetchWithAuth } from "@/lib/api";
@@ -120,21 +120,32 @@ const emptyForm = (phone = "") => ({
   shippingAddress: emptyAddr(phone),
 });
 
-function Pagination({ page, totalPages, totalRecords, pageSize, onPageChange }) {
+function Pagination({
+  page,
+  totalPages,
+  totalRecords,
+  pageSize,
+  onPageChange,
+}) {
   if (totalPages <= 1) return null;
   const from = page * pageSize + 1;
   const to = Math.min((page + 1) * pageSize, totalRecords);
   const range = [];
   const deltaPages = 2;
   for (let i = 0; i < totalPages; i++) {
-    if (i === 0 || i === totalPages - 1 || (i >= page - deltaPages && i <= page + deltaPages))
+    if (
+      i === 0 ||
+      i === totalPages - 1 ||
+      (i >= page - deltaPages && i <= page + deltaPages)
+    )
       range.push(i);
   }
   const items = [];
   let prev = null;
   for (const i of range) {
     if (prev !== null) {
-      if (i - prev === 2) items.push({ type: "page", page: prev + 1, key: `p${prev + 1}` });
+      if (i - prev === 2)
+        items.push({ type: "page", page: prev + 1, key: `p${prev + 1}` });
       else if (i - prev > 2) items.push({ type: "ellipsis", key: `e${i}` });
     }
     items.push({ type: "page", page: i, key: `p${i}` });
@@ -142,13 +153,29 @@ function Pagination({ page, totalPages, totalRecords, pageSize, onPageChange }) 
   }
   return (
     <div className="pag">
-      <span className="pag-info">Showing {from}–{to} of {totalRecords}</span>
+      <span className="pag-info">
+        Showing {from}–{to} of {totalRecords}
+      </span>
       <div className="pag-btns">
-        <button className="pb" onClick={() => onPageChange(0)} disabled={page === 0}>«</button>
-        <button className="pb" onClick={() => onPageChange(page - 1)} disabled={page === 0}>‹</button>
+        <button
+          className="pb"
+          onClick={() => onPageChange(0)}
+          disabled={page === 0}
+        >
+          «
+        </button>
+        <button
+          className="pb"
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 0}
+        >
+          ‹
+        </button>
         {items.map((item) =>
           item.type === "ellipsis" ? (
-            <span key={item.key} className="pb-dots">…</span>
+            <span key={item.key} className="pb-dots">
+              …
+            </span>
           ) : (
             <button
               key={item.key}
@@ -159,8 +186,20 @@ function Pagination({ page, totalPages, totalRecords, pageSize, onPageChange }) 
             </button>
           ),
         )}
-        <button className="pb" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages - 1}>›</button>
-        <button className="pb" onClick={() => onPageChange(totalPages - 1)} disabled={page >= totalPages - 1}>»</button>
+        <button
+          className="pb"
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages - 1}
+        >
+          ›
+        </button>
+        <button
+          className="pb"
+          onClick={() => onPageChange(totalPages - 1)}
+          disabled={page >= totalPages - 1}
+        >
+          »
+        </button>
       </div>
     </div>
   );
@@ -194,7 +233,8 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
         creditLimit: initialData.creditLimit ?? "",
         billingAddress: {
           addressLine: initialData.billingAddress?.addressLine ?? "",
-          phoneNo: initialData.billingAddress?.phoneNo ?? initialData.identifier ?? "",
+          phoneNo:
+            initialData.billingAddress?.phoneNo ?? initialData.identifier ?? "",
           city: initialData.billingAddress?.city ?? "",
           state: initialData.billingAddress?.state ?? "",
           zipCode: initialData.billingAddress?.zipCode ?? "",
@@ -202,7 +242,10 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
         },
         shippingAddress: {
           addressLine: initialData.shippingAddress?.addressLine ?? "",
-          phoneNo: initialData.shippingAddress?.phoneNo ?? initialData.identifier ?? "",
+          phoneNo:
+            initialData.shippingAddress?.phoneNo ??
+            initialData.identifier ??
+            "",
           city: initialData.shippingAddress?.city ?? "",
           state: initialData.shippingAddress?.state ?? "",
           zipCode: initialData.shippingAddress?.zipCode ?? "",
@@ -216,7 +259,9 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
 
   useEffect(() => {
     if (!open) return;
-    const h = (e) => { if (e.key === "Escape") onClose(); };
+    const h = (e) => {
+      if (e.key === "Escape") onClose();
+    };
     document.addEventListener("keydown", h);
     return () => document.removeEventListener("keydown", h);
   }, [open, onClose]);
@@ -234,20 +279,40 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
       };
     });
   };
-  const setShip = (k, v) => setForm((f) => ({ ...f, shippingAddress: { ...f.shippingAddress, [k]: v } }));
+  const setShip = (k, v) =>
+    setForm((f) => ({
+      ...f,
+      shippingAddress: { ...f.shippingAddress, [k]: v },
+    }));
 
   const toggleSame = () => {
     const next = !sameAsBilling;
     setSameAsBilling(next);
-    if (next) setForm((f) => ({ ...f, shippingAddress: { ...f.billingAddress } }));
+    if (next)
+      setForm((f) => ({ ...f, shippingAddress: { ...f.billingAddress } }));
   };
 
   const handleSubmit = async () => {
-    if (!form.identifier.trim()) { setError("Phone number is required."); return; }
-    if (!validators.phone(form.identifier)) { setError("Phone number must be exactly 10 digits."); return; }
-    if (!form.customerName.trim()) { setError("Customer name is required."); return; }
-    if (form.email && !validators.email(form.email)) { setError("Enter a valid email address."); return; }
-    if (form.creditLimit && !validators.creditLimit(form.creditLimit)) { setError("Credit limit must be between 0 and 1,000,000."); return; }
+    if (!form.identifier.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
+    if (!validators.phone(form.identifier)) {
+      setError("Phone number must be exactly 10 digits.");
+      return;
+    }
+    if (!form.customerName.trim()) {
+      setError("Customer name is required.");
+      return;
+    }
+    if (form.email && !validators.email(form.email)) {
+      setError("Enter a valid email address.");
+      return;
+    }
+    if (form.creditLimit && !validators.creditLimit(form.creditLimit)) {
+      setError("Credit limit must be between 0 and 1,000,000.");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -287,11 +352,19 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
   const isEdit = mode === "edit";
 
   return (
-    <dialog className="cu-ov" open aria-label={isEdit ? "Edit Customer" : "Add Customer"}>
+    <dialog
+      className="cu-ov"
+      open
+      aria-label={isEdit ? "Edit Customer" : "Add Customer"}
+    >
       <div className="cu-mbox" style={{ maxWidth: 680 }}>
         <div className="cu-mhead">
-          <span className="cu-mtitle">{isEdit ? "Edit Customer" : "Add Customer"}</span>
-          <button className="cu-mx" onClick={onClose} type="button">✕</button>
+          <span className="cu-mtitle">
+            {isEdit ? "Edit Customer" : "Add Customer"}
+          </span>
+          <button className="cu-mx" onClick={onClose} type="button">
+            ✕
+          </button>
         </div>
         <div className="cu-mbody">
           {error && <div className="cu-alert">{error}</div>}
@@ -299,18 +372,25 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
           <div className="cu-section">Customer Details</div>
           <div className="cu-grid">
             <div className="cu-field">
-              <label className="cu-label" htmlFor="phoneInput">Phone Number <span className="cu-req">*</span></label>
+              <label className="cu-label" htmlFor="phoneInput">
+                Phone Number <span className="cu-req">*</span>
+              </label>
               <input
                 id="phoneInput"
                 className={`fi${isEdit ? " fi-ro" : ""}`}
                 value={form.identifier}
                 readOnly={isEdit}
                 maxLength={10}
-                onChange={(e) => { if (!isEdit) setTop("identifier", e.target.value.replaceAll(/\D/g, "")); }}
+                onChange={(e) => {
+                  if (!isEdit)
+                    setTop("identifier", e.target.value.replaceAll(/\D/g, ""));
+                }}
               />
             </div>
             <div className="cu-field">
-              <label className="cu-label" htmlFor="customerNameInput">Customer Name <span className="cu-req">*</span></label>
+              <label className="cu-label" htmlFor="customerNameInput">
+                Customer Name <span className="cu-req">*</span>
+              </label>
               <input
                 id="customerNameInput"
                 className="fi"
@@ -319,7 +399,9 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
               />
             </div>
             <div className="cu-field">
-              <label className="cu-label" htmlFor="emailInput">Email</label>
+              <label className="cu-label" htmlFor="emailInput">
+                Email
+              </label>
               <input
                 id="emailInput"
                 className="fi"
@@ -329,13 +411,26 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
               />
             </div>
             <div className="cu-field">
-              <label className="cu-label" htmlFor="partyTypeSelect">Party Type</label>
-              <select id="partyTypeSelect" className="fi" value={form.partyType} onChange={(e) => setTop("partyType", e.target.value)}>
-                {PARTY_TYPES.map((v) => <option key={v} value={v}>{v}</option>)}
+              <label className="cu-label" htmlFor="partyTypeSelect">
+                Party Type
+              </label>
+              <select
+                id="partyTypeSelect"
+                className="fi"
+                value={form.partyType}
+                onChange={(e) => setTop("partyType", e.target.value)}
+              >
+                {PARTY_TYPES.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="cu-field">
-              <label className="cu-label" htmlFor="creditInput">Credit</label>
+              <label className="cu-label" htmlFor="creditInput">
+                Credit
+              </label>
               <input
                 id="creditInput"
                 className="fi"
@@ -345,13 +440,26 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
               />
             </div>
             <div className="cu-field">
-              <label className="cu-label" htmlFor="creditTypeSelect">Credit Type</label>
-              <select id="creditTypeSelect" className="fi" value={form.creditType} onChange={(e) => setTop("creditType", e.target.value)}>
-                {CREDIT_TYPES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              <label className="cu-label" htmlFor="creditTypeSelect">
+                Credit Type
+              </label>
+              <select
+                id="creditTypeSelect"
+                className="fi"
+                value={form.creditType}
+                onChange={(e) => setTop("creditType", e.target.value)}
+              >
+                {CREDIT_TYPES.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="cu-field">
-              <label className="cu-label" htmlFor="creditLimitInput">Credit Limit</label>
+              <label className="cu-label" htmlFor="creditLimitInput">
+                Credit Limit
+              </label>
               <input
                 id="creditLimitInput"
                 className="fi"
@@ -367,14 +475,25 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
             {addrKeys.map((k) => (
               <div className="cu-field" key={k}>
                 <label className="cu-label">{addrLabels[k]}</label>
-                <input className="fi fi-sm" value={form.billingAddress[k]} onChange={(e) => setBill(k, e.target.value)} />
+                <input
+                  className="fi fi-sm"
+                  value={form.billingAddress[k]}
+                  onChange={(e) => setBill(k, e.target.value)}
+                />
               </div>
             ))}
           </div>
 
           <div className="cu-check-row">
-            <input type="checkbox" id="cu-sab" checked={sameAsBilling} onChange={toggleSame} />
-            <label htmlFor="cu-sab" className="cu-check-label">Shipping address same as billing</label>
+            <input
+              type="checkbox"
+              id="cu-sab"
+              checked={sameAsBilling}
+              onChange={toggleSame}
+            />
+            <label htmlFor="cu-sab" className="cu-check-label">
+              Shipping address same as billing
+            </label>
           </div>
 
           {!sameAsBilling && (
@@ -384,7 +503,11 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
                 {addrKeys.map((k) => (
                   <div className="cu-field" key={k}>
                     <label className="cu-label">{addrLabels[k]}</label>
-                    <input className="fi fi-sm" value={form.shippingAddress[k]} onChange={(e) => setShip(k, e.target.value)} />
+                    <input
+                      className="fi fi-sm"
+                      value={form.shippingAddress[k]}
+                      onChange={(e) => setShip(k, e.target.value)}
+                    />
                   </div>
                 ))}
               </div>
@@ -397,7 +520,11 @@ function CustomerFormModal({ open, onClose, onSaved, mode, initialData }) {
             else if (isEdit) btnText = "Update Customer";
             else btnText = "Add Customer";
             return (
-              <button className="btn-save" onClick={handleSubmit} disabled={saving}>
+              <button
+                className="btn-save"
+                onClick={handleSubmit}
+                disabled={saving}
+              >
                 {btnText}
               </button>
             );
@@ -424,6 +551,8 @@ export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [modal, setModal] = useState(null);
   const [editData, setEditData] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -437,17 +566,27 @@ export default function CustomersPage() {
     try {
       const data = await fetchWithAuth("/api/customers/list", {
         method: "POST",
-        body: JSON.stringify({ page: 0, sizePerPage: 10000 }),
+        body: JSON.stringify({
+          page,
+          sizePerPage: PAGE_SIZE,
+          keyword: debouncedSearch,
+          sortField: "identifier",
+          sortDirection: "asc",
+        }),
       });
-      setRecords(Array.isArray(data) ? data : (data?.dtoList ?? []));
+      setRecords(data?.dtoList ?? []);
+      setTotalPages(data?.totalPages ?? 1);
+      setTotalRecords(data?.totalRecords ?? 0);
     } catch (e) {
       if (e.status !== 401) setError(e.message || "Failed to load customers.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, debouncedSearch]);
 
-  useEffect(() => { fetchList(); }, [fetchList]);
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
 
   useEffect(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -455,24 +594,16 @@ export default function CustomersPage() {
       setDebouncedSearch(search);
       setPage(0);
     }, 300);
-    return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
   }, [search]);
 
-  const filtered = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase();
-    if (!q) return records;
-    return records.filter((r) =>
-      [r.identifier, r.customerName, r.email, r.partyType].some(
-        (v) => v && String(v).toLowerCase().includes(q),
-      ),
-    );
-  }, [records, debouncedSearch]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages - 1);
-  const pageRows = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
-
-  const closeModal = () => { setModal(null); setEditData(null); setDeleteTarget(null); };
+  const closeModal = () => {
+    setModal(null);
+    setEditData(null);
+    setDeleteTarget(null);
+  };
 
   const openEdit = async (record) => {
     setError("");
@@ -485,9 +616,15 @@ export default function CustomersPage() {
     }
   };
 
-  const openDelete = (record) => { setDeleteTarget(record); setModal("delete"); };
+  const openDelete = (record) => {
+    setDeleteTarget(record);
+    setModal("delete");
+  };
 
-  const handleSaved = () => { closeModal(); fetchList(); };
+  const handleSaved = () => {
+    closeModal();
+    fetchList();
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -509,7 +646,9 @@ export default function CustomersPage() {
 
   const handleToggle = async (record) => {
     setRecords((prev) =>
-      prev.map((r) => r.identifier === record.identifier ? { ...r, status: !r.status } : r),
+      prev.map((r) =>
+        r.identifier === record.identifier ? { ...r, status: !r.status } : r,
+      ),
     );
     try {
       await fetchWithAuth(`/api/customers/toggle/${record.identifier}`, {
@@ -518,7 +657,9 @@ export default function CustomersPage() {
       });
     } catch (e) {
       setRecords((prev) =>
-        prev.map((r) => r.identifier === record.identifier ? { ...r, status: !r.status } : r),
+        prev.map((r) =>
+          r.identifier === record.identifier ? { ...r, status: !r.status } : r,
+        ),
       );
       if (e.status !== 401) setError(e.message || "Failed to update status.");
     }
@@ -531,12 +672,25 @@ export default function CustomersPage() {
         <div className="cu-wrap">
           <div className="cu-hd">
             <h1 className="cu-title">Customer Management</h1>
-            {records.length > 0 && <span className="cu-badge">{records.length}</span>}
+            {totalRecords > 0 && (
+              <span className="cu-badge">{totalRecords}</span>
+            )}
             <div className="cu-search-wrap">
               <span className="cu-search-icon">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  <circle
+                    cx="6.5"
+                    cy="6.5"
+                    r="5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
+                  <path
+                    d="M10.5 10.5L14 14"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </span>
               <input
@@ -548,81 +702,143 @@ export default function CustomersPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
               {search && (
-                <button className="cu-search-clear" onClick={() => { setSearch(""); searchRef.current?.focus(); }} type="button">
+                <button
+                  className="cu-search-clear"
+                  onClick={() => {
+                    setSearch("");
+                    searchRef.current?.focus();
+                  }}
+                  type="button"
+                >
                   ✕
                 </button>
               )}
             </div>
-            <button className="btn-add" onClick={() => setModal("add")}>+ Add Customer</button>
+            <button className="btn-add" onClick={() => setModal("add")}>
+              + Add Customer
+            </button>
           </div>
 
-          {error && <div className="cu-pg-err" role="alert">{error}</div>}
+          {error && (
+            <div className="cu-pg-err" role="alert">
+              {error}
+            </div>
+          )}
 
           <div className="cu-card">
             {loading ? (
               <div className="cu-empty">Loading…</div>
-            ) : (() => {
-              if (pageRows.length === 0) {
+            ) : (
+              (() => {
+                if (records.length === 0) {
+                  return (
+                    <div className="cu-empty">
+                      {search.trim()
+                        ? `No results for "${search}".`
+                        : "No customers found."}
+                    </div>
+                  );
+                }
                 return (
-                  <div className="cu-empty">
-                    {search.trim() ? `No results for "${search}".` : "No customers found."}
+                  <div style={{ overflowX: "auto" }}>
+                    <table className="cu-tbl">
+                      <thead>
+                        <tr>
+                          <th>Phone</th>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Party Type</th>
+                          <th>Credit</th>
+                          <th>Credit Type</th>
+                          <th>Credit Limit</th>
+                          <th>Status</th>
+                          <th style={{ textAlign: "right" }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {records.map((r) => (
+                          <tr key={r.identifier}>
+                            <td style={{ fontWeight: 700, color: "#111" }}>
+                              {r.identifier}
+                            </td>
+                            <td>
+                              {r.customerName ? (
+                                htmlEscape(r.customerName)
+                              ) : (
+                                <span style={{ color: "#ccc" }}>—</span>
+                              )}
+                            </td>
+                            <td>
+                              {r.email ? (
+                                htmlEscape(r.email)
+                              ) : (
+                                <span style={{ color: "#ccc" }}>—</span>
+                              )}
+                            </td>
+                            <td>
+                              {r.partyType ? (
+                                <span className="badge">{r.partyType}</span>
+                              ) : (
+                                <span style={{ color: "#ccc" }}>—</span>
+                              )}
+                            </td>
+                            <td>
+                              {r.credit ?? (
+                                <span style={{ color: "#ccc" }}>—</span>
+                              )}
+                            </td>
+                            <td>
+                              {r.creditType || (
+                                <span style={{ color: "#ccc" }}>—</span>
+                              )}
+                            </td>
+                            <td>
+                              {r.creditLimit ?? (
+                                <span style={{ color: "#ccc" }}>—</span>
+                              )}
+                            </td>
+                            <td>
+                              <button
+                                className={`tgl${r.status ? " on" : ""}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggle(r);
+                                }}
+                                aria-label="Toggle status"
+                                type="button"
+                              />
+                            </td>
+                            <td>
+                              <div className="act-wrap">
+                                <button
+                                  className="btn-edit"
+                                  onClick={() => openEdit(r)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="btn-del"
+                                  onClick={() => openDelete(r)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <Pagination
+                      page={page}
+                      totalPages={totalPages}
+                      totalRecords={totalRecords}
+                      pageSize={PAGE_SIZE}
+                      onPageChange={setPage}
+                    />
                   </div>
                 );
-              }
-              return (
-                <div style={{ overflowX: "auto" }}>
-                  <table className="cu-tbl">
-                    <thead>
-                      <tr>
-                        <th>Phone</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Party Type</th>
-                        <th>Credit</th>
-                        <th>Credit Type</th>
-                        <th>Credit Limit</th>
-                        <th>Status</th>
-                        <th style={{ textAlign: "right" }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pageRows.map((r) => (
-                        <tr key={r.identifier}>
-                          <td style={{ fontWeight: 700, color: "#111" }}>{r.identifier}</td>
-                          <td>{r.customerName ? htmlEscape(r.customerName) : <span style={{ color: "#ccc" }}>—</span>}</td>
-                          <td>{r.email ? htmlEscape(r.email) : <span style={{ color: "#ccc" }}>—</span>}</td>
-                          <td>{r.partyType ? <span className="badge">{r.partyType}</span> : <span style={{ color: "#ccc" }}>—</span>}</td>
-                          <td>{r.credit ?? <span style={{ color: "#ccc" }}>—</span>}</td>
-                          <td>{r.creditType || <span style={{ color: "#ccc" }}>—</span>}</td>
-                          <td>{r.creditLimit ?? <span style={{ color: "#ccc" }}>—</span>}</td>
-                          <td>
-                            <button
-                              className={`tgl${r.status ? " on" : ""}`}
-                              onClick={(e) => { e.stopPropagation(); handleToggle(r); }}
-                              aria-label="Toggle status"
-                              type="button"
-                            />
-                          </td>
-                          <td>
-                            <div className="act-wrap">
-                              <button className="btn-edit" onClick={() => openEdit(r)}>Edit</button>
-                              <button className="btn-del" onClick={() => openDelete(r)}>Delete</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <Pagination
-                    page={safePage}
-                    totalPages={totalPages}
-                    totalRecords={filtered.length}
-                    pageSize={PAGE_SIZE}
-                    onPageChange={setPage}
-                  />
-                </div>
-              );
-            })()}
+              })()
+            )}
           </div>
         </div>
       </div>
@@ -640,17 +856,34 @@ export default function CustomersPage() {
           <div className="cu-mbox" style={{ maxWidth: 420 }}>
             <div className="cu-mhead">
               <span className="cu-mtitle">Delete Customer</span>
-              <button className="cu-mx" onClick={closeModal} type="button">✕</button>
+              <button className="cu-mx" onClick={closeModal} type="button">
+                ✕
+              </button>
             </div>
             <div className="del-body">
               <p className="del-msg">
                 Are you sure you want to delete customer{" "}
-                <strong>{deleteTarget?.customerName ? htmlEscape(deleteTarget.customerName) : deleteTarget?.identifier}</strong>?
-                This action cannot be undone.
+                <strong>
+                  {deleteTarget?.customerName
+                    ? htmlEscape(deleteTarget.customerName)
+                    : deleteTarget?.identifier}
+                </strong>
+                ? This action cannot be undone.
               </p>
               <div className="del-actions">
-                <button className="btn-cancel" onClick={closeModal} type="button">Cancel</button>
-                <button className="btn-confirm-del" onClick={handleDelete} disabled={deleting} type="button">
+                <button
+                  className="btn-cancel"
+                  onClick={closeModal}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn-confirm-del"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  type="button"
+                >
                   {deleting ? "Deleting…" : "Delete"}
                 </button>
               </div>

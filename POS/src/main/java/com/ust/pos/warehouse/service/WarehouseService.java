@@ -1,7 +1,10 @@
 package com.ust.pos.warehouse.service;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Warehouse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -13,11 +16,13 @@ public interface WarehouseService {
 
     WarehouseDto findByIdentifier(String identifier);
 
-    List<WarehouseDto> findAll(Pageable pageable);
-
     boolean delete(String identifier);
 
     void toggleStatus(String identifier);
 
     List<WarehouseDto> findIfTrue();
+
+    WsDto<WarehouseDto> findAll(Pageable pageable);
+
+    WsDto<WarehouseDto> findAll(Specification<Warehouse> spec, Pageable pageable, String keyword);
 }

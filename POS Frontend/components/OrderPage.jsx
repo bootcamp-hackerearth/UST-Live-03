@@ -79,7 +79,6 @@ const CSS = `
 .btn-danger:disabled{opacity:.4;cursor:not-allowed}
 .ord-empty{padding:48px;text-align:center;color:#ccc;font-size:14px;font-weight:500}
 .ord-empty-icon{font-size:36px;display:block;margin-bottom:10px}
-.ord-empty-action{margin-top:16px}
 .pos-err{padding:10px 14px;background:#fff0f3;border:1px solid #fbbcca;border-radius:6px;font-size:13px;color:#c0152a;font-weight:600;margin-bottom:14px}
 .pos-ok{padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:13px;color:#15803d;font-weight:600;margin-bottom:14px}
 .busy-bar{height:3px;background:linear-gradient(90deg,#005dab,#e31837,#005dab);background-size:200% 100%;animation:bb 1.2s linear infinite;border-radius:2px;margin-bottom:10px}
@@ -106,11 +105,12 @@ const CSS = `
 .m-text strong{color:#111;font-weight:800}
 .ord-pagination{padding:12px 16px;border-top:1px solid #f2f2f2;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .ord-page-info{font-size:12px;color:#888;font-weight:500;white-space:nowrap}
-.ord-page-btns{display:flex;gap:4px;align-items:center}
+.ord-page-btns{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .ord-page-btn{padding:6px 10px;background:#fff;border:1.5px solid #ddd;border-radius:4px;font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;color:#111;cursor:pointer;transition:all .12s;white-space:nowrap}
 .ord-page-btn:hover:not(:disabled){border-color:#005dab;color:#005dab;background:#e8f0fa}
 .ord-page-btn:disabled{opacity:.4;cursor:not-allowed}
 .ord-page-btn.active{background:#005dab;border-color:#005dab;color:#fff}
+.ord-page-dots{font-size:12px;color:#bbb;padding:0 4px;display:inline-flex;align-items:center}
 `;
 
 function PayChip({ mode }) {
@@ -132,7 +132,7 @@ function Modal({ open, onClose, title, children }) {
       <div className="m-box">
         <div className="m-head">
           <span className="m-title">{title}</span>
-          <button className="m-x" onClick={onClose}>✕</button>
+          <button className="m-x" onClick={onClose} type="button">✕</button>
         </div>
         {children}
       </div>
@@ -146,22 +146,128 @@ Modal.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
+function Pagination({ currentPage, totalPages, totalRecords, pageSize, onPageChange }) {
+  if (totalPages <= 1) return null;
+
+  const from = totalRecords === 0 ? 0 : currentPage * pageSize + 1;
+  const to = Math.min((currentPage + 1) * pageSize, totalRecords);
+
+  const pages = (() => {
+    const delta = 2;
+    const range = [];
+    for (let i = 0; i < totalPages; i += 1) {
+      if (
+        i === 0 ||
+        i === totalPages - 1 ||
+        (i >= currentPage - delta && i <= currentPage + delta)
+      ) {
+        range.push(i);
+      }
+    }
+    const result = [];
+    let prev = null;
+    for (const i of range) {
+      if (prev !== null) {
+        if (i - prev === 2) result.push({ type: "page", page: prev + 1, key: `p${prev + 1}` });
+        else if (i - prev > 2) result.push({ type: "ellipsis", key: `e${i}` });
+      }
+      result.push({ type: "page", page: i, key: `p${i}` });
+      prev = i;
+    }
+    return result;
+  })();
+
+  return (
+    <div className="ord-pagination">
+      <div className="ord-page-info">
+        Showing {from}–{to} of {totalRecords}
+      </div>
+      <div className="ord-page-btns">
+        <button
+          className="ord-page-btn"
+          onClick={() => onPageChange(0)}
+          disabled={currentPage === 0}
+        >
+          «
+        </button>
+        <button
+          className="ord-page-btn"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 0}
+        >
+          ← Prev
+        </button>
+        {pages.map((item) =>
+          item.type === "ellipsis" ? (
+            <span key={item.key} className="ord-page-dots">…</span>
+          ) : (
+            <button
+              key={item.key}
+              className={`ord-page-btn${item.page === currentPage ? " active" : ""}`}
+              onClick={() => onPageChange(item.page)}
+            >
+              {item.page + 1}
+            </button>
+          ),
+        )}
+        <button
+          className="ord-page-btn"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages - 1}
+        >
+          Next →
+        </button>
+        <button
+          className="ord-page-btn"
+          onClick={() => onPageChange(totalPages - 1)}
+          disabled={currentPage >= totalPages - 1}
+        >
+          »
+        </button>
+      </div>
+    </div>
+  );
+}
+
+Pagination.propTypes = {
+  currentPage: PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  totalRecords: PropTypes.number.isRequired,
+  pageSize: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+};
+
 export default function OrderPage({
-  orders, allOrders, loading, busy,
-  pageErr, pageOk,
-  search, setSearch,
-  viewOrder, setViewOrder,
-  receiptRef, onPrintReceipt,
+  orders,
+  totalRecords,
+  pageSize,
+  loading,
+  busy,
+  pageErr,
+  pageOk,
+  search,
+  setSearch,
+  viewOrder,
+  setViewOrder,
+  receiptRef,
+  onPrintReceipt,
   carts,
-  showPlaceOrder, setShowPlaceOrder,
-  poCartId, setPoCartId,
-  poPayment, setPoPayment,
-  poErr, poSaving, onPlaceOrder,
-  confirmDelete, setConfirmDelete, onDelete,
+  showPlaceOrder,
+  setShowPlaceOrder,
+  poCartId,
+  setPoCartId,
+  poPayment,
+  setPoPayment,
+  poErr,
+  poSaving,
+  onPlaceOrder,
+  confirmDelete,
+  setConfirmDelete,
+  onDelete,
   onGoToCart,
-  currentPage = 0,
-  totalPages = 1,
-  onPageChange = () => {},
+  currentPage,
+  totalPages,
+  onPageChange,
 }) {
   return (
     <>
@@ -171,13 +277,15 @@ export default function OrderPage({
         <div className="ord-header">
           <div>
             <div className="ord-title">Orders</div>
-            <div className="ord-subtitle">{allOrders.length} order{allOrders.length === 1 ? "" : "s"} total</div>
+            <div className="ord-subtitle">
+              {totalRecords} order{totalRecords === 1 ? "" : "s"} total
+            </div>
           </div>
           <div className="ord-header-actions">
-            <button className="btn-secondary" onClick={onGoToCart}>
+            <button className="btn-secondary" onClick={onGoToCart} type="button">
               🛒 Go to Cart
             </button>
-            <button className="btn-primary" onClick={() => setShowPlaceOrder(true)}>
+            <button className="btn-primary" onClick={() => setShowPlaceOrder(true)} type="button">
               ＋ Place Order
             </button>
           </div>
@@ -196,31 +304,31 @@ export default function OrderPage({
               onChange={(e) => setSearch(e.target.value)}
             />
             {search && (
-              <button className="btn-ghost" style={{ padding: "6px 12px", fontSize: 11 }} onClick={() => setSearch("")}>
+              <button
+                className="btn-ghost"
+                style={{ padding: "6px 12px", fontSize: 11 }}
+                onClick={() => setSearch("")}
+                type="button"
+              >
                 Clear
               </button>
             )}
             <span className="ord-count">
-              {orders.length === allOrders.length
-                ? `${orders.length}`
-                : `${orders.length} of ${allOrders.length}`}{" "}
-              result{orders.length === 1 ? "" : "s"}
+              {totalRecords} result{totalRecords === 1 ? "" : "s"}
             </span>
           </div>
 
           {loading ? (
-            <div className="ord-empty"><span className="spin-dark" /> Loading orders…</div>
-          ) : (() => {
-            if (orders.length === 0) {
-              return (
-                <div className="ord-empty">
-                  <span className="ord-empty-icon">📋</span>
-                  {search ? `No orders match "${search}"` : "No orders yet."}
-                </div>
-              );
-            }
-            return (
-              <div className="tbl-scroll">
+            <div className="ord-empty">
+              <span className="spin-dark" /> Loading orders…
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="ord-empty">
+              <span className="ord-empty-icon">📋</span>
+              {search ? `No orders match "${search}"` : "No orders yet."}
+            </div>
+          ) : (
+            <div className="tbl-scroll">
               <table className="ord-tbl">
                 <thead>
                   <tr>
@@ -248,17 +356,27 @@ export default function OrderPage({
                           </div>
                         )}
                       </td>
-                      <td style={{ fontSize: 12, color: "#555", whiteSpace: "nowrap" }}>{fmtDate(order.orderDate)}</td>
+                      <td style={{ fontSize: 12, color: "#555", whiteSpace: "nowrap" }}>
+                        {fmtDate(order.orderDate)}
+                      </td>
                       <td><PayChip mode={order.paymentMode} /></td>
                       <td style={{ textAlign: "right", fontWeight: 600 }}>{fmt(order.totalPrice)}</td>
                       <td style={{ textAlign: "right", color: "#16a34a", fontWeight: 600 }}>
-                        {(order.discount ?? 0) > 0 ? `− ${fmt(order.discount)}` : <span style={{ color: "#eee" }}>—</span>}
+                        {(order.discount ?? 0) > 0
+                          ? `− ${fmt(order.discount)}`
+                          : <span style={{ color: "#eee" }}>—</span>}
                       </td>
-                      <td style={{ textAlign: "right", fontWeight: 800, color: "#111" }}>{fmt(order.grandTotal)}</td>
+                      <td style={{ textAlign: "right", fontWeight: 800, color: "#111" }}>
+                        {fmt(order.grandTotal)}
+                      </td>
                       <td>
                         <div className="act-row">
-                          <button className="btn-view" onClick={() => setViewOrder(order)}>View</button>
-                          <button className="btn-del" onClick={() => setConfirmDelete(order)}>✕</button>
+                          <button className="btn-view" onClick={() => setViewOrder(order)} type="button">
+                            View
+                          </button>
+                          <button className="btn-del" onClick={() => setConfirmDelete(order)} type="button">
+                            ✕
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -266,45 +384,15 @@ export default function OrderPage({
                 </tbody>
               </table>
 
-              {totalPages > 1 && (
-                <div className="ord-pagination">
-                  <div className="ord-page-info">
-                    Page {currentPage + 1} of {totalPages}
-                  </div>
-                  <div className="ord-page-btns">
-                    <button
-                      className="ord-page-btn"
-                      onClick={() => onPageChange(currentPage - 1)}
-                      disabled={currentPage === 0}
-                    >
-                      ← Previous
-                    </button>
-                    {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                      const pageNum = i + 1;
-                      return (
-                        <button
-                          key={`page-btn-${pageNum}`}
-                          className={`ord-page-btn${currentPage === i ? " active" : ""}`}
-                          onClick={() => onPageChange(i)}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-                    {totalPages > 5 && currentPage < totalPages - 2 && <span>…</span>}
-                    <button
-                      className="ord-page-btn"
-                      onClick={() => onPageChange(currentPage + 1)}
-                      disabled={currentPage >= totalPages - 1}
-                    >
-                      Next →
-                    </button>
-                  </div>
-                </div>
-              )}
-              </div>
-            );
-            })()}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalRecords}
+                pageSize={pageSize}
+                onPageChange={onPageChange}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -316,12 +404,20 @@ export default function OrderPage({
         <div className="m-body">
           {poErr && <div className="m-err">⚠ {poErr}</div>}
           <div className="m-field">
-            <label className="m-label" htmlFor="cart-select">Cart <span className="m-req">*</span></label>
-            <select id="cart-select" className="m-sel" value={poCartId} onChange={(e) => setPoCartId(e.target.value)}>
+            <label className="m-label" htmlFor="cart-select">
+              Cart <span className="m-req">*</span>
+            </label>
+            <select
+              id="cart-select"
+              className="m-sel"
+              value={poCartId}
+              onChange={(e) => setPoCartId(e.target.value)}
+            >
               <option value="">— Select a cart —</option>
               {carts.map((c) => (
                 <option key={c.identifier} value={c.identifier}>
-                  {c.identifier}{c.username && c.username !== c.identifier ? ` · ${c.username}` : ""}
+                  {c.identifier}
+                  {c.username && c.username !== c.identifier ? ` · ${c.username}` : ""}
                   {c.totalPrice ? ` · ${fmt(c.totalPrice)}` : ""}
                 </option>
               ))}
@@ -329,7 +425,12 @@ export default function OrderPage({
           </div>
           <div className="m-field">
             <label className="m-label" htmlFor="payment-select">Payment Mode</label>
-            <select id="payment-select" className="m-sel" value={poPayment} onChange={(e) => setPoPayment(e.target.value)}>
+            <select
+              id="payment-select"
+              className="m-sel"
+              value={poPayment}
+              onChange={(e) => setPoPayment(e.target.value)}
+            >
               {["CASH", "CARD", "UPI", "BANK_TRANSFER", "OTHER"].map((m) => (
                 <option key={m} value={m}>{m}</option>
               ))}
@@ -337,10 +438,14 @@ export default function OrderPage({
           </div>
         </div>
         <div className="m-footer">
-          <button className="btn-ghost" onClick={() => { setShowPlaceOrder(false); setPoCartId(""); setPoPayment("CASH"); }}>
+          <button
+            className="btn-ghost"
+            onClick={() => { setShowPlaceOrder(false); setPoCartId(""); setPoPayment("CASH"); }}
+            type="button"
+          >
             Cancel
           </button>
-          <button className="btn-primary" onClick={onPlaceOrder} disabled={poSaving}>
+          <button className="btn-primary" onClick={onPlaceOrder} disabled={poSaving} type="button">
             {poSaving ? <><span className="spin" /> Placing…</> : "Place Order"}
           </button>
         </div>
@@ -355,7 +460,6 @@ export default function OrderPage({
         />
       )}
 
-      {/* Confirm Delete Modal */}
       <Modal open={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="Cancel Order">
         {confirmDelete && (
           <>
@@ -367,8 +471,12 @@ export default function OrderPage({
               </p>
             </div>
             <div className="m-footer">
-              <button className="btn-ghost" onClick={() => setConfirmDelete(null)}>Keep Order</button>
-              <button className="btn-danger" onClick={onDelete}>Cancel Order</button>
+              <button className="btn-ghost" onClick={() => setConfirmDelete(null)} type="button">
+                Keep Order
+              </button>
+              <button className="btn-danger" onClick={onDelete} type="button">
+                Cancel Order
+              </button>
             </div>
           </>
         )}
@@ -379,7 +487,8 @@ export default function OrderPage({
 
 OrderPage.propTypes = {
   orders: PropTypes.array.isRequired,
-  allOrders: PropTypes.array.isRequired,
+  totalRecords: PropTypes.number.isRequired,
+  pageSize: PropTypes.number.isRequired,
   loading: PropTypes.bool.isRequired,
   busy: PropTypes.bool.isRequired,
   pageErr: PropTypes.string.isRequired,
@@ -404,10 +513,11 @@ OrderPage.propTypes = {
   setConfirmDelete: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onGoToCart: PropTypes.func.isRequired,
-  currentPage: PropTypes.number,
-  totalPages: PropTypes.number,
-  onPageChange: PropTypes.func,
+  currentPage: PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
 };
+
 OrderPage.defaultProps = {
   viewOrder: null,
   confirmDelete: null,

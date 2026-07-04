@@ -2,6 +2,7 @@ package com.ust.pos.stock.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.model.Stock;
@@ -11,6 +12,7 @@ import com.ust.pos.stock.service.StockService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -82,9 +84,9 @@ public class StockServiceImpl extends CommonService implements StockService {
     }
 
     @Override
-    public List<StockDto> findAll(Pageable pageable) {
+    public WsDto<StockDto> findAll(Pageable pageable) {
         Page<Stock> stockPage = stockRepository.findByDeletedFalse(pageable);
-        return stockPage.getContent().stream().map(stock -> {
+        List<StockDto> dtos = stockPage.getContent().stream().map(stock -> {
             StockDto dto = modelMapper.map(stock, StockDto.class);
             productRepository.findById(stock.getProductId()).ifPresent(product -> {
                 dto.setProductName(product.getProductName());
@@ -93,6 +95,35 @@ public class StockServiceImpl extends CommonService implements StockService {
             warehouseRepository.findById(stock.getWarehouseId()).ifPresent(warehouse -> dto.setWarehouseName(warehouse.getName()));
             return dto;
         }).toList();
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(dtos);
+        wsDto.setTotalRecords(stockPage.getTotalElements());
+        wsDto.setTotalPages(stockPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<StockDto> findAll(Specification<Stock> spec, Pageable pageable, String keyword) {
+        Page<Stock> stockPage = stockRepository.findAll(spec, pageable);
+        List<StockDto> dtos = stockPage.getContent().stream().map(stock -> {
+            StockDto dto = modelMapper.map(stock, StockDto.class);
+            productRepository.findById(stock.getProductId()).ifPresent(product -> {
+                dto.setProductName(product.getProductName());
+                dto.setIdentifier(product.getIdentifier());
+            });
+            warehouseRepository.findById(stock.getWarehouseId()).ifPresent(warehouse -> dto.setWarehouseName(warehouse.getName()));
+            return dto;
+        }).toList();
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(dtos);
+        wsDto.setTotalRecords(stockPage.getTotalElements());
+        wsDto.setTotalPages(stockPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -45,7 +46,6 @@ public class RoleServiceImpl extends CommonService implements RoleService {
             roleDto.setMessage("Role '" + roleDto.getIdentifier() + "' already exists");
             return roleDto;
         }
-
         Role role = modelMapper.map(roleDto, Role.class);
         setAuditFields(role, true);
         roleRepository.save(role);
@@ -103,6 +103,21 @@ public class RoleServiceImpl extends CommonService implements RoleService {
             wsDto.setSizePerPage(pageable.getPageSize());
             wsDto.setPage(pageable.getPageNumber());
         }
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<RoleDto> findAll(Specification<Role> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> rolePage = roleRepository.findAll(spec, pageable);
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+        wsDto.setTotalRecords(rolePage.getTotalElements());
+        wsDto.setTotalPages(rolePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
         return wsDto;
     }
 }

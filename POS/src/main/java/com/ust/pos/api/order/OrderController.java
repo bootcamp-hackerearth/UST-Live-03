@@ -4,8 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PlaceOrderRequestDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Orders;
 import com.ust.pos.order.service.OrderService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,15 +43,13 @@ public class OrderController extends BaseController {
     }
 
     @PostMapping("/list")
-    public ResponseEntity<List<OrderDto>> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(
-                paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(),
-                paginationDto.getSortField()
-        );
-        List<OrderDto> orders = orderService.findAll(pageable);
-        return ResponseEntity.ok(orders);
+    public WsDto<OrderDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Orders> spec = buildGlobalSearchSpec(Orders.class, paginationDto.getKeyword());
+            return orderService.findAll(spec, pageable, paginationDto.getKeyword());
+        }
+        return orderService.findAll(pageable);
     }
 
     @GetMapping("/customer/{customerIdentifier}")

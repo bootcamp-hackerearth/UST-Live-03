@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -132,16 +133,6 @@ public class OrderServiceImpl extends CommonService implements OrderService {
     }
 
     @Override
-    public List<OrderDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<OrderDto>>() {
-        }.getType();
-        Page<Orders> orderPage = orderRepository.findAll(pageable);
-        List<OrderDto> orderDtos = modelMapper.map(orderPage.getContent(), listType);
-        orderDtos.forEach(this::enrichOrderDto);
-        return orderDtos;
-    }
-
-    @Override
     public List<OrderDto> findByCustomerIdentifier(String customerIdentifier) {
         List<Orders> orders = orderRepository.findAllByCustomerIdentifierOrderByOrderDateDesc(customerIdentifier);
         Type listType = new TypeToken<List<OrderDto>>() {
@@ -177,5 +168,39 @@ public class OrderServiceImpl extends CommonService implements OrderService {
         }
         List<OrderEntryDto> entries = orderEntryService.findAllByOrderIdentifier(dto.getIdentifier());
         dto.setOrderEntries(entries);
+    }
+
+    @Override
+    public WsDto<OrderDto> findAll(Pageable pageable) {
+        Page<Orders> orderPage = orderRepository.findAll(pageable);
+        List<OrderDto> dtos = buildOrderDtoList(orderPage);
+        WsDto<OrderDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(dtos);
+        wsDto.setTotalRecords(orderPage.getTotalElements());
+        wsDto.setTotalPages(orderPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<OrderDto> findAll(Specification<Orders> spec, Pageable pageable, String keyword) {
+        Page<Orders> orderPage = orderRepository.findAll(spec, pageable);
+        List<OrderDto> dtos = buildOrderDtoList(orderPage);
+        WsDto<OrderDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(dtos);
+        wsDto.setTotalRecords(orderPage.getTotalElements());
+        wsDto.setTotalPages(orderPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
+    }
+
+    private List<OrderDto> buildOrderDtoList(Page<Orders> orderPage) {
+        Type listType = new TypeToken<List<OrderDto>>() {}.getType();
+        List<OrderDto> dtos = modelMapper.map(orderPage.getContent(), listType);
+        dtos.forEach(this::enrichOrderDto);
+        return dtos;
     }
 }

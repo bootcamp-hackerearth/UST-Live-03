@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -98,6 +99,21 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         wsDto.setTotalPages(brandPage.getTotalPages());
         wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<BrandDto> findAll(Specification<Brand> spec, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Page<Brand> brandPage = brandRepository.findAll(spec, pageable);
+        WsDto<BrandDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));
+        wsDto.setTotalRecords(brandPage.getTotalElements());
+        wsDto.setTotalPages(brandPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
         return wsDto;
     }
 
