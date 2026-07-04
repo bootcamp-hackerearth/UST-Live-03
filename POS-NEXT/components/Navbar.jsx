@@ -12,34 +12,42 @@ const Navbar = () => {
     phoneNo: "",
     roles: [],
   });
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const userName = localStorage.getItem("username");
+    console.log("username from localStorage:", userName);
     if (!userName) return;
 
     const fetchUser = async () => {
-      try {
-        const res = await fetch(`${baseUrl}/user/${userName}`, {
-          method: "GET",
-          headers: { "Content-Type": "text/plain" },
-          credentials: "include",
-        });
+  try {
+    const res = await fetch("/api/navbar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: userName,
+      }),
+    });
 
-        const data = await res.json();
+    console.log("Navbar API Status:", res.status);
 
-        setUserDetails({
-          username: data.username,
-          name: data.name,
-          phoneNo: data.phoneNo,
-          roles: data.roles || [],
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    };
+    const data = await res.json();
+
+    console.log("Navbar API Response:", data);
+
+    setUserDetails({
+      username: data.username,
+      name: data.name,
+      phoneNo: data.phoneNo,
+      roles: data.roles || [],
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
 
     fetchUser();
   }, []);
