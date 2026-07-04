@@ -18,6 +18,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const userName = localStorage.getItem("username");
+    console.log("Username", userName);
     if (!userName) return;
 
     const fetchUser = async () => {
