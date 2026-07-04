@@ -2,6 +2,7 @@ package com.ust.pos.model;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,6 +14,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Product findByIdentifier(String identifier);
 
     Product deleteByIdentifier(String identifier);
+
+    Page<Product> findAll(Specification<Product> example, Pageable pageable);
 
     Page<Product> findByIsDeletedFalse(Pageable pageable);
 

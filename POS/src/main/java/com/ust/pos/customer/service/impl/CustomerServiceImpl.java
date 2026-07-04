@@ -8,15 +8,19 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -43,7 +47,7 @@ public class CustomerServiceImpl extends BaseService implements CustomerService 
 
         Customer customer = customerRepository.findByIdentifier(identifier);
         if (customer == null) {
-            return null;
+            throw new ResourseNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(customer, CustomerDto.class);
@@ -141,6 +145,23 @@ public class CustomerServiceImpl extends BaseService implements CustomerService 
             setModifiedDetails(address);
             softDelete(address);
         }
+    }
+
+    @Override
+    public WsDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> page = customerRepository.findAll(example, pageable);
+
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
     @Override

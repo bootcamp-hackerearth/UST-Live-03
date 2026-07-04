@@ -54,15 +54,16 @@ export default function Cart() {
 
      const fetchData = async () => {
             try {
-                const customerRes = await FetchList(`${baseUrl}/customer/list`, 0, 200);
-                const productRes = await FetchList(`${baseUrl}/product/cart-list`, 0, 200);
+                const customerRes = await FetchList(`${baseUrl}/customer/list`, 0, "", 200);
+                const productRes = await FetchList(`${baseUrl}/product/cart-list`, 0, "", 200);
 
                 setCustomers(getListContent(customerRes));
                 setProducts(getListContent(productRes));
 
             } catch (error) {
                 console.error("Error fetching data:", error);
-            }
+            }   
+            console.log("Customers",customers);         
         };
 
     useEffect(() => {

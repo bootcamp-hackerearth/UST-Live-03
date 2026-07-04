@@ -4,8 +4,11 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.OrdersDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Orders;
 import com.ust.pos.orders.OrdersService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,10 +27,15 @@ public class OrdersApiController extends BaseController {
     @PostMapping("/list")
     public WsDto<OrdersDto> home(@RequestBody PaginationDto paginationDto) {
 
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
 
+        if (StringUtils.isNotEmpty(paginationDto.getSearch())) {
+            Specification<Orders> example = buildGlobalSearchSpec(Orders.class, paginationDto.getSearch());
+            if (example != null) {
+                return ordersService.findAll(example, pageable);
+            }
+        }
         return ordersService.findAll(pageable);
     }
 

@@ -1,4 +1,4 @@
-export async function FetchList(url, page = 0, sizePerPage = 3) {
+export async function FetchList(url, page = 0, search = "", sizePerPage = 3,) {
 
     try {
         const res = await fetch(url, {
@@ -7,9 +7,10 @@ export async function FetchList(url, page = 0, sizePerPage = 3) {
                 "Content-Type": "application/json"
             },
             credentials: "include",
-            body: JSON.stringify({ page, sizePerPage })
+            body: JSON.stringify({ page, sizePerPage, search })
         })
         return res.json();   
+
     } catch (err) {
         console.log(err);
         return null;

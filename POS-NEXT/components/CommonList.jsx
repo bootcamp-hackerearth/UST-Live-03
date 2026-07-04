@@ -22,7 +22,8 @@ const CommonList = ({ keys, routeName, title }) => {
     const listFetch = async () => {
       const response = await FetchList(
         `${baseUrl}/${routeName}/list`,
-        page
+        page,
+        search
       );
 
       if (Array.isArray(response)) {
@@ -34,7 +35,7 @@ const CommonList = ({ keys, routeName, title }) => {
     };
 
     listFetch();
-  }, [routeName, page]);
+  }, [routeName, page, search]);
 
   const handleDelete = async (item) => {
 
@@ -53,7 +54,8 @@ const CommonList = ({ keys, routeName, title }) => {
     if (res === true) {
       const response = await FetchList(
         `${baseUrl}/${routeName}/list`,
-        page
+        page,
+        search
       );
 
       if (Array.isArray(response)) {
@@ -101,27 +103,7 @@ const CommonList = ({ keys, routeName, title }) => {
   const handlePrev = () => {
     if (page > 0) setPage((prev) => prev - 1);
   };
-
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex justify-center items-center mt-10 text-gray-500 text-sm">
-        No data available
-      </div>
-    );
-  }
-
-  const filteredData = data.filter((item) =>
-    keys.some((key) => {
-      const value = item[key];
-      if (!value) return false;
-
-      return value
-        .toString()
-        .toLowerCase()
-        .includes(search.toLowerCase());
-    })
-  );
-
+  
   return (
 
     <div className="m-6">
@@ -131,7 +113,10 @@ const CommonList = ({ keys, routeName, title }) => {
           type="text"
           placeholder="Search..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(0);
+          }}
           className="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
 
         <Link
@@ -165,7 +150,7 @@ const CommonList = ({ keys, routeName, title }) => {
             </thead>
 
             <tbody className="text-gray-600">
-              {filteredData.length === 0 ? (
+              {data.length === 0 ? (
                 <tr>
                   <td
                     colSpan={keys.length + 1}
@@ -174,7 +159,7 @@ const CommonList = ({ keys, routeName, title }) => {
                   </td>
                 </tr>
               ) : (
-                filteredData.map((item) => (
+                data.map((item) => (
                   <tr
                     key={item.identifier ?? item.username}
                     className="border-t hover:bg-gray-50 transition">

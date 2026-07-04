@@ -28,7 +28,6 @@ export default function PaymentModal({
         </div>
       </div>
 
-      {/* Payment Methods */}
       <div>
         <p className="mb-2 text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
           Payment Method
@@ -36,7 +35,6 @@ export default function PaymentModal({
 
         <div className="grid grid-cols-3 gap-2">
 
-          {/* Cash */}
           <button
             onClick={() => setPaymentType("CASH")}
             className={`
@@ -62,7 +60,6 @@ export default function PaymentModal({
             </p>
           </button>
 
-          {/* UPI */}
           <button
             onClick={() => setPaymentType("UPI")}
             className={`
@@ -88,7 +85,6 @@ export default function PaymentModal({
             </p>
           </button>
 
-          {/* Card */}
           <button
             onClick={() => setPaymentType("CARD")}
             className={`
@@ -117,7 +113,6 @@ export default function PaymentModal({
         </div>
       </div>
 
-      {/* Selected Method */}
       {paymentType && (
         <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-2">
           <CheckCircle2
@@ -131,7 +126,6 @@ export default function PaymentModal({
         </div>
       )}
 
-      {/* Proceed */}
       <button
         disabled={!paymentType}
         onClick={onCompletePayment}

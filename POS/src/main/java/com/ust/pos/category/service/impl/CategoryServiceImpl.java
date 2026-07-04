@@ -3,15 +3,20 @@ package com.ust.pos.category.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -34,7 +39,7 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         Category category = categoryRepository.findByIdentifier(identifier);
 
         if (category == null) {
-            return null;
+            throw new ResourseNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(category, CategoryDto.class);
@@ -130,6 +135,23 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         categoryDto.setTotalRecords(categoryPage.getTotalElements());
 
         return categoryDto;
+    }
+
+    @Override
+    public WsDto<CategoryDto> findAll(Specification<Category> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Category> page = categoryRepository.findAll(example, pageable);
+
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
     @Override

@@ -3,19 +3,20 @@ package com.ust.pos.node.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.exception.ResourseNotFoundException;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +40,11 @@ public class NodeServiceImpl extends BaseService implements NodeService {
     public NodeDto findByIdentifier(String identifier) {
 
         Node node = nodeRepository.findByIdentifier(identifier);
+
+        if (node == null){
+            throw new ResourseNotFoundException("Data cannot found");
+        }
+
         return modelMapper.map(node, NodeDto.class);
     }
 
@@ -159,5 +165,22 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         nodesDto.setTotalRecords(nodesPage.getTotalElements());
 
         return nodesDto;
+    }
+
+    @Override
+    public WsDto<NodeDto> findAll(Specification<Node> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> page = nodeRepository.findAll(example, pageable);
+
+        WsDto<NodeDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

@@ -4,6 +4,7 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.OrderEntry;
 import com.ust.pos.model.OrderEntryRepository;
 import com.ust.pos.model.Orders;
@@ -11,10 +12,13 @@ import com.ust.pos.model.OrdersRepository;
 import com.ust.pos.orders.OrdersService;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -49,7 +53,7 @@ public class OrderServiceImpl extends BaseService implements OrdersService {
         Orders orders = ordersRepository.findByIdentifier(identifier);
 
         if (orders == null) {
-            return null;
+            throw new ResourseNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(orders, OrdersDto.class);
@@ -104,6 +108,23 @@ public class OrderServiceImpl extends BaseService implements OrdersService {
         ordersDto.setTotalRecords(ordersPage.getTotalElements());
 
         return ordersDto;
+    }
+
+    @Override
+    public WsDto<OrdersDto> findAll(Specification<Orders> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<OrderEntryDto>>() {
+        }.getType();
+        Page<Orders> page = ordersRepository.findAll(example, pageable);
+
+        WsDto<OrdersDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
     private String generateOrderId(String cartId) {

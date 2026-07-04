@@ -6,10 +6,13 @@ import com.ust.pos.model.OrderEntry;
 import com.ust.pos.model.OrderEntryRepository;
 import com.ust.pos.orderentry.OrderEntryService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,5 +72,22 @@ public class OrderEntryServiceImpl implements OrderEntryService {
         orderEntryDto.setTotalRecords(orderEntryPage.getTotalElements());
 
         return orderEntryDto;
+    }
+
+    @Override
+    public WsDto<OrderEntryDto> findAll(Specification<OrderEntry> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<OrderEntryDto>>() {
+        }.getType();
+        Page<OrderEntry> page = orderEntryRepository.findAll(example, pageable);
+
+        WsDto<OrderEntryDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

@@ -3,17 +3,18 @@ package com.ust.pos.product.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Product;
-import com.ust.pos.model.ProductRepository;
-import com.ust.pos.model.Stock;
-import com.ust.pos.model.StockRepository;
+import com.ust.pos.exception.ResourseNotFoundException;
+import com.ust.pos.model.*;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -36,7 +37,7 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         Product product = productRepository.findByIdentifier(identifier);
 
         if (product == null) {
-            return null;
+            throw new ResourseNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(product, ProductDto.class);
@@ -114,6 +115,23 @@ public class ProductServiceImpl extends BaseService implements ProductService {
 
         return paginationResponseDto;
     }
+
+    @Override
+    public WsDto<ProductDto> findAll(Specification<Product> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Product> page = productRepository.findAll(example, pageable);
+
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }    
 
     @Override
     public void toggleStatus(String identifier) {

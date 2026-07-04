@@ -28,11 +28,13 @@ export default function Orders() {
             const orderRes = await FetchList(
                 `${baseUrl}/orders/list`,
                 0,
+                "",
                 200
             );
             const productRes = await FetchList(
                 `${baseUrl}/product/list`,
                 0,
+                "",
                 200
             );
             setOrders(getListContent(orderRes.content));

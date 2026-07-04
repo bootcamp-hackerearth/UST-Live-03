@@ -3,15 +3,19 @@ package com.ust.pos.role.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -32,7 +36,7 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         Role role = roleRepository.findByIdentifier(identifier);
 
         if (role == null) {
-            return null;
+            throw new ResourseNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(role, RoleDto.class);
@@ -135,5 +139,22 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         rolesDto.setTotalRecords(rolePage.getTotalElements());
 
         return rolesDto;
+    }
+
+    @Override
+    public WsDto<RoleDto> findAll(Specification<Role> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> page = roleRepository.findAll(example, pageable);
+
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

@@ -2,7 +2,9 @@ package com.ust.pos.models.service;
 
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Models;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -15,6 +17,8 @@ public interface ModelService {
     void delete(String identifier);
 
     WsDto<ModelsDto> findAll(Pageable pageable);
+
+    WsDto<ModelsDto> findAll(Specification<Models> example, Pageable pageable);
 
     ModelsDto findByIdentifier(String identifier);
 

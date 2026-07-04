@@ -1,8 +1,10 @@
 package com.ust.pos.models.service.impl;
 
 import com.ust.pos.base.service.BaseService;
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelService;
@@ -10,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +37,7 @@ public class ModelServiceImpl extends BaseService implements ModelService {
         Models models = modelsRepository.findByIdentifier(identifier);
 
         if (models == null) {
-            return null;
+            throw new ResourseNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(models, ModelsDto.class);
@@ -112,6 +115,23 @@ public class ModelServiceImpl extends BaseService implements ModelService {
         modelsDto.setTotalRecords(modelsPage.getTotalElements());
 
         return modelsDto;
+    }
+
+    @Override
+    public WsDto<ModelsDto> findAll(Specification<Models> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Models> page = modelsRepository.findAll(example, pageable);
+
+        WsDto<ModelsDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
 

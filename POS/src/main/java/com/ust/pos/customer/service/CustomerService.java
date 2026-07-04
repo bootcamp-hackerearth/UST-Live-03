@@ -4,6 +4,7 @@ import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -14,6 +15,8 @@ public interface CustomerService {
     CustomerDto update(CustomerDto customerDto);
 
     void delete(String identifier, Long phoneNo);
+
+    WsDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable);
 
     WsDto<CustomerDto> findAll(Pageable pageable);
 

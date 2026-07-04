@@ -4,6 +4,7 @@ import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Racks;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -16,6 +17,8 @@ public interface RacksService {
     void delete(String identifier);
 
     WsDto<RacksDto> findAll(Pageable pageable);
+
+    WsDto<RacksDto> findAll(Specification<Racks> example, Pageable pageable);
 
     RacksDto findByIdentifier(String identifier);
 

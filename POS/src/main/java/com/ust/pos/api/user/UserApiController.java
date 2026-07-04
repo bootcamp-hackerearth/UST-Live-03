@@ -4,8 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.User;
 import com.ust.pos.user.service.UserService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +25,7 @@ public class UserApiController extends BaseController {
     }
 
     @PostMapping("/register")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public UserDto registerUser(@RequestBody UserDto userDto) {
 
         return processUser(userDto);
@@ -41,10 +46,15 @@ public class UserApiController extends BaseController {
     @PostMapping("/list")
     public WsDto<UserDto> home(@RequestBody PaginationDto paginationDto) {
 
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
 
+        if (StringUtils.isNotEmpty(paginationDto.getSearch())) {
+            Specification<User> example = buildGlobalSearchSpec(User.class, paginationDto.getSearch());
+            if (example != null) {
+                return userService.findAll(example, pageable);
+            }
+        }
         return userService.findAll(pageable);
     }
 

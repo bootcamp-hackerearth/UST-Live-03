@@ -16,7 +16,6 @@ public class UserDto extends CommonDto {
     private String token;
 
     public UserDto() {
-
     }
 
     public UserDto(String token) {

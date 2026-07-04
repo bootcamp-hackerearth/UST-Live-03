@@ -23,14 +23,14 @@ public class BrandController {
     @GetMapping("/list")
     public String home(Model model, Pageable pageable) {
 
-        model.addAttribute(BRANDS, brandService.findAll(pageable));
+        model.addAttribute(BRANDS, brandService.findAll( pageable));
         return "brand/list";
     }
 
     @GetMapping("/add")
-    public String add(Model model) {
+    public String add(Model model, Pageable pageable) {
 
-        model.addAttribute(BRANDS, brandService.findAll(null));
+        model.addAttribute(BRANDS, brandService.findAll(pageable));
         model.addAttribute("brandDto", new BrandDto());
 
         return "brand/add";
@@ -49,20 +49,20 @@ public class BrandController {
     }
 
     @GetMapping("/get")
-    public String update(Model model, @RequestParam String identifier) {
+    public String update(Model model, @RequestParam String identifier, Pageable pageable) {
 
         BrandDto response = brandService.findByIdentifier(identifier);
-        model.addAttribute(BRANDS, brandService.findAll(null));
+        model.addAttribute(BRANDS, brandService.findAll(pageable));
         model.addAttribute("brandDto", response);
 
         return "brand/brand";
     }
 
     @PostMapping("/update")
-    public String updatePost(Model model, @ModelAttribute BrandDto brandDto) {
+    public String updatePost(Model model, @ModelAttribute BrandDto brandDto, Pageable pageable) {
 
         BrandDto response = brandService.update(brandDto);
-        model.addAttribute(BRANDS, brandService.findAll(null));
+        model.addAttribute(BRANDS, brandService.findAll(pageable));
 
         if (!response.isSuccess()) {
             model.addAttribute("message", response.getMessage());

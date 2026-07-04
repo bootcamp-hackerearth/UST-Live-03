@@ -1,17 +1,22 @@
 package com.ust.pos.racks.service.impl;
 
 import com.ust.pos.base.service.BaseService;
+import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.RacksService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -33,7 +38,7 @@ public class RacksServiceImpl extends BaseService implements RacksService {
         Racks racks = racksRepository.findByIdentifier(identifier);
 
         if (racks == null) {
-            return null;
+            throw new ResourseNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(racks, RacksDto.class);
@@ -111,6 +116,23 @@ public class RacksServiceImpl extends BaseService implements RacksService {
         racksDto.setTotalRecords(racksPage.getTotalElements());
 
         return racksDto;
+    }
+
+    @Override
+    public WsDto<RacksDto> findAll(Specification<Racks> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Racks> page = racksRepository.findAll(example, pageable);
+
+        WsDto<RacksDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
     @Override

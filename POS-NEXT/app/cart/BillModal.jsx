@@ -106,7 +106,6 @@ export default function BillModal({
 
                 <div className="my-3 border-t border-dashed border-slate-400" />
 
-                {/* Totals */}
                 <div className="space-y-0.5 text-[10px]">
 
                     <div className="flex justify-between text-slate-500">
@@ -132,12 +131,9 @@ export default function BillModal({
                             ₹{order?.totalPrice ?? 0}
                         </span>
                     </div>
-
                 </div>
-
             </div>
 
-            {/* Actions */}
             <div className="flex gap-2">
 
                 <button
