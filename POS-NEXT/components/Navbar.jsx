@@ -12,12 +12,13 @@ const Navbar = () => {
     phoneNo: "",
     roles: [],
   });
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://3.104.111.192/api";
+  const baseUrl = "http://3.104.111.192/api";
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const userName = localStorage.getItem("username");
+    //const userName = localStorage.getItem("username");
+    const userName = "aws@gmail.com";
     console.log("Username", userName);
     if (!userName) return;
 
