@@ -51,6 +51,7 @@ public class UserApiController extends BaseController {
     @GetMapping("/{username}")
     public UserDto update(@PathVariable String username) {
 
+        System.out.println("GET USER: " + username);
         return userService.findByUserName(username);
     }
 
