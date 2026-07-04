@@ -1,25 +1,30 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
     const { username } = await req.json();
 
-    console.log("====== NAVBAR API ======");
-    console.log("Username:", username);
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    console.log("Token exists:", !!token);
 
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
       "http://localhost:8080/api";
 
-    console.log("Backend URL:", `${baseUrl}/user/${username}`);
+    const headers = {};
 
-    const res = await fetch(`${baseUrl}/user/${username}`);
+    if (token) {
+      headers.Cookie = `token=${token}`;
+    }
 
-    console.log("Backend Status:", res.status);
+    const res = await fetch(`${baseUrl}/user/${username}`, {
+      headers,
+    });
 
     const text = await res.text();
-
-    console.log("Backend Response:", text);
 
     return new NextResponse(text, {
       status: res.status,
@@ -27,16 +32,13 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
     });
+
   } catch (e) {
-    console.error("NAVBAR API ERROR:", e);
+    console.error(e);
 
     return NextResponse.json(
-      {
-        error: e.message,
-      },
-      {
-        status: 500,
-      }
+      { error: e.message },
+      { status: 500 }
     );
   }
 }
