@@ -10,7 +10,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   const [nodes, setNodes] = useState([]);
   const pathname = usePathname();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
 
   useEffect(() => {
     const fetchNodes = async () => {
