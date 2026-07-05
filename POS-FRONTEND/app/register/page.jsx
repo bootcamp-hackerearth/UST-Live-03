@@ -50,7 +50,7 @@ const Register = () => {
   }
 
   async function getRoles(paginationDto) {
-    const res = await fetch("http://localhost:8080/api/role/list", {
+    const res = await fetch("http://3.25.160.30:8080/api/role/list", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
