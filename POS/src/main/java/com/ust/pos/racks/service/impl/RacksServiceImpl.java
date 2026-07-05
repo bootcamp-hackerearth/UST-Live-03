@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,5 +107,22 @@ public class RacksServiceImpl extends BaseService implements RacksService {
             setModifiedDetails(racks);
             racksRepository.save(racks);
         }
+    }
+
+    @Override
+    public WsDto<RacksDto> findAll(Specification<Racks> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RacksDto>>() {
+        }.getType();
+        Page<Racks> page = racksRepository.findAll(example, pageable);
+
+        WsDto<RacksDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

@@ -17,9 +17,8 @@ const Register = () => {
     formState: { errors },
   } = useForm()
 
-
   const onSubmit = async (data) => {
-    const res = await fetch("http://localhost:8080/api/register", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -50,7 +49,7 @@ const Register = () => {
   }
 
   async function getRoles(paginationDto) {
-    const res = await fetch("http://localhost:8080/api/role/list", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/role/list`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

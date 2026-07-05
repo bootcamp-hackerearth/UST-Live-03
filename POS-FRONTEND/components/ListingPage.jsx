@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import PropTypes from 'prop-types'
-import { Pencil, Trash2, Plus } from 'lucide-react'
+import { Pencil, Trash2, Plus, Search } from 'lucide-react'
 import { useRouter } from "next/navigation"
 import AccessDenied from "./AccessDenied"
 
@@ -17,7 +17,8 @@ const ListingPage = (props) => {
 
     const [paginationDto, setPaginationDto] = useState({
         "page": 0,
-        "sizePerPage": 4
+        "sizePerPage": 4,
+        "keyword":""
     })
 
     const [totalPages, setTotalPages] = useState(0)
@@ -25,7 +26,7 @@ const ListingPage = (props) => {
     const numbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
     async function fetchList() {
-        const res = await fetch(`http://localhost:8080/api/${urlName}/list`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${urlName}/list`, {
             method: "post",
             headers: {
                 "Content-Type": "application/json",
@@ -55,7 +56,7 @@ const ListingPage = (props) => {
 
     const deleteItem = async (identifier) => {
         const identifierKey = listData?.[0]?.identifier !== null && listData?.[0]?.identifier !== undefined ? "identifier" : "username";
-        const res = await fetch(`http://localhost:8080/api/${urlName}/delete?${identifierKey}=${identifier}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${urlName}/delete?${identifierKey}=${identifier}`, {
             method: "delete",
             headers: {
                 "Content-Type": "application/json",
@@ -73,7 +74,7 @@ const ListingPage = (props) => {
     }
 
     const handleToggle = async (identifier) => {
-        await fetch(`http://localhost:8080/api/${urlName}/toggle?identifier=${identifier}`, {
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${urlName}/toggle?identifier=${identifier}`, {
             method: "post",
             headers: {
                 "Content-Type": "application/json",
@@ -121,6 +122,14 @@ const ListingPage = (props) => {
         )
     }
 
+    const searchChange = async(e) =>{
+        console.log(e.target.value)
+        setPaginationDto({
+            ...paginationDto,
+            keyword:e.target.value
+        })
+    }
+
     return (
         <>
         {accessDenied ? <AccessDenied/> : ""}
@@ -140,6 +149,21 @@ const ListingPage = (props) => {
                         <Plus className="w-4 h-4" />
                         Add New
                     </button>
+                </div>
+
+                {/* Styled Search Input Area */}
+                <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex max-w-md">
+                    <div className="relative w-full">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <Search className="h-4 w-4 text-slate-400" />
+                        </div>
+                        <input 
+                            type="text"
+                            placeholder="Search records..."
+                            className="block w-full pl-10 pr-4 py-2 text-sm text-slate-900 border border-slate-200 rounded-lg bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all shadow-sm"
+                            onChange={searchChange}
+                        />
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">

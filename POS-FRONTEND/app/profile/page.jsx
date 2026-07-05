@@ -49,7 +49,7 @@ const ProfilePage = () => {
     }, []);
 
     async function fetchUserProfile(user) {
-        const res = await fetch(`http://localhost:8080/api/user/get?username=${user}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/user/get?username=${user}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -64,7 +64,7 @@ const ProfilePage = () => {
     }
 
     async function getRoles() {
-        const res = await fetch("http://localhost:8080/api/role/list", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/role/list`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(paginationDto)
@@ -77,7 +77,7 @@ const ProfilePage = () => {
 
     const onSubmit = async (data) => {
         try {
-            const res = await fetch(`http://localhost:8080/api/user/update`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/user/update`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

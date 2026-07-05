@@ -44,7 +44,7 @@ const CommonDropDown = ({
             });
         }
 
-        const res = await fetch(`http://localhost:8080/api/${urlName}`, options);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${urlName}`, options);
         const response = await res.json();
 
         setListData(response.dtoList || response);
