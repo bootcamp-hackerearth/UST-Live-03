@@ -22,7 +22,7 @@ const Navbar = () => {
 
     const fetchUser = async () => {
   try {
-    const res = await fetch("/api/navbar", {
+    const res = await fetch("/server/navbar", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -54,7 +54,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/logout", { method: "POST" });
+      await fetch("/server/logout", { method: "POST" });
       localStorage.removeItem("username");
       globalThis.location.href = "/login";
     } catch (err) {
