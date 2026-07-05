@@ -37,7 +37,7 @@ export default function Cart() {
     const [paymentType, setPaymentType] = useState("");
     const [completedOrder, setCompletedOrder] = useState(null);
     const [invoiceItems, setInvoiceItems] = useState([]);
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
     const printRef = useRef(null);
     const router = useRouter();
     const {

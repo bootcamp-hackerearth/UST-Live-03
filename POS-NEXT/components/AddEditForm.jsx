@@ -22,7 +22,7 @@ const AddEditForm = ({ title, fields, apiRoute, dropdownApis, method }) => {
   const router = useRouter();
   const params = useParams();
   const identifier = params?.identifier ? decodeURIComponent(params.identifier) : null;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
   const [dropdownData, setDropdownData] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);

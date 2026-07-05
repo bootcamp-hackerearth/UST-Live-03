@@ -14,7 +14,7 @@ const CommonList = ({ keys, routeName, title }) => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
   const router = useRouter();
   const [search, setSearch] = useState("");
 
