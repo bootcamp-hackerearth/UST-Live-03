@@ -30,6 +30,7 @@ export default function Register() {
   const fetchRoles = async () => {
     try {
       const response = await axios.get("/api/role/findByStatus");
+      console.log("ROLES RESPONSE:", response.data);
       setRolesList(response.data.content || response.data);
     } catch (err) {
       console.error("Error fetching operational security roles", err);
