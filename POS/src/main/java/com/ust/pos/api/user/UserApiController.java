@@ -25,7 +25,6 @@ public class UserApiController extends BaseController {
     }
 
     @PostMapping("/register")
-    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public UserDto registerUser(@RequestBody UserDto userDto) {
 
         return processUser(userDto);
