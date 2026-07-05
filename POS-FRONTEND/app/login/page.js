@@ -29,7 +29,7 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:8080/api/authenticate", credentials);
+      const response = await axios.post("/api/authenticate", credentials);
       const token = response?.data?.token;
 
       if (!token || token === "null") {
