@@ -2,7 +2,7 @@
 
 "use client";
 
-import SalesTerminal from "@/components/Sales/SalesTerminal";
+import SalesTerminal from "@/components/sales/SalesTerminal";
 
 export default function SalesPage() {
     return (
