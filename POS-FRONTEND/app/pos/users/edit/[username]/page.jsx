@@ -91,7 +91,7 @@ export default function EditUserPage() {
       extraFields={extraFields}
       extraData={{
         id: userId,
-        roles: roles.map((r) => r.startsWith("ROLE_") ? r : `ROLE_${r}`),
+        roles,
         status
       }}
       setters={{

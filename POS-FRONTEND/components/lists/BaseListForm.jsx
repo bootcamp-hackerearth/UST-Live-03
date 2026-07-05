@@ -94,7 +94,7 @@ export default function BaseListForm({
             if (data.length === 1 && currentPage > 0) goToPage(currentPage - 1);
         } catch (err) {
             const status = err?.response?.status;
-            if (status === 404) { router.push("/not-found"); return; }
+            if (status === 404) { router.push("/not_found"); return; }
             if (status === 500) { router.push("/error");     return; }
             setError("Delete operation failed.");
         } finally {
@@ -249,7 +249,6 @@ export default function BaseListForm({
     return (
         <div className="min-h-screen bg-slate-50 p-6">
             <div className="mb-8">
-                {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                     <div>
                         <div className="flex items-center gap-3">
@@ -275,7 +274,6 @@ export default function BaseListForm({
                     </button>
                 </div>
 
-                {/* Search bar */}
                 <div className="relative">
                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#231F20]/40" />
                     <input
@@ -285,13 +283,11 @@ export default function BaseListForm({
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#231F20]/20 rounded-lg focus:outline-none focus:border-[#006E74] focus:ring-2 focus:ring-[#006E74]/10 text-[#231F20] transition-all"
                     />
-                    {/* Loading indicator inside search */}
                     {loading && debouncedSearch && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             <div className="w-4 h-4 border-2 border-[#006E74]/30 border-t-[#006E74] rounded-full animate-spin" />
                         </div>
                     )}
-                    {/* Clear button */}
                     {searchTerm && !loading && (
                         <button onClick={handleClearSearch}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer bg-transparent border-none">
@@ -300,7 +296,6 @@ export default function BaseListForm({
                     )}
                 </div>
 
-                {/* Active search indicator */}
                 {debouncedSearch && (
                     <div className="mt-2 flex items-center gap-2">
                         <span className="text-xs text-[#006E74] font-semibold">
@@ -314,7 +309,6 @@ export default function BaseListForm({
                 )}
             </div>
 
-            {/* Error */}
             {error && (
                 <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                     <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse shrink-0" />
@@ -322,9 +316,7 @@ export default function BaseListForm({
                 </div>
             )}
 
-            {/* Table */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-[#231F20]/10">
-                {/* Header row */}
                 <div className="grid gap-4 bg-slate-50 border-b border-[#231F20]/10 px-6 py-4 text-xs font-bold text-[#231F20]/80 uppercase tracking-wider sticky top-0 z-10"
                     style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr)) 120px` }}>
                     {columns.map((col) => <div key={col.key} className="truncate">{col.label}</div>)}
@@ -335,7 +327,6 @@ export default function BaseListForm({
                     {renderTableBody()}
                 </div>
 
-                {/* Pagination */}
                 {!loading && data.length > 0 && (
                     <div className="px-6 py-4 border-t border-[#231F20]/10 bg-slate-50 flex items-center justify-between flex-wrap gap-4">
                         <div className="flex items-center gap-3">

@@ -22,14 +22,12 @@ export default function Unauthorized() {
         <h1 className="text-2xl font-bold text-[#231F20] mb-2">
           Access Denied
         </h1>
-        <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-          You don&apos;t have permission to access this page. 
-          <p>
-            Please contact your administrator.
-          </p>
-        </p>
+        
+        <div className="text-sm text-gray-500 mb-8 leading-relaxed">
+          <p>You don't have permission to access this page.</p>
+          <p>Please contact your administrator.</p>
+        </div>
 
-        {/* Navigation Action */}
         <Link
           href="/pos/home"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#006E74] text-white text-sm font-semibold hover:bg-[#005a5f] transition-colors focus:outline-none focus:ring-2 focus:ring-[#006E74]/40"

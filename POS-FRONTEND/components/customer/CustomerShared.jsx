@@ -99,7 +99,6 @@ export function CustomerCoreFields({ form, onChange, partyTypes, balanceTypes, i
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-5">Core Details</p>
 
-            {/* Identifier row — shown on both add (editable) and edit (read-only) */}
             {identifierField && (
                 <div className="mb-5">
                     <label htmlFor="cust-identifier" className={labelClass}>

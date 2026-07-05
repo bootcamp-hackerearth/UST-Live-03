@@ -29,7 +29,7 @@ export default function NotFound() {
         </h1>
         <p className="text-sm text-gray-500 mb-8 leading-relaxed">
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
-          Check the URL or head back to the dashboard.
+          Check the URL or head back to the Home.
         </p>
 
         <Link

@@ -96,7 +96,6 @@ export default function PaymentModal({ cart, customer, onClose }) {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10000]">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-gray-100 flex flex-col max-h-[92vh]">
 
-                {/* Header */}
                 <div className="px-6 pt-5 pb-4 border-b border-gray-100 flex items-start justify-between shrink-0">
                     <div>
                         <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Payment</h2>

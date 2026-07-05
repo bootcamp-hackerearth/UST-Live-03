@@ -7,12 +7,12 @@ export const showToast = (message, type = 'info', duration = 4000) => {
     container.id = 'toast-container';
     container.style.cssText = `
       position: fixed;
-      bottom: 24px;
+      top: 30px;
       right: 24px;
       z-index: 9999;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 20px;
     `;
     document.body.appendChild(container);
   }
@@ -32,8 +32,8 @@ export const showToast = (message, type = 'info', duration = 4000) => {
     color: ${color.text};
     padding: 12px 16px;
     border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    animation: slideInToast 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     font-size: 13px;
     font-weight: 500;
     display: flex;
@@ -54,7 +54,7 @@ export const showToast = (message, type = 'info', duration = 4000) => {
     style.textContent = `
       @keyframes slideInToast {
         from {
-          transform: translateX(420px);
+          transform: translateX(440px);
           opacity: 0;
         }
         to {
@@ -68,7 +68,7 @@ export const showToast = (message, type = 'info', duration = 4000) => {
           opacity: 1;
         }
         to {
-          transform: translateX(420px);
+          transform: translateX(440px);
           opacity: 0;
         }
       }
@@ -79,8 +79,11 @@ export const showToast = (message, type = 'info', duration = 4000) => {
   container.appendChild(toast);
 
   setTimeout(() => {
-    toast.style.animation = 'slideOutToast 0.3s ease-out';
-    setTimeout(() => toast.remove(), 300);
+    toast.style.animation = 'slideOutToast 0.3s ease-out forwards';
+    setTimeout(() => {
+      toast.remove();
+      if (container.children.length === 0) container.remove();
+    }, 300);
   }, duration);
 
   return toast;
@@ -93,7 +96,7 @@ export const confirmToast = (message, onConfirm, onCancel) => {
     container.id = 'toast-container';
     container.style.cssText = `
       position: fixed;
-      top: 30px;
+      top: 24px;
       right: 24px;
       z-index: 9999;
       display: flex;
@@ -109,8 +112,8 @@ export const confirmToast = (message, onConfirm, onCancel) => {
     color: white;
     padding: 16px;
     border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    animation: slideInToast 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     font-size: 13px;
     font-weight: 500;
     min-width: 300px;
@@ -158,8 +161,11 @@ export const confirmToast = (message, onConfirm, onCancel) => {
   const cancelBtn = toast.querySelector('#toast-cancel');
 
   const cleanup = () => {
-    toast.style.animation = 'slideOutToast 0.3s ease-out';
-    setTimeout(() => toast.remove(), 300);
+    toast.style.animation = 'slideOutToast 0.3s ease-out forwards';
+    setTimeout(() => {
+      toast.remove();
+      if (container.children.length === 0) container.remove();
+    }, 300);
   };
 
   confirmBtn.addEventListener('click', () => {

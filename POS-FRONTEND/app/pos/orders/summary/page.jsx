@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/app/api/axios";
 import { POSReceipt, PrintStyles } from "../../../../components/payments/posrecipt";
@@ -10,7 +10,26 @@ import { POSReceipt, PrintStyles } from "../../../../components/payments/posreci
 const METHOD_LABELS = { UPI: "UPI", CARD: "Card", CASH: "Cash" };
 const METHOD_ICONS = { UPI: "📲", CARD: "💳", CASH: "💵" };
 
+function LoadingFallback() {
+    return (
+        <div className="fixed top-[60px] left-[220px] right-0 bottom-0 bg-[#f4f6f8] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-10 h-10 rounded-full border-4 border-[#006E74]/20 border-t-[#006E74] animate-spin" />
+                <p className="text-sm text-gray-400 font-medium">Loading order…</p>
+            </div>
+        </div>
+    );
+}
+
 export default function OrderSummaryPage() {
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <OrderSummaryContent />
+        </Suspense>
+    );
+}
+
+function OrderSummaryContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -40,14 +59,7 @@ export default function OrderSummaryPage() {
     }, [orderId]);
 
     if (loading) {
-        return (
-            <div className="fixed top-[60px] left-[220px] right-0 bottom-0 bg-[#f4f6f8] flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 rounded-full border-4 border-[#006E74]/20 border-t-[#006E74] animate-spin" />
-                    <p className="text-sm text-gray-400 font-medium">Loading order…</p>
-                </div>
-            </div>
-        );
+        return <LoadingFallback />;
     }
 
     if (error || !order) {

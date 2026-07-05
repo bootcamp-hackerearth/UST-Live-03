@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import PropTypes from "prop-types";
 import { useApiWithLoader } from "../../app/lib/useApiWithLoader";
+import { showToast, confirmToast } from "../../app/lib/toast";
 
 const SKELETON_ITEMS = [
   "skeleton-row-0",
@@ -109,6 +110,7 @@ export default function BaseEditForm({
   extraData: externalExtraData = {},
   setters = {},
   identifierKey = "identifier",
+  getConfirmMessage, // optional: (originalExtraData, currentExtraData) => string | null
 }) {
   const router = useRouter();
   const params = useParams();
@@ -118,6 +120,7 @@ export default function BaseEditForm({
 
   const [identifierDisplay, setIdentifierDisplay] = useState("");
   const [extraData, setExtraData] = useState({});
+  const [originalExtraData, setOriginalExtraData] = useState({});
   const [audit, setAudit] = useState({
     createdBy: null,
     createdAt: null,
@@ -181,6 +184,7 @@ export default function BaseEditForm({
           }
         });
         setExtraData(prefilled);
+        setOriginalExtraData(prefilled);
 
         Object.entries(settersRef.current).forEach(([key, setter]) => {
           if (data?.[key] !== undefined && typeof setter === "function") {
@@ -191,6 +195,7 @@ export default function BaseEditForm({
         if (isMounted) {
           const errorMsg = err?.response?.data?.message || "Could not load form data";
           setError(errorMsg);
+          showToast(errorMsg, "error");
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -201,11 +206,10 @@ export default function BaseEditForm({
     return () => { isMounted = false; };
   }, [urlParamValue, apiPath, identifierKey, get]);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function doSubmit() {
+    setSubmitting(true);
     setError("");
     setSuccess("");
-    setSubmitting(true);
 
     try {
       const payload = {
@@ -219,21 +223,45 @@ export default function BaseEditForm({
 
       if (hasIdentifier) {
         setSuccess(`${title} updated successfully`);
+        showToast(`${title} updated successfully!`, "success");
         setAudit((prev) => ({
           ...prev,
           modifiedBy: res?.modifiedBy ?? prev.modifiedBy,
           modifiedAt: res?.modifiedAt ?? prev.modifiedAt,
         }));
+        setOriginalExtraData(extraData);
         setTimeout(() => router.back(), 1500);
       } else {
         setError("Update failed. Please try again.");
+        showToast(`Failed to update ${title.toLowerCase()}`, "error");
       }
     } catch (err) {
       const errorMsg = err?.response?.data?.message || "Unable to connect to server";
       setError(errorMsg);
+      showToast(errorMsg, "error");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (typeof getConfirmMessage === "function") {
+      const confirmMsg = getConfirmMessage(originalExtraData, extraData);
+      if (confirmMsg) {
+        confirmToast(
+          confirmMsg,
+          () => doSubmit(),
+          () => showToast("Update cancelled", "info")
+        );
+        return;
+      }
+    }
+
+    doSubmit();
   }
 
   const handleExtraChange = (key, value) => {
@@ -319,7 +347,6 @@ export default function BaseEditForm({
               <div key={k} className="h-10 bg-[#006E74]/10 rounded" />
             ))}
           </div>
-          {/* Audit skeleton */}
           <div className="mt-8 border-t border-[#006E74]/10 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="h-16 bg-[#006E74]/6 rounded-xl" />
             <div className="h-16 bg-gray-100 rounded-xl" />
@@ -423,4 +450,5 @@ BaseEditForm.propTypes = {
   extraData: PropTypes.object,
   setters: PropTypes.object,
   identifierKey: PropTypes.string,
+  getConfirmMessage: PropTypes.func,
 };

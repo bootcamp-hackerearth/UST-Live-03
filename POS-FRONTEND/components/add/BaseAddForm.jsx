@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import { useApiWithLoader } from "../../app/lib/useApiWithLoader";
+import { showToast } from "../../app/lib/toast";
 
 export default function BaseAddForm({
   title,
@@ -65,6 +66,7 @@ export default function BaseAddForm({
       if (data?.success === false) {
         const backendMessage = data.message || `${title} with this ${identifierKey} already exists.`;
         setError(backendMessage);
+        showToast(backendMessage, "error");
         console.warn("Creation blocked by backend validation:", backendMessage);
         return;
       }
@@ -73,14 +75,17 @@ export default function BaseAddForm({
 
       if (hasIdentifier || data?.success === true) {
         setSuccess(`${title} added successfully`);
+        showToast(`${title} added successfully!`, "success");
         setTimeout(() => router.back(), 1500);
       } else {
         setError("Failed to add. Please try again.");
+        showToast("Failed to add. Please try again.", "error");
       }
     } catch (err) {
       console.error(" Request network/server exception:", err);
       const errorMsg = err.response?.data?.message || "Unable to connect to server";
       setError(errorMsg);
+      showToast(errorMsg, "error");
     } finally {
       setLoading(false);
     }

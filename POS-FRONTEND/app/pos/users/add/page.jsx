@@ -70,10 +70,8 @@ export default function UserAdd() {
     },
   ];
 
-  const processedRoles = roles.map((r) => r.startsWith("ROLE_") ? r : `ROLE_${r}`);
-
   const extraData = {
-    roles: processedRoles,
+    roles,
     status,
     confirmPassword,
   };
