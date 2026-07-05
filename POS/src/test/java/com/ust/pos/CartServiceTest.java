@@ -45,16 +45,18 @@ class CartServiceTest {
     @BeforeEach
     void setUp() {
         cartDto = new CartDto();
-        cartDto.setIdentifier("CART-01");
+        cartDto.setIdentifier("CRT-001");
 
         cart = new Cart();
-        cart.setIdentifier("CART-01");
+        cart.setIdentifier("CRT-001");
+        cart.setTotalPrice(BigDecimal.ZERO);
+        cart.setTotalDiscount(BigDecimal.ZERO);
     }
 
     @Test
     @DisplayName("Save Cart - Success")
     void save_Success() {
-        when(cartRepository.findByIdentifier("CART-01")).thenReturn(null);
+        when(cartRepository.findByIdentifier("CRT-001")).thenReturn(null);
         when(modelMapper.map(cartDto, Cart.class)).thenReturn(cart);
 
         CartDto result = cartService.save(cartDto);
@@ -66,59 +68,67 @@ class CartServiceTest {
     @Test
     @DisplayName("Save Cart - Failure: Already Exists")
     void save_Failure_AlreadyExists() {
-        when(cartRepository.findByIdentifier("CART-01")).thenReturn(cart);
+        when(cartRepository.findByIdentifier("CRT-001")).thenReturn(cart);
 
         CartDto result = cartService.save(cartDto);
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertTrue(result.getMessage().contains("already exists"));
-        verify(cartRepository, never()).save(any());
+        verify(cartRepository, never()).save(any(Cart.class));
     }
 
     @Test
     @DisplayName("Recalculate Cart - Success")
     void recalculate_Success() {
         CartEntryDto entry1 = new CartEntryDto();
-        entry1.setTotalPrice(BigDecimal.valueOf(100));
-        entry1.setDiscount(BigDecimal.valueOf(10));
+        entry1.setTotalPrice(new BigDecimal("100.00"));
+        entry1.setDiscount(new BigDecimal("10.00"));
 
         CartEntryDto entry2 = new CartEntryDto();
-        entry2.setTotalPrice(BigDecimal.valueOf(200));
-        entry2.setDiscount(BigDecimal.valueOf(20));
+        entry2.setTotalPrice(new BigDecimal("50.00"));
+        entry2.setDiscount(new BigDecimal("5.00"));
 
         List<CartEntryDto> entries = List.of(entry1, entry2);
 
-        when(cartEntryService.findAllEntriesForCart("CART-01")).thenReturn(entries);
-        when(cartRepository.findByIdentifier("CART-01")).thenReturn(cart);
+        when(cartEntryService.findAllEntriesForCart("CRT-001")).thenReturn(entries);
+        when(cartRepository.findByIdentifier("CRT-001")).thenReturn(cart);
         when(modelMapper.map(cart, CartDto.class)).thenReturn(cartDto);
         when(modelMapper.map(eq(entries), any(Type.class))).thenReturn(entries);
 
-        CartDto result = cartService.recalculate("CART-01");
+        CartDto result = cartService.recalculate("CRT-001");
 
-        Assertions.assertEquals(BigDecimal.valueOf(300), cart.getTotalPrice());
-        Assertions.assertEquals(BigDecimal.valueOf(30), cart.getTotalDiscount());
+        Assertions.assertEquals(new BigDecimal("150.00"), cart.getTotalPrice());
+        Assertions.assertEquals(new BigDecimal("15.00"), cart.getTotalDiscount());
+        Assertions.assertNotNull(result.getCartEntryDtoList());
+        Assertions.assertEquals(2, result.getCartEntryDtoList().size());
         verify(cartRepository).save(cart);
     }
 
     @Test
     @DisplayName("Find By Identifier - Success")
     void findByIdentifier_Success() {
-        List<CartEntryDto> entries = List.of(new CartEntryDto());
-        when(cartRepository.findByIdentifier("CART-01")).thenReturn(cart);
-        when(cartEntryService.findAllEntriesForCart("CART-01")).thenReturn(entries);
+        CartEntryDto entryDto = new CartEntryDto();
+        List<CartEntryDto> entries = List.of(entryDto);
 
-        CartDto result = cartService.findByIdentifier("CART-01");
+        when(cartRepository.findByIdentifier("CRT-001")).thenReturn(cart);
+        when(cartEntryService.findAllEntriesForCart("CRT-001")).thenReturn(entries);
+
+        CartDto result = cartService.findByIdentifier("CRT-001");
 
         Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getCartEntryDtoList().size());
         verify(modelMapper).map(cart, result);
     }
 
     @Test
     @DisplayName("Delete By Identifier - Success")
     void deleteByIdentifier_Success() {
-        cartService.deleteByIdentifier("CART-01");
+        doNothing().when(cartRepository).deleteByIdentifier("CRT-001");
+        doNothing().when(cartEntryService).deleteAllByCart("CRT-001");
 
-        verify(cartRepository).deleteByIdentifier("CART-01");
-        verify(cartEntryService).deleteAllByCart("CART-01");
+        cartService.deleteByIdentifier("CRT-001");
+
+        verify(cartRepository).deleteByIdentifier("CRT-001");
+        verify(cartEntryService).deleteAllByCart("CRT-001");
     }
 }

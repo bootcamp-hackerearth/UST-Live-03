@@ -31,9 +31,6 @@ class PosApplicationTests {
     @Test
     @DisplayName("Main method execution smoke test")
     void main_RunsWithoutExceptions() {
-        // Since SpringApplication.run starts the whole application context,
-        // we can run a simple verification that the class loads or call the main method if necessary.
-        // Usually, a sanity call to ensure it registers correctly is preferred.
         Assertions.assertNotNull(posApplication);
     }
 

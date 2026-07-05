@@ -3,6 +3,7 @@ package com.ust.pos.shelf.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
@@ -89,7 +90,11 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
 
     @Override
     public ShelfDto findByIdentifier(String identifier) {
-        return modelMapper.map(shelfRepository.findByIdentifier(identifier), ShelfDto.class);
+        Shelf shelf = shelfRepository.findByIdentifier(identifier);
+        if(shelf==null){
+            throw new ResourceNotFoundException("Shelf with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(shelf,ShelfDto.class);
     }
 
     @Override

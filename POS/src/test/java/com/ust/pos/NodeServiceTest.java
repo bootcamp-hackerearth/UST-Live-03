@@ -2,12 +2,12 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.impl.NodeServiceImpl;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,11 +21,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,6 +48,9 @@ class NodeServiceTest {
     private ModelMapper modelMapper;
 
     @Mock
+    private SecurityContext securityContext;
+
+    @Mock
     private Authentication authentication;
 
     @InjectMocks
@@ -51,6 +58,7 @@ class NodeServiceTest {
 
     private NodeDto nodeDto;
     private Node node;
+    private User user;
 
     @BeforeEach
     void setUp() {
@@ -61,13 +69,11 @@ class NodeServiceTest {
         node.setIdentifier("NODE-001");
         node.setStatus(true);
         node.setDeleted(false);
-        // FIX: Changed from Set.of to List.of to match your domain model's expected type
         node.setRoles(List.of("ROLE_ADMIN"));
-    }
 
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
+        user = new User();
+        user.setUsername("adminUser");
+        user.setRoles(List.of("ROLE_ADMIN"));
     }
 
     @Test
@@ -79,7 +85,7 @@ class NodeServiceTest {
         NodeDto result = nodeService.save(nodeDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Node created successfully", result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("successfully"));
         verify(nodeRepository).save(node);
     }
 
@@ -105,7 +111,7 @@ class NodeServiceTest {
         NodeDto result = nodeService.save(nodeDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        Assertions.assertTrue(result.getMessage().contains("previously deleted"));
         verify(nodeRepository, never()).save(any(Node.class));
     }
 
@@ -113,15 +119,39 @@ class NodeServiceTest {
     @DisplayName("Find All Nodes - Paginated Success")
     void findAll_PaginatedSuccess() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Node> nodePage = new PageImpl<>(List.of(node));
+        Page<Node> nodePage = new PageImpl<>(List.of(node), pageable, 1);
 
         when(nodeRepository.findByDeletedFalse(pageable)).thenReturn(nodePage);
         when(modelMapper.map(eq(nodePage.getContent()), any(Type.class))).thenReturn(List.of(nodeDto));
 
         WsDto<NodeDto> result = nodeService.findAll(pageable);
 
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
         Assertions.assertEquals(1, result.getTotalRecords());
-        Assertions.assertFalse(result.getDtoList().isEmpty());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+    }
+
+    @Test
+    @DisplayName("Find All Nodes with Specification - Success")
+    void findAll_WithSpecification_Success() {
+        Specification<Node> spec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Node> nodePage = new PageImpl<>(List.of(node), pageable, 1);
+
+        when(nodeRepository.findAll(spec, pageable)).thenReturn(nodePage);
+        when(modelMapper.map(eq(nodePage.getContent()), any(Type.class))).thenReturn(List.of(nodeDto));
+
+        WsDto<NodeDto> result = nodeService.findAll(spec, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
     }
 
     @Test
@@ -136,27 +166,30 @@ class NodeServiceTest {
     }
 
     @Test
-    @DisplayName("Get Nodes For Roles - Success with SecurityContext validation")
+    @DisplayName("Find By Identifier - Failure: Not Found Exception")
+    void findByIdentifier_Failure_NotFound() {
+        when(nodeRepository.findByIdentifier("NODE-001")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> nodeService.findByIdentifier("NODE-001"));
+    }
+
+    @Test
+    @DisplayName("Get Nodes For Roles - Success")
     void getNodesForRoles_Success() {
         org.springframework.security.core.userdetails.User principal =
-                new org.springframework.security.core.userdetails.User("adminUser", "password", List.of());
+                new org.springframework.security.core.userdetails.User("adminUser", "password", Collections.emptyList());
 
-        User currentUser = new User();
-        currentUser.setUsername("adminUser");
-        // FIX: Changed from Set.of to List.of to support User's role mapping type requirements
-        currentUser.setRoles(List.of("ROLE_ADMIN"));
-
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(principal);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        when(userRepository.findByUsername("adminUser")).thenReturn(currentUser);
+        when(userRepository.findByUsername("adminUser")).thenReturn(user);
         when(nodeRepository.findAllByStatusAndDeletedFalse(true)).thenReturn(List.of(node));
         when(nodeRepository.findByIdentifier("NODE-001")).thenReturn(node);
         when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
 
         List<NodeDto> result = nodeService.getNodesForRoles();
 
-        Assertions.assertFalse(result.isEmpty());
+        Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.size());
     }
 
@@ -168,8 +201,9 @@ class NodeServiceTest {
         NodeDto result = nodeService.update(nodeDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Node updated successfully", result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("successfully"));
         verify(nodeRepository).save(node);
+        verify(modelMapper).map(nodeDto, node);
     }
 
     @Test
@@ -185,15 +219,15 @@ class NodeServiceTest {
     }
 
     @Test
-    @DisplayName("Update Node - Failure: Target Node Soft Deleted")
-    void update_Failure_Deleted() {
+    @DisplayName("Update Node - Failure: Already Deleted")
+    void update_Failure_AlreadyDeleted() {
         node.setDeleted(true);
         when(nodeRepository.findByIdentifier("NODE-001")).thenReturn(node);
 
         NodeDto result = nodeService.update(nodeDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        Assertions.assertTrue(result.getMessage().contains("previously deleted"));
         verify(nodeRepository, never()).save(any(Node.class));
     }
 

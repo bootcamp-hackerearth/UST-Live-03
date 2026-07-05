@@ -5,6 +5,7 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
@@ -118,7 +119,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
     public CustomerDto findByIdentifier(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
         if (customer == null) {
-            return null;
+            throw new ResourceNotFoundException("Customer with identifier '" + identifier + "' not found");
         }
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
         List<AddressDto> addresses = addressService.findAllByPhoneNumber(customerDto.getIdentifier());

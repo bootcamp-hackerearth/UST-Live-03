@@ -7,120 +7,112 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import static org.mockito.Mockito.*;
+import java.time.LocalDateTime;
 
 @ExtendWith(MockitoExtension.class)
 class CommonServiceTest {
 
-    private CommonServiceTestImpl commonService;
-
-    @Mock
+    private CommonServiceShim commonServiceShim;
+    private TestEntity entity;
     private SecurityContext securityContext;
-
-    @Mock
     private Authentication authentication;
 
-    private TestEntity testEntity;
+    private static class TestEntity extends CommonFields {
+    }
 
-    private static class TestEntity extends CommonFields {}
-
-    private static class CommonServiceTestImpl extends CommonService {
+    private static class CommonServiceShim extends CommonService {
         public void callSetAuditFields(CommonFields entity, boolean isNew) {
-            setAuditFields(entity, isNew);
+            super.setAuditFields(entity, isNew);
         }
+
         public void callSoftDelete(CommonFields entity) {
-            softDelete(entity);
+            super.softDelete(entity);
         }
     }
 
     @BeforeEach
     void setUp() {
-        commonService = new CommonServiceTestImpl();
-        testEntity = new TestEntity();
+        commonServiceShim = new CommonServiceShim();
+        entity = new TestEntity();
+        securityContext = Mockito.mock(SecurityContextHolder.getContext().getClass());
+        authentication = Mockito.mock(Authentication.class);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
     @DisplayName("Set Audit Fields - New Entity with Authenticated User")
     void setAuditFields_NewEntity_AuthenticatedUser() {
-        try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-            mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.isAuthenticated()).thenReturn(true);
-            when(authentication.getName()).thenReturn("adminUser");
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.isAuthenticated()).thenReturn(true);
+        Mockito.when(authentication.getName()).thenReturn("testUser");
 
-            commonService.callSetAuditFields(testEntity, true);
+        commonServiceShim.callSetAuditFields(entity, true);
 
-            Assertions.assertEquals("adminUser", testEntity.getCreatedBy());
-            Assertions.assertNotNull(testEntity.getCreatedAt());
-            Assertions.assertNull(testEntity.getModifiedBy());
-            Assertions.assertNull(testEntity.getModifiedAt());
-        }
+        Assertions.assertEquals("testUser", entity.getCreatedBy());
+        Assertions.assertNotNull(entity.getCreatedAt());
+        Assertions.assertNull(entity.getModifiedBy());
+        Assertions.assertNull(entity.getModifiedAt());
     }
 
     @Test
-    @DisplayName("Set Audit Fields - New Entity with System Fallback (Null Authentication)")
-    void setAuditFields_NewEntity_SystemFallback_NullAuth() {
-        try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-            mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            when(securityContext.getAuthentication()).thenReturn(null);
+    @DisplayName("Set Audit Fields - New Entity with Unauthenticated User")
+    void setAuditFields_NewEntity_UnauthenticatedUser() {
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.isAuthenticated()).thenReturn(false);
 
-            commonService.callSetAuditFields(testEntity, true);
+        commonServiceShim.callSetAuditFields(entity, true);
 
-            Assertions.assertEquals("system", testEntity.getCreatedBy());
-            Assertions.assertNotNull(testEntity.getCreatedAt());
-        }
+        Assertions.assertEquals("system", entity.getCreatedBy());
+        Assertions.assertNotNull(entity.getCreatedAt());
+        Assertions.assertNull(entity.getModifiedBy());
+        Assertions.assertNull(entity.getModifiedAt());
     }
 
     @Test
-    @DisplayName("Set Audit Fields - New Entity with System Fallback (Unauthenticated)")
-    void setAuditFields_NewEntity_SystemFallback_Unauthenticated() {
-        try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-            mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.isAuthenticated()).thenReturn(false);
+    @DisplayName("Set Audit Fields - New Entity with Null Authentication")
+    void setAuditFields_NewEntity_NullAuthentication() {
+        Mockito.when(securityContext.getAuthentication()).thenReturn(null);
 
-            commonService.callSetAuditFields(testEntity, true);
+        commonServiceShim.callSetAuditFields(entity, true);
 
-            Assertions.assertEquals("system", testEntity.getCreatedBy());
-            Assertions.assertNotNull(testEntity.getCreatedAt());
-        }
+        Assertions.assertEquals("system", entity.getCreatedBy());
+        Assertions.assertNotNull(entity.getCreatedAt());
+        Assertions.assertNull(entity.getModifiedBy());
+        Assertions.assertNull(entity.getModifiedAt());
     }
 
     @Test
     @DisplayName("Set Audit Fields - Existing Entity Update")
     void setAuditFields_ExistingEntity() {
-        try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-            mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.isAuthenticated()).thenReturn(true);
-            when(authentication.getName()).thenReturn("updateUser");
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.isAuthenticated()).thenReturn(true);
+        Mockito.when(authentication.getName()).thenReturn("updaterUser");
 
-            testEntity.setCreatedBy("originalCreator");
+        entity.setCreatedBy("originalCreator");
+        entity.setCreatedAt(LocalDateTime.now().minusDays(1));
 
-            commonService.callSetAuditFields(testEntity, false);
+        commonServiceShim.callSetAuditFields(entity, false);
 
-            Assertions.assertEquals("originalCreator", testEntity.getCreatedBy());
-            Assertions.assertEquals("updateUser", testEntity.getModifiedBy());
-            Assertions.assertNotNull(testEntity.getModifiedAt());
-        }
+        Assertions.assertEquals("originalCreator", entity.getCreatedBy());
+        Assertions.assertEquals("updaterUser", entity.getModifiedBy());
+        Assertions.assertNotNull(entity.getModifiedAt());
     }
 
     @Test
-    @DisplayName("Soft Delete - Sets Flags Correctly")
+    @DisplayName("Soft Delete - Success")
     void softDelete_Success() {
-        testEntity.setDeleted(false);
-        testEntity.setStatus(true);
+        entity.setDeleted(false);
+        entity.setStatus(true);
 
-        commonService.callSoftDelete(testEntity);
+        commonServiceShim.callSoftDelete(entity);
 
-        Assertions.assertTrue(testEntity.isDeleted());
-        Assertions.assertFalse(testEntity.isStatus());
+        Assertions.assertTrue(entity.isDeleted());
+        Assertions.assertFalse(entity.isStatus());
     }
 }

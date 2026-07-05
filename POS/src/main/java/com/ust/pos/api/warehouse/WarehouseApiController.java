@@ -9,6 +9,7 @@ import com.ust.pos.warehouse.service.WarehouseService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage()
                 , paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -37,26 +39,31 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WarehouseDto add(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WarehouseDto getByIdentifier(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
 
     @GetMapping("/getAllActive")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public List<WarehouseDto> getAllActive() {
         return warehouseService.findAllActive();
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WarehouseDto update(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);
@@ -67,6 +74,7 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WarehouseDto toggleStatus(@RequestParam String identifier) {
         return warehouseService.toggleStatus(identifier);
     }

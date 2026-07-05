@@ -1,6 +1,8 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -86,7 +89,7 @@ class UnitServiceTest {
         UnitDto result = unitService.save(unitDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        Assertions.assertTrue(result.getMessage().contains("previously deleted"));
         verify(unitRepository, never()).save(any(Unit.class));
     }
 
@@ -94,15 +97,35 @@ class UnitServiceTest {
     @DisplayName("Find All Units - Paginated Success")
     void findAll_PaginatedSuccess() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Unit> unitPage = new PageImpl<>(List.of(unit));
+        Page<Unit> unitPage = new PageImpl<>(List.of(unit), pageable, 1);
 
         when(unitRepository.findByDeletedFalse(pageable)).thenReturn(unitPage);
         when(modelMapper.map(eq(unitPage.getContent()), any(Type.class))).thenReturn(List.of(unitDto));
 
-        List<UnitDto> result = unitService.findAll(pageable);
+        WsDto<UnitDto> result = unitService.findAll(pageable);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(1, result.size());
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+    }
+
+    @Test
+    @DisplayName("Find All Units with Specification - Success")
+    void findAll_WithSpecification_Success() {
+        Specification<Unit> spec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Unit> unitPage = new PageImpl<>(List.of(unit), pageable, 1);
+
+        when(unitRepository.findAll(spec, pageable)).thenReturn(unitPage);
+        when(modelMapper.map(eq(unitPage.getContent()), any(Type.class))).thenReturn(List.of(unitDto));
+
+        WsDto<UnitDto> result = unitService.findAll(spec, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
     }
 
     @Test
@@ -114,6 +137,7 @@ class UnitServiceTest {
 
         List<UnitDto> result = unitService.findAllActive();
 
+        Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.size());
     }
 
@@ -129,6 +153,14 @@ class UnitServiceTest {
     }
 
     @Test
+    @DisplayName("Find By Identifier - Failure: Not Found Exception")
+    void findByIdentifier_Failure_NotFound() {
+        when(unitRepository.findByIdentifier("UNT-001")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> unitService.findByIdentifier("UNT-001"));
+    }
+
+    @Test
     @DisplayName("Update Unit - Success")
     void update_Success() {
         when(unitRepository.findByIdentifier("UNT-001")).thenReturn(unit);
@@ -138,6 +170,7 @@ class UnitServiceTest {
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertTrue(result.getMessage().contains("Updated"));
         verify(unitRepository).save(unit);
+        verify(modelMapper).map(unitDto, unit);
     }
 
     @Test

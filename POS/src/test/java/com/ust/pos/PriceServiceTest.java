@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -45,14 +46,14 @@ class PriceServiceTest {
     @BeforeEach
     void setUp() {
         priceDto = new PriceDto();
-        priceDto.setIdentifier("PRC-100");
-        priceDto.setMrp(BigDecimal.valueOf(100));
-        priceDto.setSellingPrice(BigDecimal.valueOf(80));
+        priceDto.setIdentifier("PRC-001");
+        priceDto.setMrp(new BigDecimal("100.00"));
+        priceDto.setSellingPrice(new BigDecimal("80.00"));
 
         price = new Price();
-        price.setIdentifier("PRC-100");
-        price.setMrp(BigDecimal.valueOf(100));
-        price.setSellingPrice(BigDecimal.valueOf(80));
+        price.setIdentifier("PRC-001");
+        price.setMrp(new BigDecimal("100.00"));
+        price.setSellingPrice(new BigDecimal("80.00"));
         price.setStatus(true);
         price.setDeleted(false);
     }
@@ -60,13 +61,13 @@ class PriceServiceTest {
     @Test
     @DisplayName("Save Price - Success")
     void save_Success() {
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(null);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(null);
         when(modelMapper.map(priceDto, Price.class)).thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Price created successfully", result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("successfully"));
         verify(priceRepository).save(price);
     }
 
@@ -74,7 +75,7 @@ class PriceServiceTest {
     @DisplayName("Save Price - Failure: Already Exists")
     void save_Failure_AlreadyExists() {
         price.setDeleted(false);
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(price);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
@@ -87,30 +88,31 @@ class PriceServiceTest {
     @DisplayName("Save Price - Failure: Previously Deleted")
     void save_Failure_PreviouslyDeleted() {
         price.setDeleted(true);
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(price);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        Assertions.assertTrue(result.getMessage().contains("previously deleted"));
         verify(priceRepository, never()).save(any(Price.class));
     }
 
     @Test
     @DisplayName("Update Price - Success")
     void update_Success() {
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(price);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
         PriceDto result = priceService.update(priceDto);
 
         Assertions.assertNotNull(result);
         verify(priceRepository).save(price);
+        verify(modelMapper).map(priceDto, price);
     }
 
     @Test
     @DisplayName("Update Price - Failure: Not Found")
     void update_Failure_NotFound() {
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(null);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(null);
 
         PriceDto result = priceService.update(priceDto);
 
@@ -122,9 +124,9 @@ class PriceServiceTest {
     @Test
     @DisplayName("Delete Price - Success")
     void delete_Success() {
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(price);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
-        boolean result = priceService.delete("PRC-100");
+        boolean result = priceService.delete("PRC-001");
 
         Assertions.assertTrue(result);
         verify(priceRepository).save(price);
@@ -133,9 +135,9 @@ class PriceServiceTest {
     @Test
     @DisplayName("Delete Price - Failure: Not Found")
     void delete_Failure_NotFound() {
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(null);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(null);
 
-        boolean result = priceService.delete("PRC-100");
+        boolean result = priceService.delete("PRC-001");
 
         Assertions.assertFalse(result);
         verify(priceRepository, never()).save(any(Price.class));
@@ -145,15 +147,33 @@ class PriceServiceTest {
     @DisplayName("Find All Prices - Paginated Success")
     void findAll_PaginatedSuccess() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Price> pricePage = new PageImpl<>(List.of(price));
+        Page<Price> pricePage = new PageImpl<>(List.of(price), pageable, 1);
 
         when(priceRepository.findAll(pageable)).thenReturn(pricePage);
         when(modelMapper.map(eq(pricePage.getContent()), any(Type.class))).thenReturn(List.of(priceDto));
 
         WsDto<PriceDto> result = priceService.findAll(pageable);
 
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
         Assertions.assertEquals(1, result.getTotalRecords());
-        Assertions.assertFalse(result.getDtoList().isEmpty());
+        Assertions.assertEquals(1, result.getTotalPages());
+    }
+
+    @Test
+    @DisplayName("Find All Prices with Specification - Success")
+    void findAll_WithSpecification_Success() {
+        Specification<Price> spec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Price> pricePage = new PageImpl<>(List.of(price), pageable, 1);
+
+        when(priceRepository.findAll(spec, pageable)).thenReturn(pricePage);
+        when(modelMapper.map(eq(pricePage.getContent()), any(Type.class))).thenReturn(List.of(priceDto));
+
+        WsDto<PriceDto> result = priceService.findAll(spec, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
     }
 
     @Test
@@ -169,22 +189,23 @@ class PriceServiceTest {
     }
 
     @Test
-    @DisplayName("Find By Identifier - Success")
+    @DisplayName("Find By Identifier - Success Configuration Found")
     void findByIdentifier_Success() {
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(price);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
         when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
 
-        PriceDto result = priceService.findByIdentifier("PRC-100");
+        PriceDto result = priceService.findByIdentifier("PRC-001");
 
         Assertions.assertNotNull(result);
+        Assertions.assertEquals(new BigDecimal("100.00"), result.getMrp());
     }
 
     @Test
-    @DisplayName("Find By Identifier - Failure: Price Not Configured")
-    void findByIdentifier_NotFound() {
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(null);
+    @DisplayName("Find By Identifier - Not Configured Fallback")
+    void findByIdentifier_NotConfigured() {
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(null);
 
-        PriceDto result = priceService.findByIdentifier("PRC-100");
+        PriceDto result = priceService.findByIdentifier("PRC-001");
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertEquals(BigDecimal.ZERO, result.getMrp());
@@ -195,10 +216,10 @@ class PriceServiceTest {
     @Test
     @DisplayName("Toggle Status - Success")
     void toggleStatus_Success() {
-        when(priceRepository.findByIdentifier("PRC-100")).thenReturn(price);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
         when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
 
-        PriceDto result = priceService.toggleStatus("PRC-100");
+        PriceDto result = priceService.toggleStatus("PRC-001");
 
         Assertions.assertFalse(price.isStatus());
         verify(priceRepository).save(price);

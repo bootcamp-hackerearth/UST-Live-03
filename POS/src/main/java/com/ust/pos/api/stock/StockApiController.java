@@ -9,6 +9,7 @@ import com.ust.pos.stock.service.StockService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +22,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage()
                 , paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -34,21 +36,25 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public StockDto add(@RequestBody StockDto stockDto) {
         return stockService.save(stockDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public StockDto getByIdentifier(@RequestParam String identifier) {
         return stockService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public StockDto update(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(@RequestParam String identifier) {
         try {
             stockService.delete(identifier);
@@ -59,6 +65,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public StockDto toggleStatus(@RequestParam String identifier) {
         return stockService.toggleStatus(identifier);
     }

@@ -3,6 +3,7 @@ package com.ust.pos.adress.service.impl;
 import com.ust.pos.adress.service.AddressService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.AddressDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.modelmapper.ModelMapper;
@@ -91,8 +92,11 @@ public class AddressServiceImpl extends CommonService implements AddressService 
 
     @Override
     public AddressDto findByIdentifier(String identifier) {
-        return modelMapper.map(addressRepository.findByIdentifier(identifier), AddressDto.class);
-    }
+        Address address = addressRepository.findByIdentifier(identifier);
+        if(address==null){
+            throw new ResourceNotFoundException("Address with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(address, AddressDto.class);    }
 
     @Override
     public List<AddressDto> findAllByPhoneNumber(String phoneNo) {

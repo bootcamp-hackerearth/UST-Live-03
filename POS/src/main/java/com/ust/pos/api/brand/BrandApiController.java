@@ -10,6 +10,7 @@ import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +26,7 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -38,6 +40,7 @@ public class BrandApiController extends BaseController {
     }
 
     @GetMapping("/getAllActive")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public List<BrandDto> getAllActive() {
         return brandService.findAllActive();
     }
@@ -53,6 +56,7 @@ public class BrandApiController extends BaseController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public BrandDto getByIdentifier(@RequestParam String identifier) {
         return brandService.findByIdentifier(identifier);
     }
@@ -68,6 +72,7 @@ public class BrandApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -78,6 +83,7 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public BrandDto toggleStatus(@RequestParam String identifier) {
         return brandService.toggleStatus(identifier);
     }

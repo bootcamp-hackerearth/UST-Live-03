@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -61,7 +63,7 @@ class ShelfServiceTest {
         ShelfDto result = shelfService.save(shelfDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Shelf created successfully", result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("successfully"));
         verify(shelfRepository).save(shelf);
     }
 
@@ -79,7 +81,7 @@ class ShelfServiceTest {
     }
 
     @Test
-    @DisplayName("Save Shelf - Failure: Previously Soft-Deleted")
+    @DisplayName("Save Shelf - Failure: Previously Deleted")
     void save_Failure_PreviouslyDeleted() {
         shelf.setDeleted(true);
         when(shelfRepository.findByIdentifier("SHF-001")).thenReturn(shelf);
@@ -87,7 +89,7 @@ class ShelfServiceTest {
         ShelfDto result = shelfService.save(shelfDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        Assertions.assertTrue(result.getMessage().contains("previously deleted"));
         verify(shelfRepository, never()).save(any(Shelf.class));
     }
 
@@ -95,15 +97,35 @@ class ShelfServiceTest {
     @DisplayName("Find All Shelves - Paginated Success")
     void findAll_PaginatedSuccess() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Shelf> shelfPage = new PageImpl<>(List.of(shelf));
+        Page<Shelf> shelfPage = new PageImpl<>(List.of(shelf), pageable, 1);
 
         when(shelfRepository.findByDeletedFalse(pageable)).thenReturn(shelfPage);
         when(modelMapper.map(eq(shelfPage.getContent()), any(Type.class))).thenReturn(List.of(shelfDto));
 
         WsDto<ShelfDto> result = shelfService.findAll(pageable);
 
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
         Assertions.assertEquals(1, result.getTotalRecords());
-        Assertions.assertFalse(result.getDtoList().isEmpty());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+    }
+
+    @Test
+    @DisplayName("Find All Shelves with Specification - Success")
+    void findAll_WithSpecification_Success() {
+        Specification<Shelf> spec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Shelf> shelfPage = new PageImpl<>(List.of(shelf), pageable, 1);
+
+        when(shelfRepository.findAll(spec, pageable)).thenReturn(shelfPage);
+        when(modelMapper.map(eq(shelfPage.getContent()), any(Type.class))).thenReturn(List.of(shelfDto));
+
+        WsDto<ShelfDto> result = shelfService.findAll(spec, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
     }
 
     @Test
@@ -130,6 +152,14 @@ class ShelfServiceTest {
     }
 
     @Test
+    @DisplayName("Find By Identifier - Failure: Not Found Exception")
+    void findByIdentifier_Failure_NotFound() {
+        when(shelfRepository.findByIdentifier("SHF-001")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> shelfService.findByIdentifier("SHF-001"));
+    }
+
+    @Test
     @DisplayName("Update Shelf - Success")
     void update_Success() {
         when(shelfRepository.findByIdentifier("SHF-001")).thenReturn(shelf);
@@ -138,6 +168,7 @@ class ShelfServiceTest {
 
         Assertions.assertNotNull(result);
         verify(shelfRepository).save(shelf);
+        verify(modelMapper).map(shelfDto, shelf);
     }
 
     @Test

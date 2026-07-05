@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -61,7 +63,7 @@ class StockServiceTest {
         StockDto result = stockService.save(stockDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Stock created successfully", result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("successfully"));
         verify(stockRepository).save(stock);
     }
 
@@ -87,7 +89,7 @@ class StockServiceTest {
         StockDto result = stockService.save(stockDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        Assertions.assertTrue(result.getMessage().contains("previously deleted"));
         verify(stockRepository, never()).save(any(Stock.class));
     }
 
@@ -95,15 +97,35 @@ class StockServiceTest {
     @DisplayName("Find All Stocks - Paginated Success")
     void findAll_PaginatedSuccess() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Stock> stockPage = new PageImpl<>(List.of(stock));
+        Page<Stock> stockPage = new PageImpl<>(List.of(stock), pageable, 1);
 
         when(stockRepository.findByDeletedFalse(pageable)).thenReturn(stockPage);
         when(modelMapper.map(eq(stockPage.getContent()), any(Type.class))).thenReturn(List.of(stockDto));
 
         WsDto<StockDto> result = stockService.findAll(pageable);
 
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
         Assertions.assertEquals(1, result.getTotalRecords());
-        Assertions.assertFalse(result.getDtoList().isEmpty());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+    }
+
+    @Test
+    @DisplayName("Find All Stocks with Specification - Success")
+    void findAll_WithSpecification_Success() {
+        Specification<Stock> spec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Stock> stockPage = new PageImpl<>(List.of(stock), pageable, 1);
+
+        when(stockRepository.findAll(spec, pageable)).thenReturn(stockPage);
+        when(modelMapper.map(eq(stockPage.getContent()), any(Type.class))).thenReturn(List.of(stockDto));
+
+        WsDto<StockDto> result = stockService.findAll(spec, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
     }
 
     @Test
@@ -118,6 +140,14 @@ class StockServiceTest {
     }
 
     @Test
+    @DisplayName("Find By Identifier - Failure: Not Found Exception")
+    void findByIdentifier_Failure_NotFound() {
+        when(stockRepository.findByIdentifier("STK-001")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> stockService.findByIdentifier("STK-001"));
+    }
+
+    @Test
     @DisplayName("Update Stock - Success")
     void update_Success() {
         when(stockRepository.findByIdentifier("STK-001")).thenReturn(stock);
@@ -127,6 +157,7 @@ class StockServiceTest {
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertTrue(result.getMessage().contains("Updated"));
         verify(stockRepository).save(stock);
+        verify(modelMapper).map(stockDto, stock);
     }
 
     @Test

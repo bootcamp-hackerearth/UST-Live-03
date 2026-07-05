@@ -47,45 +47,51 @@ class CartEntryServiceTest {
     @BeforeEach
     void setUp() {
         cartEntryDto = new CartEntryDto();
-        cartEntryDto.setProduct("PROD1");
-        cartEntryDto.setCart("CART1");
-        cartEntryDto.setQuantity(BigDecimal.valueOf(2));
+        cartEntryDto.setProduct("PROD-001");
+        cartEntryDto.setCart("CRT-001");
+        cartEntryDto.setQuantity(new BigDecimal("2"));
 
         cartEntry = new CartEntry();
-        cartEntry.setIdentifier("PROD1-CART1");
-        cartEntry.setQuantity(BigDecimal.valueOf(3));
+        cartEntry.setIdentifier("PROD-001-CRT-001");
+        cartEntry.setQuantity(new BigDecimal("3"));
 
         price = new Price();
-        price.setIdentifier("PROD1");
-        price.setSellingPrice(BigDecimal.valueOf(80));
-        price.setMrp(BigDecimal.valueOf(100));
+        price.setIdentifier("PROD-001");
+        price.setMrp(new BigDecimal("100.00"));
+        price.setSellingPrice(new BigDecimal("80.00"));
     }
 
     @Test
-    @DisplayName("Save CartEntry - New Entry Success")
-    void save_NewEntry_Success() {
-        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(null);
-        when(priceRepository.findByIdentifier("PROD1")).thenReturn(price);
+    @DisplayName("Save CartEntry - Success New Entry")
+    void save_Success_NewEntry() {
+        String expectedIdentifier = "PROD-001-CRT-001";
+        when(cartEntryRepository.findByIdentifier(expectedIdentifier)).thenReturn(null);
+        when(priceRepository.findByIdentifier("PROD-001")).thenReturn(price);
 
         CartEntryDto result = cartEntryService.save(cartEntryDto);
 
-        Assertions.assertEquals(BigDecimal.valueOf(2), result.getQuantity());
-        Assertions.assertEquals(BigDecimal.valueOf(160), result.getTotalPrice());
-        Assertions.assertEquals(BigDecimal.valueOf(40), result.getDiscount());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(expectedIdentifier, result.getIdentifier());
+        Assertions.assertEquals(new BigDecimal("2"), result.getQuantity());
+        Assertions.assertEquals(new BigDecimal("160.00"), result.getTotalPrice());
+        Assertions.assertEquals(new BigDecimal("40.00"), result.getDiscount());
         verify(cartEntryRepository).save(any(CartEntry.class));
     }
 
     @Test
-    @DisplayName("Save CartEntry - Existing Entry Quantity Add Success")
-    void save_ExistingEntry_Success() {
-        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(cartEntry);
-        when(priceRepository.findByIdentifier("PROD1")).thenReturn(price);
+    @DisplayName("Save CartEntry - Success Existing Entry")
+    void save_Success_ExistingEntry() {
+        String expectedIdentifier = "PROD-001-CRT-001";
+        when(cartEntryRepository.findByIdentifier(expectedIdentifier)).thenReturn(cartEntry);
+        when(priceRepository.findByIdentifier("PROD-001")).thenReturn(price);
 
         CartEntryDto result = cartEntryService.save(cartEntryDto);
 
-        Assertions.assertEquals(BigDecimal.valueOf(5), result.getQuantity());
-        Assertions.assertEquals(BigDecimal.valueOf(400), result.getTotalPrice());
-        Assertions.assertEquals(BigDecimal.valueOf(100), result.getDiscount());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(expectedIdentifier, result.getIdentifier());
+        Assertions.assertEquals(new BigDecimal("5"), result.getQuantity());
+        Assertions.assertEquals(new BigDecimal("400.00"), result.getTotalPrice());
+        Assertions.assertEquals(new BigDecimal("100.00"), result.getDiscount());
         verify(cartEntryRepository).save(cartEntry);
     }
 
@@ -93,53 +99,55 @@ class CartEntryServiceTest {
     @DisplayName("Find All Entries For Cart - Success")
     void findAllEntriesForCart_Success() {
         List<CartEntry> entries = List.of(cartEntry);
-        when(cartEntryRepository.findByCart("CART1")).thenReturn(entries);
-        when(modelMapper.map(eq(entries), any(Type.class))).thenReturn(List.of(cartEntryDto));
+        List<CartEntryDto> dtos = List.of(cartEntryDto);
 
-        List<CartEntryDto> result = cartEntryService.findAllEntriesForCart("CART1");
+        when(cartEntryRepository.findByCart("CRT-001")).thenReturn(entries);
+        when(modelMapper.map(eq(entries), any(Type.class))).thenReturn(dtos);
 
+        List<CartEntryDto> result = cartEntryService.findAllEntriesForCart("CRT-001");
+
+        Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.size());
     }
 
     @Test
     @DisplayName("Delete By Identifier - Success")
     void deleteByIdentifier_Success() {
-        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(cartEntry);
+        when(cartEntryRepository.findByIdentifier("PROD-001-CRT-001")).thenReturn(cartEntry);
+        doNothing().when(cartEntryRepository).deleteByIdentifier("PROD-001-CRT-001");
 
-        cartEntryService.deleteByIdentifier("PROD1-CART1");
+        cartEntryService.deleteByIdentifier("PROD-001-CRT-001");
 
-        verify(cartEntryRepository).deleteByIdentifier("PROD1-CART1");
+        verify(cartEntryRepository).deleteByIdentifier("PROD-001-CRT-001");
     }
 
     @Test
     @DisplayName("Delete By Identifier - Failure: Not Found")
-    void deleteByIdentifier_NotFound() {
-        when(cartEntryRepository.findByIdentifier("PROD1-CART1")).thenReturn(null);
+    void deleteByIdentifier_Failure_NotFound() {
+        when(cartEntryRepository.findByIdentifier("PROD-001-CRT-001")).thenReturn(null);
 
-        Assertions.assertThrows(IllegalArgumentException.class, () ->
-                cartEntryService.deleteByIdentifier("PROD1-CART1")
-        );
-
-        verify(cartEntryRepository, times(1)).findByIdentifier("PROD1-CART1");
+        Assertions.assertThrows(IllegalArgumentException.class, () -> cartEntryService.deleteByIdentifier("PROD-001-CRT-001"));
+        verify(cartEntryRepository, never()).deleteByIdentifier(anyString());
     }
 
     @Test
     @DisplayName("Delete All By Cart - Success")
     void deleteAllByCart_Success() {
         List<CartEntry> entries = List.of(cartEntry);
-        when(cartEntryRepository.findByCart("CART1")).thenReturn(entries);
+        when(cartEntryRepository.findByCart("CRT-001")).thenReturn(entries);
+        doNothing().when(cartEntryRepository).deleteAll(entries);
 
-        cartEntryService.deleteAllByCart("CART1");
+        cartEntryService.deleteAllByCart("CRT-001");
 
         verify(cartEntryRepository).deleteAll(entries);
     }
 
     @Test
-    @DisplayName("Delete All By Cart - Empty Cart")
-    void deleteAllByCart_Empty() {
-        when(cartEntryRepository.findByCart("CART1")).thenReturn(Collections.emptyList());
+    @DisplayName("Delete All By Cart - Empty List")
+    void deleteAllByCart_EmptyList() {
+        when(cartEntryRepository.findByCart("CRT-001")).thenReturn(Collections.emptyList());
 
-        cartEntryService.deleteAllByCart("CART1");
+        cartEntryService.deleteAllByCart("CRT-001");
 
         verify(cartEntryRepository, never()).deleteAll(anyList());
     }

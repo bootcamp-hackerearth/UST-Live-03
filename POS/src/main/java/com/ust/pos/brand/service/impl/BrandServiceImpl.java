@@ -4,6 +4,7 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import com.ust.pos.util.FileStorageUtil;
@@ -58,7 +59,11 @@ public class BrandServiceImpl extends CommonService implements BrandService {
 
     @Override
     public BrandDto findByIdentifier(String identifier) {
-        return modelMapper.map(brandRepository.findByIdentifier(identifier), BrandDto.class);
+        Brand brand = brandRepository.findByIdentifier(identifier);
+        if(brand==null){
+            throw new ResourceNotFoundException("Brand with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(brand, BrandDto.class);
     }
 
     @Override

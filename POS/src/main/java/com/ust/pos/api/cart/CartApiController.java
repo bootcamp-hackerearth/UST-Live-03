@@ -5,6 +5,7 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,21 +20,25 @@ public class CartApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER','SUPPORT')")
     public CartDto addCart(@RequestBody CartDto cartDto) {
         return cartService.save(cartDto);
     }
 
     @PostMapping("/getCart")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public CartDto getCart(@RequestBody CartDto cartDto) {
         return cartService.findByIdentifier(cartDto.getIdentifier());
     }
 
     @PutMapping("/addToCart")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public CartDto addToCart(@RequestBody CartDto cartDto) {
         return cartService.recalculate(cartDto.getIdentifier());
     }
 
     @DeleteMapping("/deleteCart")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public Boolean deleteCart(@RequestBody CartDto cartDto) {
         try {
             cartService.deleteByIdentifier(cartDto.getIdentifier());
@@ -44,6 +49,7 @@ public class CartApiController extends BaseController {
     }
 
     @DeleteMapping("/deleteEntry")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public boolean deleteEntry(@RequestBody CartEntryDto cartEntryDto) {
         String identifier = cartEntryDto.getProduct() + "-" + cartEntryDto.getCart();
         try {

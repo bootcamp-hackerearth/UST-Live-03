@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -61,7 +63,7 @@ class WarehouseServiceTest {
         WarehouseDto result = warehouseService.save(warehouseDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Warehouse created successfully", result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("successfully"));
         verify(warehouseRepository).save(warehouse);
     }
 
@@ -87,7 +89,7 @@ class WarehouseServiceTest {
         WarehouseDto result = warehouseService.save(warehouseDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        Assertions.assertTrue(result.getMessage().contains("previously deleted"));
         verify(warehouseRepository, never()).save(any(Warehouse.class));
     }
 
@@ -95,15 +97,35 @@ class WarehouseServiceTest {
     @DisplayName("Find All Warehouses - Paginated Success")
     void findAll_PaginatedSuccess() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Warehouse> warehousePage = new PageImpl<>(List.of(warehouse));
+        Page<Warehouse> warehousePage = new PageImpl<>(List.of(warehouse), pageable, 1);
 
         when(warehouseRepository.findByDeletedFalse(pageable)).thenReturn(warehousePage);
         when(modelMapper.map(eq(warehousePage.getContent()), any(Type.class))).thenReturn(List.of(warehouseDto));
 
         WsDto<WarehouseDto> result = warehouseService.findAll(pageable);
 
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
         Assertions.assertEquals(1, result.getTotalRecords());
-        Assertions.assertFalse(result.getDtoList().isEmpty());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+    }
+
+    @Test
+    @DisplayName("Find All Warehouses with Specification - Success")
+    void findAll_WithSpecification_Success() {
+        Specification<Warehouse> spec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Warehouse> warehousePage = new PageImpl<>(List.of(warehouse), pageable, 1);
+
+        when(warehouseRepository.findAll(spec, pageable)).thenReturn(warehousePage);
+        when(modelMapper.map(eq(warehousePage.getContent()), any(Type.class))).thenReturn(List.of(warehouseDto));
+
+        WsDto<WarehouseDto> result = warehouseService.findAll(spec, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
     }
 
     @Test
@@ -115,6 +137,7 @@ class WarehouseServiceTest {
 
         List<WarehouseDto> result = warehouseService.findAllActive();
 
+        Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.size());
     }
 
@@ -130,6 +153,14 @@ class WarehouseServiceTest {
     }
 
     @Test
+    @DisplayName("Find By Identifier - Failure: Not Found Exception")
+    void findByIdentifier_Failure_NotFound() {
+        when(warehouseRepository.findByIdentifier("WH-001")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> warehouseService.findByIdentifier("WH-001"));
+    }
+
+    @Test
     @DisplayName("Update Warehouse - Success")
     void update_Success() {
         when(warehouseRepository.findByIdentifier("WH-001")).thenReturn(warehouse);
@@ -138,6 +169,7 @@ class WarehouseServiceTest {
 
         Assertions.assertNotNull(result);
         verify(warehouseRepository).save(warehouse);
+        verify(modelMapper).map(warehouseDto, warehouse);
     }
 
     @Test

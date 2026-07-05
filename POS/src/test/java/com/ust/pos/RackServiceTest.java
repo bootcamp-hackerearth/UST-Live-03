@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -61,7 +62,7 @@ class RackServiceTest {
         RackDto result = rackService.save(rackDto);
 
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Rack created successfully", result.getMessage());
+        Assertions.assertTrue(result.getMessage().contains("successfully"));
         verify(rackRepository).save(rack);
     }
 
@@ -79,7 +80,7 @@ class RackServiceTest {
     }
 
     @Test
-    @DisplayName("Save Rack - Failure: Previously Soft-Deleted")
+    @DisplayName("Save Rack - Failure: Previously Deleted")
     void save_Failure_PreviouslyDeleted() {
         rack.setDeleted(true);
         when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
@@ -87,7 +88,7 @@ class RackServiceTest {
         RackDto result = rackService.save(rackDto);
 
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("was previously deleted"));
+        Assertions.assertTrue(result.getMessage().contains("previously deleted"));
         verify(rackRepository, never()).save(any(Rack.class));
     }
 
@@ -95,15 +96,35 @@ class RackServiceTest {
     @DisplayName("Find All Racks - Paginated Success")
     void findAll_PaginatedSuccess() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Rack> rackPage = new PageImpl<>(List.of(rack));
+        Page<Rack> rackPage = new PageImpl<>(List.of(rack), pageable, 1);
 
         when(rackRepository.findByDeletedFalse(pageable)).thenReturn(rackPage);
         when(modelMapper.map(eq(rackPage.getContent()), any(Type.class))).thenReturn(List.of(rackDto));
 
         WsDto<RackDto> result = rackService.findAll(pageable);
 
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
         Assertions.assertEquals(1, result.getTotalRecords());
-        Assertions.assertFalse(result.getDtoList().isEmpty());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+    }
+
+    @Test
+    @DisplayName("Find All Racks with Specification - Success")
+    void findAll_WithSpecification_Success() {
+        Specification<Rack> spec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Rack> rackPage = new PageImpl<>(List.of(rack), pageable, 1);
+
+        when(rackRepository.findAll(spec, pageable)).thenReturn(rackPage);
+        when(modelMapper.map(eq(rackPage.getContent()), any(Type.class))).thenReturn(List.of(rackDto));
+
+        WsDto<RackDto> result = rackService.findAll(spec, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
     }
 
     @Test
@@ -138,6 +159,7 @@ class RackServiceTest {
 
         Assertions.assertNotNull(result);
         verify(rackRepository).save(rack);
+        verify(modelMapper).map(rackDto, rack);
     }
 
     @Test

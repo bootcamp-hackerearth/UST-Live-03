@@ -9,6 +9,7 @@ import com.ust.pos.model.Category;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -36,26 +38,31 @@ public class CategoryApiController extends BaseController {
     }
 
     @GetMapping("/getAllActive")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public List<CategoryDto> getAllActive() {
         return categoryService.findAllActive();
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public CategoryDto add(@RequestBody CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public CategoryDto getByIdentifier(@RequestParam String identifier) {
         return categoryService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public CategoryDto update(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -66,6 +73,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public CategoryDto toggleStatus(@RequestParam String identifier) {
         return categoryService.toggleStatus(identifier);
     }

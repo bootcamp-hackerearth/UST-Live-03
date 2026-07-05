@@ -9,6 +9,7 @@ import com.ust.pos.user.service.UserService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,6 +27,7 @@ public class UserApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public WsDto<UserDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage()
                 , paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -49,6 +51,7 @@ public class UserApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             userService.delete(identifier);
@@ -59,6 +62,7 @@ public class UserApiController extends BaseController {
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public UserDto toggleStatus(@RequestParam String identifier) {
         return userService.toggleStatus(identifier);
     }
