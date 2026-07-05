@@ -2,7 +2,7 @@ import AddEditForm from "@/components/AddEditForm";
 
 export default function RacksUpdate() {
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
   const fields = [
     {
       name: "identifier", type: "text", placeholder: "Rack Name",

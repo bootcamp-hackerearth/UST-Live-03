@@ -2,7 +2,7 @@ import AddEditForm from "@/components/AddEditForm";
 
 export default function CategoryAdd(){
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
 
     const fields = [
     { 

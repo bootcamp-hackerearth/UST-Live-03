@@ -12,7 +12,7 @@ import { Search } from "lucide-react";
 
 export default function Orders() {
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
     const [orders, setOrders] = useState([]);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);

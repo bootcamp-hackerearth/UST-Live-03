@@ -5,7 +5,7 @@ import { PiggyBankIcon } from "lucide-react";
 
 export default function Payment(){
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
 
     const customerDto = {
         "customerId": "pranav@gmail.com",
