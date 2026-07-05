@@ -24,7 +24,7 @@ export default function Login() {
     setLoading(true);
     setError("");
 
-    const res = await fetch("/api/login", {
+    const res = await fetch("/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

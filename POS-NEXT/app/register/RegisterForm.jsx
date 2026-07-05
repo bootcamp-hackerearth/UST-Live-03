@@ -27,7 +27,7 @@ export default function RegisterForm({ roles }) {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const res = await fetch("/api/register", {
+    const res = await fetch("/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
