@@ -36,7 +36,7 @@ export default function DashboardPage() {
       try {
         const baseUrl =
           process.env.NEXT_PUBLIC_BASE_URL ||
-          "http://localhost:8080/api";
+          "/api";
 
         const body = {
           page: 0,
