@@ -1,4 +1,8 @@
+"use client"
+
 import { Poppins, Orbitron } from "next/font/google";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   Package,
   Users,
@@ -19,25 +23,86 @@ const orbitron = Orbitron({
 });
 
 export default function DashboardPage() {
+
+  const router = useRouter();
+  const [counts, setCounts] = useState({
+    products: 0,
+    customers: 0,
+    orders: 0,
+  });
+
+  useEffect(() => {
+    async function fetchCounts() {
+      try {
+        const baseUrl =
+          process.env.NEXT_PUBLIC_BASE_URL ||
+          "http://localhost:8080/api";
+
+        const body = {
+          page: 0,
+          sizePerPage: 1,
+        };
+
+        const [productRes, customerRes, orderRes] = await Promise.all([
+          fetch(`${baseUrl}/product/list`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          }),
+          fetch(`${baseUrl}/customer/list`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          }),
+          fetch(`${baseUrl}/order/list`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          }),
+        ]);
+
+        const products = await productRes.json();
+        const customers = await customerRes.json();
+        const orders = await orderRes.json();
+
+        setCounts({
+          products: products.totalRecords,
+          customers: customers.totalRecords,
+          orders: orders.totalRecords,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchCounts();
+  }, []);
+
   const stats = [
     {
       title: "Products",
-      value: "248",
+      value: counts.products,
       icon: Package,
     },
     {
       title: "Customers",
-      value: "102",
+      value: counts.customers,
       icon: Users,
     },
     {
       title: "Orders",
-      value: "58",
+      value: counts.orders,
       icon: ShoppingCart,
     },
     {
       title: "Low Stock",
-      value: "7",
+      value: "-",
       icon: AlertTriangle,
     },
   ];
@@ -95,12 +160,14 @@ export default function DashboardPage() {
           </h2>
 
           <div className="flex flex-wrap gap-4">
-            <button className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-3 rounded-xl transition">
+            <button onClick={() => router.push("/cart")}
+              className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-3 rounded-xl transition">
               <Plus size={18} />
               New Sale
             </button>
 
-            <button className="flex items-center gap-2 border border-violet-200 hover:bg-violet-50 px-5 py-3 rounded-xl transition">
+            <button onClick={() => router.push("/order")}
+              className="flex items-center gap-2 border border-violet-200 hover:bg-violet-50 px-5 py-3 rounded-xl transition">
               <Receipt size={18} />
               View Orders
             </button>
