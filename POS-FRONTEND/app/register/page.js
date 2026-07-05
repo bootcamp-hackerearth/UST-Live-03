@@ -29,7 +29,7 @@ export default function Register() {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/role/findByStatus");
+      const response = await axios.get("/api/role/findByStatus");
       setRolesList(response.data.content || response.data);
     } catch (err) {
       console.error("Error fetching operational security roles", err);
@@ -98,7 +98,7 @@ export default function Register() {
     if (validationError) return setError(validationError);
 
     try {
-      const res = await axios.post("http://localhost:8080/api/user/add", user);
+      const res = await axios.post("/api/user/add", user);
       if (res.data.success === false) return setError(res.data.message);
       setError("");
       setSuccessMsg("Account provisions initialized. Redirecting...");
