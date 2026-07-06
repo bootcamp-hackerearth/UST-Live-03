@@ -27,7 +27,7 @@ function Sidebar({ onToggle }) {
       );
 
       if (res.status === 401) {
-        window.location.href = "/login";
+        globalThis.location.href = "/login";
         return;
       }
 

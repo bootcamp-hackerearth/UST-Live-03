@@ -52,7 +52,7 @@ export default function Update({
       const tk = localStorage.getItem("token");
 
       const r = await fetch(
-        `api/${apiPath}/get?identifier=${identifier}`,
+        `/api/${apiPath}/get?identifier=${identifier}`,
         {
           headers: {
             Authorization: `Bearer ${tk}`,
