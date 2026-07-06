@@ -29,7 +29,7 @@ const CommonList = ({
   try {
     setPermissionDenied(false);
 
-    const res = await fetch(`http://localhost:8080/api/${routeName}/list`, {
+    const res = await fetch(`/api/${routeName}/list`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
