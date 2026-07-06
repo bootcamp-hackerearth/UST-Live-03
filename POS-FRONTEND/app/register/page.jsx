@@ -21,7 +21,7 @@ const RegisterPage = () => {
 
   useEffect(() => {
     api
-      .get('/role')
+      .get('/role/list')
       .then((res) => setRoles(res.data))
       .catch((err) => console.error('Error fetching roles:', err));
   }, []);
