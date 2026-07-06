@@ -25,16 +25,18 @@ const Header = ({ username }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
- const handleLogout = async () => {
-  await fetch("/api/auth/logout", { method: "POST" });
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    }
 
-  if ("cookieStore" in window) {
-    await cookieStore.delete("token");
-    await cookieStore.delete("username");
-  }
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
 
-  window.location.href = "/login";
-};
+    window.location.href = "/login";
+  };
 
   return (
     <header className="h-14 bg-white border-b border-slate-200 px-6 flex justify-between items-center flex-shrink-0 select-none">
@@ -135,4 +137,4 @@ Header.propTypes = {
   username: PropTypes.string,
 };
 
-export default Header;  
+export default Header;
