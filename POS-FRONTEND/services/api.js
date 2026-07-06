@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken } from "@/utils/auth";
  
 const api = axios.create({
-  baseURL: "http://16.176.196.182:8080",
+  baseURL: "/",
   headers: {
     "Content-Type": "application/json",
   },
