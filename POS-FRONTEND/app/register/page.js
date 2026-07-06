@@ -27,7 +27,7 @@ export default function Register() {
   const fetchRoles = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/role/list",
+        "/api/role/list",
         {
           page: 0,
           sizePerPage: 50,
