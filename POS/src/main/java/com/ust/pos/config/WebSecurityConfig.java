@@ -60,7 +60,7 @@ public class WebSecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
                         .requestMatchers(
                                 "/login",
-                                "/register",
+                                "/api/register",
                                 "/api/role/all",
                                 "/api/authenticate",
                                 "/api/validateToken",
