@@ -26,11 +26,15 @@ const Header = ({ username }) => {
   }, []);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    cookieStore.delete("token");
-    cookieStore.delete("username");
-    globalThis.location.href = "/login";
-  };
+  await fetch("/api/auth/logout", { method: "POST" });
+
+  if ("cookieStore" in window) {
+    await cookieStore.delete("token");
+    await cookieStore.delete("username");
+  }
+
+  window.location.href = "/login";
+};
 
   return (
     <header className="h-14 bg-white border-b border-slate-200 px-6 flex justify-between items-center flex-shrink-0 select-none">
