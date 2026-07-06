@@ -20,7 +20,7 @@ const Register = () => {
   const [roles, setRoles] = useState([]);
 
   useEffect(() => {
-    axios.post("http://localhost:8080/api/role/list", { page: 0, sizePerPage: 10 })
+    axios.post("/api/role/list", { page: 0, sizePerPage: 10 })
       .then((res) => setRoles(res.data.dtoList || res.data || []))
       .catch((err) => console.error("Roles fetch error:", err));
   }, []);
