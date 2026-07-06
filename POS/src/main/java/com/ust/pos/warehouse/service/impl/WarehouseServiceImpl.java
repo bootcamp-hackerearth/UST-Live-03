@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,6 +98,21 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
         wsDto.setTotalPages(warehousePage.getTotalPages());
         wsDto.setTotalRecords(warehousePage.getTotalElements());
 
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<WarehouseDto> findAll(Specification<Warehouse> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<WarehouseDto>>() {
+        }.getType();
+        Page<Warehouse> warehousePage = warehouseRepository.findAll(example,pageable);
+        WsDto<WarehouseDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(warehousePage.getContent(), listType));
+        wsDto.setTotalRecords(warehousePage.getTotalElements());
+        wsDto.setTotalPages(warehousePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
         return wsDto;
     }
 }

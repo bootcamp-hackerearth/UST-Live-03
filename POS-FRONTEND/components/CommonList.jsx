@@ -18,12 +18,12 @@ const CommonList = ({
   const [mode, setMode] = useState("add");
   const [editData, setEditData] = useState(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
-
+ 
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchData();
-  }, [routeName, page]);
+  }, [routeName, page, search]);
 
   const fetchData = async () => {
   try {
@@ -35,7 +35,13 @@ const CommonList = ({
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({ page, sizePerPage: 3 }),
+      
+body: JSON.stringify({
+  page,
+  sizePerPage: 3,
+  keyword: search || null, 
+}),
+
     });
 
     if (res.status === 403) {
@@ -103,14 +109,6 @@ const CommonList = ({
     setEditData(item);
     setOpen(true);
   };
-
-  const filteredData = data.filter((item) =>
-    keys.some((key) =>
-      String(item[key] ?? "")
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    )
-  );
 
   const headers = [...keys, "Edit", "Delete"];
 
@@ -282,7 +280,10 @@ const CommonList = ({
           type="text"
           placeholder="Search..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+  setSearch(e.target.value);
+  setPage(0); 
+}}
           className="w-64 px-3 py-1.5 border rounded-md text-sm"
         />
       </div>
@@ -300,7 +301,7 @@ const CommonList = ({
           </thead>
 
           <tbody>
-            {filteredData.map((item) => {
+           {data.map((item) => {
               const rowKey =
                 item[editField] ??
                 keys.map((k) => String(item[k] ?? "")).join("|") ??

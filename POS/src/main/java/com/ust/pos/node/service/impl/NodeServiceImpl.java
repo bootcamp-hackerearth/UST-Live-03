@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -137,6 +138,21 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         wsDto.setTotalPages(nodePage.getTotalPages());
         wsDto.setTotalRecords(nodePage.getTotalElements());
 
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<NodeDto> findAll(Specification<Node> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> nodePage = nodeRepository.findAll(example,pageable);
+        WsDto<NodeDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(nodePage.getContent(), listType));
+        wsDto.setTotalRecords(nodePage.getTotalElements());
+        wsDto.setTotalPages(nodePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
         return wsDto;
     }
 }

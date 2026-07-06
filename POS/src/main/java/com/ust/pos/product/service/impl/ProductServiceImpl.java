@@ -7,11 +7,14 @@ import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -91,6 +94,21 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         wsDto.setTotalPages(productPage.getTotalPages());
         wsDto.setTotalRecords(productPage.getTotalElements());
 
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<ProductDto> findAll(Specification<Product> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Product> productPage = productRepository.findAll(example,pageable);
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(productPage.getContent(), listType));
+        wsDto.setTotalRecords(productPage.getTotalElements());
+        wsDto.setTotalPages(productPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
         return wsDto;
     }
 }

@@ -4,8 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.User;
 import com.ust.pos.user.service.UserService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
@@ -27,6 +31,7 @@ public class UserApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Developer','Tester','Admin','HackerEarth')")
     public WsDto<UserDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(
                 paginationDto.getPage(),
@@ -34,20 +39,29 @@ public class UserApiController extends BaseController {
                 paginationDto.getSortDirection(),
                 paginationDto.getSortField()
         );
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<User> example = buildGlobalSearchSpec(User.class, paginationDto.getKeyword());
+            if (example != null) {
+                return userService.findAll(example, pageable, paginationDto.getKeyword());
+            }
+        }
         return userService.findAll(pageable);
     }
 
     @PostMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Developer','Tester','Admin','HackerEarth')")
     public UserDto update(@RequestBody String username) {
         return userService.findByUserName(username);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Developer','Tester','Admin','HackerEarth')")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Developer','Tester','Admin','HackerEarth')")
     public boolean delete(Model model, @RequestBody String username) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

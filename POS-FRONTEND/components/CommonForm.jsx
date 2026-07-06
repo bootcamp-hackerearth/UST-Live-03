@@ -284,10 +284,11 @@ export default function CommonForm({
     await onSubmit(formData);
   };
 
-  const formatDate = (date) => {
-    if (!date) return "-";
-    return new Date(date).toLocaleDateString("en-GB");
-  };
+const formatDate = (date) => {
+  if (!date) return "-";
+
+  return new Date(date).toLocaleString("en-GB");
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">

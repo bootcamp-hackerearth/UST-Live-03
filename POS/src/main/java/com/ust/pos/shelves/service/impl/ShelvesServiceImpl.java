@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,5 +115,20 @@ public class ShelvesServiceImpl extends BaseService implements ShelvesService {
             shelves.setStatus(!shelves.isStatus());
             shelvesRepository.save(shelves);
         }
+    }
+
+    @Override
+    public WsDto<ShelvesDto> findAll(Specification<Shelves> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<ShelvesDto>>() {
+        }.getType();
+        Page<Shelves> shelvesPage = shelvesRepository.findAll(example,pageable);
+        WsDto<ShelvesDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(shelvesPage.getContent(), listType));
+        wsDto.setTotalRecords(shelvesPage.getTotalElements());
+        wsDto.setTotalPages(shelvesPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

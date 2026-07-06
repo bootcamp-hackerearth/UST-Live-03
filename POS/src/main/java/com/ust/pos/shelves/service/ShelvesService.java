@@ -4,6 +4,7 @@ import com.ust.pos.dto.ShelvesDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelves;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -22,5 +23,6 @@ public interface ShelvesService {
 
     void toggleStatus(String identifier);
 
-
+    WsDto<ShelvesDto> findAll(Specification<Shelves> example, Pageable pageable, String keyword);
+    
 }

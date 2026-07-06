@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,6 +113,20 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         }.getType();
 
         return modelMapper.map(categorys, listType);
+    }
 
+    @Override
+    public WsDto<CategoryDto> findAll(Specification<Category> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        Page<Category> categoryPage = categoryRepository.findAll(example,pageable);
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(categoryPage.getContent(), listType));
+        wsDto.setTotalRecords(categoryPage.getTotalElements());
+        wsDto.setTotalPages(categoryPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

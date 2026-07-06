@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,9 +51,9 @@ public class UserServiceImpl extends BaseService implements UserService {
         if (existingUser != null) {
             userDto.setMessage(
                     existingUser.isDeleted()
-                            ? " Brand with identifier - " + userDto.getUsername()
+                            ? " User with identifier - " + userDto.getUsername()
                             + " already exists but was deleted, Please contact Administrator."
-                            : " Brand with identifier - " + userDto.getUsername()
+                            : " User with identifier - " + userDto.getUsername()
                             + " already exists."
             );
             userDto.setSuccess(false);
@@ -124,6 +125,21 @@ public class UserServiceImpl extends BaseService implements UserService {
         wsDto.setTotalPages(userPage.getTotalPages());
         wsDto.setTotalRecords(userPage.getTotalElements());
 
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<UserDto> findAll(Specification<User> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> userPage = userRepository.findAll(example,pageable);
+        WsDto<UserDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(userPage.getContent(), listType));
+        wsDto.setTotalRecords(userPage.getTotalElements());
+        wsDto.setTotalPages(userPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
         return wsDto;
     }
 }

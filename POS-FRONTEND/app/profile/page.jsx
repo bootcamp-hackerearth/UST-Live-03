@@ -9,36 +9,32 @@ export default function Profile() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const username = localStorage.getItem("username");
+  const username = localStorage.getItem("username");
 
-    if (token === null) {
-      alert("Session expired. Please login again.");
-      router.push("/login");
-      return;
-    }
+  if (username) {
+    axios
+      .post("http://localhost:8080/api/user/get", username, {
+        headers: {
+          "Content-Type": "text/plain",
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        setUser(res.data);
+      })
+      .catch((err) => {
+        console.error("Profile fetch failed:", err);
 
-    if (username) {
-      axios
-        .post("http://localhost:8080/api/user/get", username, {
-          headers: {
-            "Content-Type": "text/plain",
-          },
-          withCredentials: true,
-        })
-        .then((res) => {
-          setUser(res.data);
-        })
-        .catch((err) => {
-          console.error("Profile fetch failed:", err);
-
-          if (err.response?.status === 403) {
-            alert("Session expired. Please login again.");
-            localStorage.clear();
-            router.push("/login");
-          }
-        });
-    }
-  }, [token, router]);
+        if (
+          err.response?.status === 401 ||
+          err.response?.status === 403
+        ) {
+          localStorage.clear();
+          router.push("/login");
+        }
+      });
+  }
+}, [router]);
 
   const handleChange = (e) => {
     setUser({
@@ -49,13 +45,14 @@ export default function Profile() {
 
   const handleUpdate = async () => {
     try {
-      const response = await axios.post(
+      const response = await axios.put(
         "http://localhost:8080/api/user/update",
         user,
         {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
 
