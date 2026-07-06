@@ -22,10 +22,6 @@ function Register() {
   roles: [],
 });
 
-useEffect(() => {
-  fetchRoles();
-}, []);
-
 const fetchRoles = async () => {
   try {
     const res = await axiosInstance.post("/role/list", {
