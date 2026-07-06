@@ -38,6 +38,7 @@ export default function EditBrand() {
  
   return (
     <Layout>
+     <Suspense fallback={<div>Loading...</div>}>
       <CommonEdit
         title="Brand"
         apiPath="brand"
@@ -45,6 +46,7 @@ export default function EditBrand() {
         identifierField="identifier"
         onSuccessPath="/brand/list"
       />
+      </Suspense>
     </Layout>
   );
 }
