@@ -43,14 +43,14 @@ function Register() {
     setError("");
     setMessage("");
 
+    // Role is optional
     if (
       !username.trim() ||
       !name.trim() ||
       !phoneNo.trim() ||
-      role.length === 0 ||
       !password.trim()
     ) {
-      setError("Please fill all fields");
+      setError("Please fill all required fields");
       return;
     }
 
@@ -60,11 +60,11 @@ function Register() {
     }
 
     try {
-      const res = await axios.post("http://localhost:8080/register", {
+      const res = await axios.post("http://15.135.90.247:8080/register", {
         username,
         name,
         phoneNo,
-        roles: role,
+        roles: role, // [] if nothing is selected
         password,
       });
 
@@ -89,6 +89,11 @@ function Register() {
       );
     }
   };
+
+  const roleOptions = roles.map((r) => ({
+    label: r.identifier,
+    value: r.identifier,
+  }));
 
   return (
     <div className="registerContainer">
@@ -120,9 +125,9 @@ function Register() {
           value={phoneNo}
           maxLength={10}
           onChange={(e) => {
-  const value = e.target.value.replaceAll(/\D/g, "");
-  setPhoneNo(value.slice(0, 10));
-}}
+            const value = e.target.value.replace(/\D/g, "");
+            setPhoneNo(value.slice(0, 10));
+          }}
           className="registerInput"
         />
 
@@ -133,19 +138,13 @@ function Register() {
             isSearchable
             isLoading={loadingRoles}
             classNamePrefix="react-select"
-            placeholder="Select Roles"
-            options={roles.map((r) => ({
-              label: r.identifier,
-              value: r.identifier,
-            }))}
-            value={roles
-              .map((r) => ({
-                label: r.identifier,
-                value: r.identifier,
-              }))
-              .filter((option) => role.includes(option.value))}
+            placeholder="Select Roles (Optional)"
+            options={roleOptions}
+            value={roleOptions.filter((option) =>
+              role.includes(option.value)
+            )}
             onChange={(selected) =>
-              setRole(selected ? selected.map((i) => i.value) : [])
+              setRole(selected ? selected.map((item) => item.value) : [])
             }
           />
         </div>
@@ -162,7 +161,6 @@ function Register() {
           Register
         </button>
 
-        {/* FIXED: span → button (accessible) */}
         <p className="linkText">
           Already have an account?{" "}
           <button
