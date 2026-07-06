@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -100,6 +102,18 @@ class RoleServiceTest {
     }
 
     @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.findByIdentifier("Admin")
+        );
+
+        Assertions.assertEquals("Role with identifier 'Admin'not found", exception.getMessage());
+    }
+
+    @Test
     void updateTest() {
         RoleDto roleDto = new RoleDto();
         roleDto.setIdentifier("Admin");
@@ -163,6 +177,32 @@ class RoleServiceTest {
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
         List<RoleDto> response = roleService.findAll(pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Role role = new Role();
+        role.setIdentifier("Admin");
+
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("Admin");
+
+        Page<Role> page = new PageImpl<>(List.of(role));
+        Specification<Role> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(roleRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(roleDto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        List<RoleDto> response = roleService.findAll(spec, pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Admin", response.get(0).getIdentifier());

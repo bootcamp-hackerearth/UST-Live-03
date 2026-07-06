@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -98,6 +100,18 @@ class ShelfServiceTest {
     }
 
     @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(shelfsRepository.findByIdentifier("Shelf")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfsService.findByIdentifier("Shelf")
+        );
+
+        Assertions.assertEquals("Shelf with identifier 'Shelf'not found", exception.getMessage());
+    }
+
+    @Test
     void updateTestSuccess() {
         ShelfDto shelfsDto = new ShelfDto();
         shelfsDto.setIdentifier("Shelf");
@@ -169,6 +183,31 @@ class ShelfServiceTest {
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
         List<ShelfDto> response = shelfsService.findAll(pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Shelf");
+
+        ShelfDto dto = new ShelfDto();
+        dto.setIdentifier("Shelf");
+
+        Page<Shelf> page = new PageImpl<>(List.of(shelf));
+        Specification<Shelf> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(shelfsRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(dto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        List<ShelfDto> response = shelfsService.findAll(spec, pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
     }

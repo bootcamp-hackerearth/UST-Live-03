@@ -3,6 +3,7 @@ package com.ust.pos.racks.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.RacksService;
@@ -52,7 +53,7 @@ public class RacksServiceImpl extends CommonService implements RacksService {
     @Override
     public RacksDto findById(Long id) {
         Racks racks = racksRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Racks not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Racks not found with id " + id));
         return modelMapper.map(racks, RacksDto.class);
     }
 
@@ -96,6 +97,9 @@ public class RacksServiceImpl extends CommonService implements RacksService {
     @Override
     public RacksDto findByIdentifier(String identifier) {
         Racks racks = racksRepository.findByIdentifier(identifier);
+        if (racks == null) {
+            throw new ResourceNotFoundException("Racks with identifier '" + identifier + "'not found");
+        }
         return modelMapper.map(racks, RacksDto.class);
     }
 

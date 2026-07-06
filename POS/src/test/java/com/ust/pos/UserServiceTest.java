@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -236,6 +237,32 @@ class UserServiceTest {
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
         List<UserDto> response = userService.findAll(pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("admin@test.com", response.get(0).getUsername());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        User user = new User();
+        user.setUsername("admin@test.com");
+
+        UserDto userDto = new UserDto();
+        userDto.setUsername("admin@test.com");
+
+        Page<User> page = new PageImpl<>(List.of(user));
+        Specification<User> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(userRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(userDto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        List<UserDto> response = userService.findAll(spec, pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("admin@test.com", response.get(0).getUsername());

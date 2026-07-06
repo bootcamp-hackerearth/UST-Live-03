@@ -6,6 +6,7 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
@@ -188,6 +189,6 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
 
         return customerRepository.findById(id)
                 .map(customer -> modelMapper.map(customer, CustomerDto.class))
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id " + id));
     }
 }

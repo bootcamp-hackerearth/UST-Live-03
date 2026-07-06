@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.impl.RacksServiceImpl;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -81,6 +83,18 @@ class RacksServiceTest {
     }
 
     @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(racksRepository.findByIdentifier("Rack")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> racksService.findByIdentifier("Rack")
+        );
+
+        Assertions.assertEquals("Racks with identifier 'Rack'not found", exception.getMessage());
+    }
+
+    @Test
     void updateTest() {
         RacksDto racksDto = new RacksDto();
         racksDto.setIdentifier("Rack");
@@ -144,6 +158,32 @@ class RacksServiceTest {
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
         List<RacksDto> response = racksService.findAll(pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("Rack", response.get(0).getIdentifier());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Racks racks = new Racks();
+        racks.setIdentifier("Rack");
+
+        RacksDto racksDto = new RacksDto();
+        racksDto.setIdentifier("Rack");
+
+        Page<Racks> page = new PageImpl<>(List.of(racks));
+        Specification<Racks> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(racksRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<RacksDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(racksDto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        List<RacksDto> response = racksService.findAll(spec, pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Rack", response.get(0).getIdentifier());

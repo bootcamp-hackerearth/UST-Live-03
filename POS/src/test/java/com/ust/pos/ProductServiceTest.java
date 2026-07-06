@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -85,13 +87,16 @@ class ProductServiceTest {
     }
 
     @Test
-    void findByIdTest_NotFound_returnsNull() {
+    void findByIdTestNotFoundThrowsException() {
         Mockito.when(productRepository.findById(99L))
                 .thenReturn(Optional.empty());
 
-        ProductDto response = productService.findById(99L);
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> productService.findById(99L)
+        );
 
-        Assertions.assertNull(response);
+        Assertions.assertEquals("Product not found with id 99", exception.getMessage());
     }
 
     @Test
@@ -114,6 +119,32 @@ class ProductServiceTest {
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
         List<ProductDto> response = productService.findAll(pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("PROD-1", response.get(0).getIdentifier());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Product product = new Product();
+        product.setIdentifier("PROD-1");
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("PROD-1");
+
+        Page<Product> page = new PageImpl<>(List.of(product));
+        Specification<Product> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(productRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(dto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        List<ProductDto> response = productService.findAll(spec, pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("PROD-1", response.get(0).getIdentifier());

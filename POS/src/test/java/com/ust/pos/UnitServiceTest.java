@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -124,6 +126,32 @@ class UnitServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+        Unit unit = new Unit();
+        unit.setIdentifier("Unit");
+
+        UnitDto unitDto = new UnitDto();
+        unitDto.setIdentifier("Unit");
+
+        Page<Unit> page = new PageImpl<>(List.of(unit));
+        Specification<Unit> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(unitRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(unitDto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        List<UnitDto> response = unitService.findAll(spec, pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("Unit", response.get(0).getIdentifier());
+    }
+
+    @Test
     void updateTestSuccess() {
         UnitDto unitDto = new UnitDto();
         unitDto.setIdentifier("Unit");
@@ -189,6 +217,18 @@ class UnitServiceTest {
         UnitDto response = unitService.findByIdentifier("Unit");
 
         Assertions.assertEquals("Unit", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(unitRepository.findByIdentifier("Unit")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.findByIdentifier("Unit")
+        );
+
+        Assertions.assertEquals("Unit with identifier 'Unit'not found", exception.getMessage());
     }
 
     @Test

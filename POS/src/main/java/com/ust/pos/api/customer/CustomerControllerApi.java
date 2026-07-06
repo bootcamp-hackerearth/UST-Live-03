@@ -9,6 +9,7 @@ import com.ust.pos.model.Customer;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -23,6 +24,7 @@ public class CustomerControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Employee')")
     public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -36,6 +38,7 @@ public class CustomerControllerApi extends BaseController {
 
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Employee')")
     public CustomerDto save(@RequestBody CustomerDto customerDto) {
         return customerService.save(customerDto);
 

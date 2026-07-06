@@ -5,6 +5,7 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,11 +23,13 @@ public class CartControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Employee')")
     public CartDto addCart(@RequestBody CartDto cartDto) {
         return cartService.save(cartDto);
     }
 
     @PostMapping("/getCart")
+    @PreAuthorize("hasAnyAuthority('Admin','Employee')")
     public CartDto getCart(@RequestBody CartDto cartDto) {
         return cartService.findByIdentifier(cartDto.getIdentifier());
     }

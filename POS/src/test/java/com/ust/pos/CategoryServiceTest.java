@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -127,6 +128,26 @@ class CategoryServiceTest {
 
         List<CategoryDto> result =
                 categoryService.findAll(PageRequest.of(0, 50, Sort.unsorted())).getDtoList();
+
+        assertEquals(1, result.size());
+        assertEquals("FOOD", result.get(0).getIdentifier());
+    }
+
+    @Test
+    void findAllWithSpecificationShouldReturnList() {
+        Page<Category> page = new PageImpl<>(List.of(category));
+        Specification<Category> spec = mock(Specification.class);
+
+        when(categoryRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(categoryDto));
+
+        List<CategoryDto> result =
+                categoryService.findAll(spec, PageRequest.of(0, 50, Sort.unsorted())).getDtoList();
 
         assertEquals(1, result.size());
         assertEquals("FOOD", result.get(0).getIdentifier());

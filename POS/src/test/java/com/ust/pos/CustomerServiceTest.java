@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -175,6 +176,25 @@ class CustomerServiceTest {
 
         List<CustomerDto> result =
                 customerService.findAll(PageRequest.of(0, 5)).getDtoList();
+
+        Assertions.assertEquals(1, result.size());
+    }
+
+    @Test
+    void findAllCustomersWithSpecification() {
+        Page<Customer> page = new PageImpl<>(List.of(new Customer()));
+        Specification<Customer> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(customerRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(Mockito.any(), Mockito.eq(listType)))
+                .thenReturn(List.of(new CustomerDto()));
+
+        List<CustomerDto> result =
+                customerService.findAll(spec, PageRequest.of(0, 5)).getDtoList();
 
         Assertions.assertEquals(1, result.size());
     }

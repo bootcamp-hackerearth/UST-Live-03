@@ -3,6 +3,7 @@ package com.ust.pos.stock.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -111,7 +112,7 @@ public class StockServiceImpl extends CommonService implements StockService {
 
         return stockRepository.findById(id)
                 .map(stock -> modelMapper.map(stock, StockDto.class))
-                .orElseThrow(() -> new RuntimeException("Stock not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Stock not found with id " + id));
 
     }
 
@@ -126,6 +127,9 @@ public class StockServiceImpl extends CommonService implements StockService {
     @Override
     public StockDto findByIdentifier(String identifier) {
         Stock stock = stockRepository.findByIdentifier(identifier);
+        if (stock == null) {
+            throw new ResourceNotFoundException("Stock with identifier '" + identifier + "'not found");
+        }
         return modelMapper.map(stock, StockDto.class);
     }
 }

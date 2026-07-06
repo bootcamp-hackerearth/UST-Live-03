@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -128,6 +130,32 @@ class BrandServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+        Brand brand = new Brand();
+        brand.setIdentifier("Nike");
+
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("Nike");
+
+        Page<Brand> page = new PageImpl<>(List.of(brand));
+        Specification<Brand> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(brandRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(brandDto));
+
+        Pageable pageable = PageRequest.of(0, 10);
+        List<BrandDto> response = brandService.findAll(spec, pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("Nike", response.get(0).getIdentifier());
+    }
+
+    @Test
     void updateTestSuccess() {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("Nike");
@@ -210,6 +238,19 @@ class BrandServiceTest {
         BrandDto response = brandService.findByIdentifier("Nike");
 
         Assertions.assertEquals("Nike", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(brandRepository.findByIdentifier("Nike"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.findByIdentifier("Nike")
+        );
+
+        Assertions.assertEquals("Brand with identifier 'Nike'not found", exception.getMessage());
     }
 
     @Test

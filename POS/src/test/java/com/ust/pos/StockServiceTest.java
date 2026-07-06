@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -207,7 +209,7 @@ class StockServiceTest {
                 () -> stockService.findById(99L)
         );
 
-        Assertions.assertEquals("Stock not found", exception.getMessage());
+        Assertions.assertEquals("Stock not found with id 99", exception.getMessage());
     }
 
     @Test
@@ -247,5 +249,43 @@ class StockServiceTest {
         StockDto response = stockService.findByIdentifier("STOCK-1");
 
         Assertions.assertEquals("STOCK-1", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(stockRepository.findByIdentifier("STOCK-1")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> stockService.findByIdentifier("STOCK-1")
+        );
+
+        Assertions.assertEquals("Stock with identifier 'STOCK-1'not found", exception.getMessage());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Stock stock = new Stock();
+        stock.setIdentifier("STOCK-1");
+
+        StockDto dto = new StockDto();
+        dto.setIdentifier("STOCK-1");
+
+        Page<Stock> page = new PageImpl<>(List.of(stock));
+        Specification<Stock> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(stockRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(dto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        List<StockDto> response = stockService.findAll(spec, pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("STOCK-1", response.get(0).getIdentifier());
     }
 }

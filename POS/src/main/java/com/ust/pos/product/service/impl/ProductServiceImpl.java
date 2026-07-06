@@ -3,6 +3,7 @@ package com.ust.pos.product.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -105,7 +106,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
 
         return productRepository.findById(id)
                 .map(product -> modelMapper.map(product, ProductDto.class))
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id " + id));
 
     }
 

@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axiosInstance from "../api/axiosInstance";
+import ErrorModal from "./ErrorModal";
 
 function renderCell(col, item, showStatus, toggleStatus, statusKey) {
   if (col.field === "status" && showStatus) {
@@ -45,6 +46,7 @@ const ListTemplate = ({
   const [totalRecords, setTotalRecords] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteError, setDeleteError] = useState("");
+  const [modalError, setModalError] = useState(null);
   const debounceRef = useRef(null);
   const router = useRouter();
 
@@ -81,13 +83,10 @@ const ListTemplate = ({
         responseData.totalRecords ?? (Array.isArray(list) ? list.length : 0)
       );
     } catch (err) {
-      console.error("Fetch Error:", err);
-      const status = err?.response?.status;
-      if (status === 500) {
-        // redirect to custom 500 page
-        router.push('/500');
-        return;
-      }
+      setModalError({
+        status: err?.response?.status,
+        message: err?.response?.data?.message || err.message || `Unable to load ${title}.`,
+      });
     } finally {
       setLoading(false);
     }
@@ -113,12 +112,10 @@ const ListTemplate = ({
       }
       fetchData(page);
     } catch (err) {
-      console.error("Delete Error:", err);
-      const status = err?.response?.status;
-      if (status === 500) {
-        router.push('/500');
-        return;
-      }
+      setModalError({
+        status: err?.response?.status,
+        message: err?.response?.data?.message || err.message || "Unable to delete record.",
+      });
     }
   };
 
@@ -130,12 +127,10 @@ const ListTemplate = ({
       });
       fetchData(page);
     } catch (err) {
-      console.error("Toggle Error:", err);
-      const status = err?.response?.status;
-      if (status === 500) {
-        router.push('/500');
-        return;
-      }
+      setModalError({
+        status: err?.response?.status,
+        message: err?.response?.data?.message || err.message || "Unable to update status.",
+      });
     }
   };
 
@@ -144,6 +139,11 @@ const ListTemplate = ({
 
   return (
     <div className="w-full max-w-full">
+      <ErrorModal
+        status={modalError?.status}
+        message={modalError?.message}
+        onClose={() => setModalError(null)}
+      />
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">{title || "Management"}</h2>

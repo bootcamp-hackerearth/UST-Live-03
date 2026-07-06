@@ -3,6 +3,7 @@ package com.ust.pos.models.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
@@ -52,7 +53,7 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
     @Override
     public ModelsDto findById(Long id) {
 
-        Models models = modelsRepository.findById(id).orElseThrow(() -> new RuntimeException("Models not found with id " + id));
+        Models models = modelsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Models not found with id " + id));
         return modelMapper.map(models, ModelsDto.class);
 
     }

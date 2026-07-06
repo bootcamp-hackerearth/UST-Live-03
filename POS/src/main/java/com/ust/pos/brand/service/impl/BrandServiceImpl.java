@@ -55,7 +55,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
     public BrandDto findById(Long id) {
 
         Brand brand = brandRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Brand not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Brand not found with id " + id));
         return modelMapper.map(brand, BrandDto.class);
     }
 

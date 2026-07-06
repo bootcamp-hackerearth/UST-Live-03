@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -90,6 +92,18 @@ class NodeServiceTest {
     }
 
     @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(nodeRepository.findByIdentifier("Admin")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> nodeService.findByIdentifier("Admin")
+        );
+
+        Assertions.assertEquals("Node with identifier 'Admin'not found", exception.getMessage());
+    }
+
+    @Test
     void updateTest() {
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("Admin");
@@ -151,6 +165,31 @@ class NodeServiceTest {
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
         WsDto<NodeDto> response = nodeService.findAll(pageable);
+
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Node node = new Node();
+        node.setIdentifier("Admin");
+
+        NodeDto nodeDto = new NodeDto();
+        nodeDto.setIdentifier("Admin");
+
+        Page<Node> page = new PageImpl<>(List.of(node));
+        Specification<Node> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(nodeRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType)).thenReturn(List.of(nodeDto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        WsDto<NodeDto> response = nodeService.findAll(spec, pageable);
 
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals("Admin", response.getDtoList().get(0).getIdentifier());

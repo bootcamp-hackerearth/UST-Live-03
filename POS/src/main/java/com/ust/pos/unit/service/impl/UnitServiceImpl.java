@@ -3,6 +3,7 @@ package com.ust.pos.unit.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
@@ -52,7 +53,7 @@ public class UnitServiceImpl extends CommonService implements UnitService {
     @Override
     public UnitDto findById(Long id) {
 
-        Unit unit = unitRepository.findById(id).orElseThrow(() -> new RuntimeException("Unit not found with id " + id));
+        Unit unit = unitRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Unit not found with id " + id));
         return modelMapper.map(unit, UnitDto.class);
 
     }
@@ -116,6 +117,9 @@ public class UnitServiceImpl extends CommonService implements UnitService {
     @Override
     public UnitDto findByIdentifier(String identifier) {
         Unit unit = unitRepository.findByIdentifier(identifier);
+        if (unit == null) {
+            throw new ResourceNotFoundException("Unit with identifier '" + identifier + "'not found");
+        }
         return modelMapper.map(unit, UnitDto.class);
     }
 }

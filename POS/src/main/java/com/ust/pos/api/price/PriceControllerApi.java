@@ -11,6 +11,7 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -25,6 +26,7 @@ public class PriceControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Employee')")
     public WsDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -38,6 +40,7 @@ public class PriceControllerApi extends BaseController {
 
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public PriceDto save(@RequestBody PriceDto priceDto) {
 
         return priceService.save(priceDto);

@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -71,6 +73,18 @@ class PriceServiceTest {
         PriceDto response = priceService.findByIdentifier("Admin");
 
         Assertions.assertEquals("Admin", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(priceRepository.findByIdentifier("Admin")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> priceService.findByIdentifier("Admin")
+        );
+
+        Assertions.assertEquals("Price with identifier 'Admin'not found", exception.getMessage());
     }
 
     @Test
@@ -172,6 +186,32 @@ class PriceServiceTest {
 
         Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
         List<PriceDto> response = priceService.findAll(pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+        Assertions.assertEquals("Admin", response.get(0).getIdentifier());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Price price = new Price();
+        price.setIdentifier("Admin");
+
+        PriceDto priceDto = new PriceDto();
+        priceDto.setIdentifier("Admin");
+
+        Page<Price> page = new PageImpl<>(List.of(price));
+        Specification<Price> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(priceRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(priceDto));
+
+        Pageable pageable = PageRequest.of(0, 50, Sort.unsorted());
+        List<PriceDto> response = priceService.findAll(spec, pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Admin", response.get(0).getIdentifier());

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -114,6 +115,28 @@ class ModelsServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
         List<ModelsDto> response = modelsService.findAll(pageable).getDtoList();
+
+        Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void findAllWithSpecificationSuccess() {
+        Models models = new Models();
+        ModelsDto dto = new ModelsDto();
+
+        Page<Models> page = new PageImpl<>(List.of(models));
+        Specification<Models> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(modelsRepository.findAll(Mockito.any(Specification.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Type listType = new TypeToken<List<ModelsDto>>() {
+        }.getType();
+        Mockito.when(modelMapper.map(page.getContent(), listType))
+                .thenReturn(List.of(dto));
+
+        Pageable pageable = PageRequest.of(0, 10);
+        List<ModelsDto> response = modelsService.findAll(spec, pageable).getDtoList();
 
         Assertions.assertEquals(1, response.size());
     }

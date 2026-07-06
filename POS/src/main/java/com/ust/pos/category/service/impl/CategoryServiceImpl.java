@@ -4,6 +4,7 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
@@ -52,7 +53,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
     public CategoryDto findById(Long id) {
 
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
 
         return modelMapper.map(category, CategoryDto.class);
 

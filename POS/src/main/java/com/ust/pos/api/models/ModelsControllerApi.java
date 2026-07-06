@@ -9,6 +9,7 @@ import com.ust.pos.models.service.ModelsService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class ModelsControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<ModelsDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -40,6 +42,7 @@ public class ModelsControllerApi extends BaseController {
 
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public ModelsDto addPost(@RequestBody ModelsDto modelsDto) {
         return modelsService.save(modelsDto);
     }

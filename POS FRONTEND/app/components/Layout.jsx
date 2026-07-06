@@ -5,7 +5,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import Footer from "./Footer";
 
-const noLayoutPaths = new Set(["/Login", "/Register", "/500"]);
+const noLayoutPaths = new Set(["/Login", "/Register"]);
 
 function Layout({ children }) {
   const pathname = usePathname();

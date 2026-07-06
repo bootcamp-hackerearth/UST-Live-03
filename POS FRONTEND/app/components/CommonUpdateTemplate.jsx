@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import axiosInstance from "../api/axiosInstance";
 import FormShell from "./FormShell";
+import ErrorModal from "./ErrorModal";
 import { applyFieldTransforms, formatAuditDate } from "../lib/fieldUtils";
 
 function CommonUpdateTemplate({
@@ -30,6 +31,7 @@ function CommonUpdateTemplate({
   const [values, setValues] = useState({});
   const [recordData, setRecordData] = useState(null);
   const [error, setError] = useState("");
+  const [modalError, setModalError] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -59,7 +61,10 @@ function CommonUpdateTemplate({
         });
         setValues(nextValues);
       } catch (err) {
-        setError(err?.response?.data?.message || err.message || `Unable to load ${title}.`);
+        setModalError({
+          status: err?.response?.status,
+          message: err?.response?.data?.message || err.message || `Unable to load ${title}.`,
+        });
       } finally {
         setPageLoading(false);
       }
@@ -96,7 +101,10 @@ function CommonUpdateTemplate({
       }
       router.push(onSuccessPath || `/${apiPath}`);
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || "Unable to update.");
+      setModalError({
+        status: err?.response?.status,
+        message: err?.response?.data?.message || err.message || "Unable to update.",
+      });
     } finally {
       setLoading(false);
     }
@@ -173,6 +181,11 @@ function CommonUpdateTemplate({
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
+      <ErrorModal
+        status={modalError?.status}
+        message={modalError?.message}
+        onClose={() => setModalError(null)}
+      />
       <FormShell
         title={title}
         mode="update"
