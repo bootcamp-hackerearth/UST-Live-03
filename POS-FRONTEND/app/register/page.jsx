@@ -48,7 +48,7 @@ const Register = () => {
     }
 
     const formData = new URLSearchParams(user);
-    axios.post("http://localhost:8080/register", formData, {
+    axios.post("/register", formData, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     })
       .then((res) => {
