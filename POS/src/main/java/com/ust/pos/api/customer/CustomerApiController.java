@@ -5,7 +5,11 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
+import com.ust.pos.model.Customer;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,33 +26,46 @@ public class CustomerApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public PaginationResponseDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Customer> example = buildGlobalSearchSpec(Customer.class, paginationDto.getKeyword());
+            if (example != null) {
+                return customerService.findAll(example, pageable);
+            }
+        }
+
         return customerService.findAll(pageable);
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public CustomerDto addPost(@RequestBody CustomerDto customerDto) {
         return customerService.save(customerDto);
     }
 
     @PutMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public CustomerDto toggleStatus(@RequestBody CustomerDto dto) {
         return customerService.updateStatus(dto.getIdentifier(), dto.isStatus());
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public CustomerDto update(@RequestParam String identifier, Model model) {
         return customerService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);
@@ -59,6 +76,7 @@ public class CustomerApiController extends BaseController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public List<CustomerDto> search(@RequestParam String query) {
         return customerService.searchCustomer(query);
     }

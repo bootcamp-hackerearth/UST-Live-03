@@ -7,11 +7,13 @@ import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
+import com.ust.pos.model.Customer;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -20,6 +22,7 @@ import java.util.List;
 @Service
 public class BrandServiceImpl extends BaseService implements BrandService {
 
+    public static final String BRAND = "Brand";
     private final BrandRepository brandRepository;
     private final ModelMapper modelMapper;
 
@@ -48,6 +51,23 @@ public class BrandServiceImpl extends BaseService implements BrandService {
     }
 
     @Override
+    public PaginationResponseDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Page<Brand> page = brandRepository.findAll(example, pageable);
+
+        PaginationResponseDto<BrandDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
+
+        return paginationResponseDto;
+    }
+
+    @Override
     public List<BrandDto> findByStatusTrue() {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
@@ -69,66 +89,73 @@ public class BrandServiceImpl extends BaseService implements BrandService {
     public BrandDto save(BrandDto brandDto) {
         String identifier = brandDto.getIdentifier();
         Brand brand = brandRepository.findByIdentifier(identifier);
-        if (brand == null) {
-            brandDto.setSuccess(true);
-            brand = modelMapper.map(brandDto, Brand.class);
-            setCreatedDetails(brand);
-            brandRepository.save(brand);
-            brandDto.setMessage("Successfully added the brand");
-            brandDto.setSuccess(true);
-        } else if (isSoftDeleted(brand)) {
-            brandDto.setMessage(
-                    getDeletedMessage("Brand", identifier)
+
+        if (brand != null) {
+
+            if (isSoftDeleted(brand)) {
+                throw new IllegalStateException(
+                        getDeletedMessage(BRAND, identifier)
+                );
+            }
+            throw new IllegalArgumentException(
+                    "Brand " + identifier + " already exists"
             );
-            brandDto.setSuccess(false);
-        } else {
-            brandDto.setMessage("Brand " + identifier + " already exists");
-            brandDto.setSuccess(false);
         }
+
+        brand = modelMapper.map(brandDto, Brand.class);
+        setCreatedDetails(brand);
+        brandRepository.save(brand);
+
+        brandDto.setSuccess(true);
+        brandDto.setMessage("Successfully added the brand");
+
         return brandDto;
     }
 
     @Override
     public BrandDto update(BrandDto brandDto) {
         String identifier = brandDto.getIdentifier();
-        Brand existingBrand = brandRepository.findByIdentifier(identifier);
-        if (existingBrand != null) {
+        Brand existingBrand =
+                brandRepository.findByIdentifier(identifier);
 
-            if (isSoftDeleted(existingBrand)) {
-                brandDto.setSuccess(false);
-                brandDto.setMessage(
-                        getDeletedMessage("Brand", identifier)
-                );
-                return brandDto;
-            }
-            modelMapper.map(brandDto, existingBrand);
-
-            setModifiedDetails(existingBrand);
-            brandRepository.save(existingBrand);
-
-            brandDto.setMessage("Successfully updated the brand");
-            brandDto.setSuccess(true);
-            return brandDto;
+        if (existingBrand == null) {
+            throw new ResourceNotFoundException(
+                    "Brand not found"
+            );
         }
-        brandDto.setSuccess(false);
-        brandDto.setMessage("Brand not found");
+
+        if (isSoftDeleted(existingBrand)) {
+            throw new IllegalStateException(
+                    getDeletedMessage(BRAND, identifier)
+            );
+        }
+
+        modelMapper.map(brandDto, existingBrand);
+        setModifiedDetails(existingBrand);
+        brandRepository.save(existingBrand);
+
+        brandDto.setSuccess(true);
+        brandDto.setMessage("Successfully updated the brand");
+
         return brandDto;
     }
 
     @Override
     @Transactional
     public BrandDto updateStatus(String identifier, boolean status) {
-        BrandDto response = new BrandDto();
+        Brand brand =
+                brandRepository.findByIdentifier(identifier);
 
-        Brand brand = brandRepository.findByIdentifier(identifier);
         if (brand == null) {
-            response.setSuccess(false);
-            response.setMessage("Brand not found");
-            return response;
+            throw new ResourceNotFoundException(
+                    "Brand not found"
+            );
         }
 
         setModifiedDetails(brand);
         brand.setStatus(status);
+
+        BrandDto response = new BrandDto();
         response.setSuccess(true);
         response.setMessage("Status updated successfully");
 
@@ -138,7 +165,22 @@ public class BrandServiceImpl extends BaseService implements BrandService {
     @Override
     @Transactional
     public void delete(String identifier) {
-        Brand brand = brandRepository.findByIdentifier(identifier);
+
+        Brand brand =
+                brandRepository.findByIdentifier(identifier);
+
+        if (brand == null) {
+            throw new ResourceNotFoundException(
+                    "Brand not found"
+            );
+        }
+
+        if (isSoftDeleted(brand)) {
+            throw new IllegalStateException(
+                    getDeletedMessage(BRAND, identifier)
+            );
+        }
+
         softDelete(brand);
         setModifiedDetails(brand);
         brandRepository.save(brand);

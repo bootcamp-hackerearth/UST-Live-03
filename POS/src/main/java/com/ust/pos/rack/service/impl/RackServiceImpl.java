@@ -1,8 +1,8 @@
 package com.ust.pos.rack.service.impl;
 
 import com.ust.pos.base.service.BaseService;
-import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -41,6 +42,23 @@ public class RackServiceImpl extends BaseService implements RackService {
         paginationResponseDto.setSizePerPage(rackPage.getSize());
         paginationResponseDto.setTotalPages(rackPage.getTotalPages());
         paginationResponseDto.setTotalRecords(rackPage.getTotalElements());
+
+        return paginationResponseDto;
+    }
+
+    @Override
+    public PaginationResponseDto<RackDto> findAll(Specification<Rack> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RackDto>>() {
+        }.getType();
+        Page<Rack> page = rackRepository.findAll(example, pageable);
+
+        PaginationResponseDto<RackDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
 
         return paginationResponseDto;
     }

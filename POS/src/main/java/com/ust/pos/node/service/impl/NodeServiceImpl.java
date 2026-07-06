@@ -1,18 +1,17 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.base.service.BaseService;
+import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationResponseDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -171,6 +170,23 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         paginationResponseDto.setSizePerPage(nodePage.getSize());
         paginationResponseDto.setTotalPages(nodePage.getTotalPages());
         paginationResponseDto.setTotalRecords(nodePage.getTotalElements());
+
+        return paginationResponseDto;
+    }
+
+    @Override
+    public PaginationResponseDto<NodeDto> findAll(Specification<Node> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> page = nodeRepository.findAll(example, pageable);
+
+        PaginationResponseDto<NodeDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
 
         return paginationResponseDto;
     }

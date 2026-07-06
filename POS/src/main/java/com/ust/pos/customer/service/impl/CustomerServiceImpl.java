@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -188,6 +189,23 @@ public class CustomerServiceImpl extends BaseService implements CustomerService 
         paginationResponseDto.setTotalRecords(
                 customerPage.getTotalElements()
         );
+
+        return paginationResponseDto;
+    }
+
+    @Override
+    public PaginationResponseDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> page = customerRepository.findAll(example, pageable);
+
+        PaginationResponseDto<CustomerDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
 
         return paginationResponseDto;
     }

@@ -4,8 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
+import com.ust.pos.model.Customer;
+import com.ust.pos.model.Model;
 import com.ust.pos.models.service.ModelService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +26,13 @@ public class ModelApiController extends BaseController {
     public PaginationResponseDto<ModelDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Model> example = buildGlobalSearchSpec(Model.class, paginationDto.getKeyword());
+            if (example != null) {
+                return modelService.findAll(example, pageable);
+            }
+        }
         return modelService.findAll(pageable);
     }
 

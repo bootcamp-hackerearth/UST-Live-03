@@ -4,10 +4,7 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
-import com.ust.pos.model.Product;
-import com.ust.pos.model.ProductRepository;
-import com.ust.pos.model.Stock;
-import com.ust.pos.model.StockRepository;
+import com.ust.pos.model.*;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.ProductService;
 import jakarta.transaction.Transactional;
@@ -15,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -57,6 +55,23 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         paginationResponseDto.setSizePerPage(productPage.getSize());
         paginationResponseDto.setTotalPages(productPage.getTotalPages());
         paginationResponseDto.setTotalRecords(productPage.getTotalElements());
+
+        return paginationResponseDto;
+    }
+
+    @Override
+    public PaginationResponseDto<ProductDto> findAll(Specification<Product> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Product> page = productRepository.findAll(example, pageable);
+
+        PaginationResponseDto<ProductDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
 
         return paginationResponseDto;
     }
