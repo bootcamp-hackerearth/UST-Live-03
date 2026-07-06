@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationResponseDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -52,16 +53,23 @@ class BrandServiceTest {
 
     @Test
     void saveFailureTest() {
+
         BrandDto dto = new BrandDto();
         dto.setIdentifier("BR001");
 
         Mockito.when(brandRepository.findByIdentifier("BR001"))
                 .thenReturn(new Brand());
 
-        BrandDto response = brandService.save(dto);
+        IllegalArgumentException exception =
+                Assertions.assertThrows(
+                        IllegalArgumentException.class,
+                        () -> brandService.save(dto)
+                );
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Brand BR001 already exists", response.getMessage());
+        Assertions.assertEquals(
+                "Brand BR001 already exists",
+                exception.getMessage()
+        );
     }
 
     @Test
@@ -112,15 +120,23 @@ class BrandServiceTest {
 
     @Test
     void updateFailureTest() {
+
         BrandDto dto = new BrandDto();
         dto.setIdentifier("BR001");
 
         Mockito.when(brandRepository.findByIdentifier("BR001"))
                 .thenReturn(null);
 
-        BrandDto response = brandService.update(dto);
+        ResourceNotFoundException exception =
+                Assertions.assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> brandService.update(dto)
+                );
 
-        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals(
+                "Brand not found",
+                exception.getMessage()
+        );
     }
 
     @Test
@@ -141,13 +157,20 @@ class BrandServiceTest {
 
     @Test
     void updateStatusFailureTest() {
+
         Mockito.when(brandRepository.findByIdentifier("BR001"))
                 .thenReturn(null);
 
-        BrandDto response = brandService.updateStatus("BR001", true);
+        ResourceNotFoundException exception =
+                Assertions.assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> brandService.updateStatus("BR001", true)
+                );
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Brand not found", response.getMessage());
+        Assertions.assertEquals(
+                "Brand not found",
+                exception.getMessage()
+        );
     }
 
     @Test

@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
-import com.ust.pos.model.Customer;
 import com.ust.pos.model.Model;
 import com.ust.pos.models.service.ModelService;
 import io.micrometer.common.util.StringUtils;

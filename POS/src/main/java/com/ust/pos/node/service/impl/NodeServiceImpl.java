@@ -1,7 +1,6 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.base.service.BaseService;
-import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.*;

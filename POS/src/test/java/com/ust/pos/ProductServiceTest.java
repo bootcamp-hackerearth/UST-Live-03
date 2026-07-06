@@ -4,6 +4,7 @@ import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
+import com.ust.pos.model.StockRepository;
 import com.ust.pos.price.service.PriceService;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.Assertions;
@@ -33,6 +34,9 @@ class ProductServiceTest {
     private ProductRepository productRepository;
 
     @Mock
+    private StockRepository stockRepository;
+
+    @Mock
     private ModelMapper modelMapper;
 
     @Mock
@@ -51,6 +55,7 @@ class ProductServiceTest {
         List<ProductDto> productDtos = List.of(productDto);
 
         Pageable pageable = PageRequest.of(0, 5);
+
         Page<Product> productPage =
                 new PageImpl<>(products, pageable, products.size());
 
@@ -68,6 +73,9 @@ class ProductServiceTest {
         Mockito.when(priceService.findByIdentifier("P1Mrp"))
                 .thenReturn(null);
 
+        Mockito.when(stockRepository.findByProduct("P1"))
+                .thenReturn(null);
+
         PaginationResponseDto<ProductDto> response =
                 productService.findAll(pageable);
 
@@ -76,6 +84,11 @@ class ProductServiceTest {
         Assertions.assertEquals(
                 "P1",
                 response.getDtoList().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                0L,
+                response.getDtoList().get(0).getStockQuantity()
         );
     }
 
