@@ -41,7 +41,7 @@ export default function LoginPage() {
     setErrors({});
 
     try {
-      const response = await fetch("13.239.187.81:8080/api/authenticate", {
+      const response = await fetch("http://localhost:8080/api/authenticate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
