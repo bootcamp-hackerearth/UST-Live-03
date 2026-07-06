@@ -75,7 +75,7 @@ body: JSON.stringify({
     const confirmDelete = globalThis.confirm("Delete this item?");
     if (!confirmDelete) return;
 
-    const res = await fetch(`http://localhost:8080/api/${routeName}/delete`, {
+    const res = await fetch(`/api/${routeName}/delete`, {
       method: "DELETE",
       headers: {
         "Content-Type": "text/plain",
@@ -131,7 +131,7 @@ body: JSON.stringify({
   };
   const toggleStatus = async (item) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/${routeName}/toggle`, {
+      const res = await fetch(`/api/${routeName}/toggle`, {
         method: "POST",
         headers: {
           "Content-Type": "text/plain",
@@ -189,12 +189,12 @@ body: JSON.stringify({
 
     if (mode === "add") {
       if (routeName === "user") {
-        url = "http://localhost:8080/api/user/register";
+        url = "/api/user/register";
       } else {
-        url = `http://localhost:8080/api/${routeName}/add`;
+        url = `/api/${routeName}/add`;
       }
     } else {
-      url = `http://localhost:8080/api/${routeName}/update`;
+      url = `/api/${routeName}/update`;
     }
     const res = await fetch(url, {
       method: mode === "add" ? "POST" : "PUT",

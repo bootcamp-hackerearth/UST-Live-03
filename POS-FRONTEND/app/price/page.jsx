@@ -14,7 +14,7 @@ const priceFields = [
     name: "product",
     placeholder: "Product",
     type: "select",
-    apiUrl: "http://localhost:8080/api/product/list",
+    apiUrl: "/api/product/list",
     disableOnEdit: true,
   },
   {

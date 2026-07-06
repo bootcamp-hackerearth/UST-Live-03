@@ -10,25 +10,25 @@ const productFields = [
     name: "unit",
     placeholder: "Unit",
     type: "select",
-    apiUrl: "http://localhost:8080/api/unit/list",
+    apiUrl: "/api/unit/list",
   },
   {
     name: "brand",
     placeholder: "Brand",
     type: "select",
-    apiUrl: "http://localhost:8080/api/brand/list",
+    apiUrl: "/api/brand/list",
   },
   {
     name: "category",
     placeholder: "Category",
     type: "select",
-    apiUrl: "http://localhost:8080/api/category/list",
+    apiUrl: "/api/category/list",
   },
   {
     name: "models",
     placeholder: "Models",
     type: "select",
-    apiUrl: "http://localhost:8080/api/models/list",
+    apiUrl: "/api/models/list",
   },
 ];
 

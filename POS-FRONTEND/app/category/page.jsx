@@ -12,7 +12,7 @@ const categoryFields = [
     name: "superCategory",
     placeholder: "Super Category",
     type: "multiselect",
-    apiUrl: "http://localhost:8080/api/category/list",
+    apiUrl: "/api/category/list",
   },
 ];
 

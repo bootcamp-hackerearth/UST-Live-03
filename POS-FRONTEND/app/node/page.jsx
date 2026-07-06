@@ -17,7 +17,7 @@ const nodeFields = [
     name: "roles",
     placeholder: "Select Roles",
     type: "multiselect",
-    apiUrl: "http://localhost:8080/api/role/list",
+    apiUrl: "/api/role/list",
   },
 ];
 
