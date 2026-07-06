@@ -26,19 +26,16 @@ function Register() {
     fetchRoles();
   }, []);
 
-  const fetchRoles = async () => {
-    try {
-      const res = await axiosInstance.post("/role/list", {
-        page: 0,
-        sizePerPage: 10,
-        sortDirection: "ASC",
-        sortField: "identifier",
-      });
-      setRolesList(res.data.dtoList || res.data || []);
-    } catch (err) {
-      console.error("Failed to load roles", err);
-    }
-  };
+  const res = await axiosInstance.post("/role/list", {
+  page: 0,
+  sizePerPage: 10,
+  sortDirection: "ASC",
+  sortField: "identifier",
+});
+
+console.log("Role API Response:", res.data);
+
+setRolesList(res.data.dtoList || res.data || []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
