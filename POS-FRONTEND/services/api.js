@@ -156,7 +156,7 @@ export const loginUser = async (username, password) => {
  
 export const registerUser = async (userData) => {
   const response = await api.post(
-    "/register",
+    "/api/register",
     userData
   );
  
