@@ -15,7 +15,6 @@ function List({
 }) {
   const router = useRouter();
   const [dataRows, setDataRows] = useState([]);
-  const [allRows, setAllRows] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
@@ -24,138 +23,85 @@ function List({
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    setCurrentPage(0);
+  }, [searchQuery]);
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      fetchListData();
-    }
-  }, [currentPage]);
+    const timer = setTimeout(() => {
+      fetchListData(currentPage, searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [currentPage, searchQuery]);
 
-  const fetchListData = async () => {
+  const handleAuthError = (status) => {
+    if (status === 401) {
+      router.push("/login");
+      return true;
+    }
+    if (status === 403) {
+      router.push("/error?status=403");
+      return true;
+    }
+    return false;
+  };
+
+  const fetchListData = async (page, keyword) => {
     const token = localStorage.getItem("token");
+    const payload = {
+      page,
+      sizePerPage: 4,
+      sortField: "identifier",
+      sortDirection: "ASC",
+      keyword: keyword ? keyword.trim() : "",
+    };
+
+    console.log("[List] fetching", apiPath, payload);
+
     try {
       const response = await fetch(
-        `http://localhost:8080/api/${apiPath}/list`,
+        `/api/${apiPath}/list`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: "Bearer " + token,
           },
-          body: JSON.stringify({
-            page: currentPage,
-            sizePerPage: 4,
-            sortField: "identifier",
-            sortDirection: "ASC",
-          }),
+          body: JSON.stringify(payload),
         },
       );
+
+      if (handleAuthError(response.status)) return;
 
       const result = await response.json();
+
+      console.log("[List] response", apiPath, result);
+
       setDataRows(result.dtoList || []);
       setTotalPages(result.totalPages || 0);
-    } catch {
+    } catch (err) {
+      console.error("[List] fetch failed", err);
       setErrorMessage("Unable to load data");
     }
   };
-
-  const fetchAllData = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const firstResponse = await fetch(
-        `http://localhost:8080/api/${apiPath}/list`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({
-            page: 0,
-            sizePerPage: 4,
-            sortField: "identifier",
-            sortDirection: "ASC",
-          }),
-        },
-      );
-
-      const firstResult = await firstResponse.json();
-      const total = firstResult.totalPages || 1;
-      setTotalPages(total);
-      setDataRows(firstResult.dtoList || []);
-
-      const requests = [];
-      for (let i = 1; i < total; i++) {
-        requests.push(
-          fetch(`http://localhost:8080/api/${apiPath}/list`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + token,
-            },
-            body: JSON.stringify({
-              page: i,
-              sizePerPage: 4,
-              sortField: "identifier",
-              sortDirection: "ASC",
-            }),
-          }).then((r) => {
-            return r.json();
-          }),
-        );
-      }
-
-      const results = await Promise.all(requests);
-      const combined = [
-        ...(firstResult.dtoList || []),
-        ...results.flatMap((r) => r.dtoList || []),
-      ];
-      setAllRows(combined);
-    } catch {
-      setErrorMessage("Unable to load data");
-    }
-  };
-
-  const filteredRows = searchQuery.trim()
-    ? allRows.filter((row) => {
-        const query = searchQuery.toLowerCase();
-        return columns.some((col) => {
-          const value = row[col.key];
-          if (col.key === "roles" && Array.isArray(value)) {
-            return value.some((v) =>
-              (typeof v === "object" ? v.name || v.identifier || "" : String(v))
-                .toLowerCase()
-                .includes(query),
-            );
-          }
-          if (Array.isArray(value)) {
-            return value.some((v) => String(v).toLowerCase().includes(query));
-          }
-          return String(value ?? "")
-            .toLowerCase()
-            .includes(query);
-        });
-      })
-    : dataRows;
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:8080/api/${apiPath}/delete?identifier=${id}`,
+        `/api/${apiPath}/delete?identifier=${id}`,
         {
           method: "DELETE",
           headers: { Authorization: "Bearer " + token },
         },
       );
 
+      if (handleAuthError(response.status)) return;
       if (!response.ok) throw new Error("Delete request failed");
+
       setDeleteTarget(null);
       setSuccessMessage(`"${id}" removed successfully`);
       setTimeout(() => setSuccessMessage(""), 2000);
-      fetchAllData();
+      fetchListData(currentPage, searchQuery);
     } catch {
       setErrorMessage("Delete failed");
     }
@@ -165,7 +111,7 @@ function List({
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:8080/api/${apiPath}/toggleStatus`,
+        `/api/${apiPath}/toggleStatus`,
         {
           method: "POST",
           headers: {
@@ -176,15 +122,10 @@ function List({
         },
       );
 
+      if (handleAuthError(response.status)) return;
       if (!response.ok) throw new Error("Status toggle request failed");
+
       setDataRows((prev) =>
-        prev.map((item) =>
-          item[identifierKey] === id
-            ? { ...item, status: !currentStatus }
-            : item,
-        ),
-      );
-      setAllRows((prev) =>
         prev.map((item) =>
           item[identifierKey] === id
             ? { ...item, status: !currentStatus }
@@ -273,10 +214,7 @@ function List({
           type="text"
           placeholder="Search..."
           value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(0);
-          }}
+          onChange={(e) => setSearchQuery(e.target.value)}
           style={{
             padding: "10px 16px",
             border: "1px solid #d1d5db",
@@ -326,7 +264,7 @@ function List({
           </tr>
         </thead>
         <tbody>
-          {filteredRows.map((row, index) => (
+          {dataRows.map((row, index) => (
             <tr key={row[identifierKey] || index}>
               {columns.map((col) => {
                 let cellContent;
@@ -429,33 +367,31 @@ function List({
         </tbody>
       </table>
 
-      {!searchQuery.trim() && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: 20,
-            gap: 8,
-          }}
-        >
-          {pageNumbers.map((p) => (
-            <button
-              key={p}
-              onClick={() => setCurrentPage(p - 1)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 6,
-                border: "1px solid #111",
-                background: currentPage === p - 1 ? "#111" : "#fff",
-                color: currentPage === p - 1 ? "#fff" : "#111",
-                cursor: "pointer",
-              }}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      )}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginTop: 20,
+          gap: 8,
+        }}
+      >
+        {pageNumbers.map((p) => (
+          <button
+            key={p}
+            onClick={() => setCurrentPage(p - 1)}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 6,
+              border: "1px solid #111",
+              background: currentPage === p - 1 ? "#111" : "#fff",
+              color: currentPage === p - 1 ? "#fff" : "#111",
+              cursor: "pointer",
+            }}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

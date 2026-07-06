@@ -26,7 +26,7 @@ function SingleDropdown({
         return;
       }
       try {
-        const fullUrl = `http://localhost:8080/api/${apiPath}`;
+        const fullUrl = `/api/${apiPath}`;
         const response = await fetch(fullUrl, {
           method: urlMethod === "get" ? "GET" : "POST",
           headers: {
