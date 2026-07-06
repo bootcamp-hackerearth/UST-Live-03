@@ -1,12 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import EditFormSkeleton from "@/components/CommonEditForm";
 
-export default function EditRole() {
+function EditRoleContent() {
   const searchParams = useSearchParams();
   const identifier = searchParams.get("identifier") || "";
-  
+
   return (
     <EditFormSkeleton
       title="Role"
@@ -22,5 +23,13 @@ export default function EditRole() {
         },
       ]}
     />
+  );
+}
+
+export default function EditRole() {
+  return (
+    <Suspense fallback={null}>
+      <EditRoleContent />
+    </Suspense>
   );
 }

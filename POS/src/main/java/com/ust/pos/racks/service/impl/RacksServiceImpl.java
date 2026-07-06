@@ -1,15 +1,21 @@
 package com.ust.pos.racks.service.impl;
 
 import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.RacksDto;
+import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.model.Product;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
+import com.ust.pos.model.Role;
 import com.ust.pos.racks.service.RacksService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -31,8 +37,11 @@ public class RacksServiceImpl extends CommonService implements RacksService {
 
     @Override
     public RacksDto findByIdentifier(String identifier) {
-        return modelMapper.map(racksRepository.findByIdentifier(identifier), RacksDto.class);
-    }
+        Racks racks=racksRepository.findByIdentifier(identifier);
+        if(racks==null){
+            throw new ResourceNotFoundException("racks with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(racks, RacksDto.class);    }
 
     @Override
     public RacksDto toggleStatus(String identifier) {
@@ -111,5 +120,20 @@ public class RacksServiceImpl extends CommonService implements RacksService {
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
         return modelMapper.map(racksRepository.findByStatusIsTrueAndDeletedFalse(), listType);
+    }
+
+    @Override
+    public WsDto<RacksDto> findAll(Specification<Racks> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<RacksDto>>() {
+        }.getType();
+        Page<Racks> racksPage = racksRepository.findAll(example, pageable);
+        WsDto<RacksDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(racksPage.getContent(), listType));
+        wsDto.setTotalRecords(racksPage.getTotalElements());
+        wsDto.setTotalPages(racksPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

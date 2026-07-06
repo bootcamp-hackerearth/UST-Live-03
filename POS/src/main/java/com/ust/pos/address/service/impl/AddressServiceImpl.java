@@ -3,9 +3,12 @@ package com.ust.pos.address.service.impl;
 import com.ust.pos.address.service.AddressService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.AddressDto;
+import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
+import com.ust.pos.model.Role;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -30,7 +33,11 @@ public class AddressServiceImpl extends CommonService implements AddressService 
 
     @Override
     public AddressDto findByIdentifier(String identifier) {
-        return modelMapper.map(addressRepository.findByIdentifier(identifier), AddressDto.class);
+        Address address=addressRepository.findByIdentifier(identifier);
+        if(address==null){
+            throw new ResourceNotFoundException("Address with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(address, AddressDto.class);
     }
 
     @Override

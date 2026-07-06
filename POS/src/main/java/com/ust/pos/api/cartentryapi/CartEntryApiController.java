@@ -4,6 +4,7 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,10 +17,10 @@ public class CartEntryApiController extends BaseController {
     }
 
     private final CartEntryService cartEntryService;
-
     private final CartService cartService;
 
     @PostMapping("/addEntry")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER','ACCOUNTANT')")
     public CartEntryDto add(@RequestBody CartEntryDto cartEntryDto) {
         CartEntryDto cartEntryDto1 = cartEntryService.save(cartEntryDto);
         cartService.recalculate(cartEntryDto.getCart());

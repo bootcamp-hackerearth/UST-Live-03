@@ -262,7 +262,7 @@ export default function Sidebar() {
   useEffect(() => {
     async function fetchNodes() {
       try {
-        const res = await api.get("/node/getNodesForRoles");
+        const res = await api.get("/node/getNodesForRoles", { skipErrorRedirect: [403] });
         const data = res.data;
         setNodes(Array.isArray(data) ? data : data.data ?? []);
         setLoadError("");

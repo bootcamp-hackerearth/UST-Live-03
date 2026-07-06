@@ -19,6 +19,15 @@ import {
 } from "@/app/customer/customerShared";
 
 const inputReadOnlySt = { ...inputSt, background: "#f7f8fc", color: "#94a3b8", cursor: "not-allowed" };
+
+function sanitizeAddress(addr) {
+  const clean = { ...EMPTY_ADDRESS };
+  if (!addr) return clean;
+  Object.keys(EMPTY_ADDRESS).forEach((key) => {
+    if (addr[key] != null) clean[key] = addr[key];
+  });
+  return clean;
+}
 const auditBorderSt = { ...metadataOuterSt, border: `1px solid ${C.border}` };
 
 function StaticSingleDropdown({ label, options, selectedValue, onChange, error }) {
@@ -148,7 +157,7 @@ StaticSingleDropdown.propTypes = {
 export default function EditCustomer() {
     const router = useRouter();
     const params = useParams();
-    const identifier = params?.identifier;
+    const identifier = params?.identifier ? decodeURIComponent(params.identifier) : "";
     const isSidebarOpen = useSidebarOpen();
  
     const [customerName, setCustomerName] = useState("");
@@ -175,18 +184,24 @@ export default function EditCustomer() {
  
     useEffect(() => {
         if (!identifier) return;
-        api
-            .get("/customer/get", { params: { identifier } })
-            .then((res) => {
-                const d = res.data;
+        Promise.all([
+            api.get("/customer/findByIdentifier", { params: { identifier } }),
+            api.get("/address/findByAllPhoneNo", { params: { phoneNo: identifier } }).catch(() => ({ data: [] })),
+        ])
+            .then(([customerRes, addressRes]) => {
+                const d = customerRes.data;
+                const addresses = Array.isArray(addressRes.data) ? addressRes.data : [];
+                const billing = addresses.find(a => a.addressType === "Billing") ?? addresses[0];
+                const shipping = addresses.find(a => a.addressType === "Shipping") ?? addresses[1];
+
                 setCustomerName(d.customerName ?? "");
                 setEmail(d.email ?? "");
                 setPartyType(d.partyType ?? "");
                 setCredit(d.credit ?? "");
                 setCreditType(d.creditType ?? "");
                 setCreditLimit(d.creditLimit ?? "");
-                setBillingAddress(d.billingAddress ? { ...EMPTY_ADDRESS, ...d.billingAddress } : EMPTY_ADDRESS);
-                setShippingAddress(d.shippingAddress ? { ...EMPTY_ADDRESS, ...d.shippingAddress } : EMPTY_ADDRESS);
+                setBillingAddress(sanitizeAddress(billing));
+                setShippingAddress(sanitizeAddress(shipping));
                 setAuditInfo({
                     createdBy: d.createdBy,
                     createdAt: d.createdAt,

@@ -255,7 +255,7 @@ export default function Profile() {
       }
  
       try {
-        const res = await api.get("/user/profile");
+        const res = await api.get("/user/profile", { skipErrorRedirect: [403] });
         setUser(res.data);
       } catch (err) {
         if (

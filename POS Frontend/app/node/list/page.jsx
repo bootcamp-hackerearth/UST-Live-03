@@ -6,7 +6,7 @@ export default function ListNode() {
   return (
     <ListingSkeleton
       title="Nodes"
-      fields={["identifier", "path"]}
+      fields={["path"]}
       apis={{
         list: "/node/list",
         delete: "/node/delete",

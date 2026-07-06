@@ -1,15 +1,18 @@
 package com.ust.pos.customer.service.impl;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -26,10 +29,13 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
 
     private final AddressService addressService;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, AddressService addressService) {
+    private final CartService cartService;
+
+    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, AddressService addressService, CartService cartService) {
         this.customerRepository = customerRepository;
         this.modelMapper = modelMapper;
         this.addressService = addressService;
+        this.cartService = cartService;
     }
 
     @Override
@@ -40,11 +46,14 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
     @Override
     public CustomerDto findByIdentifierWithAddressDto(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
+        if(customer==null){
+            throw new ResourceNotFoundException("customer with identifier '" + identifier + "' not found");
+        }
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
         List<AddressDto> addressDtoList = addressService.findAllByPhoneNo(identifier);
         customerDto.setBillingAddress(addressDtoList.get(0));
         customerDto.setShippingAddress(addressDtoList.get(1));
-        return customerDto;
+        return modelMapper.map(customer, CustomerDto.class);
     }
 
     @Override
@@ -66,6 +75,9 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         Customer customer = modelMapper.map(customerDto, Customer.class);
         setAuditFields(customer,true);
         customerRepository.save(customer);
+        CartDto cartDto = new CartDto();
+        cartDto.setIdentifier(customer.getIdentifier());
+        cartService.save(cartDto);
         AddressDto billingAddress = modelMapper.map(customerDto.getBillingAddress(), AddressDto.class);
         billingAddress.setIdentifier(customerDto.getIdentifier() + "_" + "Billing");
         billingAddress.setAddressType("Billing");
@@ -142,5 +154,20 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         return modelMapper.map(customerRepository.findByStatusIsTrueAndDeletedFalse(), listType);
+    }
+
+    @Override
+    public WsDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> customerPage = customerRepository.findAll(example, pageable);
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        wsDto.setTotalRecords(customerPage.getTotalElements());
+        wsDto.setTotalPages(customerPage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

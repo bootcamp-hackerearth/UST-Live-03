@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import PropTypes from "prop-types";
@@ -107,7 +107,7 @@ ProductThumb.propTypes = {
   size: PropTypes.number,
 };
 
-export default function SalesPage() {
+function SalesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isSidebarOpen = useSidebarOpen();
@@ -311,7 +311,7 @@ export default function SalesPage() {
   const refreshCart = useCallback(async (identifier) => {
     if (!identifier) return null;
     try {
-      const res = await api.post("/cart/getCart", { identifier });
+      const res = await api.post("/cart/getCart", { identifier }, { skipErrorRedirect: [403, 404] });
       setCart(res.data);
       setEntries(res.data?.cartEntryDtoList ?? []);
       return res.data;
@@ -1222,5 +1222,13 @@ export default function SalesPage() {
       {renderPOSTab()}
       {renderOrdersTab()}
     </div>
+  );
+}
+
+export default function SalesPage() {
+  return (
+    <Suspense fallback={null}>
+      <SalesPageContent />
+    </Suspense>
   );
 }

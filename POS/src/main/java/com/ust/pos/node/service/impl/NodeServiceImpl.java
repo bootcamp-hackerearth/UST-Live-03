@@ -1,17 +1,18 @@
 package com.ust.pos.node.service.impl;
 
 import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -69,7 +70,11 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+        Node node=nodeRepository.findByIdentifier(identifier);
+        if(node==null){
+            throw new ResourceNotFoundException("node with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(node, NodeDto.class);
     }
 
     @Override
@@ -141,6 +146,22 @@ public class NodeServiceImpl extends CommonService implements NodeService {
         }.getType();
         return modelMapper.map(nodeRepository.findByStatusIsTrueAndDeletedFalse(), listType);
     }
+
+    @Override
+    public WsDto<NodeDto> findAll(Specification<Node> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> nodePage = nodeRepository.findAll(example, pageable);
+        WsDto<NodeDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        wsDto.setTotalRecords(nodePage.getTotalElements());
+        wsDto.setTotalPages(nodePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
+    }
+
 
     @Override
     public NodeDto toggleStatus(String identifier) {

@@ -35,7 +35,7 @@ export default function Navbar() {
     setProfileError("");
     setProfileLoading(true);
     try {
-      const res = await api.get("/user/profile");
+      const res = await api.get("/user/profile", { skipErrorRedirect: [403] });
       const profile = res.data;
       const username = profile?.username || profile?.name || "";
       setDisplayName((username || "Account").split(" ")[0]);

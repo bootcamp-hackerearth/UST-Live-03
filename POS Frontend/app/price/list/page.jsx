@@ -17,15 +17,16 @@ const fieldPad  = "14px 24px";
 
 const styles = {
   page: {
-    width: "100%",
-    minHeight: "calc(100vh - 60px)",
+    position: "fixed",
+    top: "60px",
+    right: 0,
+    bottom: 0,
     backgroundColor: "#ffffff",
     fontFamily: "'Segoe UI', sans-serif",
     display: "flex",
     flexDirection: "column",
-    transition: "padding-left 0.2s ease",
-    boxSizing: "border-box",
-    marginTop: "60px",
+    overflow: "hidden",
+    transition: "left 0.2s ease",
   },
   inner: {
     flex: 1,
@@ -168,7 +169,7 @@ const styles = {
   },
   pageBtn: {
     minWidth: "34px", height: "34px", padding: "0 9px",
-    borderRadius: "6px", border: `1px solid ${C.gray}`,
+    borderRadius: "6px", borderWidth: "1px", borderStyle: "solid", borderColor: C.gray,
     background: C.white, color: "#374151",
     fontSize: "12px", fontWeight: "600", cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center",
@@ -180,7 +181,7 @@ const styles = {
   },
   pageArrow: {
     minWidth: "34px", height: "34px", padding: "0 10px",
-    borderRadius: "6px", border: `1px solid ${C.gray}`,
+    borderRadius: "6px", borderWidth: "1px", borderStyle: "solid", borderColor: C.gray,
     background: C.white, color: C.navy,
     fontSize: "14px", fontWeight: "700", cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center",
@@ -265,7 +266,7 @@ export default function ListPrice() {
   const visiblePages = getVisiblePages();
 
   return (
-    <div style={{ ...styles.page, paddingLeft: sidebarOpen ? "220px" : "55px" }}>
+    <div style={{ ...styles.page, left: sidebarOpen ? "220px" : "55px" }}>
       <div style={styles.inner}>
         <div style={styles.topRow}>
           <button className="home-back-button" style={styles.backBtn} onClick={() => router.push("/home")}>

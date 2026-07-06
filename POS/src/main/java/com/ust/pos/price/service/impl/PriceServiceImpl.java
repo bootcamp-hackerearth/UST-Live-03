@@ -1,15 +1,21 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.model.Node;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
+import com.ust.pos.model.Role;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -31,7 +37,11 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-        return modelMapper.map(priceRepository.findByIdentifier(identifier), PriceDto.class);
+        Price price=priceRepository.findByIdentifier(identifier);
+        if(price==null){
+            throw new ResourceNotFoundException("price with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(price, PriceDto.class);
     }
 
     @Override
@@ -112,5 +122,20 @@ public class PriceServiceImpl extends CommonService implements PriceService {
         setAuditFields(price,false);
         priceRepository.save(price);
         return modelMapper.map(price, PriceDto.class);
+    }
+
+    @Override
+    public WsDto<PriceDto> findAll(Specification<Price> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        Page<Price> pricePage = priceRepository.findAll(example, pageable);
+        WsDto<PriceDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+        wsDto.setTotalRecords(pricePage.getTotalElements());
+        wsDto.setTotalPages(pricePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

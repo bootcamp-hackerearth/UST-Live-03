@@ -1,15 +1,21 @@
 package com.ust.pos.role.service.impl;
 
 import com.ust.pos.common.CommonService;
+import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.model.Racks;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
+import com.ust.pos.model.Shelfs;
 import com.ust.pos.role.service.RoleService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -31,7 +37,11 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+        Role role=roleRepository.findByIdentifier(identifier);
+        if(role==null){
+            throw new ResourceNotFoundException("role with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(role, RoleDto.class);
     }
 
     @Override
@@ -111,5 +121,20 @@ public class RoleServiceImpl extends CommonService implements RoleService {
         setAuditFields(role,false);
         roleRepository.save(role);
         return modelMapper.map(role, RoleDto.class);
+    }
+
+    @Override
+    public WsDto<RoleDto> findAll(Specification<Role> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> rolePage = roleRepository.findAll(example, pageable);
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+        wsDto.setTotalRecords(rolePage.getTotalElements());
+        wsDto.setTotalPages(rolePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

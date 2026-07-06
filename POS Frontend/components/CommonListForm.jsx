@@ -105,22 +105,6 @@ const styles = {
 };
  
 const toCamelCase = (value) => value.replaceAll(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-
-const getFieldValue = (item, field) => {
-  const value = item[field];
-  const camelCaseKey = toCamelCase(field);
-  const realValue = value ?? item[camelCaseKey] ?? "";
-
-  return Array.isArray(realValue) ? realValue.join(" ") : String(realValue);
-};
-
-const matchesSearch = (item, regex, paramKey, fields) => {
-  if (regex.test(String(item[paramKey] ?? ""))) {
-    return true;
-  }
-
-  return fields.some((field) => regex.test(getFieldValue(item, field)));
-};
  
 export default function ListingSkeleton({
   title, fields, apis, addPath, editPathBase,
@@ -145,29 +129,17 @@ export default function ListingSkeleton({
  
   const loadList = useCallback(async () => {
     try {
-      if (searchQuery.trim() === "") {
-        const res = await api.post(apis.list, pagination);
-        if (Array.isArray(res.data)) {
-          setData(res.data);
-          setTotalPages(1);
-        } else {
-          setData(res.data.dtoList ?? []);
-          setTotalPages(res.data.totalPages ?? 1);
-        }
-        setLoadError("");
-      } else {
-        const res = await api.post(apis.list, { ...pagination, page: 0, sizePerPage: 1000 });
-        const allData = Array.isArray(res.data) ? res.data : (res.data.dtoList ?? []);
-          
-        const escapedSearch = searchQuery.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-        const regex = new RegExp(String.raw`\b` + escapedSearch, "i");
- 
-        const filtered = allData.filter((item) => matchesSearch(item, regex, paramKey, fields));
- 
-        setData(filtered);
+      const payload = { ...pagination, keyword: searchQuery.trim() };
+      const res = await api.post(apis.list, payload);
+
+      if (Array.isArray(res.data)) {
+        setData(res.data);
         setTotalPages(1);
-        setLoadError("");
+      } else {
+        setData(res.data.dtoList ?? []);
+        setTotalPages(res.data.totalPages ?? 1);
       }
+      setLoadError("");
     } catch (err) {
       const status = err.response?.status;
       if (status === 403) {
@@ -178,7 +150,7 @@ export default function ListingSkeleton({
       setData([]);
       setTotalPages(0);
     }
-  }, [apis.list, pagination, searchQuery, fields, paramKey]);
+  }, [apis.list, pagination, searchQuery]);
  
   useEffect(() => {
     loadList();
@@ -190,9 +162,9 @@ export default function ListingSkeleton({
 
     try {
       if (deleteStyle === "param") {
-        await api.delete(apis.delete, { params: { [paramKey]: value } });
+        await api.delete(apis.delete, { params: { [paramKey]: value }, skipErrorRedirect: [403] });
       } else {
-        await api.delete(`${apis.delete}/${encodeURIComponent(value)}`);
+        await api.delete(`${apis.delete}/${encodeURIComponent(value)}`, { skipErrorRedirect: [403] });
       }
       setDeleteTarget(null);
       if (data.length === 1 && pagination.page > 0) {
@@ -213,7 +185,7 @@ export default function ListingSkeleton({
   async function handleToggle(row) {
     const value = String(row[paramKey] ?? "");
     try {
-      await api.post(apis.toggleStatus, null, { params: { [paramKey]: value } });
+      await api.post(apis.toggleStatus, null, { params: { [paramKey]: value }, skipErrorRedirect: [403] });
       loadList();
     } catch (err) {
       const status = err.response?.status;
@@ -229,6 +201,11 @@ export default function ListingSkeleton({
     setPagination(prev => ({ ...prev, page: pageIndex }));
   }
 
+  function handleSearchChange(e) {
+    setSearchQuery(e.target.value);
+    setPagination(prev => ({ ...prev, page: 0 }));
+  }
+
   const currentPage = pagination.page;
 
   return (
@@ -242,7 +219,7 @@ export default function ListingSkeleton({
             type="text"
             placeholder={`Search ${title}`}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
           <button style={styles.addBtn} onClick={() => router.push(addPath)} disabled={!!loadError}>
             + Add {title}
@@ -319,7 +296,7 @@ export default function ListingSkeleton({
             )}
           </div>
  
-          {!loadError && searchQuery.trim() === "" && (
+          {!loadError && (
             <PaginationBar currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
           )}
         </div>

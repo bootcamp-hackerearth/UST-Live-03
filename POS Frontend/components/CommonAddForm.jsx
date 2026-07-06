@@ -235,7 +235,7 @@ export default function AddFormSkeleton({
         ...(showIdentifier ? { identifier } : {}),
         ...extraData,
         ...externalExtraData,
-      });
+      }, { skipErrorRedirect: [403] });
       const data = res.data;
       if (data.success === false) {
         setError(data.message || "Already exists. Please use a different one.");

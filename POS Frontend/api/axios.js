@@ -25,31 +25,36 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const STATUS_ROUTES = {
+  403: "/forbidden",
+  404: "/not_found",
+  500: "/error",
+};
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const isAuthEndpoint = error.config?.url === "/authenticate";
     const status = error.response?.status;
- 
-    if (!isAuthEndpoint && (status === 401 || status === 403)) {
-      const token = localStorage.getItem("token");
- 
-      if (!token) {
-        globalThis.location.href = "/login";
-        return Promise.reject(error);
-      }
- 
-      if (status === 401) {
-        localStorage.removeItem("token");
-        globalThis.location.href = "/login";
-        return Promise.reject(error);
-      }
 
-      const permissionError = new Error("Permission denied");
-      permissionError.response = { status: 403 };
-      return Promise.reject(permissionError);
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
     }
- 
+
+    if (status === 401) {
+      localStorage.removeItem("token");
+      globalThis.location.href = "/login";
+      return Promise.reject(error);
+    }
+
+    const skip = error.config?.skipErrorRedirect;
+    const isSkipped = skip === true || (Array.isArray(skip) && skip.includes(status));
+
+    if (!isSkipped && STATUS_ROUTES[status]) {
+      globalThis.location.href = STATUS_ROUTES[status];
+      return Promise.reject(error);
+    }
+
     return Promise.reject(error);
   }
 );

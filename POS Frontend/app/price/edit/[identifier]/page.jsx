@@ -13,15 +13,16 @@ const C = {
 
 const styles = {
   page: {
-    width: "100%",
-    minHeight: "calc(100vh - 60px)",
+    position: "fixed",
+    top: "60px",
+    right: 0,
+    bottom: 0,
     backgroundColor: "#ffffff",
     fontFamily: "'Segoe UI', sans-serif",
     display: "flex",
     flexDirection: "column",
-    transition: "padding-left 0.2s ease",
-    boxSizing: "border-box",
-    marginTop: "60px",
+    overflow: "hidden",
+    transition: "left 0.2s ease",
   },
   inner: {
     flex: 1, padding: "20px 24px",
@@ -215,7 +216,7 @@ export default function EditPrice() {
   }
 
   return (
-    <div style={{ ...styles.page, paddingLeft: sidebarOpen ? "220px" : "55px" }}>
+    <div style={{ ...styles.page, left: sidebarOpen ? "220px" : "55px" }}>
       <div style={styles.inner}>
         <div style={styles.topRow}>
           <button className="home-back-button" style={styles.backBtn} onClick={() => router.push("/price/list")}>⮜ Back</button>

@@ -144,7 +144,7 @@ export default function OrdersPage() {
     setOrdersError("");
     try {
       if (orderSearch.trim() === "") {
-        const res = await api.post("/order/list", pagination);
+        const res = await api.post("/order/list", pagination, { skipErrorRedirect: [403] });
         const data = res.data;
         if (Array.isArray(data)) {
           setOrders(data);
@@ -154,7 +154,7 @@ export default function OrdersPage() {
           setTotalPages(data.totalPages ?? 1);
         }
       } else {
-        const res = await api.post("/order/list", { ...pagination, page: 0, sizePerPage: 1000 });
+        const res = await api.post("/order/list", { ...pagination, page: 0, sizePerPage: 1000 }, { skipErrorRedirect: [403] });
         const allData = Array.isArray(res.data) ? res.data : (res.data.dtoList ?? []);
         const q = orderSearch.toLowerCase();
         setOrders(allData.filter(o =>
@@ -193,7 +193,7 @@ export default function OrdersPage() {
   const fetchOrderDetail = async (orderId) => {
     setOrderDetailLoading(true);
     try {
-      const res = await api.post("/order/getOrder", { orderId });
+      const res = await api.post("/order/getOrder", { orderId }, { skipErrorRedirect: [403] });
       setSelectedOrder(res.data);
       setShowOrderDetail(true);
     } catch (err) {
