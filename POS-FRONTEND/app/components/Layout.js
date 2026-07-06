@@ -33,7 +33,6 @@ const Layout = ({ children, username, onLogout }) => {
       });
 
       if (response.status === 401 || response.status === 403) {
-        // Token invalid/expired on the server side — force logout
         localStorage.removeItem("token");
         router.replace("/login");
         return;
@@ -46,7 +45,6 @@ const Layout = ({ children, username, onLogout }) => {
     }
   };
 
-  // Don't render any protected content until we've confirmed a token exists
   if (!mounted || !authorized) return null;
 
   return (
