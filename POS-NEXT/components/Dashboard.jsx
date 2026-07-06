@@ -58,7 +58,7 @@ export default function DashboardPage() {
             },
             body: JSON.stringify(body),
           }),
-          fetch(`${baseUrl}/order/list`, {
+          fetch(`${baseUrl}/orders/list`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -166,7 +166,7 @@ export default function DashboardPage() {
               New Sale
             </button>
 
-            <button onClick={() => router.push("/order")}
+            <button onClick={() => router.push("/orders")}
               className="flex items-center gap-2 border border-violet-200 hover:bg-violet-50 px-5 py-3 rounded-xl transition">
               <Receipt size={18} />
               View Orders
