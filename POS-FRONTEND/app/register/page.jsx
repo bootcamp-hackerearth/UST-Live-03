@@ -28,7 +28,7 @@ export default function Register() {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const res = await axios.post("http://localhost:8080/api/role/list", {
+        const res = await axios.post("/api/role/list", {
           page: 0,
           sizePerPage: 10,
         });
