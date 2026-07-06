@@ -3,7 +3,7 @@ name: Next Deploy
 on:
   push:
     branches:
-      - main
+      - feature/sprint5_pod5_pranavp
 
 jobs:
   deploy:
@@ -17,9 +17,11 @@ jobs:
         with:
           node-version: 20
 
-      - run: npm install
-
-      - run: npm run build
+      - name: Build Frontend
+        run: |
+          cd POS-NEXT
+          npm install
+          npm run build
 
       - name: Deploy
         uses: appleboy/ssh-action@master
@@ -28,9 +30,9 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd POS-NEXT
+            cd ~/projects/UST-Live-03/POS-NEXT
 
-            git pull origin main
+            git pull
 
             npm install
 
