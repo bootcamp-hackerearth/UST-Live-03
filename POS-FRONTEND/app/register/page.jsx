@@ -35,7 +35,7 @@ function Register() {
 		const fetchRoles = async () => {
 			try {
 				const response = await axios.get(
-					"http://16.176.196.182:8080/api/role/all"
+					"/api/role/all"
 				);
 
 				setRoles(response.data || []);
