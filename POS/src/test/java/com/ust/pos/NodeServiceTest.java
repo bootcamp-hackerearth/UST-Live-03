@@ -2,8 +2,12 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.*;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.NodeRepository;
+import com.ust.pos.model.User;
+import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.impl.NodeServiceImpl;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,11 +17,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -26,10 +32,10 @@ import static org.mockito.Mockito.*;
 class NodeServiceTest {
 
     @Mock
-    private NodeRepository nodeRepository;
+    private UserRepository userRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private NodeRepository nodeRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -40,41 +46,51 @@ class NodeServiceTest {
 
     private Node node;
     private NodeDto nodeDto;
-    private User user;
 
     @BeforeEach
     void setUp() {
+
         node = new Node();
-        node.setIdentifier("N1");
+        node.setIdentifier("NODE1");
         node.setStatus(true);
         node.setDeleted(false);
-        node.setRoles(List.of("ADMIN")); // roles in Node are List
+        node.setRoles(List.of("ROLE_ADMIN"));
 
         nodeDto = new NodeDto();
-        nodeDto.setIdentifier("N1");
-
-        user = new User();
-        user.setUsername("testUser");
-        user.setRoles(List.of("ADMIN")); // roles in User are Set ✅
+        nodeDto.setIdentifier("NODE1");
     }
-    // ✅ FIND BY IDENTIFIER
+
+    @AfterEach
+    void clearContext() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void testFindByIdentifier() {
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
-        when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
 
-        NodeDto result = nodeService.findByIdentifier("N1");
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
+
+        when(modelMapper.map(node, NodeDto.class))
+                .thenReturn(nodeDto);
+
+        NodeDto result = nodeService.findByIdentifier("NODE1");
 
         assertNotNull(result);
+        assertEquals("NODE1", result.getIdentifier());
     }
 
-    // ✅ FIND ALL (Pagination)
     @Test
     void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Node> page = new PageImpl<>(Collections.singletonList(node));
 
-        when(nodeRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Node> page =
+                new PageImpl<>(Collections.singletonList(node));
+
+        when(nodeRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(nodeDto));
 
@@ -82,26 +98,57 @@ class NodeServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
     }
 
-    // ✅ SAVE - SUCCESS
     @Test
-    void testSave_Success() {
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(null);
-        when(modelMapper.map(nodeDto, Node.class)).thenReturn(node);
+    void testFindAllWithSpecification() {
 
-        doNothing().when(nodeService).setAuditFields(node, true);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Node> specification = mock(Specification.class);
+
+        Page<Node> page =
+                new PageImpl<>(Collections.singletonList(node));
+
+        when(nodeRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.singletonList(nodeDto));
+
+        WsDto<NodeDto> result =
+                nodeService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+
+        verify(nodeRepository)
+                .findAll(specification, pageable);
+    }
+
+    @Test
+    void testSave_NewNode() {
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(nodeDto, Node.class))
+                .thenReturn(node);
 
         NodeDto result = nodeService.save(nodeDto);
 
         assertNotNull(result);
+
         verify(nodeRepository).save(node);
     }
 
-    // ✅ SAVE - ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
 
         NodeDto result = nodeService.save(nodeDto);
 
@@ -109,12 +156,13 @@ class NodeServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
-    // ✅ SAVE - SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
+
         node.setDeleted(true);
 
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
 
         NodeDto result = nodeService.save(nodeDto);
 
@@ -122,24 +170,27 @@ class NodeServiceTest {
         assertTrue(result.getMessage().contains("soft deleted"));
     }
 
-    // ✅ UPDATE - SUCCESS
     @Test
     void testUpdate_Success() {
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
 
-        doNothing().when(modelMapper).map(nodeDto, node);
-        doNothing().when(nodeService).setAuditFields(node, false);
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
+
+        doNothing().when(modelMapper)
+                .map(nodeDto, node);
 
         NodeDto result = nodeService.update(nodeDto);
 
         assertNotNull(result);
+
         verify(nodeRepository).save(node);
     }
 
-    // ✅ UPDATE - NOT FOUND
     @Test
     void testUpdate_NotFound() {
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(null);
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(null);
 
         NodeDto result = nodeService.update(nodeDto);
 
@@ -147,34 +198,50 @@ class NodeServiceTest {
         assertTrue(result.getMessage().contains("not found"));
     }
 
-    // ✅ DELETE
     @Test
     void testDelete() {
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
 
-        doNothing().when(nodeService).softDelete(node);
-        doNothing().when(nodeService).setAuditFields(node, false);
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
 
-        nodeService.delete("N1");
+        nodeService.delete("NODE1");
+
+        assertTrue(node.isDeleted());
+        assertFalse(node.isStatus());
 
         verify(nodeRepository).save(node);
     }
 
-    // ✅ GET NODES FOR ROLES (SECURITY CONTEXT)
     @Test
     void testGetNodesForRoles() {
-        // Mock Spring Security Context
-        org.springframework.security.core.userdetails.User principal =
-                new org.springframework.security.core.userdetails.User("testUser", "password", new ArrayList<>());
+
+        User user = new User();
+        user.setUsername("admin");
+        user.setRoles(List.of("ROLE_ADMIN"));
 
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(principal, null)
+                new UsernamePasswordAuthenticationToken(
+                        new org.springframework.security.core.userdetails.User(
+                                "admin",
+                                "password",
+                                List.of()
+                        ),
+                        null,
+                        List.of()
+                )
         );
 
-        when(userRepository.findByUsername("testUser")).thenReturn(user);
-        when(nodeRepository.findAll()).thenReturn(Collections.singletonList(node));
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
-        when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
+        when(userRepository.findByUsername("admin"))
+                .thenReturn(user);
+
+        when(nodeRepository.findAll())
+                .thenReturn(List.of(node));
+
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
+
+        when(modelMapper.map(node, NodeDto.class))
+                .thenReturn(nodeDto);
 
         List<NodeDto> result = nodeService.getNodesForRoles();
 
@@ -182,31 +249,46 @@ class NodeServiceTest {
         assertEquals(1, result.size());
     }
 
-    // ✅ CHANGE TOGGLE STATUS
+    @Test
+    void testGetNodesForRoles_NoAuthentication() {
+
+        SecurityContextHolder.clearContext();
+
+        List<NodeDto> result = nodeService.getNodesForRoles();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
     @Test
     void testChangeToggleStatus() {
-        when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
-        when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
 
-        NodeDto result = nodeService.changeToggleStatus("N1", false);
+        when(nodeRepository.findByIdentifier("NODE1"))
+                .thenReturn(node);
+
+        when(modelMapper.map(node, NodeDto.class))
+                .thenReturn(nodeDto);
+
+        NodeDto result =
+                nodeService.changeToggleStatus("NODE1", false);
 
         assertNotNull(result);
         assertFalse(node.isStatus());
+
         verify(nodeRepository).save(node);
     }
 
-    // ✅ FIND ACTIVE STATUS
     @Test
     void testFindActiveStatus() {
-        node.setStatus(true);
-        Node inactive = new Node();
-        inactive.setStatus(false);
 
-        List<Node> nodes = List.of(node, inactive);
+        Node inactiveNode = new Node();
+        inactiveNode.setStatus(false);
 
-        when(nodeRepository.findAll()).thenReturn(nodes);
+        when(nodeRepository.findAll())
+                .thenReturn(List.of(node, inactiveNode));
+
         when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.singletonList(nodeDto));
+                .thenReturn(List.of(nodeDto));
 
         List<NodeDto> result = nodeService.findActiveStatus();
 

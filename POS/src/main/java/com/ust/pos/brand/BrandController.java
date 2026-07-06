@@ -2,7 +2,6 @@ package com.ust.pos.brand;
 
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
-import com.ust.pos.dto.PaginationDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

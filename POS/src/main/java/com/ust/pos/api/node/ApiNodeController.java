@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Model;
 import com.ust.pos.model.Node;
 import com.ust.pos.node.service.NodeService;
 import io.micrometer.common.util.StringUtils;
@@ -24,7 +23,6 @@ public class ApiNodeController extends BaseController {
     public ApiNodeController(NodeService nodeService) {
         this.nodeService = nodeService;
     }
-
 
     @PostMapping("/list")
     public WsDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
@@ -49,10 +47,14 @@ public class ApiNodeController extends BaseController {
         return nodeService.findByIdentifier(identifier);
     }
 
+    @GetMapping("/getNodesForRoles")
+    public List<NodeDto> getNodesForRoles(){
+        return nodeService.getNodesForRoles();
+    }
+
     @PutMapping("/update")
     public NodeDto updatePost(@RequestBody NodeDto userDto) {
         return nodeService.update(userDto);
-
     }
 
     @DeleteMapping("/delete")
@@ -74,4 +76,6 @@ public class ApiNodeController extends BaseController {
     public List<NodeDto> findActive() {
         return nodeService.findActiveStatus();
     }
+
+
 }

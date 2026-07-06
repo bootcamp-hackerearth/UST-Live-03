@@ -6,7 +6,6 @@ import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
-import com.ust.pos.model.Customer;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -17,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/brand")
+
 public class ApiBrandController extends BaseController {
 
     private final BrandService brandService;
@@ -26,7 +26,8 @@ public class ApiBrandController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin','manager')")
+
     public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -40,8 +41,8 @@ public class ApiBrandController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin', 'Manager')")
-    public BrandDto addproduct(@RequestBody BrandDto brandDto) {
+    @PreAuthorize("hasAnyAuthority('Admin','manager')")
+        public BrandDto addproduct(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
     }
 
@@ -56,7 +57,7 @@ public class ApiBrandController extends BaseController {
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin','manager')")
     public BrandDto update(@RequestParam String identifier) {
 
         return brandService.findByIdentifier(identifier);

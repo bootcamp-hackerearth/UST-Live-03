@@ -11,9 +11,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -31,7 +34,6 @@ class ShelfsServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @Spy
     @InjectMocks
     private ShelfsServiceImpl shelfsService;
 
@@ -40,22 +42,27 @@ class ShelfsServiceTest {
 
     @BeforeEach
     void setUp() {
+
         shelfs = new Shelfs();
-        shelfs.setIdentifier("S1");
+        shelfs.setIdentifier("SH1");
         shelfs.setStatus(true);
         shelfs.setDeleted(false);
 
         shelfsDto = new ShelfsDto();
-        shelfsDto.setIdentifier("S1");
+        shelfsDto.setIdentifier("SH1");
     }
 
-    // ✅ FIND ALL (Pagination)
     @Test
     void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Shelfs> page = new PageImpl<>(Collections.singletonList(shelfs));
 
-        when(shelfsRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Shelfs> page =
+                new PageImpl<>(Collections.singletonList(shelfs));
+
+        when(shelfsRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(shelfsDto));
 
@@ -64,59 +71,113 @@ class ShelfsServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
     }
 
-    // ✅ FIND ACTIVE STATUS
     @Test
-    void testFindActiveStatus() {
-        shelfs.setStatus(true);
+    void testFindAllWithSpecification() {
 
-        Shelfs inactive = new Shelfs();
-        inactive.setStatus(false);
+        Pageable pageable = PageRequest.of(0, 10);
 
-        List<Shelfs> list = List.of(shelfs, inactive);
+        @SuppressWarnings("unchecked")
+        Specification<Shelfs> specification =
+                mock(Specification.class);
 
-        when(shelfsRepository.findAll()).thenReturn(list);
+        Page<Shelfs> page =
+                new PageImpl<>(Collections.singletonList(shelfs));
+
+        when(shelfsRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(shelfsDto));
 
-        List<ShelfsDto> result = shelfsService.findActiveStatus();
+        WsDto<ShelfsDto> result =
+                shelfsService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+
+        verify(shelfsRepository)
+                .findAll(specification, pageable);
+    }
+
+    @Test
+    void testFindActiveStatus() {
+
+        Shelfs inactiveShelf = new Shelfs();
+        inactiveShelf.setStatus(false);
+
+        when(shelfsRepository.findAll())
+                .thenReturn(List.of(shelfs, inactiveShelf));
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(shelfsDto));
+
+        List<ShelfsDto> result =
+                shelfsService.findActiveStatus();
 
         assertNotNull(result);
         assertEquals(1, result.size());
     }
 
-    // ✅ CHANGE TOGGLE STATUS
     @Test
     void testChangeToggleStatus() {
-        when(shelfsRepository.findByIdentifier("S1")).thenReturn(shelfs);
-        when(modelMapper.map(shelfs, ShelfsDto.class)).thenReturn(shelfsDto);
 
-        ShelfsDto result = shelfsService.changeToggleStatus("S1", false);
+        when(shelfsRepository.findByIdentifier("SH1"))
+                .thenReturn(shelfs);
+
+        when(modelMapper.map(shelfs, ShelfsDto.class))
+                .thenReturn(shelfsDto);
+
+        ShelfsDto result =
+                shelfsService.changeToggleStatus("SH1", false);
 
         assertNotNull(result);
         assertFalse(shelfs.isStatus());
+
         verify(shelfsRepository).save(shelfs);
     }
 
-    // ✅ SAVE - NEW
     @Test
-    void testSave_New() {
-        when(shelfsRepository.findByIdentifier("S1")).thenReturn(null);
-        when(modelMapper.map(shelfsDto, Shelfs.class)).thenReturn(shelfs);
+    void testChangeToggleStatus_ShelfNotFound() {
 
-        doNothing().when(shelfsService).setAuditFields(shelfs, true);
+        when(shelfsRepository.findByIdentifier("SH1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(null, ShelfsDto.class))
+                .thenReturn(null);
+
+        ShelfsDto result =
+                shelfsService.changeToggleStatus("SH1", false);
+
+        assertNull(result);
+    }
+
+    @Test
+    void testSave_NewShelf() {
+
+        when(shelfsRepository.findByIdentifier("SH1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(shelfsDto, Shelfs.class))
+                .thenReturn(shelfs);
 
         ShelfsDto result = shelfsService.save(shelfsDto);
 
         assertNotNull(result);
+        assertEquals("SH1", result.getIdentifier());
+
         verify(shelfsRepository).save(shelfs);
     }
 
-    // ✅ SAVE - ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(shelfsRepository.findByIdentifier("S1")).thenReturn(shelfs);
+
+        when(shelfsRepository.findByIdentifier("SH1"))
+                .thenReturn(shelfs);
 
         ShelfsDto result = shelfsService.save(shelfsDto);
 
@@ -124,12 +185,13 @@ class ShelfsServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
-    // ✅ SAVE - SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
+
         shelfs.setDeleted(true);
 
-        when(shelfsRepository.findByIdentifier("S1")).thenReturn(shelfs);
+        when(shelfsRepository.findByIdentifier("SH1"))
+                .thenReturn(shelfs);
 
         ShelfsDto result = shelfsService.save(shelfsDto);
 
@@ -137,41 +199,49 @@ class ShelfsServiceTest {
         assertTrue(result.getMessage().contains("soft deleted"));
     }
 
-    // ✅ DELETE
     @Test
     void testDelete() {
-        when(shelfsRepository.findByIdentifier("S1")).thenReturn(shelfs);
 
-        doNothing().when(shelfsService).softDelete(shelfs);
-        doNothing().when(shelfsService).setAuditFields(shelfs, false);
+        when(shelfsRepository.findByIdentifier("SH1"))
+                .thenReturn(shelfs);
 
-        shelfsService.delete("S1");
+        shelfsService.delete("SH1");
+
+        assertTrue(shelfs.isDeleted());
+        assertFalse(shelfs.isStatus());
 
         verify(shelfsRepository).save(shelfs);
     }
 
-    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
-        when(shelfsRepository.findByIdentifier("S1")).thenReturn(shelfs);
-        when(modelMapper.map(shelfs, ShelfsDto.class)).thenReturn(shelfsDto);
 
-        ShelfsDto result = shelfsService.findByIdentifier("S1");
+        when(shelfsRepository.findByIdentifier("SH1"))
+                .thenReturn(shelfs);
+
+        when(modelMapper.map(shelfs, ShelfsDto.class))
+                .thenReturn(shelfsDto);
+
+        ShelfsDto result =
+                shelfsService.findByIdentifier("SH1");
 
         assertNotNull(result);
+        assertEquals("SH1", result.getIdentifier());
     }
 
-    // ✅ UPDATE
     @Test
     void testUpdate() {
-        when(shelfsRepository.findByIdentifier("S1")).thenReturn(shelfs);
 
-        doNothing().when(modelMapper).map(shelfsDto, shelfs);
-        doNothing().when(shelfsService).setAuditFields(shelfs, false);
+        when(shelfsRepository.findByIdentifier("SH1"))
+                .thenReturn(shelfs);
+
+        doNothing().when(modelMapper)
+                .map(shelfsDto, shelfs);
 
         ShelfsDto result = shelfsService.update(shelfsDto);
 
         assertNotNull(result);
+
         verify(shelfsRepository).save(shelfs);
     }
 }

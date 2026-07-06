@@ -58,14 +58,9 @@ function Dashboard() {
         return;
       }
 
-      const response = await axios.post(
-        "http://localhost:8080/api/node/list",
-        {
-          page: 0,
-          sizePerPage: 100,
-          sortDirection: "ASC",
-          sortField: "id"
-        },
+      const response = await axios.get(
+        "http://localhost:8080/api/node/getNodesForRoles",
+  
         {
           headers: { Authorization: `Bearer ${token}` }
         }

@@ -2,9 +2,7 @@ package com.ust.pos.models.service.impl;
 
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ModelDto;
-import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Model;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.ModelService;

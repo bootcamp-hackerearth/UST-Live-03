@@ -68,6 +68,13 @@ axiosInstance.interceptors.response.use(
       }
     }
 
+    if (status === 403) {
+      console.warn("Global Interceptor: 403 Error detected. Redirecting to /403...");
+      if (globalThis.window !== undefined) {
+        globalThis.location.href = "/403";
+      }
+    }
+
     return Promise.reject(error);
   }
 );

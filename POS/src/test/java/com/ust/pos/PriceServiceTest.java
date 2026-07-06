@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -40,6 +41,7 @@ class PriceServiceTest {
 
     @BeforeEach
     void setUp() {
+
         price = new Price();
         price.setIdentifier("P1");
         price.setStatus(true);
@@ -49,13 +51,17 @@ class PriceServiceTest {
         priceDto.setIdentifier("P1");
     }
 
-    // ✅ FIND ALL (Pagination)
     @Test
     void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Price> page = new PageImpl<>(Collections.singletonList(price));
 
-        when(priceRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Price> page =
+                new PageImpl<>(Collections.singletonList(price));
+
+        when(priceRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(priceDto));
 
@@ -66,24 +72,54 @@ class PriceServiceTest {
         assertEquals(1, result.getTotalRecords());
     }
 
-    // ✅ SAVE - NEW PRICE
+    @Test
+    void testFindAllWithSpecification() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Price> specification =
+                mock(Specification.class);
+
+        Page<Price> page =
+                new PageImpl<>(Collections.singletonList(price));
+
+        when(priceRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.singletonList(priceDto));
+
+        WsDto<PriceDto> result =
+                priceService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+
+        verify(priceRepository).findAll(specification, pageable);
+    }
+
     @Test
     void testSave_NewPrice() {
-        when(priceRepository.findByIdentifier("P1")).thenReturn(null);
-        when(modelMapper.map(priceDto, Price.class)).thenReturn(price);
 
-        doNothing().when(priceService).setAuditFields(price, true);
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(priceDto, Price.class))
+                .thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
         assertNotNull(result);
+
         verify(priceRepository).save(price);
     }
 
-    // ✅ SAVE - ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(priceRepository.findByIdentifier("P1")).thenReturn(price);
+
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
@@ -91,12 +127,13 @@ class PriceServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
-    // ✅ SAVE - SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
+
         price.setDeleted(true);
 
-        when(priceRepository.findByIdentifier("P1")).thenReturn(price);
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
@@ -104,71 +141,98 @@ class PriceServiceTest {
         assertTrue(result.getMessage().contains("soft deleted"));
     }
 
-    // ✅ DELETE
     @Test
     void testDelete() {
-        when(priceRepository.findByIdentifier("P1")).thenReturn(price);
 
-        doNothing().when(priceService).softDelete(price);
-        doNothing().when(priceService).setAuditFields(price, false);
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(price);
 
         priceService.delete("P1");
+
+        assertTrue(price.isDeleted());
+        assertFalse(price.isStatus());
 
         verify(priceRepository).save(price);
     }
 
-    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
-        when(priceRepository.findByIdentifier("P1")).thenReturn(price);
-        when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
+
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(price);
+
+        when(modelMapper.map(price, PriceDto.class))
+                .thenReturn(priceDto);
 
         PriceDto result = priceService.findByIdentifier("P1");
 
         assertNotNull(result);
+        assertEquals("P1", result.getIdentifier());
     }
 
-    // ✅ UPDATE
     @Test
     void testUpdate() {
-        when(priceRepository.findByIdentifier("P1")).thenReturn(price);
 
-        doNothing().when(modelMapper).map(priceDto, price);
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(price);
+
+        doNothing().when(modelMapper)
+                .map(priceDto, price);
 
         PriceDto result = priceService.update(priceDto);
 
         assertNotNull(result);
+
         verify(priceRepository).save(price);
     }
 
-    // ✅ CHANGE TOGGLE STATUS
     @Test
     void testChangeToggleStatus() {
-        when(priceRepository.findByIdentifier("P1")).thenReturn(price);
-        when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
 
-        PriceDto result = priceService.changeToggleStatus("P1", false);
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(price);
+
+        when(modelMapper.map(price, PriceDto.class))
+                .thenReturn(priceDto);
+
+        PriceDto result =
+                priceService.changeToggleStatus("P1", false);
 
         assertNotNull(result);
         assertFalse(price.isStatus());
+
         verify(priceRepository).save(price);
     }
 
-    // ✅ FIND ACTIVE STATUS
+    @Test
+    void testChangeToggleStatus_PriceNotFound() {
+
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(null, PriceDto.class))
+                .thenReturn(null);
+
+        PriceDto result =
+                priceService.changeToggleStatus("P1", false);
+
+        assertNull(result);
+    }
+
     @Test
     void testFindActiveStatus() {
-        price.setStatus(true);
 
-        Price inactive = new Price();
-        inactive.setStatus(false);
+        Price inactivePrice = new Price();
+        inactivePrice.setStatus(false);
 
-        List<Price> prices = List.of(price, inactive);
+        when(priceRepository.findAll())
+                .thenReturn(List.of(price, inactivePrice));
 
-        when(priceRepository.findAll()).thenReturn(prices);
         when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.singletonList(priceDto));
+                .thenReturn(List.of(priceDto));
 
-        List<PriceDto> result = priceService.findActiveStatus();
+        List<PriceDto> result =
+                priceService.findActiveStatus();
 
         assertNotNull(result);
         assertEquals(1, result.size());

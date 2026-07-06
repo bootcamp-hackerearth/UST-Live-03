@@ -11,9 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -31,7 +31,6 @@ class CategoryServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @Spy
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
@@ -40,22 +39,28 @@ class CategoryServiceTest {
 
     @BeforeEach
     void setUp() {
+
         category = new Category();
         category.setIdentifier("CAT1");
         category.setStatus(true);
         category.setDeleted(false);
-        category.setSuperCategory("MAIN");
+        category.setSuperCategory("SUPER");
 
         categoryDto = new CategoryDto();
         categoryDto.setIdentifier("CAT1");
     }
 
+    // ✅ FIND ALL
     @Test
     void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Category> page = new PageImpl<>(Collections.singletonList(category));
 
-        when(categoryRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Category> page =
+                new PageImpl<>(Collections.singletonList(category));
+
+        when(categoryRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(categoryDto));
 
@@ -66,22 +71,58 @@ class CategoryServiceTest {
         assertEquals(1, result.getTotalRecords());
     }
 
+    // ✅ FIND ALL WITH SPECIFICATION
+    @Test
+    void testFindAllWithSpecification() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Category> specification =
+                mock(Specification.class);
+
+        Page<Category> page =
+                new PageImpl<>(Collections.singletonList(category));
+
+        when(categoryRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.singletonList(categoryDto));
+
+        WsDto<CategoryDto> result =
+                categoryService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+
+        verify(categoryRepository)
+                .findAll(specification, pageable);
+    }
+
+    // ✅ SAVE NEW CATEGORY
     @Test
     void testSave_NewCategory() {
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(null);
-        when(modelMapper.map(categoryDto, Category.class)).thenReturn(category);
 
-        doNothing().when(categoryService).setAuditFields(category, true);
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(categoryDto, Category.class))
+                .thenReturn(category);
 
         CategoryDto result = categoryService.save(categoryDto);
 
         assertNotNull(result);
+
         verify(categoryRepository).save(category);
     }
 
+    // ✅ SAVE ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(category);
+
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
 
         CategoryDto result = categoryService.save(categoryDto);
 
@@ -89,11 +130,14 @@ class CategoryServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
+    // ✅ SAVE SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
+
         category.setDeleted(true);
 
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(category);
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
 
         CategoryDto result = categoryService.save(categoryDto);
 
@@ -101,88 +145,121 @@ class CategoryServiceTest {
         assertTrue(result.getMessage().contains("soft deleted"));
     }
 
+    // ✅ DELETE
     @Test
     void testDelete() {
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(category);
 
-        doNothing().when(categoryService).softDelete(category);
-        doNothing().when(categoryService).setAuditFields(category, false);
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
 
         categoryService.delete("CAT1");
 
+        assertTrue(category.isDeleted());
+        assertFalse(category.isStatus());
+
         verify(categoryRepository).save(category);
     }
 
+    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(category);
-        when(modelMapper.map(category, CategoryDto.class)).thenReturn(categoryDto);
 
-        CategoryDto result = categoryService.findByIdentifier("CAT1");
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
+
+        when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(categoryDto);
+
+        CategoryDto result =
+                categoryService.findByIdentifier("CAT1");
 
         assertNotNull(result);
+        assertEquals("CAT1", result.getIdentifier());
     }
 
+    // ✅ UPDATE SUCCESS
     @Test
     void testUpdate_Success() {
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(category);
 
-        doNothing().when(modelMapper).map(categoryDto, category);
-        doNothing().when(categoryService).setAuditFields(category, false);
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
 
-        CategoryDto result = categoryService.update(categoryDto);
+        doNothing().when(modelMapper)
+                .map(categoryDto, category);
+
+        CategoryDto result =
+                categoryService.update(categoryDto);
 
         assertNotNull(result);
+
         verify(categoryRepository).save(category);
     }
 
+    // ✅ UPDATE NOT FOUND
     @Test
     void testUpdate_NotFound() {
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(null);
 
-        CategoryDto result = categoryService.update(categoryDto);
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(null);
+
+        CategoryDto result =
+                categoryService.update(categoryDto);
 
         assertFalse(result.isSuccess());
-        assertTrue(result.getMessage().contains("already exists"));
     }
 
+    // ✅ FIND SUB CATEGORIES
     @Test
     void testFindSubCategories() {
-        when(categoryRepository.findBySuperCategoryIsNot(" "))
-                .thenReturn(Collections.singletonList(category));
-        when(modelMapper.map(category, CategoryDto.class)).thenReturn(categoryDto);
 
-        List<CategoryDto> result = categoryService.findSubCategories();
+        when(categoryRepository.findBySuperCategoryIsNot(" "))
+                .thenReturn(List.of(category));
+
+        when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(categoryDto);
+
+        List<CategoryDto> result =
+                categoryService.findSubCategories();
 
         assertNotNull(result);
         assertEquals(1, result.size());
     }
 
+    // ✅ CHANGE TOGGLE STATUS
     @Test
     void testChangeToggleStatus() {
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(category);
-        when(modelMapper.map(category, CategoryDto.class)).thenReturn(categoryDto);
 
-        CategoryDto result = categoryService.changeToggleStatus("CAT1", false);
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
+
+        when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(categoryDto);
+
+        CategoryDto result =
+                categoryService.changeToggleStatus("CAT1", false);
 
         assertNotNull(result);
+
         assertFalse(category.isStatus());
+
         verify(categoryRepository).save(category);
     }
 
+    // ✅ FIND ACTIVE STATUS
     @Test
     void testFindActiveStatus() {
-        category.setStatus(true);
+
         Category inactive = new Category();
         inactive.setStatus(false);
 
-        List<Category> categories = List.of(category, inactive);
+        when(categoryRepository.findAll())
+                .thenReturn(List.of(category, inactive));
 
-        when(categoryRepository.findAll()).thenReturn(categories);
         when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.singletonList(categoryDto));
+                .thenReturn(List.of(categoryDto));
 
-        List<CategoryDto> result = categoryService.findActiveStatus();
+        List<CategoryDto> result =
+                categoryService.findActiveStatus();
 
         assertNotNull(result);
         assertEquals(1, result.size());

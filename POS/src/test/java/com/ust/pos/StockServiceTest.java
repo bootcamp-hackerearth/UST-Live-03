@@ -11,9 +11,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -31,7 +34,6 @@ class StockServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @Spy
     @InjectMocks
     private StockServiceImpl stockService;
 
@@ -40,22 +42,27 @@ class StockServiceTest {
 
     @BeforeEach
     void setUp() {
+
         stock = new Stock();
-        stock.setIdentifier("ST1");
+        stock.setIdentifier("STK1");
         stock.setStatus(true);
         stock.setDeleted(false);
 
         stockDto = new StockDto();
-        stockDto.setIdentifier("ST1");
+        stockDto.setIdentifier("STK1");
     }
 
-    // ✅ FIND ALL (Pagination)
     @Test
     void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Stock> page = new PageImpl<>(Collections.singletonList(stock));
 
-        when(stockRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Stock> page =
+                new PageImpl<>(Collections.singletonList(stock));
+
+        when(stockRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(stockDto));
 
@@ -64,97 +71,59 @@ class StockServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
     }
 
-    // ✅ DELETE (Soft Delete)
     @Test
-    void testDelete() {
-        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+    void testFindAllWithSpecification() {
 
-        doNothing().when(stockService).softDelete(stock);
-        doNothing().when(stockService).setAuditFields(stock, false);
+        Pageable pageable = PageRequest.of(0, 10);
 
-        stockService.delete("ST1");
+        @SuppressWarnings("unchecked")
+        Specification<Stock> specification =
+                mock(Specification.class);
 
-        verify(stockRepository).save(stock);
-    }
+        Page<Stock> page =
+                new PageImpl<>(Collections.singletonList(stock));
 
-    // ✅ FIND BY IDENTIFIER
-    @Test
-    void testFindByIdentifier() {
-        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
-        when(modelMapper.map(stock, StockDto.class)).thenReturn(stockDto);
+        when(stockRepository.findAll(specification, pageable))
+                .thenReturn(page);
 
-        StockDto result = stockService.findByIdentifier("ST1");
-
-        assertNotNull(result);
-    }
-
-    // ✅ UPDATE
-    @Test
-    void testUpdate() {
-        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
-
-        doNothing().when(modelMapper).map(stockDto, stock);
-        doNothing().when(stockService).setAuditFields(stock, false);
-
-        StockDto result = stockService.update(stockDto);
-
-        assertNotNull(result);
-        verify(stockRepository).save(stock);
-    }
-
-    // ✅ CHANGE TOGGLE STATUS
-    @Test
-    void testChangeToggleStatus() {
-        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
-        when(modelMapper.map(stock, StockDto.class)).thenReturn(stockDto);
-
-        StockDto result = stockService.changeToggleStatus("ST1", false);
-
-        assertNotNull(result);
-        assertFalse(stock.isStatus());
-        verify(stockRepository).save(stock);
-    }
-
-    // ✅ FIND ACTIVE STATUS
-    @Test
-    void testFindActiveStatus() {
-        stock.setStatus(true);
-
-        Stock inactive = new Stock();
-        inactive.setStatus(false);
-
-        List<Stock> stocks = List.of(stock, inactive);
-
-        when(stockRepository.findAll()).thenReturn(stocks);
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(stockDto));
 
-        List<StockDto> result = stockService.findActiveStatus();
+        WsDto<StockDto> result =
+                stockService.findAll(specification, pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getDtoList().size());
+
+        verify(stockRepository)
+                .findAll(specification, pageable);
     }
 
-    // ✅ SAVE - NEW STOCK
     @Test
     void testSave_NewStock() {
-        when(stockRepository.findByIdentifier("ST1")).thenReturn(null);
-        when(modelMapper.map(stockDto, Stock.class)).thenReturn(stock);
 
-        doNothing().when(stockService).setAuditFields(stock, true);
+        when(stockRepository.findByIdentifier("STK1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(stockDto, Stock.class))
+                .thenReturn(stock);
 
         StockDto result = stockService.save(stockDto);
 
         assertNotNull(result);
+        assertEquals("STK1", result.getIdentifier());
+
         verify(stockRepository).save(stock);
     }
 
-    // ✅ SAVE - ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+
+        when(stockRepository.findByIdentifier("STK1"))
+                .thenReturn(stock);
 
         StockDto result = stockService.save(stockDto);
 
@@ -162,16 +131,115 @@ class StockServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
-    // ✅ SAVE - SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
+
         stock.setDeleted(true);
 
-        when(stockRepository.findByIdentifier("ST1")).thenReturn(stock);
+        when(stockRepository.findByIdentifier("STK1"))
+                .thenReturn(stock);
 
         StockDto result = stockService.save(stockDto);
 
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("soft deleted"));
+    }
+
+    @Test
+    void testDelete() {
+
+        when(stockRepository.findByIdentifier("STK1"))
+                .thenReturn(stock);
+
+        stockService.delete("STK1");
+
+        assertTrue(stock.isDeleted());
+        assertFalse(stock.isStatus());
+
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void testFindByIdentifier() {
+
+        when(stockRepository.findByIdentifier("STK1"))
+                .thenReturn(stock);
+
+        when(modelMapper.map(stock, StockDto.class))
+                .thenReturn(stockDto);
+
+        StockDto result =
+                stockService.findByIdentifier("STK1");
+
+        assertNotNull(result);
+        assertEquals("STK1", result.getIdentifier());
+    }
+
+    @Test
+    void testUpdate() {
+
+        when(stockRepository.findByIdentifier("STK1"))
+                .thenReturn(stock);
+
+        doNothing().when(modelMapper)
+                .map(stockDto, stock);
+
+        StockDto result = stockService.update(stockDto);
+
+        assertNotNull(result);
+
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void testChangeToggleStatus() {
+
+        when(stockRepository.findByIdentifier("STK1"))
+                .thenReturn(stock);
+
+        when(modelMapper.map(stock, StockDto.class))
+                .thenReturn(stockDto);
+
+        StockDto result =
+                stockService.changeToggleStatus("STK1", false);
+
+        assertNotNull(result);
+        assertFalse(stock.isStatus());
+
+        verify(stockRepository).save(stock);
+    }
+
+    @Test
+    void testChangeToggleStatus_StockNotFound() {
+
+        when(stockRepository.findByIdentifier("STK1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(null, StockDto.class))
+                .thenReturn(null);
+
+        StockDto result =
+                stockService.changeToggleStatus("STK1", false);
+
+        assertNull(result);
+    }
+
+    @Test
+    void testFindActiveStatus() {
+
+        Stock inactiveStock = new Stock();
+        inactiveStock.setStatus(false);
+
+        when(stockRepository.findAll())
+                .thenReturn(List.of(stock, inactiveStock));
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(stockDto));
+
+        List<StockDto> result =
+                stockService.findActiveStatus();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
     }
 }

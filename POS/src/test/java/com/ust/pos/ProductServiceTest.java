@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -40,64 +41,103 @@ class ProductServiceTest {
 
     @BeforeEach
     void setUp() {
+
         product = new Product();
-        product.setIdentifier("P1");
+        product.setIdentifier("PROD1");
         product.setStatus(true);
         product.setDeleted(false);
 
         productDto = new ProductDto();
-        productDto.setIdentifier("P1");
+        productDto.setIdentifier("PROD1");
     }
 
-    // ✅ UPDATE
     @Test
     void testUpdate() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
 
-        doNothing().when(modelMapper).map(productDto, product);
-        doNothing().when(productService).setAuditFields(product, false);
+        when(productRepository.findByIdentifier("PROD1"))
+                .thenReturn(product);
+
+        doNothing().when(modelMapper)
+                .map(productDto, product);
 
         ProductDto result = productService.update(productDto);
 
         assertNotNull(result);
+
         verify(productRepository).save(product);
     }
 
-    // ✅ FIND ALL (Pagination)
     @Test
     void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Product> page = new PageImpl<>(Collections.singletonList(product));
 
-        when(productRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Product> page =
+                new PageImpl<>(Collections.singletonList(product));
+
+        when(productRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(productDto));
 
-        WsDto<ProductDto> result = productService.findAll(pageable);
+        WsDto<ProductDto> result =
+                productService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
     }
 
-    // ✅ SAVE - NEW PRODUCT
+    @Test
+    void testFindAllWithSpecification() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Product> specification =
+                mock(Specification.class);
+
+        Page<Product> page =
+                new PageImpl<>(Collections.singletonList(product));
+
+        when(productRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.singletonList(productDto));
+
+        WsDto<ProductDto> result =
+                productService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+
+        verify(productRepository)
+                .findAll(specification, pageable);
+    }
+
     @Test
     void testSave_NewProduct() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(null);
-        when(modelMapper.map(productDto, Product.class)).thenReturn(product);
 
-        doNothing().when(productService).setAuditFields(product, true);
+        when(productRepository.findByIdentifier("PROD1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(productDto, Product.class))
+                .thenReturn(product);
 
         ProductDto result = productService.save(productDto);
 
         assertNotNull(result);
+
         verify(productRepository).save(product);
     }
 
-    // ✅ SAVE - ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
+
+        when(productRepository.findByIdentifier("PROD1"))
+                .thenReturn(product);
 
         ProductDto result = productService.save(productDto);
 
@@ -105,12 +145,13 @@ class ProductServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
-    // ✅ SAVE - SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
+
         product.setDeleted(true);
 
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
+        when(productRepository.findByIdentifier("PROD1"))
+                .thenReturn(product);
 
         ProductDto result = productService.save(productDto);
 
@@ -118,58 +159,83 @@ class ProductServiceTest {
         assertTrue(result.getMessage().contains("soft deleted"));
     }
 
-    // ✅ DELETE
     @Test
     void testDelete() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
 
-        doNothing().when(productService).softDelete(product);
-        doNothing().when(productService).setAuditFields(product, false);
+        when(productRepository.findByIdentifier("PROD1"))
+                .thenReturn(product);
 
-        productService.delete("P1");
+        productService.delete("PROD1");
+
+        assertTrue(product.isDeleted());
+        assertFalse(product.isStatus());
 
         verify(productRepository).save(product);
     }
 
-    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
-        when(modelMapper.map(product, ProductDto.class)).thenReturn(productDto);
 
-        ProductDto result = productService.findByIdentifier("P1");
+        when(productRepository.findByIdentifier("PROD1"))
+                .thenReturn(product);
+
+        when(modelMapper.map(product, ProductDto.class))
+                .thenReturn(productDto);
+
+        ProductDto result =
+                productService.findByIdentifier("PROD1");
 
         assertNotNull(result);
+        assertEquals("PROD1", result.getIdentifier());
     }
 
-    // ✅ CHANGE TOGGLE STATUS
     @Test
     void testChangeToggleStatus() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
-        when(modelMapper.map(product, ProductDto.class)).thenReturn(productDto);
 
-        ProductDto result = productService.changeToggleStatus("P1", false);
+        when(productRepository.findByIdentifier("PROD1"))
+                .thenReturn(product);
+
+        when(modelMapper.map(product, ProductDto.class))
+                .thenReturn(productDto);
+
+        ProductDto result =
+                productService.changeToggleStatus("PROD1", false);
 
         assertNotNull(result);
         assertFalse(product.isStatus());
+
         verify(productRepository).save(product);
     }
 
-    // ✅ FIND ACTIVE STATUS
+    @Test
+    void testChangeToggleStatus_ProductNotFound() {
+
+        when(productRepository.findByIdentifier("PROD1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(null, ProductDto.class))
+                .thenReturn(null);
+
+        ProductDto result =
+                productService.changeToggleStatus("PROD1", false);
+
+        assertNull(result);
+    }
+
     @Test
     void testFindActiveStatus() {
-        product.setStatus(true);
 
-        Product inactive = new Product();
-        inactive.setStatus(false);
+        Product inactiveProduct = new Product();
+        inactiveProduct.setStatus(false);
 
-        List<Product> products = List.of(product, inactive);
+        when(productRepository.findAll())
+                .thenReturn(List.of(product, inactiveProduct));
 
-        when(productRepository.findAll()).thenReturn(products);
         when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.singletonList(productDto));
+                .thenReturn(List.of(productDto));
 
-        List<ProductDto> result = productService.findActiveStatus();
+        List<ProductDto> result =
+                productService.findActiveStatus();
 
         assertNotNull(result);
         assertEquals(1, result.size());

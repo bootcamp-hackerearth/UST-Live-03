@@ -13,8 +13,11 @@ import java.util.List;
 @Component
 public class RoleDaoImpl implements RoleDao {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public RoleDaoImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public Role findByIdentifier(String identifier) {

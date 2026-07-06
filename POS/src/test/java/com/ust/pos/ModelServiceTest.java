@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -40,44 +41,52 @@ class ModelServiceTest {
 
     @BeforeEach
     void setUp() {
+
         model = new Model();
-        model.setIdentifier("M1");
+        model.setIdentifier("MOD1");
         model.setStatus(true);
         model.setDeleted(false);
 
         modelDto = new ModelDto();
-        modelDto.setIdentifier("M1");
+        modelDto.setIdentifier("MOD1");
     }
 
-    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
-        when(modelRepository.findByIdentifier("M1")).thenReturn(model);
-        when(modelMapper.map(model, ModelDto.class)).thenReturn(modelDto);
 
-        ModelDto result = modelService.findByIdentifier("M1");
+        when(modelRepository.findByIdentifier("MOD1"))
+                .thenReturn(model);
+
+        when(modelMapper.map(model, ModelDto.class))
+                .thenReturn(modelDto);
+
+        ModelDto result = modelService.findByIdentifier("MOD1");
 
         assertNotNull(result);
+        assertEquals("MOD1", result.getIdentifier());
     }
 
-    // ✅ SAVE - NEW MODEL
     @Test
     void testSave_NewModel() {
-        when(modelRepository.findByIdentifier("M1")).thenReturn(null);
-        when(modelMapper.map(modelDto, Model.class)).thenReturn(model);
 
-        doNothing().when(modelService).setAuditFields(model, true);
+        when(modelRepository.findByIdentifier("MOD1"))
+                .thenReturn(null);
+
+        when(modelMapper.map(modelDto, Model.class))
+                .thenReturn(model);
 
         ModelDto result = modelService.save(modelDto);
 
         assertNotNull(result);
+
         verify(modelRepository).save(model);
     }
 
-    // ✅ SAVE - ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(modelRepository.findByIdentifier("M1")).thenReturn(model);
+
+        when(modelRepository.findByIdentifier("MOD1"))
+                .thenReturn(model);
 
         ModelDto result = modelService.save(modelDto);
 
@@ -85,12 +94,13 @@ class ModelServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
-    // ✅ SAVE - SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
+
         model.setDeleted(true);
 
-        when(modelRepository.findByIdentifier("M1")).thenReturn(model);
+        when(modelRepository.findByIdentifier("MOD1"))
+                .thenReturn(model);
 
         ModelDto result = modelService.save(modelDto);
 
@@ -98,24 +108,27 @@ class ModelServiceTest {
         assertTrue(result.getMessage().contains("soft deleted"));
     }
 
-    // ✅ UPDATE - SUCCESS
     @Test
     void testUpdate_Success() {
-        when(modelRepository.findByIdentifier("M1")).thenReturn(model);
 
-        doNothing().when(modelMapper).map(modelDto, model);
-        doNothing().when(modelService).setAuditFields(model, false);
+        when(modelRepository.findByIdentifier("MOD1"))
+                .thenReturn(model);
+
+        doNothing().when(modelMapper)
+                .map(modelDto, model);
 
         ModelDto result = modelService.update(modelDto);
 
         assertNotNull(result);
+
         verify(modelRepository).save(model);
     }
 
-    // ✅ UPDATE - NOT FOUND
     @Test
     void testUpdate_NotFound() {
-        when(modelRepository.findByIdentifier("M1")).thenReturn(null);
+
+        when(modelRepository.findByIdentifier("MOD1"))
+                .thenReturn(null);
 
         ModelDto result = modelService.update(modelDto);
 
@@ -123,64 +136,102 @@ class ModelServiceTest {
         assertTrue(result.getMessage().contains("not found"));
     }
 
-    // ✅ DELETE
     @Test
     void testDelete() {
-        when(modelRepository.findByIdentifier("M1")).thenReturn(model);
 
-        doNothing().when(modelService).softDelete(model);
-        doNothing().when(modelService).setAuditFields(model, false);
+        when(modelRepository.findByIdentifier("MOD1"))
+                .thenReturn(model);
 
-        modelService.delete("M1");
+        modelService.delete("MOD1");
+
+        assertTrue(model.isDeleted());
+        assertFalse(model.isStatus());
 
         verify(modelRepository).save(model);
     }
 
-    // ✅ FIND ALL (Pagination)
     @Test
     void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Model> page = new PageImpl<>(Collections.singletonList(model));
 
-        when(modelRepository.findByDeletedFalse(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Model> page =
+                new PageImpl<>(Collections.singletonList(model));
+
+        when(modelRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(modelDto));
 
-        WsDto<ModelDto> result = modelService.findAll(pageable);
+        WsDto<ModelDto> result =
+                modelService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
     }
 
-    // ✅ CHANGE TOGGLE STATUS
+    @Test
+    void testFindAllWithSpecification() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Model> specification =
+                mock(Specification.class);
+
+        Page<Model> page =
+                new PageImpl<>(Collections.singletonList(model));
+
+        when(modelRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.singletonList(modelDto));
+
+        WsDto<ModelDto> result =
+                modelService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+
+        verify(modelRepository)
+                .findAll(specification, pageable);
+    }
+
     @Test
     void testChangeToggleStatus() {
-        when(modelRepository.findByIdentifier("M1")).thenReturn(model);
-        when(modelMapper.map(model, ModelDto.class)).thenReturn(modelDto);
 
-        ModelDto result = modelService.changeToggleStatus("M1", false);
+        when(modelRepository.findByIdentifier("MOD1"))
+                .thenReturn(model);
+
+        when(modelMapper.map(model, ModelDto.class))
+                .thenReturn(modelDto);
+
+        ModelDto result =
+                modelService.changeToggleStatus("MOD1", false);
 
         assertNotNull(result);
         assertFalse(model.isStatus());
+
         verify(modelRepository).save(model);
     }
 
-    // ✅ FIND ACTIVE STATUS
     @Test
     void testFindActiveStatus() {
-        model.setStatus(true);
 
         Model inactive = new Model();
         inactive.setStatus(false);
 
-        List<Model> models = List.of(model, inactive);
+        when(modelRepository.findAll())
+                .thenReturn(List.of(model, inactive));
 
-        when(modelRepository.findAll()).thenReturn(models);
         when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.singletonList(modelDto));
+                .thenReturn(List.of(modelDto));
 
-        List<ModelDto> result = modelService.findActiveStatus();
+        List<ModelDto> result =
+                modelService.findActiveStatus();
 
         assertNotNull(result);
         assertEquals(1, result.size());

@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -40,77 +41,105 @@ class RoleServiceTest {
 
     @BeforeEach
     void setUp() {
+
         role = new Role();
-        role.setIdentifier("ROLE1");
+        role.setIdentifier("ROLE_ADMIN");
         role.setStatus(true);
         role.setDeleted(false);
 
         roleDto = new RoleDto();
-        roleDto.setIdentifier("ROLE1");
+        roleDto.setIdentifier("ROLE_ADMIN");
     }
 
-    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
-        when(roleRepository.findByIdentifier("ROLE1")).thenReturn(role);
-        when(modelMapper.map(role, RoleDto.class)).thenReturn(roleDto);
 
-        RoleDto result = roleService.findByIdentifier("ROLE1");
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(role);
+
+        when(modelMapper.map(role, RoleDto.class))
+                .thenReturn(roleDto);
+
+        RoleDto result =
+                roleService.findByIdentifier("ROLE_ADMIN");
 
         assertNotNull(result);
+        assertEquals("ROLE_ADMIN", result.getIdentifier());
     }
 
-    // ✅ CHANGE TOGGLE STATUS
     @Test
     void testChangeToggleStatus() {
-        when(roleRepository.findByIdentifier("ROLE1")).thenReturn(role);
-        when(modelMapper.map(role, RoleDto.class)).thenReturn(roleDto);
 
-        RoleDto result = roleService.changeToggleStatus("ROLE1", false);
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(role);
+
+        when(modelMapper.map(role, RoleDto.class))
+                .thenReturn(roleDto);
+
+        RoleDto result =
+                roleService.changeToggleStatus("ROLE_ADMIN", false);
 
         assertNotNull(result);
         assertFalse(role.isStatus());
+
         verify(roleRepository).save(role);
     }
 
-    // ✅ FIND ACTIVE STATUS
+    @Test
+    void testChangeToggleStatus_RoleNotFound() {
+
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(null);
+
+        when(modelMapper.map(null, RoleDto.class))
+                .thenReturn(null);
+
+        RoleDto result =
+                roleService.changeToggleStatus("ROLE_ADMIN", false);
+
+        assertNull(result);
+    }
+
     @Test
     void testFindActiveStatus() {
-        role.setStatus(true);
 
-        Role inactive = new Role();
-        inactive.setStatus(false);
+        Role inactiveRole = new Role();
+        inactiveRole.setStatus(false);
 
-        List<Role> roles = List.of(role, inactive);
+        when(roleRepository.findAll())
+                .thenReturn(List.of(role, inactiveRole));
 
-        when(roleRepository.findAll()).thenReturn(roles);
         when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.singletonList(roleDto));
+                .thenReturn(List.of(roleDto));
 
-        List<RoleDto> result = roleService.findActiveStatus();
+        List<RoleDto> result =
+                roleService.findActiveStatus();
 
         assertNotNull(result);
         assertEquals(1, result.size());
     }
 
-    // ✅ SAVE - NEW ROLE
     @Test
     void testSave_NewRole() {
-        when(roleRepository.findByIdentifier("ROLE1")).thenReturn(null);
-        when(modelMapper.map(roleDto, Role.class)).thenReturn(role);
 
-        doNothing().when(roleService).setAuditFields(role, true);
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(null);
+
+        when(modelMapper.map(roleDto, Role.class))
+                .thenReturn(role);
 
         RoleDto result = roleService.save(roleDto);
 
         assertNotNull(result);
+
         verify(roleRepository).save(role);
     }
 
-    // ✅ SAVE - ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(roleRepository.findByIdentifier("ROLE1")).thenReturn(role);
+
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(role);
 
         RoleDto result = roleService.save(roleDto);
 
@@ -118,12 +147,13 @@ class RoleServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
-    // ✅ SAVE - SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
+
         role.setDeleted(true);
 
-        when(roleRepository.findByIdentifier("ROLE1")).thenReturn(role);
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(role);
 
         RoleDto result = roleService.save(roleDto);
 
@@ -131,24 +161,27 @@ class RoleServiceTest {
         assertTrue(result.getMessage().contains("soft deleted"));
     }
 
-    // ✅ UPDATE - SUCCESS
     @Test
     void testUpdate_Success() {
-        when(roleRepository.findByIdentifier("ROLE1")).thenReturn(role);
 
-        doNothing().when(modelMapper).map(roleDto, role);
-        doNothing().when(roleService).setAuditFields(role, false);
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(role);
+
+        doNothing().when(modelMapper)
+                .map(roleDto, role);
 
         RoleDto result = roleService.update(roleDto);
 
         assertNotNull(result);
+
         verify(roleRepository).save(role);
     }
 
-    // ✅ UPDATE - NOT FOUND
     @Test
     void testUpdate_NotFound() {
-        when(roleRepository.findByIdentifier("ROLE1")).thenReturn(null);
+
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(null);
 
         RoleDto result = roleService.update(roleDto);
 
@@ -156,21 +189,31 @@ class RoleServiceTest {
         assertTrue(result.getMessage().contains("not found"));
     }
 
-    // ✅ DELETE
     @Test
     void testDelete() {
-        roleService.delete("ROLE1");
 
-        verify(roleRepository).deleteByIdentifier("ROLE1");
+        when(roleRepository.findByIdentifier("ROLE_ADMIN"))
+                .thenReturn(role);
+
+        roleService.delete("ROLE_ADMIN");
+
+        assertTrue(role.isDeleted());
+        assertFalse(role.isStatus());
+
+        verify(roleRepository).save(role);
     }
 
-    // ✅ FIND ALL (Pagination)
     @Test
     void testFindAll() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Role> page = new PageImpl<>(Collections.singletonList(role));
 
-        when(roleRepository.findAll(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Role> page =
+                new PageImpl<>(Collections.singletonList(role));
+
+        when(roleRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
         when(modelMapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.singletonList(roleDto));
 
@@ -179,5 +222,33 @@ class RoleServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
+    }
+
+    @Test
+    void testFindAllWithSpecification() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Role> specification =
+                mock(Specification.class);
+
+        Page<Role> page =
+                new PageImpl<>(Collections.singletonList(role));
+
+        when(roleRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.singletonList(roleDto));
+
+        WsDto<RoleDto> result =
+                roleService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+
+        verify(roleRepository)
+                .findAll(specification, pageable);
     }
 }

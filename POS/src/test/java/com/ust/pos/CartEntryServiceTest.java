@@ -37,37 +37,46 @@ class CartEntryServiceTest {
     @InjectMocks
     private CartEntryServiceImpl cartEntryService;
 
-    private CartEntry cartEntry;
     private CartEntryDto cartEntryDto;
+    private CartEntry cartEntry;
     private Price price;
 
     @BeforeEach
     void setUp() {
-        cartEntry = new CartEntry();
-        cartEntry.setIdentifier("P1-C1");
-        cartEntry.setQuantity(BigDecimal.valueOf(2));
 
         cartEntryDto = new CartEntryDto();
         cartEntryDto.setProduct("P1");
         cartEntryDto.setCart("C1");
         cartEntryDto.setQuantity(BigDecimal.ONE);
 
+        cartEntry = new CartEntry();
+        cartEntry.setIdentifier("P1-C1");
+        cartEntry.setQuantity(BigDecimal.ONE);
+        cartEntry.setStatus(true);
+
         price = new Price();
-        price.setSellingPrice(BigDecimal.valueOf(100));
+        price.setIdentifier("P1");
         price.setMrp(BigDecimal.valueOf(120));
+        price.setSellingPrice(BigDecimal.valueOf(100));
     }
 
     @Test
     void testSave_NewCartEntry() {
-        when(cartEntryRepository.findByIdentifier("P1-C1")).thenReturn(null);
-        when(priceRepository.findByIdentifier("P1")).thenReturn(price);
 
-        doNothing().when(modelMapper).map(eq(cartEntryDto), any(CartEntry.class));
+        when(cartEntryRepository.findByIdentifier("P1-C1"))
+                .thenReturn(null);
+
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(price);
+
+        doNothing().when(modelMapper)
+                .map(eq(cartEntryDto), any(CartEntry.class));
 
         CartEntryDto result = cartEntryService.save(cartEntryDto);
 
         assertNotNull(result);
         assertEquals(BigDecimal.ONE, result.getQuantity());
+        assertEquals(BigDecimal.valueOf(120), result.getPrice());
         assertEquals(BigDecimal.valueOf(100), result.getSellingPrice());
         assertEquals(BigDecimal.valueOf(100), result.getTotalPrice());
         assertEquals(BigDecimal.valueOf(20), result.getDiscount());
@@ -75,46 +84,58 @@ class CartEntryServiceTest {
         verify(cartEntryRepository).save(any(CartEntry.class));
     }
 
-
     @Test
     void testSave_ExistingCartEntry() {
-        when(cartEntryRepository.findByIdentifier("P1-C1")).thenReturn(cartEntry);
-        when(priceRepository.findByIdentifier("P1")).thenReturn(price);
+
+        cartEntry.setQuantity(BigDecimal.valueOf(2));
+
+        when(cartEntryRepository.findByIdentifier("P1-C1"))
+                .thenReturn(cartEntry);
+
+        when(priceRepository.findByIdentifier("P1"))
+                .thenReturn(price);
+
+        doNothing().when(modelMapper)
+                .map(eq(cartEntryDto), eq(cartEntry));
 
         CartEntryDto result = cartEntryService.save(cartEntryDto);
 
-        // existing qty = 2 + new qty = 1 => 3
         assertEquals(BigDecimal.valueOf(3), result.getQuantity());
-        assertEquals(BigDecimal.valueOf(300), result.getTotalPrice()); // 100 * 3
-        assertEquals(BigDecimal.valueOf(60), result.getDiscount());   // 20 * 3
+        assertEquals(BigDecimal.valueOf(300), result.getTotalPrice());
+        assertEquals(BigDecimal.valueOf(60), result.getDiscount());
 
-        verify(cartEntryRepository).save(any(CartEntry.class));
+        verify(cartEntryRepository).save(cartEntry);
     }
 
     @Test
-    void testDeleteAllByCart_WithData() {
-        List<CartEntry> list = Collections.singletonList(cartEntry);
+    void testDeleteAllByCart_WithEntries() {
 
-        when(cartEntryRepository.findByCart("C1")).thenReturn(list);
+        List<CartEntry> entries = List.of(cartEntry);
+
+        when(cartEntryRepository.findByCart("C1"))
+                .thenReturn(entries);
 
         cartEntryService.deleteAllByCart("C1");
 
-        verify(cartEntryRepository).deleteAll(list);
+        verify(cartEntryRepository).deleteAll(entries);
     }
 
     @Test
-    void testDeleteAllByCart_Empty() {
-        when(cartEntryRepository.findByCart("C1")).thenReturn(Collections.emptyList());
+    void testDeleteAllByCart_NoEntries() {
+
+        when(cartEntryRepository.findByCart("C1"))
+                .thenReturn(Collections.emptyList());
 
         cartEntryService.deleteAllByCart("C1");
 
         verify(cartEntryRepository, never()).deleteAll(any());
     }
 
-    // ✅ DELETE BY IDENTIFIER - SUCCESS
     @Test
-    void testDeleteByIdentifier_Success() {
-        when(cartEntryRepository.findByIdentifier("P1-C1")).thenReturn(cartEntry);
+    void testDeleteByIdentifier() {
+
+        when(cartEntryRepository.findByIdentifier("P1-C1"))
+                .thenReturn(cartEntry);
 
         cartEntryService.deleteByIdentifier("P1-C1");
 
@@ -123,22 +144,30 @@ class CartEntryServiceTest {
 
     @Test
     void testDeleteByIdentifier_NotFound() {
-        when(cartEntryRepository.findByIdentifier("P1-C1")).thenReturn(null);
 
-        assertThrows(IllegalArgumentException.class, () ->
-                cartEntryService.deleteByIdentifier("P1-C1")
+        when(cartEntryRepository.findByIdentifier("P1-C1"))
+                .thenReturn(null);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> cartEntryService.deleteByIdentifier("P1-C1")
         );
     }
 
     @Test
     void testFindAllCarts() {
-        List<CartEntry> list = Collections.singletonList(cartEntry);
-        List<CartEntryDto> dtoList = Collections.singletonList(cartEntryDto);
 
-        when(cartEntryRepository.findByCart("C1")).thenReturn(list);
-        when(modelMapper.map(eq(list), any(Type.class))).thenReturn(dtoList);
+        List<CartEntry> entries = List.of(cartEntry);
+        List<CartEntryDto> dtoList = List.of(cartEntryDto);
 
-        List<CartEntryDto> result = cartEntryService.findAllCarts("C1");
+        when(cartEntryRepository.findByCart("C1"))
+                .thenReturn(entries);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(dtoList);
+
+        List<CartEntryDto> result =
+                cartEntryService.findAllCarts("C1");
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -146,17 +175,18 @@ class CartEntryServiceTest {
 
     @Test
     void testFindActiveStatus() {
-        cartEntry.setStatus(true);
+
         CartEntry inactive = new CartEntry();
         inactive.setStatus(false);
 
-        List<CartEntry> list = List.of(cartEntry, inactive);
+        when(cartEntryRepository.findAll())
+                .thenReturn(List.of(cartEntry, inactive));
 
-        when(cartEntryRepository.findAll()).thenReturn(list);
         when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.singletonList(cartEntryDto));
+                .thenReturn(List.of(cartEntryDto));
 
-        List<CartEntryDto> result = cartEntryService.findActiveStatus();
+        List<CartEntryDto> result =
+                cartEntryService.findActiveStatus();
 
         assertNotNull(result);
         assertEquals(1, result.size());

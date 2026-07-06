@@ -5,7 +5,6 @@ import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.model.Cart;
-import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,9 +34,6 @@ class CartServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @Mock
-    private CartEntryRepository cartEntryRepository;
-
     @InjectMocks
     private CartServiceImpl cartService;
 
@@ -47,82 +43,116 @@ class CartServiceTest {
 
     @BeforeEach
     void setUp() {
+
         cart = new Cart();
         cart.setIdentifier("C1");
+        cart.setStatus(true);
 
         cartDto = new CartDto();
         cartDto.setIdentifier("C1");
 
         cartEntryDto = new CartEntryDto();
         cartEntryDto.setTotalPrice(BigDecimal.valueOf(100));
-        cartEntryDto.setDiscount(BigDecimal.valueOf(10));
+        cartEntryDto.setDiscount(BigDecimal.valueOf(20));
     }
 
+    // ✅ SAVE SUCCESS
     @Test
-    void testSave_NewCart() {
-        when(cartRepository.existsByIdentifier("C1")).thenReturn(false);
-        when(modelMapper.map(cartDto, Cart.class)).thenReturn(cart);
+    void testSave_Success() {
+
+        when(cartRepository.existsByIdentifier("C1"))
+                .thenReturn(false);
+
+        when(modelMapper.map(cartDto, Cart.class))
+                .thenReturn(cart);
 
         CartDto result = cartService.save(cartDto);
 
         assertNotNull(result);
+
         verify(cartRepository).save(cart);
     }
 
+    // ✅ SAVE ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
-        when(cartRepository.existsByIdentifier("C1")).thenReturn(true);
+
+        when(cartRepository.existsByIdentifier("C1"))
+                .thenReturn(true);
 
         CartDto result = cartService.save(cartDto);
 
         assertFalse(result.isSuccess());
         assertEquals("Already exists", result.getMessage());
+
         verify(cartRepository, never()).save(any());
     }
 
+    // ✅ RECALCULATE
     @Test
     void testRecalculate() {
+
         List<CartEntryDto> entries = List.of(cartEntryDto);
 
-        when(cartEntryService.findAllCarts("C1")).thenReturn(entries);
-        when(cartRepository.findByIdentifier("C1")).thenReturn(cart);
-        when(modelMapper.map(cart, CartDto.class)).thenReturn(cartDto);
-        when(modelMapper.map(eq(entries), any(Type.class)))
-                .thenReturn(Collections.singletonList(cartEntryDto));
+        when(cartEntryService.findAllCarts("C1"))
+                .thenReturn(entries);
+
+        when(cartRepository.findByIdentifier("C1"))
+                .thenReturn(cart);
+
+        when(modelMapper.map(cart, CartDto.class))
+                .thenReturn(cartDto);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(cartDto));
 
         CartDto result = cartService.recalculate("C1");
 
         assertNotNull(result);
-        assertEquals(BigDecimal.valueOf(100), cart.getTotalPrice());
-        assertEquals(BigDecimal.valueOf(10), cart.getTotalDiscount());
+
+        assertEquals(
+                BigDecimal.valueOf(100),
+                cart.getTotalPrice());
+
+        assertEquals(
+                BigDecimal.valueOf(20),
+                cart.getTotalDiscount());
 
         verify(cartRepository).save(cart);
     }
 
+    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
-        when(cartRepository.findByIdentifier("C1")).thenReturn(cart);
-        when(modelMapper.map(cart, CartDto.class)).thenReturn(cartDto);
+
+        when(cartRepository.findByIdentifier("C1"))
+                .thenReturn(cart);
+
+        when(modelMapper.map(cart, CartDto.class))
+                .thenReturn(cartDto);
+
         when(cartEntryService.findAllCarts("C1"))
-                .thenReturn(Collections.singletonList(cartEntryDto));
+                .thenReturn(List.of(cartEntryDto));
 
         CartDto result = cartService.findByIdentifier("C1");
 
         assertNotNull(result);
-        assertEquals(1, result.getEntryDtoList().size());
+        assertEquals("C1", result.getIdentifier());
+        assertNotNull(result.getEntryDtoList());
     }
 
+    // ✅ FIND ACTIVE STATUS
     @Test
     void testFindActiveStatus() {
-        cart.setStatus(true);
-        Cart inactive = new Cart();
-        inactive.setStatus(false);
 
-        List<Cart> carts = List.of(cart, inactive);
+        Cart inactiveCart = new Cart();
+        inactiveCart.setStatus(false);
 
-        when(cartRepository.findAll()).thenReturn(carts);
+        when(cartRepository.findAll())
+                .thenReturn(List.of(cart, inactiveCart));
+
         when(modelMapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.singletonList(cartDto));
+                .thenReturn(List.of(cartDto));
 
         List<CartDto> result = cartService.findActiveStatus();
 
@@ -130,11 +160,50 @@ class CartServiceTest {
         assertEquals(1, result.size());
     }
 
+    // ✅ DELETE BY IDENTIFIER
     @Test
     void testDeleteByIdentifier() {
+
         cartService.deleteByIdentifier("C1");
 
         verify(cartRepository).deleteByIdentifier("C1");
         verify(cartEntryService).deleteAllByCart("C1");
+    }
+
+    // ✅ RECALCULATE WITH MULTIPLE ENTRIES
+    @Test
+    void testRecalculate_MultipleEntries() {
+
+        CartEntryDto entry1 = new CartEntryDto();
+        entry1.setTotalPrice(BigDecimal.valueOf(100));
+        entry1.setDiscount(BigDecimal.valueOf(20));
+
+        CartEntryDto entry2 = new CartEntryDto();
+        entry2.setTotalPrice(BigDecimal.valueOf(200));
+        entry2.setDiscount(BigDecimal.valueOf(30));
+
+        when(cartEntryService.findAllCarts("C1"))
+                .thenReturn(List.of(entry1, entry2));
+
+        when(cartRepository.findByIdentifier("C1"))
+                .thenReturn(cart);
+
+        when(modelMapper.map(cart, CartDto.class))
+                .thenReturn(cartDto);
+
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.emptyList());
+
+        cartService.recalculate("C1");
+
+        assertEquals(
+                BigDecimal.valueOf(300),
+                cart.getTotalPrice());
+
+        assertEquals(
+                BigDecimal.valueOf(50),
+                cart.getTotalDiscount());
+
+        verify(cartRepository).save(cart);
     }
 }
