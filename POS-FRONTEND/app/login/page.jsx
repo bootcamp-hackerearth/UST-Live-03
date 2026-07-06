@@ -23,7 +23,7 @@ function Login() {
     setError("");
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/authenticate",
+        /authenticate",
         credentials
       );
       localStorage.setItem("token", response.data.token);
