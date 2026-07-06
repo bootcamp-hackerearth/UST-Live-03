@@ -20,7 +20,7 @@ export default function AddFormSkeleton({
   fields = [],
 }) {
   const router = useRouter();
-  const BASE_URL = "http://localhost:8080/api";
+  const BASE_URL = "/api";
 
   const [token, setToken] = useState("");
   const [tokenReady, setTokenReady] = useState(false);
