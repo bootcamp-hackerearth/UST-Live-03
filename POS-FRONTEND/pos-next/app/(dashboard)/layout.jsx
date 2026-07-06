@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }) {
   const token = cookieStore.get("token")?.value;
   const username = cookieStore.get("username")?.value || "User";
 
-  if (!token) {redirect("/login");}
+  // if (!token) {redirect("/login");}
 
   let data = null;
 
