@@ -47,7 +47,7 @@ const UpdateProfile = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:8080/api/user/get?username=${uname}`,
+        `/api/user/get?username=${uname}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -119,7 +119,7 @@ const UpdateProfile = () => {
       };
 
       await axios.put(
-        "http://localhost:8080/api/user/update",
+        "/api/user/update",
         payload,
         {
           headers: {
