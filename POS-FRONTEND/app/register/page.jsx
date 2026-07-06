@@ -26,26 +26,26 @@ function Register() {
     fetchRoles();
   }, []);
 
-  const res = await axiosInstance.post("/role/list", {
-  page: 0,
-  sizePerPage: 10,
-  sortDirection: "ASC",
-  sortField: "identifier",
-});
+ useEffect(() => {
+  fetchRoles();
+}, []);
 
-console.log("Role API Response:", res.data);
+const fetchRoles = async () => {
+  try {
+    const res = await axiosInstance.post("/role/list", {
+      page: 0,
+      sizePerPage: 10,
+      sortDirection: "ASC",
+      sortField: "identifier",
+    });
 
-setRolesList(res.data.dtoList || res.data || []);
+    console.log("Role API Response:", res.data);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "phoneNo") {
-setUser({ ...user, [name]: value.replaceAll(/\D/g, "") });   
- } else {
-      setUser({ ...user, [name]: value });
-    }
-    setError("");
-  };
+    setRolesList(res.data.dtoList || res.data || []);
+  } catch (err) {
+    console.error("Failed to load roles", err);
+  }
+};
 
   const handleRoleChange = (roleIdentifier) => {
     const alreadySelected = user.roles.includes(roleIdentifier);
