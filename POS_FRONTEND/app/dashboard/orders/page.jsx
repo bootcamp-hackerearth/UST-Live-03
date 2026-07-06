@@ -9,39 +9,45 @@ export default function OrderListPage() {
   const [orders, setOrders] = useState([]);
   const router = useRouter();
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
+  const fetchOrders = async (keyword = "") => {
     try {
       const res = await axios.post("/order/list", {
         page: 0,
-        sizePerPage: 50
+        sizePerPage: 50,
+        keyword,
       });
 
       setOrders(res.data?.content || []);
     } catch (err) {
       console.log(err);
+      setOrders([]);
     }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const handleSearch = (keyword) => {
+    fetchOrders(keyword);
   };
 
   const columns = [
     {
       header: "Order ID",
-      accessor: "identifier"
+      accessor: "identifier",
     },
     {
       header: "Customer",
-      accessor: "customerId"
+      accessor: "customerId",
     },
     {
       header: "Payment Type",
-      accessor: "paymentType"
+      accessor: "paymentType",
     },
     {
       header: "Total",
-      render: (row) => `₹${row.totalPrice}`
+      render: (row) => `₹${row.totalPrice}`,
     },
     {
       header: "View",
@@ -54,9 +60,8 @@ export default function OrderListPage() {
         >
           View Orders
         </button>
-      )
-    }
-
+      ),
+    },
   ];
 
   return (
@@ -66,6 +71,7 @@ export default function OrderListPage() {
       <CommonList
         data={orders}
         columns={columns}
+        onSearch={handleSearch}
       />
     </div>
   );

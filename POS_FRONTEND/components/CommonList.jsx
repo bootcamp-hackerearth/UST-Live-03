@@ -8,53 +8,26 @@ export default function CommonList({
   data = [],
   columns = [],
   onEdit,
-  onDelete
+  onDelete,
+  onSearch
 }) {
-
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
   const pageSize = 5;
 
-  const filteredData = data.filter((row) =>
-    columns.some((col) => {
-
-      let value = "";
-
-      if (col.accessor) {
-        value = row[col.accessor];
-      } else {
-        value = JSON.stringify(row);
-      }
-
-      if (typeof value === "boolean") {
-        value = value ? "active" : "inactive";
-      }
-
-      return String(value || "")
-        .toLowerCase()
-        .includes(search.toLowerCase());
-    })
-  );
-
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-
-  const paginatedData = filteredData.slice(
-    page * pageSize,
-    page * pageSize + pageSize
-  );
-
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-
       <div className="flex justify-end items-center p-3">
         <input
           type="text"
           placeholder="Search..."
           value={search}
           onChange={(e) => {
-            setSearch(e.target.value);
+            const keyword = e.target.value;
+            setSearch(keyword);
             setPage(0);
+            onSearch?.(keyword);
           }}
           className="border px-3 py-1 rounded-md text-sm"
         />
@@ -62,10 +35,8 @@ export default function CommonList({
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-
               {columns.map((col) => (
                 <th
                   key={col.accessor || col.header}
@@ -80,14 +51,11 @@ export default function CommonList({
                   Actions
                 </th>
               )}
-
             </tr>
           </thead>
 
           <tbody>
-
-            {paginatedData.length === 0 ? (
-
+            {data.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
@@ -96,11 +64,8 @@ export default function CommonList({
                   No data found
                 </td>
               </tr>
-
             ) : (
-
-              paginatedData.map((row) => (
-
+              data.map((row) => (
                 <tr
                   key={
                     row.identifier ||
@@ -110,9 +75,7 @@ export default function CommonList({
                   }
                   className="border-b border-slate-100 hover:bg-slate-50 transition"
                 >
-
                   {columns.map((col) => {
-
                     let value;
 
                     if (col.render) {
@@ -131,13 +94,11 @@ export default function CommonList({
                         {value}
                       </td>
                     );
-
                   })}
 
                   {(onEdit || onDelete) && (
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
-
                         {onEdit && (
                           <button
                             onClick={() => onEdit(row)}
@@ -155,24 +116,17 @@ export default function CommonList({
                             <Trash2 size={16} />
                           </button>
                         )}
-
                       </div>
                     </td>
                   )}
-
                 </tr>
-
               ))
-
             )}
-
           </tbody>
-
         </table>
       </div>
 
       <div className="flex justify-center items-center gap-3 p-4">
-
         <button
           onClick={() => setPage((p) => Math.max(p - 1, 0))}
           disabled={page === 0}
@@ -182,21 +136,16 @@ export default function CommonList({
         </button>
 
         <span className="text-sm text-slate-600">
-          Page {page + 1} / {totalPages || 1}
+          Page {page + 1}
         </span>
 
         <button
-          onClick={() =>
-            setPage((p) => Math.min(p + 1, totalPages - 1))
-          }
-          disabled={page >= totalPages - 1}
-          className="bg-blue-500 text-white px-3 py-1 rounded disabled:opacity-50"
+          onClick={() => setPage((p) => p + 1)}
+          className="bg-blue-500 text-white px-3 py-1 rounded"
         >
           Next
         </button>
-
       </div>
-
     </div>
   );
 }
@@ -212,4 +161,5 @@ CommonList.propTypes = {
   ),
   onEdit: PropTypes.func,
   onDelete: PropTypes.func,
+  onSearch: PropTypes.func,
 };

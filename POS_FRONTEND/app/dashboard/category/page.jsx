@@ -7,14 +7,14 @@ import CommonList from "@/components/CommonList";
 import Toggle from "@/components/Toggle";
 
 export default function CategoryListPage() {
-
   const router = useRouter();
   const [categories, setCategories] = useState([]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (keyword = "") => {
     const res = await axios.post("/category/list", {
       page: 0,
-      sizePerPage: 5
+      sizePerPage: 5,
+      keyword,
     });
 
     setCategories(res.data.content || []);
@@ -24,20 +24,23 @@ export default function CategoryListPage() {
     fetchCategories();
   }, []);
 
+  const handleSearch = (keyword) => {
+    fetchCategories(keyword);
+  };
+
   const toggleStatus = async (row) => {
     try {
       await axios.put(
         `/category/toggle-status?identifier=${row.identifier}`
       );
 
-      setCategories(prev =>
-        prev.map(item =>
+      setCategories((prev) =>
+        prev.map((item) =>
           item.identifier === row.identifier
             ? { ...item, status: !item.status }
             : item
         )
       );
-
     } catch (e) {
       console.log(e);
     }
@@ -46,17 +49,16 @@ export default function CategoryListPage() {
   const columns = [
     {
       header: "ID",
-      accessor: "id"
+      accessor: "id",
     },
     {
       header: "Identifier",
-      accessor: "identifier"
+      accessor: "identifier",
     },
     {
       header: "Super Categories",
       accessor: "superCategory",
-      render: (row) =>
-        row.superCategory?.join(", ")
+      render: (row) => row.superCategory?.join(", "),
     },
     {
       header: "Status",
@@ -66,8 +68,8 @@ export default function CategoryListPage() {
           active={Boolean(row.status)}
           onToggle={() => toggleStatus(row)}
         />
-      )
-    }
+      ),
+    },
   ];
 
   const handleEdit = (row) => {
@@ -86,9 +88,7 @@ export default function CategoryListPage() {
 
   return (
     <div>
-
       <div className="flex justify-between mb-5">
-
         <h1 className="text-2xl font-bold">
           Category List
         </h1>
@@ -108,16 +108,15 @@ export default function CategoryListPage() {
             Back
           </button>
         </div>
-
       </div>
 
       <CommonList
         data={categories}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-
     </div>
   );
 }

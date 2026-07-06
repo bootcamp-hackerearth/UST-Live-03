@@ -4,15 +4,13 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartentryService;
 import com.ust.pos.dto.*;
-import com.ust.pos.model.OrderEntry;
-import com.ust.pos.model.OrderEntryRepository;
-import com.ust.pos.model.OrderRepository;
-import com.ust.pos.model.Orders;
+import com.ust.pos.model.*;
 import com.ust.pos.order.service.OrderService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -152,5 +150,22 @@ public class OrderServiceImpl extends BaseService implements OrderService {
     public void delete(String identifier) {
 
         ordersRepository.deleteByIdentifier(identifier);
+    }
+
+    @Override
+    public WsDto<OrdersDto> findAll(Specification<Orders> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<OrdersDto>>() {
+        }.getType();
+        Page<Orders> page = ordersRepository.findAll(example, pageable);
+
+        WsDto<OrdersDto> wsDto = new WsDto<>();
+        wsDto.setContent(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

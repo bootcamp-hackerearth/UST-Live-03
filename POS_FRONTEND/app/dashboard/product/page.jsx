@@ -7,7 +7,6 @@ import Toggle from "@/components/Toggle";
 import { useRouter } from "next/navigation";
 
 export default function ProductPage() {
-
   const [data, setData] = useState([]);
   const router = useRouter();
 
@@ -15,7 +14,11 @@ export default function ProductPage() {
     const seen = new Set();
 
     return rows.filter((item) => {
-      const key = item?.identifier ?? item?.name ?? item?.id ?? JSON.stringify(item);
+      const key =
+        item?.identifier ??
+        item?.name ??
+        item?.id ??
+        JSON.stringify(item);
 
       if (seen.has(key)) {
         return false;
@@ -26,19 +29,20 @@ export default function ProductPage() {
     });
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (keyword = "") => {
     try {
       const res = await axios.post("/product/list", {
         page: 0,
         sizePerPage: 50,
         sortField: "name",
-        sortDirection: "DESC"
+        sortDirection: "DESC",
+        keyword,
       });
 
       setData(normalizeProducts(res.data?.content || []));
-
     } catch (err) {
       console.log("Product fetch error:", err);
+      setData([]);
     }
   };
 
@@ -46,20 +50,23 @@ export default function ProductPage() {
     fetchProducts();
   }, []);
 
+  const handleSearch = (keyword) => {
+    fetchProducts(keyword);
+  };
+
   const toggleStatus = async (row) => {
     try {
       await axios.put(
         `/product/toggle-status?identifier=${row.identifier}`
       );
 
-      setData(prev =>
-        prev.map(item =>
+      setData((prev) =>
+        prev.map((item) =>
           item.identifier === row.identifier
             ? { ...item, status: !item.status }
             : item
         )
       );
-
     } catch (e) {
       console.log(e);
     }
@@ -68,37 +75,36 @@ export default function ProductPage() {
   const columns = [
     {
       header: "ID",
-      accessor: "id"
+      accessor: "id",
     },
     {
       header: "Identifier",
-      accessor: "identifier"
+      accessor: "identifier",
     },
     {
       header: "Product",
-      accessor: "name"
+      accessor: "name",
     },
     {
       header: "Brand",
-      accessor: "brand"
+      accessor: "brand",
     },
     {
       header: "Model",
-      accessor: "model"
+      accessor: "model",
     },
     {
       header: "Unit",
-      accessor: "unit"
+      accessor: "unit",
     },
     {
       header: "Price",
-      accessor: "price"
+      accessor: "price",
     },
     {
       header: "Category",
-      accessor: "category"
+      accessor: "category",
     },
-
     {
       header: "Status",
       accessor: "status",
@@ -107,15 +113,13 @@ export default function ProductPage() {
           active={Boolean(row.status)}
           onToggle={() => toggleStatus(row)}
         />
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="min-h-screen bg-[#F6F7F9] p-6">
-
       <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 mb-6 flex justify-between items-center shadow-sm">
-
         <div>
           <h1 className="text-lg font-semibold text-[#111827]">
             Products
@@ -143,12 +147,12 @@ export default function ProductPage() {
             Back
           </button>
         </div>
-
       </div>
 
       <CommonList
         data={data}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={(row) =>
           router.push(
             `/dashboard/product/edit/${row.identifier || row.name}`
@@ -161,7 +165,6 @@ export default function ProductPage() {
           fetchProducts();
         }}
       />
-
     </div>
   );
 }

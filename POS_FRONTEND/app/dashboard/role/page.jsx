@@ -14,7 +14,10 @@ export default function RolePage() {
     const seen = new Set();
 
     return rows.filter((item) => {
-      const key = item?.identifier ?? item?.id ?? JSON.stringify(item);
+      const key =
+        item?.identifier ??
+        item?.id ??
+        JSON.stringify(item);
 
       if (seen.has(key)) {
         return false;
@@ -25,18 +28,20 @@ export default function RolePage() {
     });
   };
 
-  const fetchRoles = async () => {
+  const fetchRoles = async (keyword = "") => {
     try {
       const res = await axios.post("/role/list", {
         page: 0,
         sizePerPage: 50,
         sortField: "identifier",
-        sortDirection: "DESC"
+        sortDirection: "DESC",
+        keyword,
       });
 
       setData(normalizeRoles(res.data?.content || []));
     } catch (err) {
       console.log("Role fetch error:", err);
+      setData([]);
     }
   };
 
@@ -44,20 +49,23 @@ export default function RolePage() {
     fetchRoles();
   }, []);
 
+  const handleSearch = (keyword) => {
+    fetchRoles(keyword);
+  };
+
   const toggleStatus = async (row) => {
     try {
       await axios.put(
         `/role/toggle-status?identifier=${row.identifier}`
       );
 
-      setData(prev =>
-        prev.map(item =>
+      setData((prev) =>
+        prev.map((item) =>
           item.identifier === row.identifier
             ? { ...item, status: !item.status }
             : item
         )
       );
-
     } catch (e) {
       console.log(e);
     }
@@ -66,17 +74,16 @@ export default function RolePage() {
   const columns = [
     {
       header: "ID",
-      accessor: "id"
+      accessor: "id",
     },
     {
       header: "Role",
-      accessor: "identifier"
+      accessor: "identifier",
     },
     {
       header: "Description",
-      accessor: "description"
+      accessor: "description",
     },
-
     {
       header: "Status",
       accessor: "status",
@@ -85,15 +92,13 @@ export default function RolePage() {
           active={Boolean(row.status)}
           onToggle={() => toggleStatus(row)}
         />
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="min-h-screen bg-[#F6F7F9] p-6">
-
       <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 mb-6 flex justify-between items-center shadow-sm">
-
         <div>
           <h1 className="text-lg font-semibold text-[#111827]">
             Roles
@@ -104,7 +109,6 @@ export default function RolePage() {
         </div>
 
         <div className="flex gap-3">
-
           <button
             onClick={() => router.push("/dashboard/role/add")}
             className="bg-[#2B2B2B] text-white px-4 py-2 rounded-lg hover:bg-black"
@@ -118,23 +122,23 @@ export default function RolePage() {
           >
             Back
           </button>
-
         </div>
-
       </div>
 
       <CommonList
         data={data}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={(row) =>
           router.push(`/dashboard/role/edit/${row.identifier}`)
         }
         onDelete={async (row) => {
-          await axios.delete(`/role/delete?identifier=${row.identifier}`);
+          await axios.delete(
+            `/role/delete?identifier=${row.identifier}`
+          );
           fetchRoles();
         }}
       />
-
     </div>
   );
 }

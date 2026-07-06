@@ -1,11 +1,14 @@
 package com.ust.pos.api.rack;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Rack;
 import com.ust.pos.rack.service.RackService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,11 +23,16 @@ public class RackRestController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<RackDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RackDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
 
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Rack> example = buildGlobalSearchSpec(Rack.class, paginationDto.getKeyword());
+            if (example != null) {
+                return rackService.findAll(example, pageable);
+            }
+        }
+
         return rackService.findAll(pageable);
     }
 

@@ -14,7 +14,11 @@ export default function NodePage() {
     const seen = new Set();
 
     return rows.filter((item) => {
-      const key = item?.identifier ?? item?.path ?? item?.id ?? JSON.stringify(item);
+      const key =
+        item?.identifier ??
+        item?.path ??
+        item?.id ??
+        JSON.stringify(item);
 
       if (seen.has(key)) {
         return false;
@@ -25,18 +29,20 @@ export default function NodePage() {
     });
   };
 
-  const fetchNodes = async () => {
+  const fetchNodes = async (keyword = "") => {
     try {
       const res = await axios.post("/node/list", {
         page: 0,
         sizePerPage: 50,
         sortField: "identifier",
-        sortDirection: "DESC"
+        sortDirection: "DESC",
+        keyword,
       });
 
       setData(normalizeNodes(res.data?.content || []));
     } catch (err) {
       console.log(err);
+      setData([]);
     }
   };
 
@@ -44,20 +50,23 @@ export default function NodePage() {
     fetchNodes();
   }, []);
 
+  const handleSearch = (keyword) => {
+    fetchNodes(keyword);
+  };
+
   const toggleStatus = async (row) => {
     try {
       await axios.put(
         `/node/toggle-status?identifier=${row.identifier}`
       );
 
-      setData(prev =>
-        prev.map(item =>
+      setData((prev) =>
+        prev.map((item) =>
           item.identifier === row.identifier
             ? { ...item, status: !item.status }
             : item
         )
       );
-
     } catch (e) {
       console.log(e);
     }
@@ -72,9 +81,8 @@ export default function NodePage() {
       render: (row) =>
         Array.isArray(row.roles)
           ? row.roles.join(", ")
-          : row.roles
+          : row.roles,
     },
-
     {
       header: "Status",
       accessor: "status",
@@ -83,15 +91,13 @@ export default function NodePage() {
           active={Boolean(row.status)}
           onToggle={() => toggleStatus(row)}
         />
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="min-h-screen bg-[#F6F7F9] p-6">
-
       <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 mb-6 flex justify-between items-center">
-
         <div>
           <h1 className="text-lg font-semibold text-[#111827]">
             Nodes
@@ -102,7 +108,6 @@ export default function NodePage() {
         </div>
 
         <div className="flex gap-3">
-
           <button
             onClick={() => router.push("/dashboard/node/add")}
             className="bg-[#2B2B2B] text-white px-4 py-2 rounded-lg hover:bg-black"
@@ -116,23 +121,23 @@ export default function NodePage() {
           >
             Back
           </button>
-
         </div>
-
       </div>
 
       <CommonList
         data={data}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={(row) =>
           router.push(`/dashboard/node/edit/${row.identifier}`)
         }
         onDelete={async (row) => {
-          await axios.delete(`/node/delete?identifier=${row.identifier}`);
+          await axios.delete(
+            `/node/delete?identifier=${row.identifier}`
+          );
           fetchNodes();
         }}
       />
-
     </div>
   );
 }

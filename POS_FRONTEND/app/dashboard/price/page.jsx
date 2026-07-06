@@ -9,12 +9,13 @@ export default function PricePage() {
   const [data, setData] = useState([]);
   const router = useRouter();
 
-  const fetchPrices = async () => {
+  const fetchPrices = async (keyword = "") => {
     const res = await axios.post("/price/list", {
       page: 0,
       sizePerPage: 50,
       sortField: "identifier",
-      sortDirection: "DESC"
+      sortDirection: "DESC",
+      keyword,
     });
 
     setData(res.data.content || []);
@@ -24,21 +25,25 @@ export default function PricePage() {
     fetchPrices();
   }, []);
 
+  const handleSearch = (keyword) => {
+    fetchPrices(keyword);
+  };
+
   const columns = [
     { header: "Identifier", accessor: "identifier" },
     { header: "Product", accessor: "product" },
     { header: "Price", accessor: "priceAmount" },
-    { header: "Type", accessor: "priceType" }
+    { header: "Type", accessor: "priceType" },
   ];
 
   return (
     <div className="space-y-6">
-
       <div className="bg-white border rounded-2xl p-5 flex justify-between items-center">
         <div>
           <h1 className="text-lg font-semibold">Price</h1>
           <p className="text-sm text-gray-500">Manage pricing</p>
         </div>
+
         <div className="flex gap-3">
           <button
             onClick={() => router.push("/dashboard/price/add")}
@@ -46,6 +51,7 @@ export default function PricePage() {
           >
             + Add Price
           </button>
+
           <button
             onClick={() => router.push("/")}
             className="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300"
@@ -58,10 +64,9 @@ export default function PricePage() {
       <CommonList
         data={data}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={(row) =>
-          router.push(
-            `/dashboard/price/edit/${row.identifier}`
-          )
+          router.push(`/dashboard/price/edit/${row.identifier}`)
         }
         onDelete={async (row) => {
           await axios.delete(

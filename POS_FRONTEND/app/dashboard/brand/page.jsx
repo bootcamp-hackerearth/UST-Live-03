@@ -10,15 +10,12 @@ export default function BrandPage() {
   const router = useRouter();
   const [brands, setBrands] = useState([]);
 
-  useEffect(() => {
-    fetchBrands();
-  }, []);
-
-  const fetchBrands = async () => {
+  const fetchBrands = async (keyword = "") => {
     try {
       const res = await axios.post("/brand/list", {
         page: 0,
         sizePerPage: 100,
+        keyword,
       });
 
       setBrands(res?.data?.content || []);
@@ -26,6 +23,14 @@ export default function BrandPage() {
       console.log(e);
       setBrands([]);
     }
+  };
+
+  useEffect(() => {
+    fetchBrands();
+  }, []);
+
+  const handleSearch = (keyword) => {
+    fetchBrands(keyword);
   };
 
   const handleEdit = (row) => {
@@ -98,6 +103,7 @@ export default function BrandPage() {
       <CommonList
         data={brands}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

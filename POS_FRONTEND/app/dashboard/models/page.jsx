@@ -7,7 +7,6 @@ import CommonList from "@/components/CommonList";
 import Toggle from "@/components/Toggle";
 
 export default function ModelListPage() {
-
   const router = useRouter();
   const [models, setModels] = useState([]);
 
@@ -26,12 +25,14 @@ export default function ModelListPage() {
     });
   };
 
-  const fetchModels = async () => {
+  const fetchModels = async (keyword = "") => {
     try {
       const res = await axios.post("/model/list", {
         page: 0,
-        sizePerPage: 50
+        sizePerPage: 50,
+        keyword,
       });
+
       setModels(normalizeModels(res.data?.content || []));
     } catch (e) {
       console.log(e);
@@ -42,6 +43,10 @@ export default function ModelListPage() {
   useEffect(() => {
     fetchModels();
   }, []);
+
+  const handleSearch = (keyword) => {
+    fetchModels(keyword);
+  };
 
   const toggleStatus = async (row) => {
     try {
@@ -79,13 +84,12 @@ export default function ModelListPage() {
           active={Boolean(row.status)}
           onToggle={() => toggleStatus(row)}
         />
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="p-6">
-
       <div className="flex justify-between mb-5">
         <h1 className="text-2xl font-bold">Model List</h1>
 
@@ -109,10 +113,10 @@ export default function ModelListPage() {
       <CommonList
         data={models}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-
     </div>
   );
 }

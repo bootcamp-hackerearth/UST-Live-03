@@ -7,15 +7,15 @@ import CommonList from "@/components/CommonList";
 import Toggle from "@/components/Toggle";
 
 export default function RackListPage() {
-
   const router = useRouter();
   const [racks, setRacks] = useState([]);
 
-  const fetchRacks = async () => {
+  const fetchRacks = async (keyword = "") => {
     try {
       const res = await axios.post("/rack/list", {
         page: 0,
-        sizePerPage: 5
+        sizePerPage: 5,
+        keyword,
       });
 
       setRacks(res.data.content || []);
@@ -29,20 +29,23 @@ export default function RackListPage() {
     fetchRacks();
   }, []);
 
+  const handleSearch = (keyword) => {
+    fetchRacks(keyword);
+  };
+
   const toggleStatus = async (row) => {
     try {
       await axios.put(
         `/rack/toggle-status?identifier=${row.identifier}`
       );
 
-      setRacks(prev =>
-        prev.map(item =>
+      setRacks((prev) =>
+        prev.map((item) =>
           item.identifier === row.identifier
             ? { ...item, status: !item.status }
             : item
         )
       );
-
     } catch (e) {
       console.log(e);
     }
@@ -51,11 +54,11 @@ export default function RackListPage() {
   const columns = [
     {
       header: "ID",
-      accessor: "id"
+      accessor: "id",
     },
     {
       header: "Identifier",
-      accessor: "identifier"
+      accessor: "identifier",
     },
     {
       header: "Shelves",
@@ -63,7 +66,7 @@ export default function RackListPage() {
       render: (row) =>
         row.shelves?.length
           ? row.shelves.join(", ")
-          : "-"
+          : "-",
     },
     {
       header: "Status",
@@ -73,8 +76,8 @@ export default function RackListPage() {
           active={Boolean(row.status)}
           onToggle={() => toggleStatus(row)}
         />
-      )
-    }
+      ),
+    },
   ];
 
   const handleEdit = (row) => {
@@ -96,9 +99,7 @@ export default function RackListPage() {
 
   return (
     <div>
-
       <div className="flex justify-between mb-5">
-
         <h1 className="text-2xl font-bold">
           Rack List
         </h1>
@@ -118,16 +119,15 @@ export default function RackListPage() {
             Back
           </button>
         </div>
-
       </div>
 
       <CommonList
         data={racks}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-
     </div>
   );
 }

@@ -7,16 +7,17 @@ import CommonList from "@/components/CommonList";
 import Toggle from "@/components/Toggle";
 
 export default function WarehouseListPage() {
-
   const router = useRouter();
   const [warehouses, setWarehouses] = useState([]);
 
-  const fetchWarehouses = async () => {
+  const fetchWarehouses = async (keyword = "") => {
     try {
       const res = await axios.post("/warehouse/list", {
         page: 0,
-        sizePerPage: 50
+        sizePerPage: 50,
+        keyword,
       });
+
       setWarehouses(res.data?.content || []);
     } catch (e) {
       console.log(e);
@@ -27,6 +28,10 @@ export default function WarehouseListPage() {
   useEffect(() => {
     fetchWarehouses();
   }, []);
+
+  const handleSearch = (keyword) => {
+    fetchWarehouses(keyword);
+  };
 
   const handleEdit = (row) => {
     router.push(`/dashboard/warehouse/edit/${row.identifier}`);
@@ -47,7 +52,9 @@ export default function WarehouseListPage() {
     if (!confirm("Delete this warehouse?")) return;
 
     try {
-      await axios.delete(`/warehouse/delete?identifier=${row.identifier}`);
+      await axios.delete(
+        `/warehouse/delete?identifier=${row.identifier}`
+      );
       fetchWarehouses();
     } catch (e) {
       console.log(e);
@@ -68,13 +75,12 @@ export default function WarehouseListPage() {
           active={Boolean(row.status)}
           onToggle={() => toggleStatus(row)}
         />
-      )
+      ),
     },
   ];
 
   return (
     <div className="p-6">
-
       <div className="flex justify-between mb-5">
         <h1 className="text-2xl font-bold">
           Warehouse List
@@ -100,10 +106,10 @@ export default function WarehouseListPage() {
       <CommonList
         data={warehouses}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-
     </div>
   );
 }

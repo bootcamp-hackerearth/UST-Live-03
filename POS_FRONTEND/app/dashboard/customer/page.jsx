@@ -14,7 +14,10 @@ export default function CustomerPage() {
     const seen = new Set();
 
     return rows.filter((item) => {
-      const key = item?.identifier ?? item?.customerName ?? JSON.stringify(item);
+      const key =
+        item?.identifier ??
+        item?.customerName ??
+        JSON.stringify(item);
 
       if (seen.has(key)) {
         return false;
@@ -25,11 +28,12 @@ export default function CustomerPage() {
     });
   };
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = async (keyword = "") => {
     try {
       const res = await axios.post("/customer/list", {
         page: 0,
         sizePerPage: 100,
+        keyword,
       });
 
       setData(normalizeCustomers(res.data?.content || []));
@@ -43,20 +47,23 @@ export default function CustomerPage() {
     fetchCustomers();
   }, []);
 
+  const handleSearch = (keyword) => {
+    fetchCustomers(keyword);
+  };
+
   const toggleStatus = async (row) => {
     try {
       await axios.put(
         `/customer/toggle-status?identifier=${row.identifier}`
       );
 
-      setData(prev =>
-        prev.map(item =>
+      setData((prev) =>
+        prev.map((item) =>
           item.identifier === row.identifier
             ? { ...item, status: !item.status }
             : item
         )
       );
-
     } catch (e) {
       console.log(e);
     }
@@ -77,19 +84,20 @@ export default function CustomerPage() {
           active={Boolean(row.status)}
           onToggle={() => toggleStatus(row)}
         />
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="p-6 bg-slate-100 min-h-screen">
-
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl font-bold">Customers</h1>
 
         <div className="flex gap-3">
           <button
-            onClick={() => router.push("/dashboard/customer/add")}
+            onClick={() =>
+              router.push("/dashboard/customer/add")
+            }
             className="bg-slate-900 text-white px-4 py-2 rounded"
           >
             Add Customer
@@ -107,15 +115,20 @@ export default function CustomerPage() {
       <CommonList
         data={data}
         columns={columns}
-        onEdit={(row) => router.push(`/dashboard/customer/edit/${row.identifier}`)}
+        onSearch={handleSearch}
+        onEdit={(row) =>
+          router.push(
+            `/dashboard/customer/edit/${row.identifier}`
+          )
+        }
         onDelete={(row) =>
-          axios.delete("/customer/delete", {
-            params: { identifier: row.identifier }
-          })
+          axios
+            .delete("/customer/delete", {
+              params: { identifier: row.identifier },
+            })
             .then(() => fetchCustomers())
         }
       />
-
     </div>
   );
 }
