@@ -6,7 +6,7 @@ export async function POST(req) {
         const cookieStore = await cookies();
         const token = cookieStore.get("token")
         
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+        const baseUrl = "http://localhost:8080/api";
         const body = await req.json();
 
         const res = await fetch(`${baseUrl}/roleValidation`, {

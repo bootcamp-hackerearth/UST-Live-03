@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 export async function POST(req) {
   try {
  
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+    const baseUrl = "http://localhost:8080/api";
     const body = await req.json();
     const res = await fetch(`${baseUrl}/authenticate`, {
       method: "POST",
