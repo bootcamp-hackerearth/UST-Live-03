@@ -15,18 +15,14 @@ function Register() {
   const router = useRouter();
 
   const [user, setUser] = useState({
-    name: "",
-    username: "",
-    password: "",
-    phoneNo: "",
-    roles: [],
-  });
+  name: "",
+  username: "",
+  password: "",
+  phoneNo: "",
+  roles: [],
+});
 
-  useEffect(() => {
-    fetchRoles();
-  }, []);
-
- useEffect(() => {
+useEffect(() => {
   fetchRoles();
 }, []);
 
@@ -47,16 +43,36 @@ const fetchRoles = async () => {
   }
 };
 
-  const handleRoleChange = (roleIdentifier) => {
-    const alreadySelected = user.roles.includes(roleIdentifier);
+const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  if (name === "phoneNo") {
     setUser({
       ...user,
-      roles: alreadySelected
-        ? user.roles.filter((r) => r !== roleIdentifier)
-        : [...user.roles, roleIdentifier],
+      value.replace(/\D/g, ""),
     });
-    setError("");
-  };
+  } else {
+    setUser({
+      ...user,
+      value,
+    });
+  }
+
+  setError("");
+};
+
+const handleRoleChange = (roleIdentifier) => {
+  const alreadySelected = user.roles.includes(roleIdentifier);
+
+  setUser({
+    ...user,
+    roles: alreadySelected
+      ? user.roles.filter((r) => r !== roleIdentifier)
+      : [...user.roles, roleIdentifier],
+  });
+
+  setError("");
+};
 
   const pwRules = [
     { label: "6+ characters", met: user.password.length >= 6 },
