@@ -10,7 +10,7 @@ export default function useAuth() {
   useEffect(() => {
     let mounted = true;
 
-    fetch("/api/me", { credentials: "include" })
+    fetch("/auth/me", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (!mounted) return;
