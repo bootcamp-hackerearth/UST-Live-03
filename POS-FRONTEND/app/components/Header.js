@@ -26,22 +26,14 @@ const Header = ({ username }) => {
   }, []);
 
  const handleLogout = async () => {
-  try {
-    const response = await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    });
+  await fetch("/api/auth/logout", { method: "POST" });
 
-    if (!response.ok) {
-      console.error("Logout failed:", response.status);
-      return;
-    }
-
-    router.replace("/login");
-    router.refresh();
-  } catch (error) {
-    console.error("Logout error:", error);
+  if ("cookieStore" in window) {
+    await cookieStore.delete("token");
+    await cookieStore.delete("username");
   }
+
+  window.location.href = "/login";
 };
 
   return (
