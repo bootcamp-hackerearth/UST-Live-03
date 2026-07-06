@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -97,6 +98,27 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         productDto.setSuccess(true);
         productDto.setMessage("Product updated successfully");
         return productDto;
+    }
+
+    @Override
+    public WsDto<ProductDto> findAll(Specification<Product> specification,
+                                     Pageable pageable) {
+
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+
+        Page<Product> page =
+                productRepository.findAll(specification, pageable);
+
+        WsDto<ProductDto> wsDto = new WsDto<>();
+
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
 }

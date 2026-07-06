@@ -28,7 +28,7 @@ public class PosUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found: " + username);
         }
         List<GrantedAuthority> authorities = new ArrayList<>();
-        for(String authority : userDto.getRoles()) {
+        for (String authority : userDto.getRoles()) {
             authorities.add(new SimpleGrantedAuthority(authority));
         }
         return org.springframework.security.core.userdetails.User

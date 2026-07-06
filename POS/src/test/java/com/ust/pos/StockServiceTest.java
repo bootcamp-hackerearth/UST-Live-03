@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -323,6 +324,79 @@ public class StockServiceTest {
         Assertions.assertEquals(
                 "Stock not found",
                 response.getMessage()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable =
+                PageRequest.of(0, 5);
+
+        Specification<Stock> specification =
+                Mockito.mock(Specification.class);
+
+        Stock stock = new Stock();
+        stock.setIdentifier("Lays In-001");
+
+        StockDto stockDto = new StockDto();
+        stockDto.setIdentifier("Lays In-001");
+
+        List<Stock> stocks =
+                List.of(stock);
+
+        List<StockDto> stockDtos =
+                List.of(stockDto);
+
+        Page<Stock> stockPage =
+                new PageImpl<>(stocks, pageable, 1);
+
+        Mockito.when(
+                stockRepository.findAll(specification, pageable)
+        ).thenReturn(stockPage);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(stockPage.getContent()),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(stockDtos);
+
+        WsDto<StockDto> response =
+                stockService.findAll(specification, pageable);
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Lays In-001",
+                response.getDtoList()
+                        .get(0)
+                        .getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
         );
     }
 }

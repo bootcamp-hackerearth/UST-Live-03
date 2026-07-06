@@ -143,15 +143,24 @@ export default function CartPage() {
   };
 
   const searchCustomers = async (query) => {
-    if (!query.trim()) { setCustomerSearchResults([]); return; }
-    try {
-      const res = await api.get(`/customer/search?query=${encodeURIComponent(query)}`);
-      setCustomerSearchResults(res.data || []);
-    } catch (error) {
-      console.error(error);
-      setCustomerSearchResults([]);
-    }
-  };
+  if (!query.trim()) {
+    setCustomerSearchResults([]);
+    return;
+  }
+
+  try {
+    const res = await api.post("/customer/list", {
+      page: 0,
+      sizePerPage: 20,
+      keyword: query,
+    });
+
+    setCustomerSearchResults(getList(res));
+  } catch (error) {
+    console.error(error);
+    setCustomerSearchResults([]);
+  }
+};
 
   useEffect(() => {
     api.post("/product/list", { page: 0, sizePerPage: 500 })

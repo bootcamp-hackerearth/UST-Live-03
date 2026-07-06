@@ -4,6 +4,7 @@ import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Warehouse;
 import com.ust.pos.warehouse.service.WarehouseService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,25 +21,29 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Manager')")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WsDto<WarehouseDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (paginationDto.getKeyword() != null && !paginationDto.getKeyword().trim().isEmpty()) {
+            return warehouseService.findAll(buildGlobalSearchSpec(Warehouse.class, paginationDto.getKeyword()), pageable);
+        }
         return warehouseService.findAll(pageable);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Manager')")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -285,6 +286,79 @@ class ProductServiceTest {
                 1,
                 response.getTotalRecords()
         );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Product product = new Product();
+        product.setIdentifier("Lays Chili");
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("Lays Chili");
+
+        List<Product> products = List.of(product);
+        List<ProductDto> dtos = List.of(dto);
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Page<Product> page = new PageImpl<>(
+                products,
+                pageable,
+                1
+        );
+
+        Specification<Product> specification =
+                Mockito.mock(Specification.class);
+
+        Mockito.when(
+                productRepository.findAll(specification, pageable)
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(products),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(dtos);
+
+        WsDto<ProductDto> response =
+                productService.findAll(specification, pageable);
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Lays Chili",
+                response.getDtoList().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Mockito.verify(productRepository)
+                .findAll(specification, pageable);
     }
 
 }

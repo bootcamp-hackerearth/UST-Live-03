@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -265,6 +266,79 @@ public class NodeServiceTest {
         List<NodeDto> result = nodeService.getNodesForRoles();
 
         Assertions.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Node node = new Node();
+        node.setIdentifier("Admin");
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("Admin");
+
+        List<Node> nodes = List.of(node);
+        List<NodeDto> dtos = List.of(dto);
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Page<Node> page = new PageImpl<>(
+                nodes,
+                pageable,
+                1
+        );
+
+        Specification<Node> specification =
+                Mockito.mock(Specification.class);
+
+        Mockito.when(
+                nodeRepository.findAll(specification, pageable)
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(nodes),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(dtos);
+
+        WsDto<NodeDto> response =
+                nodeService.findAll(specification, pageable);
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Admin",
+                response.getDtoList().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Mockito.verify(nodeRepository)
+                .findAll(specification, pageable);
     }
 
 }

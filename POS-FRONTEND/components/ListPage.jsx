@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from '@/app/services/api';
 import Layout from '@/components/Layout';
 import ActionButtons from '@/components/ActionButtons';
@@ -20,8 +20,8 @@ const CommonList = ({
 }) => {
 
   const [data, setData] = useState([]);
-  const [allData, setAllData] = useState([]);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -41,120 +41,90 @@ const CommonList = ({
   const router = useRouter();
 
   useEffect(() => {
-    fetchData();
-  }, [currentPage]);
+    const t = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
+  const fetchData = useCallback(
+    async (pageNo) => {
+      try {
 
-  const fetchData = async () => {
-    try {
-
-      setLoading(true);
-
-      const response = await api.post(
-        apiUrl,
-        {
-          page: currentPage,
-          sizePerPage,
-          sortDirection: 'ASC',
-          sortField: 'id'
-        }
-      );
-
-      setData(response.data.dtoList || []);
-      setTotalPages(response.data.totalPages || 0);
-
-    } catch (err) {
-
-      console.log(err);
-      setError(`Failed to load ${modelName}`);
-
-    } finally {
-
-      setLoading(false);
-
-    }
-  };
-
-  const fetchAllData = async () => {
-
-    try {
-
-      let page = 0;
-      let pages = 1;
-      let records = [];
-
-      while (page < pages) {
+        setLoading(true);
 
         const response = await api.post(
           apiUrl,
           {
-            page,
-            sizePerPage: 1000,
+            page: pageNo,
+            sizePerPage,
             sortDirection: 'ASC',
-            sortField: 'id'
+            sortField: 'id',
+            keyword: debouncedSearch || undefined
           }
         );
 
-        records = [
-          ...records,
-          ...(response.data.dtoList || [])
-        ];
+        setData(response.data.dtoList || []);
+        setTotalPages(response.data.totalPages || 0);
 
-        pages = response.data.totalPages || 1;
-        page++;
+      } catch (err) {
+
+        console.log(err);
+        setError(`Failed to load ${modelName}`);
+
+      } finally {
+
+        setLoading(false);
 
       }
+    },
+    [apiUrl, sizePerPage, debouncedSearch, modelName]
+  );
 
-      setAllData(records);
+  useEffect(() => {
+    fetchData(currentPage);
+  }, [currentPage, fetchData]);
 
-    } catch (err) {
-
-      console.log(err);
-
-    }
-
-  };
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [debouncedSearch]);
 
   const deleteItem = async (identifier) => {
 
-  const confirmDelete = globalThis.confirm(
-    `Delete this ${modelName}?`
-  );
-
-  if (!confirmDelete) return;
-
-  try {
-
-    await api.delete(
-      `${deleteUrl}?identifier=${identifier}`
+    const confirmDelete = globalThis.confirm(
+      `Delete this ${modelName}?`
     );
 
-    const currentUsername = localStorage.getItem("username");
+    if (!confirmDelete) return;
 
-    console.log("Deleted:", identifier);
-    console.log("Logged in user:", currentUsername);
+    try {
 
-    if (identifier === currentUsername) {
+      await api.delete(
+        `${deleteUrl}?identifier=${identifier}`
+      );
 
-      localStorage.clear();
+      const currentUsername = localStorage.getItem("username");
 
-      alert("Your account was deleted. Redirecting to login...");
+      console.log("Deleted:", identifier);
+      console.log("Logged in user:", currentUsername);
 
-      router.replace("/login"); 
+      if (identifier === currentUsername) {
 
-      return;
+        localStorage.clear();
+
+        alert("Your account was deleted. Redirecting to login...");
+
+        router.replace("/login");
+
+        return;
+      }
+
+      fetchData(currentPage);
+
+    } catch (err) {
+      console.log(err);
     }
-
-    fetchData();
-    fetchAllData();
-
-  } catch (err) {
-    console.log(err);
-  }
-};
+  };
 
   const handleEdit = (item) => {
 
@@ -165,42 +135,118 @@ const CommonList = ({
 
   const handleView = async (item) => {
 
-  try {
+    try {
 
-    const response = await api.get(
-      `/${modelName}/get?identifier=${item.identifier}`
-    );
+      const response = await api.get(
+        `/${modelName}/get?identifier=${item.identifier}`
+      );
 
-    setViewData(response.data);
-    setShowViewModal(true);
+      setViewData(response.data);
+      setShowViewModal(true);
 
-  } catch (err) {
+    } catch (err) {
 
-    console.error(err);
-    alert("Failed to load details");
+      console.error(err);
+      alert("Failed to load details");
 
+    }
+  };
+
+  const getCellValue = (row, column, index) => {
+
+  if (column === 'S.No') {
+    return currentPage * sizePerPage + index + 1;
   }
+
+  if (customRender?.[column]) {
+    return customRender[column](row, fetchData);
+  }
+
+  if (Array.isArray(row[column])) {
+    return row[column].join(', ');
+  }
+
+  return row[column];
 };
 
-  const filteredData = search
-    ? allData.filter((row) =>
-        Object.values(row)
-          .join(' ')
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      )
-    : data;
+  const filteredData = data;
+
+  const renderTableBody = () => {
 
   if (loading) {
-
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-[70vh]">
+      <tr>
+        <td
+          colSpan={columns.length + 1}
+          className="text-center p-6 text-gray-500"
+        >
           Loading...
-        </div>
-      </Layout>
+        </td>
+      </tr>
     );
   }
+
+  if (filteredData.length === 0) {
+    return (
+      <tr>
+        <td
+          colSpan={columns.length + 1}
+          className="text-center p-6 text-gray-500"
+        >
+          No data found
+        </td>
+      </tr>
+    );
+  }
+
+  return filteredData.map((row, i) => (
+
+    <tr
+      key={row.identifier}
+      className="border-b hover:bg-gray-50 transition"
+    >
+
+      {columns.map((c) => (
+
+        <td
+          key={`${row.identifier}-${c}`}
+          className="p-3 text-gray-700"
+        >
+          {getCellValue(row, c, i)}
+        </td>
+
+      ))}
+
+      <td className="p-3">
+
+        <ActionButtons
+          onView={() => {
+
+            if (customViewHandler) {
+
+              customViewHandler(
+                row,
+                setViewData,
+                setShowViewModal
+              );
+
+            } else {
+
+              handleView(row);
+
+            }
+
+          }}
+          onEdit={() => handleEdit(row)}
+          onDelete={() => deleteItem(row.identifier)}
+        />
+
+      </td>
+
+    </tr>
+
+  ));
+};
 
   return (
 
@@ -290,114 +336,36 @@ const CommonList = ({
               </thead>
 
               <tbody>
-
-                {filteredData.length > 0 ? (
-
-                  filteredData.map((row, i) => (
-
-                    <tr
-                      key={row.identifier}
-                      className="border-b hover:bg-gray-50 transition"
-                    >
-
-                      {columns.map((c) => (
-
-                        <td
-                          key={`${row.identifier}-${c}`}
-                          className="p-3 text-gray-700"
-                        >
-
-                      {
-                        (() => {
-
-                          if (c === 'S.No') {
-
-                            return search ? i + 1 : currentPage * sizePerPage + i + 1;
-                          }
-                          if (customRender?.[c]) {
-                            return customRender[c](row, fetchData);
-                          }
-                          if (Array.isArray(row[c])) {
-                            return row[c].join(', ');
-                          }
-                          return row[c];
-                          })()
-                          }
-                          </td>
-                        ))}
-
-                      <td className="p-3">
-
-                      <ActionButtons
-                        onView={() => {
-
-                          if (customViewHandler) {
-                            customViewHandler(
-                              row,
-                              setViewData,
-                              setShowViewModal
-                            );
-                          } else {
-                            handleView(row);
-                          }
-
-                        }}
-                        onEdit={() => handleEdit(row)}
-                        onDelete={() => deleteItem(row.identifier)}
-                      />
-
-                    </td>
-
-                    </tr>
-
-                  ))
-
-                ) : (
-
-                  <tr>
-
-                    <td
-                      colSpan={columns.length + 1}
-                      className="text-center p-6 text-gray-500"
-                    >
-                      No data found
-                    </td>
-
-                  </tr>
-
-                )}
-
+                {renderTableBody()}
               </tbody>
 
             </table>
 
           </div>
 
-          {!search && (
-            <div className="flex justify-between items-center mt-6">
+          <div className="flex justify-between items-center mt-6">
 
-              <button
-                disabled={currentPage === 0}
-                onClick={() => setCurrentPage(currentPage - 1)}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg disabled:opacity-40"
-              >
-                Prev
-              </button>
+            <button
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg disabled:opacity-40"
+            >
+              Prev
+            </button>
 
-              <span className="text-gray-700 font-medium">
-                Page {currentPage + 1} of {totalPages}
-              </span>
+            <span className="text-gray-700 font-medium">
+              Page {currentPage + 1} of {totalPages}
+            </span>
 
-              <button
-                disabled={currentPage + 1 >= totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg disabled:opacity-40"
-              >
-                Next
-              </button>
+            <button
+              disabled={currentPage + 1 >= totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg disabled:opacity-40"
+            >
+              Next
+            </button>
 
-            </div>
-          )}
+          </div>
 
         </div>
 
@@ -409,8 +377,7 @@ const CommonList = ({
               <AddComponent
                 closeModal={() => setShowAddModal(false)}
                 refreshData={() => {
-                  fetchData();
-                  fetchAllData();
+                  fetchData(currentPage);
                 }}
               />
 
@@ -429,8 +396,7 @@ const CommonList = ({
                 data={selectedItem}
                 closeModal={() => setShowUpdateModal(false)}
                 refreshData={() => {
-                  fetchData();
-                  fetchAllData();
+                  fetchData(currentPage);
                 }}
               />
 
@@ -609,4 +575,5 @@ AuditViewModal.propTypes = {
   }).isRequired,
   onClose: PropTypes.func.isRequired,
 };
+
 export default CommonList;

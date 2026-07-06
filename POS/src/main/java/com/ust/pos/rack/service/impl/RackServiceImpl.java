@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -33,7 +34,8 @@ public class RackServiceImpl extends BaseService implements RackService {
         String identifier = rackDto.getIdentifier().trim();
         Rack existingRack = rackRepository.findByIdentifier(identifier);
         if (existingRack != null) {
-            if (existingRack.isDeleted()) {rackDto.setMessage("Rack with identifier " + identifier + " has been soft deleted. (Rollback by changing status)");
+            if (existingRack.isDeleted()) {
+                rackDto.setMessage("Rack with identifier " + identifier + " has been soft deleted. (Rollback by changing status)");
                 rackDto.setSuccess(false);
                 return rackDto;
             }
@@ -122,6 +124,27 @@ public class RackServiceImpl extends BaseService implements RackService {
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
         return modelMapper.map(rackRepository.findByStatusTrue(), listType);
+    }
+
+    @Override
+    public WsDto<RackDto> findAll(Specification<Rack> specification,
+                                  Pageable pageable) {
+
+        Type listType = new TypeToken<List<RackDto>>() {
+        }.getType();
+
+        Page<Rack> page =
+                rackRepository.findAll(specification, pageable);
+
+        WsDto<RackDto> wsDto = new WsDto<>();
+
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
 }

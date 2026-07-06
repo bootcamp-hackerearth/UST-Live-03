@@ -4,8 +4,10 @@ import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Unit;
 import com.ust.pos.unit.service.UnitService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,27 +21,35 @@ public class UnitApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public UnitDto addPost(@RequestBody UnitDto unitDto) {
         return unitService.save(unitDto);
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WsDto<UnitDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (paginationDto.getKeyword() != null && !paginationDto.getKeyword().trim().isEmpty()) {
+            return unitService.findAll(buildGlobalSearchSpec(Unit.class, paginationDto.getKeyword()), pageable);
+        }
         return unitService.findAll(pageable);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public UnitDto update(@RequestParam String identifier) {
         return unitService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
@@ -50,6 +60,7 @@ public class UnitApiController extends BaseController {
     }
 
     @PostMapping("/togglestatus")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public UnitDto toggle(@RequestBody UnitDto unitDto) {
         return unitService.toggleStatus(unitDto.getIdentifier(), unitDto.isStatus());
     }

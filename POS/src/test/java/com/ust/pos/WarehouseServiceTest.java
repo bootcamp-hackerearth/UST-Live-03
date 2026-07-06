@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -279,6 +280,74 @@ public class WarehouseServiceTest {
         Assertions.assertEquals(
                 1,
                 response.getTotalRecords()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("Lays Warehouse");
+
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("Lays Warehouse");
+
+        List<Warehouse> warehouses = List.of(warehouse);
+        List<WarehouseDto> warehouseDtos = List.of(dto);
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Page<Warehouse> page =
+                new PageImpl<>(warehouses, pageable, warehouses.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Warehouse> specification =
+                Mockito.mock(Specification.class);
+
+        Mockito.when(
+                warehouseRepository.findAll(specification, pageable)
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(warehouses),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(warehouseDtos);
+
+        WsDto<WarehouseDto> response =
+                warehouseService.findAll(specification, pageable);
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Lays Warehouse",
+                response.getDtoList().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
         );
     }
 }

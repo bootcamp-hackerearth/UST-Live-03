@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -390,6 +391,73 @@ class ShelfServiceTest {
         Assertions.assertEquals(
                 "Shelf1",
                 response.get(0).getIdentifier()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Specification<Shelf> specification =
+                Mockito.mock(Specification.class);
+
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Shelf1");
+
+        ShelfDto shelfDto = new ShelfDto();
+        shelfDto.setIdentifier("Shelf1");
+
+        List<Shelf> shelves = List.of(shelf);
+        List<ShelfDto> shelfDtos = List.of(shelfDto);
+
+        Page<Shelf> page =
+                new PageImpl<>(shelves, pageable, 1);
+
+        Mockito.when(
+                shelfRepository.findAll(specification, pageable)
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(shelfDtos);
+
+        WsDto<ShelfDto> response =
+                shelfService.findAll(specification, pageable);
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Shelf1",
+                response.getDtoList().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
         );
     }
 }

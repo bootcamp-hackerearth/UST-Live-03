@@ -2,7 +2,9 @@ package com.ust.pos.modelmodule.service;
 
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Model;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 public interface ModelService {
 
@@ -17,5 +19,7 @@ public interface ModelService {
     ModelDto update(ModelDto modelDto);
 
     ModelDto toggleStatus(String identifier, boolean status);
+
+    WsDto<ModelDto> findAll(Specification<Model> specification, Pageable pageable);
 
 }

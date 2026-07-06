@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -321,5 +322,73 @@ public class UnitServiceTest {
                 "Unit not found",
                 response.getMessage()
         );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Unit unit = new Unit();
+        unit.setIdentifier("kg");
+
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("kg");
+
+        List<Unit> units = List.of(unit);
+        List<UnitDto> dtos = List.of(dto);
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Page<Unit> unitPage = new PageImpl<>(units);
+
+        Specification<Unit> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(
+                unitRepository.findAll(specification, pageable)
+        ).thenReturn(unitPage);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(units),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(dtos);
+
+        WsDto<UnitDto> response =
+                unitService.findAll(specification, pageable);
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "kg",
+                response.getDtoList().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Mockito.verify(unitRepository)
+                .findAll(specification, pageable);
     }
 }

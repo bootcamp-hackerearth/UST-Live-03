@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -370,5 +371,90 @@ class RackServiceTest {
                 "Rack1",
                 response.get(0).getIdentifier()
         );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Rack rack = new Rack();
+        rack.setIdentifier("Rack1");
+
+        RackDto rackDto = new RackDto();
+        rackDto.setIdentifier("Rack1");
+
+        List<Rack> racks = List.of(rack);
+        List<RackDto> rackDtos = List.of(rackDto);
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Page<Rack> page =
+                new PageImpl<>(
+                        racks,
+                        pageable,
+                        1
+                );
+
+        Specification<Rack> specification =
+                Mockito.mock(Specification.class);
+
+        Mockito.when(
+                rackRepository.findAll(
+                        specification,
+                        pageable
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(racks),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(rackDtos);
+
+        WsDto<RackDto> response =
+                rackService.findAll(
+                        specification,
+                        pageable
+                );
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Rack1",
+                response.getDtoList()
+                        .get(0)
+                        .getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Mockito.verify(rackRepository)
+                .findAll(
+                        specification,
+                        pageable
+                );
     }
 }

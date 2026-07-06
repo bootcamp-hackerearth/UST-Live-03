@@ -21,8 +21,7 @@ public class CartApiController extends BaseController {
 
     @PostMapping("/list")
     public List<CartDto> list(@RequestBody PaginationDto pagination) {
-        Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
-                pagination.getSortDirection(), pagination.getSortField());
+        Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(), pagination.getSortDirection(), pagination.getSortField());
         return cartService.findAll(pageable);
     }
 

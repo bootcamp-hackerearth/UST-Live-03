@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -243,5 +244,90 @@ class RoleServiceTest {
                 "Admin",
                 response.getDtoList().get(0).getIdentifier()
         );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Role role = new Role();
+        role.setIdentifier("Admin");
+
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("Admin");
+
+        List<Role> roles = List.of(role);
+        List<RoleDto> roleDtos = List.of(roleDto);
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Page<Role> page =
+                new PageImpl<>(
+                        roles,
+                        pageable,
+                        1
+                );
+
+        Specification<Role> specification =
+                Mockito.mock(Specification.class);
+
+        Mockito.when(
+                roleRepository.findAll(
+                        specification,
+                        pageable
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(roles),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(roleDtos);
+
+        WsDto<RoleDto> response =
+                roleService.findAll(
+                        specification,
+                        pageable
+                );
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Admin",
+                response.getDtoList()
+                        .get(0)
+                        .getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Mockito.verify(roleRepository)
+                .findAll(
+                        specification,
+                        pageable
+                );
     }
 }
