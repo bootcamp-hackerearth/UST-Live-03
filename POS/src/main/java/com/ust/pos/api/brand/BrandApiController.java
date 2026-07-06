@@ -5,7 +5,11 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
+import com.ust.pos.model.Brand;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,28 +23,39 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public BrandDto addPost(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
     public PaginationResponseDto<BrandDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(),paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Brand> example = buildGlobalSearchSpec(Brand.class, paginationDto.getKeyword());
+            if (example != null) {
+                return brandService.findAll(example, pageable);
+            }
+        }
         return brandService.findAll(pageable);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('Seller')")
     public BrandDto update(@RequestParam String identifier) {
         return brandService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Seller')")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Seller')")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.deleteByIdentifier(identifier);
@@ -51,10 +66,8 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Seller')")
     public BrandDto toggleStatus(@RequestBody BrandDto brandDto) {
-        return brandService.toggleStatus(
-                brandDto.getIdentifier(),
-                brandDto.isStatus()
-        );
+        return brandService.toggleStatus(brandDto.getIdentifier(), brandDto.isStatus());
     }
 }

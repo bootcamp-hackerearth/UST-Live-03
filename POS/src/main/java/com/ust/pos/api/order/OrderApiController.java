@@ -6,8 +6,8 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.order.service.OrderService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequestMapping("/api/order")
@@ -25,11 +25,13 @@ public class OrderApiController extends BaseController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('Seller')")
     public OrderDto get(@RequestParam String identifier) {
         return orderService.get(identifier);
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
     public PaginationResponseDto<OrderDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -37,6 +39,7 @@ public class OrderApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Seller')")
     public boolean delete(@RequestParam String identifier) {
         try {
             return orderService.delete(identifier);

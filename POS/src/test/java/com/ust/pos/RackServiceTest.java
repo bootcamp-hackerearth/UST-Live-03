@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -213,5 +214,46 @@ class RackServiceTest {
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Rack1", response.get(0).getIdentifier());
         Mockito.verify(rackRepository).findByStatusTrue();
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Rack rack = new Rack();
+        rack.setIdentifier("RACK001");
+        RackDto dto = new RackDto();
+        dto.setIdentifier("RACK001");
+        List<Rack> racks = List.of(rack);
+        List<RackDto> dtos = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Rack> page = new PageImpl<>(racks, pageable, 1);
+        Specification<Rack> specification = Mockito.mock(Specification.class);
+        Mockito.when(rackRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(racks), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<RackDto> response = rackService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("RACK001", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(5, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(rackRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationNoDataTest() {
+        Pageable pageable = PageRequest.of(0, 5);
+        Specification<Rack> specification = Mockito.mock(Specification.class);
+        Page<Rack> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        Mockito.when(rackRepository.findAll(specification, pageable)).thenReturn(emptyPage);
+        Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class))).thenReturn(List.of());
+        PaginationResponseDto<RackDto> response = rackService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0, response.getTotalRecords());
+        Assertions.assertEquals(0, response.getTotalPages());
+        Assertions.assertEquals(5, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(rackRepository).findAll(specification, pageable);
     }
 }

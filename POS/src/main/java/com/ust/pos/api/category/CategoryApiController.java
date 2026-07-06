@@ -5,7 +5,11 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
+import com.ust.pos.model.Category;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,28 +25,39 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public CategoryDto addPost(@RequestBody CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
     public PaginationResponseDto<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Category> example = buildGlobalSearchSpec(Category.class, paginationDto.getKeyword());
+            if (example != null) {
+                return categoryService.findAll(example, pageable);
+            }
+        }
         return categoryService.findAll(pageable);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('Seller')")
     public CategoryDto update(@RequestParam String identifier) {
         return categoryService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Seller')")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Seller')")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -58,6 +73,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Seller')")
     public CategoryDto toggleStatus(@RequestBody CategoryDto categoryDto) {
         return categoryService.toggleStatus(categoryDto.getIdentifier(), categoryDto.isStatus());
     }

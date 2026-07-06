@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -152,7 +153,10 @@ class BrandServiceTest {
         Mockito.when(brandRepository.findByIdentifier("NIKE")).thenReturn(null);
         RuntimeException exception = Assertions.assertThrows(RuntimeException.class,
                 () -> brandService.deleteByIdentifier("NIKE"));
-        Assertions.assertEquals("Brand not found", exception.getMessage());
+        Assertions.assertEquals(
+                "Brand with identifier - NIKE not found",
+                exception.getMessage()
+        );
     }
 
     @Test
@@ -179,5 +183,44 @@ class BrandServiceTest {
         BrandDto response = brandService.toggleStatus("NIKE", true);
         Assertions.assertNull(response);
         Mockito.verify(brandRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Brand brand = new Brand();
+        brand.setIdentifier("BR001");
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("BR001");
+        List<Brand> brandList = List.of(brand);
+        List<BrandDto> dtoList = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Brand> page = new PageImpl<>(brandList, pageable, 1);
+        Specification<Brand> specification = Mockito.mock(Specification.class);
+        Mockito.when(brandRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(brandList), Mockito.any(Type.class))).thenReturn(dtoList);
+        PaginationResponseDto<BrandDto> response = brandService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("BR001", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(brandRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Brand> specification = Mockito.mock(Specification.class);
+        Page<Brand> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        Mockito.when(brandRepository.findAll(specification, pageable)).thenReturn(emptyPage);
+        Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class))).thenReturn(List.of());
+        PaginationResponseDto<BrandDto> response = brandService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0, response.getTotalRecords());
+        Assertions.assertEquals(0, response.getTotalPages());
+        Mockito.verify(brandRepository).findAll(specification, pageable);
     }
 }

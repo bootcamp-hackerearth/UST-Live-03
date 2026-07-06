@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -182,5 +183,46 @@ class ModelServiceTest {
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Model not found", response.getMessage());
         Mockito.verify(modelRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Model model = new Model();
+        model.setIdentifier("MDL001");
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("MDL001");
+        List<Model> models = List.of(model);
+        List<ModelDto> dtos = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Model> page = new PageImpl<>(models, pageable, 1);
+        Specification<Model> specification = Mockito.mock(Specification.class);
+        Mockito.when(modelRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(models), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<ModelDto> response = modelService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("MDL001", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(5, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(modelRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationNoDataTest() {
+        Pageable pageable = PageRequest.of(0, 5);
+        Specification<Model> specification = Mockito.mock(Specification.class);
+        Page<Model> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        Mockito.when(modelRepository.findAll(specification, pageable)).thenReturn(emptyPage);
+        Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class))).thenReturn(List.of());
+        PaginationResponseDto<ModelDto> response = modelService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0, response.getTotalRecords());
+        Assertions.assertEquals(0, response.getTotalPages());
+        Assertions.assertEquals(5, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(modelRepository).findAll(specification, pageable);
     }
 }

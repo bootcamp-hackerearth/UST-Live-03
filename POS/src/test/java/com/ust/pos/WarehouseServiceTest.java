@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -152,5 +153,41 @@ class WarehouseServiceTest {
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals("Lays Warehouse", response.getDtoList().get(0).getIdentifier());
         Assertions.assertEquals(1, response.getTotalRecords());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("WH001");
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("WH001");
+        List<Warehouse> warehouses = List.of(warehouse);
+        List<WarehouseDto> dtos = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 5);
+        Specification<Warehouse> specification = Mockito.mock(Specification.class);
+        Page<Warehouse> page = new PageImpl<>(warehouses);
+        Mockito.when(warehouseRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(warehouses), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<WarehouseDto> response = warehouseService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("WH001", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Mockito.verify(warehouseRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationNoDataTest() {
+        Pageable pageable = PageRequest.of(0, 5);
+        Specification<Warehouse> specification = Mockito.mock(Specification.class);
+        Page<Warehouse> page = new PageImpl<>(List.of());
+        Mockito.when(warehouseRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class))).thenReturn(List.of());
+        PaginationResponseDto<WarehouseDto> response = warehouseService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Mockito.verify(warehouseRepository).findAll(specification, pageable);
     }
 }

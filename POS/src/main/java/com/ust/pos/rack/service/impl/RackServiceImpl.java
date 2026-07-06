@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -120,5 +121,19 @@ public class RackServiceImpl extends BaseService implements RackService {
         Type listType = new TypeToken<List<RackDto>>() {
         }.getType();
         return modelMapper.map(rackRepository.findByStatusTrue(), listType);
+    }
+
+    @Override
+    public PaginationResponseDto<RackDto> findAll(Specification<Rack> example, Pageable pageable) {
+        Type listType = new TypeToken<List<RackDto>>() {
+        }.getType();
+        Page<Rack> page = rackRepository.findAll(example, pageable);
+        PaginationResponseDto<RackDto> paginationresponse = new PaginationResponseDto<>();
+        paginationresponse.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationresponse.setTotalRecords(page.getTotalElements());
+        paginationresponse.setTotalPages(page.getTotalPages());
+        paginationresponse.setSizePerPage(pageable.getPageSize());
+        paginationresponse.setPage(pageable.getPageNumber());
+        return paginationresponse;
     }
 }

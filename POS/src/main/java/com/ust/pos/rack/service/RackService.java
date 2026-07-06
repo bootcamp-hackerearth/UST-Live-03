@@ -2,11 +2,14 @@ package com.ust.pos.rack.service;
 
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.model.Rack;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
 public interface RackService {
+
     RackDto save(RackDto rackDto);
 
     PaginationResponseDto<RackDto> findAll(Pageable pageable);
@@ -20,4 +23,6 @@ public interface RackService {
     RackDto toggleStatus(String identifier, boolean status);
 
     List<RackDto> findActiveRacks();
+
+    PaginationResponseDto<RackDto> findAll(Specification<Rack> example, Pageable pageable);
 }

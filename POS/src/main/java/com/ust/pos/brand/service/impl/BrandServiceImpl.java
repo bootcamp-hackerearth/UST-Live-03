@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -88,7 +89,6 @@ public class BrandServiceImpl extends BaseService implements BrandService {
             throw new EntityNotFoundException(
                     "Brand with identifier - " + identifier + " not found");
         }
-
         softDelete(brand);
         setModifiedDetails(brand);
         brandRepository.save(brand);
@@ -118,5 +118,19 @@ public class BrandServiceImpl extends BaseService implements BrandService {
             brandRepository.save(brand);
         }
         return modelMapper.map(brand, BrandDto.class);
+    }
+
+    @Override
+    public PaginationResponseDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Page<Brand> page = brandRepository.findAll(example, pageable);
+        PaginationResponseDto<BrandDto> paginationresponse = new PaginationResponseDto<>();
+        paginationresponse.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationresponse.setTotalRecords(page.getTotalElements());
+        paginationresponse.setTotalPages(page.getTotalPages());
+        paginationresponse.setSizePerPage(pageable.getPageSize());
+        paginationresponse.setPage(pageable.getPageNumber());
+        return paginationresponse;
     }
 }

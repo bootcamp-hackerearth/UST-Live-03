@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -191,5 +192,46 @@ class NodeServiceTest {
         Mockito.when(authentication.getPrincipal()).thenReturn("anonymousUser");
         SecurityContextHolder.getContext().setAuthentication(authentication);
         Assertions.assertThrows(ClassCastException.class, () -> nodeService.getNodesForRoles());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Node node = new Node();
+        node.setIdentifier("NODE001");
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("NODE001");
+        List<Node> nodes = List.of(node);
+        List<NodeDto> dtos = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Node> page = new PageImpl<>(nodes, pageable, 1);
+        Specification<Node> specification = Mockito.mock(Specification.class);
+        Mockito.when(nodeRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(Type.class))).thenReturn(dtos);
+        PaginationResponseDto<NodeDto> response = nodeService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("NODE001", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(5, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(nodeRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationNoDataTest() {
+        Pageable pageable = PageRequest.of(0, 5);
+        Specification<Node> specification = Mockito.mock(Specification.class);
+        Page<Node> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        Mockito.when(nodeRepository.findAll(specification, pageable)).thenReturn(emptyPage);
+        Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class))).thenReturn(List.of());
+        PaginationResponseDto<NodeDto> response = nodeService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0, response.getTotalRecords());
+        Assertions.assertEquals(0, response.getTotalPages());
+        Assertions.assertEquals(5, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(nodeRepository).findAll(specification, pageable);
     }
 }

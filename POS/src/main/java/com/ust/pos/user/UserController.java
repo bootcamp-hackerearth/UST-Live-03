@@ -71,7 +71,6 @@ public class UserController extends BaseController {
     @PostMapping("/save")
     @ResponseBody
     public UserDto save(@RequestBody UserDto userDto) {
-
         return userService.save(userDto);
     }
 }

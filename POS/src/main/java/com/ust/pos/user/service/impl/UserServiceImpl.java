@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -127,5 +128,19 @@ public class UserServiceImpl extends BaseService implements UserService {
             response.setPage(pageable.getPageNumber());
         }
         return response;
+    }
+
+    @Override
+    public PaginationResponseDto<UserDto> findAll(Specification<User> example, Pageable pageable) {
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> page = userRepository.findAll(example, pageable);
+        PaginationResponseDto<UserDto> paginationresponse = new PaginationResponseDto<>();
+        paginationresponse.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationresponse.setTotalRecords(page.getTotalElements());
+        paginationresponse.setTotalPages(page.getTotalPages());
+        paginationresponse.setSizePerPage(pageable.getPageSize());
+        paginationresponse.setPage(pageable.getPageNumber());
+        return paginationresponse;
     }
 }

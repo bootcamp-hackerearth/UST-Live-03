@@ -2,11 +2,14 @@ package com.ust.pos.node.service;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationResponseDto;
+import com.ust.pos.model.Node;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
 public interface NodeService {
+
     List<NodeDto> getNodesForRoles();
 
     PaginationResponseDto<NodeDto> findAll(Pageable pageable);
@@ -18,4 +21,6 @@ public interface NodeService {
     void delete(String identifier);
 
     NodeDto findByIdentifier(String identifier);
+
+    PaginationResponseDto<NodeDto> findAll(Specification<Node> example, Pageable pageable);
 }

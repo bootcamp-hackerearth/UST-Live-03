@@ -1,8 +1,8 @@
 package com.ust.pos.price.service.impl;
 
 import com.ust.pos.base.service.BaseService;
-import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -109,5 +110,19 @@ public class PriceServiceImpl extends BaseService implements PriceService {
         softDelete(price);
         setModifiedDetails(price);
         priceRepository.save(price);
+    }
+
+    @Override
+    public PaginationResponseDto<PriceDto> findAll(Specification<Price> example, Pageable pageable) {
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        Page<Price> page = priceRepository.findAll(example, pageable);
+        PaginationResponseDto<PriceDto> paginationresponse = new PaginationResponseDto<>();
+        paginationresponse.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationresponse.setTotalRecords(page.getTotalElements());
+        paginationresponse.setTotalPages(page.getTotalPages());
+        paginationresponse.setSizePerPage(pageable.getPageSize());
+        paginationresponse.setPage(pageable.getPageNumber());
+        return paginationresponse;
     }
 }

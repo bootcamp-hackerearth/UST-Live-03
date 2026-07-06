@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -113,5 +114,19 @@ public class StockServiceImpl extends BaseService implements StockService {
             stockRepository.save(stock);
         }
         return modelMapper.map(stock , StockDto.class);
+    }
+
+    @Override
+    public PaginationResponseDto<StockDto> findAll(Specification<Stock> example, Pageable pageable) {
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Stock> page = stockRepository.findAll(example, pageable);
+        PaginationResponseDto<StockDto> paginationresponse = new PaginationResponseDto<>();
+        paginationresponse.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationresponse.setTotalRecords(page.getTotalElements());
+        paginationresponse.setTotalPages(page.getTotalPages());
+        paginationresponse.setSizePerPage(pageable.getPageSize());
+        paginationresponse.setPage(pageable.getPageNumber());
+        return paginationresponse;
     }
 }

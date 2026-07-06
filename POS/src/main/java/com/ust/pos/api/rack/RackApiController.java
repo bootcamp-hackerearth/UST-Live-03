@@ -4,8 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.model.Rack;
 import com.ust.pos.rack.service.RackService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,28 +25,39 @@ public class RackApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public RackDto addPost(@RequestBody RackDto rackDto) {
         return rackService.save(rackDto);
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
     public PaginationResponseDto<RackDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(),paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Rack> example = buildGlobalSearchSpec(Rack.class, paginationDto.getKeyword());
+            if (example != null) {
+                return rackService.findAll(example, pageable);
+            }
+        }
         return rackService.findAll(pageable);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('Seller')")
     public RackDto update(@RequestParam String identifier) {
         return rackService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Seller')")
     public RackDto updatePost(@RequestBody RackDto rackDto) {
         return rackService.update(rackDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Seller')")
     public boolean delete(@RequestParam String identifier) {
         try {
             rackService.delete(identifier);
@@ -53,6 +68,7 @@ public class RackApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Seller')")
     public RackDto toggle(@RequestBody RackDto dto) {
         return rackService.toggleStatus(dto.getIdentifier(), dto.isStatus());
     }

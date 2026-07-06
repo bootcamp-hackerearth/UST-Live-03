@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface OrderService {
+
     OrderDto checkout(OrderDto orderDto);
 
     OrderDto get(String identifier);

@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -118,5 +119,19 @@ public class UnitServiceImpl extends BaseService implements UnitService {
             unitRepository.save(unit);
         }
         return modelMapper.map(unit,UnitDto.class);
+    }
+    
+    @Override
+    public PaginationResponseDto<UnitDto> findAll(Specification<Unit> example, Pageable pageable) {
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
+        Page<Unit> page = unitRepository.findAll(example, pageable);
+        PaginationResponseDto<UnitDto> paginationresponse = new PaginationResponseDto<>();
+        paginationresponse.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationresponse.setTotalRecords(page.getTotalElements());
+        paginationresponse.setTotalPages(page.getTotalPages());
+        paginationresponse.setSizePerPage(pageable.getPageSize());
+        paginationresponse.setPage(pageable.getPageNumber());
+        return paginationresponse;
     }
 }
