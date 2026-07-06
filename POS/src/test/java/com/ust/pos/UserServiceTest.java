@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -58,6 +59,46 @@ class UserServiceTest {
         assertEquals("admin", user.getIdentifier());
 
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithUserDtos() {
+        Specification<User> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        User user = new User();
+        user.setId(1L);
+        user.setIdentifier("USER001");
+        user.setName("Admin User");
+
+        List<User> userList = List.of(user);
+        Page<User> userPage =
+                new PageImpl<>(userList, pageable, userList.size());
+
+        UserDto userDto = new UserDto();
+        userDto.setId(1L);
+        userDto.setIdentifier("USER001");
+        userDto.setName("Admin User");
+
+        List<UserDto> userDtoList = List.of(userDto);
+
+        when(userRepository.findAll(specification, pageable))
+                .thenReturn(userPage);
+
+        when(modelMapper.map(eq(userList), any(Type.class)))
+                .thenReturn(userDtoList);
+
+        WsDto<UserDto> result = userService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(userDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(userRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(userList), any(Type.class));
     }
 
     @Test

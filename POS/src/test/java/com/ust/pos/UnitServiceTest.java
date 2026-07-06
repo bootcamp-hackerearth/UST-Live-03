@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -52,6 +53,44 @@ class UnitServiceTest {
         UnitDto result = unitService.findByIdentifier(identifier);
 
         assertEquals(identifier, result.getIdentifier());
+    }
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithUnitDtos() {
+        Specification<Unit> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Unit unit = new Unit();
+        unit.setId(1L);
+        unit.setIdentifier("UNIT001");
+
+        List<Unit> unitList = List.of(unit);
+        Page<Unit> unitPage =
+                new PageImpl<>(unitList, pageable, unitList.size());
+
+        UnitDto unitDto = new UnitDto();
+        unitDto.setId(1L);
+        unitDto.setIdentifier("UNIT001");
+
+        List<UnitDto> unitDtoList = List.of(unitDto);
+
+        when(unitRepository.findAll(specification, pageable))
+                .thenReturn(unitPage);
+
+        when(modelMapper.map(eq(unitList), any(Type.class)))
+                .thenReturn(unitDtoList);
+
+        WsDto<UnitDto> result = unitService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(unitDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(unitRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(unitList), any(Type.class));
     }
 
     @Test

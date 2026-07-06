@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -46,6 +47,44 @@ class StockServiceTest {
         stockDto.setWarehouse("WH1");
         stockDto.setQuantity(20);
         stockDto.setMinimumStock(10);
+    }
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithStockDtos() {
+        Specification<Stock> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Stock stock = new Stock();
+        stock.setId(1L);
+        stock.setIdentifier("STOCK001");
+
+        List<Stock> stockList = List.of(stock);
+        Page<Stock> stockPage =
+                new PageImpl<>(stockList, pageable, stockList.size());
+
+        StockDto stockDto = new StockDto();
+        stockDto.setId(1L);
+        stockDto.setIdentifier("STOCK001");
+
+        List<StockDto> stockDtoList = List.of(stockDto);
+
+        when(stockRepository.findAll(specification, pageable))
+                .thenReturn(stockPage);
+
+        when(modelMapper.map(eq(stockList), any(Type.class)))
+                .thenReturn(stockDtoList);
+
+        WsDto<StockDto> result = stockService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(stockDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(stockRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(stockList), any(Type.class));
     }
 
     @Test

@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -33,6 +34,46 @@ class RackServiceTest {
     private RackRepository rackRepository;
     @Mock
     private ModelMapper modelMapper;
+
+
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithRackDtos() {
+        Specification<Rack> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Rack rack = new Rack();
+        rack.setId(1L);
+        rack.setIdentifier("RACK001");
+
+        List<Rack> rackList = List.of(rack);
+        Page<Rack> rackPage =
+                new PageImpl<>(rackList, pageable, rackList.size());
+
+        RackDto rackDto = new RackDto();
+        rackDto.setId(1L);
+        rackDto.setIdentifier("RACK001");
+
+        List<RackDto> rackDtoList = List.of(rackDto);
+
+        when(rackRepository.findAll(specification, pageable))
+                .thenReturn(rackPage);
+
+        when(modelMapper.map(eq(rackList), any(Type.class)))
+                .thenReturn(rackDtoList);
+
+        WsDto<RackDto> result = rackService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(rackDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(rackRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(rackList), any(Type.class));
+    }
 
     @Test
     void testFindByIdentifier_Success() {

@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -33,6 +34,44 @@ class ShelfServiceTest {
     private ShelfRepository shelfRepository;
     @Mock
     private ModelMapper modelMapper;
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithShelfDtos() {
+        Specification<Shelf> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Shelf shelf = new Shelf();
+        shelf.setId(1L);
+        shelf.setIdentifier("SHELF001");
+
+        List<Shelf> shelfList = List.of(shelf);
+        Page<Shelf> shelfPage =
+                new PageImpl<>(shelfList, pageable, shelfList.size());
+
+        ShelfDto shelfDto = new ShelfDto();
+        shelfDto.setId(1L);
+        shelfDto.setIdentifier("SHELF001");
+
+        List<ShelfDto> shelfDtoList = List.of(shelfDto);
+
+        when(shelfRepository.findAll(specification, pageable))
+                .thenReturn(shelfPage);
+
+        when(modelMapper.map(eq(shelfList), any(Type.class)))
+                .thenReturn(shelfDtoList);
+
+        WsDto<ShelfDto> result = shelfService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(shelfDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(shelfRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(shelfList), any(Type.class));
+    }
 
     @Test
     void testFindByIdentifier_Success() {

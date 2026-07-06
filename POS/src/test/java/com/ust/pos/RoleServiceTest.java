@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -33,6 +34,44 @@ class RoleServiceTest {
     private RoleRepository roleRepository;
     @Mock
     private ModelMapper modelMapper;
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithRoleDtos() {
+        Specification<Role> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Role role = new Role();
+        role.setId(1L);
+        role.setIdentifier("ROLE001");
+
+        List<Role> roleList = List.of(role);
+        Page<Role> rolePage =
+                new PageImpl<>(roleList, pageable, roleList.size());
+
+        RoleDto roleDto = new RoleDto();
+        roleDto.setId(1L);
+        roleDto.setIdentifier("ROLE001");
+
+        List<RoleDto> roleDtoList = List.of(roleDto);
+
+        when(roleRepository.findAll(specification, pageable))
+                .thenReturn(rolePage);
+
+        when(modelMapper.map(eq(roleList), any(Type.class)))
+                .thenReturn(roleDtoList);
+
+        WsDto<RoleDto> result = roleService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(roleDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(roleRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(roleList), any(Type.class));
+    }
 
     @Test
     void testFindByIdentifier_Success() {

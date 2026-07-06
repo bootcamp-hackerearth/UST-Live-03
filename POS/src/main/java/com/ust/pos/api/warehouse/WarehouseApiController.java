@@ -4,9 +4,12 @@ import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Warehouse;
 import com.ust.pos.warehouse.service.WarehouseService;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,10 +20,18 @@ public class WarehouseApiController extends BaseController {
 
     private final WarehouseService warehouseService;
 
-    @PostMapping("/list")
     @PreAuthorize("hasAnyAuthority('Admin')")
+    @PostMapping("/list")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Warehouse> example = buildGlobalSearchSpec(Warehouse.class, paginationDto.getKeyword());
+            if (example != null) {
+                return warehouseService.findAll(example, pageable);
+            }
+        }
+
         return warehouseService.findAll(pageable);
     }
 

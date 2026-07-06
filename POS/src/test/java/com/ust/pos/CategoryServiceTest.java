@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -279,6 +280,46 @@ class CategoryServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("CAT-001", result.get(0).getIdentifier());
+    }
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithCategoryDtos() {
+        Specification<Category> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Category category = new Category();
+        category.setId(1L);
+        category.setIdentifier("CAT001");
+        category.setSuperCategory("Electronics");
+
+        List<Category> categoryList = List.of(category);
+        Page<Category> categoryPage =
+                new PageImpl<>(categoryList, pageable, categoryList.size());
+
+        CategoryDto categoryDto = new CategoryDto();
+        categoryDto.setId(1L);
+        categoryDto.setIdentifier("CAT001");
+        categoryDto.setSuperCategory("Electronics");
+
+        List<CategoryDto> categoryDtoList = List.of(categoryDto);
+
+        when(categoryRepository.findAll(specification, pageable))
+                .thenReturn(categoryPage);
+
+        when(modelMapper.map(eq(categoryList), any(Type.class)))
+                .thenReturn(categoryDtoList);
+
+        WsDto<CategoryDto> result = categoryService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(categoryDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(categoryRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(categoryList), any(Type.class));
     }
 
 }

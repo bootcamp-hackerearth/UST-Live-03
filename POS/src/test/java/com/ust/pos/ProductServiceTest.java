@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -36,6 +37,46 @@ class ProductServiceTest {
     private ModelMapper modelMapper;
     @Mock
     private StockRepository stockRepository;
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithProductDtos() {
+        Specification<Product> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Product product = new Product();
+        product.setId(1L);
+        product.setIdentifier("PROD001");
+        product.setName("iPhone");
+
+        List<Product> productList = List.of(product);
+        Page<Product> productPage =
+                new PageImpl<>(productList, pageable, productList.size());
+
+        ProductDto productDto = new ProductDto();
+        productDto.setId(1L);
+        productDto.setIdentifier("PROD001");
+        productDto.setName("iPhone");
+
+        List<ProductDto> productDtoList = List.of(productDto);
+
+        when(productRepository.findAll(specification, pageable))
+                .thenReturn(productPage);
+
+        when(modelMapper.map(eq(productList), any(Type.class)))
+                .thenReturn(productDtoList);
+
+        WsDto<ProductDto> result = productService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(productDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(productRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(productList), any(Type.class));
+    }
 
     @Test
     void testFindByIdentifier_Success() {

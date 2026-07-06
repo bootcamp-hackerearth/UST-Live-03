@@ -26,6 +26,7 @@ function DynamicList({
   const [openMenu, setOpenMenu] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [page, setPage] = useState(0);
   const [sizePerPage, setSizePerPage] = useState(20);
@@ -38,64 +39,40 @@ function DynamicList({
 
   const menuRef = useRef(null);
 
-  const fetchData = () => {
+  // Debounce: wait 400ms after user stops typing before updating debouncedSearch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchData = useCallback(() => {
     if (!routeName) return;
 
-    commonApi
-      .list(routeName, {
-        page: 0,
-        sizePerPage: 1000,
-        sortDirection: "ASC",
-        sortField: "id",
-        search: "",
-      })
+   commonApi
+  .list(routeName, {
+    page,
+    sizePerPage,
+    sortDirection: "ASC",
+    sortField: "id",
+    keyword: debouncedSearch.trim(),
+  })
       .then((res) => {
         const list = res.data.dtoList || [];
+
+        setData(list);
         setAllData(list);
+        setTotalRecords(res.data.totalRecords || 0);
+        setTotalPages(res.data.totalPage || 0);
       })
       .catch((err) => console.log(err));
-  };
+  }, [routeName, page, sizePerPage, debouncedSearch]);
 
   useEffect(() => {
     fetchData();
-  }, [routeName]);
-
-  const matchesSearchValue = (value, search, displayKey) => {
-    if (Array.isArray(value)) {
-      return value.some((v) =>
-        String(typeof v === "object" ? v[displayKey || "identifier"] : v)
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      );
-    }
-
-    return String(value || "")
-      .toLowerCase()
-      .includes(search.toLowerCase());
-  };
-
-  const matchesSearchInItem = (item, columns, search) => {
-    if (!search.trim()) return true;
-
-    return columns.some((column) => {
-      const value = item[column.key];
-      return matchesSearchValue(value, search, column.displayKey);
-    });
-  };
-
-  useEffect(() => {
-    const filtered = allData.filter((item) =>
-      matchesSearchInItem(item, columns, search)
-    );
-
-    const startIndex = page * sizePerPage;
-    const endIndex = startIndex + sizePerPage;
-    const paginatedData = filtered.slice(startIndex, endIndex);
-
-    setData(paginatedData);
-    setTotalRecords(filtered.length);
-    setTotalPages(Math.ceil(filtered.length / sizePerPage));
-  }, [allData, search, page, sizePerPage, columns]);
+  }, [fetchData]);
 
   useEffect(() => {
     const handleOutside = (e) => {
@@ -168,12 +145,8 @@ function DynamicList({
 
   const handleToggle = async (identifier) => {
     try {
-      const response = await commonApi.toggle(routeName, identifier);
-      const updatedItem = response.data;
-
-      setAllData((prev) =>
-        prev.map((row) => (row.identifier === identifier ? updatedItem : row))
-      );
+      await commonApi.toggle(routeName, identifier);
+      fetchData();
     } catch (err) {
       console.log(err);
     }

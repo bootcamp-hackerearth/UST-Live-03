@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -256,6 +257,46 @@ class NodeServiceTest {
         assertEquals("NODE-001", result.get(0).getIdentifier());
 
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithNodeDtos() {
+        Specification<Node> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Node node = new Node();
+        node.setId(1L);
+        node.setIdentifier("NODE001");
+        node.setPath("Dashboard");
+
+        List<Node> nodeList = List.of(node);
+        Page<Node> nodePage =
+                new PageImpl<>(nodeList, pageable, nodeList.size());
+
+        NodeDto nodeDto = new NodeDto();
+        nodeDto.setId(1L);
+        nodeDto.setIdentifier("NODE001");
+        nodeDto.setPath("Dashboard");
+
+        List<NodeDto> nodeDtoList = List.of(nodeDto);
+
+        when(nodeRepository.findAll(specification, pageable))
+                .thenReturn(nodePage);
+
+        when(modelMapper.map(eq(nodeList), any(Type.class)))
+                .thenReturn(nodeDtoList);
+
+        WsDto<NodeDto> result = nodeService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(nodeDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(nodeRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(nodeList), any(Type.class));
     }
 
 }

@@ -1,0 +1,6 @@
+projectKey=POS
+serverUrl=http://localhost:9000
+serverVersion=26.1.0.118079
+dashboardUrl=http://localhost:9000/dashboard?id=POS
+ceTaskId=44e44f84-a27f-4ce4-887d-10da2209cdbb
+ceTaskUrl=http://localhost:9000/api/ce/task?id=44e44f84-a27f-4ce4-887d-10da2209cdbb

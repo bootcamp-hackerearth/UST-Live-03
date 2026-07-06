@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -35,6 +36,44 @@ class PriceServiceTest {
     private PriceServiceImpl priceService;
     private Price price;
     private PriceDto priceDto;
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithPriceDtos() {
+        Specification<Price> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Price price = new Price();
+        price.setId(1L);
+        price.setIdentifier("PRICE001");
+
+        List<Price> priceList = List.of(price);
+        Page<Price> pricePage =
+                new PageImpl<>(priceList, pageable, priceList.size());
+
+        PriceDto priceDto = new PriceDto();
+        priceDto.setId(1L);
+        priceDto.setIdentifier("PRICE001");
+
+        List<PriceDto> priceDtoList = List.of(priceDto);
+
+        when(priceRepository.findAll(specification, pageable))
+                .thenReturn(pricePage);
+
+        when(modelMapper.map(eq(priceList), any(Type.class)))
+                .thenReturn(priceDtoList);
+
+        WsDto<PriceDto> result = priceService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(priceDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(priceRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(priceList), any(Type.class));
+    }
 
     @Test
     void testFindByIdentifier_Success() {

@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -235,6 +236,46 @@ class BrandServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("BRAND-001", result.get(0).getIdentifier());
+    }
+
+    @Test
+    void findAll_ShouldReturnWsDtoWithBrandDtos() {
+        Specification<Brand> specification = (root, query, criteriaBuilder) -> null;
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Brand brand = new Brand();
+        brand.setId(1L);
+        brand.setIdentifier("BR001");
+        brand.setIdentifier("Nike");
+
+        List<Brand> brandList = List.of(brand);
+        Page<Brand> brandPage = new PageImpl<>(brandList, pageable, brandList.size());
+
+        BrandDto brandDto = new BrandDto();
+        brandDto.setId(1L);
+        brandDto.setIdentifier("BR001");
+        brandDto.setIdentifier("Nike");
+
+        List<BrandDto> brandDtoList = List.of(brandDto);
+
+        when(brandRepository.findAll(specification, pageable))
+                .thenReturn(brandPage);
+
+        when(modelMapper.map(eq(brandList), any(Type.class)))
+                .thenReturn(brandDtoList);
+
+        WsDto<BrandDto> result = brandServiceImpl.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(brandDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(brandRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(brandList), any(Type.class));
     }
 
 

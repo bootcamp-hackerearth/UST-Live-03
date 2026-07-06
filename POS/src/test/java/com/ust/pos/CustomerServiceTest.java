@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -257,6 +258,45 @@ class CustomerServiceTest {
 
         verify(customerRepository).findAllByDeletedFalse(pageable);
         verify(modelMapper).map(anyList(), any(Type.class));
+    }
+    @Test
+    void findAll_ShouldReturnWsDtoWithCustomerDtos() {
+        Specification<Customer> specification = (root, query, criteriaBuilder) -> null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setIdentifier("CUS001");
+        customer.setCustomerName("John");
+
+        List<Customer> customerList = List.of(customer);
+        Page<Customer> customerPage =
+                new PageImpl<>(customerList, pageable, customerList.size());
+
+        CustomerDto customerDto = new CustomerDto();
+        customerDto.setId(1L);
+        customerDto.setIdentifier("CUS001");
+        customerDto.setCustomerName("John");
+
+        List<CustomerDto> customerDtoList = List.of(customerDto);
+
+        when(customerRepository.findAll(specification, pageable))
+                .thenReturn(customerPage);
+
+        when(modelMapper.map(eq(customerList), any(Type.class)))
+                .thenReturn(customerDtoList);
+
+        WsDto<CustomerDto> result = customerService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(customerDtoList, result.getDtoList());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(customerRepository, times(1)).findAll(specification, pageable);
+        verify(modelMapper, times(1)).map(eq(customerList), any(Type.class));
     }
 
 }

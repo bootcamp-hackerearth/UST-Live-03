@@ -15,60 +15,51 @@ function Register() {
   const router = useRouter();
 
   const [user, setUser] = useState({
-  name: "",
-  username: "",
-  password: "",
-  phoneNo: "",
-  roles: [],
-});
-
-const fetchRoles = async () => {
-  try {
-    const res = await axiosInstance.post("/role/list", {
-      page: 0,
-      sizePerPage: 10,
-      sortDirection: "ASC",
-      sortField: "identifier",
-    });
-
-    console.log("Role API Response:", res.data);
-
-    setRolesList(res.data.dtoList || res.data || []);
-  } catch (err) {
-    console.error("Failed to load roles", err);
-  }
-};
-
-const handleChange = (e) => {
-  const { name, value } = e.target;
-
-  if (name === "phoneNo") {
-    setUser({
-      ...user,
-      phoneNo: value.replace(/\D/g, ""),
-    });
-  } else {
-    setUser({
-      ...user,
-      [name]: value,
-    });
-  }
-
-  setError("");
-};
-
-const handleRoleChange = (roleIdentifier) => {
-  const alreadySelected = user.roles.includes(roleIdentifier);
-
-  setUser({
-    ...user,
-    roles: alreadySelected
-      ? user.roles.filter((r) => r !== roleIdentifier)
-      : [...user.roles, roleIdentifier],
+    name: "",
+    username: "",
+    password: "",
+    phoneNo: "",
+    roles: [],
   });
 
-  setError("");
-};
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
+  const fetchRoles = async () => {
+    try {
+      const res = await axiosInstance.post("/role/list", {
+        page: 0,
+        sizePerPage: 10,
+        sortDirection: "ASC",
+        sortField: "identifier",
+      });
+      setRolesList(res.data.dtoList || res.data || []);
+    } catch (err) {
+      console.error("Failed to load roles", err);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "phoneNo") {
+setUser({ ...user, [name]: value.replaceAll(/\D/g, "") });   
+ } else {
+      setUser({ ...user, [name]: value });
+    }
+    setError("");
+  };
+
+  const handleRoleChange = (roleIdentifier) => {
+    const alreadySelected = user.roles.includes(roleIdentifier);
+    setUser({
+      ...user,
+      roles: alreadySelected
+        ? user.roles.filter((r) => r !== roleIdentifier)
+        : [...user.roles, roleIdentifier],
+    });
+    setError("");
+  };
 
   const pwRules = [
     { label: "6+ characters", met: user.password.length >= 6 },

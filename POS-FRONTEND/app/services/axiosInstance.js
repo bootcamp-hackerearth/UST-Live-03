@@ -1,14 +1,14 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "/api",
+  baseURL: "http://localhost:8080/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
 axiosInstance.interceptors.request.use(
   (config) => {
-    if ( globalThis.window !== "undefined") {
+    if ( globalThis.window != "undefined") {
       const token = localStorage.getItem("token");
 
       if (token) {
