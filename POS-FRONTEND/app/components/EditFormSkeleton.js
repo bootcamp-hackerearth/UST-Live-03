@@ -17,7 +17,7 @@ export default function EditFormSkeleton({
   const params = useParams();
 
   const paramValue = decodeURIComponent(params[paramKey] || "");
-  const BASE_URL = "http://localhost:8080/api";
+  const BASE_URL = "/api";
 
   const [token, setToken] = useState("");
   const [tokenReady, setTokenReady] = useState(false);
