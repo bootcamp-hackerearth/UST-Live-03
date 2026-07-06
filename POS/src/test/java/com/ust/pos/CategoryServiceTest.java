@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
@@ -51,6 +52,31 @@ class CategoryServiceTest {
                 .thenReturn(new Category());
         CategoryDto response = categoryService.save(dto);
         Assertions.assertFalse(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Category category = new Category();
+        category.setIdentifier("Admin");
+        CategoryDto categoryDto = new CategoryDto();
+        categoryDto.setIdentifier("Admin");
+        List<Category> categories = List.of(category);
+        List<CategoryDto> categoryDtos = List.of(categoryDto);
+        Page<Category> categoryPage = new PageImpl<>(categories, PageRequest.of(0, 2), categories.size());
+        Pageable pageable = PageRequest.of(0, 50);
+        Specification<Category> spec = Mockito.mock(Specification.class);
+        Mockito.when(categoryRepository.findAll(spec, pageable)).thenReturn(categoryPage);
+        Mockito.doReturn(categoryDtos).when(modelMapper).map(
+                Mockito.eq(categories),
+                Mockito.any(java.lang.reflect.Type.class)
+        );
+        WsDto<CategoryDto> response = categoryService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(categoryDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test

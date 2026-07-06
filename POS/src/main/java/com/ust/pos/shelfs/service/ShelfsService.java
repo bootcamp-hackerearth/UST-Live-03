@@ -1,9 +1,7 @@
 package com.ust.pos.shelfs.service;
 
-import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Role;
 import com.ust.pos.model.Shelfs;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

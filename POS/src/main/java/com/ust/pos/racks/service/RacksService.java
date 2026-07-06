@@ -1,9 +1,7 @@
 package com.ust.pos.racks.service;
 
-import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Product;
 import com.ust.pos.model.Racks;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

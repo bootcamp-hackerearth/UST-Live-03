@@ -1,10 +1,9 @@
 package com.ust.pos.role.service.impl;
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Racks;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -34,7 +33,11 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+        Role role=roleRepository.findByIdentifier(identifier);
+        if(role==null){
+            throw new ResourceNotFoundException("role with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(role, RoleDto.class);
     }
 
     @Override

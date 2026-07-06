@@ -1,9 +1,7 @@
 package com.ust.pos.order.service;
 
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Node;
 import com.ust.pos.model.Order;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -80,6 +81,28 @@ class OrderServiceTest {
         Mockito.verify(orderEntryRepository).saveAll(orderEntries);
         Mockito.verify(cartEntryService).deleteAllByCart("CART1");
         Mockito.verify(cartService).recalculate("CART1");
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Order order = new Order();
+        order.setOrderId("ORD-1");
+        OrderDto orderDto = new OrderDto();
+        orderDto.setOrderId("ORD-1");
+        List<Order> orders = List.of(order);
+        List<OrderDto> orderDtos = List.of(orderDto);
+        Page<Order> orderPage = new PageImpl<>(orders, PageRequest.of(0, 2), orders.size());
+        Pageable pageable = PageRequest.of(0, 50);
+        Specification<Order> spec = Mockito.mock(Specification.class);
+        Mockito.when(orderRepository.findAll(spec, pageable)).thenReturn(orderPage);
+        Mockito.when(modelMapper.map(Mockito.eq(orders), Mockito.any(java.lang.reflect.Type.class))).thenReturn(orderDtos);
+        WsDto<OrderDto> response = orderService.findAll(spec, pageable, "ORD-1");
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Assertions.assertEquals("ORD-1", response.getKeyword());
     }
 
     @Test

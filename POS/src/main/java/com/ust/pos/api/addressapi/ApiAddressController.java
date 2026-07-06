@@ -6,6 +6,7 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -20,22 +21,26 @@ public class ApiAddressController extends BaseController {
     private final AddressService addressService;
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public WsDto<AddressDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         return addressService.findAll(pageable);
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public AddressDto addPost(@RequestBody AddressDto addressDto) {
         return addressService.save(addressDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public AddressDto update(@RequestParam String identifier) {
         return addressService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public AddressDto updatePost(@RequestBody AddressDto addressDto) {
         return addressService.update(addressDto);
     }
@@ -51,6 +56,7 @@ public class ApiAddressController extends BaseController {
     }
 
     @GetMapping("/findByAllPhoneNo")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public List<AddressDto> findAllByPhoneNo(@RequestParam String phoneNo) {
         return addressService.findAllByPhoneNo(phoneNo);
     }

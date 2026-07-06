@@ -1,10 +1,9 @@
 package com.ust.pos.racks.service.impl;
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Product;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.RacksService;
@@ -34,8 +33,11 @@ public class RacksServiceImpl extends CommonService implements RacksService {
 
     @Override
     public RacksDto findByIdentifier(String identifier) {
-        return modelMapper.map(racksRepository.findByIdentifier(identifier), RacksDto.class);
-    }
+        Racks racks=racksRepository.findByIdentifier(identifier);
+        if(racks==null){
+            throw new ResourceNotFoundException("racks with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(racks, RacksDto.class);    }
 
     @Override
     public RacksDto toggleStatus(String identifier) {

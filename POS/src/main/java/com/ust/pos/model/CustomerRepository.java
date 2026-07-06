@@ -15,6 +15,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     List<Customer> findByStatusIsTrueAndDeletedFalse();
 
-    Page<Customer> findAll(Specification example, Pageable pageable);
+    Page<Customer> findAll(Specification<Customer> example, Pageable pageable);
 
 }

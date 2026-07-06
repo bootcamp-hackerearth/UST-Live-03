@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Price;
 import com.ust.pos.model.Product;
 import com.ust.pos.product.service.ProductService;
 import io.micrometer.common.util.StringUtils;
@@ -26,7 +25,7 @@ public class ApiProductController extends BaseController {
     private final ProductService productService;
 
     @PostMapping("/list")
-    public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
+    @PreAuthorize("hasAnyAuthority('CASHIER','ADMIN','MANAGER','INVENTORY_MANAGER','AUDITOR')")    public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
             Specification<Product> example = buildGlobalSearchSpec(Product.class, paginationDto.getKeyword());
@@ -38,21 +37,25 @@ public class ApiProductController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public ProductDto addPost(@RequestBody ProductDto productDto) {
         return productService.save(productDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('CASHIER','ADMIN','MANAGER')")
     public ProductDto update(@RequestParam String identifier) {
         return productService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(@PathVariable String identifier) {
         try {
             productService.delete(identifier);
@@ -63,11 +66,13 @@ public class ApiProductController extends BaseController {
     }
 
     @PostMapping("/toggle-status")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public ProductDto toggle(@RequestParam String identifier) {
         return productService.toggleStatus(identifier);
     }
 
     @GetMapping("/findByStatus")
+    @PreAuthorize("hasAnyAuthority('CASHIER','ADMIN','MANAGER','INVENTORY_MANAGER')")
     public List<ProductDto> findByStatus() {
         return productService.findIfTrue();
     }

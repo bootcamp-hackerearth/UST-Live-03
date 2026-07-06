@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useRouter } from "next/navigation";
 import api from "@/api/axios";
-import { inputStyle, inputErrorStyle, errText, AlertBox, HttpErrorPopup } from "@/components/sharedStyles";
+import { inputStyle, inputErrorStyle, errText, AlertBox } from "@/components/sharedStyles";
 const C = {
   navy: "#363955", mid: "#54668E", light: "#879EC6",
   gray: "#E8E8E8", offWhite: "#F5F6E6", text: "#1e2235",
@@ -27,7 +27,6 @@ export default function AddFormSkeleton({
   const [identifierError, setIdentifierError] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [activeDropdownKey, setActiveDropdownKey] = useState(null);
-  const [httpError, setHttpError] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   useEffect(() => {
     const handleToggle = (e) => setIsSidebarOpen(e.detail.isOpen);
@@ -114,12 +113,7 @@ export default function AddFormSkeleton({
       }
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.error(err);
-      const status = err.response?.status;
-      if (status === 403 || status === 404 || status === 400 || status === 500) {
-        setHttpError({ statusCode: status, message: err.response?.data?.message || null });
-      } else {
-        setError(err.response?.data?.message || "Unable to connect to server. Please try again.");
-      }
+      setError(err.response?.data?.message || "Unable to connect to server. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -266,7 +260,6 @@ export default function AddFormSkeleton({
           </form>
         </div>
       </div>
-      <HttpErrorPopup httpError={httpError} onClose={() => setHttpError(null)} />
     </div>
   );
 }

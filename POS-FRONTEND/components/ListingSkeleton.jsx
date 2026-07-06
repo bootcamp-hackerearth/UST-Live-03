@@ -7,7 +7,6 @@ import {
   useSidebarOpen,
   usePageNavigation,
 } from "@/components/ListingShared";
-import { HttpErrorPopup } from "@/components/sharedStyles";
 
 const C = {
   navy: "#363955",
@@ -230,23 +229,25 @@ export default function ListingSkeleton({
     itemData: null,
   });
 
-  const [httpError, setHttpError] = useState(null);
-
   const { currentPage, goToPage, getVisiblePages } = usePageNavigation(pagination, setPagination);
 
+  // Debounce the search input so we don't hit the backend on every keystroke.
+  // The page reset happens in the SAME timeout callback as the searchTerm
+  // update (not a separate effect) so both state updates land together and
+  // only one loadList request fires — otherwise a stale `page` from before
+  // the search could momentarily be combined with the new keyword.
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchTerm(searchInput.trim());
+      setPagination((prev) => (prev.page === 0 ? prev : { ...prev, page: 0 }));
     }, 400);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  useEffect(() => {
-    setPagination((prev) => (prev.page === 0 ? prev : { ...prev, page: 0 }));
-  }, [searchTerm]);
-
   const loadList = useCallback(async () => {
     try {
+      // Backend now does the filtering + pagination itself via the
+      // global search Specification, driven off the `keyword` field.
       const res = await api.post(apis.list, { ...pagination, keyword: searchTerm });
 
       if (Array.isArray(res.data)) {
@@ -264,10 +265,6 @@ export default function ListingSkeleton({
       }
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.log(err);
-      const status = err.response?.status;
-      if ([400, 403, 404, 500].includes(status)) {
-        setHttpError({ statusCode: status, message: err.response?.data?.message || null });
-      }
     }
   }, [apis.list, pagination, searchTerm]);
 
@@ -300,10 +297,6 @@ export default function ListingSkeleton({
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.log(err);
       closeDeleteModal();
-      const status = err.response?.status;
-      if ([400, 403, 404, 500].includes(status)) {
-        setHttpError({ statusCode: status, message: err.response?.data?.message || null });
-      }
     }
   }
 
@@ -313,10 +306,6 @@ export default function ListingSkeleton({
       loadList();
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.log(err);
-      const status = err.response?.status;
-      if ([400, 403, 404, 500].includes(status)) {
-        setHttpError({ statusCode: status, message: err.response?.data?.message || null });
-      }
     }
   }
 
@@ -333,14 +322,6 @@ export default function ListingSkeleton({
         itemName={deleteModal.itemName}
         onConfirm={confirmDelete}
         onCancel={closeDeleteModal}
-      />
-
-      <HttpErrorPopup
-        httpError={httpError}
-        onClose={() => {
-          setHttpError(null);
-          loadList();
-        }}
       />
 
       <div style={{

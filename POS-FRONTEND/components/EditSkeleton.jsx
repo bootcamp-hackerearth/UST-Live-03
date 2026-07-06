@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useRouter, useParams } from "next/navigation";
 import api from "@/api/axios";
-import { labelStyle, inputStyle, inputErrorStyle, errText, AlertBox, HttpErrorPopup } from "@/components/sharedStyles";
+import { labelStyle, inputStyle, inputErrorStyle, errText, AlertBox } from "@/components/sharedStyles";
 import { AuditFooter } from "@/app/customer/_shared/customerForm";
 const C = {
   navy: "#363955", mid: "#54668E", light: "#879EC6",
@@ -125,7 +125,6 @@ export default function EditFormSkeleton({
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [httpError, setHttpError] = useState(null);
   useEffect(() => {
     const handleToggle = (e) => setIsSidebarOpen(e.detail.isOpen);
     globalThis.addEventListener("sidebar-toggle", handleToggle);
@@ -162,12 +161,7 @@ export default function EditFormSkeleton({
         Object.entries(setters).forEach(([key, setter]) => { if (data[key] !== undefined) setter(data[key]); });
       } catch (err) {
         if (process.env.NODE_ENV !== "production") console.error(err);
-        const status = err.response?.status;
-        if (status === 403 || status === 404 || status === 400 || status === 500) {
-          setHttpError({ statusCode: status, message: err.response?.data?.message || null });
-        } else {
-          setError("Could not load data. Please go back and try again.");
-        }
+        setError("Could not load data. Please go back and try again.");
       } finally {
         setLoading(false);
       }
@@ -382,13 +376,6 @@ export default function EditFormSkeleton({
           </>
         )}
       </PageCard>
-      <HttpErrorPopup
-        httpError={httpError}
-        onClose={() => {
-          setHttpError(null);
-          router.push(`/${apiPath}/list`);
-        }}
-      />
     </PageShell>
   );
 }

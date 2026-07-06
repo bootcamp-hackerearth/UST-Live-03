@@ -1,11 +1,8 @@
 package com.ust.pos.stocks.service.impl;
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.ProductDto;
-import com.ust.pos.dto.ShelfsDto;
-import com.ust.pos.dto.StocksDto;
-import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Shelfs;
+import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stocks;
 import com.ust.pos.model.StocksRepository;
 import com.ust.pos.product.service.ProductService;
@@ -39,7 +36,11 @@ public class StocksServiceImpl extends CommonService implements StocksService {
 
     @Override
     public StocksDto findByIdentifier(String identifier) {
-        return modelMapper.map(stocksRepository.findByIdentifier(identifier), StocksDto.class);
+        Stocks stocks=stocksRepository.findByIdentifier(identifier);
+        if(stocks==null){
+            throw new ResourceNotFoundException("stock with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(stocks, StocksDto.class);
     }
 
     @Override

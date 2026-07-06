@@ -14,6 +14,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +53,31 @@ class RoleServiceTest {
         Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(existingRole);
         RoleDto response = roleService.save(roleDto);
         Assertions.assertFalse(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Role role = new Role();
+        role.setIdentifier("Admin");
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("Admin");
+        List<Role> roles = List.of(role);
+        List<RoleDto> roleDtos = List.of(roleDto);
+        Page<Role> rolePage = new PageImpl<>(roles, PageRequest.of(0, 2), roles.size());
+        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Specification<Role> spec = Mockito.mock(Specification.class);
+        Mockito.when(roleRepository.findAll(spec, pageable)).thenReturn(rolePage);
+        Mockito.when(modelMapper.map(
+                Mockito.eq(roles),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(roleDtos);
+        WsDto<RoleDto> response = roleService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(roleDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test

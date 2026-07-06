@@ -17,6 +17,6 @@ public interface RacksRepository extends JpaRepository<Racks, Long> {
 
     List<Racks> findByStatusIsTrueAndDeletedFalse();
 
-    Page<Racks> findAll(Specification example, Pageable pageable);
+    Page<Racks> findAll(Specification<Racks> example, Pageable pageable);
 
 }

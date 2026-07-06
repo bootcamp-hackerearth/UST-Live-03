@@ -115,13 +115,19 @@ export default function Home() {
             const accent = ACCENTS[i];
             const hovered = hoveredId === mod.id;
             return (
-              <div
+              <a
                 key={mod.id}
-                onClick={() => router.push(mod.path)}
+                href={mod.path}
+                aria-label={mod.label}
+                onClick={(e) => { e.preventDefault(); router.push(mod.path); }}
                 onMouseEnter={() => setHoveredId(mod.id)}
                 onMouseLeave={() => setHoveredId(null)}
+                onFocus={() => setHoveredId(mod.id)}
+                onBlur={() => setHoveredId(null)}
                 style={{
-                  background: hovered ? "#ffffff" : "#ffffff",
+                  display: "flex",
+                  textDecoration: "none",
+                  background: "#ffffff",
                   border: `1.5px solid ${hovered ? accent : "#e4e6ef"}`,
                   borderRadius: "12px",
                   padding: "20px 18px 18px",
@@ -131,7 +137,7 @@ export default function Home() {
                     ? `0 8px 24px rgba(54,57,85,0.13)`
                     : "0 1px 4px rgba(54,57,85,0.06)",
                   transform: hovered ? "translateY(-2px)" : "translateY(0)",
-                  display: "flex", flexDirection: "column", gap: "10px",
+                  flexDirection: "column", gap: "10px",
                   position: "relative", overflow: "hidden",
                 }}
               >
@@ -189,7 +195,7 @@ export default function Home() {
                 }}>
                   →
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>

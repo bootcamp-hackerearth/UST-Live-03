@@ -9,6 +9,7 @@ import com.ust.pos.model.Customer;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class ApiCustomerController extends BaseController {
 
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -36,21 +38,25 @@ public class ApiCustomerController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER','AUDITOR')")
     public CustomerDto addPost(@RequestBody CustomerDto customerDto) {
         return customerService.save(customerDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public CustomerDto update(@RequestParam String identifier) {
         return customerService.findByIdentifierWithAddressDto(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.delete(identifier);
@@ -61,16 +67,19 @@ public class ApiCustomerController extends BaseController {
     }
 
     @PostMapping("/toggle-status")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public CustomerDto toggle(@RequestParam String identifier) {
         return customerService.toggleStatus(identifier);
     }
 
     @GetMapping("/findByStatus")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public List<CustomerDto> findByStatus() {
         return customerService.findIfTrue();
     }
 
     @GetMapping("/findByIdentifier")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public CustomerDto findByIdentifier(@RequestParam String identifier) {
         return customerService.findByIdentifier(identifier);
     }

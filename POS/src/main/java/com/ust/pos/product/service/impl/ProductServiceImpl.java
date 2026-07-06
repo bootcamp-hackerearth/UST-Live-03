@@ -1,10 +1,9 @@
 package com.ust.pos.product.service.impl;
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Price;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -34,7 +33,10 @@ public class ProductServiceImpl extends CommonService implements ProductService 
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
-        Product product = productRepository.findByIdentifier(identifier);
+        Product product=productRepository.findByIdentifier(identifier);
+        if(product==null){
+            throw new ResourceNotFoundException("product with identifier '" + identifier + "' not found");
+        }
         return modelMapper.map(product, ProductDto.class);
     }
 

@@ -1,9 +1,7 @@
 package com.ust.pos.stocks.service;
 
-import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.StocksDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.Stocks;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

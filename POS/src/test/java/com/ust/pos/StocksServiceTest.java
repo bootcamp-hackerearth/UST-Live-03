@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,29 @@ class StocksServiceTest {
         StocksDto response = stocksService.save(stocksDto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Stocks stocks = new Stocks();
+        stocks.setIdentifier("Admin");
+        StocksDto stocksDto = new StocksDto();
+        stocksDto.setIdentifier("Admin");
+        List<Stocks> stockss = List.of(stocks);
+        List<StocksDto> stocksDtos = List.of(stocksDto);
+        Page<Stocks> stocksPage = new PageImpl<>(stockss, PageRequest.of(0,
+                2), stockss.size());
+        Pageable pageable = PageRequest.of(0,
+                50, Sort.by(new ArrayList<>()));
+        Specification<Stocks> spec = Mockito.mock(Specification.class);
+        Mockito.when(stocksRepository.findAll(spec, pageable)).thenReturn(stocksPage);
+        Mockito.when(modelMapper.map(
+                Mockito.eq(stockss),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(stocksDtos);
+        WsDto<StocksDto> response = stocksService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test

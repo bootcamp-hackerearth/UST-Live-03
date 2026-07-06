@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Role;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.shelfs.service.ShelfsService;
 import io.micrometer.common.util.StringUtils;
@@ -26,6 +25,7 @@ public class ApiShelfsController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','AUDITOR')")
     public WsDto<ShelfsDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -38,21 +38,25 @@ public class ApiShelfsController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN')")
     public ShelfsDto addPost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.save(shelfsDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','AUDITOR')")
     public ShelfsDto update(@RequestParam String identifier) {
         return shelfsService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN')")
     public ShelfsDto updatePost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.update(shelfsDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfsService.delete(identifier);
@@ -63,11 +67,13 @@ public class ApiShelfsController extends BaseController {
     }
 
     @PostMapping("toggle-status")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN')")
     public ShelfsDto toggle(@RequestParam String identifier) {
         return shelfsService.toggleStatus(identifier);
     }
 
     @GetMapping("/findByStatus")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','AUDITOR')")
     public List<ShelfsDto> findByStatus() {
         return shelfsService.findIfTrue();
     }

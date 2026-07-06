@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StocksDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.Stocks;
 import com.ust.pos.stocks.service.StocksService;
 import io.micrometer.common.util.StringUtils;
@@ -26,6 +25,7 @@ public class ApiStocksController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','MANAGER','AUDITOR')")
     public WsDto<StocksDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -38,21 +38,25 @@ public class ApiStocksController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','MANAGER')")
     public StocksDto addPost(@RequestBody StocksDto stocksDto) {
         return stocksService.save(stocksDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','MANAGER','AUDITOR')")
     public StocksDto update(@RequestParam String identifier) {
         return stocksService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','MANAGER')")
     public StocksDto updatePost(@RequestBody StocksDto stocksDto) {
         return stocksService.update(stocksDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             stocksService.delete(identifier);
@@ -63,11 +67,13 @@ public class ApiStocksController extends BaseController {
     }
 
     @PostMapping("/toggle-status")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','MANAGER')")
     public StocksDto toggle(@RequestParam String identifier) {
         return stocksService.toggleStatus(identifier);
     }
 
     @GetMapping("/findByStatus")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_MANAGER','ADMIN','MANAGER','AUDITOR')")
     public List<StocksDto> findByStatus() {
         return stocksService.findIfTrue();
     }

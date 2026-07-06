@@ -1,9 +1,7 @@
 package com.ust.pos.product.service;
 
-import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Price;
 import com.ust.pos.model.Product;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

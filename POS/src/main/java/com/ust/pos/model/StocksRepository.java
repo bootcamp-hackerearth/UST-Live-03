@@ -16,6 +16,6 @@ public interface StocksRepository extends JpaRepository<Stocks, Long> {
 
     List<Stocks> findByStatusIsTrueAndDeletedFalse();
 
-    Page<Stocks> findAll(Specification example, Pageable pageable);
+    Page<Stocks> findAll(Specification<Stocks> example, Pageable pageable);
 
 }
