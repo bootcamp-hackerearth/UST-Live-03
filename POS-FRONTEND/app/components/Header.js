@@ -25,15 +25,23 @@ const Header = ({ username }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-  await fetch("/api/auth/logout", { method: "POST" });
+ const handleLogout = async () => {
+  try {
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
 
-  if ("cookieStore" in window) {
-    await cookieStore.delete("token");
-    await cookieStore.delete("username");
+    if (!response.ok) {
+      console.error("Logout failed:", response.status);
+      return;
+    }
+
+    router.replace("/login");
+    router.refresh();
+  } catch (error) {
+    console.error("Logout error:", error);
   }
-
-  window.location.href = "/login";
 };
 
   return (
