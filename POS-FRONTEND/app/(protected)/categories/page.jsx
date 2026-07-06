@@ -38,7 +38,7 @@ export default function CategoriesPage() {
       addPath="/categories/add"
       editPath="/categories/edit"
       columns={categoryColumns}
-      showToggle={false}
+      showToggle={true}
     />
   );
 
