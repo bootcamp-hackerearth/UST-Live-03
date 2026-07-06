@@ -21,7 +21,7 @@ export const customer = {
       name: "partyType",
       label: "Party Type",
       type: "select",
-      required: true,
+      required: true, 
       options: [  
         { value: "customer", label: "Customer" },
         { value: "dealer", label: "Dealer" },

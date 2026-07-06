@@ -14,8 +14,10 @@ export default async function EntityPage({
 }) {
 
   const {entity} = await params;
-  const page = Number(searchParams?.page || 0);
-  const sizePerPage = Number(searchParams?.size || 30);
+  const resolvedSearch = await searchParams;
+  const page = Number(resolvedSearch?.page || 0);
+  const sizePerPage = Number(resolvedSearch?.size || 5);
+  const keyword = resolvedSearch?.keyword || "";
   const config = ENTITY_CONFIG[entity];
 
   if (!config) {
@@ -37,6 +39,7 @@ export default async function EntityPage({
           sizePerPage,
           sortField: "identifier",
           sortDirection: "ASC",
+          keyword
         },
         {headers: {Authorization:`Bearer ${token}`}}
       );
@@ -60,7 +63,6 @@ export default async function EntityPage({
       redirect("/login");
     }
   }
-
   return (
     <div className="p-4 text-red-600">
       Failed to load data

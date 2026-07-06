@@ -45,7 +45,7 @@ export default function CartSummary({
     const handleFinalCheckout = async (paymentDetails) => {
         setIsSaving(true);
         try {
-            const response = await fetch("/api/checkout", {
+            const response = await fetch("/auth/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

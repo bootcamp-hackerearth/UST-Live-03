@@ -24,7 +24,7 @@ function Register() {
 
   const fetchRoles = async () => {
     try {
-      const res = await axios.post("http://localhost:8080/api/role/list",
+      const res = await axios.post("/api/role/list",
         {
           page: 0,
           sizePerPage: 10,
@@ -113,7 +113,7 @@ function Register() {
     setLoading(true);
     setError("");
     try {
-      const res = await axios.post("http://localhost:8080/api/user/register", user);
+      const res = await axios.post("/api/user/register", user);
 
       if (res.data.success === false) {
         setError(res.data.message);

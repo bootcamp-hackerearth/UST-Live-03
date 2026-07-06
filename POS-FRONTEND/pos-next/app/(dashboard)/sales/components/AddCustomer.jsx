@@ -18,7 +18,7 @@ export default function CustomerAdd({ isOpen, onClose, onCustomerAdded }) {
     setError("");
 
     try {
-      const response = await fetch("/api/add-entity", {
+      const response = await fetch("/auth/add-entity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

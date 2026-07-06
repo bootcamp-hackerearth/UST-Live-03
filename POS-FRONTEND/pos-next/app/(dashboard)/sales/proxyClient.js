@@ -13,7 +13,7 @@ const proxyPost = async (endpoint, payload) => {
     const clientToken = getCookieOnClient("token");
 
     const response = await axios.post(
-      "/api/proxy",
+      "/auth/proxy",
       { endpoint, method: "POST", payload },
       { 
         headers: {
@@ -33,7 +33,7 @@ const proxyGet = async (endpoint) => {
   try {
     const clientToken = getCookieOnClient("token");
 
-    const response = await axios.get("/api/proxy", {
+    const response = await axios.get("/auth/proxy", {
       params: { endpoint },
       headers: {
         "X-Fallback-Auth": clientToken ? `Bearer ${clientToken}` : ""

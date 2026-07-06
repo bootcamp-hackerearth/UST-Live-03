@@ -81,7 +81,7 @@ export default function GenericForm({
 
       for (const field of selectFields) {
         try {
-          const response = await axios.post("/api/dropdown-options", {
+          const response = await axios.post("/auth/dropdown-options", {
             endpoint: field.optionsEndpoint,
             method: field.optionsMethod || "GET",
             payload: field.optionsPayload || {},
@@ -181,7 +181,7 @@ export default function GenericForm({
 
     try {
       setLoading(true);
-      const response = await axios.post("/api/add-entity",
+      const response = await axios.post("/auth/add-entity",
         {
           endpoint: mode === "edit" ? config.updateEndpoint : config.addEndpoint,
           method: mode === "edit" ? "PUT" : "POST",
