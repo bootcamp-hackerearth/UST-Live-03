@@ -15,7 +15,8 @@ export const middleware = (request) => {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get("token")?.value;
+ const token = request.cookies.get("token")?.value;
+console.log("Middleware token:", token);
 
   if (!token) {
     console.log("[Middleware] No token found, redirecting to login");
