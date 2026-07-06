@@ -3,6 +3,7 @@ package com.ust.pos.shelfs.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.shelfs.service.ShelfsService;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -28,7 +30,11 @@ public class ShelfsServiceImpl extends CommonService implements ShelfsService {
 
     @Override
     public ShelfsDto findByIdentifier(String identifier) {
-        return modelMapper.map(shelfsRepository.findByIdentifier(identifier), ShelfsDto.class);
+        Shelfs shelfs = shelfsRepository.findByIdentifier(identifier);
+        if (shelfs == null) {
+            throw new ResourceNotFoundException("Shelfs with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(shelfs, ShelfsDto.class);
     }
 
     @Override
@@ -108,5 +114,22 @@ public class ShelfsServiceImpl extends CommonService implements ShelfsService {
         shelfsWsDto.setPage(pageable.getPageNumber());
 
         return shelfsWsDto;
+    }
+
+    @Override
+    public WsDto<ShelfsDto> findAll(Specification<Shelfs> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ShelfsDto>>() {
+        }.getType();
+        Page<Shelfs> page = shelfsRepository.findAll(example, pageable);
+
+        WsDto<ShelfsDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

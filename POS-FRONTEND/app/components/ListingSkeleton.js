@@ -29,49 +29,25 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
   }, [searchTerm]);
 
   useEffect(() => {
-    function cleanStringValue(val) {
-      return Array.isArray(val) ? val.join(" ") : String(val ?? "");
-    }
-
-    function itemMatches(item, regex, fieldsList) {
-      const identifierMatch = regex.test(String(item.identifier ?? ""));
-      const fieldsMatch = fieldsList.some((field) => {
-        const val = item[field];
-        const clean = cleanStringValue(val);
-        return regex.test(clean);
-      });
-      return identifierMatch || fieldsMatch;
-    }
-
     async function loadList() {
       try {
-        if (debouncedSearch.trim()) {
-          const res = await api.post(apis.list, { ...pagination, sizePerPage: 1000 });
-          const allData = Array.isArray(res.data) ? res.data : (res.data.dtoList ?? []);
-          const escapedSearch = debouncedSearch.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-          const regex = new RegExp(String.raw`\b${escapedSearch}`, "i");
-          const filtered = allData.filter((item) => itemMatches(item, regex, fields));
-          setData(filtered);
+        const payload = {
+          ...pagination,
+          keyword: debouncedSearch.trim() || undefined,
+        };
+        const res = await api.post(apis.list, payload);
+
+        if (Array.isArray(res.data)) {
+          setData(res.data);
           setTotalPages(1);
         } else {
-          const res = await api.post(apis.list, pagination);
-          if (Array.isArray(res.data)) {
-            setData(res.data);
-            setTotalPages(1);
-          } else {
-            setData(res.data.dtoList ?? []);
-            setTotalPages(res.data.totalPages ?? 1);
-          }
+          setData(res.data.dtoList ?? []);
+          setTotalPages(res.data.totalPages ?? 1);
         }
-      } catch (err) {
-        console.error(`Failed to load ${title} data:`, err);
-        if (err?.response?.status === 500) {
-          router.push("/500");
-        }
-      }
+      } catch { }
     }
     loadList();
-  }, [pagination, debouncedSearch, apis.list, fields, title, router]);
+  }, [pagination, debouncedSearch, apis.list, title, router]);
 
   async function confirmDelete() {
     if (!deleteTarget) return;
@@ -79,24 +55,14 @@ export default function ListingSkeleton({ title, fields, fieldLabels, apis, addP
       await api.delete(`${apis.delete}?identifier=${encodeURIComponent(deleteTarget)}`);
       setDeleteTarget(null);
       setPagination((prev) => ({ ...prev }));
-    } catch (err) {
-      console.error("Failed to delete record:", err);
-      if (err?.response?.status === 500) {
-        router.push("/500");
-      }
-    }
+    } catch { }
   }
 
   async function handleToggle(identifier) {
     try {
       await api.post(`${apis.toggleStatus}?identifier=${encodeURIComponent(identifier)}`);
       setPagination((prev) => ({ ...prev }));
-    } catch (err) {
-      console.error("Failed to toggle status:", err);
-      if (err?.response?.status === 500) {
-        router.push("/500");
-      }
-    }
+    } catch { }
   }
 
   function goToPage(pageIndex) {

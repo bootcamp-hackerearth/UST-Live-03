@@ -3,16 +3,15 @@ package com.ust.pos.customer.service.impl;
 import com.ust.pos.address.service.impl.AddressServiceImpl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.customer.service.CustomerService;
-import com.ust.pos.dto.AddressDto;
-import com.ust.pos.dto.CustomerDto;
-import com.ust.pos.dto.ShelfsDto;
-import com.ust.pos.dto.WsDto;
+import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -33,12 +32,19 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
 
     @Override
     public CustomerDto findByIdentifier(String identifier) {
-        return modelMapper.map(customerRepository.findByIdentifier(identifier), CustomerDto.class);
+        Customer customer = customerRepository.findByIdentifier(identifier);
+        if (customer == null) {
+            throw new ResourceNotFoundException("Customer with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(customer, CustomerDto.class);
     }
 
     @Override
     public CustomerDto findByIdentifierWithAddressDto(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
+        if (customer == null) {
+            throw new ResourceNotFoundException("Customer with identifier '" + identifier + "' not found");
+        }
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
         List<AddressDto> addressDtoList = addressService.findAllByPhoneNo(identifier);
         customerDto.setBillingAddress(addressDtoList.get(0));
@@ -150,5 +156,22 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
     @Override
     public CustomerDto findByIdentifierAndDeletedFalse(String identifier) {
         return modelMapper.map(customerRepository.findByIdentifierAndDeletedFalse(identifier), CustomerDto.class);
+    }
+
+    @Override
+    public WsDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> page = customerRepository.findAll(example, pageable);
+
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

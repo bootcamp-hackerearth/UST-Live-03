@@ -1,9 +1,10 @@
 package com.ust.pos.stocks.service.impl;
 
 import com.ust.pos.commonservice.CommonService;
-import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.StocksDto;
+import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stocks;
 import com.ust.pos.model.StocksRepository;
 import com.ust.pos.product.service.ProductService;
@@ -12,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -32,7 +34,11 @@ public class StocksServiceImpl extends CommonService implements StocksService {
 
     @Override
     public StocksDto findByIdentifier(String identifier) {
-        return modelMapper.map(stocksRepository.findByIdentifier(identifier), StocksDto.class);
+        Stocks stocks = stocksRepository.findByIdentifier(identifier);
+        if (stocks == null) {
+            throw new ResourceNotFoundException("Stocks with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(stocks, StocksDto.class);
     }
 
     @Override
@@ -117,4 +123,20 @@ public class StocksServiceImpl extends CommonService implements StocksService {
         return modelMapper.map(stocks, StocksDto.class);
     }
 
+    @Override
+    public WsDto<StocksDto> findAll(Specification<Stocks> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<StocksDto>>() {
+        }.getType();
+        Page<Stocks> page = stocksRepository.findAll(example, pageable);
+
+        WsDto<StocksDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
 }

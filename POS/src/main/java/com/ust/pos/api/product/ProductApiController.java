@@ -1,17 +1,22 @@
 package com.ust.pos.api.product;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Product;
 import com.ust.pos.product.service.ProductService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/product")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
 public class ProductApiController extends BaseController {
 
     private final ProductService productService;
@@ -20,11 +25,18 @@ public class ProductApiController extends BaseController {
         this.productService = productService;
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'CASHIER')")
     @PostMapping("/list")
-    public WsDto<ProductDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortDirection(),
-                paginationDto.getSortField());
+    public WsDto<ProductDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Product> example = buildGlobalSearchSpec(Product.class, paginationDto.getKeyword());
+            if (example != null) {
+                return productService.findAll(example, pageable);
+            }
+        }
+
         return productService.findAll(pageable);
     }
 
@@ -58,6 +70,7 @@ public class ProductApiController extends BaseController {
         return productService.toggleStatus(identifier);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'STOCK_MANAGER', 'ACCOUNTANT')")
     @GetMapping("/findByStatus")
     public List<ProductDto> findByStatus() {
         return productService.findIfTrue();

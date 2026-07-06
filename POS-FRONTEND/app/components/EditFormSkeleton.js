@@ -69,6 +69,10 @@ export default function EditFormSkeleton({
         const res = await api.get(`/${apiPath}/get?identifier=${encodeURIComponent(identifier)}`);
         if (isMounted) {
           const data = res.data;
+          if (!data) {
+            setError(`${title} with identifier '${identifier}' not found`);
+            return;
+          }
           setIdentifierDisplay(data.identifier || data.username || "");
 
           setAuditInfo({

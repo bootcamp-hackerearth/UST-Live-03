@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -29,7 +30,7 @@ public class WareHouseServiceImpl extends CommonService implements WareHouseServ
 
     @Override
     public WareHouseDto findByIdentifier(String identifier) {
-        WareHouse warehouse =wareHouseRepository.findByIdentifier(identifier);
+        WareHouse warehouse = wareHouseRepository.findByIdentifier(identifier);
         if (warehouse == null) {
             throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
         }
@@ -113,5 +114,22 @@ public class WareHouseServiceImpl extends CommonService implements WareHouseServ
         setAuditFields(wareHouse, false);
         wareHouseRepository.save(wareHouse);
         return modelMapper.map(wareHouse, WareHouseDto.class);
+    }
+
+    @Override
+    public WsDto<WareHouseDto> findAll(Specification<WareHouse> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<WareHouseDto>>() {
+        }.getType();
+        Page<WareHouse> page = wareHouseRepository.findAll(example, pageable);
+
+        WsDto<WareHouseDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

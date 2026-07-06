@@ -71,6 +71,10 @@ function OrderAmountSummary({ order, finalAmount }) {
     return (
         <div className="mt-3 pt-3 border-t border-gray-200 flex flex-col gap-1">
             <div className="flex justify-between text-[13px] text-gray-500">
+                <span>MRP Total</span>
+                <span>{formatMoney(Number(order.totalPrice || 0) + Number(order.totalDiscount || 0))}</span>
+            </div>
+            <div className="flex justify-between text-[13px] text-gray-500">
                 <span>Total Price</span>
                 <span>{formatMoney(order.totalPrice)}</span>
             </div>
@@ -154,22 +158,13 @@ export default function OrdersPage() {
         setLoading(true);
         setError("");
         try {
-            if (debouncedSearch.trim()) {
-                const res = await api.post("/order/list", { ...pagination, sizePerPage: 1000 });
-                const all = res.data.dtoList ?? [];
-                const term = debouncedSearch.toLowerCase();
-                const filtered = all.filter(
-                    (o) =>
-                        o.orderId?.toLowerCase().includes(term) ||
-                        o.identifier?.toLowerCase().includes(term)
-                );
-                setOrders(filtered);
-                setTotalPages(1);
-            } else {
-                const res = await api.post("/order/list", pagination);
-                setOrders(res.data.dtoList ?? []);
-                setTotalPages(res.data.totalPages ?? 1);
-            }
+            const payload = {
+                ...pagination,
+                keyword: debouncedSearch.trim() || undefined,
+            };
+            const res = await api.post("/order/list", payload);
+            setOrders(res.data.dtoList ?? []);
+            setTotalPages(res.data.totalPages ?? 1);
         } catch {
             setError("Could not load orders.");
         } finally {
@@ -395,6 +390,7 @@ export default function OrdersPage() {
                             </tbody>
                         </table>
                         <div className="border-t border-black border-dashed pt-2 text-[11px]">
+                            <div className="flex justify-between"><span>MRP Total:</span><span>{formatMoney(Number(printOrder.totalPrice || 0) + Number(printOrder.totalDiscount || 0))}</span></div>
                             <div className="flex justify-between"><span>Subtotal:</span><span>{formatMoney(printOrder.totalPrice)}</span></div>
                             {Number(printOrder.totalDiscount) > 0 && (
                                 <div className="flex justify-between"><span>Discount:</span><span>-{formatMoney(printOrder.totalDiscount)}</span></div>

@@ -138,13 +138,9 @@ export default function EditUser() {
           modifiedOn: data.modifiedOn || null,
         });
       } catch (err) {
-        console.error("Failed to load user data:", err);
-        setError(
-          err?.response?.data?.message ||
-          "Could not load user data. Please go back and try again."
-        );
+        setError(err?.response?.data?.message || "Could not load user data. Please go back and try again.");
       } finally {
-        loading && setLoading(false);
+        setLoading(false);
       }
     }
     loadUser();

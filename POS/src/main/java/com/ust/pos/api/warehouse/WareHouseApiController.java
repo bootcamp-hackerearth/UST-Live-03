@@ -1,17 +1,22 @@
 package com.ust.pos.api.warehouse;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WareHouseDto;
+import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.WareHouse;
 import com.ust.pos.warehouse.service.WareHouseService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/wareHouse")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'STOCK_MANAGER')")
 public class WareHouseApiController extends BaseController {
 
     private final WareHouseService wareHouseService;
@@ -21,9 +26,16 @@ public class WareHouseApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<WareHouseDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
+    public WsDto<WareHouseDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<WareHouse> example = buildGlobalSearchSpec(WareHouse.class, paginationDto.getKeyword());
+            if (example != null) {
+                return wareHouseService.findAll(example, pageable);
+            }
+        }
+
         return wareHouseService.findAll(pageable);
     }
 

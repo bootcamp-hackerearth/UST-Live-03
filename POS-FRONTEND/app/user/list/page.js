@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import api from "../../components/Axios";
@@ -10,11 +10,10 @@ const headers = ["Username", "Name", "Phone No", "Roles", "Status", "Actions"];
 function NavButton({ disabled, onClick, children }) {
   return (
     <button
-      className={`min-w-9 h-9 px-3 rounded-lg border-[1.5px] border-solid bg-white font-bold text-lg flex items-center justify-center transition-all ${
-        disabled
-          ? "text-gray-300 border-gray-100 cursor-not-allowed"
-          : "text-brand border-gray-200 cursor-pointer hover:bg-gray-50"
-      }`}
+      className={`min-w-9 h-9 px-3 rounded-lg border-[1.5px] border-solid bg-white font-bold text-lg flex items-center justify-center transition-all ${disabled
+        ? "text-gray-300 border-gray-100 cursor-not-allowed"
+        : "text-brand border-gray-200 cursor-pointer hover:bg-gray-50"
+        }`}
       disabled={disabled}
       onClick={onClick}
     >
@@ -103,6 +102,7 @@ export default function ListUser() {
     sortField: "id",
   });
   const router = useRouter();
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -113,29 +113,18 @@ export default function ListUser() {
   }, [searchTerm]);
 
   useEffect(() => {
-    const clean = (v) => (Array.isArray(v) ? v.join(" ") : String(v ?? ""));
-    const matcher = (item, r, f) =>
-      r.test(String(item.username ?? "")) ||
-      f.some((k) => r.test(clean(item[k])));
     const load = async () => {
-      const f = ["name", "phoneNo", "roles"];
+      const requestId = ++requestIdRef.current;
       try {
-        const res = await api.post("/user/list",
-          debouncedSearch.trim()
-            ? { ...pagination, sizePerPage: 1000 }
-            : pagination
-        );
-        if (debouncedSearch.trim()) {
-          const esc = debouncedSearch.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-          const rx = new RegExp(String.raw`\b${esc}`, "i");
-          const list = res.data.dtoList ?? [];
-          setData(list.filter((i) => matcher(i, rx, f)));
-          setTotalPages(1);
-        } else {
-          setData(res.data.dtoList ?? []);
-          setTotalPages(res.data.totalPages ?? 1);
-        }
-      } catch {}
+        const payload = {
+          ...pagination,
+          keyword: debouncedSearch.trim() || undefined,
+        };
+        const res = await api.post("/user/list", payload);
+        if (requestId !== requestIdRef.current) return;
+        setData(res.data.dtoList ?? []);
+        setTotalPages(res.data.totalPages ?? 1);
+      } catch { }
     };
     load();
   }, [pagination, debouncedSearch]);
@@ -145,14 +134,18 @@ export default function ListUser() {
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    await api.delete(`/user/delete?username=${encodeURIComponent(deleteTarget)}`);
-    setDeleteTarget(null);
-    refresh();
+    try {
+      await api.delete(`/user/delete?username=${encodeURIComponent(deleteTarget)}`);
+      setDeleteTarget(null);
+      refresh();
+    } catch { }
   };
 
   const toggle = async (u) => {
-    await api.post(`/user/toggle-status?username=${encodeURIComponent(u)}`);
-    refresh();
+    try {
+      await api.post(`/user/toggle-status?username=${encodeURIComponent(u)}`);
+      refresh();
+    } catch { }
   };
 
   const page = pagination.page;
@@ -173,9 +166,8 @@ export default function ListUser() {
       Array.isArray(r.roles) ? r.roles.join(", ") : r.roles,
       <button
         key="s"
-        className={`w-12 py-1.25 text-center text-white rounded-full cursor-pointer text-[12px] font-semibold select-none border-none ${
-          r.status ? "bg-brand" : "bg-gray-300"
-        }`}
+        className={`w-12 py-1.25 text-center text-white rounded-full cursor-pointer text-[12px] font-semibold select-none border-none ${r.status ? "bg-brand" : "bg-gray-300"
+          }`}
         onClick={() => toggle(r.username)}
       >
         {r.status ? "ON" : "OFF"}
@@ -256,11 +248,10 @@ export default function ListUser() {
               {visible.map((p) => (
                 <button
                   key={p}
-                  className={`min-w-9 h-9 px-2.5 rounded-lg border-[1.5px] border-solid text-xs font-semibold flex items-center justify-center cursor-pointer transition-all ${
-                    page === p
-                      ? "bg-brand border-brand text-white"
-                      : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                  }`}
+                  className={`min-w-9 h-9 px-2.5 rounded-lg border-[1.5px] border-solid text-xs font-semibold flex items-center justify-center cursor-pointer transition-all ${page === p
+                    ? "bg-brand border-brand text-white"
+                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                    }`}
                   onClick={() => go(p)}
                 >
                   {p + 1}

@@ -5,12 +5,14 @@ import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -29,7 +31,11 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-        return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
+        Category category = categoryRepository.findByIdentifier(identifier);
+        if (category == null) {
+            throw new ResourceNotFoundException("Category with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(category, CategoryDto.class);
     }
 
     @Override
@@ -118,4 +124,20 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         return modelMapper.map(categoryRepository.findByStatusIsTrueAndDeletedFalse(), listType);
     }
 
+    @Override
+    public WsDto<CategoryDto> findAll(Specification<Category> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        Page<Category> page = categoryRepository.findAll(example, pageable);
+
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
 }

@@ -431,6 +431,10 @@ function OrderSuccessCard({ placedOrder, productMap, finalAmount }) {
 
             <div className="border-t border-gray-200 mt-4 pt-4 flex flex-col gap-1">
                 <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>MRP Total</span>
+                    <span>₹{(Number(placedOrder.totalPrice) + Number(placedOrder.totalDiscount || 0)).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-[13px] text-gray-500">
                     <span>Total</span>
                     <span>₹{Number(placedOrder.totalPrice).toFixed(2)}</span>
                 </div>
@@ -497,6 +501,7 @@ function PrintableReceipt({ order, productMap, finalAmount }) {
                     </tbody>
                 </table>
                 <div className="border-t border-black border-dashed pt-2 text-[11px]">
+                    <div className="flex justify-between"><span>MRP Total:</span><span>₹{(Number(order.totalPrice || 0) + Number(order.totalDiscount || 0)).toFixed(2)}</span></div>
                     <div className="flex justify-between"><span>Subtotal:</span><span>₹{Number(order.totalPrice || 0).toFixed(2)}</span></div>
                     {Number(order.totalDiscount) > 0 && (
                         <div className="flex justify-between"><span>You Saved:</span><span>₹{Number(order.totalDiscount).toFixed(2)}</span></div>
@@ -820,6 +825,10 @@ function CartPanel({ selectedCustomer, cartInitialized, hasItems, cartEntries, p
 
                     <div className="px-4 py-3 border-t border-gray-200 flex flex-col gap-2 shrink-0">
                         <div className="flex justify-between text-[13px] text-gray-500">
+                            <span>MRP Total</span>
+                            <span>₹{(Number(cart?.totalPrice || 0) + Number(cart?.totalDiscount || 0)).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-[13px] text-gray-500">
                             <span>Total Price</span>
                             <span>₹{Number(cart?.totalPrice || 0).toFixed(2)}</span>
                         </div>
@@ -936,6 +945,7 @@ export default function CartPage() {
     const [products, setProducts] = useState([]);
     const [prices, setPrices] = useState({});
     const [loadingProducts, setLoadingProducts] = useState(true);
+    const productRequestIdRef = useRef(0);
 
     const [cart, setCart] = useState(null);
     const [quantities, setQuantities] = useState({});
@@ -959,10 +969,18 @@ export default function CartPage() {
 
     const [error, setError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     const CART_ID = selectedCustomer?.identifier || null;
 
-    useEffect(() => { loadProducts(); }, []);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 300);
+        return () => clearTimeout(handler);
+    }, [searchTerm]);
+
+    useEffect(() => { loadProducts(debouncedSearch); }, [debouncedSearch]);
 
     useEffect(() => {
         if (!CART_ID) {
@@ -997,14 +1015,9 @@ export default function CartPage() {
         setSearchingCustomer(true);
         setCustomerError("");
         try {
-            const token = localStorage.getItem("token");
-            const res = await fetch(
-                `http://localhost:8080/api/customer/findByIdentifierAndDeletedFalse?identifier=${encodeURIComponent(phone)}`,
-                { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-            );
-            const data = res.ok ? await res.json() : null;
-            if (data?.identifier) {
-                setSelectedCustomer(data);
+            const res = await api.get(`/customer/findByIdentifierAndDeletedFalse?identifier=${encodeURIComponent(phone)}`);
+            if (res.data?.identifier) {
+                setSelectedCustomer(res.data);
                 setCustomerError("");
             } else {
                 setCustomerError("No customer found. Use 'Add Customer' to create one.");
@@ -1077,11 +1090,14 @@ export default function CartPage() {
         }
     }
 
-    async function loadProducts() {
+    async function loadProducts(keyword) {
+        setLoadingProducts(true);
+        const requestId = ++productRequestIdRef.current;
         try {
-            const res = await api.post("/product/list", {
-                page: 0, sizePerPage: 100, sortDirection: "ASC", sortField: "id",
-            });
+            const payload = { page: 0, sizePerPage: 100, sortDirection: "ASC", sortField: "id" };
+            if (keyword?.trim()) payload.keyword = keyword.trim();
+            const res = await api.post("/product/list", payload);
+            if (requestId !== productRequestIdRef.current) return;
             const productList = res.data.dtoList || [];
             setProducts(productList);
 
@@ -1090,11 +1106,12 @@ export default function CartPage() {
                     api.get(`/price/getByDeletedFalse?identifier=${encodeURIComponent(p.identifier)}`)
                 )
             );
+            if (requestId !== productRequestIdRef.current) return;
             setPrices(buildPriceMap(productList, priceResults));
         } catch {
             setError("Could not load products.");
         } finally {
-            setLoadingProducts(false);
+            if (requestId === productRequestIdRef.current) setLoadingProducts(false);
         }
     }
 
@@ -1249,13 +1266,6 @@ export default function CartPage() {
     const productMap = {};
     products.forEach((p) => { productMap[p.identifier] = p; });
 
-    const filteredProducts = products.filter((p) =>
-        p.identifier?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.model?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     const cartEntries = cart?.entryDtoList || [];
     const hasItems = cartEntries.length > 0;
     const finalAmount = Number(cart?.totalPrice || 0);
@@ -1313,7 +1323,7 @@ export default function CartPage() {
                         <p className="text-center text-gray-400 text-sm py-10">Loading products…</p>
                     ) : (
                         <ProductGrid
-                            filteredProducts={filteredProducts}
+                            filteredProducts={products}
                             quantities={quantities}
                             prices={prices}
                             cartId={CART_ID}

@@ -6,12 +6,14 @@ import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RequestMapping("/api/cartEntry")
 @RestController
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'CASHIER')")
 public class CartEntryApiController extends BaseController {
 
     private final CartEntryService cartEntryService;

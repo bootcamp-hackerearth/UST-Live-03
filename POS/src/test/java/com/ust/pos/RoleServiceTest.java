@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -17,7 +18,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,144 +36,161 @@ class RoleServiceTest {
     private RoleServiceImpl roleService;
 
     @Test
-    void findByIdentifierTest() {
+    void findByIdentifierTestSuccess() {
         Role role = new Role();
-        role.setIdentifier("Admin");
         RoleDto roleDto = new RoleDto();
-        roleDto.setIdentifier("Admin");
+        roleDto.setIdentifier("ROLE_ADMIN");
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(role);
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(role);
         Mockito.when(modelMapper.map(role, RoleDto.class)).thenReturn(roleDto);
 
-        RoleDto response = roleService.findByIdentifier("Admin");
+        RoleDto response = roleService.findByIdentifier("ROLE_ADMIN");
 
-        Assertions.assertEquals("Admin", response.getIdentifier());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("ROLE_ADMIN", response.getIdentifier());
     }
 
     @Test
-    void saveTest() {
-        RoleDto roleDto = new RoleDto();
-        roleDto.setIdentifier("Admin");
+    void findByIdentifierTestNotFoundException() {
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(null);
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(null);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            roleService.findByIdentifier("ROLE_ADMIN");
+        });
+    }
+
+    @Test
+    void saveTestSuccess() {
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("ROLE_ADMIN");
+
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(null);
         Role role = new Role();
         Mockito.when(modelMapper.map(roleDto, Role.class)).thenReturn(role);
         Mockito.when(roleRepository.save(role)).thenReturn(role);
 
         RoleDto response = roleService.save(roleDto);
 
-        Assertions.assertEquals("Admin", response.getIdentifier());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("ROLE_ADMIN", response.getIdentifier());
     }
 
     @Test
-    void saveTestFailure() {
+    void saveTestFailureAlreadyExists() {
         RoleDto roleDto = new RoleDto();
-        roleDto.setIdentifier("Admin");
+        roleDto.setIdentifier("ROLE_ADMIN");
 
         Role existingRole = new Role();
-        existingRole.setIdentifier("Admin");
+        existingRole.setIdentifier("ROLE_ADMIN");
         existingRole.setDeleted(false);
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(existingRole);
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(existingRole);
 
         RoleDto response = roleService.save(roleDto);
 
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Role with identifier - ROLE_ADMIN already exists", response.getMessage());
     }
 
     @Test
     void saveTestFailurePreviouslyDeleted() {
         RoleDto roleDto = new RoleDto();
-        roleDto.setIdentifier("Admin");
+        roleDto.setIdentifier("ROLE_ADMIN");
 
         Role existingRole = new Role();
-        existingRole.setIdentifier("Admin");
+        existingRole.setIdentifier("ROLE_ADMIN");
         existingRole.setDeleted(true);
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(existingRole);
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(existingRole);
 
         RoleDto response = roleService.save(roleDto);
 
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Node with identifier ROLE_ADMIN was previously deleted. Please contact backend team to restore.", response.getMessage());
     }
 
     @Test
-    void updateTest() {
+    void updateTestSuccess() {
         RoleDto roleDto = new RoleDto();
-        roleDto.setIdentifier("Admin");
+        roleDto.setIdentifier("ROLE_ADMIN");
 
         Role existingRole = new Role();
-        existingRole.setIdentifier("Admin");
+        existingRole.setIdentifier("ROLE_ADMIN");
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(existingRole);
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(existingRole);
         Mockito.when(roleRepository.save(existingRole)).thenReturn(existingRole);
 
         RoleDto response = roleService.update(roleDto);
 
-        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("ROLE_ADMIN", response.getIdentifier());
     }
 
     @Test
     void updateTestFailure() {
         RoleDto roleDto = new RoleDto();
-        roleDto.setIdentifier("Admin");
+        roleDto.setIdentifier("ROLE_ADMIN");
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(null);
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(null);
 
         RoleDto response = roleService.update(roleDto);
 
         Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals("Role with identifier - ROLE_ADMIN not found", response.getMessage());
     }
 
     @Test
-    void deleteTest() {
+    void deleteTestSuccess() {
         Role role = new Role();
-        role.setIdentifier("Admin");
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(role);
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(role);
         Mockito.when(roleRepository.save(role)).thenReturn(role);
 
-        boolean response = roleService.delete("Admin");
+        boolean response = roleService.delete("ROLE_ADMIN");
 
-        Assertions.assertEquals(true, response);
+        Assertions.assertTrue(response);
     }
 
     @Test
     void deleteTestFailure() {
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(null);
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(null);
 
-        boolean response = roleService.delete("Admin");
+        boolean response = roleService.delete("ROLE_ADMIN");
 
-        Assertions.assertEquals(false, response);
+        Assertions.assertFalse(response);
     }
 
     @Test
-    void findAllTest() {
+    void findAllPageableTest() {
         Pageable pageable = PageRequest.of(0, 50);
         Role role = new Role();
-        List<Role> roles = List.of(role);
-        Page<Role> rolePage = new PageImpl<>(roles, pageable, roles.size());
+        List<Role> roleList = List.of(role);
+        Page<Role> rolePage = new PageImpl<>(roleList, pageable, roleList.size());
 
         RoleDto roleDto = new RoleDto();
         List<RoleDto> roleDtos = List.of(roleDto);
 
         Mockito.when(roleRepository.findByDeletedFalse(pageable)).thenReturn(rolePage);
-        Mockito.when(modelMapper.map(Mockito.eq(roles), Mockito.any(java.lang.reflect.Type.class))).thenReturn(roleDtos);
+        Mockito.when(modelMapper.map(Mockito.eq(roleList), Mockito.any(Type.class))).thenReturn(roleDtos);
 
         WsDto<RoleDto> response = roleService.findAll(pageable);
 
         Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 
     @Test
-    void findByStatusTest() {
+    void findIfTrueTest() {
         Role role = new Role();
-        List<Role> roles = List.of(role);
+        List<Role> roleList = List.of(role);
         RoleDto roleDto = new RoleDto();
         List<RoleDto> roleDtos = List.of(roleDto);
 
-        Mockito.when(roleRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(roles);
-        Mockito.when(modelMapper.map(Mockito.eq(roles), Mockito.any(java.lang.reflect.Type.class))).thenReturn(roleDtos);
+        Mockito.when(roleRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(roleList);
+        Mockito.when(modelMapper.map(Mockito.eq(roleList), Mockito.any(Type.class))).thenReturn(roleDtos);
 
         List<RoleDto> response = roleService.findIfTrue();
 
@@ -178,32 +198,41 @@ class RoleServiceTest {
     }
 
     @Test
-    void toggleTestActive() {
+    void toggleStatusTest() {
         Role role = new Role();
         role.setStatus(false);
         RoleDto roleDto = new RoleDto();
         roleDto.setStatus(true);
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(role);
+        Mockito.when(roleRepository.findByIdentifier("ROLE_ADMIN")).thenReturn(role);
+        Mockito.when(roleRepository.save(role)).thenReturn(role);
         Mockito.when(modelMapper.map(role, RoleDto.class)).thenReturn(roleDto);
 
-        RoleDto response = roleService.toggleStatus("Admin");
+        RoleDto response = roleService.toggleStatus("ROLE_ADMIN");
 
         Assertions.assertTrue(response.isStatus());
     }
 
     @Test
-    void toggleTestInactive() {
+    void findAllSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 50);
+        Specification<Role> specification = Mockito.mock(Specification.class);
         Role role = new Role();
-        role.setStatus(true);
+        List<Role> roleList = List.of(role);
+        Page<Role> page = new PageImpl<>(roleList, pageable, roleList.size());
+
         RoleDto roleDto = new RoleDto();
-        roleDto.setStatus(false);
+        List<RoleDto> roleDtos = List.of(roleDto);
 
-        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(role);
-        Mockito.when(modelMapper.map(role, RoleDto.class)).thenReturn(roleDto);
+        Mockito.when(roleRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(roleList), Mockito.any(Type.class))).thenReturn(roleDtos);
 
-        RoleDto response = roleService.toggleStatus("Admin");
+        WsDto<RoleDto> response = roleService.findAll(specification, pageable);
 
-        Assertions.assertFalse(response.isStatus());
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

@@ -3,6 +3,7 @@ package com.ust.pos.models.service.impl;
 import com.ust.pos.commonservice.CommonService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -28,7 +30,11 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
-        return modelMapper.map(modelsRepository.findByIdentifier(identifier), ModelsDto.class);
+        Models models = modelsRepository.findByIdentifier(identifier);
+        if (models == null) {
+            throw new ResourceNotFoundException("Models with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(models, ModelsDto.class);
     }
 
     @Override
@@ -101,6 +107,23 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
         Type listType = new TypeToken<List<ModelsDto>>() {
         }.getType();
         return modelMapper.map(modelsRepository.findByStatusIsTrueAndDeletedFalse(), listType);
+    }
+
+    @Override
+    public WsDto<ModelsDto> findAll(Specification<Models> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ModelsDto>>() {
+        }.getType();
+        Page<Models> page = modelsRepository.findAll(example, pageable);
+
+        WsDto<ModelsDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
 }

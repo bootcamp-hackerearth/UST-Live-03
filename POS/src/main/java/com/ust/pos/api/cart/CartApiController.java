@@ -4,10 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/cart")
 @RestController
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'CASHIER')")
 public class CartApiController extends BaseController {
 
     private final CartService cartService;

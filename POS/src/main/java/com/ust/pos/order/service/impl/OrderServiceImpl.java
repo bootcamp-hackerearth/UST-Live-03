@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -47,14 +48,31 @@ public class OrderServiceImpl implements OrderService {
         return "ORD-" + cartIdentifier + "-" + timestamp + "-" + random;
     }
 
+    private WsDto<OrderDto> buildWsDto(Page<Order> orderPage, Pageable pageable) {
+        Type listType = new TypeToken<List<OrderEntryDto>>() {
+        }.getType();
+        List<OrderDto> result = new ArrayList<>();
+        for (Order order : orderPage.getContent()) {
+            OrderDto orderDto = modelMapper.map(order, OrderDto.class);
+            List<OrderEntry> entries = orderEntryRepository.findByOrderId(order.getOrderId());
+            orderDto.setEntryDtoList(modelMapper.map(entries, listType));
+            result.add(orderDto);
+        }
+        WsDto<OrderDto> orderWsDto = new WsDto<>();
+        orderWsDto.setDtoList(result);
+        orderWsDto.setTotalRecords(orderPage.getTotalElements());
+        orderWsDto.setTotalPages(orderPage.getTotalPages());
+        orderWsDto.setSizePerPage(pageable.getPageSize());
+        orderWsDto.setPage(pageable.getPageNumber());
+        return orderWsDto;
+    }
+
     @Override
     public OrderDto placeOrder(String cartIdentifier, String paymentMode) {
         Cart cart = cartRepository.findByIdentifier(cartIdentifier);
         List<CartEntry> cartEntries = cartEntryRepository.findByCart(cartIdentifier);
-
         String orderId = generateOrderId(cartIdentifier);
         LocalDateTime orderDate = LocalDateTime.now();
-
         Order order = modelMapper.map(cart, Order.class);
         order.setId(null);
         order.setOrderId(orderId);
@@ -62,7 +80,6 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderDate(orderDate);
         order.setOrderStatus("PLACED");
         orderRepository.save(order);
-
         List<OrderEntry> orderEntries = new ArrayList<>();
         for (CartEntry cartEntry : cartEntries) {
             OrderEntry orderEntry = modelMapper.map(cartEntry, OrderEntry.class);
@@ -71,10 +88,8 @@ public class OrderServiceImpl implements OrderService {
             orderEntries.add(orderEntry);
         }
         orderEntryRepository.saveAll(orderEntries);
-
         cartEntryService.deleteAllByCart(cartIdentifier);
         cartService.recalculate(cartIdentifier);
-
         OrderDto orderDto = modelMapper.map(order, OrderDto.class);
         Type listType = new TypeToken<List<OrderEntryDto>>() {
         }.getType();
@@ -102,25 +117,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public WsDto<OrderDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<OrderEntryDto>>() {
-        }.getType();
         Page<Order> orderPage = orderRepository.findAllByOrderByOrderDateDesc(pageable);
+        return buildWsDto(orderPage, pageable);
+    }
 
-        List<OrderDto> result = new ArrayList<>();
-        for (Order order : orderPage.getContent()) {
-            OrderDto orderDto = modelMapper.map(order, OrderDto.class);
-            List<OrderEntry> entries = orderEntryRepository.findByOrderId(order.getOrderId());
-            orderDto.setEntryDtoList(modelMapper.map(entries, listType));
-            result.add(orderDto);
-        }
-
-        WsDto<OrderDto> orderWsDto = new WsDto<>();
-        orderWsDto.setDtoList(result);
-        orderWsDto.setTotalRecords(orderPage.getTotalElements());
-        orderWsDto.setTotalPages(orderPage.getTotalPages());
-        orderWsDto.setSizePerPage(pageable.getPageSize());
-        orderWsDto.setPage(pageable.getPageNumber());
-
-        return orderWsDto;
+    @Override
+    public WsDto<OrderDto> findAll(Specification<Order> example, Pageable pageable) {
+        Page<Order> orderPage = orderRepository.findAll(example, pageable);
+        return buildWsDto(orderPage, pageable);
     }
 }

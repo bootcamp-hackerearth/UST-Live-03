@@ -76,5 +76,4 @@ public class CartServiceImpl implements CartService {
         cartEntryService.deleteAllByCart(identifier);
         return true;
     }
-
 }

@@ -4,14 +4,19 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Shelfs;
 import com.ust.pos.shelfs.service.ShelfsService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/shelfs")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'STOCK_MANAGER')")
 public class ShelfsApiController extends BaseController {
 
     private final ShelfsService shelfsService;
@@ -21,10 +26,16 @@ public class ShelfsApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<ShelfsDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(),
-                paginationDto.getSizePerPage(), paginationDto.getSortDirection(),
-                paginationDto.getSortField());
+    public WsDto<ShelfsDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Shelfs> example = buildGlobalSearchSpec(Shelfs.class, paginationDto.getKeyword());
+            if (example != null) {
+                return shelfsService.findAll(example, pageable);
+            }
+        }
+
         return shelfsService.findAll(pageable);
     }
 
