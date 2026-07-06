@@ -103,7 +103,7 @@ export default function Register() {
 
     try {
       const listRes = await axios.post(
-        "http://localhost:8080/api/user/list",
+        "/api/user/list",
         {
           page: 0,
           sizePerPage: 1000,
@@ -126,7 +126,7 @@ export default function Register() {
       }
 
       const res = await axios.post(
-        "http://localhost:8080/api/user/register",
+        "/api/user/register",
         {
           name: user.name,
           username: user.username,
