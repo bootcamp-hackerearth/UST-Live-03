@@ -12,7 +12,7 @@ export async function POST(req) {
     const cookieStore = await cookies();
     cookieStore.set("token", body.token, {
       httpOnly: true,
-      secure: false,
+     secure: false,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24,

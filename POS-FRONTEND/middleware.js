@@ -4,6 +4,7 @@ export const middleware = (request) => {
   const { pathname } = request.nextUrl;
 
   if (
+    pathname.startsWith("/auth")||
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico"
@@ -15,7 +16,7 @@ export const middleware = (request) => {
     return NextResponse.next();
   }
 
- const token = request.cookies.get("token")?.value;
+const token = request.cookies.get("token")?.value;
 console.log("Middleware token:", token);
 
   if (!token) {
