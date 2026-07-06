@@ -30,7 +30,7 @@ export default function Register() {
 
   useEffect(() => {
     axios
-      .post("http://localhost:8080/api/role/list", {
+      .post("/api/role/list", {
         page: 0,
         sizePerPage: 100,
         sortDirection: "ASC",
