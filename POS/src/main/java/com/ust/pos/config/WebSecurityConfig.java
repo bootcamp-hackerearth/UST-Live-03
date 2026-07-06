@@ -52,7 +52,7 @@ public class WebSecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
 
-                .cors(cors -> {})   // ✅ ADD THIS LINE (IMPORTANT!)
+                .cors(cors -> {})
 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -106,11 +106,11 @@ public class WebSecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173","http://localhost:3000")); // Allow the specific origin
+        configuration.setAllowedOriginPatterns(List.of("*")); // Allow the specific origin
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("*"));
 
         configuration.setAllowCredentials(true); // Allow credentials if needed
 

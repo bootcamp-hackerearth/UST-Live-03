@@ -43,7 +43,6 @@ public class ApiUserController extends BaseController {
     }
 
     @PostMapping("/register")
-    @PreAuthorize("hasAuthority('Admin')")
     public UserDto addUser(@RequestBody UserDto userDto) {
         return userService.save(userDto);
     }
@@ -80,9 +79,7 @@ public class ApiUserController extends BaseController {
 
     @GetMapping("/profile")
     public UserDto getProfile(Authentication authentication) {
-
         String username = authentication.getName();
-
         return userService.findByUserName(username);
     }
 

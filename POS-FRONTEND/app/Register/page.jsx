@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
-
+import axiosInstance from "../api/axiosInstance";
 function Register() {
   const router = useRouter();
 
@@ -20,43 +19,37 @@ function Register() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      setRolesError("");
+  
+useEffect(() => {
+  const fetchRoles = async () => {
+    setRolesError("");
 
-      try {
-        const response = await fetch(
-          "http://localhost:8080/api/role/findActiveStatus",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+    try {
+      const response = await axiosInstance.get(
+        "/role/findActiveStatus"
+      );
 
-        const responseText = await response.text();
-        const data = responseText ? JSON.parse(responseText) : [];
+      const data = response.data || [];
 
-        if (!response.ok) {
-          throw new Error(data.message || "Unable to load roles");
-        }
-
-        const activeRoles = Array.isArray(data)
-          ? data.filter((role) => role.status !== false)
-          : [];
+      const activeRoles = Array.isArray(data)
+        ? data.filter((role) => role.status !== false)
+        : [];
 
         setAvailableRoles(activeRoles);
-      } catch (fetchRolesError) {
-        console.error(fetchRolesError);
+      } catch (error) {
+        console.error(error);
+
         setRolesError(
-          fetchRolesError.message || "Unable to load roles"
+          error?.response?.data?.message ||
+          error?.message ||
+          "Unable to load roles"
         );
       }
     };
 
     fetchRoles();
   }, []);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,8 +79,8 @@ function Register() {
     setMessage("");
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/user/register",
+      const response = await axiosInstance.post(
+        "/user/register",
         formData
       );
 
