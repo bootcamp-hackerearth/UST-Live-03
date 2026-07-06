@@ -101,7 +101,7 @@ public class WebSecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*")); // ✅ FIX
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*","http://15.135.137.125:3000")); // ✅ FIX
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*")); // ✅ FIX
         configuration.setAllowCredentials(true);
