@@ -12307,3 +12307,657 @@ java.lang.IllegalArgumentException: source cannot be null
 2026-07-06 17:10:23 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
 2026-07-06 17:10:23 - Completed 200 OK
 2026-07-06 17:10:23 - Completed 200 OK
+2026-07-06 18:00:02 - Commencing graceful shutdown. Waiting for active requests to complete
+2026-07-06 18:00:02 - Graceful shutdown complete
+2026-07-06 18:00:02 - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-06 18:00:19 - Starting PosApplication using Java 22.0.2 with PID 23296 (C:\HackerEarth\UST-Live-03\POS\target\classes started by 308330 in C:\HackerEarth\UST-Live-03\POS)
+2026-07-06 18:00:19 - No active profile set, falling back to 1 default profile: "default"
+2026-07-06 18:00:22 - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-06 18:00:23 - Finished Spring Data repository scanning in 597 ms. Found 19 JPA repository interfaces.
+2026-07-06 18:00:26 - Tomcat initialized with port 8080 (http)
+2026-07-06 18:00:26 - Starting service [Tomcat]
+2026-07-06 18:00:26 - Starting Servlet engine: [Apache Tomcat/11.0.20]
+2026-07-06 18:00:27 - At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+2026-07-06 18:00:27 - Root WebApplicationContext: initialization completed in 7555 ms
+2026-07-06 18:00:27 - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-07-06 18:00:28 - HHH000001: Hibernate ORM core version 7.2.7.Final
+2026-07-06 18:00:29 - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-06 18:00:31 - HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/posdb1]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 8.0.44
+	Default catalog/schema: posdb1/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-07-06 18:00:35 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-06 18:00:35 - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-06 18:00:35 - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-07-06 18:00:38 - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-06 18:00:39 - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-07-06 18:00:39 - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-07-06 18:00:40 - Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2026-07-06 18:00:40 - 225 mappings in 'requestMappingHandlerMapping'
+2026-07-06 18:00:40 - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2026-07-06 18:00:40 - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 2 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-07-06 18:00:40 - ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-07-06 18:00:41 - MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.6.4"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/OpenLogic/22.0.2+9-adhoc.Administrator.jdk22u"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7b4fbedb, com.mongodb.Jep395RecordCodecProvider@73534675, com.mongodb.KotlinCodecProvider@550482aa, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=UNSPECIFIED, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-07-06 18:00:41 - Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=49752900, minRoundTripTimeNanos=0}
+2026-07-06 18:00:41 - Tomcat started on port 8080 (http) with context path '/'
+2026-07-06 18:00:41 - Started PosApplication in 23.328 seconds (process running for 24.445)
+2026-07-06 18:01:41 - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-06 18:01:41 - Initializing Servlet 'dispatcherServlet'
+2026-07-06 18:01:41 - Detected StandardServletMultipartResolver
+2026-07-06 18:01:41 - Detected AcceptHeaderLocaleResolver
+2026-07-06 18:01:41 - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@23389e2b
+2026-07-06 18:01:41 - Detected org.springframework.web.servlet.support.SessionFlashMapManager@feb0f52
+2026-07-06 18:01:41 - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-07-06 18:01:41 - Completed initialization in 17 ms
+2026-07-06 18:01:41 - POST "/api/authenticate", parameters={}
+2026-07-06 18:01:41 - Mapped to com.ust.pos.api.TokenGenerationController#authenticate(UserDto)
+2026-07-06 18:01:42 - Read "application/json;charset=UTF-8" to [com.ust.pos.dto.UserDto@d3ce511]
+2026-07-06 18:01:45 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:01:45 - Writing [com.ust.pos.dto.UserDto@6bdcd4a6]
+2026-07-06 18:01:46 - Completed 200 OK
+2026-07-06 18:01:49 - GET "/api/node/getNodesForRoles", parameters={}
+2026-07-06 18:01:49 - Mapped to com.ust.pos.api.nodeapi.NodeApiController#getNodesForRoles()
+2026-07-06 18:01:49 - GET "/api/user/profile", parameters={}
+2026-07-06 18:01:49 - Mapped to com.ust.pos.api.userapi.UserApiController#getProfile(Authentication)
+2026-07-06 18:01:49 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:01:49 - Writing [com.ust.pos.dto.UserDto@72e0766d]
+2026-07-06 18:01:49 - Completed 200 OK
+2026-07-06 18:01:49 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:01:49 - Writing [[com.ust.pos.dto.NodeDto@57d1de4f, com.ust.pos.dto.NodeDto@381cf03a, com.ust.pos.dto.NodeDto@51bea66 (truncated)...]
+2026-07-06 18:01:49 - Completed 200 OK
+2026-07-06 18:02:21 - GET "/api/user/profile", parameters={}
+2026-07-06 18:02:21 - POST "/api/customer/list", parameters={}
+2026-07-06 18:02:21 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:02:21 - Mapped to com.ust.pos.api.userapi.UserApiController#getProfile(Authentication)
+2026-07-06 18:02:21 - GET "/api/node/getNodesForRoles", parameters={}
+2026-07-06 18:02:21 - Mapped to com.ust.pos.api.nodeapi.NodeApiController#getNodesForRoles()
+2026-07-06 18:02:21 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:02:21 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:21 - Writing [com.ust.pos.dto.UserDto@5f19cc33]
+2026-07-06 18:02:21 - Completed 200 OK
+2026-07-06 18:02:22 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:22 - Writing [[com.ust.pos.dto.NodeDto@5a298812, com.ust.pos.dto.NodeDto@17361fa6, com.ust.pos.dto.NodeDto@412d411 (truncated)...]
+2026-07-06 18:02:22 - Completed 200 OK
+2026-07-06 18:02:22 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:22 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-07-06 18:02:22 - Completed 200 OK
+2026-07-06 18:02:30 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:30 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:30 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:30 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:30 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:02:30 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:02:30 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:30 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:30 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:02:30 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:02:31 - Completed 200 OK
+2026-07-06 18:02:31 - Completed 200 OK
+2026-07-06 18:02:33 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:33 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:33 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:02:33 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:33 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:02:33 - Completed 200 OK
+2026-07-06 18:02:34 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:34 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:34 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:02:34 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:34 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:02:34 - Completed 200 OK
+2026-07-06 18:02:35 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:35 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:35 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:02:35 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:35 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:02:35 - Completed 200 OK
+2026-07-06 18:02:36 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:36 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:36 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:02:36 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:36 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:02:36 - Completed 200 OK
+2026-07-06 18:02:38 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:38 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:38 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:02:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:38 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:02:38 - Completed 200 OK
+2026-07-06 18:02:38 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:38 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:38 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:02:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:38 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:02:38 - Completed 200 OK
+2026-07-06 18:02:39 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:39 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:39 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:02:39 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:39 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:02:39 - Completed 200 OK
+2026-07-06 18:02:39 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:39 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:39 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:02:39 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:39 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:02:39 - Completed 200 OK
+2026-07-06 18:02:39 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:39 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:39 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:02:39 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:39 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:02:39 - Completed 200 OK
+2026-07-06 18:02:43 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:43 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:43 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:02:43 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:43 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:02:43 - Completed 200 OK
+2026-07-06 18:02:59 - POST "/api/price/list", parameters={}
+2026-07-06 18:02:59 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:02:59 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:02:59 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:59 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:02:59 - Completed 200 OK
+2026-07-06 18:02:59 - GET "/api/node/getNodesForRoles", parameters={}
+2026-07-06 18:02:59 - Mapped to com.ust.pos.api.nodeapi.NodeApiController#getNodesForRoles()
+2026-07-06 18:02:59 - GET "/api/user/profile", parameters={}
+2026-07-06 18:02:59 - Mapped to com.ust.pos.api.userapi.UserApiController#getProfile(Authentication)
+2026-07-06 18:02:59 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:59 - Writing [com.ust.pos.dto.UserDto@7dc77397]
+2026-07-06 18:02:59 - Completed 200 OK
+2026-07-06 18:02:59 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:02:59 - Writing [[com.ust.pos.dto.NodeDto@72a02dde, com.ust.pos.dto.NodeDto@c096d8a, com.ust.pos.dto.NodeDto@f863df0, (truncated)...]
+2026-07-06 18:02:59 - Completed 200 OK
+2026-07-06 18:03:01 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:01 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:01 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:01 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:01 - Completed 200 OK
+2026-07-06 18:03:16 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:16 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:16 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:16 - Completed 200 OK
+2026-07-06 18:03:16 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:16 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:16 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:16 - Completed 200 OK
+2026-07-06 18:03:16 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:16 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:16 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:16 - Completed 200 OK
+2026-07-06 18:03:16 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:16 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:16 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:16 - Completed 200 OK
+2026-07-06 18:03:16 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:16 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:16 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:16 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:16 - Completed 200 OK
+2026-07-06 18:03:16 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:16 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:16 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:17 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:17 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:17 - Completed 200 OK
+2026-07-06 18:03:17 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:17 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:17 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:03:17 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:17 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:03:17 - Completed 200 OK
+2026-07-06 18:03:18 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:18 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:18 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:18 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:18 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:18 - Completed 200 OK
+2026-07-06 18:03:18 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:18 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:18 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:18 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:18 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:18 - Completed 200 OK
+2026-07-06 18:03:19 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:19 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:19 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:19 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:19 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:19 - Completed 200 OK
+2026-07-06 18:03:24 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:24 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:24 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:24 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:24 - Completed 200 OK
+2026-07-06 18:03:24 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:24 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:24 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:24 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:24 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:24 - Completed 200 OK
+2026-07-06 18:03:25 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:25 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:25 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:03:25 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:25 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:03:25 - Completed 200 OK
+2026-07-06 18:03:25 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:25 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:25 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:25 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:25 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:25 - Completed 200 OK
+2026-07-06 18:03:26 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:26 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:26 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:26 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:26 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:26 - Completed 200 OK
+2026-07-06 18:03:27 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:27 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:27 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:27 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:27 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:27 - Completed 200 OK
+2026-07-06 18:03:37 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:37 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:37 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:37 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:37 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:37 - Completed 200 OK
+2026-07-06 18:03:38 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:38 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:38 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:38 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:38 - Completed 200 OK
+2026-07-06 18:03:38 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:38 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:38 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:03:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:38 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:03:38 - Completed 200 OK
+2026-07-06 18:03:52 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:52 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:52 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:52 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:52 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:52 - Completed 200 OK
+2026-07-06 18:03:52 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:52 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:52 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:52 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:52 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:52 - Completed 200 OK
+2026-07-06 18:03:53 - POST "/api/price/list", parameters={}
+2026-07-06 18:03:53 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:03:53 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:03:53 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:03:53 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:03:53 - Completed 200 OK
+2026-07-06 18:04:01 - POST "/api/price/list", parameters={}
+2026-07-06 18:04:01 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:04:01 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:01 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:01 - Completed 200 OK
+2026-07-06 18:04:01 - POST "/api/price/list", parameters={}
+2026-07-06 18:04:01 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:04:01 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:01 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:01 - Completed 200 OK
+2026-07-06 18:04:02 - POST "/api/price/list", parameters={}
+2026-07-06 18:04:02 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:04:02 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:04:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:02 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:04:02 - Completed 200 OK
+2026-07-06 18:04:04 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:04 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:04 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:04:04 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:04 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-07-06 18:04:04 - Completed 200 OK
+2026-07-06 18:04:04 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:04 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:04 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:04:04 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:04 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-07-06 18:04:04 - Completed 200 OK
+2026-07-06 18:04:11 - GET "/api/user/profile", parameters={}
+2026-07-06 18:04:11 - Mapped to com.ust.pos.api.userapi.UserApiController#getProfile(Authentication)
+2026-07-06 18:04:11 - GET "/api/node/getNodesForRoles", parameters={}
+2026-07-06 18:04:11 - Mapped to com.ust.pos.api.nodeapi.NodeApiController#getNodesForRoles()
+2026-07-06 18:04:11 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:11 - Writing [com.ust.pos.dto.UserDto@34d80d71]
+2026-07-06 18:04:11 - Completed 200 OK
+2026-07-06 18:04:11 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:11 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:11 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:04:11 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:11 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-07-06 18:04:11 - Completed 200 OK
+2026-07-06 18:04:11 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:11 - Writing [[com.ust.pos.dto.NodeDto@57f8e9e9, com.ust.pos.dto.NodeDto@3306dbec, com.ust.pos.dto.NodeDto@3e87d6d (truncated)...]
+2026-07-06 18:04:11 - Completed 200 OK
+2026-07-06 18:04:13 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:13 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:13 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:13 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:13 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:13 - Completed 200 OK
+2026-07-06 18:04:13 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:13 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:13 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:13 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:13 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:13 - Completed 200 OK
+2026-07-06 18:04:14 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:14 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:14 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:14 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:14 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:14 - Completed 200 OK
+2026-07-06 18:04:14 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:14 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:14 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:14 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:14 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:14 - Completed 200 OK
+2026-07-06 18:04:14 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:14 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:14 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:14 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:14 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:14 - Completed 200 OK
+2026-07-06 18:04:34 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:34 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:34 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:35 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:35 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:35 - Completed 200 OK
+2026-07-06 18:04:51 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:51 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:51 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:51 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:51 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:51 - Completed 200 OK
+2026-07-06 18:04:51 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:51 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:51 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:51 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:51 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:51 - Completed 200 OK
+2026-07-06 18:04:52 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:52 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:52 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:52 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:52 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:52 - Completed 200 OK
+2026-07-06 18:04:52 - POST "/api/customer/list", parameters={}
+2026-07-06 18:04:52 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:04:52 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:04:52 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:52 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-07-06 18:04:52 - Completed 200 OK
+2026-07-06 18:04:54 - POST "/api/brand/list", parameters={}
+2026-07-06 18:04:54 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:04:54 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:04:54 - POST "/api/brand/list", parameters={}
+2026-07-06 18:04:54 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:04:54 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:04:54 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:54 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:04:54 - Completed 200 OK
+2026-07-06 18:04:54 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:54 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:04:54 - Completed 200 OK
+2026-07-06 18:04:56 - POST "/api/brand/list", parameters={}
+2026-07-06 18:04:56 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:04:56 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:04:56 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:04:56 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:04:56 - Completed 200 OK
+2026-07-06 18:05:03 - POST "/api/brand/list", parameters={}
+2026-07-06 18:05:03 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:05:03 - GET "/api/node/getNodesForRoles", parameters={}
+2026-07-06 18:05:03 - Mapped to com.ust.pos.api.nodeapi.NodeApiController#getNodesForRoles()
+2026-07-06 18:05:03 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:05:03 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:03 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:05:03 - Completed 200 OK
+2026-07-06 18:05:03 - GET "/api/user/profile", parameters={}
+2026-07-06 18:05:03 - Mapped to com.ust.pos.api.userapi.UserApiController#getProfile(Authentication)
+2026-07-06 18:05:03 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:03 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:03 - Writing [com.ust.pos.dto.UserDto@1daa2236]
+2026-07-06 18:05:03 - Writing [[com.ust.pos.dto.NodeDto@634df5ab, com.ust.pos.dto.NodeDto@64fdad71, com.ust.pos.dto.NodeDto@47f6b45 (truncated)...]
+2026-07-06 18:05:03 - Completed 200 OK
+2026-07-06 18:05:03 - Completed 200 OK
+2026-07-06 18:05:05 - POST "/api/brand/list", parameters={}
+2026-07-06 18:05:05 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:05:05 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:05:05 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:05 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:05:05 - Completed 200 OK
+2026-07-06 18:05:05 - POST "/api/brand/list", parameters={}
+2026-07-06 18:05:05 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:05:05 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:05:05 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:05 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:05:05 - Completed 200 OK
+2026-07-06 18:05:06 - POST "/api/brand/list", parameters={}
+2026-07-06 18:05:06 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:05:06 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:05:06 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:06 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:05:06 - Completed 200 OK
+2026-07-06 18:05:28 - POST "/api/price/list", parameters={}
+2026-07-06 18:05:28 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:05:28 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:05:28 - POST "/api/price/list", parameters={}
+2026-07-06 18:05:28 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:05:28 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:05:28 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:28 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:05:28 - Completed 200 OK
+2026-07-06 18:05:28 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:28 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:05:28 - Completed 200 OK
+2026-07-06 18:05:46 - GET "/api/user/profile", parameters={}
+2026-07-06 18:05:46 - Mapped to com.ust.pos.api.userapi.UserApiController#getProfile(Authentication)
+2026-07-06 18:05:46 - GET "/api/node/getNodesForRoles", parameters={}
+2026-07-06 18:05:46 - Mapped to com.ust.pos.api.nodeapi.NodeApiController#getNodesForRoles()
+2026-07-06 18:05:46 - POST "/api/price/list", parameters={}
+2026-07-06 18:05:46 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:05:46 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:05:46 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:46 - Writing [com.ust.pos.dto.UserDto@1a9ea89b]
+2026-07-06 18:05:46 - Completed 200 OK
+2026-07-06 18:05:46 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:46 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=6, totalRe (truncated)...]
+2026-07-06 18:05:46 - Completed 200 OK
+2026-07-06 18:05:46 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:46 - Writing [[com.ust.pos.dto.NodeDto@20fc1a2d, com.ust.pos.dto.NodeDto@5bb9cf5c, com.ust.pos.dto.NodeDto@1c4ec05 (truncated)...]
+2026-07-06 18:05:46 - Completed 200 OK
+2026-07-06 18:05:55 - POST "/api/price/list", parameters={}
+2026-07-06 18:05:55 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:05:55 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:05:55 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:55 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:05:55 - Completed 200 OK
+2026-07-06 18:05:56 - POST "/api/price/list", parameters={}
+2026-07-06 18:05:56 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:05:56 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:05:56 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:56 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:05:56 - Completed 200 OK
+2026-07-06 18:05:58 - POST "/api/price/list", parameters={}
+2026-07-06 18:05:58 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:05:58 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:05:58 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:05:58 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:05:58 - Completed 200 OK
+2026-07-06 18:06:01 - POST "/api/price/list", parameters={}
+2026-07-06 18:06:01 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:06:01 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:01 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:01 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:01 - Completed 200 OK
+2026-07-06 18:06:01 - POST "/api/price/list", parameters={}
+2026-07-06 18:06:01 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:06:01 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:02 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:02 - Completed 200 OK
+2026-07-06 18:06:03 - POST "/api/price/list", parameters={}
+2026-07-06 18:06:03 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:06:03 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:03 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:03 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:03 - Completed 200 OK
+2026-07-06 18:06:04 - POST "/api/price/list", parameters={}
+2026-07-06 18:06:04 - Mapped to com.ust.pos.api.priceapi.PriceApiController#home(PaginationDto)
+2026-07-06 18:06:04 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:04 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:04 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:04 - Completed 200 OK
+2026-07-06 18:06:32 - POST "/api/brand/list", parameters={}
+2026-07-06 18:06:32 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:06:32 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:06:32 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:32 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:06:32 - Completed 200 OK
+2026-07-06 18:06:32 - POST "/api/brand/list", parameters={}
+2026-07-06 18:06:32 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:06:32 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:06:32 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:32 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:06:32 - Completed 200 OK
+2026-07-06 18:06:44 - POST "/api/brand/list", parameters={}
+2026-07-06 18:06:44 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:06:44 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:44 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:44 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:44 - Completed 200 OK
+2026-07-06 18:06:47 - POST "/api/brand/list", parameters={}
+2026-07-06 18:06:47 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:06:47 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:47 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:47 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:47 - Completed 200 OK
+2026-07-06 18:06:47 - POST "/api/brand/list", parameters={}
+2026-07-06 18:06:47 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:06:47 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:48 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:48 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:48 - Completed 200 OK
+2026-07-06 18:06:49 - POST "/api/brand/list", parameters={}
+2026-07-06 18:06:49 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:06:49 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:49 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:49 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:49 - Completed 200 OK
+2026-07-06 18:06:51 - POST "/api/brand/list", parameters={}
+2026-07-06 18:06:51 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:06:51 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:06:51 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:06:51 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:06:51 - Completed 200 OK
+2026-07-06 18:07:02 - GET "/api/node/getNodesForRoles", parameters={}
+2026-07-06 18:07:02 - Mapped to com.ust.pos.api.nodeapi.NodeApiController#getNodesForRoles()
+2026-07-06 18:07:02 - POST "/api/brand/list", parameters={}
+2026-07-06 18:07:02 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:07:02 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:07:02 - GET "/api/user/profile", parameters={}
+2026-07-06 18:07:02 - Mapped to com.ust.pos.api.userapi.UserApiController#getProfile(Authentication)
+2026-07-06 18:07:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:07:02 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:07:02 - Completed 200 OK
+2026-07-06 18:07:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:07:02 - Writing [[com.ust.pos.dto.NodeDto@b7b1715, com.ust.pos.dto.NodeDto@616dce98, com.ust.pos.dto.NodeDto@1d14b45e (truncated)...]
+2026-07-06 18:07:02 - Completed 200 OK
+2026-07-06 18:07:02 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:07:02 - Writing [com.ust.pos.dto.UserDto@6e6c8651]
+2026-07-06 18:07:02 - Completed 200 OK
+2026-07-06 18:07:11 - POST "/api/brand/list", parameters={}
+2026-07-06 18:07:11 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:07:11 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:07:11 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:07:11 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:07:11 - Completed 200 OK
+2026-07-06 18:07:11 - POST "/api/brand/list", parameters={}
+2026-07-06 18:07:11 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:07:11 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:07:11 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:07:11 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:07:11 - Completed 200 OK
+2026-07-06 18:07:12 - POST "/api/brand/list", parameters={}
+2026-07-06 18:07:12 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:07:12 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:07:12 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:07:12 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:07:12 - Completed 200 OK
+2026-07-06 18:09:03 - POST "/api/customer/list", parameters={}
+2026-07-06 18:09:03 - Mapped to com.ust.pos.api.customerapi.CustomerApiController#home(PaginationDto)
+2026-07-06 18:09:03 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:09:03 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:09:03 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=2, totalRe (truncated)...]
+2026-07-06 18:09:03 - Completed 200 OK
+2026-07-06 18:09:03 - POST "/api/brand/list", parameters={}
+2026-07-06 18:09:03 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:09:03 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:09:03 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:09:03 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:09:03 - Completed 200 OK
+2026-07-06 18:11:38 - POST "/api/brand/list", parameters={}
+2026-07-06 18:11:38 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:11:38 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:11:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:11:38 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:11:38 - Completed 200 OK
+2026-07-06 18:11:38 - POST "/api/brand/list", parameters={}
+2026-07-06 18:11:38 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:11:38 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=1000, sortDirection=ASC, sortField=id, totalPages=0, totalRecords= (truncated)...]
+2026-07-06 18:11:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:11:38 - Writing [PaginationDto(page=0, sizePerPage=1000, sortDirection=DESC, sortField=identifier, totalPages=1, tota (truncated)...]
+2026-07-06 18:11:38 - Completed 200 OK
+2026-07-06 18:11:38 - POST "/api/brand/list", parameters={}
+2026-07-06 18:11:38 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:11:38 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:11:38 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:11:38 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:11:38 - Completed 200 OK
+2026-07-06 18:33:50 - POST "/api/brand/list", parameters={}
+2026-07-06 18:33:50 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:33:50 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:33:51 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:33:51 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:33:51 - Completed 200 OK
+2026-07-06 18:34:05 - POST "/api/brand/list", parameters={}
+2026-07-06 18:34:05 - Mapped to com.ust.pos.api.brandapi.BrandApiController#home(PaginationDto)
+2026-07-06 18:34:05 - Read "application/json;charset=UTF-8" to [PaginationDto(page=0, sizePerPage=5, sortDirection=ASC, sortField=id, totalPages=0, totalRecords=0)]
+2026-07-06 18:34:05 - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json, application/yaml]
+2026-07-06 18:34:05 - Writing [PaginationDto(page=0, sizePerPage=5, sortDirection=DESC, sortField=identifier, totalPages=3, totalRe (truncated)...]
+2026-07-06 18:34:05 - Completed 200 OK
