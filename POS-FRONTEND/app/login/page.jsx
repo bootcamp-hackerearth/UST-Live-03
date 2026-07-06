@@ -22,8 +22,7 @@ function Login() {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.post(
-        /authenticate",
+      const response = await axios.post("api/authenticate",
         credentials
       );
       localStorage.setItem("token", response.data.token);
