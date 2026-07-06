@@ -6,6 +6,7 @@ import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelfs.service.ShelfsService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ public class ShelfsApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public WsDto<ShelfsDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -29,6 +31,7 @@ public class ShelfsApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public ShelfsDto addPost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.save(shelfsDto);
     }
@@ -39,6 +42,7 @@ public class ShelfsApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public ShelfsDto updatePost(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.update(shelfsDto);
     }
