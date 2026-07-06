@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft, Printer } from "lucide-react";
 import { generateReceiptPdf } from "@/utils/receiptPdf";
@@ -13,6 +13,14 @@ const currency = (val) =>
   })}`;
 
 export default function OrderViewPage() {
+  return (
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
+      <OrderViewContent />
+    </Suspense>
+  );
+}
+
+function OrderViewContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -21,7 +29,10 @@ export default function OrderViewPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem("token");
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("token")
+      : null;
 
   const headers = {
     Authorization: `Bearer ${token}`,

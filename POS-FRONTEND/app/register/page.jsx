@@ -4,7 +4,7 @@ export default async function Page() {
   let normalized = [];
 
   try {
-    const res = await fetch("http://localhost:8080/api/role/list", {
+    const res = await fetch("/api/role/list", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
