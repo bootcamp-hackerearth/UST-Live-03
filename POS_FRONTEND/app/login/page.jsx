@@ -34,7 +34,7 @@ export default function LoginPage() {
         throw new Error("Invalid username or password");
       }
 
-      const cookieRes = await fetch("/api/login", {
+      const cookieRes = await fetch("/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

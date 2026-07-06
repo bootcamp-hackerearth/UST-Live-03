@@ -18,7 +18,7 @@ export default function Navbar() {
 
   const logout = () => {
     localStorage.clear();
-    fetch("/api/logout", { method: "POST", credentials: "include" });
+    fetch("/auth/logout", { method: "POST", credentials: "include" });
     router.push("/login");
   };
 
