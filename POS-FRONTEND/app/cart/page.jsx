@@ -37,7 +37,7 @@ function Cart() {
 
   const loadCustomers = () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/customer/list", {
+    fetch("/api/customer/list", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,14 +56,14 @@ function Cart() {
     const token = localStorage.getItem("token");
 
     const productsPromise = fetch(
-      "http://localhost:8080/api/product/getAllActive",
+      "/api/product/getAllActive",
       {
         method: "GET",
         headers: { Authorization: "Bearer " + token },
       },
     ).then((res) => res.json());
 
-    const pricesPromise = fetch("http://localhost:8080/api/price/list", {
+    const pricesPromise = fetch("/api/price/list", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -119,7 +119,7 @@ function Cart() {
     const token = localStorage.getItem("token");
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8080/api/cart/getCart", {
+      const response = await fetch("/api/cart/getCart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -210,7 +210,7 @@ function Cart() {
     setSaving(true);
     try {
       const response = await fetch(
-        "http://localhost:8080/api/cartEntry/addEntry",
+        "/api/cartEntry/addEntry",
         {
           method: "POST",
           headers: {
@@ -244,7 +244,7 @@ function Cart() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "http://localhost:8080/api/cartEntry/addEntry",
+        "/api/cartEntry/addEntry",
         {
           method: "POST",
           headers: {
@@ -271,7 +271,7 @@ function Cart() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:8080/api/cartEntry/deleteEntry?identifier=${entry.identifier}`,
+        `/api/cartEntry/deleteEntry?identifier=${entry.identifier}`,
         { method: "GET", headers: { Authorization: "Bearer " + token } },
       );
       if (response.status === 401) {
@@ -293,7 +293,7 @@ function Cart() {
     try {
       for (const entry of entries) {
         await fetch(
-          `http://localhost:8080/api/cartEntry/deleteEntry?identifier=${entry.identifier}`,
+          `/api/cartEntry/deleteEntry?identifier=${entry.identifier}`,
           { method: "GET", headers: { Authorization: "Bearer " + token } },
         );
       }
@@ -311,7 +311,7 @@ function Cart() {
     setPlacing(true);
     try {
       const response = await fetch(
-        "http://localhost:8080/api/order/placeOrder",
+        "/api/order/placeOrder",
         {
           method: "POST",
           headers: {

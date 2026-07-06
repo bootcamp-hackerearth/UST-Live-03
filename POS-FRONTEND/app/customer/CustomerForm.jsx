@@ -404,8 +404,8 @@ function CustomerForm({
 
   const getRequestConfig = () => ({
     url: isEdit
-      ? "http://localhost:8080/api/customer/update"
-      : "http://localhost:8080/api/customer/add",
+      ? "/api/customer/update"
+      : "/api/customer/add",
     method: isEdit ? "PUT" : "POST",
   });
 

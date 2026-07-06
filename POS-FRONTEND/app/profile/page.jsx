@@ -24,7 +24,7 @@ function Profile() {
   const fetchProfile = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:8080/api/user/profile", {
+      const response = await fetch("/api/user/profile", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -38,7 +38,7 @@ function Profile() {
 
   const fetchRoles = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/role/list", {
+      const response = await fetch("/api/role/list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ page: 0, sizePerPage: 100 }),
@@ -100,7 +100,7 @@ function Profile() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/user/update", {
+      const response = await fetch("/api/user/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

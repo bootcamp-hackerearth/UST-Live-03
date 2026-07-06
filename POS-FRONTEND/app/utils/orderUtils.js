@@ -17,19 +17,19 @@ export const apiFetch = async (url, token, options = {}) => {
 };
 
 export const fetchProducts = (token) =>
-  apiFetch("http://localhost:8080/api/product/list", token, {
+  apiFetch("/api/product/list", token, {
     method: "POST",
     body: JSON.stringify({ page: 0, sizePerPage: 500 }),
   });
 
 export const fetchCustomers = (token) =>
-  apiFetch("http://localhost:8080/api/customer/list", token, {
+  apiFetch("/api/customer/list", token, {
     method: "POST",
     body: JSON.stringify({ page: 0, sizePerPage: 500 }),
   });
 
 export const fetchOrders = (token) =>
-  apiFetch("http://localhost:8080/api/order/list", token, { method: "GET" });
+  apiFetch("/api/order/list", token, { method: "GET" });
 
 export const getCustomerName = (customers, identifier) =>
   customers.find((c) => c.identifier === identifier)?.name || identifier;
