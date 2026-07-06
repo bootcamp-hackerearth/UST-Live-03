@@ -95,7 +95,7 @@ export default function POSPage() {
   const fetchCurrentCart = async (customerId, currentProductsList = products) => {
     if (!customerId) return;
 
-    const res = await safeFetch('http://localhost:8080/api/cart/list', {
+    const res = await safeFetch('/api/cart/list', {
       method: 'POST',
       body: JSON.stringify({ identifier: customerId })
     });
@@ -116,7 +116,7 @@ export default function POSPage() {
   }, [displayOriginalPrice, displayTotalPrice]);
 
   useEffect(() => {
-    safeFetch('http://localhost:8080/api/warehouse/findByStatus')
+    safeFetch('/api/warehouse/findByStatus')
       .then(data => {
         if (data && data.length > 0) {
           setWarehouses(data);
@@ -124,7 +124,7 @@ export default function POSPage() {
         }
       });
 
-    safeFetch('http://localhost:8080/api/product/findByStatus')
+    safeFetch('/api/product/findByStatus')
       .then(async (baseProducts) => {
         if (!baseProducts || baseProducts.length === 0) return;
 
@@ -132,7 +132,7 @@ export default function POSPage() {
           baseProducts.map(async (product) => {
             const priceLookupKey = product.name || product.identifier;
             const priceRes = await safeFetch(
-              `http://localhost:8080/api/price/findByProduct?productIdentifier=${encodeURIComponent(priceLookupKey)}`
+              `/api/price/findByProduct?productIdentifier=${encodeURIComponent(priceLookupKey)}`
             );
             const verifiedPrice = priceRes?.selling_price || priceRes?.sellingPrice || 0;
             return { ...product, sellingPrice: verifiedPrice };
@@ -155,7 +155,7 @@ export default function POSPage() {
         phoneNo: isNumeric ? customerSearchInput : ""
       };
 
-      const filteredResults = await safeFetch('http://localhost:8080/api/customer/search', {
+      const filteredResults = await safeFetch('/api/customer/search', {
         method: 'POST',
         body: JSON.stringify(searchCriteria)
       });
@@ -205,7 +205,7 @@ export default function POSPage() {
     };
 
     try {
-      const res = await fetch('http://localhost:8080/api/customer/add', {
+      const res = await fetch('/api/customer/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
