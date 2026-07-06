@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function POST(req) {
   try {
     const body = await req.json();
-    const backendResponse = await fetch("http://localhost:8080/api/authenticate",
+    const backendResponse = await fetch("/api/authenticate",
       {method: "POST", headers: {"Content-Type": "application/json"},body: JSON.stringify(body),});
 
     if (!backendResponse.ok) {
