@@ -46,7 +46,7 @@ export default function RegisterForm({ roles = [] }) {
       const { userCredential, ...rest } = form;
       const payload = { ...rest, password: userCredential };
 
-      const res = await fetch("http://localhost:8080/api/user/register", {
+      const res = await fetch("/api/user/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
