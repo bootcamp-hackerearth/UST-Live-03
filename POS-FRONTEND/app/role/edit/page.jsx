@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Layout from "../../Components/Layout";
 import CommonEdit from "../../Components/CommonEdit";
 
@@ -8,11 +9,10 @@ export default function EditRole() {
     {
       key: "description",
       label: "Description",
-      type: "textarea", 
+      type: "textarea",
       placeholder: "Enter role description",
       required: false,
     },
-    
     {
       key: "status",
       label: "Status",
@@ -20,29 +20,23 @@ export default function EditRole() {
       valueType: "boolean",
       required: true,
       options: [
-        {
-          label: "Active",
-          value: "true",
-        },
-        {
-          label: "Inactive",
-          value: "false",
-        },
+        { label: "Active", value: "true" },
+        { label: "Inactive", value: "false" },
       ],
     },
   ];
 
   return (
     <Layout>
-      <CommonEdit
-        title="Role"
-        apiPath="role"
-        identifierField="identifier"
-        extraFields={extraFields}
-        onSuccessPath="/role/list"
-        showIdentifierDescription={true}
-
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <CommonEdit
+          title="Role"
+          apiPath="role"
+          identityField="identifier"
+          extraFields={extraFields}
+          onSuccessPath="/role/list"
+        />
+      </Suspense>
     </Layout>
   );
 }

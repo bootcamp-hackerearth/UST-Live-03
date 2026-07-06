@@ -1,6 +1,6 @@
 "use client";
  
-import React from "react";
+import React, { Suspense} from "react";
 import Layout from "../../Components/Layout";
 import CommonEdit from "../../Components/CommonEdit";
  
@@ -38,13 +38,15 @@ export default function EditBrand() {
  
   return (
     <Layout>
-      <CommonEdit
-        title="Brand"
-        apiPath="brand"
-        fields={fields}
-        identifierField="identifier"
-        onSuccessPath="/brand/list"
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <CommonEdit
+          title="Brand"
+          apiPath="brand"
+          extraFields={fields}
+          identityField="identifier"
+          onSuccessPath="/brand/list"
+        />
+      </Suspense>
     </Layout>
   );
 }
