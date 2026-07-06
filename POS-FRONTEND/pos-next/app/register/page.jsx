@@ -22,22 +22,24 @@ function Register() {
 
   useEffect(() => { fetchRoles(); }, []);
 
-  const fetchRoles = async () => {
-    try {
-      const res = await axios.post("/api/role/list",
-        {
-          page: 0,
-          sizePerPage: 10,
-          sortDirection: "ASC",
-          sortField: "identifier",
-        }
-      );
+ const fetchRoles = async () => {
+  try {
+    const res = await axios.post("/api/role/list", {
+      page: 0,
+      sizePerPage: 10,
+      sortDirection: "ASC",
+      sortField: "identifier",
+    });
 
-      setRolesList(res.data.dtoList || []);
-    } catch (err) {
-      console.error("Failed to load roles", err);
-    }
-  };
+    console.log("API Response:", res.data);
+    console.log("Roles:", res.data.dtoList);
+
+    setRolesList(res.data.dtoList || []);
+  } catch (err) {
+    console.error("Failed to load roles", err);
+    console.error("Response:", err.response?.data);
+  }
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;
