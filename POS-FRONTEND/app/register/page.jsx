@@ -111,7 +111,7 @@ export default function Register() {
     try {
       const url = editMode
         ? "http://localhost:8080/api/user/update"
-        : "http://localhost:8080/api/user/register";
+        : "/api/user/register";
 
       const res = await axios.post(url, { ...user });
 
