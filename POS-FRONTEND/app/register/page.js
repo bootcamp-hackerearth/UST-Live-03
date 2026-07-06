@@ -98,7 +98,7 @@ function Register() {
 
     try {
       const response = await axios.post(
-        "/register",
+        "/api/register",
         {
           username,
           name,
