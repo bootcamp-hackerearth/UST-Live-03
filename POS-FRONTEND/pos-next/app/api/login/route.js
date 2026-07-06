@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 
+const BASE_URL = "";
+
 export async function POST(req) {
   try {
     const body = await req.json();
-    const backendResponse = await fetch("/api/authenticate",
+    const backendResponse = await fetch(BASE_URL + "/api/authenticate",
       {method: "POST", headers: {"Content-Type": "application/json"},body: JSON.stringify(body),});
 
     if (!backendResponse.ok) {
