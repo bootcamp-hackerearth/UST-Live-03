@@ -21,7 +21,7 @@ const Layout = ({ children, username, onLogout }) => {
       console.log("Fetching nodes with token:", token);
 
       const response = await fetch(
-        "http://localhost:8080/api/node/getAll",
+        "/api/node/getAll",
         {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
