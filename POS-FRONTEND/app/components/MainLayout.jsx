@@ -18,7 +18,7 @@ const MainLayout = ({ children }) => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:8080/api/node/menu",
+        "http://16.176.196.182:8080/api/node/menu",
         {
           headers: {
             Authorization: `Bearer ${token}`,
