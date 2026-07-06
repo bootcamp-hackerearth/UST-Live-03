@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -99,5 +100,20 @@ public class ModelProductServiceImpl extends CommonService implements ModelProdu
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
         return modelMapper.map(modelProductRepository.findByStatusTrueAndIsDeletedFalse(), listType);
+    }
+
+    @Override
+    public WsDto<ModelProductDto> findAll(Specification<ModelProduct> example, Pageable pageable, String keyword) {
+        Type listType = new TypeToken<List<ModelProductDto>>() {
+        }.getType();
+        Page<ModelProduct> page = modelProductRepository.findAll(example, pageable);
+        WsDto<ModelProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        wsDto.setKeyword(keyword);
+        return wsDto;
     }
 }

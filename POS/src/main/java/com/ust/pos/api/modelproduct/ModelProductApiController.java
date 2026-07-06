@@ -4,8 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
+import com.ust.pos.model.ModelProduct;
 import com.ust.pos.modelproduct.service.ModelProductService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +27,15 @@ public class ModelProductApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<ModelProductDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<ModelProductDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<ModelProduct> example = buildGlobalSearchSpec(ModelProduct.class, paginationDto.getKeyword());
+            if (example != null) {
+                return modelProductService.findAll(example, pageable, paginationDto.getKeyword());
+            }
+        }
         return modelProductService.findAll(pageable);
-
     }
 
     @PostMapping("/add")

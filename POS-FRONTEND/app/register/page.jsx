@@ -18,7 +18,7 @@ function Register() {
 
   async function fetchRoles() {
     try {
-      const response = await fetch("http://localhost:8080/api/role/list", {
+      const response = await fetch("/api/role/list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ page: 0, sizePerPage: 100 }),

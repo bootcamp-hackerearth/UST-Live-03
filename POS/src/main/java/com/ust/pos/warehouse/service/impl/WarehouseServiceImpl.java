@@ -1,10 +1,8 @@
 package com.ust.pos.warehouse.service.impl;
 import com.ust.pos.CommonService;
-import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
-import com.ust.pos.model.Customer;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;

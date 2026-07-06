@@ -7,16 +7,17 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const PUBLIC_ROUTES = new Set(["/login", "/register"]);
+const ERROR_ROUTES = new Set(["/error"]);
 
 export default function RootLayout({ children }) {
   const path = usePathname();
   const router = useRouter();
-  const showLayout = !PUBLIC_ROUTES.has(path);
+  const showLayout = !PUBLIC_ROUTES.has(path) && !ERROR_ROUTES.has(path);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token && !PUBLIC_ROUTES.has(path)) {
+    if (!token && !PUBLIC_ROUTES.has(path) && !ERROR_ROUTES.has(path)) {
       router.replace("/login");
     }
   }, [path, router]);
@@ -29,13 +30,16 @@ export default function RootLayout({ children }) {
         const url =
           typeof args[0] === "string" ? args[0] : (args[0]?.url ?? "");
         const isAuthCall = url.includes("/api/authenticate");
-        if (
-          !isAuthCall &&
-          (response.status === 401 || response.status === 403)
-        ) {
-          localStorage.removeItem("token");
-          router.replace("/login");
+
+        if (!isAuthCall) {
+          if (response.status === 401) {
+            localStorage.removeItem("token");
+            router.replace("/login");
+          } else if (response.status === 403) {
+            router.replace("/error?status=403");
+          }
         }
+
         return response;
       } catch (error) {
         console.error("Server Error:", error.message);
