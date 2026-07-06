@@ -124,7 +124,7 @@ export default function Register() {
     if (!validateForm()) return;
 
     try {
-      await axios.post("http://localhost:8080/api/user/register", {
+      await axios.post("/api/user/register", {
         username: formData.username,
         name: formData.name,
         phoneNo: formData.phoneNo,
