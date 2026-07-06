@@ -14,7 +14,7 @@ public class SecurityApiController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
+    @PostMapping("/api/register")
     public UserDto addPost(@RequestBody UserDto userDto) {
         return userService.save(userDto);
     }
