@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
 });
 axiosInstance.interceptors.request.use(
   (config) => {
-    if ( globalThis.window != "undefined") {
+    if ( globalThis.window !== "undefined") {
       const token = localStorage.getItem("token");
 
       if (token) {
