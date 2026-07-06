@@ -45,12 +45,12 @@ const handleChange = (e) => {
   if (name === "phoneNo") {
     setUser({
       ...user,
-      value.replace(/\D/g, ""),
+      phoneNo: value.replace(/\D/g, ""),
     });
   } else {
     setUser({
       ...user,
-      value,
+      [name]: value,
     });
   }
 
