@@ -76,7 +76,7 @@ export default function Profile() {
   const fetchRoles = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/role/list",
+        "/api/role/list",
         {
           page: 0,
           sizePerPage: 50,
@@ -115,7 +115,7 @@ export default function Profile() {
   const handleUpdate = async () => {
     try {
       await axios.post(
-        "http://localhost:8080/api/user/update",
+        "/api/user/update",
         formData,
         {
           params: { oldUsername: originalData.username },
