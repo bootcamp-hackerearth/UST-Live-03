@@ -4,7 +4,7 @@ export default function middleware(request) {
  
   const token = request.cookies.get("token")?.value;
  
-  const publicPaths = ["/login", "/register"];
+  const publicPaths = ["/login", "/register", "/auth"];
  
   const isPublic = publicPaths.some(path =>
     request.nextUrl.pathname.startsWith(path)

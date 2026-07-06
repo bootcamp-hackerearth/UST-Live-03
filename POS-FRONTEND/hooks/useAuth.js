@@ -10,7 +10,7 @@ export default function useAuth() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const res = await fetch("/api/authCheck");
+      const res = await fetch("/auth/authCheck");
 
       if (!res.ok) {
         if (currentPath !== "/register") {

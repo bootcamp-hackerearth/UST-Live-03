@@ -13,7 +13,7 @@ const Navbar = () => {
   }, [])
 
   const handleLogout = async () => {
-    await fetch("/api/logout",{method:"POST"})
+    await fetch("/auth/logout",{method:"POST"})
     localStorage.removeItem("username")
     router.push("/login")
   }

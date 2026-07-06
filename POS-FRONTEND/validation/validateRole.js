@@ -10,7 +10,7 @@ export const validateRole = async (url) => {
     const res = await axios.get(`/user/get?username=${username}`);
     const roles = res.data.roles || []
 
-    const response = await fetch("/api/roleValidation", {
+    const response = await fetch("/auth/roleValidation", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
