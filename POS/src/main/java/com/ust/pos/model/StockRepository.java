@@ -2,6 +2,7 @@ package com.ust.pos.model;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,5 +19,7 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
     Page<Stock> findAllByDeletedFalse(Pageable pageable);
 
-    Stock findByProductAndDeletedFalse(String product);
+    Page<Stock> findAll(Specification<Stock> example, Pageable pageable);
+
+
 }

@@ -10,7 +10,7 @@ import java.time.ZoneId;
 
 @Service
 public class BaseService {
-    LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+
 
     private String getLoggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -18,6 +18,7 @@ public class BaseService {
     }
 
     public void setCreatedDetails(CommonFields entity) {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
         entity.setCreatedBy(getLoggedInUser());
         entity.setCreatedOn(now);
         entity.setModifiedBy(getLoggedInUser());
@@ -26,7 +27,7 @@ public class BaseService {
 
     public void setModifiedDetails(CommonFields entity) {
         entity.setModifiedBy(getLoggedInUser());
-        entity.setModifiedOn(now);
+        entity.setModifiedOn(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
     }
 
     public void softDelete(CommonFields entity) {

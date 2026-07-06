@@ -4,9 +4,12 @@ import com.ust.pos.base.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Price;
 import com.ust.pos.price.service.PriceService;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +22,12 @@ public class PriceControllerApi extends BaseController {
     @PostMapping("/list")
     public WsDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Price> example = buildGlobalSearchSpec(Price.class, paginationDto.getKeyword());
+            if (example != null) {
+                return priceService.findAll(example, pageable);
+            }
+        }
         return priceService.findAll(pageable);
     }
 

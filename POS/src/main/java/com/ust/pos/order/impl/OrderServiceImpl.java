@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -126,5 +127,22 @@ public class OrderServiceImpl extends BaseService implements OrderService {
         orderEntryRepository.deleteByOrderIdentifier(identifier);
         orderRepository.deleteByIdentifier(identifier);
         return true;
+    }
+
+    @Override
+    public WsDto<OrderDto> findAll(Specification<Order> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<OrderDto>>() {
+        }.getType();
+        Page<Order> page = orderRepository.findAll(example, pageable);
+
+        WsDto<OrderDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

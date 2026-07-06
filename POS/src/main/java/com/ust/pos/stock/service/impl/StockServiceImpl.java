@@ -3,10 +3,7 @@ package com.ust.pos.stock.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Product;
-import com.ust.pos.model.ProductRepository;
-import com.ust.pos.model.Stock;
-import com.ust.pos.model.StockRepository;
+import com.ust.pos.model.*;
 import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -105,5 +103,22 @@ public class StockServiceImpl extends BaseService implements StockService {
     @Override
     public StockDto findByIdentifier(String identifier) {
         return modelMapper.map(stockRepository.findByIdentifierAndDeletedFalse(identifier), StockDto.class);
+    }
+
+    @Override
+    public WsDto<StockDto> findAll(Specification<Stock> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Stock> page = stockRepository.findAll(example, pageable);
+
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }
