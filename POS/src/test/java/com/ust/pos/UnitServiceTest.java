@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -83,7 +85,7 @@ class UnitServiceTest {
 
         Assertions.assertEquals("KG", response.getIdentifier());
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Models with identifier - KG was deleted , Please Contact the Administrator to add.", response.getMessage());
+        Assertions.assertEquals("Unit with identifier - KG was deleted , Please Contact the Administrator to add.", response.getMessage());
         Mockito.verify(unitRepository, Mockito.never()).save(Mockito.any());
     }
 
@@ -154,12 +156,21 @@ class UnitServiceTest {
         Unit unit = new Unit();
         UnitDto unitDto = new UnitDto();
 
-        Mockito.when(unitRepository.findByIdentifier("KG")).thenReturn(unit);
+        Mockito.when(unitRepository.findByIdentifierAndIsDeletedFalse("KG")).thenReturn(unit);
         Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(unitDto);
 
         UnitDto response = unitService.findByIdentifier("KG");
 
         Assertions.assertNotNull(response);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(unitRepository.findByIdentifierAndIsDeletedFalse("KG")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            unitService.findByIdentifier("KG");
+        });
     }
 
     @Test
@@ -198,5 +209,26 @@ class UnitServiceTest {
         unitService.toggleStatus("KG");
 
         Mockito.verify(unitRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findAllSpecificationSuccessTest() {
+        Unit unit = new Unit();
+        List<Unit> unitList = List.of(unit);
+
+        UnitDto dto = new UnitDto();
+        List<UnitDto> unitDtos = List.of(dto);
+
+        Page<Unit> page = new PageImpl<>(unitList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Unit> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(unitRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(unitList), Mockito.any(Type.class))).thenReturn(unitDtos);
+
+        WsDto<UnitDto> result = unitService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 }

@@ -3,12 +3,10 @@ package com.ust.pos;
 import com.ust.pos.cartEntry.service.impl.CartEntryServiceImpl;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
-import com.ust.pos.model.Cart;
-import com.ust.pos.model.CartEntry;
-import com.ust.pos.model.CartEntryRepository;
-import com.ust.pos.model.CartRepository;
+import com.ust.pos.model.*;
 import com.ust.pos.price.service.PriceService;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,6 +44,19 @@ class CartEntryServiceTest {
     @Mock
     private CartRepository cartRepository;
 
+    @Mock
+    private ProductRepository productRepository;
+
+    private Product mockProduct;
+    private final String expectedPriceId = "PROD1-Product Name";
+
+    @BeforeEach
+    void setUp() {
+        mockProduct = new Product();
+        mockProduct.setIdentifier("PROD1");
+        mockProduct.setName("Product Name");
+    }
+
     @Test
     void findByIdentifierSuccessTest() {
         CartEntry cartEntry = new CartEntry();
@@ -76,9 +87,10 @@ class CartEntryServiceTest {
         PriceDto mrpDto = new PriceDto();
         mrpDto.setPriceAmount(new BigDecimal("120"));
 
+        Mockito.when(productRepository.findByIdentifier("PROD1")).thenReturn(mockProduct);
         Mockito.when(cartEntryRepository.findByIdentifier("CART1_PROD1")).thenReturn(null);
-        Mockito.when(priceService.findByProductAndPriceType("PROD1", "Selling price")).thenReturn(sellingPriceDto);
-        Mockito.when(priceService.findByProductAndPriceType("PROD1", "MRP")).thenReturn(mrpDto);
+        Mockito.when(priceService.findByProductAndPriceType(expectedPriceId, "Selling price")).thenReturn(sellingPriceDto);
+        Mockito.when(priceService.findByProductAndPriceType(expectedPriceId, "MRP")).thenReturn(mrpDto);
 
         CartEntry cartEntry = new CartEntry();
         Mockito.when(modelMapper.map(cartEntryDto, CartEntry.class)).thenReturn(cartEntry);
@@ -112,9 +124,10 @@ class CartEntryServiceTest {
         PriceDto mrpDto = new PriceDto();
         mrpDto.setPriceAmount(new BigDecimal("120"));
 
+        Mockito.when(productRepository.findByIdentifier("PROD1")).thenReturn(mockProduct);
         Mockito.when(cartEntryRepository.findByIdentifier("CART1_PROD1")).thenReturn(existingCartEntry);
-        Mockito.when(priceService.findByProductAndPriceType("PROD1", "Selling price")).thenReturn(sellingPriceDto);
-        Mockito.when(priceService.findByProductAndPriceType("PROD1", "MRP")).thenReturn(mrpDto);
+        Mockito.when(priceService.findByProductAndPriceType(expectedPriceId, "Selling price")).thenReturn(sellingPriceDto);
+        Mockito.when(priceService.findByProductAndPriceType(expectedPriceId, "MRP")).thenReturn(mrpDto);
 
         Cart cart = new Cart();
         Mockito.when(cartRepository.findByIdentifier("CART1")).thenReturn(cart);
@@ -133,8 +146,9 @@ class CartEntryServiceTest {
         cartEntryDto.setProduct("PROD1");
         cartEntryDto.setQuantity(new BigDecimal("2"));
 
+        Mockito.when(productRepository.findByIdentifier("PROD1")).thenReturn(mockProduct);
         Mockito.when(cartEntryRepository.findByIdentifier("CART1_PROD1")).thenReturn(null);
-        Mockito.when(priceService.findByProductAndPriceType("PROD1", "MRP")).thenThrow(new IllegalArgumentException());
+        Mockito.when(priceService.findByProductAndPriceType(expectedPriceId, "MRP")).thenThrow(new IllegalArgumentException());
 
         CartEntryDto response = cartEntryService.save(cartEntryDto);
 
@@ -213,15 +227,16 @@ class CartEntryServiceTest {
         PriceDto mrpDto = new PriceDto();
         mrpDto.setPriceAmount(new BigDecimal("60"));
 
+        Mockito.when(productRepository.findByIdentifier("PROD1")).thenReturn(mockProduct);
         Mockito.when(cartEntryRepository.findByIdentifier("CART1_PROD1")).thenReturn(null);
-        Mockito.when(priceService.findByProductAndPriceType("PROD1", "Selling price")).thenReturn(sellingPriceDto);
-        Mockito.when(priceService.findByProductAndPriceType("PROD1", "MRP")).thenReturn(mrpDto);
+        Mockito.when(priceService.findByProductAndPriceType(expectedPriceId, "Selling price")).thenReturn(sellingPriceDto);
+        Mockito.when(priceService.findByProductAndPriceType(expectedPriceId, "MRP")).thenReturn(mrpDto);
+
+        Cart entryCart = new Cart();
+        Mockito.when(cartRepository.findByIdentifier("CART1")).thenReturn(entryCart);
 
         CartEntry cartEntry = new CartEntry();
         Mockito.when(modelMapper.map(cartEntryDto, CartEntry.class)).thenReturn(cartEntry);
-
-        Cart cart = new Cart();
-        Mockito.when(cartRepository.findByIdentifier("CART1")).thenReturn(cart);
 
         CartEntryDto response = cartEntryService.updateQuantity(cartEntryDto);
 

@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -159,13 +161,22 @@ class BrandServiceTest {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("BR1");
 
-        Mockito.when(brandRepository.findByIdentifier("BR1")).thenReturn(brand);
+        Mockito.when(brandRepository.findByIdentifierAndIsDeletedFalse("BR1")).thenReturn(brand);
         Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);
 
         BrandDto response = brandService.findByIdentifier("BR1");
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals("BR1", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(brandRepository.findByIdentifierAndIsDeletedFalse("BR1")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            brandService.findByIdentifier("BR1");
+        });
     }
 
     @Test
@@ -204,5 +215,26 @@ class BrandServiceTest {
         brandService.toggleStatus("BR1");
 
         Mockito.verify(brandRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findAllSpecificationSuccessTest() {
+        Brand brand = new Brand();
+        List<Brand> brandList = List.of(brand);
+
+        BrandDto dto = new BrandDto();
+        List<BrandDto> brandDtos = List.of(dto);
+
+        Page<Brand> page = new PageImpl<>(brandList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Brand> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(brandRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(brandList), Mockito.any(Type.class))).thenReturn(brandDtos);
+
+        WsDto<BrandDto> result = brandService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 }

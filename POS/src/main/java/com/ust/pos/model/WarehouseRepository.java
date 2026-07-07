@@ -16,4 +16,5 @@ public interface WarehouseRepository extends JpaRepository<Warehouse, Long> {
 
     Page<Warehouse> findAll(Specification<Warehouse> example, Pageable pageable);
 
+    Warehouse findByIdentifierAndIsDeletedFalse(String identifier);
 }

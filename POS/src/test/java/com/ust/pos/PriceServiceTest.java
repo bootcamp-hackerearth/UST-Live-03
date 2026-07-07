@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -158,12 +160,21 @@ class PriceServiceTest {
         Price price = new Price();
         PriceDto priceDto = new PriceDto();
 
-        Mockito.when(priceRepository.findByIdentifier("PROD1_MRP")).thenReturn(price);
+        Mockito.when(priceRepository.findByIdentifierAndIsDeletedFalse("PROD1_MRP")).thenReturn(price);
         Mockito.when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
 
         PriceDto response = priceService.findByIdentifier("PROD1_MRP");
 
         Assertions.assertNotNull(response);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(priceRepository.findByIdentifierAndIsDeletedFalse("PROD1_MRP")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            priceService.findByIdentifier("PROD1_MRP");
+        });
     }
 
     @Test
@@ -178,5 +189,26 @@ class PriceServiceTest {
 
         Assertions.assertNotNull(response);
         verify(priceRepository).findByProductAndPriceType("PROD1", "MRP");
+    }
+
+    @Test
+    void findAllSpecificationSuccessTest() {
+        Price price = new Price();
+        List<Price> priceList = List.of(price);
+
+        PriceDto dto = new PriceDto();
+        List<PriceDto> priceDtos = List.of(dto);
+
+        Page<Price> page = new PageImpl<>(priceList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Price> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(priceRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(priceList), Mockito.any(Type.class))).thenReturn(priceDtos);
+
+        WsDto<PriceDto> result = priceService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 }

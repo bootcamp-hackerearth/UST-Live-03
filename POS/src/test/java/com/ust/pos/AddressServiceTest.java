@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.address.service.impl.AddressServiceImpl;
 import com.ust.pos.dto.AddressDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import org.junit.jupiter.api.Assertions;
@@ -133,13 +134,22 @@ class AddressServiceTest {
         AddressDto addressDto = new AddressDto();
         addressDto.setIdentifier("ADDR1");
 
-        Mockito.when(addressRepository.findByIdentifier("ADDR1")).thenReturn(address);
+        Mockito.when(addressRepository.findByIdentifierAndIsDeletedFalse("ADDR1")).thenReturn(address);
         Mockito.when(modelMapper.map(address, AddressDto.class)).thenReturn(addressDto);
 
         AddressDto response = addressService.findByIdentifier("ADDR1");
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals("ADDR1", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(addressRepository.findByIdentifierAndIsDeletedFalse("ADDR1")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            addressService.findByIdentifier("ADDR1");
+        });
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -43,13 +45,22 @@ class RoleServiceTest {
         RoleDto roleDto = new RoleDto();
         roleDto.setIdentifier("ROLE_USER");
 
-        Mockito.when(roleRepository.findByIdentifier("ROLE_USER")).thenReturn(role);
+        Mockito.when(roleRepository.findByIdentifierAndIsDeletedFalse("ROLE_USER")).thenReturn(role);
         Mockito.when(modelMapper.map(role, RoleDto.class)).thenReturn(roleDto);
 
         RoleDto response = roleService.findByIdentifier("ROLE_USER");
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals("ROLE_USER", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(roleRepository.findByIdentifierAndIsDeletedFalse("ROLE_USER")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            roleService.findByIdentifier("ROLE_USER");
+        });
     }
 
     @Test
@@ -161,6 +172,27 @@ class RoleServiceTest {
         Mockito.when(modelMapper.map(Mockito.eq(roleList), Mockito.any(Type.class))).thenReturn(roleDtos);
 
         WsDto<RoleDto> result = roleService.findAll(pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+    }
+
+    @Test
+    void findAllSpecificationSuccessTest() {
+        Role role = new Role();
+        List<Role> roleList = List.of(role);
+
+        RoleDto dto = new RoleDto();
+        List<RoleDto> roleDtos = List.of(dto);
+
+        Page<Role> page = new PageImpl<>(roleList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Role> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(roleRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(roleList), Mockito.any(Type.class))).thenReturn(roleDtos);
+
+        WsDto<RoleDto> result = roleService.findAll(specification, pageable);
 
         Assertions.assertEquals(1, result.getDtoList().size());
         Assertions.assertEquals(1, result.getTotalRecords());

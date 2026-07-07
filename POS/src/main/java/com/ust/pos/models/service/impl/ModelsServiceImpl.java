@@ -3,6 +3,7 @@ package com.ust.pos.models.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
@@ -89,7 +90,11 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
-        return modelMapper.map(modelsRepository.findByIdentifier(identifier), ModelsDto.class);
+        Models models = modelsRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if (models == null) {
+            throw new ResourceNotFoundException("Models with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(models, ModelsDto.class);
     }
 
     @Override

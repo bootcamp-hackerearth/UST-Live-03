@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.impl.RacksServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -83,7 +85,7 @@ class RacksServiceTest {
 
         Assertions.assertEquals("RACK1", response.getIdentifier());
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Models with identifier - RACK1 was deleted , Please Contact the Administrator to add.", response.getMessage());
+        Assertions.assertEquals("Racks with identifier - RACK1 was deleted , Please Contact the Administrator to add.", response.getMessage());
         Mockito.verify(racksRepository, Mockito.never()).save(Mockito.any());
     }
 
@@ -139,13 +141,22 @@ class RacksServiceTest {
         RacksDto racksDto = new RacksDto();
         racksDto.setIdentifier("RACK1");
 
-        Mockito.when(racksRepository.findByIdentifier("RACK1")).thenReturn(racks);
+        Mockito.when(racksRepository.findByIdentifierAndIsDeletedFalse("RACK1")).thenReturn(racks);
         Mockito.when(modelMapper.map(racks, RacksDto.class)).thenReturn(racksDto);
 
         RacksDto response = racksService.findByIdentifier("RACK1");
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals("RACK1", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(racksRepository.findByIdentifierAndIsDeletedFalse("RACK1")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            racksService.findByIdentifier("RACK1");
+        });
     }
 
     @Test
@@ -214,5 +225,26 @@ class RacksServiceTest {
         racksService.toggleStatus("RACK1");
 
         Mockito.verify(racksRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findAllSpecificationSuccessTest() {
+        Racks racks = new Racks();
+        List<Racks> racksList = List.of(racks);
+
+        RacksDto dto = new RacksDto();
+        List<RacksDto> racksDtos = List.of(dto);
+
+        Page<Racks> page = new PageImpl<>(racksList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Racks> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(racksRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(racksList), Mockito.any(Type.class))).thenReturn(racksDtos);
+
+        WsDto<RacksDto> result = racksService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 }

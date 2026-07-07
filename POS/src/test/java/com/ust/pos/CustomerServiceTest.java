@@ -7,6 +7,7 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
@@ -152,6 +153,7 @@ class CustomerServiceTest {
         verify(customerRepository).save(existingCustomer);
         verify(addressService, Mockito.times(2)).update(Mockito.any(AddressDto.class));
     }
+
     @Test
     void updateFailureNotFoundTest() {
         CustomerDto customerDto = new CustomerDto();
@@ -194,12 +196,36 @@ class CustomerServiceTest {
     }
 
     @Test
+    void findByIdentifierSuccessTest() {
+        Customer customer = new Customer();
+        CustomerDto customerDto = new CustomerDto();
+        customerDto.setIdentifier("CUST1");
+
+        Mockito.when(customerRepository.findByIdentifierAndIsDeletedFalse("CUST1")).thenReturn(customer);
+        Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
+
+        CustomerDto response = customerService.findByIdentifier("CUST1");
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("CUST1", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(customerRepository.findByIdentifierAndIsDeletedFalse("CUST1")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            customerService.findByIdentifier("CUST1");
+        });
+    }
+
+    @Test
     void findByIdentifierWithAddressDtoSuccessTest() {
         Customer customer = new Customer();
         CustomerDto customerDto = new CustomerDto();
         customerDto.setIdentifier("CUST1");
 
-        Mockito.when(customerRepository.findByIdentifier("CUST1")).thenReturn(customer);
+        Mockito.when(customerRepository.findByIdentifierAndIsDeletedFalse("CUST1")).thenReturn(customer);
         Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
 
         AddressDto bDto = new AddressDto();

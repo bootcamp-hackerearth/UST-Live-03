@@ -20,4 +20,5 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
 
     Page<Unit> findAll(Specification<Unit> example, Pageable pageable);
 
+    Unit findByIdentifierAndIsDeletedFalse(String identifier);
 }

@@ -3,6 +3,7 @@ package com.ust.pos.shelfs.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.dto.ShelfsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.shelfs.service.ShelfsService;
@@ -87,7 +88,11 @@ public class ShelfsServiceImpl extends BaseService implements ShelfsService {
 
     @Override
     public ShelfsDto findByIdentifier(String identifier) {
-        return modelMapper.map(shelfsRepository.findByIdentifier(identifier), ShelfsDto.class);
+        Shelfs shelfs = shelfsRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if (shelfs == null) {
+            throw new ResourceNotFoundException("Shelfs with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(shelfs, ShelfsDto.class);
     }
 
     @Override

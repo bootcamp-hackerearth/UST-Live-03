@@ -19,4 +19,5 @@ public interface PriceRepository extends JpaRepository<Price, Long> {
 
     Page<Price> findAll(Specification<Price> example, Pageable pageable);
 
+    Price findByIdentifierAndIsDeletedFalse(String identifier);
 }

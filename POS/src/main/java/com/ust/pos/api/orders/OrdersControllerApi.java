@@ -1,5 +1,6 @@
 package com.ust.pos.api.orders;
 
+import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.OrdersDto;
 import com.ust.pos.order.service.OrderService;
 
@@ -9,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/order")
-public class OrdersControllerApi {
+public class OrdersControllerApi extends BaseController {
 
     private final OrderService orderService;
 

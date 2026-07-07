@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.impl.WarehouseServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -155,11 +157,41 @@ class WarehouseServiceTest {
         Warehouse warehouse = new Warehouse();
         WarehouseDto dto = new WarehouseDto();
 
-        Mockito.when(warehouseRepository.findByIdentifier("WH-01")).thenReturn(warehouse);
+        Mockito.when(warehouseRepository.findByIdentifierAndIsDeletedFalse("WH-01")).thenReturn(warehouse);
         Mockito.when(modelMapper.map(warehouse, WarehouseDto.class)).thenReturn(dto);
 
         WarehouseDto result = warehouseService.findByIdentifier("WH-01");
 
         Assertions.assertNotNull(result);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(warehouseRepository.findByIdentifierAndIsDeletedFalse("WH-01")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            warehouseService.findByIdentifier("WH-01");
+        });
+    }
+
+    @Test
+    void findAllSpecificationSuccessTest() {
+        Warehouse warehouse = new Warehouse();
+        List<Warehouse> warehouseList = List.of(warehouse);
+
+        WarehouseDto dto = new WarehouseDto();
+        List<WarehouseDto> warehouseDtos = List.of(dto);
+
+        Page<Warehouse> page = new PageImpl<>(warehouseList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Warehouse> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(warehouseRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(warehouseList), Mockito.any(Type.class))).thenReturn(warehouseDtos);
+
+        WsDto<WarehouseDto> result = warehouseService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 }

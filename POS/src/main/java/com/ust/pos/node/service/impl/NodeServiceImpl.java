@@ -3,6 +3,7 @@ package com.ust.pos.node.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
@@ -63,7 +64,11 @@ public class NodeServiceImpl extends BaseService implements NodeService {
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+        Node node = nodeRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if (node == null) {
+            throw new ResourceNotFoundException("Node with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(node, NodeDto.class);
     }
 
     @Override

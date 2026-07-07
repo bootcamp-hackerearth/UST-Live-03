@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.impl.NodeServiceImpl;
 import org.junit.jupiter.api.AfterEach;
@@ -17,13 +18,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
 import java.lang.reflect.Type;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -51,7 +52,6 @@ class NodeServiceTest {
 
     @Test
     void getNodesForRolesSuccessTest() {
-
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
         Authentication authentication = Mockito.mock(Authentication.class);
         User principal = new User("admin", "password", Collections.emptyList());
@@ -100,13 +100,22 @@ class NodeServiceTest {
         NodeDto nodeDto = new NodeDto();
         nodeDto.setIdentifier("NODE1");
 
-        Mockito.when(nodeRepository.findByIdentifier("NODE1")).thenReturn(node);
+        Mockito.when(nodeRepository.findByIdentifierAndIsDeletedFalse("NODE1")).thenReturn(node);
         Mockito.when(modelMapper.map(node, NodeDto.class)).thenReturn(nodeDto);
 
         NodeDto response = nodeService.findByIdentifier("NODE1");
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals("NODE1", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(nodeRepository.findByIdentifierAndIsDeletedFalse("NODE1")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            nodeService.findByIdentifier("NODE1");
+        });
     }
 
     @Test
@@ -263,5 +272,26 @@ class NodeServiceTest {
 
         Assertions.assertNotNull(response);
         verify(nodeRepository).findByPathAndStatus("/home", true);
+    }
+
+    @Test
+    void findAllSpecificationSuccessTest() {
+        Node node = new Node();
+        List<Node> nodeList = List.of(node);
+
+        NodeDto dto = new NodeDto();
+        List<NodeDto> nodeDtos = List.of(dto);
+
+        Page<Node> page = new PageImpl<>(nodeList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Node> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(nodeRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(nodeList), Mockito.any(Type.class))).thenReturn(nodeDtos);
+
+        WsDto<NodeDto> result = nodeService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 }

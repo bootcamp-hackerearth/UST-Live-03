@@ -10,4 +10,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Page<Customer> findByIsDeletedFalse(Pageable pageable);
     void deleteByIdentifier(String identifier);
     Page<Customer> findAll(Specification<Customer> example, Pageable pageable);
+
+    Customer findByIdentifierAndIsDeletedFalse(String identifier);
 }

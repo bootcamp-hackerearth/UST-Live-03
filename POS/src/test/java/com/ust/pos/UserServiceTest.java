@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -48,7 +50,7 @@ class UserServiceTest {
         UserDto dto = new UserDto();
         dto.setUsername("john");
 
-        Mockito.when(userRepository.findByUsername("john")).thenReturn(user);
+        Mockito.when(userRepository.findByUsernameAndIsDeletedFalse("john")).thenReturn(user);
         Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(dto);
 
         UserDto result = userService.findByUserName("john");
@@ -58,11 +60,11 @@ class UserServiceTest {
 
     @Test
     void findByUserNameFailureTest() {
-        Mockito.when(userRepository.findByUsername("john")).thenReturn(null);
+        Mockito.when(userRepository.findByUsernameAndIsDeletedFalse("john")).thenReturn(null);
 
-        UserDto result = userService.findByUserName("john");
-
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            userService.findByUserName("john");
+        });
     }
 
     @Test
@@ -210,5 +212,26 @@ class UserServiceTest {
         WsDto<UserDto> result = userService.findAll(pageable);
 
         Assertions.assertEquals(2, result.getDtoList().size());
+    }
+
+    @Test
+    void findAllSpecificationSuccessTest() {
+        User user = new User();
+        List<User> userList = List.of(user);
+
+        UserDto dto = new UserDto();
+        List<UserDto> userDtos = List.of(dto);
+
+        Page<User> page = new PageImpl<>(userList, PageRequest.of(0, 10), 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<User> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(userRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(userList), Mockito.any(Type.class))).thenReturn(userDtos);
+
+        WsDto<UserDto> result = userService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
     }
 }

@@ -12,4 +12,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     void deleteByIdentifier(String identifier);
 
     List<Address> findByPhoneNo(String email);
+
+    Address findByIdentifierAndIsDeletedFalse(String identifier);
 }
