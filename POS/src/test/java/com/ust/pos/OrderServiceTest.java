@@ -25,12 +25,16 @@ class OrderServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
+
     @Mock
     private OrderEntryRepository orderEntryRepository;
+
     @Mock
     private CartRepository cartRepository;
+
     @Mock
     private CartEntryRepository cartEntryRepository;
+
     @Mock
     private ModelMapper modelMapper;
 

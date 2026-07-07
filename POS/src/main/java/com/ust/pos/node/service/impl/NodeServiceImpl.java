@@ -109,9 +109,9 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         if (authentication == null) {
             return nodeDtos;
         }
-        if (authentication != null) {
-            org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            if (principalObject != null) findNodes(principalObject, nodeDtos);
+        org.springframework.security.core.userdetails.User principalObject = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        if (principalObject != null) {
+            findNodes(principalObject, nodeDtos);
         }
         return nodeDtos;
     }

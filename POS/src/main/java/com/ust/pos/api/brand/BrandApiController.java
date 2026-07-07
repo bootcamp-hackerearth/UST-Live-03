@@ -71,6 +71,7 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public BrandDto toggleBrandStatus(@RequestBody BrandDto brandDto) {
         return brandService.toggleStatus(brandDto.getIdentifier(), brandDto.isStatus());
     }

@@ -22,12 +22,16 @@ class CartEntryServiceTest {
 
     @InjectMocks
     private CartEntryServiceImpl cartEntryService;
+
     @Mock
     private CartEntryRepository cartEntryRepository;
+
     @Mock
     private ModelMapper modelMapper;
+
     @Mock
     private PriceRepository priceRepository;
+
     @Mock
     private CartService cartService;
 

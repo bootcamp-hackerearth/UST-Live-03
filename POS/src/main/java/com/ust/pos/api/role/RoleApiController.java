@@ -9,6 +9,7 @@ import com.ust.pos.role.service.RoleService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,21 +36,25 @@ public class RoleApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public RoleDto add(@RequestBody RoleDto roleDto) {
         return roleService.save(roleDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public RoleDto get(@RequestParam String identifier) {
         return roleService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public RoleDto update(@RequestBody RoleDto roleDto) {
         return roleService.update(roleDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public boolean delete(@RequestBody RoleDto roleDto) {
         try {
             roleService.delete(roleDto.getIdentifier());
@@ -65,6 +70,7 @@ public class RoleApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public RoleDto toggleStatus(@RequestBody RoleDto roleDto) {
         return roleService.toggleStatus(roleDto.getIdentifier(), roleDto.isStatus());
     }

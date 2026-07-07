@@ -31,14 +31,12 @@ public class BaseController {
                     if (field.getType().equals(String.class) && !field.getName().equalsIgnoreCase("createdBy")
                             && !field.getName().equalsIgnoreCase("modifiedBy")) {
                         orPredicates.add(queryBuilder.like(queryBuilder.lower(root.get(field.getName())),
-                                        "%" + keyword.toLowerCase() + "%"));
+                                "%" + keyword.toLowerCase() + "%"));
                     }
                 }
                 current = current.getSuperclass();
             }
-            // AND condition for deleted = false
             Predicate deletedFalse = queryBuilder.isFalse(root.get("deleted"));
-            // OR block for search fields
             Predicate orBlock = queryBuilder.or(orPredicates.toArray(new Predicate[0]));
             return queryBuilder.and(deletedFalse, orBlock);
         };

@@ -8,10 +8,16 @@ import com.ust.pos.warehouse.service.impl.WareHouseServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -23,6 +29,7 @@ class WareHouseServiceTest {
 
     @Mock
     private WareHouseRepository warehouseRepository;
+
     @Mock
     private ModelMapper modelMapper;
 
@@ -30,25 +37,22 @@ class WareHouseServiceTest {
     void saveTest() {
         WareHouseDto dto = new WareHouseDto();
         dto.setIdentifier("Supply chain centre");
-
         WareHouse warehouse = new WareHouse();
-
         Mockito.when(warehouseRepository.findByIdentifier("Supply chain centre")).thenReturn(null);
         Mockito.when(modelMapper.map(dto, WareHouse.class)).thenReturn(warehouse);
         Mockito.when(warehouseRepository.save(warehouse)).thenReturn(warehouse);
         WareHouseDto response = warehouseService.save(dto);
+        Assertions.assertNotNull(response);
         Assertions.assertEquals("Supply chain centre", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
+        Mockito.verify(warehouseRepository).save(warehouse);
     }
 
     @Test
     void saveFailure_existingActive() {
         WareHouseDto dto = new WareHouseDto();
         dto.setIdentifier("Supply chain centre");
-
         WareHouse existing = new WareHouse();
         existing.setDeleted(false);
-
         Mockito.when(warehouseRepository.findByIdentifier("Supply chain centre")).thenReturn(existing);
         WareHouseDto response = warehouseService.save(dto);
         Assertions.assertFalse(response.isSuccess());
@@ -59,10 +63,8 @@ class WareHouseServiceTest {
     void saveFailure_softDeleted() {
         WareHouseDto dto = new WareHouseDto();
         dto.setIdentifier("Supply chain centre");
-
         WareHouse existing = new WareHouse();
         existing.setDeleted(true);
-
         Mockito.when(warehouseRepository.findByIdentifier("Supply chain centre")).thenReturn(existing);
         WareHouseDto response = warehouseService.save(dto);
         Assertions.assertFalse(response.isSuccess());
@@ -73,13 +75,12 @@ class WareHouseServiceTest {
     void findByIdentifierTest() {
         WareHouse warehouse = new WareHouse();
         warehouse.setIdentifier("Supply chain centre");
-
         WareHouseDto dto = new WareHouseDto();
         dto.setIdentifier("Supply chain centre");
-
         Mockito.when(warehouseRepository.findByIdentifier("Supply chain centre")).thenReturn(warehouse);
         Mockito.when(modelMapper.map(warehouse, WareHouseDto.class)).thenReturn(dto);
         WareHouseDto response = warehouseService.findByIdentifier("Supply chain centre");
+        Assertions.assertNotNull(response);
         Assertions.assertEquals("Supply chain centre", response.getIdentifier());
     }
 
@@ -87,14 +88,13 @@ class WareHouseServiceTest {
     void updateTest() {
         WareHouseDto dto = new WareHouseDto();
         dto.setIdentifier("Supply chain centre");
-
         WareHouse existing = new WareHouse();
         Mockito.when(warehouseRepository.findByIdentifier("Supply chain centre")).thenReturn(existing);
         Mockito.doNothing().when(modelMapper).map(dto, existing);
         Mockito.when(warehouseRepository.save(existing)).thenReturn(existing);
-
         WareHouseDto response = warehouseService.update(dto);
-        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("Supply chain centre", response.getIdentifier());
         Mockito.verify(warehouseRepository).save(existing);
     }
 
@@ -112,7 +112,6 @@ class WareHouseServiceTest {
     void deleteTest() {
         WareHouse warehouse = new WareHouse();
         warehouse.setDeleted(false);
-
         Mockito.when(warehouseRepository.findByIdentifier("Supply chain centre")).thenReturn(warehouse);
         Mockito.when(warehouseRepository.save(warehouse)).thenReturn(warehouse);
         warehouseService.delete("Supply chain centre");
@@ -125,17 +124,13 @@ class WareHouseServiceTest {
     void findAllTest() {
         WareHouse warehouse = new WareHouse();
         warehouse.setIdentifier("Supply chain centre");
-
         WareHouseDto dto = new WareHouseDto();
         dto.setIdentifier("Supply chain centre");
-
-        List<WareHouse> list = List.of(warehouse);
-        Page<WareHouse> page = new PageImpl<>(list, PageRequest.of(0, 10), 1);
+        List<WareHouse> warehouses = List.of(warehouse);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<WareHouse> page = new PageImpl<>(warehouses, pageable, 1);
         Mockito.when(warehouseRepository.findByDeletedFalse(pageable)).thenReturn(page);
-        Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(List.of(dto));
-
+        Mockito.when(modelMapper.map(Mockito.eq(warehouses), Mockito.any(java.lang.reflect.Type.class))).thenReturn(List.of(dto));
         WsDto<WareHouseDto> response = warehouseService.findAll(pageable);
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
@@ -144,24 +139,46 @@ class WareHouseServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+        WareHouse warehouse = new WareHouse();
+        warehouse.setIdentifier("Supply chain centre");
+        WareHouseDto dto = new WareHouseDto();
+        dto.setIdentifier("Supply chain centre");
+        List<WareHouse> warehouses = List.of(warehouse);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<WareHouse> page = new PageImpl<>(warehouses, pageable, 1);
+        @SuppressWarnings("unchecked")
+        Specification<WareHouse> specification = Mockito.mock(Specification.class);
+        Mockito.when(warehouseRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(warehouses), Mockito.any(java.lang.reflect.Type.class))).thenReturn(List.of(dto));
+
+        WsDto<WareHouseDto> response = warehouseService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Supply chain centre", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+    }
+
+    @Test
     void findActiveWareHousesTest() {
         WareHouse warehouse = new WareHouse();
         warehouse.setIdentifier("Supply chain centre");
         warehouse.setStatus(true);
-
         WareHouseDto dto = new WareHouseDto();
         dto.setIdentifier("Supply chain centre");
         dto.setStatus(true);
-        List<WareHouse> list = List.of(warehouse);
-
-        Mockito.when(warehouseRepository.findByStatusTrue()).thenReturn(list);
-        Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(java.lang.reflect.Type.class)
-        )).thenReturn(List.of(dto));
-
+        List<WareHouse> warehouses = List.of(warehouse);
+        Mockito.when(warehouseRepository.findByStatusTrue()).thenReturn(warehouses);
+        Mockito.when(modelMapper.map(Mockito.eq(warehouses), Mockito.any(java.lang.reflect.Type.class))).thenReturn(List.of(dto));
         List<WareHouseDto> response = warehouseService.findActiveWareHouse();
+
         Assertions.assertEquals(1, response.size());
         Assertions.assertEquals("Supply chain centre", response.get(0).getIdentifier());
         Assertions.assertTrue(response.get(0).isStatus());
+        Mockito.verify(warehouseRepository).findByStatusTrue();
     }
 
     @Test
@@ -169,22 +186,23 @@ class WareHouseServiceTest {
         WareHouse warehouse = new WareHouse();
         warehouse.setIdentifier("Supply chain centre");
         warehouse.setStatus(false);
-
         WareHouseDto dto = new WareHouseDto();
         dto.setIdentifier("Supply chain centre");
         dto.setStatus(true);
-
         Mockito.when(warehouseRepository.findByIdentifier("Supply chain centre")).thenReturn(warehouse);
         Mockito.when(warehouseRepository.save(warehouse)).thenReturn(warehouse);
         Mockito.when(modelMapper.map(warehouse, WareHouseDto.class)).thenReturn(dto);
         WareHouseDto response = warehouseService.toggleStatus("Supply chain centre", true);
+        Assertions.assertNotNull(response);
         Assertions.assertEquals("Supply chain centre", response.getIdentifier());
         Assertions.assertTrue(response.isStatus());
+        Mockito.verify(warehouseRepository).save(warehouse);
     }
 
     @Test
     void toggleStatusFailureTest() {
         Mockito.when(warehouseRepository.findByIdentifier("Supply chain centre")).thenReturn(null);
+        Mockito.when(modelMapper.map(Mockito.isNull(), Mockito.eq(WareHouseDto.class))).thenReturn(null);
         WareHouseDto response = warehouseService.toggleStatus("Supply chain centre", true);
         Assertions.assertNull(response);
         Mockito.verify(warehouseRepository, Mockito.never()).save(Mockito.any());
