@@ -96,7 +96,7 @@ class CartEntryServiceTest {
                 .thenReturn(price);
 
         doNothing().when(modelMapper)
-                .map(eq(cartEntryDto), eq(cartEntry));
+                .map(cartEntryDto, cartEntry);
 
         CartEntryDto result = cartEntryService.save(cartEntryDto);
 

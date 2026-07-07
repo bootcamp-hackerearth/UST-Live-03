@@ -34,7 +34,6 @@ ApiOrderController{
 
     @GetMapping("list")
     @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER','ACCOUNTANT','SUPPORT')")
-
     public List<OrderDto> getAllOrders(){
         return orderService.findAll();
     }

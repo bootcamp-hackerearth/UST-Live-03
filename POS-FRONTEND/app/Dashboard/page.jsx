@@ -15,7 +15,7 @@ function Dashboard() {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push(
-        "/Login?error=" +
+        "/login?error=" +
           encodeURIComponent(
             "Session expired or missing credentials. Please login again."
           )
@@ -29,7 +29,7 @@ function Dashboard() {
   const fetchProfile = async () => {
     try {
       const response = await axiosInstance.get(
-        "/user/Profile"
+        "/user/profile"
       );
 
       setUser(response.data);
@@ -72,7 +72,7 @@ function Dashboard() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     router.push(
-      "/Login?error=" +
+      "/login?error=" +
         encodeURIComponent(
           "Session expired or invalid login. Please login again."
         )
@@ -88,7 +88,6 @@ function Dashboard() {
     <Layout user={user} nodes={nodes} logout={logout} navigate={router}>
       <div className="min-h-screen bg-slate-50 p-6 lg:p-10 text-slate-800">
         
-        {/* Welcome Banner */}
         <div className="mb-8 p-6 lg:p-8 rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-800 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition duration-300">
           <div>
             <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">
@@ -112,9 +111,7 @@ function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Quick Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {/* Card 1 */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md hover:shadow-lg transition duration-300">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600">
@@ -132,7 +129,6 @@ function Dashboard() {
                 </div>
               </div>
 
-              {/* Card 2 */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md hover:shadow-lg transition duration-300">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-600">
@@ -148,7 +144,6 @@ function Dashboard() {
                 <p className="text-xs text-slate-500 font-medium">Role Level: <span className="text-emerald-600 font-bold">Administrator</span></p>
               </div>
 
-              {/* Card 3 */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md hover:shadow-lg transition duration-300">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl text-amber-600">
@@ -167,7 +162,6 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Bottom Utility Footer Area */}
             <div className="mt-8 flex flex-col sm:flex-row justify-between items-center p-6 bg-white border border-slate-200 rounded-3xl shadow-sm gap-4">
               <div className="flex items-center gap-3">
                 <span className="relative flex h-2 w-2">

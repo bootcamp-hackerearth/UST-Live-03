@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import Layout from "../Components/Layout";
+import axiosInstance from "../api/axiosInstance";
 
 function Profile() {
 
@@ -14,14 +14,11 @@ function Profile() {
             try {
                 const token = localStorage.getItem("token");
 
-                const response = await axios.get(
-                    "http://localhost:8080/api/user/profile",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
+                const response = await axiosInstance.get("/user/profile", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
                 console.log("PROFILE RESPONSE:", response.data);
                 setUser(response.data);

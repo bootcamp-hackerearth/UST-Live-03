@@ -72,7 +72,6 @@ class OrderServiceTest {
         orderEntryDto = new OrderEntryDto();
     }
 
-    // ✅ GENERATE ORDER ID
     @Test
     void testGenerateOrderId() {
         String result = orderService.generateOrderId("C1");
@@ -81,7 +80,6 @@ class OrderServiceTest {
         assertTrue(result.contains("C1".replaceAll("[^0-9]", "")));
     }
 
-    // ✅ PLACE ORDER
     @Test
     void testPlaceOrder() {
         when(cartRepository.findByIdentifier("C1")).thenReturn(cart);
@@ -104,7 +102,6 @@ class OrderServiceTest {
         verify(cartService).recalculate("C1");
     }
 
-    // ✅ FIND ALL ORDERS
     @Test
     void testFindAll() {
         when(orderRepository.findAllByOrderByOrderDateDesc())

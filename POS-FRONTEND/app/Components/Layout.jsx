@@ -42,7 +42,7 @@ function Layout({ children, user, nodes, logout }) {
 
     const fetchProfile = async () => {
       try {
-        const response = await axiosInstance.get("/user/Profile");
+        const response = await axiosInstance.get("/user/profile");
         setLayoutUser(response.data);
       } catch (error) {
         console.error("Profile fetch failed:", error);
@@ -109,7 +109,6 @@ function Layout({ children, user, nodes, logout }) {
           {children}
         </div>
 
-        {/* FOOTER */}
         <Footer />
       </div>
     </div>

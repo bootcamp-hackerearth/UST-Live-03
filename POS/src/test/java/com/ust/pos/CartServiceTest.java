@@ -56,7 +56,6 @@ class CartServiceTest {
         cartEntryDto.setDiscount(BigDecimal.valueOf(20));
     }
 
-    // ✅ SAVE SUCCESS
     @Test
     void testSave_Success() {
 
@@ -73,7 +72,6 @@ class CartServiceTest {
         verify(cartRepository).save(cart);
     }
 
-    // ✅ SAVE ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
 
@@ -88,7 +86,6 @@ class CartServiceTest {
         verify(cartRepository, never()).save(any());
     }
 
-    // ✅ RECALCULATE
     @Test
     void testRecalculate() {
 
@@ -121,7 +118,6 @@ class CartServiceTest {
         verify(cartRepository).save(cart);
     }
 
-    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
 
@@ -141,7 +137,6 @@ class CartServiceTest {
         assertNotNull(result.getEntryDtoList());
     }
 
-    // ✅ FIND ACTIVE STATUS
     @Test
     void testFindActiveStatus() {
 
@@ -160,7 +155,6 @@ class CartServiceTest {
         assertEquals(1, result.size());
     }
 
-    // ✅ DELETE BY IDENTIFIER
     @Test
     void testDeleteByIdentifier() {
 
@@ -170,7 +164,6 @@ class CartServiceTest {
         verify(cartEntryService).deleteAllByCart("C1");
     }
 
-    // ✅ RECALCULATE WITH MULTIPLE ENTRIES
     @Test
     void testRecalculate_MultipleEntries() {
 

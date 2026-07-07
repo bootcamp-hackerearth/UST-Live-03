@@ -33,7 +33,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 
-public class WebSecurityConfig {
+public class  WebSecurityConfig {
 
     public static final String JAVA_IN_USE_SECURITY_SCHEME = "JavaInUseSecurityScheme";
 

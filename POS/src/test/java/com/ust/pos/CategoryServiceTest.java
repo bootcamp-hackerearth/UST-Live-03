@@ -50,7 +50,6 @@ class CategoryServiceTest {
         categoryDto.setIdentifier("CAT1");
     }
 
-    // ✅ FIND ALL
     @Test
     void testFindAll() {
 
@@ -71,7 +70,6 @@ class CategoryServiceTest {
         assertEquals(1, result.getTotalRecords());
     }
 
-    // ✅ FIND ALL WITH SPECIFICATION
     @Test
     void testFindAllWithSpecification() {
 
@@ -100,7 +98,6 @@ class CategoryServiceTest {
                 .findAll(specification, pageable);
     }
 
-    // ✅ SAVE NEW CATEGORY
     @Test
     void testSave_NewCategory() {
 
@@ -117,7 +114,6 @@ class CategoryServiceTest {
         verify(categoryRepository).save(category);
     }
 
-    // ✅ SAVE ALREADY EXISTS
     @Test
     void testSave_AlreadyExists() {
 
@@ -130,7 +126,6 @@ class CategoryServiceTest {
         assertTrue(result.getMessage().contains("already exists"));
     }
 
-    // ✅ SAVE SOFT DELETED
     @Test
     void testSave_SoftDeleted() {
 
@@ -145,7 +140,6 @@ class CategoryServiceTest {
         assertTrue(result.getMessage().contains("soft deleted"));
     }
 
-    // ✅ DELETE
     @Test
     void testDelete() {
 
@@ -160,7 +154,6 @@ class CategoryServiceTest {
         verify(categoryRepository).save(category);
     }
 
-    // ✅ FIND BY IDENTIFIER
     @Test
     void testFindByIdentifier() {
 
@@ -177,7 +170,6 @@ class CategoryServiceTest {
         assertEquals("CAT1", result.getIdentifier());
     }
 
-    // ✅ UPDATE SUCCESS
     @Test
     void testUpdate_Success() {
 
@@ -195,7 +187,6 @@ class CategoryServiceTest {
         verify(categoryRepository).save(category);
     }
 
-    // ✅ UPDATE NOT FOUND
     @Test
     void testUpdate_NotFound() {
 
@@ -208,7 +199,6 @@ class CategoryServiceTest {
         assertFalse(result.isSuccess());
     }
 
-    // ✅ FIND SUB CATEGORIES
     @Test
     void testFindSubCategories() {
 
@@ -225,7 +215,6 @@ class CategoryServiceTest {
         assertEquals(1, result.size());
     }
 
-    // ✅ CHANGE TOGGLE STATUS
     @Test
     void testChangeToggleStatus() {
 
@@ -245,7 +234,6 @@ class CategoryServiceTest {
         verify(categoryRepository).save(category);
     }
 
-    // ✅ FIND ACTIVE STATUS
     @Test
     void testFindActiveStatus() {
 

@@ -76,6 +76,7 @@ public class ApiPriceController extends BaseController {
     }
 
     @PostMapping("/findActiveStatus")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','ACCOUNTANT')")
     public List<PriceDto> findActive() {
         return priceService.findActiveStatus();
     }

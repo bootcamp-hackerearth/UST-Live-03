@@ -10,7 +10,6 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,6 @@ public class ApiUserController extends BaseController {
 
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public WsDto<UserDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -48,20 +46,17 @@ public class ApiUserController extends BaseController {
     }
 
     @GetMapping("/get")
-@PreAuthorize("hasAuthority('ADMIN')")
     public UserDto update(@RequestParam String username) {
         return userService.findByUserName(username);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
     @Transactional
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public boolean delete(@RequestParam String username) {
         try {
             userService.delete(username);

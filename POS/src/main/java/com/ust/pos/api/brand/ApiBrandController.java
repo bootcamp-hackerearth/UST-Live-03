@@ -77,6 +77,7 @@ public class ApiBrandController extends BaseController {
     }
 
     @PostMapping("/findActiveStatus")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public List<BrandDto> findActive() {
         return brandService.findActiveStatus();
     }

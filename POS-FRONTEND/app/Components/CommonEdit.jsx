@@ -154,7 +154,6 @@ function CommonEditContent({
         buildPayload()
       );
 
-      // SonarQube Compliant Code Smell Check (! instead of === false)
       if (response.data && !response.data.success) {
         setError(response.data.message || `Failed to update ${title}`);
         return;

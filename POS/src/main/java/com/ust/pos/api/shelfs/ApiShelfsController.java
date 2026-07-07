@@ -9,7 +9,10 @@ import com.ust.pos.shelfs.sevice.ShelfsService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -23,6 +26,7 @@ public class ApiShelfsController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WsDto<ShelfsDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable= getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortField(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -35,6 +39,7 @@ public class ApiShelfsController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public ShelfsDto addshelfs(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.save(shelfsDto);
     }
@@ -51,17 +56,26 @@ public class ApiShelfsController extends BaseController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public ShelfsDto update(@RequestParam String identifier) {
         return shelfsService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public ShelfsDto updatePrice(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.update(shelfsDto);
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public ShelfsDto toggle(@RequestBody ShelfsDto shelfsDto) {
         return shelfsService.changeToggleStatus(shelfsDto.getIdentifier(), shelfsDto.isStatus());
+    }
+
+    @PostMapping("/findActiveStatus")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
+    public List<ShelfsDto> findActive() {
+        return shelfsService.findActiveStatus();
     }
 }

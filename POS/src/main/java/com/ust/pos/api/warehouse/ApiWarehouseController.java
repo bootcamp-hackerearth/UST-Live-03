@@ -9,6 +9,7 @@ import com.ust.pos.warehouse.service.WarehouseService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class ApiWarehouseController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -39,11 +41,13 @@ public class ApiWarehouseController extends BaseController {
     }
     
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WarehouseDto addWarehouse(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(@RequestParam String identifier) {
         try{
             warehouseService.delete(identifier);
@@ -55,21 +59,25 @@ public class ApiWarehouseController extends BaseController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WarehouseDto updateWarehouse(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public WarehouseDto toggle(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.changeToggleStatus(warehouseDto.getIdentifier(), warehouseDto.isStatus());
     }
 
     @PostMapping("/findActiveStatus")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','STOCK_MANAGER')")
     public List<WarehouseDto> findActive() {
         return warehouseService.findActiveStatus();
     }
