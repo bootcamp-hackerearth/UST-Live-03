@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '../components/Layout';
 
@@ -51,6 +51,9 @@ export default function POSPage() {
   const [toast, setToast] = useState({ show: false, message: '' });
   const [lastSavedOrder, setLastSavedOrder] = useState(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const skipNextSearchRef = useRef(false);
+
   const triggerToast = (msg) => {
     setToast({ show: true, message: msg });
     setTimeout(() => setToast({ show: false, message: '' }), 4000);
@@ -143,6 +146,11 @@ export default function POSPage() {
   }, []);
 
   useEffect(() => {
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
+
     if (!customerSearchInput.trim() || showNewCustomerModal) {
       setCustomers([]);
       return;
@@ -155,7 +163,7 @@ export default function POSPage() {
         phoneNo: isNumeric ? customerSearchInput : ""
       };
 
-      const filteredResults = await safeFetch('/api/customer/search', {
+      const filteredResults = await safeFetch('/api/customer/findByStatus', {
         method: 'POST',
         body: JSON.stringify(searchCriteria)
       });
@@ -229,6 +237,7 @@ export default function POSPage() {
       }
 
       triggerToast(`Customer "${payload.customerName}" registered successfully!`);
+      skipNextSearchRef.current = true;
       setCustomerSearchInput(payload.customerName);
       setSelectedCustomer(payload.phoneNo);
       setCart([]);
@@ -274,7 +283,7 @@ export default function POSPage() {
     const targetProduct = products.find(p => (p.identifier || p.productIdentifier) === productId);
     const databaseLookupName = targetProduct?.name || productId;
     const existingItem = cart.find(item => item.product === databaseLookupName || item.product === productId);
-    
+
     if (existingItem) {
       await adjustQuantity(databaseLookupName, existingItem, 1);
       return;
@@ -288,7 +297,7 @@ export default function POSPage() {
       price: databasePrice
     };
 
-    await safeFetch('api/cartEntry/addEntry', {
+    await safeFetch('/api/cartEntry/addEntry', {
       method: 'POST',
       body: JSON.stringify(entryPayload)
     });
@@ -354,12 +363,17 @@ export default function POSPage() {
     };
 
     try {
-      await safeFetch('api/orders/checkout', {
+      const checkoutResult = await safeFetch('/api/orders/checkout', {
         method: 'POST',
         body: JSON.stringify(orderPayload)
       });
 
-      await safeFetch('api/cart/deleteCart', {
+      if (!checkoutResult) {
+        alert("Checkout failed: server did not confirm the order. Please try again.");
+        return;
+      }
+
+      await safeFetch('/api/cart/deleteCart', {
         method: 'POST',
         body: JSON.stringify({ identifier: selectedCustomer })
       });
@@ -604,6 +618,8 @@ export default function POSPage() {
                             key={uniqueId}
                             type="button"
                             onClick={() => {
+                              skipNextSearchRef.current = true;
+                              setCustomers([]);
                               setCustomerSearchInput(labelName);
                               handleCustomerChange(uniqueId);
                             }}
@@ -753,7 +769,7 @@ export default function POSPage() {
                     <span>${displayTotalPrice.toFixed(2)}</span>
                   </div>
                 </div>
-                
+
                 <button
                   onClick={() => {
                     if (paymentType === 'Card' || paymentType === 'UPI') {
@@ -774,15 +790,15 @@ export default function POSPage() {
           <div className="lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Product Inventory Catalog</h2>
-              <input 
-                type="text" 
-                placeholder="Quick filter..." 
-                value={search} 
+              <input
+                type="text"
+                placeholder="Quick filter..."
+                value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="border border-slate-200 rounded-md p-1.5 text-xs font-medium max-w-[150px] focus:outline-none focus:border-blue-500" 
+                className="border border-slate-200 rounded-md p-1.5 text-xs font-medium max-w-[150px] focus:outline-none focus:border-blue-500"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-3 max-h-[580px] overflow-y-auto pr-1">
               {products
                 .filter(p => p.name?.toLowerCase().includes(search.toLowerCase()))
@@ -817,7 +833,7 @@ export default function POSPage() {
               </div>
             ) : (
               <div className="py-4 flex flex-col items-center justify-center gap-2">
-                <img 
+                <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent('upi://pay?pa=merchant@upi&pn=StorePOS&am=' + displayTotalPrice.toFixed(2) + '&cu=USD')}`}
                   alt="UPI Payment QR Code Router"
                   className="w-40 h-40 border-2 border-slate-100 p-2 rounded-lg shadow-sm"
