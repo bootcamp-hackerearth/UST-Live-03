@@ -7,7 +7,7 @@ export const showErrorModal = (data) => {
 };
 
 const api = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: "",
   timeout: 30000,
 });
 
