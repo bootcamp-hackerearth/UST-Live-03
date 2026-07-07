@@ -242,7 +242,7 @@ export default function CartHistoryModal({ products, onClose }) {
     const loadData = async () => {
       try {
         const customerData = await apiFetch(
-          "/api/customer/list",
+          "api/customer/list",
           token,
           {
             method: "POST",

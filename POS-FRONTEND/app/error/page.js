@@ -1,39 +1,84 @@
 "use client";
 
 import React from "react";
+import PropTypes from "prop-types";
 import { useRouter, useSearchParams } from "next/navigation";
+
+const CONFIG = {
+  401: {
+    code: "401",
+    title: "Unauthorized",
+    message: "You must log in to access this page.",
+    colorBg: "bg-blue-100",
+    colorText: "text-blue-600",
+  },
+  403: {
+    code: "403",
+    title: "Access Denied",
+    message: "You do not have permission to access this page.",
+    colorBg: "bg-amber-100",
+    colorText: "text-amber-600",
+  },
+  500: {
+    code: "500",
+    title: "Server Error",
+    message: "Something went wrong on the server. Please try again later.",
+    colorBg: "bg-red-100",
+    colorText: "text-red-600",
+  },
+};
+
+const baseButtonStyle = {
+  width: "100%",
+  padding: "12px 0",
+  borderRadius: 10,
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: "pointer",
+  transition: "0.2s",
+};
+
+function makeHoverHandlers(defaultBg, hoverBg) {
+  return {
+    onMouseOver: (e) => (e.currentTarget.style.background = hoverBg),
+    onMouseOut: (e) => (e.currentTarget.style.background = defaultBg),
+    onFocus: (e) => (e.currentTarget.style.background = hoverBg),
+    onBlur: (e) => (e.currentTarget.style.background = defaultBg),
+  };
+}
+
+function ActionButton({ onClick, style, defaultBg, hoverBg, children }) {
+  const hoverHandlers = makeHoverHandlers(defaultBg, hoverBg);
+
+  return (
+    <button
+      onClick={onClick}
+      style={{ ...baseButtonStyle, ...style, background: defaultBg }}
+      {...hoverHandlers}
+    >
+      {children}
+    </button>
+  );
+}
+
+ActionButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  style: PropTypes.object,
+  defaultBg: PropTypes.string.isRequired,
+  hoverBg: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+};
+
+ActionButton.defaultProps = {
+  style: {},
+};
 
 export default function ErrorPage() {
   const router = useRouter();
   const params = useSearchParams();
 
   const status = params.get("status") || "403";
-
-  const config = {
-    401: {
-      code: "401",
-      title: "Unauthorized",
-      message: "You must log in to access this page.",
-      colorBg: "bg-blue-100",
-      colorText: "text-blue-600",
-    },
-    403: {
-      code: "403",
-      title: "Access Denied",
-      message: "You do not have permission to access this page.",
-      colorBg: "bg-amber-100",
-      colorText: "text-amber-600",
-    },
-    500: {
-      code: "500",
-      title: "Server Error",
-      message: "Something went wrong on the server. Please try again later.",
-      colorBg: "bg-red-100",
-      colorText: "text-red-600",
-    },
-  };
-
-  const current = config[status] || config["403"];
+  const current = CONFIG[status] || CONFIG["403"];
 
   return (
     <div
@@ -91,49 +136,23 @@ export default function ErrorPage() {
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <button
+          <ActionButton
             onClick={() => router.push("/dashboard")}
-            style={{
-              width: "100%",
-              background: "#111",
-              color: "#fff",
-              border: "none",
-              padding: "12px 0",
-              borderRadius: 10,
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: "pointer",
-              transition: "0.2s",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "#000")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "#111")}
-            onFocus={(e) => (e.currentTarget.style.background = "#000")}
-            onBlur={(e) => (e.currentTarget.style.background = "#111")}
+            style={{ color: "#fff", border: "none" }}
+            defaultBg="#111"
+            hoverBg="#000"
           >
             Return to Dashboard
-          </button>
+          </ActionButton>
 
-          <button
+          <ActionButton
             onClick={() => router.back()}
-            style={{
-              width: "100%",
-              background: "#fff",
-              color: "#111",
-              border: "1px solid #d1d5db",
-              padding: "12px 0",
-              borderRadius: 10,
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: "pointer",
-              transition: "0.2s",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "#f5f5f5")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "#fff")}
-            onFocus={(e) => (e.currentTarget.style.background = "#f5f5f5")}
-            onBlur={(e) => (e.currentTarget.style.background = "#fff")}
+            style={{ color: "#111", border: "1px solid #d1d5db" }}
+            defaultBg="#fff"
+            hoverBg="#f5f5f5"
           >
             Go Back
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

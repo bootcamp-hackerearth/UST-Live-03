@@ -345,7 +345,7 @@ function CustomerForm({
       return;
     }
 
-    fetch(`/api/customer/get?identifier=${identifier}`, {
+    fetch(`http://localhost:8080/api/customer/get?identifier=${identifier}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {

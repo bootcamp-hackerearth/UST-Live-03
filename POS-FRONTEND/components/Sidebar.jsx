@@ -25,6 +25,22 @@ function Sidebar({ onToggle }) {
           },
         },
       );
+
+      if (res.status === 401) {
+        globalThis.location.href = "/login";
+        return;
+      }
+
+      if (res.status === 403) {
+        setNodes([]);
+        return;
+      }
+
+      if (!res.ok) {
+        console.log("Failed to fetch nodes:", res.status);
+        return;
+      }
+
       const data = await res.json();
       setNodes(data);
     } catch (error) {
@@ -107,4 +123,5 @@ function Sidebar({ onToggle }) {
 Sidebar.propTypes = {
   onToggle: PropTypes.func,
 };
+
 export default Sidebar;
