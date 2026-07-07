@@ -2,10 +2,9 @@ package com.ust.pos.racks.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.RacksDto;
-import com.ust.pos.dto.RoleDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
-import com.ust.pos.model.Role;
 import com.ust.pos.racks.service.RacksService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -99,19 +98,23 @@ public class RacksServiceImpl extends CommonService implements RacksService{
         Type listType = new TypeToken<List<RacksDto>>() {
         }.getType();
         Page<Racks> racksPage = racksRepository.findAll(spec, pageable);
-        PageDto<RacksDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(racksPage.getContent(), listType));
-        PageDto.setTotalRecords(racksPage.getTotalElements());
-        PageDto.setTotalPages(racksPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        PageDto<RacksDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(racksPage.getContent(), listType));
+        pageDto.setTotalRecords(racksPage.getTotalElements());
+        pageDto.setTotalPages(racksPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override
     public RacksDto findByIdentifier(String identifier) {
-        return modelMapper.map(racksRepository.findByIdentifier(identifier), RacksDto.class);
+        Racks racks = racksRepository.findByIdentifier(identifier);
+        if (racks == null) {
+            throw new ResourceNotFoundException("Racks with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(racks, RacksDto.class);
     }
 
     @Override

@@ -1,9 +1,8 @@
 package com.ust.pos.shelfs.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
-import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.ShelfsDto;
-import com.ust.pos.model.Role;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.shelfs.service.ShelfsService;
@@ -100,19 +99,23 @@ public class ShelfsServiceImpl extends CommonService implements ShelfsService {
         Type listType = new TypeToken<List<ShelfsDto>>() {
         }.getType();
         Page<Shelfs> shelfsPage = shelfsRepository.findAll(spec, pageable);
-        PageDto<ShelfsDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(shelfsPage.getContent(), listType));
-        PageDto.setTotalRecords(shelfsPage.getTotalElements());
-        PageDto.setTotalPages(shelfsPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        PageDto<ShelfsDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(shelfsPage.getContent(), listType));
+        pageDto.setTotalRecords(shelfsPage.getTotalElements());
+        pageDto.setTotalPages(shelfsPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override
     public ShelfsDto findByIdentifier(String identifier) {
-        return modelMapper.map(shelfsRepository.findByIdentifier(identifier), ShelfsDto.class);
+        Shelfs shelfs =shelfsRepository.findByIdentifier(identifier);
+        if (shelfs == null) {
+            throw new ResourceNotFoundException("Shelfs with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(shelfs, ShelfsDto.class);
     }
 
     @Override

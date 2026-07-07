@@ -3,13 +3,10 @@ package com.ust.pos.brand.service.impl;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.BrandDto;
-import com.ust.pos.dto.CategoryDto;
-import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
-import com.ust.pos.model.Category;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -102,15 +99,15 @@ public class BrandServiceImpl extends CommonService implements BrandService {
     public PageDto<BrandDto> findAll(Specification<Brand> spec, Pageable pageable, String keyword) {
         Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
-        Page<Brand> BrandPage = brandRepository.findAll(spec, pageable);
-        PageDto<BrandDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map( BrandPage.getContent(), listType));
-        PageDto.setTotalRecords( BrandPage.getTotalElements());
-        PageDto.setTotalPages( BrandPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        Page<Brand> brandPage = brandRepository.findAll(spec, pageable);
+        PageDto<BrandDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map( brandPage.getContent(), listType));
+        pageDto.setTotalRecords( brandPage.getTotalElements());
+        pageDto.setTotalPages( brandPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override

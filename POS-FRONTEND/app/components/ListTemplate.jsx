@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import axiosInstance from "../api/axiosInstance";
@@ -36,6 +36,8 @@ const renderCell = (col, item, rowKey, togglingIds, toggleStatus, showStatus) =>
   return item[col.field] || "-";
 };
 
+const SEARCH_DEBOUNCE_MS = 400;
+
 const ListTemplate = ({
   title,
   columns,
@@ -53,36 +55,43 @@ const ListTemplate = ({
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");        
+  const [error, setError] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(pageSize);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [togglingIds, setTogglingIds] = useState(new Set());
   const router = useRouter();
 
-  const filteredData = data.filter((item) => {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return true;
-    return columns.some((col) => {
-      const value = item[col.field];
-      if (value == null) return false;
-      if (Array.isArray(value)) return value.join(", ").toLowerCase().includes(term);
-      return String(value).toLowerCase().includes(term);
-    });
-  });
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
 
-  const fetchData = useCallback(async (currentPage = 0) => {
+  const isFirstKeywordRun = useRef(true);
+  useEffect(() => {
+    if (isFirstKeywordRun.current) {
+      isFirstKeywordRun.current = false;
+      return;
+    }
+    setPage(0);
+  }, [debouncedSearchTerm]);
+
+  const fetchData = useCallback(async (currentPage = 0, keyword = "") => {
     await Promise.resolve();
     setLoading(true);
-    setError("");                                  
+    setError("");
     try {
       const res = await axiosInstance.post(`/${urlName}/list`, {
         page: currentPage,
         sizePerPage: rowsPerPage,
         sortDirection: "ASC",
         sortField,
+        keyword: keyword || undefined,
       });
       const responseData = res.data || {};
       const list =
@@ -94,7 +103,7 @@ const ListTemplate = ({
       setTotalPages(responseData.totalPages ?? 0);
       setTotalRecords(responseData.totalRecords ?? normalizedList.length);
     } catch (err) {
-      if (err?.response?.status === 403) {        
+      if (err?.response?.status === 403) {
         setError("Access Denied: You do not have permission to view this.");
       } else {
         setError("Failed to load records. Please try again.");
@@ -106,8 +115,8 @@ const ListTemplate = ({
   }, [rowsPerPage, sortField, urlName]);
 
   useEffect(() => {
-    queueMicrotask(() => fetchData(page));
-  }, [fetchData, page]);
+    queueMicrotask(() => fetchData(page, debouncedSearchTerm));
+  }, [fetchData, page, debouncedSearchTerm]);
 
   const deleteItem = async (item) => {
     const id = item[deleteKey];
@@ -143,7 +152,7 @@ const ListTemplate = ({
         router.replace("/login");
         return;
       }
-      fetchData(page);
+      fetchData(page, debouncedSearchTerm);
     } catch (err) {
       console.error("Delete Error:", err);
     }
@@ -196,16 +205,34 @@ const ListTemplate = ({
       </div>
 
       <div className="mb-6">
-        <input
-          type="text"
-          placeholder={`Search ${title}...`}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 md:w-96"
-        />
+        <div className="relative w-full md:w-96">
+          <input
+            type="text"
+            placeholder={`Search ${title}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 pr-9 text-sm font-medium text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => setSearchTerm("")}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6.28 6.28a.75.75 0 011.06 0L10 8.94l2.66-2.66a.75.75 0 111.06 1.06L11.06 10l2.66 2.66a.75.75 0 11-1.06 1.06L10 11.06l-2.66 2.66a.75.75 0 01-1.06-1.06L8.94 10 6.28 7.34a.75.75 0 010-1.06z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
+        {debouncedSearchTerm && !loading && (
+          <p className="mt-2 text-xs font-semibold text-slate-500">
+            {totalRecords} result{totalRecords === 1 ? "" : "s"} for &ldquo;{debouncedSearchTerm}&rdquo;
+          </p>
+        )}
       </div>
 
-      {/* ← 4. error banner */}
       {error && (
         <div className="mb-4 flex items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -220,12 +247,12 @@ const ListTemplate = ({
           Loading records...
         </div>
       )}
-      {!loading && !error && filteredData.length === 0 && (
+      {!loading && !error && data.length === 0 && (
         <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-sm">
-          No records available.
+          {debouncedSearchTerm ? `No records match "${debouncedSearchTerm}".` : "No records available."}
         </div>
       )}
-      {!loading && !error && filteredData.length > 0 && (
+      {!loading && !error && data.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
           <table className="min-w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-950 text-white">
@@ -241,7 +268,7 @@ const ListTemplate = ({
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((item) => (
+              {data.map((item) => (
                 <tr
                   key={item[rowKey] ?? item.identifier ?? item.id}
                   className="border-t border-slate-100 hover:bg-cyan-50/40"
@@ -281,7 +308,7 @@ const ListTemplate = ({
         </div>
       )}
 
-      {!loading && !error && filteredData.length > 0 && (
+      {!loading && !error && data.length > 0 && (
         <div className="mt-6 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold text-slate-600">
             Page {Math.min(page + 1, Math.max(totalPages, 1))} of {Math.max(totalPages, 1)}

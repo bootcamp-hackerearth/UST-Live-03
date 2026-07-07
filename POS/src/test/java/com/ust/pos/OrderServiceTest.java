@@ -9,6 +9,9 @@ import com.ust.pos.order.service.impl.OrderServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -19,6 +22,7 @@ import org.modelmapper.TypeToken;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Stream;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -47,31 +51,18 @@ class OrderServiceTest {
     @Mock
     private OrderEntryRepository orderEntryRepository;
 
-    @Test
-    void generateOrderId_withValidCartIdentifier() {
-
-        String result = orderService.generateOrderId("CART-123");
-
-        Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.startsWith("ORD-123-"));
+    private static Stream<Arguments> cartIdentifierAndExpectedPrefixProvider() {
+        return Stream.of(Arguments.of("CART-123", "ORD-123-"), Arguments.of(null, "ORD-WALKIN-"), Arguments.of("   ", "ORD-WALKIN-"));
     }
 
-    @Test
-    void generateOrderId_withNullCartIdentifier() {
+    @ParameterizedTest
+    @MethodSource("cartIdentifierAndExpectedPrefixProvider")
+    void generateOrderId_variousCartIdentifiers(String cartIdentifier, String expectedPrefix) {
 
-        String result = orderService.generateOrderId(null);
-
-        Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.startsWith("ORD-WALKIN-"));
-    }
-
-    @Test
-    void generateOrderId_withEmptyCartIdentifier() {
-
-        String result = orderService.generateOrderId("   ");
+        String result = orderService.generateOrderId(cartIdentifier);
 
         Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.startsWith("ORD-WALKIN-"));
+        Assertions.assertTrue(result.startsWith(expectedPrefix));
     }
 
     @Test
@@ -99,29 +90,21 @@ class OrderServiceTest {
 
         Type listType = new TypeToken<List<OrderEntryDto>>() {}.getType();
 
-        Mockito.when(cartRepository.findByIdentifier(cartIdentifier))
-                .thenReturn(cart);
+        Mockito.when(cartRepository.findByIdentifier(cartIdentifier)).thenReturn(cart);
 
-        Mockito.when(cartEntryRepository.findByCart(cartIdentifier))
-                .thenReturn(List.of(cartEntry));
+        Mockito.when(cartEntryRepository.findByCart(cartIdentifier)).thenReturn(List.of(cartEntry));
 
-        Mockito.when(modelMapper.map(cart, Order.class))
-                .thenReturn(order);
+        Mockito.when(modelMapper.map(cart, Order.class)).thenReturn(order);
 
-        Mockito.when(orderRepository.save(order))
-                .thenReturn(order);
+        Mockito.when(orderRepository.save(order)).thenReturn(order);
 
-        Mockito.when(modelMapper.map(cartEntry, OrderEntry.class))
-                .thenReturn(orderEntry);
+        Mockito.when(modelMapper.map(cartEntry, OrderEntry.class)).thenReturn(orderEntry);
 
-        Mockito.when(orderEntryRepository.saveAll(Mockito.anyList()))
-                .thenReturn(List.of(orderEntry));
+        Mockito.when(orderEntryRepository.saveAll(Mockito.anyList())).thenReturn(List.of(orderEntry));
 
-        Mockito.when(modelMapper.map(order, OrderDto.class))
-                .thenReturn(orderDto);
+        Mockito.when(modelMapper.map(order, OrderDto.class)).thenReturn(orderDto);
 
-        Mockito.when(modelMapper.map(Mockito.anyList(), Mockito.eq(listType)))
-                .thenReturn(List.of(orderEntryDto));
+        Mockito.when(modelMapper.map(Mockito.anyList(), Mockito.eq(listType))).thenReturn(List.of(orderEntryDto));
 
         OrderDto result = orderService.placeOrder(cartIdentifier, paymentMode);
 
@@ -150,23 +133,17 @@ class OrderServiceTest {
 
         Type listType = new TypeToken<List<OrderEntryDto>>() {}.getType();
 
-        Mockito.when(cartRepository.findByIdentifier(cartIdentifier))
-                .thenReturn(cart);
+        Mockito.when(cartRepository.findByIdentifier(cartIdentifier)).thenReturn(cart);
 
-        Mockito.when(cartEntryRepository.findByCart(cartIdentifier))
-                .thenReturn(List.of());
+        Mockito.when(cartEntryRepository.findByCart(cartIdentifier)).thenReturn(List.of());
 
-        Mockito.when(modelMapper.map(cart, Order.class))
-                .thenReturn(order);
+        Mockito.when(modelMapper.map(cart, Order.class)).thenReturn(order);
 
-        Mockito.when(orderRepository.save(order))
-                .thenReturn(order);
+        Mockito.when(orderRepository.save(order)).thenReturn(order);
 
-        Mockito.when(modelMapper.map(order, OrderDto.class))
-                .thenReturn(orderDto);
+        Mockito.when(modelMapper.map(order, OrderDto.class)).thenReturn(orderDto);
 
-        Mockito.when(modelMapper.map(Mockito.anyList(), Mockito.eq(listType)))
-                .thenReturn(List.of());
+        Mockito.when(modelMapper.map(Mockito.anyList(), Mockito.eq(listType))).thenReturn(List.of());
 
         orderService.placeOrder(cartIdentifier, paymentMode);
 
@@ -193,17 +170,13 @@ class OrderServiceTest {
 
         Type listType = new TypeToken<List<OrderEntryDto>>() {}.getType();
 
-        Mockito.when(orderRepository.findAllByOrderByOrderDateDesc())
-                .thenReturn(List.of(order));
+        Mockito.when(orderRepository.findAllByOrderByOrderDateDesc()).thenReturn(List.of(order));
 
-        Mockito.when(modelMapper.map(order, OrderDto.class))
-                .thenReturn(orderDto);
+        Mockito.when(modelMapper.map(order, OrderDto.class)).thenReturn(orderDto);
 
-        Mockito.when(orderEntryRepository.findByOrderId("ORD-001"))
-                .thenReturn(List.of(orderEntry));
+        Mockito.when(orderEntryRepository.findByOrderId("ORD-001")).thenReturn(List.of(orderEntry));
 
-        Mockito.when(modelMapper.map(List.of(orderEntry), listType))
-                .thenReturn(List.of(orderEntryDto));
+        Mockito.when(modelMapper.map(List.of(orderEntry), listType)).thenReturn(List.of(orderEntryDto));
 
         List<OrderDto> result = orderService.findAll();
 
@@ -219,8 +192,7 @@ class OrderServiceTest {
     @Test
     void findAllTest_empty() {
 
-        Mockito.when(orderRepository.findAllByOrderByOrderDateDesc())
-                .thenReturn(List.of());
+        Mockito.when(orderRepository.findAllByOrderByOrderDateDesc()).thenReturn(List.of());
 
         List<OrderDto> result = orderService.findAll();
 
@@ -228,7 +200,6 @@ class OrderServiceTest {
         Assertions.assertTrue(result.isEmpty());
 
         Mockito.verify(orderRepository).findAllByOrderByOrderDateDesc();
-        Mockito.verify(orderEntryRepository, Mockito.never())
-                .findByOrderId(Mockito.anyString());
+        Mockito.verify(orderEntryRepository, Mockito.never()).findByOrderId(Mockito.anyString());
     }
 }

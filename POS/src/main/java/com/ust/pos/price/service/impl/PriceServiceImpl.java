@@ -4,9 +4,9 @@ import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
-import com.ust.pos.model.Product;
 import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -100,29 +100,22 @@ public class PriceServiceImpl extends CommonService implements PriceService{
     public PageDto<PriceDto> findAll(Specification<Price> spec, Pageable pageable, String keyword) {
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
-        Page<Price> productPage = priceRepository.findAll(spec, pageable);
-        PageDto<PriceDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
-        PageDto.setTotalRecords(productPage.getTotalElements());
-        PageDto.setTotalPages(productPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        Page<Price> pricePage = priceRepository.findAll(spec, pageable);
+        PageDto<PriceDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
+        pageDto.setTotalRecords(pricePage.getTotalElements());
+        pageDto.setTotalPages(pricePage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
-
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-
         Price price = priceRepository.findByIdentifier(identifier);
-
-        PriceDto priceDto = new PriceDto();
-
         if (price == null) {
-            priceDto.setSuccess(false);
-            priceDto.setMessage("Price not found");
-            return priceDto;
+            throw new ResourceNotFoundException("Price with identifier '" + identifier + "' not found");
         }
         return modelMapper.map(price, PriceDto.class);
     }

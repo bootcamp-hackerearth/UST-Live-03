@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,14 +21,16 @@ import java.io.IOException;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(JwtFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtFilter.class);
 
-    @Autowired
-    private JWTUtility jwtUtility;
+    private final JWTUtility jwtUtility;
 
-    @Autowired
-    private UserDetailsService userService;
+    private final UserDetailsService userService;
+
+    public JwtFilter(JWTUtility jwtUtility,UserDetailsService userService){
+        this.jwtUtility=jwtUtility;
+        this.userService=userService;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -101,7 +102,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         } catch (Exception e) {
 
-            logger.error("JWT Error: {}", e.getMessage(), e);
+            LOGGER.error("JWT Error: {}", e.getMessage(), e);
 
             filterChain.doFilter(request, response);
         }

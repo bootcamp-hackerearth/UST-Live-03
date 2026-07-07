@@ -3,6 +3,7 @@ package com.ust.pos.user.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -37,7 +38,11 @@ public class UserServiceImpl extends CommonService implements UserService {
 
     @Override
     public UserDto findByUserName(String username) {
-        return modelMapper.map(userRepository.findByUsername(username), UserDto.class);
+        User user= userRepository.findByIdentifier(username);
+        if (user == null) {
+            throw new ResourceNotFoundException("User with identifier '" + username + "' not found");
+        }
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
@@ -119,13 +124,13 @@ public class UserServiceImpl extends CommonService implements UserService {
         Type listType = new TypeToken<List<UserDto>>() {
         }.getType();
         Page<User> userPage = userRepository.findAll(spec, pageable);
-        PageDto<UserDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
-        PageDto.setTotalRecords(userPage.getTotalElements());
-        PageDto.setTotalPages(userPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        PageDto<UserDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
+        pageDto.setTotalRecords(userPage.getTotalElements());
+        pageDto.setTotalPages(userPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 }

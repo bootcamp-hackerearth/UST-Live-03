@@ -25,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +48,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http){
         http
                 .cors(cors -> {
                 })
@@ -57,7 +58,7 @@ public class WebSecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
                         .requestMatchers("/login", "/register", "/api/authenticate", "/api/validateToken", "/api/security/**", "/swagger-ui/**", "/api/role/list", "/api/user/add","/api/user/list","/api/user/update","/api/role/findByStatus","/api/**","/v3/**").permitAll()
                         .anyRequest().authenticated())
-                .logout(logout -> logout.permitAll());
+                .logout(LogoutConfigurer::permitAll);
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

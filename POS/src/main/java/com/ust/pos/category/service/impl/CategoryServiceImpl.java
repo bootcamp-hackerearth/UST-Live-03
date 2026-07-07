@@ -3,6 +3,7 @@ package com.ust.pos.category.service.impl;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -121,20 +122,24 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
     public PageDto<CategoryDto> findAll(Specification<Category> spec, Pageable pageable, String keyword) {
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
-        Page<Category> CategoryPage = categoryRepository.findAll(spec, pageable);
-        PageDto<CategoryDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(CategoryPage.getContent(), listType));
-        PageDto.setTotalRecords(CategoryPage.getTotalElements());
-        PageDto.setTotalPages(CategoryPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        Page<Category> categoryPage = categoryRepository.findAll(spec, pageable);
+        PageDto<CategoryDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
+        pageDto.setTotalRecords(categoryPage.getTotalElements());
+        pageDto.setTotalPages(categoryPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-        return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
+        Category category=categoryRepository.findByIdentifier(identifier);
+        if (category == null) {
+            throw new ResourceNotFoundException("Category with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(category, CategoryDto.class);
     }
 
     @Override

@@ -2,10 +2,8 @@ package com.ust.pos.node.service.impl;
 
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.NodeDto;
-import com.ust.pos.dto.PageDto;
-import com.ust.pos.dto.PriceDto;
-import com.ust.pos.dto.ProductDto;
+import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
@@ -69,12 +67,16 @@ public class NodeServiceImpl extends CommonService implements NodeService {
         for (Node node : allowedNodes) {
             nodeDtos.add(modelMapper.map(node, NodeDto.class));
         }
-
         return nodeDtos;
     }
+
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+        Node node = nodeRepository.findByIdentifier(identifier);
+        if (node == null) {
+            throw new ResourceNotFoundException("Node with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(node, NodeDto.class);
     }
 
     @Override
@@ -164,14 +166,14 @@ public class NodeServiceImpl extends CommonService implements NodeService {
     public PageDto<NodeDto> findAll(Specification<Node> spec, Pageable pageable, String keyword) {
         Type listType = new TypeToken<List<NodeDto>>() {
         }.getType();
-        Page<Node> NodePage = nodeRepository.findAll(spec, pageable);
-        PageDto<NodeDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(NodePage.getContent(), listType));
-        PageDto.setTotalRecords(NodePage.getTotalElements());
-        PageDto.setTotalPages(NodePage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        Page<Node> nodePage = nodeRepository.findAll(spec, pageable);
+        PageDto<NodeDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
+        pageDto.setTotalRecords(nodePage.getTotalElements());
+        pageDto.setTotalPages(nodePage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 }

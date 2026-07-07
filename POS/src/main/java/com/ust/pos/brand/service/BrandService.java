@@ -1,9 +1,7 @@
 package com.ust.pos.brand.service;
 import com.ust.pos.dto.BrandDto;
-import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.model.Brand;
-import com.ust.pos.model.Category;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

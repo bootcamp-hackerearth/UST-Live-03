@@ -3,10 +3,9 @@ package com.ust.pos.product.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.ProductDto;
-import com.ust.pos.dto.RacksDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
-import com.ust.pos.model.Racks;
 import com.ust.pos.product.service.ProductService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -108,19 +107,23 @@ public class ProductServiceImpl extends CommonService implements ProductService 
         Type listType = new TypeToken<List<ProductDto>>() {
         }.getType();
         Page<Product> productPage = productRepository.findAll(spec, pageable);
-        PageDto<ProductDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
-        PageDto.setTotalRecords(productPage.getTotalElements());
-        PageDto.setTotalPages(productPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        PageDto<ProductDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
+        pageDto.setTotalRecords(productPage.getTotalElements());
+        pageDto.setTotalPages(productPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
-        return modelMapper.map(productRepository.findByIdentifier(identifier), ProductDto.class);
+        Product product = productRepository.findByIdentifier(identifier);
+        if (product == null) {
+            throw new ResourceNotFoundException("Product with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(product, ProductDto.class);
     }
 
     @Override

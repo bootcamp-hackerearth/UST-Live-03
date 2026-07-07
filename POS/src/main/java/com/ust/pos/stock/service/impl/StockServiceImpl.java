@@ -1,9 +1,8 @@
 package com.ust.pos.stock.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
-import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.StockDto;
-import com.ust.pos.model.Shelfs;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -19,6 +18,7 @@ import java.util.List;
 @Service
 public class StockServiceImpl extends CommonService implements StockService {
 
+    public static final String STOCK_WITH_IDENTIFIER = "Stock with identifier - ";
     private final StockRepository stockRepository;
 
     private final ModelMapper modelMapper;
@@ -34,11 +34,11 @@ public class StockServiceImpl extends CommonService implements StockService {
         Stock existingStock =stockRepository.findByIdentifier(identifier);
         if (existingStock != null) {
             if (Boolean.TRUE.equals(existingStock.getDeleted())) {
-                stockDto.setMessage("Shelfs with identifier - " + identifier + " has been soft deleted. Restore it by changing status.");
+                stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " has been soft deleted. Restore it by changing status.");
                 stockDto.setSuccess(false);
                 return stockDto;
             }
-            stockDto.setMessage("Stock with identifier - " + identifier + " already exists");
+            stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " already exists");
             stockDto.setSuccess(false);
             return stockDto;
         }
@@ -55,7 +55,7 @@ public class StockServiceImpl extends CommonService implements StockService {
         String identifier =stockDto.getIdentifier();
         Stock existingStock =stockRepository.findByIdentifier(identifier);
         if (existingStock == null) {
-           stockDto.setMessage("Stock with identifier - " + identifier + " not found");
+           stockDto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " not found");
            stockDto.setSuccess(false);
             return stockDto;
         }
@@ -98,19 +98,23 @@ public class StockServiceImpl extends CommonService implements StockService {
         Type listType = new TypeToken<List<StockDto>>() {
         }.getType();
         Page<Stock> stockPage = stockRepository.findAll(spec, pageable);
-        PageDto<StockDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
-        PageDto.setTotalRecords(stockPage.getTotalElements());
-        PageDto.setTotalPages(stockPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        PageDto<StockDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
+        pageDto.setTotalRecords(stockPage.getTotalElements());
+        pageDto.setTotalPages(stockPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        return modelMapper.map(stockRepository.findByIdentifier(identifier), StockDto.class);
+        Stock stock = stockRepository.findByIdentifier(identifier);
+        if (stock == null) {
+            throw new ResourceNotFoundException("Stock with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(stock, StockDto.class);
     }
 
     @Override

@@ -2,13 +2,10 @@ package com.ust.pos.models.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.ModelDto;
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.Price;
 import com.ust.pos.models.service.ModelService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -98,15 +95,15 @@ public class ModelServiceImpl extends CommonService implements ModelService {
     public PageDto<ModelDto> findAll(Specification<Model> spec, Pageable pageable, String keyword) {
         Type listType = new TypeToken<List<ModelDto>>() {
         }.getType();
-        Page<Model> ModelPage = modelRepository.findAll(spec, pageable);
-        PageDto<ModelDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(ModelPage.getContent(), listType));
-        PageDto.setTotalRecords(ModelPage.getTotalElements());
-        PageDto.setTotalPages(ModelPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        Page<Model> modelPage = modelRepository.findAll(spec, pageable);
+        PageDto<ModelDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(modelPage.getContent(), listType));
+        pageDto.setTotalRecords(modelPage.getTotalElements());
+        pageDto.setTotalPages(modelPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override

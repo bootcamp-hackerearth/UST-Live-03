@@ -1,15 +1,14 @@
 package com.ust.pos.api.models;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelDto;
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.model.Model;
-import com.ust.pos.model.Node;
 import com.ust.pos.models.service.ModelService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +25,7 @@ public class ModelControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public PageDto<ModelDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -41,18 +41,21 @@ public class ModelControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public ModelDto addPost(@RequestBody  ModelDto modelDto) {
         return modelService.save(modelDto);
 
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public ModelDto updatePost(@RequestBody ModelDto modelDto) {
         return modelService.update(modelDto);
 
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.delete(identifier);
@@ -65,6 +68,7 @@ public class ModelControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public void toggleStatus(@RequestParam String identifier) {
         modelService.toggleStatus(identifier);
     }

@@ -2,14 +2,13 @@ package com.ust.pos.api.warehouse;
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.PaginationDto;
-import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.warehouse.service.WareHouseService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +25,7 @@ public class WareHouseControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public PageDto<WareHouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -41,16 +41,19 @@ public class WareHouseControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public WareHouseDto addPost(@RequestBody WareHouseDto wareHouseDto) {
         return wareHouseService.save(wareHouseDto);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public WareHouseDto updatePost(@RequestBody WareHouseDto wareHouseDto) {
         return wareHouseService.update(wareHouseDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             wareHouseService.delete(identifier);
@@ -62,6 +65,7 @@ public class WareHouseControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public void toggleStatus(@RequestParam String identifier) {
         wareHouseService.toggleStatus(identifier);
     }

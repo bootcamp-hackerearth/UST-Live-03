@@ -49,17 +49,9 @@ class PosUserDetailsServiceTest {
 
         assertEquals(2, userDetails.getAuthorities().size());
 
-        assertTrue(
-                userDetails.getAuthorities()
-                        .stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))
-        );
+        assertTrue(userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
 
-        assertTrue(
-                userDetails.getAuthorities()
-                        .stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_USER"))
-        );
+        assertTrue(userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
 
         verify(userService, times(1)).findByUserName("admin");
     }
@@ -70,11 +62,7 @@ class PosUserDetailsServiceTest {
         when(userService.findByUserName("admin")).thenReturn(null);
 
 
-        UsernameNotFoundException exception =
-                assertThrows(
-                        UsernameNotFoundException.class,
-                        () -> posUserDetailsService.loadUserByUsername("admin")
-                );
+        UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class, () -> posUserDetailsService.loadUserByUsername("admin"));
 
         assertEquals("User not found: admin", exception.getMessage());
 

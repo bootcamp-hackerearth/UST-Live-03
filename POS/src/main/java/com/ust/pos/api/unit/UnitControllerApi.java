@@ -8,6 +8,7 @@ import com.ust.pos.unit.service.UnitService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class UnitControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public PageDto<UnitDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -40,16 +42,19 @@ public class UnitControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public UnitDto addPost(@RequestBody UnitDto unitDto) {
         return unitService.save(unitDto);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
@@ -61,6 +66,7 @@ public class UnitControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public void toggleStatus(@RequestParam String identifier) {
         unitService.toggleStatus(identifier);
     }

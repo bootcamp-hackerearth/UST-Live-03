@@ -24,7 +24,7 @@ public class BrandControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin','Software Developer')")
     public PageDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -52,6 +52,7 @@ public class BrandControllerApi extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -63,6 +64,7 @@ public class BrandControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public void toggleStatus(@RequestParam String identifier) {
         brandService.toggleStatus(identifier);
     }

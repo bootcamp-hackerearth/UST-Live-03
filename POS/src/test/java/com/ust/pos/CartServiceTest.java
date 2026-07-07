@@ -42,8 +42,7 @@ class CartServiceTest {
 
         Cart existingCart = new Cart();
 
-        Mockito.when(cartRepository.findByIdentifier("CART1"))
-                .thenReturn(existingCart);
+        Mockito.when(cartRepository.findByIdentifier("CART1")).thenReturn(existingCart);
 
         CartDto response = cartService.save(cartDto);
 
@@ -61,11 +60,9 @@ class CartServiceTest {
         Mockito.when(cartRepository.findByIdentifier("CART1"))
                 .thenReturn(null);
 
-        Mockito.when(modelMapper.map(cartDto, Cart.class))
-                .thenReturn(cart);
+        Mockito.when(modelMapper.map(cartDto, Cart.class)).thenReturn(cart);
 
-        Mockito.when(cartRepository.save(cart))
-                .thenReturn(cart);
+        Mockito.when(cartRepository.save(cart)).thenReturn(cart);
 
         CartDto response = cartService.save(cartDto);
 
@@ -89,14 +86,11 @@ class CartServiceTest {
 
         Cart cart = new Cart();
 
-        Mockito.when(cartEntryService.findAllEntriesForCart(identifier))
-                .thenReturn(entries);
+        Mockito.when(cartEntryService.findAllEntriesForCart(identifier)).thenReturn(entries);
 
-        Mockito.when(cartRepository.findByIdentifier(identifier))
-                .thenReturn(cart);
+        Mockito.when(cartRepository.findByIdentifier(identifier)).thenReturn(cart);
 
-        Mockito.when(modelMapper.map(cart, CartDto.class))
-                .thenReturn(new CartDto());
+        Mockito.when(modelMapper.map(cart, CartDto.class)).thenReturn(new CartDto());
 
         CartDto response = cartService.recalculate(identifier);
 
@@ -115,11 +109,9 @@ class CartServiceTest {
 
         List<CartEntryDto> entries = Arrays.asList(new CartEntryDto());
 
-        Mockito.when(cartRepository.findByIdentifier(identifier))
-                .thenReturn(cart);
+        Mockito.when(cartRepository.findByIdentifier(identifier)).thenReturn(cart);
 
-        Mockito.when(cartEntryService.findAllEntriesForCart(identifier))
-                .thenReturn(entries);
+        Mockito.when(cartEntryService.findAllEntriesForCart(identifier)).thenReturn(entries);
 
         CartDto response = cartService.findByIdentifier(identifier);
 

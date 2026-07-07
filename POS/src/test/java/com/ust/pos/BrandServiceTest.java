@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -96,11 +97,32 @@ class BrandServiceTest {
     }
 
     @Test
+    void findByIdentifier_success() {
+
+        Brand brand = new Brand();
+        brand.setIdentifier("BRAND001");
+
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("BRAND001");
+
+        Mockito.when(brandRepository.findByIdentifier("BRAND001")).thenReturn(brand);
+
+        Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(brandDto);
+
+        BrandDto response = brandService.findByIdentifier("BRAND001");
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("BRAND001", response.getIdentifier());
+
+        Mockito.verify(brandRepository).findByIdentifier("BRAND001");
+        Mockito.verify(modelMapper).map(brand, BrandDto.class);
+    }
+
+    @Test
     void findByIdentifier_ShouldThrowException_WhenBrandNotFound() {
 
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND001"))
-                .thenReturn(null);
+        Mockito.when(brandRepository.findByIdentifier("BRAND001")).thenReturn(null);
 
         ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> brandService.findByIdentifier("BRAND001"));
 
@@ -140,12 +162,9 @@ class BrandServiceTest {
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("BRAND001");
 
-        Mockito.when(
-                        brandRepository.findByIdentifier("BRAND001"))
-                .thenReturn(null);
+        Mockito.when(brandRepository.findByIdentifier("BRAND001")).thenReturn(null);
 
-        BrandDto response =
-                brandService.update(brandDto);
+        BrandDto response = brandService.update(brandDto);
 
         Assertions.assertFalse(response.isSuccess());
 
@@ -229,13 +248,11 @@ class BrandServiceTest {
         List<Brand> brandList = List.of(brand);
 
         Type listType = new TypeToken<List<BrandDto>>() {
-                }.getType();
+        }.getType();
 
-        Mockito.when(
-                        brandRepository.findByStatusTrue())
-                .thenReturn(brandList);
+        Mockito.when(brandRepository.findByStatusTrue()).thenReturn(brandList);
 
-        Mockito.when(modelMapper.map(Mockito.eq(brandList), Mockito.eq(listType))).thenReturn(List.of(brandDto));
+        Mockito.when(modelMapper.map(brandList, listType)).thenReturn(List.of(brandDto));
 
         List<BrandDto> response = brandService.findActiveBrands();
 
@@ -244,6 +261,21 @@ class BrandServiceTest {
         Assertions.assertEquals(1, response.size());
 
         Assertions.assertEquals("BRAND001", response.get(0).getIdentifier());
+    }
+
+    @Test
+    void findActiveBrandsTest_empty() {
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+
+        Mockito.when(brandRepository.findByStatusTrue()).thenReturn(List.of());
+
+        Mockito.when(modelMapper.map(List.of(), listType)).thenReturn(List.of());
+
+        List<BrandDto> response = brandService.findActiveBrands();
+
+        Assertions.assertTrue(response.isEmpty());
     }
 
     @Test
@@ -262,9 +294,9 @@ class BrandServiceTest {
         Mockito.when(brandRepository.findByDeletedFalse(pageable)).thenReturn(brandPage);
 
         Type listType = new TypeToken<List<BrandDto>>() {
-                }.getType();
+        }.getType();
 
-        Mockito.when(modelMapper.map(Mockito.eq(brandPage.getContent()), Mockito.eq(listType))).thenReturn(List.of(brandDto));
+        Mockito.when(modelMapper.map(brandPage.getContent(), listType)).thenReturn(List.of(brandDto));
 
         PageDto<BrandDto> response = brandService.findAll(pageable);
 
@@ -281,5 +313,65 @@ class BrandServiceTest {
         Assertions.assertEquals(10, response.getSizePerPage());
 
         Assertions.assertEquals(0, response.getPage());
+    }
+
+    @Test
+    void findAll_withSpecificationAndKeyword() {
+
+        Brand brand = new Brand();
+        brand.setIdentifier("BRAND001");
+
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("BRAND001");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Brand> spec = Mockito.mock(Specification.class);
+
+        Page<Brand> brandPage = new PageImpl<>(List.of(brand), pageable, 1);
+
+        Mockito.when(brandRepository.findAll(spec, pageable)).thenReturn(brandPage);
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+
+        Mockito.when(modelMapper.map(brandPage.getContent(), listType)).thenReturn(List.of(brandDto));
+
+        PageDto<BrandDto> response = brandService.findAll(spec, pageable, "nike");
+
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("BRAND001", response.getDtoList().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Assertions.assertEquals("nike", response.getKeyword());
+
+        Mockito.verify(brandRepository).findAll(spec, pageable);
+    }
+
+    @Test
+    void findAll_withSpecificationAndKeyword_noResults() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Brand> spec = Mockito.mock(Specification.class);
+
+        Page<Brand> brandPage = new PageImpl<>(List.of(), pageable, 0);
+
+        Mockito.when(brandRepository.findAll(spec, pageable)).thenReturn(brandPage);
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+
+        Mockito.when(modelMapper.map(brandPage.getContent(), listType)).thenReturn(List.of());
+
+        PageDto<BrandDto> response = brandService.findAll(spec, pageable, "nomatch");
+
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0, response.getTotalRecords());
+        Assertions.assertEquals("nomatch", response.getKeyword());
     }
 }

@@ -2,8 +2,8 @@ package com.ust.pos.unit.service.impl;
 
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
-import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
@@ -96,22 +96,26 @@ public class UnitServiceImpl extends CommonService implements UnitService {
 
     @Override
     public PageDto<UnitDto> findAll(Specification<Unit> spec, Pageable pageable, String keyword) {
-        Type listType = new TypeToken<List<StockDto>>() {
+        Type listType = new TypeToken<List<UnitDto>>() {
         }.getType();
         Page<Unit> unitPage = unitRepository.findAll(spec, pageable);
-        PageDto<UnitDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
-        PageDto.setTotalRecords(unitPage.getTotalElements());
-        PageDto.setTotalPages(unitPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        PageDto<UnitDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(unitPage.getContent(), listType));
+        pageDto.setTotalRecords(unitPage.getTotalElements());
+        pageDto.setTotalPages(unitPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override
     public UnitDto findByIdentifier(String identifier) {
-        return modelMapper.map(unitRepository.findByIdentifier(identifier), UnitDto.class);
+        Unit unit = unitRepository.findByIdentifier(identifier);
+        if (unit == null) {
+            throw new ResourceNotFoundException("Unit with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(unit, UnitDto.class);
     }
 
     @Override

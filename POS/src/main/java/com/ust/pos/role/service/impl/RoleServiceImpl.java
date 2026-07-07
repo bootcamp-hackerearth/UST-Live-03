@@ -3,6 +3,7 @@ package com.ust.pos.role.service.impl;
 import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.PageDto;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -31,7 +32,11 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+        Role role = roleRepository.findByIdentifier(identifier);
+        if (role == null) {
+            throw new ResourceNotFoundException("Role with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(role, RoleDto.class);
     }
 
     @Override
@@ -121,13 +126,13 @@ public class RoleServiceImpl extends CommonService implements RoleService {
         Type listType = new TypeToken<List<RoleDto>>() {
         }.getType();
         Page<Role> rolePage = roleRepository.findAll(spec, pageable);
-        PageDto<RoleDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
-        PageDto.setTotalRecords(rolePage.getTotalElements());
-        PageDto.setTotalPages(rolePage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        PageDto<RoleDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(rolePage.getContent(), listType));
+        pageDto.setTotalRecords(rolePage.getTotalElements());
+        pageDto.setTotalPages(rolePage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 }

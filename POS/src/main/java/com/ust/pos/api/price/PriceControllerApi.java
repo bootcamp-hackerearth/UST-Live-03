@@ -9,6 +9,7 @@ import com.ust.pos.price.service.PriceService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class PriceControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public PageDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -39,17 +41,20 @@ public class PriceControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public PriceDto addPost(@RequestBody PriceDto priceDto) {
         return priceService.save(priceDto);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public PriceDto updatePost(@RequestBody PriceDto priceDto) {
         return priceService.update(priceDto );
 
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             priceService.delete(identifier);
@@ -61,6 +66,7 @@ public class PriceControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public void toggleStatus(@RequestParam String identifier) {
         priceService.toggleStatus(identifier);
     }

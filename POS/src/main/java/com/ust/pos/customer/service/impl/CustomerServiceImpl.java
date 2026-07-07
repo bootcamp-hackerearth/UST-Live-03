@@ -185,14 +185,14 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
         Page<Customer> customerPage = customerRepository.findAll(spec, pageable);
-        PageDto<CustomerDto> PageDto = new PageDto<>();
-        PageDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
-        PageDto.setTotalRecords(customerPage.getTotalElements());
-        PageDto.setTotalPages(customerPage.getTotalPages());
-        PageDto.setSizePerPage(pageable.getPageSize());
-        PageDto.setPage(pageable.getPageNumber());
-        PageDto.setKeyword(keyword);
-        return PageDto;
+        PageDto<CustomerDto> pageDto = new PageDto<>();
+        pageDto.setDtoList(modelMapper.map(customerPage.getContent(), listType));
+        pageDto.setTotalRecords(customerPage.getTotalElements());
+        pageDto.setTotalPages(customerPage.getTotalPages());
+        pageDto.setSizePerPage(pageable.getPageSize());
+        pageDto.setPage(pageable.getPageNumber());
+        pageDto.setKeyword(keyword);
+        return pageDto;
     }
 
     @Override

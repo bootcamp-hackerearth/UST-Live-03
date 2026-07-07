@@ -16,17 +16,17 @@ public class OrderControllerApi{
     }
 
     @GetMapping("/generateId")
-    private String generateOrderId(@RequestBody OrderDto orderDto){
+    public String generateOrderId(@RequestBody OrderDto orderDto){
         return orderService.generateOrderId(orderDto.getIdentifier());
     }
 
     @PostMapping("/create")
-    private OrderDto createOrder(@RequestBody OrderDto orderDto){
+    public OrderDto createOrder(@RequestBody OrderDto orderDto){
         return orderService.placeOrder(orderDto.getIdentifier(),orderDto.getPaymentMode());
     }
 
     @GetMapping("/list")
-    private List<OrderDto> getAllOrders(){
+    public List<OrderDto> getAllOrders(){
         return orderService.findAll();
     }
 }
