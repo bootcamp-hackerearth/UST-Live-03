@@ -120,7 +120,7 @@ const Login = () => {
         <p style={styles.text}>
           Don’t have account?{" "}
           <Link
-            href="/api/register"
+            href="/register"
             style={styles.link}
           >
             Register
