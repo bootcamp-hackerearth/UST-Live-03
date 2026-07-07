@@ -40,19 +40,23 @@ export default function CategoryAddPage() {
       }}
  
       fields={[
-        {
-          label: "Identifier",
-          name: "identifier",
-          type: "text",
-        },
- 
-        dropdown(
-          "Super Category",
-          "superCategory",
-          "/api/category/list",
-          { includeNoneOption: true }
-        ),
-      ]}
+  {
+    label: "Identifier",
+    name: "identifier",
+    type: "text",
+    required: true,
+  },
+
+  dropdown(
+    "Super Category",
+    "superCategory",
+    "/api/category/list",
+    {
+      includeNoneOption: true,
+      required: false,
+    }
+  ),
+]}
     />
   );
 }
