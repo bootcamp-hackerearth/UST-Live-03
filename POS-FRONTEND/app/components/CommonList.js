@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -35,6 +35,7 @@ const CommonList = ({
   const [totalRecords, setTotalRecords] = useState(0);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortField] = useState("id");
   const [sortDirection] = useState("ASC");
 
@@ -51,11 +52,32 @@ const CommonList = ({
     }, 4000);
   }, []);
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
+
+  const abortControllerRef = useRef(null);
+
   const fetchData = useCallback(async () => {
     if (!token) return;
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     try {
+      const currentSearchQuery = debouncedSearch ? debouncedSearch.trim() : "";
+
       const res = await axios.post(
         `${BASE_URL}/${urlName}/list`,
         {
@@ -63,16 +85,13 @@ const CommonList = ({
           sizePerPage: sizePerPage,
           sortDirection: sortDirection,
           sortField: sortField,
+          keyword: currentSearchQuery,
         },
-        { headers: { Authorization: "Bearer " + token } },
+        {
+          headers: { Authorization: "Bearer " + token },
+          signal: controller.signal,
+        },
       );
-
-      if (res.status !== 200 && res.status !== 201) {
-        if (res.status === 500) {
-          router.push("/500");
-          return;
-        }
-      }
 
       const responseData = res.data;
       if (responseData) {
@@ -81,14 +100,19 @@ const CommonList = ({
         setTotalRecords(responseData.totalRecords || 0);
       }
     } catch (err) {
+      if (axios.isCancel(err) || err.code === "ERR_CANCELED") {
+        return;
+      }
       console.error("Fetch Error:", err);
-      if (err.response.status === 403 || err.response.status === 500) {
+      if (err.response?.status === 403 || err.response?.status === 500) {
         router.push("/500");
         return;
       }
       triggerToast("Failed to fetch records from server", "error");
     } finally {
-      setLoading(false);
+      if (abortControllerRef.current === controller) {
+        setLoading(false);
+      }
     }
   }, [
     BASE_URL,
@@ -98,6 +122,7 @@ const CommonList = ({
     sortDirection,
     sortField,
     token,
+    debouncedSearch,
     triggerToast,
     router,
   ]);
@@ -108,21 +133,9 @@ const CommonList = ({
     }
   }, [fetchData, token]);
 
-  const filteredData = React.useMemo(() => {
-    if (!search) return data;
-    return data.filter((item) =>
-      columns.some((col) => {
-        const value = item[col.field];
-        if (value === null || value === undefined) return false;
-        if (typeof value === "object") {
-          return JSON.stringify(value)
-            .toLowerCase()
-            .includes(search.toLowerCase());
-        }
-        return value.toString().toLowerCase().includes(search.toLowerCase());
-      }),
-    );
-  }, [data, search, columns]);
+  const displayData = data;
+  const displayTotalRecords = totalRecords;
+  const displayTotalPages = totalPages;
 
   const deleteItem = async (identifier) => {
     if (!globalThis.confirm("Are you sure you want to delete this item?"))
@@ -275,6 +288,7 @@ const CommonList = ({
             <span className="text-base font-semibold">+</span> Add New
           </button>
         </div>
+
         <div className="bg-white border border-slate-200 rounded-t-xl p-4 flex justify-between items-center gap-4 flex-shrink-0">
           <div className="relative flex-1 max-w-md">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none text-sm">
@@ -284,10 +298,7 @@ const CommonList = ({
               type="text"
               placeholder="Search data records..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
@@ -310,6 +321,7 @@ const CommonList = ({
             </select>
           </div>
         </div>
+
         <div className="flex-1 overflow-auto border-x border-slate-200 bg-white shadow-sm min-h-0 relative">
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
@@ -337,12 +349,14 @@ const CommonList = ({
               </div>
             </div>
           )}
-          {!loading && filteredData.length === 0 && (
+
+          {!loading && displayData.length === 0 && (
             <div className="py-24 text-center text-sm text-slate-400">
               No matching system data found.
             </div>
           )}
-          {!loading && filteredData.length > 0 && (
+
+          {!loading && displayData.length > 0 && (
             <table className="w-full table-auto border-collapse">
               <thead className="sticky top-0 bg-slate-900 text-white text-xs font-semibold tracking-wider z-10">
                 <tr>
@@ -361,7 +375,7 @@ const CommonList = ({
               </thead>
 
               <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                {filteredData.map((item, rowIdx) => (
+                {displayData.map((item, rowIdx) => (
                   <tr
                     key={item.identifier || item.username || `row-${rowIdx}`}
                     className="hover:bg-slate-50/80 transition-colors duration-100"
@@ -374,7 +388,6 @@ const CommonList = ({
                         {renderCellContent(item, col)}
                       </td>
                     ))}
-
                     <td className="p-4 text-center whitespace-nowrap">
                       <div className="flex justify-center gap-1.5">
                         <button
@@ -431,9 +444,13 @@ const CommonList = ({
           <div className="text-xs text-slate-500 font-medium">
             Page{" "}
             <span className="text-slate-800 font-semibold">{page + 1}</span> of{" "}
-            <span className="text-slate-800 font-semibold">{totalPages}</span>{" "}
+            <span className="text-slate-800 font-semibold">
+              {displayTotalPages}
+            </span>{" "}
             <span className="mx-2 text-slate-300">|</span> Total Records:{" "}
-            <span className="text-slate-800 font-semibold">{totalRecords}</span>
+            <span className="text-slate-800 font-semibold">
+              {displayTotalRecords}
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -446,13 +463,13 @@ const CommonList = ({
             </button>
 
             <div className="flex gap-1 max-w-[200px] sm:max-w-xs overflow-x-auto px-1">
-              {[...new Array(totalPages).keys()].map((p) => (
+              {[...new Array(displayTotalPages).keys()].map((p) => (
                 <button
                   key={`page-${p}`}
                   onClick={() => setPage(p)}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                     page === p
-                      ? "bg-blue-600 text-white shadow-sm shadow-blue-500/10"
+                      ? "bg-blue-600 text-white shadow-sm"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
@@ -462,7 +479,7 @@ const CommonList = ({
             </div>
 
             <button
-              disabled={page === totalPages - 1}
+              disabled={page === displayTotalPages - 1}
               onClick={() => setPage(page + 1)}
               className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-medium text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white transition-colors"
             >
