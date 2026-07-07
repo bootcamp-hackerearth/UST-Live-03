@@ -45,7 +45,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/authenticate",
+        "/api/authenticate",
         credentials
       );
 
