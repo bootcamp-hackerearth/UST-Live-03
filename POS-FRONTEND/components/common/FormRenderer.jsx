@@ -108,7 +108,7 @@ const SelectField = ({ f, value, onChange, options, error }) => (
       value={value ?? ""}
       onChange={onChange}
       disabled={f.disabled}
-      className={cx(inputBase,"bg-white text-gray-900", f.disabled ? inputDisabled : inputFocus)}
+      className={cx(inputBase, f.disabled ? inputDisabled : inputFocus)}
     >
       <option value="">{f.placeholder ?? `Select ${f.label}`}</option>
       {(f.options ?? options?.[f.name] ?? []).map((o) => (
