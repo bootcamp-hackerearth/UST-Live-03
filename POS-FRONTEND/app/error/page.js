@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import PropTypes from "prop-types";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -73,7 +73,7 @@ ActionButton.defaultProps = {
   style: {},
 };
 
-export default function ErrorPage() {
+function ErrorContent() {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -156,5 +156,13 @@ export default function ErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ErrorPage() {
+  return (
+    <Suspense fallback={null}>
+      <ErrorContent />
+    </Suspense>
   );
 }
