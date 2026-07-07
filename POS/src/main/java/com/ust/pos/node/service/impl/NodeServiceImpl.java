@@ -3,11 +3,13 @@ package com.ust.pos.node.service.impl;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
+import com.ust.pos.service.BaseService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,7 @@ import java.util.Set;
 
 @Service
 @Transactional
-public class NodeServiceImpl implements NodeService {
+public class NodeServiceImpl extends BaseService implements NodeService {
 
     private final UserRepository userRepository;
 
@@ -112,7 +114,8 @@ public class NodeServiceImpl implements NodeService {
     public Page<NodeDto> findAll(Pageable pageable ,String search ) {
         Page<Node> nodePage;
         if(search !=null && !search.trim().isEmpty()){
-            nodePage = nodeRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search,pageable);
+            Specification<Node> specification = buildGlobalSearchSpec(Node.class, search);
+            nodePage = nodeRepository.findAll(specification,pageable);
         }
         else {
             nodePage = nodeRepository.findByDeletedFalse(pageable);

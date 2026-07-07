@@ -141,7 +141,7 @@ export const deleteItem = async (model, value, key = "identifier") => {
 export const toggleItem = async (model, identifier) => {
   const response = await api.post(
     `/api/${model}/toggleStatus`,
-    identifier, // 👈 send raw string
+    identifier, 
     {
       headers: {
         "Content-Type": "text/plain",

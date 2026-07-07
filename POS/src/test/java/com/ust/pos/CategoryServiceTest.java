@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -165,6 +166,7 @@ class CategoryServiceTest {
                 .save(category);
     }
 
+
     @Test
     void findAll_WithPagination_ShouldReturnCategoryDtos() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -174,8 +176,9 @@ class CategoryServiceTest {
                 new PageImpl<>(List.of(category));
         Mockito.when(categoryRepository.findByDeletedFalse(pageable))
                 .thenReturn(categoryPage);
-        Mockito.when(categoryRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse("ABC", pageable))
+        Mockito.when(categoryRepository.findAll(
+                        Mockito.<Specification<Category>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(categoryPage);
         Mockito.when(modelMapper.map(category, CategoryDto.class))
                 .thenReturn(categoryDto);
@@ -187,10 +190,14 @@ class CategoryServiceTest {
         Assertions.assertEquals(1, response2.getContent().size());
         Mockito.verify(categoryRepository).findByDeletedFalse(pageable);
         Mockito.verify(categoryRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse("ABC", pageable);
+                .findAll(
+                        Mockito.<Specification<Category>>any(),
+                        Mockito.eq(pageable)
+                );
         Mockito.verify(modelMapper, Mockito.atLeastOnce())
                 .map(category, CategoryDto.class);
     }
+
     @Test
     void deleteTest_WhenCategoryNotFound() {
         Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("Admin"))

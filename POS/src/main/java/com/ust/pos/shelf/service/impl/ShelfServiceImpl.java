@@ -4,11 +4,13 @@ import com.ust.pos.dto.CommonDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
+import com.ust.pos.service.BaseService;
 import com.ust.pos.shelf.service.ShelfService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +20,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class ShelfServiceImpl implements ShelfService {
+public class ShelfServiceImpl extends BaseService implements ShelfService {
     private final ShelfRepository shelfRepository;
 
     private final ModelMapper modelMapper;
@@ -83,7 +85,8 @@ public class ShelfServiceImpl implements ShelfService {
     public Page<ShelfDto> findAll(Pageable pageable , String search) {
         Page<Shelf> shelfPage;
         if(search!= null && !search.trim().isEmpty()){
-            shelfPage = shelfRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search , pageable);
+            Specification<Shelf> specification = buildGlobalSearchSpec(Shelf.class, search);
+            shelfPage = shelfRepository.findAll(specification, pageable);
         }
         else {
             shelfPage = shelfRepository.findByDeletedFalse(pageable);

@@ -1,13 +1,13 @@
 package com.ust.pos.api.product;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.product.service.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +41,7 @@ public class ProductApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public ProductDto addPost(@RequestBody ProductDto productDto) {
         return productService.save(productDto);
     }
@@ -51,11 +52,13 @@ public class ProductApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             productService.delete(identifier);
@@ -65,6 +68,7 @@ public class ProductApiController extends BaseController {
         return true;
     }
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean toggleStatus(@RequestBody String identifier) {
         try {
             productService.toggleStatus(identifier);

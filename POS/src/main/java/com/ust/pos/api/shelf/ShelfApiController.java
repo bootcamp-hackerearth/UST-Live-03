@@ -1,13 +1,13 @@
 package com.ust.pos.api.shelf;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +41,7 @@ public class ShelfApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public ShelfDto addPost(@RequestBody ShelfDto shelfDto) {
         return shelfService.save(shelfDto);
     }
@@ -51,11 +52,13 @@ public class ShelfApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public ShelfDto updatePost(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfService.delete(identifier);
@@ -66,6 +69,7 @@ public class ShelfApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean toggleStatus(@RequestBody String identifier) {
         try {
             shelfService.toggleStatus(identifier);

@@ -1,13 +1,13 @@
 package com.ust.pos.api.stock;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.stock.service.StockService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +42,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public StockDto addPost(@RequestBody StockDto stockDto) {
         return stockService.save(stockDto);
     }
@@ -52,11 +53,13 @@ public class StockApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             stockService.delete(identifier);
@@ -67,6 +70,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean toggleStatus(@RequestBody String identifier) {
         try {
             stockService.toggleStatus(identifier);

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -211,16 +212,17 @@ class CustomerServiceTest {
     void findAll_WithPagination_Search() {
         Pageable pageable = PageRequest.of(0, 10);
         Customer customer = new Customer();
-        Page<Customer> page =
-                new PageImpl<>(List.of(customer));
-        Mockito.when(customerRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse("Admin", pageable))
+        Page<Customer> page = new PageImpl<>(List.of(customer));
+        Mockito.when(customerRepository.findAll(
+                        Mockito.<Specification<Customer>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
         Mockito.when(modelMapper.map(
                         Mockito.any(Customer.class),
                         Mockito.eq(CustomerDto.class)))
                 .thenReturn(new CustomerDto());
-        Page<CustomerDto> result = customerService.findAll(pageable, "Admin");
-        Assertions.assertEquals(1, result.getContent().size()
-        );
+        Page<CustomerDto> result =
+                customerService.findAll(pageable, "Admin");
+        Assertions.assertEquals(1, result.getContent().size());
     }
 }

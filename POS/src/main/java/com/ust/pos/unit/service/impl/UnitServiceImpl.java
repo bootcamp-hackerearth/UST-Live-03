@@ -3,11 +3,13 @@ package com.ust.pos.unit.service.impl;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
+import com.ust.pos.service.BaseService;
 import com.ust.pos.unit.service.UnitService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.lang.reflect.Type;
@@ -16,7 +18,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class UnitServiceImpl implements UnitService {
+public class UnitServiceImpl extends BaseService implements UnitService {
 
     private final ModelMapper modelMapper;
 
@@ -80,7 +82,8 @@ public class UnitServiceImpl implements UnitService {
     public Page<UnitDto> findAll(Pageable pageable , String search) {
         Page<Unit> unitPage;
         if(search!= null && !search.trim().isEmpty()){
-            unitPage = unitRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search , pageable);
+            Specification<Unit> specification = buildGlobalSearchSpec(Unit.class, search);
+            unitPage = unitRepository.findAll(specification , pageable);
         }
         else {
             unitPage = unitRepository.findByDeletedFalse(pageable);

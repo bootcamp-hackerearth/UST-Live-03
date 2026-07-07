@@ -1,13 +1,13 @@
 package com.ust.pos.api.racks;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +41,7 @@ public class RacksApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public RacksDto addPost(@RequestBody RacksDto racksDto) {
         return racksService.save(racksDto);
     }
@@ -51,11 +52,13 @@ public class RacksApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public RacksDto updatePost(@RequestBody RacksDto racksDto) {
         return racksService.update(racksDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);
@@ -66,6 +69,7 @@ public class RacksApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean toggleStatus(@RequestBody String identifier) {
         try {
             racksService.toggleStatus(identifier);

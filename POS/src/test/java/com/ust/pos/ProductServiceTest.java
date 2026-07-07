@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -69,24 +70,18 @@ class ProductServiceTest {
     void updateTest_Success() {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("Admin");
-
         Product existing = new Product();
-
         Mockito.when(productRepository
                         .findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(existing);
-
         ProductDto response = productService.update(dto);
-
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals(
                 "Updated successfully",
                 response.getMessage()
         );
-
         Mockito.verify(productRepository)
                 .save(existing);
-
         Mockito.verify(modelMapper, Mockito.never())
                 .map(Mockito.any(), Mockito.eq(Product.class));
     }
@@ -146,39 +141,33 @@ class ProductServiceTest {
 
     @Test
     void findAll_WithPagination_ShouldReturnProductDtos() {
-
         Pageable pageable = PageRequest.of(0, 10);
-
         Product product = new Product();
         ProductDto productDto = new ProductDto();
-
         Page<Product> page = new PageImpl<>(List.of(product));
-
         Mockito.when(productRepository.findByDeletedFalse(pageable))
                 .thenReturn(page);
-
         Mockito.when(modelMapper.map(product, ProductDto.class))
                 .thenReturn(productDto);
-
         Page<ProductDto> response =
                 productService.findAll(pageable, null);
-
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getContent().size());
-
         Mockito.verify(productRepository)
                 .findByDeletedFalse(pageable);
-
         Mockito.verify(modelMapper)
                 .map(product, ProductDto.class);
     }
+
     @Test
     void findAll_WithSearch_ShouldReturnProductDtos() {
         Pageable pageable = PageRequest.of(0, 10);
         Product product = new Product();
         ProductDto dto = new ProductDto();
         Page<Product> page = new PageImpl<>(List.of(product));
-        Mockito.when(productRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse("ABC", pageable))
+        Mockito.when(productRepository.findAll(
+                        Mockito.<Specification<Product>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
         Mockito.when(modelMapper.map(product, ProductDto.class))
                 .thenReturn(dto);
@@ -186,9 +175,9 @@ class ProductServiceTest {
                 productService.findAll(pageable, "ABC");
         Assertions.assertEquals(1, response.getContent().size());
         Mockito.verify(productRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "ABC",
-                        pageable
+                .findAll(
+                        Mockito.<Specification<Product>>any(),
+                        Mockito.eq(pageable)
                 );
     }
 }

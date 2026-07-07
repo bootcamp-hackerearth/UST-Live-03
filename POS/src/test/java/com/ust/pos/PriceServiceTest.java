@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -196,8 +197,9 @@ class PriceServiceTest {
         price.setIdentifier("ABC");
         PriceDto dto = new PriceDto();
         Page<Price> page = new PageImpl<>(List.of(price));
-        Mockito.when(priceRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse("ABC", pageable))
+        Mockito.when(priceRepository.findAll(
+                        Mockito.<Specification<Price>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
         Mockito.when(modelMapper.map(price, PriceDto.class))
                 .thenReturn(dto);
@@ -205,6 +207,8 @@ class PriceServiceTest {
                 priceService.findAll(pageable, "ABC");
         Assertions.assertEquals(1, response.getContent().size());
         Mockito.verify(priceRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse("ABC", pageable);
+                .findAll(
+                        Mockito.<Specification<Price>>any(),
+                        Mockito.eq(pageable));
     }
 }

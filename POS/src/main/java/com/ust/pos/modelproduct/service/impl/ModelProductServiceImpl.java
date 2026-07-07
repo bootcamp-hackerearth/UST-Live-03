@@ -4,10 +4,12 @@ import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.model.ModelProduct;
 import com.ust.pos.model.ModelProductRepository;
 import com.ust.pos.modelproduct.service.ModelProductService;
+import com.ust.pos.service.BaseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ModelProductServiceImpl implements ModelProductService {
+public class ModelProductServiceImpl extends BaseService implements ModelProductService {
 
     private final ModelMapper modelMapper;
 
@@ -71,7 +73,8 @@ public class ModelProductServiceImpl implements ModelProductService {
     public Page<ModelProductDto> findAll(Pageable pageable , String search) {
         Page<ModelProduct> modelProductPage;
         if(search!= null && !search.trim().isEmpty()){
-            modelProductPage = modelProductRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search , pageable);
+            Specification<ModelProduct> specification = buildGlobalSearchSpec(ModelProduct.class, search);
+            modelProductPage = modelProductRepository.findAll(specification , pageable);
         }
         else {
             modelProductPage = modelProductRepository.findByDeletedFalse(pageable);

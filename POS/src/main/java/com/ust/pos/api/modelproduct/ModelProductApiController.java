@@ -2,12 +2,12 @@ package com.ust.pos.api.modelproduct;
 
 import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelProductDto;
-import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.modelproduct.service.ModelProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +41,7 @@ public class ModelProductApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public ModelProductDto addPost(@RequestBody ModelProductDto modelProductDto) {
         return modelProductService.save(modelProductDto);
     }
@@ -51,11 +52,13 @@ public class ModelProductApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public ModelProductDto updatePost(@RequestBody ModelProductDto modelProductDto) {
         return modelProductService.update(modelProductDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelProductService.delete(identifier);
@@ -66,6 +69,7 @@ public class ModelProductApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean toggleStatus(@RequestBody String identifier) {
         try {
             modelProductService.toggleStatus(identifier);

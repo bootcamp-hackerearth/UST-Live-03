@@ -46,18 +46,14 @@ class OrderServiceTest {
         cart.setTotalPrice(new BigDecimal("100"));
         cart.setDiscount(new BigDecimal("10"));
         cart.setCoupon("SAVE10");
-
         CartEntryDto entry = new CartEntryDto();
         entry.setProduct("P1");
         entry.setQuantity(new BigDecimal("2"));
         entry.setUnitPrice(new BigDecimal("50"));
         entry.setTotalPrice(new BigDecimal("100"));
-
         OrderDto responseDto = new OrderDto();
-
         Type itemListType = new TypeToken<List<OrderItemDto>>() {
         }.getType();
-
         Mockito.when(cartRepository.findByIdentifier("C1"))
                 .thenReturn(cart);
         Mockito.when(cartEntryService.findByCartId("C1"))
@@ -68,12 +64,9 @@ class OrderServiceTest {
                 .thenReturn(responseDto);
         Mockito.when(modelMapper.map(Mockito.anyList(), Mockito.eq(itemListType)))
                 .thenReturn(List.of(new OrderItemDto()));
-
         OrderDto response = orderService.createOrder("C1", "CARD");
-
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("Order created successfully", response.getMessage());
-
         Mockito.verify(orderRepository).save(Mockito.any(Order.class));
         Mockito.verify(orderItemRepository).saveAll(Mockito.anyList());
         Mockito.verify(cartEntryService).delete("C1");
@@ -84,15 +77,11 @@ class OrderServiceTest {
     void createOrderEmptyCartTest() {
         Mockito.when(cartRepository.findByIdentifier("C1"))
                 .thenReturn(null);
-
         Mockito.when(cartEntryService.findByCartId("C1"))
                 .thenReturn(null);
-
         OrderDto response = orderService.createOrder("C1", "CARD");
-
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Cart is empty or not found", response.getMessage());
-
         Mockito.verify(orderRepository, Mockito.never())
                 .save(Mockito.any());
     }
@@ -100,17 +89,13 @@ class OrderServiceTest {
     @Test
     void updateStatusTest() {
         Order order = new Order();
-
         Mockito.when(orderRepository.findByIdentifier("ORD1"))
                 .thenReturn(order);
         Mockito.when(modelMapper.map(order, OrderDto.class))
                 .thenReturn(new OrderDto());
-
         OrderDto response = orderService.updateStatus("ORD1", "PENDING");
-
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals("Order status updated", response.getMessage());
-
         Mockito.verify(orderRepository).save(order);
     }
 
@@ -118,12 +103,9 @@ class OrderServiceTest {
     void updateStatusFailureTest() {
         Mockito.when(orderRepository.findByIdentifier("ORD1"))
                 .thenReturn(null);
-
         OrderDto response = orderService.updateStatus("ORD1", "PENDING");
-
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Order not found - ORD1", response.getMessage());
-
         Mockito.verify(orderRepository, Mockito.never())
                 .save(Mockito.any());
     }
@@ -132,10 +114,8 @@ class OrderServiceTest {
     void findByIdentifierTest() {
         Order order = new Order();
         List<OrderItem> items = List.of(new OrderItem());
-
         Type itemListType = new TypeToken<List<OrderItemDto>>() {
         }.getType();
-
         Mockito.when(orderRepository.findByIdentifier("ORD1"))
                 .thenReturn(order);
         Mockito.when(orderItemRepository.findByOrderIdentifier("ORD1"))
@@ -146,9 +126,7 @@ class OrderServiceTest {
                 .thenReturn(new OrderDto());
         Mockito.when(modelMapper.map(items, itemListType))
                 .thenReturn(List.of(new OrderItemDto()));
-
         OrderDto response = orderService.findByIdentifier("ORD1");
-
         Assertions.assertNotNull(response);
         Mockito.verify(orderItemRepository)
                 .findByOrderIdentifier("ORD1");
@@ -158,9 +136,7 @@ class OrderServiceTest {
     void findByIdentifierNotFoundTest() {
         Mockito.when(orderRepository.findByIdentifier("ORD1"))
                 .thenReturn(null);
-
         OrderDto response = orderService.findByIdentifier("ORD1");
-
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Order not found", response.getMessage());
     }
@@ -169,29 +145,22 @@ class OrderServiceTest {
     void findAllTest() {
         List<Order> orders = List.of(new Order());
         List<OrderDto> dtos = List.of(new OrderDto());
-
         Type type = new TypeToken<List<OrderDto>>() {
         }.getType();
-
         Mockito.when(orderRepository.findAll())
                 .thenReturn(orders);
         Mockito.when(modelMapper.map(orders, type))
                 .thenReturn(dtos);
-
         List<OrderDto> response = orderService.findAll();
-
         Assertions.assertEquals(1, response.size());
     }
 
     @Test
     void deleteTest() {
         List<OrderItem> items = List.of(new OrderItem());
-
         Mockito.when(orderItemRepository.findByOrderIdentifier("ORD1"))
                 .thenReturn(items);
-
         orderService.delete("ORD1");
-
         Mockito.verify(orderItemRepository)
                 .deleteAll(items);
         Mockito.verify(orderRepository)

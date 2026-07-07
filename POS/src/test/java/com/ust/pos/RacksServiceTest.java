@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -107,27 +108,19 @@ class RacksServiceTest {
 
     @Test
     void findAllTest() {
-
         List<Racks> entities = List.of(new Racks());
         List<RacksDto> dtos = List.of(new RacksDto());
-
         java.lang.reflect.Type listType =
                 new org.modelmapper.TypeToken<List<RacksDto>>() {}.getType();
-
         Mockito.when(racksRepository.findByDeletedFalse())
                 .thenReturn(entities);
-
         Mockito.when(modelMapper.map(entities, listType))
                 .thenReturn(dtos);
-
         List<RacksDto> response = racksService.findAll();
-
         Assertions.assertEquals(1, response.size());
-
         Mockito.verify(racksRepository).findByDeletedFalse();
     }
 
-    // ================= FIND BY ID =================
     @Test
     void findByIdentifierTest() {
         Racks entity = new Racks();
@@ -196,24 +189,21 @@ class RacksServiceTest {
     @Test
     void findAll_WithPagination_WithSearch() {
         Pageable pageable = PageRequest.of(0, 10);
-
         Racks racks = new Racks();
         RacksDto dto = new RacksDto();
-
         Page<Racks> page = new PageImpl<>(List.of(racks));
-
-        Mockito.when(racksRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse("R1", pageable))
+        Mockito.when(racksRepository.findAll(
+                        Mockito.<Specification<Racks>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
         Mockito.when(modelMapper.map(racks, RacksDto.class))
                 .thenReturn(dto);
-
         Page<RacksDto> response = racksService.findAll(pageable, "R1");
-
         Assertions.assertEquals(1, response.getContent().size());
-
         Mockito.verify(racksRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse("R1", pageable);
+                .findAll(
+                        Mockito.<Specification<Racks>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 }

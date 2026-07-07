@@ -3,12 +3,14 @@ package com.ust.pos.user.service.impl;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
+import com.ust.pos.service.BaseService;
 import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends BaseService implements UserService {
 
     public static final String USER_WITH_USERNAME_EMAIL = "User with username - ";
 
@@ -96,7 +98,8 @@ public class UserServiceImpl implements UserService {
     public Page<UserDto> findAll(Pageable pageable, String search) {
         Page<User> users;
         if (search != null && !search.trim().isEmpty()) {
-            users = userRepository.findByUsernameContainingIgnoreCaseAndDeletedFalse(search, search, pageable);
+            Specification<User> specification = buildGlobalSearchSpec(User.class, search);
+            users = userRepository.findAll(specification, pageable);
         } else {users = userRepository.findByDeletedFalse(pageable);
         }
         return users.map(user -> modelMapper.map(user, UserDto.class)

@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -148,22 +149,23 @@ class WarehouseServiceTest {
     @Test
     void findAll_WithSearch() {
         Pageable pageable = PageRequest.of(0, 10);
-
         Warehouse warehouse = new Warehouse();
-        Page<Warehouse> page = new PageImpl<>(List.of(warehouse));
-
         WarehouseDto dto = new WarehouseDto();
-
-        Mockito.when(warehouseRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse("WH", pageable))
+        Page<Warehouse> page = new PageImpl<>(List.of(warehouse));
+        Mockito.when(warehouseRepository.findAll(
+                        Mockito.<Specification<Warehouse>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
         Mockito.when(modelMapper.map(warehouse, WarehouseDto.class))
                 .thenReturn(dto);
-
-        Page<WarehouseDto> response = warehouseService.findAll(pageable, "WH");
-
+        Page<WarehouseDto> response =
+                warehouseService.findAll(pageable, "WH");
         Assertions.assertEquals(1, response.getContent().size());
+        Mockito.verify(warehouseRepository)
+                .findAll(
+                        Mockito.<Specification<Warehouse>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

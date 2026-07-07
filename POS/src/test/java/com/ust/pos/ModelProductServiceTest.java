@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -186,7 +187,9 @@ class ModelProductServiceTest {
         ModelProduct modelProduct = new ModelProduct();
         Page<ModelProduct> page =
                 new PageImpl<>(List.of(modelProduct));
-        Mockito.when(modelProductRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse("Admin", pageable))
+        Mockito.when(modelProductRepository.findAll(
+                        Mockito.<Specification<ModelProduct>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
         Mockito.when(modelMapper.map(
                         Mockito.any(ModelProduct.class),
@@ -198,5 +201,10 @@ class ModelProductServiceTest {
                 1,
                 result.getContent().size()
         );
+        Mockito.verify(modelProductRepository)
+                .findAll(
+                        Mockito.<Specification<ModelProduct>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 }

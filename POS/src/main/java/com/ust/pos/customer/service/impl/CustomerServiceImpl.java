@@ -6,10 +6,12 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
+import com.ust.pos.service.BaseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +20,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends BaseService implements CustomerService {
     private final CustomerRepository customerRepository;
 
     private final ModelMapper modelMapper;
@@ -82,8 +84,8 @@ public class CustomerServiceImpl implements CustomerService {
     public Page<CustomerDto> findAll(Pageable pageable, String search) {
         Page<Customer> customerPage;
         if (search != null && !search.trim().isEmpty()) {
-            customerPage = customerRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse
-                    (search, pageable);
+            Specification<Customer> specification = buildGlobalSearchSpec(Customer.class, search);
+            customerPage = customerRepository.findAll(specification, pageable);
         } else {
             customerPage = customerRepository.findByDeletedFalse(pageable);
         }

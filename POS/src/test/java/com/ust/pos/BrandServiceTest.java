@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 
 import java.lang.reflect.Type;
@@ -163,7 +164,9 @@ class BrandServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Brand brand = new Brand();
         Page<Brand> page = new PageImpl<>(List.of(brand));
-        Mockito.when(brandRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse("adm", pageable))
+        Mockito.when(brandRepository.findAll(
+                        Mockito.<Specification<Brand>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
         Mockito.when(modelMapper.map(
                         Mockito.any(Brand.class),
@@ -172,6 +175,11 @@ class BrandServiceTest {
         Page<BrandDto> result =
                 brandService.findAll(pageable, "adm");
         Assertions.assertEquals(1, result.getContent().size());
+        Mockito.verify(brandRepository)
+                .findAll(
+                        Mockito.<Specification<Brand>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

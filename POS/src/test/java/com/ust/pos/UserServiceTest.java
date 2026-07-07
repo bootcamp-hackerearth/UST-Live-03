@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -225,26 +226,21 @@ class UserServiceTest {
         User user = new User();
         Page<User> page = new PageImpl<>(List.of(user));
 
-        Mockito.when(userRepository
-                        .findByUsernameContainingIgnoreCaseAndDeletedFalse(
-                                "abc",
-                                "abc",
-                                pageable
-                        ))
+        Mockito.when(userRepository.findAll(
+                        Mockito.<Specification<User>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
 
         Mockito.when(modelMapper.map(user, UserDto.class))
                 .thenReturn(new UserDto());
 
-        Page<UserDto> response = userService.findAll(pageable, "abc");
-
+        Page<UserDto> response =
+                userService.findAll(pageable, "abc");
         Assertions.assertEquals(1, response.getContent().size());
-
         Mockito.verify(userRepository)
-                .findByUsernameContainingIgnoreCaseAndDeletedFalse(
-                        "abc",
-                        "abc",
-                        pageable
+                .findAll(
+                        Mockito.<Specification<User>>any(),
+                        Mockito.eq(pageable)
                 );
     }
 }
