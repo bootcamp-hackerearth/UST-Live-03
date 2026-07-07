@@ -8,10 +8,7 @@ import {
   validateWarehouse,
 } from "../../utils/WarehouseFields";
 
-const WAREHOUSE_FIELDS = [
-  ...WAREHOUSE_CORE_FIELDS,
-  ...AUDIT_FIELDS,
-];
+const WAREHOUSE_FIELDS = [...WAREHOUSE_CORE_FIELDS, ...AUDIT_FIELDS];
 
 export default function WarehouseEditPage() {
   return (

@@ -42,7 +42,7 @@ const StockAddPage = () => {
   }, []);
 
   if (loadingOptions) return null;
-
+console.log("Options:", options); 
   return (
     <AddPage
       title="Add Stock"

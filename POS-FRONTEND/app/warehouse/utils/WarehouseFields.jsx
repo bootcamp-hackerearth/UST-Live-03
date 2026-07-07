@@ -29,6 +29,11 @@ export const WAREHOUSE_CORE_FIELDS = [
     label: "Location",
     type: "textarea",
   },
+  {
+    name: "status",
+    label: "Active",
+    type: "status",
+  },
 ];
 
 export const WAREHOUSE_INITIAL_FORM = {
@@ -38,6 +43,7 @@ export const WAREHOUSE_INITIAL_FORM = {
   state: "",
   cityName: "",
   location: "",
+  status: true,
 };
 
 export const validateWarehouse = (form) => {

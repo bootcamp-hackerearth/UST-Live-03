@@ -1,6 +1,7 @@
 "use client";
 
 import EditPage from "@/components/common/EditPage";
+import { AUDIT_FIELDS } from "@/components/common/AuditFields";
 
 export default function ShelfEditPage() {
 
