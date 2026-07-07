@@ -38,6 +38,13 @@ jobs:
 
             mvn clean package
 
-            pkill -f "pos-0.0.1-SNAPSHOT.jar" || true
+            if pgrep -f "pos-0.0.1-SNAPSHOT.jar" > /dev/null; then
+                pkill -9 -f "pos-0.0.1-SNAPSHOT.jar"
+                sleep 3
+            fi
 
-            nohup java -jar target/pos-0.0.1-SNAPSHOT.jar > spring.log 2>&1 &
+            nohup java -jar target/pos-0.0.1-SNAPSHOT.jar > spring.log 2>&1 < /dev/null &
+
+            sleep 10
+
+            tail -20 spring.log
