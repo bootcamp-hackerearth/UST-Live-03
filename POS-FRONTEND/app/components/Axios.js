@@ -28,10 +28,10 @@ api.interceptors.response.use(
       localStorage.removeItem("token");
       globalThis.location.href = "/login";
     }
-    if (error.response?.status === 403) {
+    if (!isAuthEndpoint && error.response?.status === 403) {
       globalThis.location.href = "/403";
     }
-    if (error.response?.status === 500) {
+    if (!isAuthEndpoint && error.response?.status === 500) {
       globalThis.location.href = "/500";
     }
     return Promise.reject(error);
