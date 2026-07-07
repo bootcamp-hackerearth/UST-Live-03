@@ -134,7 +134,6 @@ export default function SalesPage() {
             });
             await refreshCart(activeCart.identifier);
         } catch (error) {
-            catch (error) {
     console.error("ADD TO CART FAILED");
 
     console.error("Status:", error?.response?.status);
