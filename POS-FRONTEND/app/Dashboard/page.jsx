@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import Layout from "../Components/Layout";
+import axiosInstance from "../api/axiosInstance";
 
 function Dashboard() {
   const [nodes, setNodes] = useState([]);
@@ -23,58 +23,50 @@ function Dashboard() {
       return;
     }
 
-    // Run parallel fetches for profile and nodes
     Promise.all([fetchProfile(), fetchNodes()]).finally(() => setLoading(false));
   }, []);
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const response = await axios.get(
-        "http://localhost:8080/api/user/profile",
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+      const response = await axiosInstance.get(
+        "/user/profile"
       );
+
       setUser(response.data);
     } catch (error) {
       console.error("Profile fetch error:", error);
-      if (error.response?.status === 401 || error.response?.status === 403) {
+
+      if (
+        error.response?.status === 401 ||
+        error.response?.status === 403
+      ) {
         handleAuthExpiry();
       }
     }
   };
 
   const fetchNodes = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        handleAuthExpiry();
-        return;
-      }
+  try {
+    const response = await axiosInstance.get(
+      "/node/getNodesForRoles"
+    );
 
-      const response = await axios.get(
-        "http://localhost:8080/api/node/getNodesForRoles",
-  
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-      
-      const nodeData = response.data.dtoList || (Array.isArray(response.data) ? response.data : []);
-      setNodes(nodeData);
-    } catch (error) {
-      console.error("Node fetch error:", error);
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        handleAuthExpiry();
-      }
+    const nodeData =
+      response.data.dtoList ||
+      (Array.isArray(response.data) ? response.data : []);
+
+    setNodes(nodeData);
+  } catch (error) {
+    console.error("Node fetch error:", error);
+
+    if (
+      error.response?.status === 401 ||
+      error.response?.status === 403
+    ) {
+      handleAuthExpiry();
     }
-  };
+  }
+};
 
   const handleAuthExpiry = () => {
     localStorage.removeItem("token");

@@ -16,6 +16,13 @@ function Layout({ children, user, nodes, logout }) {
     Array.isArray(nodes) ? nodes : []
   );
 
+  const activeLogout =
+    logout ||
+    (() => {
+      localStorage.clear();
+      router.push("/Login");
+    });
+
   useEffect(() => {
     if (user) {
       setLayoutUser(user);
@@ -50,28 +57,22 @@ function Layout({ children, user, nodes, logout }) {
 
     const fetchNodes = async () => {
       try {
-        const response = await axiosInstance.post("/node/list", {
-          page: 0,
-          sizePerPage: 100,
-          sortDirection: "ASC",
-          sortField: "id",
-        });
-
+        const response = await axiosInstance.get("/node/getNodesForRoles");
         setLayoutNodes(response.data.dtoList || response.data || []);
       } catch (error) {
-        console.error("Nodes fetch failed:", error);
+        console.error("Node fetch error:", error);
+
+        if (
+          error.response?.status === 401 ||
+          error.response?.status === 403
+        ) {
+          activeLogout(); 
+        }
       }
     };
 
     fetchNodes();
-  }, [nodes]);
-
-  const activeLogout =
-    logout ||
-    (() => {
-      localStorage.clear();
-      router.push("/Login");
-    });
+  }, [nodes, router]); 
 
   return (
     <div
@@ -81,9 +82,7 @@ function Layout({ children, user, nodes, logout }) {
         overflow: "hidden",
       }}
     >
-
       <Sidebar nodes={layoutNodes} user={layoutUser} />
-
 
       <div
         style={{
@@ -93,13 +92,11 @@ function Layout({ children, user, nodes, logout }) {
           overflow: "hidden",
         }}
       >
-
         <Header
           user={layoutUser}
           logout={activeLogout}
           router={router}
         />
-
 
         <div
           style={{
@@ -118,6 +115,7 @@ function Layout({ children, user, nodes, logout }) {
     </div>
   );
 }
+
 Layout.propTypes = {
   children: PropTypes.node.isRequired,
   user: PropTypes.object,
