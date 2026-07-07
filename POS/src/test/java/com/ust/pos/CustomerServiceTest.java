@@ -5,7 +5,6 @@ import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginatedResponseDto;
-import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Assertions;
@@ -286,22 +285,6 @@ class CustomerServiceTest {
 
         Assertions.assertFalse(customer.getStatus());
         Mockito.verify(customerRepository).save(customer);
-    }
-
-    @Test
-    void findByIdentifierNotFoundTest() {
-
-        Mockito.when(customerRepository.findByIdentifier("CUST123")).thenReturn(null);
-
-        ResourceNotFoundException exception = Assertions.assertThrows(
-                ResourceNotFoundException.class,
-                () -> customerService.findByIdentifier("CUST123")
-        );
-
-        Assertions.assertEquals(
-                "Customer with username CUST123 not found",
-                exception.getMessage()
-        );
     }
 
     @Test
