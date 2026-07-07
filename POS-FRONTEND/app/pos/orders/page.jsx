@@ -503,6 +503,7 @@ export default function OrdersListPage() {
     );
 }
 
+
 OrderCardFooter.propTypes = {
     total: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     discount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
