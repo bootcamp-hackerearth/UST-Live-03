@@ -210,9 +210,11 @@ class UserServiceTest {
         user.setDeleted(false);
         user.setStatus(true);
 
-        Mockito.when(userRepository.findByIdentifier("admin@test.com")).thenReturn(user);
+        Mockito.when(userRepository.findByUsername("admin@test.com"))
+                .thenReturn(user);
 
-        Mockito.when(userRepository.save(user)).thenReturn(user);
+        Mockito.when(userRepository.save(user))
+                .thenReturn(user);
 
         boolean result = userService.delete("admin@test.com");
 
@@ -226,7 +228,8 @@ class UserServiceTest {
     @Test
     void deleteFailureTest() {
 
-        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(null);
+        Mockito.when(userRepository.findByUsername("admin@test.com"))
+                .thenReturn(null);
 
         boolean result = userService.delete("admin@test.com");
 
