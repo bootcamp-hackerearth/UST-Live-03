@@ -3,6 +3,7 @@ package com.ust.pos.user.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.User;
 import com.ust.pos.modell.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -12,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +33,8 @@ public class UserServiceImpl extends BaseService implements UserService {
     @Override
     public UserDto findByUserName(String username) {
         User user = userRepository.findByUsernameAndDeletedFalse(username);
-
         if (user == null) {
-            UserDto dto = new UserDto();
-            dto.setSuccess(false);
-            dto.setMessage("User not found");
-            return dto;
+            throw new ResourceNotFoundException("user with identifier '" + username + "' not found");
         }
         return modelMapper.map(user, UserDto.class);
     }
@@ -46,12 +44,19 @@ public class UserServiceImpl extends BaseService implements UserService {
         User existingUser = userRepository.findByUsername(userDto.getUsername());
 
         if (existingUser != null) {
-            if (existingUser.getDeleted()) {
-                userDto.setMessage(USER_ALREADY_EXISTS_MESSAGE + userDto.getUsername() + " already exists (Soft-Deleted)");
+            if (Boolean.TRUE.equals(existingUser.getDeleted())) {
+                userDto.setMessage(USER_ALREADY_EXISTS_MESSAGE
+                        + userDto.getUsername()
+                        + " already exists (Soft-Deleted)");
                 userDto.setSuccess(false);
                 return userDto;
             }
-            userDto.setMessage(USER_ALREADY_EXISTS_MESSAGE + userDto.getUsername() + " already exists");
+
+            userDto.setMessage(
+                    USER_ALREADY_EXISTS_MESSAGE
+                            + userDto.getUsername()
+                            + " already exists"
+            );
             userDto.setSuccess(false);
             return userDto;
         }
@@ -131,5 +136,22 @@ public class UserServiceImpl extends BaseService implements UserService {
         userWsDto.setPage(pageable.getPageNumber());
 
         return userWsDto;
+    }
+
+    @Override
+    public WsDto<UserDto> findAll(Specification<User> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> page = userRepository.findAll(example, pageable);
+
+        WsDto<UserDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPage(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

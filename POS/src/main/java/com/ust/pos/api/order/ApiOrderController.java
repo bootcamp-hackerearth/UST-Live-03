@@ -4,9 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.modell.Order;
 import com.ust.pos.order.service.OrderService;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,12 +32,14 @@ public class ApiOrderController extends BaseController {
 
     @PostMapping("/list")
     public WsDto<OrderDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(
-                paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(),
-                paginationDto.getSortField()
-        );
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Order> example = buildGlobalSearchSpec(Order.class, paginationDto.getKeyword());
+            if (example != null) {
+                return orderService.findAll(example, pageable);
+            }
+        }
         return orderService.findAll(pageable);
     }
 
@@ -42,7 +47,7 @@ public class ApiOrderController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             return orderService.delete(identifier);
-        } catch (Exception exception) {
+        } catch (Exception _) {
             return false;
         }
     }

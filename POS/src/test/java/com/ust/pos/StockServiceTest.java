@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Stock;
 import com.ust.pos.modell.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
@@ -24,13 +26,15 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StockServiceTest {
 
-    public static final String IN_STOCK = "IN_STOCK";
+    public static final String INVALID = "STK-P1-W1";
+    public static final String INVALID1 = "LOW_STOCK";
+    public static final String INVALID2 = "IN_STOCK";
     public static final String STK_P_W = "STK-P-W";
     @InjectMocks
     private StockServiceImpl service;
@@ -42,9 +46,10 @@ class StockServiceTest {
     private ModelMapper mapper;
 
     @Test
-    void findByIdentifierSuccessTest() {
+    void findMethodsTest() {
 
         Stock stock = new Stock();
+        stock.setId(1L);
         stock.setIdentifier(STK_P_W);
         stock.setQuantity(20);
         stock.setMinimumStock(10);
@@ -52,31 +57,17 @@ class StockServiceTest {
         when(repository.findByIdentifierAndDeletedFalse(STK_P_W))
                 .thenReturn(stock);
 
-        StockDto result = service.findByIdentifier(STK_P_W);
+        StockDto dto = service.findByIdentifier(STK_P_W);
 
-        assertEquals(IN_STOCK, result.getStatusLabel());
-    }
+        assertEquals(INVALID2, dto.getStatusLabel());
 
-    @Test
-    void findByIdentifierNotFoundTest() {
-
-        when(repository.findByIdentifierAndDeletedFalse("X"))
+        when(repository.findByIdentifierAndDeletedFalse("INVALID"))
                 .thenReturn(null);
 
         assertThrows(
-                IllegalArgumentException.class,
-                () -> service.findByIdentifier("X")
+                ResourceNotFoundException.class,
+                () -> service.findByIdentifier("INVALID")
         );
-    }
-
-    @Test
-    void findByIdTest() {
-
-        Stock stock = new Stock();
-        stock.setId(1L);
-        stock.setIdentifier(STK_P_W);
-        stock.setQuantity(20);
-        stock.setMinimumStock(10);
 
         when(repository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(stock));
@@ -96,7 +87,14 @@ class StockServiceTest {
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
+
+        StockDto invalid = new StockDto();
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.save(invalid)
+        );
 
         StockDto dto = new StockDto();
         dto.setProductIdentifier("P");
@@ -104,72 +102,227 @@ class StockServiceTest {
         dto.setQuantity(20);
         dto.setMinimumStock(10);
 
-        Stock saved = new Stock();
-        saved.setIdentifier(STK_P_W);
-        saved.setQuantity(20);
-        saved.setMinimumStock(10);
-        saved.setProductIdentifier("P");
-        saved.setWarehouseIdentifier("W");
-
         when(repository.findByIdentifier(STK_P_W))
                 .thenReturn(null);
+
+        Stock saved = new Stock();
+        saved.setIdentifier(STK_P_W);
+        saved.setProductIdentifier("P");
+        saved.setWarehouseIdentifier("W");
+        saved.setQuantity(20);
+        saved.setMinimumStock(10);
 
         when(repository.save(any()))
                 .thenReturn(saved);
 
         StockDto result = service.save(dto);
 
-        assertEquals(IN_STOCK, result.getStatusLabel());
-    }
+        assertEquals(INVALID2, result.getStatusLabel());
 
-    @Test
-    void saveDuplicateTest() {
-
-        StockDto dto = new StockDto();
-        dto.setProductIdentifier("P");
-        dto.setWarehouseIdentifier("W");
-
-        Stock stock = new Stock();
-        stock.setDeleted(false);
+        Stock duplicate = new Stock();
+        duplicate.setDeleted(false);
 
         when(repository.findByIdentifier(STK_P_W))
-                .thenReturn(stock);
+                .thenReturn(duplicate);
 
-        StockDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
-    }
 
-    @Test
-    void saveSoftDeletedTest() {
+        assertEquals(
+                "Stock record already exists with identifier: STK-P-W",
+                result.getMessage()
+        );
 
-        StockDto dto = new StockDto();
-        dto.setProductIdentifier("P");
-        dto.setWarehouseIdentifier("W");
-
-        Stock stock = new Stock();
-        stock.setDeleted(true);
+        duplicate.setDeleted(true);
 
         when(repository.findByIdentifier(STK_P_W))
-                .thenReturn(stock);
+                .thenReturn(duplicate);
 
-        StockDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
-    }
 
-    @Test
-    void saveValidationTest() {
-        StockDto stockDto = new StockDto();
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service.save(stockDto)
+        assertEquals(
+                "Stock record with Identifier STK-P-W already exists (Soft-Deleted)",
+                result.getMessage()
         );
     }
 
     @Test
-    void updateTest() {
+    void saveValidationWarehouseNullTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProductIdentifier("P");
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.save(dto)
+        );
+    }
+
+    @Test
+    void saveStatusFalseBranchTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProductIdentifier("P1");
+        dto.setWarehouseIdentifier("W1");
+        dto.setQuantity(5);
+        dto.setMinimumStock(10);
+
+        when(repository.findByIdentifier(INVALID))
+                .thenReturn(null);
+
+        Stock saved = new Stock();
+        saved.setIdentifier(INVALID);
+        saved.setProductIdentifier("P1");
+        saved.setWarehouseIdentifier("W1");
+        saved.setQuantity(5);
+        saved.setMinimumStock(10);
+
+        when(repository.save(any(Stock.class)))
+                .thenReturn(saved);
+
+        StockDto result = service.save(dto);
+
+        assertNotNull(result);
+        assertEquals(INVALID1, result.getStatusLabel());
+
+        verify(repository).save(any(Stock.class));
+    }
+
+    @Test
+    void updateStatusFalseBranchTest() {
+
+        Stock stock = new Stock();
+        stock.setId(1L);
+
+        when(repository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(stock));
+
+        when(repository.save(any(Stock.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        StockDto dto = new StockDto();
+        dto.setId(1L);
+        dto.setProductIdentifier("P1");
+        dto.setWarehouseIdentifier("W1");
+        dto.setQuantity(5);
+        dto.setMinimumStock(10);
+
+        StockDto result = service.update(dto);
+
+        assertEquals(INVALID1, result.getStatusLabel());
+    }
+
+    @Test
+    void saveStatusTrueCoverageTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProductIdentifier("P1");
+        dto.setWarehouseIdentifier("W1");
+        dto.setQuantity(20);
+        dto.setMinimumStock(10);
+
+        when(repository.findByIdentifier(INVALID))
+                .thenReturn(null);
+
+        Stock saved = new Stock();
+        saved.setQuantity(20);
+        saved.setMinimumStock(10);
+
+        when(repository.save(any(Stock.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.save(dto);
+
+        verify(repository).save(argThat(stock ->
+                stock.getStatus() != null &&
+                        stock.getStatus()
+        ));
+    }
+
+    @Test
+    void saveStatusFalseCoverageTest() {
+
+        StockDto dto = new StockDto();
+        dto.setProductIdentifier("P");
+        dto.setWarehouseIdentifier("W");
+        dto.setQuantity(5);
+        dto.setMinimumStock(10);
+
+        when(repository.findByIdentifier(STK_P_W))
+                .thenReturn(null);
+
+        Stock saved = new Stock();
+        saved.setIdentifier(STK_P_W);
+        saved.setProductIdentifier("P");
+        saved.setWarehouseIdentifier("W");
+        saved.setQuantity(5);
+        saved.setMinimumStock(10);
+
+        when(repository.save(any()))
+                .thenReturn(saved);
+
+        StockDto result = service.save(dto);
+
+        assertEquals(INVALID1, result.getStatusLabel());
+    }
+
+    @Test
+    void mapToDtoOutOfStockCoverageTest() {
+
+        Stock stock = new Stock();
+        stock.setId(1L);
+        stock.setIdentifier(STK_P_W);
+        stock.setQuantity(0);
+        stock.setMinimumStock(10);
+
+        when(repository.findByIdentifierAndDeletedFalse(STK_P_W))
+                .thenReturn(stock);
+
+        StockDto dto = service.findByIdentifier(STK_P_W);
+
+        assertEquals(
+                "OUT_OF_STOCK",
+                dto.getStatusLabel()
+        );
+    }
+
+    @Test
+    void updateStatusTrueAndFalseCoverageTest() {
+
+        Stock stock = new Stock();
+        stock.setId(1L);
+
+        when(repository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(stock));
+
+        when(repository.save(any(Stock.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        StockDto dto = new StockDto();
+        dto.setId(1L);
+        dto.setProductIdentifier("P");
+        dto.setWarehouseIdentifier("W");
+
+        dto.setQuantity(20);
+        dto.setMinimumStock(10);
+
+        service.update(dto);
+
+        assertTrue(stock.getStatus());
+
+        dto.setQuantity(5);
+        dto.setMinimumStock(10);
+
+        service.update(dto);
+
+        assertFalse(stock.getStatus());
+    }
+
+    @Test
+    void updateAndDeleteTest() {
 
         Stock stock = new Stock();
         stock.setId(1L);
@@ -179,7 +332,7 @@ class StockServiceTest {
         when(repository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(stock));
 
-        when(repository.save(any()))
+        when(repository.save(any(Stock.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
         StockDto dto = new StockDto();
@@ -191,24 +344,18 @@ class StockServiceTest {
 
         StockDto result = service.update(dto);
 
-        assertEquals("LOW_STOCK", result.getStatusLabel());
+        assertEquals(INVALID1, result.getStatusLabel());
 
         when(repository.findByIdAndDeletedFalse(99L))
                 .thenReturn(Optional.empty());
 
-        StockDto notFound = new StockDto();
-        notFound.setId(99L);
+        StockDto missing = new StockDto();
+        missing.setId(99L);
 
         assertThrows(
                 RuntimeException.class,
-                () -> service.update(notFound)
+                () -> service.update(missing)
         );
-    }
-
-    @Test
-    void deleteByIdentifierTest() {
-
-        Stock stock = new Stock();
 
         when(repository.findByIdentifierAndDeletedFalse("STK"))
                 .thenReturn(stock)
@@ -216,75 +363,97 @@ class StockServiceTest {
 
         service.deleteByIdentifier("STK");
 
-        verify(repository).save(stock);
-
         service.deleteByIdentifier("STK");
+
+        verify(repository, atLeast(2))
+                .save(any(Stock.class));
     }
 
     @Test
-    void findAllInStockTest() {
+    void findAllStatusCoverageTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Stock stock = new Stock();
-        stock.setQuantity(20);
-        stock.setMinimumStock(10);
+        Stock inStock = new Stock();
+        inStock.setQuantity(20);
+        inStock.setMinimumStock(10);
 
-        StockDto dto = new StockDto();
+        Stock lowStock = new Stock();
+        lowStock.setQuantity(5);
+        lowStock.setMinimumStock(10);
+
+        Stock outStock = new Stock();
+        outStock.setQuantity(0);
+        outStock.setMinimumStock(10);
 
         Page<Stock> page =
-                new PageImpl<>(List.of(stock), pageable, 1);
+                new PageImpl<>(
+                        List.of(inStock, lowStock, outStock),
+                        pageable,
+                        3
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
                 .thenReturn(page);
 
         when(mapper.map(any(), any(Type.class)))
-                .thenReturn(List.of(dto));
+                .thenReturn(
+                        List.of(
+                                new StockDto(),
+                                new StockDto(),
+                                new StockDto()
+                        )
+                );
 
-        WsDto<StockDto> result = service.findAll(pageable);
+        WsDto<StockDto> result =
+                service.findAll(pageable);
 
         assertEquals(
-                IN_STOCK,
+                INVALID2,
                 result.getDtoList().get(0).getStatusLabel()
         );
-    }
-
-    @Test
-    void findAllLowAndOutStockTest() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Stock low = new Stock();
-        low.setQuantity(5);
-        low.setMinimumStock(10);
-
-        Stock out = new Stock();
-        out.setQuantity(0);
-        out.setMinimumStock(10);
-
-        StockDto dto1 = new StockDto();
-        StockDto dto2 = new StockDto();
-
-        Page<Stock> page =
-                new PageImpl<>(List.of(low, out), pageable, 2);
-
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
-
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(List.of(dto1, dto2));
-
-        WsDto<StockDto> result = service.findAll(pageable);
 
         assertEquals(
-                "LOW_STOCK",
-                result.getDtoList().get(0).getStatusLabel()
+                INVALID1,
+                result.getDtoList().get(1).getStatusLabel()
         );
 
         assertEquals(
                 "OUT_OF_STOCK",
-                result.getDtoList().get(1).getStatusLabel()
+                result.getDtoList().get(2).getStatusLabel()
         );
+    }
+
+    @Test
+    void findAllSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Stock> page =
+                new PageImpl<>(
+                        List.of(new Stock()),
+                        pageable,
+                        1
+                );
+
+        when(repository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(page);
+
+        when(mapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(new StockDto()));
+
+        Specification<Stock> specification =
+                (root, query, cb) -> cb.conjunction();
+
+        WsDto<StockDto> result =
+                service.findAll(specification, pageable);
+
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+
+        verify(repository)
+                .findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
@@ -292,16 +461,20 @@ class StockServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<Stock> page =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
-
         when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
+                .thenReturn(
+                        new PageImpl<>(
+                                Collections.emptyList(),
+                                pageable,
+                                0
+                        )
+                );
 
         when(mapper.map(any(), any(Type.class)))
                 .thenReturn(Collections.emptyList());
 
-        WsDto<StockDto> result = service.findAll(pageable);
+        WsDto<StockDto> result =
+                service.findAll(pageable);
 
         assertTrue(result.getDtoList().isEmpty());
     }

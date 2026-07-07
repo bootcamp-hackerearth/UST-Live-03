@@ -2,7 +2,9 @@ package com.ust.pos.warehouse.service;
 
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.modell.Warehouse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -20,4 +22,6 @@ public interface WarehouseService {
     void toggleStatus(String identifier);
 
     List<WarehouseDto> findAllActive();
+
+    WsDto<WarehouseDto> findAll(Specification<Warehouse> example, Pageable pageable);
 }

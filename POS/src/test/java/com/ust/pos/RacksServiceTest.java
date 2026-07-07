@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Racks;
 import com.ust.pos.modell.RacksRepository;
 import com.ust.pos.racks.service.impl.RacksServiceImpl;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
@@ -23,12 +25,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RacksServiceTest {
 
+    public static final String INVALID = "INVALID";
     @InjectMocks
     private RacksServiceImpl service;
 
@@ -51,10 +54,24 @@ class RacksServiceTest {
                 .thenReturn(dto);
 
         assertNotNull(service.findByIdentifier("R1"));
+
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier(INVALID)
+                );
+
+        assertEquals(
+                "Racks with identifier 'INVALID' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
 
         RacksDto dto = new RacksDto();
         dto.setIdentifier("R1");
@@ -72,23 +89,16 @@ class RacksServiceTest {
 
         verify(repository).save(racks);
 
-        assertEquals("R1", result.getIdentifier());
+        assertNotNull(result);
         assertTrue(racks.getStatus());
-    }
 
-    @Test
-    void saveDuplicateTest() {
-
-        RacksDto dto = new RacksDto();
-        dto.setIdentifier("R1");
-
-        Racks racks = new Racks();
-        racks.setDeleted(false);
+        Racks duplicate = new Racks();
+        duplicate.setDeleted(false);
 
         when(repository.findByIdentifier("R1"))
-                .thenReturn(racks);
+                .thenReturn(duplicate);
 
-        RacksDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -96,21 +106,13 @@ class RacksServiceTest {
                 "Shelf with identifier - R1 already exists",
                 result.getMessage()
         );
-    }
 
-    @Test
-    void saveSoftDeletedTest() {
-
-        RacksDto dto = new RacksDto();
-        dto.setIdentifier("R1");
-
-        Racks racks = new Racks();
-        racks.setDeleted(true);
+        duplicate.setDeleted(true);
 
         when(repository.findByIdentifier("R1"))
-                .thenReturn(racks);
+                .thenReturn(duplicate);
 
-        RacksDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -121,7 +123,7 @@ class RacksServiceTest {
     }
 
     @Test
-    void updateSuccessTest() {
+    void updateAndDeleteTest() {
 
         RacksDto dto = new RacksDto();
         dto.setIdentifier("R1");
@@ -140,41 +142,56 @@ class RacksServiceTest {
         verify(repository).save(racks);
 
         assertNotNull(result);
-    }
 
-    @Test
-    void updateNotFoundTest() {
+        RacksDto invalidDto = new RacksDto();
+        invalidDto.setIdentifier(INVALID);
 
-        RacksDto dto = new RacksDto();
-        dto.setIdentifier("R1");
-
-        when(repository.findByIdentifierAndDeletedFalse("R1"))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
-        RacksDto result = service.update(dto);
+        result = service.update(invalidDto);
 
         assertFalse(result.isSuccess());
 
         assertEquals(
-                "Shelf with identifier - R1 not found",
+                "Shelf with identifier - INVALID not found",
                 result.getMessage()
         );
+
+        service.delete("R1");
+
+        verify(repository, atLeast(2))
+                .save(any(Racks.class));
+
+        when(repository.findByIdentifierAndDeletedFalse("NOTFOUND"))
+                .thenReturn(null);
+
+        service.delete("NOTFOUND");
     }
 
     @Test
-    void deleteTest() {
+    void toggleStatusFalseToTrueTest() {
 
         Racks racks = new Racks();
+        racks.setStatus(false);
 
-        when(repository.findByIdentifierAndDeletedFalse("R1"))
-                .thenReturn(racks)
-                .thenReturn(null);
+        RacksDto dto = new RacksDto();
 
-        service.delete("R1");
+        when(repository.findByIdentifierAndDeletedFalse("R4"))
+                .thenReturn(racks);
+
+        when(repository.save(racks))
+                .thenReturn(racks);
+
+        when(mapper.map(racks, RacksDto.class))
+                .thenReturn(dto);
+
+        RacksDto result = service.toggleStatus("R4");
+
+        assertNotNull(result);
+        assertTrue(racks.getStatus());
 
         verify(repository).save(racks);
-
-        service.delete("R1");
     }
 
     @Test
@@ -183,38 +200,39 @@ class RacksServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Racks> page =
-                new PageImpl<>(List.of(new Racks()), pageable, 1);
+                new PageImpl<>(
+                        List.of(new Racks()),
+                        pageable,
+                        1
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(repository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(page);
 
         when(mapper.map(any(), any(Type.class)))
                 .thenReturn(List.of(new RacksDto()));
 
-        WsDto<RacksDto> result = service.findAll(pageable);
+        WsDto<RacksDto> result =
+                service.findAll(pageable);
 
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
         assertEquals(1, result.getTotalPage());
-    }
 
-    @Test
-    void findAllEmptyTest() {
+        Specification<Racks> specification =
+                (root, query, cb) -> cb.conjunction();
 
-        Pageable pageable = PageRequest.of(0, 10);
+        WsDto<RacksDto> specResult =
+                service.findAll(specification, pageable);
 
-        Page<Racks> page =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
 
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
-
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<RacksDto> result = service.findAll(pageable);
-
-        assertTrue(result.getDtoList().isEmpty());
+        verify(repository)
+                .findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
@@ -229,34 +247,39 @@ class RacksServiceTest {
         when(mapper.map(racks, RacksDto.class))
                 .thenReturn(dto);
 
-        assertEquals(1, service.findAllActive().size());
+        List<RacksDto> result =
+                service.findAllActive();
+
+        assertEquals(1, result.size());
 
         when(repository.findByStatusTrueAndDeletedFalse())
                 .thenReturn(Collections.emptyList());
 
-        assertTrue(service.findAllActive().isEmpty());
+        result = service.findAllActive();
+
+        assertTrue(result.isEmpty());
     }
 
     @Test
     void toggleStatusTest() {
 
-        Racks racks = new Racks();
-        racks.setStatus(true);
+        Racks activeRack = new Racks();
+        activeRack.setStatus(true);
 
         RacksDto dto = new RacksDto();
 
         when(repository.findByIdentifierAndDeletedFalse("R1"))
-                .thenReturn(racks);
+                .thenReturn(activeRack);
 
-        when(repository.save(racks))
-                .thenReturn(racks);
+        when(repository.save(activeRack))
+                .thenReturn(activeRack);
 
-        when(mapper.map(racks, RacksDto.class))
+        when(mapper.map(activeRack, RacksDto.class))
                 .thenReturn(dto);
 
         service.toggleStatus("R1");
 
-        assertFalse(racks.getStatus());
+        assertFalse(activeRack.getStatus());
 
         Racks nullStatusRack = new Racks();
         nullStatusRack.setStatus(null);

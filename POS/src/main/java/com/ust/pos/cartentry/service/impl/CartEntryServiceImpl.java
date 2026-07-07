@@ -5,6 +5,8 @@ import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.modell.Cart;
 import com.ust.pos.modell.CartEntry;
 import com.ust.pos.modell.CartEntryRepository;
 import com.ust.pos.price.service.PriceService;
@@ -13,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -130,7 +133,11 @@ public class CartEntryServiceImpl extends BaseService implements CartEntryServic
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
-        return modelMapper.map(cartEntryRepository.findByIdentifierAndDeletedFalse(identifier), CartEntryDto.class);
+        CartEntry cartEntry = cartEntryRepository.findByIdentifierAndDeletedFalse(identifier);
+        if (cartEntry == null) {
+            throw new ResourceNotFoundException("CartEntry with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(cartEntry, CartEntryDto.class);
     }
 
     @Override
@@ -146,4 +153,22 @@ public class CartEntryServiceImpl extends BaseService implements CartEntryServic
         wsDto.setPage(pageable.getPageNumber());
         return wsDto;
     }
+
+    @Override
+    public WsDto<CartEntryDto> findAll(Specification<CartEntry> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CartEntryDto>>() {
+        }.getType();
+        Page<Cart> page = cartEntryRepository.findAll(example, pageable);
+
+        WsDto<CartEntryDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPage(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
+
 }

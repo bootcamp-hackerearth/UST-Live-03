@@ -10,8 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -50,12 +50,26 @@ class BaseServiceTest {
 
     @Test
     void setCreatedDetailsNullEntity() {
-        service.callSetCreatedDetails(null);
+        assertDoesNotThrow(() ->
+                service.callSetCreatedDetails(null));
     }
 
     @Test
     void setModifiedDetailsNullEntity() {
-        service.callSetModifiedDetails(null);
+        assertDoesNotThrow(() ->
+                service.callSetModifiedDetails(null));
+    }
+
+    @Test
+    void setCreatedDetailsWithNullEntity() {
+        assertDoesNotThrow(() ->
+                service.callSetCreatedDetails(null));
+    }
+
+    @Test
+    void setModifiedDetailsWithNullEntity() {
+        assertDoesNotThrow(() ->
+                service.callSetModifiedDetails(null));
     }
 
     @Test
@@ -132,11 +146,6 @@ class BaseServiceTest {
     }
 
     @Test
-    void setCreatedDetailsWithNullEntity() {
-        service.callSetCreatedDetails(null);
-    }
-
-    @Test
     void setModifiedDetailsWithAuthenticatedUser() {
         Authentication authentication = mock(Authentication.class);
         when(authentication.isAuthenticated()).thenReturn(true);
@@ -154,11 +163,6 @@ class BaseServiceTest {
 
         verify(entity).setModifiedBy(TEST_USER);
         verify(entity).setModifiedOn(any(LocalDateTime.class));
-    }
-
-    @Test
-    void setModifiedDetailsWithNullEntity() {
-        service.callSetModifiedDetails(null);
     }
 
     @Test

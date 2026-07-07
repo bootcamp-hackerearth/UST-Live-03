@@ -6,6 +6,7 @@ import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Cart;
 import com.ust.pos.modell.CartEntry;
 import com.ust.pos.modell.CartEntryRepository;
@@ -14,10 +15,13 @@ import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -85,7 +89,7 @@ public class CartServiceImpl extends BaseService implements CartService {
         Cart cart = cartRepository.findByIdentifierAndDeletedFalse(identifier);
 
         if (cart == null) {
-            throw new NoSuchElementException("Cart not found");
+            throw new ResourceNotFoundException("Cart not found");
         }
         recalculateAndSave(cart);
         CartDto dto = modelMapper.map(cart, CartDto.class);
@@ -180,5 +184,22 @@ public class CartServiceImpl extends BaseService implements CartService {
         cart.setDiscount(BigDecimal.ZERO);
         setModifiedDetails(cart);
         cartRepository.save(cart);
+    }
+
+    @Override
+    public WsDto<CartDto> findAll(Specification<Cart> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CartDto>>() {
+        }.getType();
+        Page<Cart> page = cartRepository.findAll(example, pageable);
+
+        WsDto<CartDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPage(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

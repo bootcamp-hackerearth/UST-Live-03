@@ -16,12 +16,11 @@ export default function CustomerListPage() {
       deleteApi="/api/customer/delete"
       deleteParam="phoneNo"
 
-      // Updated UI data layout tracking columns grid definitions maps
       columns={[
         { header: "ID", field: "id" },
         { header: "Customer Name", field: "customerName" },
         { header: "Phone", field: "phoneNo" },
-        { header: "Email Identifier", field: "identifier" }, // Displays the clean target email address
+        { header: "Email Identifier", field: "identifier" },
         { header: "Party Type", field: "partyType" },
         { header: "Credit Limit (₹)", field: "creditLimit" },
       ]}

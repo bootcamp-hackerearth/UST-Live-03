@@ -2,6 +2,7 @@ package com.ust.pos.modell;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByUsernameAndDeletedFalse(String username);
 
     Page<User> findAllByDeletedFalse(Pageable pageable);
+
+    Page<User> findAll(Specification<User> example, Pageable pageable);
 }

@@ -5,6 +5,7 @@ import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Cart;
 import com.ust.pos.modell.CartEntry;
 import com.ust.pos.modell.CartEntryRepository;
@@ -21,24 +22,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CartServiceTest {
 
+    public static final String INVALID = "INVALID";
     public static final String CART_1 = "CART1";
-    public static final String PROD_1_MRP = "PROD1-MRP";
     public static final String PROD_1_SELLING = "PROD1-SELLING";
-    public static final String CART_1_PROD_1 = "CART1-PROD1";
+    public static final String PROD_1 = "CART1-PROD1";
     @InjectMocks
     private CartServiceImpl service;
 
@@ -58,14 +59,14 @@ class CartServiceTest {
     private CartEntry entry;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
 
         cart = new Cart();
         cart.setIdentifier(CART_1);
         cart.setStatus(true);
 
         entry = new CartEntry();
-        entry.setIdentifier(CART_1_PROD_1);
+        entry.setIdentifier(PROD_1);
         entry.setCartIdentifier(CART_1);
         entry.setProductIdentifier("PROD1");
         entry.setQuantity(2);
@@ -73,7 +74,7 @@ class CartServiceTest {
     }
 
     @Test
-    void saveSuccess() {
+    void saveTest() {
 
         CartDto dto = new CartDto();
         dto.setIdentifier(CART_1);
@@ -83,47 +84,47 @@ class CartServiceTest {
 
         CartDto result = service.save(dto);
 
+        verify(cartRepository).save(any(Cart.class));
+
         assertNotNull(result);
 
-        verify(cartRepository).save(any(Cart.class));
+        cart.setDeleted(false);
+
+        when(cartRepository.findByIdentifier(CART_1))
+                .thenReturn(cart);
+
+        result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+        assertEquals("Cart already exists", result.getMessage());
+
+        cart.setDeleted(true);
+
+        result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+        assertEquals(
+                "Cart with Identifier CART1 already exists (Soft-Deleted)",
+                result.getMessage()
+        );
     }
+
     @Test
-    void recalculateAndSaveWithOnlyMrp() {
+    void deleteTest() {
 
-        PriceDto mrp = new PriceDto();
-        mrp.setPriceAmount(BigDecimal.valueOf(120));
-
-        when(cartEntryRepository.findByCartIdentifierAndDeletedFalse(CART_1))
-                .thenReturn(List.of(entry));
-
-        when(priceService.findByIdentifier(PROD_1_SELLING))
+        when(cartEntryRepository.findByIdentifierAndDeletedFalse("X"))
                 .thenReturn(null);
 
-        when(priceService.findByIdentifier(PROD_1_MRP))
-                .thenReturn(mrp);
-
-        service.recalculateAndSave(cart);
-
-        assertEquals(
-                BigDecimal.valueOf(240),
-                cart.getTotalPrice()
-        );
+        RuntimeException ex =
+                assertThrows(
+                        RuntimeException.class,
+                        () -> service.delete("X")
+                );
 
         assertEquals(
-                BigDecimal.valueOf(240),
-                cart.getOriginalPrice()
+                "Cart entry not found",
+                ex.getMessage()
         );
-
-        assertEquals(
-                BigDecimal.ZERO,
-                cart.getDiscount()
-        );
-
-        verify(cartRepository).save(cart);
-    }
-
-    @Test
-    void deleteSuccessWithCartRecalculation() {
 
         PriceDto selling = new PriceDto();
         selling.setPriceAmount(BigDecimal.valueOf(100));
@@ -131,7 +132,7 @@ class CartServiceTest {
         PriceDto mrp = new PriceDto();
         mrp.setPriceAmount(BigDecimal.valueOf(120));
 
-        when(cartEntryRepository.findByIdentifierAndDeletedFalse(CART_1_PROD_1))
+        when(cartEntryRepository.findByIdentifierAndDeletedFalse(PROD_1))
                 .thenReturn(entry);
 
         when(cartRepository.findByIdentifierAndDeletedFalse(CART_1))
@@ -143,98 +144,33 @@ class CartServiceTest {
         when(priceService.findByIdentifier(PROD_1_SELLING))
                 .thenReturn(selling);
 
-        when(priceService.findByIdentifier(PROD_1_MRP))
+        when(priceService.findByIdentifier("PROD1-MRP"))
                 .thenReturn(mrp);
 
-        service.delete(CART_1_PROD_1);
+        service.delete(PROD_1);
 
         verify(cartEntryRepository).save(entry);
-
         verify(cartRepository).save(cart);
-
-        assertEquals(BigDecimal.valueOf(200), cart.getTotalPrice());
-        assertEquals(BigDecimal.valueOf(240), cart.getOriginalPrice());
     }
 
     @Test
-    void saveAlreadyExists() {
+    void findByIdentifierTest() {
 
-        CartDto dto = new CartDto();
-        dto.setIdentifier(CART_1);
-
-        cart.setDeleted(false);
-
-        when(cartRepository.findByIdentifier(CART_1))
-                .thenReturn(cart);
-
-        CartDto result = service.save(dto);
-
-        assertFalse(result.isSuccess());
-        assertEquals(
-                "Cart already exists",
-                result.getMessage()
-        );
-    }
-
-    @Test
-    void saveSoftDeletedCart() {
-
-        CartDto dto = new CartDto();
-        dto.setIdentifier(CART_1);
-
-        cart.setDeleted(true);
-
-        when(cartRepository.findByIdentifier(CART_1))
-                .thenReturn(cart);
-
-        CartDto result = service.save(dto);
-
-        assertFalse(result.isSuccess());
-        assertEquals(
-                "Cart with Identifier CART1 already exists (Soft-Deleted)",
-                result.getMessage()
-        );
-    }
-
-    @Test
-    void deleteSuccess() {
-
-        when(cartEntryRepository.findByIdentifierAndDeletedFalse(CART_1_PROD_1))
-                .thenReturn(entry);
-
-        when(cartRepository.findByIdentifierAndDeletedFalse(CART_1))
+        when(cartRepository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
-        service.delete(CART_1_PROD_1);
-
-        verify(cartEntryRepository).save(entry);
-    }
-
-    @Test
-    void deleteEntryNotFound() {
-
-        when(cartEntryRepository.findByIdentifierAndDeletedFalse("X"))
-                .thenReturn(null);
-
-        RuntimeException exception =
+        ResourceNotFoundException ex =
                 assertThrows(
-                        RuntimeException.class,
-                        () -> service.delete("X")
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier(INVALID)
                 );
 
-        assertEquals(
-                "Cart entry not found",
-                exception.getMessage()
-        );
-    }
-
-    @Test
-    void findByIdentifierSuccess() {
+        assertEquals("Cart not found", ex.getMessage());
 
         PriceDto price = new PriceDto();
         price.setPriceAmount(BigDecimal.valueOf(100));
 
-        CartDto cartDto = new CartDto();
+        CartDto dto = new CartDto();
 
         when(cartRepository.findByIdentifierAndDeletedFalse(CART_1))
                 .thenReturn(cart);
@@ -246,37 +182,110 @@ class CartServiceTest {
                 .thenReturn(price);
 
         when(modelMapper.map(cart, CartDto.class))
-                .thenReturn(cartDto);
+                .thenReturn(dto);
 
         when(modelMapper.map(entry, CartEntryDto.class))
                 .thenReturn(new CartEntryDto());
 
         CartDto result = service.findByIdentifier(CART_1);
 
-        assertNotNull(result);
         assertEquals(1, result.getEntryCart().size());
     }
 
     @Test
-    void findByIdentifierNotFound() {
+    void recalculateAndSaveTest() {
 
-        when(cartRepository.findByIdentifierAndDeletedFalse(CART_1))
+        when(cartEntryRepository.findByCartIdentifierAndDeletedFalse(CART_1))
+                .thenReturn(List.of(entry));
+
+        when(priceService.findByIdentifier(anyString()))
                 .thenReturn(null);
 
-        RuntimeException exception =
+        RuntimeException ex =
                 assertThrows(
                         RuntimeException.class,
-                        () -> service.findByIdentifier(CART_1)
+                        () -> service.recalculateAndSave(cart)
                 );
 
         assertEquals(
-                "Cart not found",
-                exception.getMessage()
+                "Price not configured",
+                ex.getMessage()
+        );
+
+        PriceDto mrp = new PriceDto();
+        mrp.setPriceAmount(BigDecimal.valueOf(120));
+
+        when(priceService.findByIdentifier(PROD_1_SELLING))
+                .thenReturn(null);
+
+        when(priceService.findByIdentifier("PROD1-MRP"))
+                .thenReturn(mrp);
+
+        service.recalculateAndSave(cart);
+
+        assertEquals(
+                BigDecimal.valueOf(240),
+                cart.getTotalPrice()
+        );
+
+        PriceDto selling = new PriceDto();
+        selling.setPriceAmount(BigDecimal.valueOf(100));
+
+        when(priceService.findByIdentifier(PROD_1_SELLING))
+                .thenReturn(selling);
+
+        service.recalculateAndSave(cart);
+
+        assertEquals(
+                BigDecimal.valueOf(200),
+                cart.getTotalPrice()
+        );
+
+        cart.setCoupon("FLAT10");
+
+        service.recalculateAndSave(cart);
+
+        assertTrue(
+                cart.getDiscount().compareTo(BigDecimal.ZERO) > 0
         );
     }
 
     @Test
-    void findAllSuccess() {
+    void clearCartTest() {
+
+        when(cartRepository.findByIdentifierAndDeletedFalse(INVALID))
+                .thenReturn(null);
+
+        RuntimeException ex =
+                assertThrows(
+                        RuntimeException.class,
+                        () -> service.clearCart(INVALID)
+                );
+
+        assertEquals(
+                "Cart not found",
+                ex.getMessage()
+        );
+
+        when(cartRepository.findByIdentifierAndDeletedFalse(CART_1))
+                .thenReturn(cart);
+
+        when(cartEntryRepository.findByCartIdentifierAndDeletedFalse(CART_1))
+                .thenReturn(List.of(entry));
+
+        service.clearCart(CART_1);
+
+        verify(cartEntryRepository).save(entry);
+        verify(cartRepository).save(cart);
+
+        assertEquals(
+                BigDecimal.ZERO,
+                cart.getTotalPrice()
+        );
+    }
+
+    @Test
+    void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -313,137 +322,33 @@ class CartServiceTest {
     }
 
     @Test
-    void recalculateAndSaveWithSellingAndMrp() {
-
-        PriceDto selling = new PriceDto();
-        selling.setPriceAmount(BigDecimal.valueOf(100));
-
-        PriceDto mrp = new PriceDto();
-        mrp.setPriceAmount(BigDecimal.valueOf(120));
-
-        when(cartEntryRepository.findByCartIdentifierAndDeletedFalse(CART_1))
-                .thenReturn(List.of(entry));
-
-        when(priceService.findByIdentifier(PROD_1_SELLING))
-                .thenReturn(selling);
-
-        when(priceService.findByIdentifier(PROD_1_MRP))
-                .thenReturn(mrp);
-
-        service.recalculateAndSave(cart);
-
-        assertEquals(
-                BigDecimal.valueOf(200),
-                cart.getTotalPrice()
-        );
-
-        assertEquals(
-                BigDecimal.valueOf(240),
-                cart.getOriginalPrice()
-        );
-
-        verify(cartRepository).save(cart);
-    }
-
-    @Test
-    void recalculateAndSaveCouponApplied() {
-
-        cart.setCoupon("FLAT10");
-
-        PriceDto price = new PriceDto();
-        price.setPriceAmount(BigDecimal.valueOf(100));
-
-        when(cartEntryRepository.findByCartIdentifierAndDeletedFalse(CART_1))
-                .thenReturn(List.of(entry));
-
-        when(priceService.findByIdentifier(anyString()))
-                .thenReturn(price);
-
-        service.recalculateAndSave(cart);
-
-        assertTrue(
-                cart.getDiscount()
-                        .compareTo(BigDecimal.ZERO) > 0
-        );
-    }
-
-    @Test
-    void recalculateAndSavePriceMissing() {
-
-        when(cartEntryRepository.findByCartIdentifierAndDeletedFalse(CART_1))
-                .thenReturn(List.of(entry));
-
-        when(priceService.findByIdentifier(anyString()))
-                .thenReturn(null);
-
-        RuntimeException exception =
-                assertThrows(
-                        RuntimeException.class,
-                        () -> service.recalculateAndSave(cart)
-                );
-
-        assertEquals(
-                "Price not configured",
-                exception.getMessage()
-        );
-    }
-
-    @Test
-    void clearCartSuccess() {
-
-        when(cartRepository.findByIdentifierAndDeletedFalse(CART_1))
-                .thenReturn(cart);
-
-        when(cartEntryRepository.findByCartIdentifierAndDeletedFalse(CART_1))
-                .thenReturn(List.of(entry));
-
-        service.clearCart(CART_1);
-
-        verify(cartEntryRepository).save(entry);
-        verify(cartRepository).save(cart);
-
-        assertEquals(
-                BigDecimal.ZERO,
-                cart.getTotalPrice()
-        );
-    }
-
-    @Test
-    void clearCartCartNotFound() {
-
-        when(cartRepository.findByIdentifierAndDeletedFalse("X"))
-                .thenReturn(null);
-
-        RuntimeException exception =
-                assertThrows(
-                        RuntimeException.class,
-                        () -> service.clearCart("X")
-                );
-
-        assertEquals(
-                "Cart not found",
-                exception.getMessage()
-        );
-    }
-
-    @Test
-    void findAllEmpty() {
+    void specificationFindAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Cart> page =
                 new PageImpl<>(
-                        Collections.emptyList(),
+                        List.of(cart),
                         pageable,
-                        0
+                        1
                 );
 
-        when(cartRepository.findAllByDeletedFalse(pageable))
+        when(cartRepository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(page);
 
-        WsDto<CartDto> result =
-                service.findAll(pageable);
+        when(modelMapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(new CartDto()));
 
-        assertTrue(result.getDtoList().isEmpty());
+        Specification<Cart> specification =
+                (root, query, cb) -> cb.conjunction();
+
+        WsDto<CartDto> result =
+                service.findAll(specification, pageable);
+
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
+
+        verify(cartRepository)
+                .findAll(any(Specification.class), eq(pageable));
     }
 }

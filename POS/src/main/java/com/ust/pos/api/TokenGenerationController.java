@@ -34,10 +34,10 @@ public class TokenGenerationController {
             final String token = jwtUtility.generateToken(userDetails);
             return ResponseEntity.ok(new UserDto(token));
 
-        } catch (BadCredentialsException exception) {
+        } catch (BadCredentialsException _) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid username or password.");
-        } catch (Exception exception) {
+        } catch (Exception _) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Authentication failed.");
         }
@@ -49,7 +49,7 @@ public class TokenGenerationController {
             UserDetails userDetails = userDetailsService.loadUserByUsername
                     (jwtRequest.getUsername());
             return jwtUtility.validateToken(jwtRequest.getToken(), userDetails);
-        } catch (Exception exception) {
+        } catch (Exception _) {
             return false;
         }
     }

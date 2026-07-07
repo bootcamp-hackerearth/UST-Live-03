@@ -19,10 +19,17 @@ export default function EditWarehousePage() {
     }
   ];
 
-  const fetchWarehouse = async (identifier) => {
+const fetchWarehouse = async (identifier) => {
+  try {
     const res = await api.get("/api/warehouse/get", { params: { identifier } });
     return res.data;
-  };
+  } catch (error) {
+    if (error.response?.status === 404) {
+      return null; 
+    }
+    throw error; 
+  }
+};
 
   return (
     <CommonEditPage

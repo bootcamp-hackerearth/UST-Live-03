@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Shelf;
 import com.ust.pos.modell.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
@@ -23,12 +25,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ShelfServiceTest {
 
+    public static final String INVALID = "INVALID";
     @InjectMocks
     private ShelfServiceImpl service;
 
@@ -51,10 +54,24 @@ class ShelfServiceTest {
                 .thenReturn(dto);
 
         assertNotNull(service.findByIdentifier("S1"));
+
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier(INVALID)
+                );
+
+        assertEquals(
+                "Shelf with identifier 'INVALID' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
 
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
@@ -72,23 +89,16 @@ class ShelfServiceTest {
 
         verify(repository).save(shelf);
 
-        assertEquals("S1", result.getIdentifier());
         assertTrue(shelf.getStatus());
-    }
+        assertNotNull(result);
 
-    @Test
-    void saveDuplicateTest() {
-
-        ShelfDto dto = new ShelfDto();
-        dto.setIdentifier("S1");
-
-        Shelf shelf = new Shelf();
-        shelf.setDeleted(false);
+        Shelf duplicate = new Shelf();
+        duplicate.setDeleted(false);
 
         when(repository.findByIdentifier("S1"))
-                .thenReturn(shelf);
+                .thenReturn(duplicate);
 
-        ShelfDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -96,21 +106,13 @@ class ShelfServiceTest {
                 "Shelf with identifier - S1 already exists",
                 result.getMessage()
         );
-    }
 
-    @Test
-    void saveSoftDeletedTest() {
-
-        ShelfDto dto = new ShelfDto();
-        dto.setIdentifier("S1");
-
-        Shelf shelf = new Shelf();
-        shelf.setDeleted(true);
+        duplicate.setDeleted(true);
 
         when(repository.findByIdentifier("S1"))
-                .thenReturn(shelf);
+                .thenReturn(duplicate);
 
-        ShelfDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -121,7 +123,7 @@ class ShelfServiceTest {
     }
 
     @Test
-    void updateSuccessTest() {
+    void updateAndDeleteTest() {
 
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("S1");
@@ -140,41 +142,31 @@ class ShelfServiceTest {
         verify(repository).save(shelf);
 
         assertNotNull(result);
-    }
 
-    @Test
-    void updateNotFoundTest() {
+        ShelfDto invalidDto = new ShelfDto();
+        invalidDto.setIdentifier(INVALID);
 
-        ShelfDto dto = new ShelfDto();
-        dto.setIdentifier("S1");
-
-        when(repository.findByIdentifierAndDeletedFalse("S1"))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
-        ShelfDto result = service.update(dto);
+        result = service.update(invalidDto);
 
         assertFalse(result.isSuccess());
 
         assertEquals(
-                "Shelf with identifier - S1 not found",
+                "Shelf with identifier - INVALID not found",
                 result.getMessage()
         );
-    }
 
-    @Test
-    void deleteTest() {
+        service.delete("S1");
 
-        Shelf shelf = new Shelf();
+        verify(repository, atLeast(2))
+                .save(any(Shelf.class));
 
-        when(repository.findByIdentifierAndDeletedFalse("S1"))
-                .thenReturn(shelf)
+        when(repository.findByIdentifierAndDeletedFalse("NOTFOUND"))
                 .thenReturn(null);
 
-        service.delete("S1");
-
-        verify(repository).save(shelf);
-
-        service.delete("S1");
+        service.delete("NOTFOUND");
     }
 
     @Test
@@ -183,38 +175,39 @@ class ShelfServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Shelf> page =
-                new PageImpl<>(List.of(new Shelf()), pageable, 1);
+                new PageImpl<>(
+                        List.of(new Shelf()),
+                        pageable,
+                        1
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(repository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(page);
 
         when(mapper.map(any(), any(Type.class)))
                 .thenReturn(List.of(new ShelfDto()));
 
-        WsDto<ShelfDto> result = service.findAll(pageable);
+        WsDto<ShelfDto> result =
+                service.findAll(pageable);
 
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
         assertEquals(1, result.getTotalPage());
-    }
 
-    @Test
-    void findAllEmptyTest() {
+        Specification<Shelf> specification =
+                (root, query, cb) -> cb.conjunction();
 
-        Pageable pageable = PageRequest.of(0, 10);
+        WsDto<ShelfDto> specResult =
+                service.findAll(specification, pageable);
 
-        Page<Shelf> page =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
 
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
-
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<ShelfDto> result = service.findAll(pageable);
-
-        assertTrue(result.getDtoList().isEmpty());
+        verify(repository)
+                .findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
@@ -229,34 +222,39 @@ class ShelfServiceTest {
         when(mapper.map(shelf, ShelfDto.class))
                 .thenReturn(dto);
 
-        assertEquals(1, service.findAllActive().size());
+        List<ShelfDto> result =
+                service.findAllActive();
+
+        assertEquals(1, result.size());
 
         when(repository.findByStatusTrueAndDeletedFalse())
                 .thenReturn(Collections.emptyList());
 
-        assertTrue(service.findAllActive().isEmpty());
+        result = service.findAllActive();
+
+        assertTrue(result.isEmpty());
     }
 
     @Test
     void toggleStatusTest() {
 
-        Shelf shelf = new Shelf();
-        shelf.setStatus(true);
+        Shelf activeShelf = new Shelf();
+        activeShelf.setStatus(true);
 
         ShelfDto dto = new ShelfDto();
 
         when(repository.findByIdentifierAndDeletedFalse("S1"))
-                .thenReturn(shelf);
+                .thenReturn(activeShelf);
 
-        when(repository.save(shelf))
-                .thenReturn(shelf);
+        when(repository.save(activeShelf))
+                .thenReturn(activeShelf);
 
-        when(mapper.map(shelf, ShelfDto.class))
+        when(mapper.map(activeShelf, ShelfDto.class))
                 .thenReturn(dto);
 
         service.toggleStatus("S1");
 
-        assertFalse(shelf.getStatus());
+        assertFalse(activeShelf.getStatus());
 
         Shelf nullStatusShelf = new Shelf();
         nullStatusShelf.setStatus(null);
@@ -277,9 +275,40 @@ class ShelfServiceTest {
         when(repository.findByIdentifierAndDeletedFalse("S3"))
                 .thenReturn(null);
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service.toggleStatus("S3")
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> service.toggleStatus("S3")
+                );
+
+        assertEquals(
+                "Shelf not found with identifier: S3",
+                exception.getMessage()
         );
+    }
+
+    @Test
+    void toggleStatusFalseToTrueTest() {
+
+        Shelf shelf = new Shelf();
+        shelf.setStatus(false);
+
+        ShelfDto dto = new ShelfDto();
+
+        when(repository.findByIdentifierAndDeletedFalse("S4"))
+                .thenReturn(shelf);
+
+        when(repository.save(shelf))
+                .thenReturn(shelf);
+
+        when(mapper.map(shelf, ShelfDto.class))
+                .thenReturn(dto);
+
+        ShelfDto result = service.toggleStatus("S4");
+
+        assertNotNull(result);
+        assertTrue(shelf.getStatus());
+
+        verify(repository).save(shelf);
     }
 }

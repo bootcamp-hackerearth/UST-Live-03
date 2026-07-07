@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Category;
 import com.ust.pos.modell.CategoryRepository;
 import org.junit.jupiter.api.Test;
@@ -15,21 +16,26 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
 
+    public static final String PARENT = "PARENT";
+    public static final String ADMIN = "admin";
     @InjectMocks
     private CategoryServiceImpl service;
 
@@ -40,7 +46,7 @@ class CategoryServiceTest {
     private ModelMapper mapper;
 
     @Test
-    void saveSuccessWithNullSuperCategory() {
+    void saveTest() {
 
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("CAT1");
@@ -51,117 +57,94 @@ class CategoryServiceTest {
         service.save(dto);
 
         verify(repository).save(any(Category.class));
-    }
 
-    @Test
-    void saveSuccessWithSuperCategory() {
-
-        CategoryDto dto = new CategoryDto();
-        dto.setIdentifier("CAT2");
-        dto.setSuperCategory("PARENT");
+        CategoryDto dto2 = new CategoryDto();
+        dto2.setIdentifier("CAT2");
+        dto2.setSuperCategory(PARENT);
 
         when(repository.findByIdentifier("CAT2"))
                 .thenReturn(null);
 
-        service.save(dto);
+        service.save(dto2);
 
-        verify(repository).save(any(Category.class));
-    }
-
-    @Test
-    void saveDuplicateCategory() {
-
-        Category category = new Category();
-        category.setDeleted(false);
-
-        CategoryDto dto = new CategoryDto();
-        dto.setIdentifier("CAT1");
+        Category duplicate = new Category();
+        duplicate.setDeleted(false);
 
         when(repository.findByIdentifier("CAT1"))
-                .thenReturn(category);
+                .thenReturn(duplicate);
 
         CategoryDto result = service.save(dto);
 
         assertFalse(result.isSuccess());
-    }
 
-    @Test
-    void saveSoftDeletedCategory() {
+        assertEquals(
+                "Category with identifier - CAT1 already exists",
+                result.getMessage()
+        );
 
-        Category category = new Category();
-        category.setDeleted(true);
-
-        CategoryDto dto = new CategoryDto();
-        dto.setIdentifier("CAT1");
+        duplicate.setDeleted(true);
 
         when(repository.findByIdentifier("CAT1"))
-                .thenReturn(category);
+                .thenReturn(duplicate);
 
-        CategoryDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
+
+        assertEquals(
+                "Category with Identifier CAT1 already exists (Soft-Deleted)",
+                result.getMessage()
+        );
     }
 
     @Test
-    void updateNotFound() {
+    void updateAndDeleteTest() {
 
-        CategoryDto dto = new CategoryDto();
-        dto.setId(1L);
+        CategoryDto notFound = new CategoryDto();
+        notFound.setId(1L);
 
         when(repository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        CategoryDto result = service.update(dto);
+        CategoryDto result = service.update(notFound);
 
         assertFalse(result.isSuccess());
-    }
-
-    @Test
-    void updateDuplicateIdentifier() {
 
         Category existing = new Category();
-        existing.setId(1L);
+        existing.setId(2L);
         existing.setIdentifier("OLD");
 
-        CategoryDto dto = new CategoryDto();
-        dto.setId(1L);
-        dto.setIdentifier("NEW");
+        CategoryDto duplicateDto = new CategoryDto();
+        duplicateDto.setId(2L);
+        duplicateDto.setIdentifier("NEW");
 
-        when(repository.findById(1L))
+        when(repository.findById(2L))
                 .thenReturn(Optional.of(existing));
 
         when(repository.findByIdentifierAndDeletedFalse("NEW"))
                 .thenReturn(new Category());
 
-        CategoryDto result = service.update(dto);
+        result = service.update(duplicateDto);
 
         assertFalse(result.isSuccess());
-    }
 
-    @Test
-    void updateSuccessBranches() {
+        Category updated = new Category();
+        updated.setId(3L);
+        updated.setIdentifier("CAT3");
+        updated.setCreatedBy(ADMIN);
+        updated.setCreatedOn(LocalDateTime.now());
 
-        Category existing = new Category();
-        existing.setId(1L);
-        existing.setIdentifier("OLD");
-        existing.setCreatedBy("user");
-        existing.setCreatedOn(LocalDateTime.now());
+        CategoryDto updateDto = new CategoryDto();
+        updateDto.setId(3L);
+        updateDto.setIdentifier("CAT3");
+        updateDto.setSuperCategory(PARENT);
 
-        CategoryDto dto = new CategoryDto();
-        dto.setId(1L);
-        dto.setIdentifier("OLD");
-        dto.setSuperCategory("PARENT");
+        when(repository.findById(3L))
+                .thenReturn(Optional.of(updated));
 
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(existing));
+        service.update(updateDto);
 
-        service.update(dto);
-
-        verify(repository).save(existing);
-    }
-
-    @Test
-    void deleteBranches() {
+        verify(repository).save(updated);
 
         when(repository.existsBySuperCategory("CAT1"))
                 .thenReturn(true);
@@ -171,17 +154,13 @@ class CategoryServiceTest {
                 () -> service.delete("CAT1")
         );
 
-        Category category = new Category();
-
         when(repository.existsBySuperCategory("CAT2"))
                 .thenReturn(false);
 
         when(repository.findByIdentifierAndDeletedFalse("CAT2"))
-                .thenReturn(category);
+                .thenReturn(updated);
 
         service.delete("CAT2");
-
-        verify(repository).save(category);
 
         when(repository.existsBySuperCategory("CAT3"))
                 .thenReturn(false);
@@ -205,40 +184,153 @@ class CategoryServiceTest {
                 .thenReturn(dto);
 
         assertNotNull(service.findByIdentifier("CAT1"));
+
+        when(repository.findByIdentifierAndDeletedFalse("INVALID"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier("INVALID")
+                );
+
+        assertEquals(
+                "Category with identifier 'INVALID' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void findAllAndEmptyTest() {
+    void findAllTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Category> page =
-                new PageImpl<>(List.of(new Category()), pageable, 1);
+                new PageImpl<>(
+                        List.of(new Category()),
+                        pageable,
+                        1
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(repository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(page);
 
         when(mapper.map(any(), any(Type.class)))
                 .thenReturn(List.of(new CategoryDto()));
 
-        WsDto<CategoryDto> result = service.findAll(pageable);
+        WsDto<CategoryDto> result =
+                service.findAll(pageable);
 
         assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
 
-        Page<Category> empty =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Specification<Category> specification =
+                (root, query, cb) -> cb.conjunction();
 
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(empty);
+        WsDto<CategoryDto> specResult =
+                service.findAll(specification, pageable);
 
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
 
-        assertTrue(service.findAll(pageable).getDtoList().isEmpty());
+        verify(repository)
+                .findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
-    void childAndActiveCategoriesTest() {
+    void saveEmptySuperCategoryCoverage() {
+
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT_EMPTY");
+        dto.setSuperCategory("   ");
+
+        when(repository.findByIdentifier("CAT_EMPTY"))
+                .thenReturn(null);
+
+        service.save(dto);
+
+        verify(repository).save(any(Category.class));
+    }
+
+    @Test
+    void toggleStatusFalseToTrueTest() {
+
+        Category category = new Category();
+        category.setStatus(false);
+
+        CategoryDto dto = new CategoryDto();
+
+        when(repository.findByIdentifierAndDeletedFalse("CAT4"))
+                .thenReturn(category);
+
+        when(repository.save(category))
+                .thenReturn(category);
+
+        when(mapper.map(category, CategoryDto.class))
+                .thenReturn(dto);
+
+        CategoryDto result = service.toggleStatus("CAT4");
+
+        assertNotNull(result);
+        assertTrue(category.getStatus());
+
+        verify(repository).save(category);
+    }
+
+    @Test
+    void updateIdentifierChangedButNotDuplicateCoverage() {
+
+        Category existing = new Category();
+        existing.setId(10L);
+        existing.setIdentifier("OLD");
+        existing.setCreatedBy(ADMIN);
+        existing.setCreatedOn(LocalDateTime.now());
+
+        CategoryDto dto = new CategoryDto();
+        dto.setId(10L);
+        dto.setIdentifier("NEW");
+        dto.setSuperCategory(PARENT);
+
+        when(repository.findById(10L))
+                .thenReturn(Optional.of(existing));
+
+        when(repository.findByIdentifierAndDeletedFalse("NEW"))
+                .thenReturn(null);
+
+        service.update(dto);
+
+        verify(repository).save(existing);
+    }
+
+    @Test
+    void updateNullSuperCategoryCoverage() {
+
+        Category existing = new Category();
+        existing.setId(20L);
+        existing.setIdentifier("CAT1");
+        existing.setCreatedBy(ADMIN);
+        existing.setCreatedOn(LocalDateTime.now());
+
+        CategoryDto dto = new CategoryDto();
+        dto.setId(20L);
+        dto.setIdentifier("CAT1");
+        dto.setSuperCategory("");
+
+        when(repository.findById(20L))
+                .thenReturn(Optional.of(existing));
+
+        service.update(dto);
+
+        verify(repository).save(existing);
+
+        assertNull(existing.getSuperCategory());
+    }
+
+    @Test
+    void childAndActiveCategoryTest() {
 
         Category category = new Category();
         CategoryDto dto = new CategoryDto();
@@ -268,13 +360,11 @@ class CategoryServiceTest {
         when(repository.findByStatusTrue())
                 .thenReturn(Collections.emptyList());
 
-        assertTrue(
-                service.findAllActive().isEmpty()
-        );
+        assertTrue(service.findAllActive().isEmpty());
     }
 
     @Test
-    void toggleStatusBranches() {
+    void toggleStatusTest() {
 
         Category category = new Category();
         category.setStatus(true);
@@ -313,9 +403,15 @@ class CategoryServiceTest {
         when(repository.findByIdentifierAndDeletedFalse("CAT3"))
                 .thenReturn(null);
 
-        assertThrows(
-                RuntimeException.class,
-                () -> service.toggleStatus("CAT3")
+        NoSuchElementException exception =
+                assertThrows(
+                        NoSuchElementException.class,
+                        () -> service.toggleStatus("CAT3")
+                );
+
+        assertEquals(
+                "category not found with identifier: CAT3",
+                exception.getMessage()
         );
     }
 }

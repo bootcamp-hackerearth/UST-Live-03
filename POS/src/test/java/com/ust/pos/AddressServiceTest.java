@@ -24,9 +24,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AddressServiceTest {
 
-    public static final String ID_001 = "ID001";
-    public static final String NUMBER = "9876543210";
     public static final String ID_002 = "ID002";
+    public static final String NUMBER = "9876543210";
+    public static final String ID_001 = "ID001";
     @Mock
     private AddressRepository addressRepository;
 

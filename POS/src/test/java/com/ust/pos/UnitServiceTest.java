@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Unit;
 import com.ust.pos.modell.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -15,20 +16,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UnitServiceTest {
 
+    public static final String INVALID = "INVALID";
     @InjectMocks
     private UnitServiceImpl service;
 
@@ -51,10 +54,24 @@ class UnitServiceTest {
                 .thenReturn(dto);
 
         assertNotNull(service.findByIdentifier("KG"));
+
+        when(repository.findByIdentifierAndDeletedFalse("NOTFOUND"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier("NOTFOUND")
+                );
+
+        assertEquals(
+                "Unit with identifier 'NOTFOUND' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
 
         UnitDto dto = new UnitDto();
         dto.setIdentifier("KG");
@@ -74,13 +91,6 @@ class UnitServiceTest {
 
         assertEquals("KG", result.getIdentifier());
         assertTrue(unit.getStatus());
-    }
-
-    @Test
-    void saveDuplicateTest() {
-
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("KG");
 
         Unit existing = new Unit();
         existing.setDeleted(false);
@@ -88,7 +98,7 @@ class UnitServiceTest {
         when(repository.findByIdentifier("KG"))
                 .thenReturn(existing);
 
-        UnitDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -96,21 +106,13 @@ class UnitServiceTest {
                 "Warehouse with identifier - KG already exists",
                 result.getMessage()
         );
-    }
 
-    @Test
-    void saveSoftDeletedTest() {
-
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("KG");
-
-        Unit existing = new Unit();
         existing.setDeleted(true);
 
         when(repository.findByIdentifier("KG"))
                 .thenReturn(existing);
 
-        UnitDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -121,7 +123,7 @@ class UnitServiceTest {
     }
 
     @Test
-    void updateSuccessTest() {
+    void updateTest() {
 
         UnitDto dto = new UnitDto();
         dto.setIdentifier("KG");
@@ -140,23 +142,19 @@ class UnitServiceTest {
         verify(repository).save(unit);
 
         assertNotNull(result);
-    }
 
-    @Test
-    void updateNotFoundTest() {
-
-        UnitDto dto = new UnitDto();
-        dto.setIdentifier("KG");
-
-        when(repository.findByIdentifierAndDeletedFalse("KG"))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
-        UnitDto result = service.update(dto);
+        UnitDto invalidDto = new UnitDto();
+        invalidDto.setIdentifier(INVALID);
+
+        result = service.update(invalidDto);
 
         assertFalse(result.isSuccess());
 
         assertEquals(
-                "Warehouse with identifier - KG not found",
+                "Warehouse with identifier - INVALID not found",
                 result.getMessage()
         );
     }
@@ -183,9 +181,16 @@ class UnitServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Unit> page =
-                new PageImpl<>(List.of(new Unit()), pageable, 1);
+                new PageImpl<>(
+                        List.of(new Unit()),
+                        pageable,
+                        1
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(repository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(page);
 
         when(mapper.map(any(), any(Type.class)))
@@ -196,29 +201,27 @@ class UnitServiceTest {
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
         assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        Specification<Unit> specification =
+                (root, query, cb) -> cb.conjunction();
+
+        WsDto<UnitDto> specResult =
+                service.findAll(specification, pageable);
+
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
+        assertEquals(1, specResult.getTotalPage());
+        assertEquals(10, specResult.getSizePerPage());
+        assertEquals(0, specResult.getPage());
+
+        verify(repository).findAllByDeletedFalse(pageable);
+        verify(repository).findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
-    void findAllEmptyTest() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Unit> page =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
-
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
-
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<UnitDto> result = service.findAll(pageable);
-
-        assertTrue(result.getDtoList().isEmpty());
-    }
-
-    @Test
-    void toggleStatusSuccessAndNullStatusTest() {
+    void toggleStatusTest() {
 
         Unit activeUnit = new Unit();
         activeUnit.setStatus(true);
@@ -253,23 +256,45 @@ class UnitServiceTest {
         service.toggleStatus("KG2");
 
         assertTrue(nullStatusUnit.getStatus());
-    }
 
-    @Test
-    void toggleStatusNotFoundTest() {
-
-        when(repository.findByIdentifierAndDeletedFalse("KG"))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
         RuntimeException exception =
                 assertThrows(
                         RuntimeException.class,
-                        () -> service.toggleStatus("KG")
+                        () -> service.toggleStatus(INVALID)
                 );
 
         assertEquals(
-                "Unit not found with identifier: KG",
+                "Unit not found with identifier: INVALID",
                 exception.getMessage()
         );
+    }
+
+    @Test
+    void toggleStatusFalseBranchTest() {
+
+        Unit unit = new Unit();
+        unit.setStatus(false);
+
+        UnitDto dto = new UnitDto();
+
+        when(repository.findByIdentifierAndDeletedFalse("KG3"))
+                .thenReturn(unit);
+
+        when(repository.save(unit))
+                .thenReturn(unit);
+
+        when(mapper.map(unit, UnitDto.class))
+                .thenReturn(dto);
+
+        UnitDto result = service.toggleStatus("KG3");
+
+        assertNotNull(result);
+
+        assertTrue(unit.getStatus());
+
+        verify(repository).save(unit);
     }
 }

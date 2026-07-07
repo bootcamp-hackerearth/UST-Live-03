@@ -2,7 +2,9 @@ package com.ust.pos.racks.service;
 
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.modell.Racks;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -20,4 +22,6 @@ public interface RacksService {
     List<RacksDto> findAllActive();
 
     RacksDto toggleStatus(String identifier);
+
+    WsDto<RacksDto> findAll(Specification<Racks> example, Pageable pageable);
 }

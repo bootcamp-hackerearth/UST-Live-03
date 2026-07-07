@@ -17,4 +17,5 @@ public class PaginationDto {
     private String sortField = "identifier";
     private int totalPage;
     private long totalRecords;
+    private String keyword;
 }

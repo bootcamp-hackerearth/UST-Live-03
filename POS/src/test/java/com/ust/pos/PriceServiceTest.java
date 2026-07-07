@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Price;
 import com.ust.pos.modell.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -15,20 +16,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PriceServiceTest {
 
+    public static final String INVALID = "INVALID";
     @InjectMocks
     private PriceServiceImpl service;
 
@@ -50,28 +53,32 @@ class PriceServiceTest {
         when(mapper.map(price, PriceDto.class))
                 .thenReturn(dto);
 
-        PriceDto result = service.findByIdentifier("P-T");
+        assertNotNull(service.findByIdentifier("P-T"));
 
-        assertNotNull(result);
-    }
-
-    @Test
-    void findByIdentifierNotFoundTest() {
-
-        when(repository.findByIdentifierAndDeletedFalse("P-T"))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
-        assertNull(service.findByIdentifier("P-T"));
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier(INVALID)
+                );
+
+        assertEquals(
+                "price with identifier 'INVALID' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
 
         PriceDto dto = new PriceDto();
         dto.setProduct("P");
         dto.setType("T");
 
         Price price = new Price();
+        price.setStatus(null);
 
         when(repository.findByIdentifier("P-T"))
                 .thenReturn(null);
@@ -85,22 +92,15 @@ class PriceServiceTest {
 
         assertTrue(result.isSuccess());
         assertEquals("P-T", result.getIdentifier());
-    }
+        assertTrue(price.getStatus());
 
-    @Test
-    void saveDuplicatePriceTest() {
-
-        PriceDto dto = new PriceDto();
-        dto.setProduct("P");
-        dto.setType("T");
-
-        Price price = new Price();
-        price.setDeleted(false);
+        Price existing = new Price();
+        existing.setDeleted(false);
 
         when(repository.findByIdentifier("P-T"))
-                .thenReturn(price);
+                .thenReturn(existing);
 
-        PriceDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -108,22 +108,13 @@ class PriceServiceTest {
                 "Price already exists for product + type",
                 result.getMessage()
         );
-    }
 
-    @Test
-    void saveSoftDeletedPriceTest() {
-
-        PriceDto dto = new PriceDto();
-        dto.setProduct("P");
-        dto.setType("T");
-
-        Price price = new Price();
-        price.setDeleted(true);
+        existing.setDeleted(true);
 
         when(repository.findByIdentifier("P-T"))
-                .thenReturn(price);
+                .thenReturn(existing);
 
-        PriceDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -134,7 +125,7 @@ class PriceServiceTest {
     }
 
     @Test
-    void updateSuccessTest() {
+    void updateTest() {
 
         PriceDto dto = new PriceDto();
         dto.setIdentifier("OLD");
@@ -145,6 +136,7 @@ class PriceServiceTest {
         Price existing = new Price();
         existing.setId(1L);
         existing.setIdentifier("OLD");
+        existing.setCreatedBy("admin");
         existing.setCreatedOn(LocalDateTime.now());
 
         when(repository.findByIdentifierAndDeletedFalse("OLD"))
@@ -161,44 +153,36 @@ class PriceServiceTest {
         assertNotNull(result);
 
         verify(repository).save(existing);
-    }
 
-    @Test
-    void updatePriceNotFoundTest() {
+        PriceDto notFoundDto = new PriceDto();
+        notFoundDto.setIdentifier(INVALID);
 
-        PriceDto dto = new PriceDto();
-        dto.setIdentifier("OLD");
-
-        when(repository.findByIdentifierAndDeletedFalse("OLD"))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
-        PriceDto result = service.update(dto);
+        result = service.update(notFoundDto);
 
         assertFalse(result.isSuccess());
         assertEquals("Price not found", result.getMessage());
-    }
 
-    @Test
-    void updateDuplicatePriceTest() {
+        PriceDto duplicateDto = new PriceDto();
+        duplicateDto.setIdentifier("OLD2");
+        duplicateDto.setProduct("P");
+        duplicateDto.setType("T");
 
-        PriceDto dto = new PriceDto();
-        dto.setIdentifier("OLD");
-        dto.setProduct("P");
-        dto.setType("T");
+        Price currentPrice = new Price();
+        currentPrice.setId(1L);
 
-        Price existing = new Price();
-        existing.setId(1L);
+        Price duplicatePrice = new Price();
+        duplicatePrice.setId(2L);
 
-        Price duplicate = new Price();
-        duplicate.setId(2L);
-
-        when(repository.findByIdentifierAndDeletedFalse("OLD"))
-                .thenReturn(existing);
+        when(repository.findByIdentifierAndDeletedFalse("OLD2"))
+                .thenReturn(currentPrice);
 
         when(repository.findByIdentifierAndDeletedFalse("P-T"))
-                .thenReturn(duplicate);
+                .thenReturn(duplicatePrice);
 
-        PriceDto result = service.update(dto);
+        result = service.update(duplicateDto);
 
         assertFalse(result.isSuccess());
 
@@ -209,27 +193,21 @@ class PriceServiceTest {
     }
 
     @Test
-    void deleteSuccessTest() {
+    void deleteTest() {
 
         Price price = new Price();
 
         when(repository.findByIdentifierAndDeletedFalse("P-T"))
-                .thenReturn(price);
-
-        service.delete("P-T");
-
-        verify(repository).save(price);
-    }
-
-    @Test
-    void deletePriceNotFoundTest() {
-
-        when(repository.findByIdentifierAndDeletedFalse("P-T"))
+                .thenReturn(price)
                 .thenReturn(null);
 
         service.delete("P-T");
 
-        verify(repository, never()).save(any());
+        verify(repository).save(price);
+
+        service.delete("P-T");
+
+        verify(repository, times(1)).save(price);
     }
 
     @Test
@@ -237,41 +215,42 @@ class PriceServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Price price = new Price();
-        PriceDto dto = new PriceDto();
-
         Page<Price> page =
-                new PageImpl<>(List.of(price), pageable, 1);
+                new PageImpl<>(
+                        List.of(new Price()),
+                        pageable,
+                        1
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
                 .thenReturn(page);
 
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(List.of(dto));
+        when(repository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(page);
 
-        WsDto<PriceDto> result = service.findAll(pageable);
+        when(mapper.map(any(), any(Type.class)))
+                .thenReturn(List.of(new PriceDto()));
+
+        WsDto<PriceDto> result =
+                service.findAll(pageable);
 
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
-    }
+        assertEquals(1, result.getTotalPage());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
-    @Test
-    void findAllEmptyTest() {
+        Specification<Price> specification =
+                (root, query, cb) -> cb.conjunction();
 
-        Pageable pageable = PageRequest.of(0, 10);
+        WsDto<PriceDto> specResult =
+                service.findAll(specification, pageable);
 
-        Page<Price> page =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
+        assertEquals(1, specResult.getTotalPage());
 
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
-
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<PriceDto> result = service.findAll(pageable);
-
-        assertTrue(result.getDtoList().isEmpty());
+        verify(repository).findAllByDeletedFalse(pageable);
+        verify(repository).findAll(any(Specification.class), eq(pageable));
     }
 }
-

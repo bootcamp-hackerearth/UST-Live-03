@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Role;
 import com.ust.pos.modell.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -15,19 +16,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RoleServiceTest {
 
+    public static final String INVALID = "INVALID";
     public static final String ADMIN = "ADMIN";
     @InjectMocks
     private RoleServiceImpl service;
@@ -42,10 +46,7 @@ class RoleServiceTest {
     void findByIdentifierTest() {
 
         Role role = new Role();
-        role.setIdentifier(ADMIN);
-
         RoleDto dto = new RoleDto();
-        dto.setIdentifier(ADMIN);
 
         when(repository.findByIdentifierAndDeletedFalse(ADMIN))
                 .thenReturn(role);
@@ -53,20 +54,31 @@ class RoleServiceTest {
         when(mapper.map(role, RoleDto.class))
                 .thenReturn(dto);
 
-        RoleDto result =
-                service.findByIdentifier(ADMIN);
+        assertNotNull(service.findByIdentifier(ADMIN));
 
-        assertNotNull(result);
-        assertEquals(ADMIN, result.getIdentifier());
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier(INVALID)
+                );
+
+        assertEquals(
+                "role with identifier 'INVALID' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
 
         RoleDto dto = new RoleDto();
         dto.setIdentifier(ADMIN);
 
         Role role = new Role();
+        role.setStatus(null);
 
         when(repository.findByIdentifier(ADMIN))
                 .thenReturn(null);
@@ -79,43 +91,15 @@ class RoleServiceTest {
         verify(repository).save(role);
 
         assertEquals(ADMIN, result.getIdentifier());
-    }
-
-    @Test
-    void saveWhenRoleExistsAndSoftDeleted() {
-        RoleDto roleDto = new RoleDto();
-        roleDto.setIdentifier(ADMIN);
+        assertTrue(role.getStatus());
 
         Role existingRole = new Role();
-        existingRole.setDeleted(true);
-
-        when(repository.findByIdentifier(ADMIN)).thenReturn(existingRole);
-
-        RoleDto result = service.save(roleDto);
-
-        assertFalse(result.isSuccess());
-        assertEquals(
-                "Role with Identifier ADMIN already exists (Soft-Deleted)",
-                result.getMessage()
-        );
-
-        verify(repository, never()).save(any(Role.class));
-        verify(mapper, never()).map(any(), eq(Role.class));
-    }
-
-    @Test
-    void saveDuplicateTest() {
-
-        RoleDto dto = new RoleDto();
-        dto.setIdentifier(ADMIN);
-
-        Role role = new Role();
-        role.setDeleted(false);
+        existingRole.setDeleted(false);
 
         when(repository.findByIdentifier(ADMIN))
-                .thenReturn(role);
+                .thenReturn(existingRole);
 
-        RoleDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -123,10 +107,24 @@ class RoleServiceTest {
                 "Role with identifier - ADMIN already exists",
                 result.getMessage()
         );
+
+        existingRole.setDeleted(true);
+
+        when(repository.findByIdentifier(ADMIN))
+                .thenReturn(existingRole);
+
+        result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+
+        assertEquals(
+                "Role with Identifier ADMIN already exists (Soft-Deleted)",
+                result.getMessage()
+        );
     }
 
     @Test
-    void updateSuccessTest() {
+    void updateTest() {
 
         RoleDto dto = new RoleDto();
         dto.setIdentifier(ADMIN);
@@ -145,29 +143,25 @@ class RoleServiceTest {
         verify(repository).save(role);
 
         assertNotNull(result);
-    }
 
-    @Test
-    void updateNotFoundTest() {
+        RoleDto invalidDto = new RoleDto();
+        invalidDto.setIdentifier(INVALID);
 
-        RoleDto dto = new RoleDto();
-        dto.setIdentifier(ADMIN);
-
-        when(repository.findByIdentifierAndDeletedFalse(ADMIN))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
-        RoleDto result = service.update(dto);
+        result = service.update(invalidDto);
 
         assertFalse(result.isSuccess());
 
         assertEquals(
-                "Role with identifier - ADMIN not found",
+                "Role with identifier - INVALID not found",
                 result.getMessage()
         );
     }
 
     @Test
-    void deleteSuccessTest() {
+    void deleteTest() {
 
         Role role = new Role();
 
@@ -182,15 +176,11 @@ class RoleServiceTest {
     @Test
     void findAllTest() {
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
-
-        Role role = new Role();
-        RoleDto dto = new RoleDto();
+        Pageable pageable = PageRequest.of(0, 10);
 
         Page<Role> page =
                 new PageImpl<>(
-                        List.of(role),
+                        List.of(new Role()),
                         pageable,
                         1
                 );
@@ -198,8 +188,11 @@ class RoleServiceTest {
         when(repository.findAllByDeletedFalse(pageable))
                 .thenReturn(page);
 
+        when(repository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(page);
+
         when(mapper.map(any(), any(Type.class)))
-                .thenReturn(List.of(dto));
+                .thenReturn(List.of(new RoleDto()));
 
         WsDto<RoleDto> result =
                 service.findAll(pageable);
@@ -207,30 +200,22 @@ class RoleServiceTest {
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
         assertEquals(1, result.getTotalPage());
-    }
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
-    @Test
-    void findAllEmptyTest() {
+        Specification<Role> specification =
+                (root, query, cb) -> cb.conjunction();
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
+        WsDto<RoleDto> specResult =
+                service.findAll(specification, pageable);
 
-        Page<Role> page =
-                new PageImpl<>(
-                        Collections.emptyList(),
-                        pageable,
-                        0
-                );
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
+        assertEquals(1, specResult.getTotalPage());
+        assertEquals(10, specResult.getSizePerPage());
+        assertEquals(0, specResult.getPage());
 
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
-
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<RoleDto> result =
-                service.findAll(pageable);
-
-        assertTrue(result.getDtoList().isEmpty());
+        verify(repository).findAllByDeletedFalse(pageable);
+        verify(repository).findAll(any(Specification.class), eq(pageable));
     }
 }

@@ -81,7 +81,7 @@ public class StockController {
         try {
             stockService.deleteByIdentifier(identifier);
             return true;
-        } catch (Exception exception) {
+        } catch (Exception _) {
             return false;
         }
     }

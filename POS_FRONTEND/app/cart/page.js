@@ -30,6 +30,7 @@ export default function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState("CASH"); 
   const [amountReceived, setAmountReceived] = useState("");
   const [processingOrder, setProcessingOrder] = useState(false);
+  const [orderSearch, setOrderSearch] = useState("");
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isViewOrderModalOpen, setIsViewOrderModalOpen] = useState(false);
@@ -340,6 +341,26 @@ export default function CartPage() {
     return received > payable ? (received - payable).toFixed(2) : "0.00";
   }, [amountReceived, cart?.totalPrice]);
 
+const filteredOrders = useMemo(() => {
+  const query = orderSearch.toLowerCase().trim();
+
+  if (!query) return orders;
+
+  return orders.filter((order) => {
+    const customer = customers.find(
+      (c) =>
+        c.phoneNo === order.customerIdentifier ||
+        c.identifier === order.customerIdentifier
+    );
+
+    return (
+      order.identifier?.toLowerCase().includes(query) || 
+      customer?.customerName?.toLowerCase().includes(query) || 
+      customer?.phoneNo?.includes(query) 
+    );
+  });
+}, [orders, customers, orderSearch]);
+
   return (
     <Layout>
       
@@ -640,18 +661,34 @@ export default function CartPage() {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900">Historical Sales Registers</h2>
-          <p className="text-xs text-gray-400 font-medium">Audit logs displaying last 50 transactions records</p>
-        </div>
-        <button 
-          onClick={loadOrders}
-          className="text-xs border border-gray-200 bg-gray-50 hover:bg-gray-100 font-bold px-3 py-2 rounded-lg transition"
-        >
-          🔄 Refresh Logs
-        </button>
-      </div>
+     <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+  <div>
+    <h2 className="text-lg font-bold text-gray-900">
+      Historical Sales Registers
+    </h2>
+    <p className="text-xs text-gray-400 font-medium">
+      Audit logs displaying last 50 transactions records
+    </p>
+  </div>
+
+  <div className="flex gap-3">
+    <input
+      type="text"
+      placeholder="Search Order ID"
+      value={orderSearch}
+      onChange={(e) => setOrderSearch(e.target.value)}
+      className="border border-gray-200 rounded-lg px-4 py-2 text-sm w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+    <button
+      onClick={loadOrders}
+      className="text-xs border border-gray-200 bg-gray-50 hover:bg-gray-100 font-bold px-3 py-2 rounded-lg transition"
+    >
+      🔄 Refresh Logs
+    </button>
+  </div>
+</div>
+
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-100 text-sm text-left">
@@ -666,7 +703,7 @@ export default function CartPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
-  {orders.map((order) => {
+  {filteredOrders.map((order) => {
     let paymentMethodClass;
 
     if (order.paymentMethod === "CASH") {

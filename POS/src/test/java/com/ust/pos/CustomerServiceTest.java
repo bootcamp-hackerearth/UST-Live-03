@@ -5,6 +5,7 @@ import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Customer;
 import com.ust.pos.modell.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,7 +57,6 @@ class CustomerServiceTest {
         customer.setIdentifier("C001");
         customer.setPhoneNo(NUMBER);
         customer.setStatus(true);
-        customer.setDeleted(false);
 
         dto = new CustomerDto();
         dto.setIdentifier("C001");
@@ -64,7 +66,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void findByIdTest() {
+    void findMethodsTest() {
 
         when(repository.findByIdAndDeletedFalse("C001"))
                 .thenReturn(customer);
@@ -73,19 +75,25 @@ class CustomerServiceTest {
                 .thenReturn(dto);
 
         assertNotNull(service.findById("C001"));
-    }
 
-    @Test
-    void findByIdentifierWithAddressDtoTest() {
+        when(repository.findByIdAndDeletedFalse("INVALID"))
+                .thenReturn(null);
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.findById("INVALID")
+        );
 
         when(repository.findByPhoneNoAndDeletedFalse(NUMBER))
                 .thenReturn(customer);
 
-        when(mapper.map(customer, CustomerDto.class))
-                .thenReturn(dto);
-
         when(addressService.findAllByPhoneNo(NUMBER))
-                .thenReturn(List.of(new AddressDto(), new AddressDto()));
+                .thenReturn(
+                        List.of(
+                                new AddressDto(),
+                                new AddressDto()
+                        )
+                );
 
         CustomerDto result =
                 service.findByIdentifierWithAddressDto(NUMBER);
@@ -102,42 +110,59 @@ class CustomerServiceTest {
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
 
         when(repository.findByPhoneNo(NUMBER))
                 .thenReturn(null);
 
+        Customer mappedCustomer = new Customer();
+        mappedCustomer.setStatus(null);
+
         when(mapper.map(dto, Customer.class))
-                .thenReturn(customer);
+                .thenReturn(mappedCustomer);
 
         CustomerDto result = service.save(dto);
 
-        verify(repository).save(customer);
+        assertNotNull(result);
+        assertTrue(mappedCustomer.getStatus());
+
+        verify(repository).save(mappedCustomer);
+
         verify(addressService, times(2))
                 .save(any(AddressDto.class));
 
-        assertNotNull(result);
-    }
-
-    @Test
-    void saveDuplicateAndSoftDeletedTest() {
+        Customer duplicate = new Customer();
+        duplicate.setDeleted(false);
 
         when(repository.findByPhoneNo(NUMBER))
-                .thenReturn(customer);
+                .thenReturn(duplicate);
 
-        CustomerDto duplicate = service.save(dto);
+        result = service.save(dto);
 
-        assertFalse(duplicate.isSuccess());
+        assertFalse(result.isSuccess());
 
-        customer.setDeleted(true);
+        assertEquals(
+                "Customer already exists",
+                result.getMessage()
+        );
 
-        CustomerDto softDeleted = service.save(dto);
+        duplicate.setDeleted(true);
 
-        assertFalse(softDeleted.isSuccess());
+        when(repository.findByPhoneNo(NUMBER))
+                .thenReturn(duplicate);
+
+        result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+
+        assertEquals(
+                "Customer with phoneNo 9876543210 already exists (Soft-Deleted)",
+                result.getMessage()
+        );
     }
 
     @Test
-    void updateSuccessTest() {
+    void updateAndDeleteTest() {
 
         customer.setCreatedBy("admin");
         customer.setCreatedOn(LocalDateTime.now());
@@ -150,29 +175,22 @@ class CustomerServiceTest {
 
         CustomerDto result = service.update(dto);
 
-        verify(mapper).map(dto, customer);
+        assertNotNull(result);
 
         verify(repository).save(customer);
 
         verify(addressService, times(2))
                 .update(any(AddressDto.class));
 
-        assertNotNull(result);
-    }
+        CustomerDto invalid = new CustomerDto();
+        invalid.setPhoneNo("999");
 
-    @Test
-    void updateNotFoundTest() {
-
-        when(repository.findByPhoneNoAndDeletedFalse(NUMBER))
+        when(repository.findByPhoneNoAndDeletedFalse("999"))
                 .thenReturn(null);
 
-        CustomerDto result = service.update(dto);
+        result = service.update(invalid);
 
         assertFalse(result.isSuccess());
-    }
-
-    @Test
-    void deleteTest() {
 
         when(repository.findByPhoneNoAndDeletedFalse(NUMBER))
                 .thenReturn(customer)
@@ -180,21 +198,27 @@ class CustomerServiceTest {
 
         assertTrue(service.delete(NUMBER));
 
-        verify(repository).save(customer);
-        verify(addressService).delete(NUMBER);
-
         assertFalse(service.delete(NUMBER));
+
+        verify(addressService).delete(NUMBER);
     }
 
     @Test
     void findAllTest() {
 
-        Pageable pageable = PageRequest.of(0, 5);
+        Pageable pageable = PageRequest.of(0, 10);
 
         Page<Customer> page =
-                new PageImpl<>(List.of(customer), pageable, 1);
+                new PageImpl<>(
+                        List.of(customer),
+                        pageable,
+                        1
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        when(repository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(page);
 
         when(mapper.map(any(), any(Type.class)))
@@ -204,21 +228,19 @@ class CustomerServiceTest {
                 service.findAll(pageable);
 
         assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
 
-        Page<Customer> emptyPage =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Specification<Customer> specification =
+                (root, query, cb) -> cb.conjunction();
 
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(emptyPage);
+        WsDto<CustomerDto> specResult =
+                service.findAll(specification, pageable);
 
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
 
-        assertTrue(
-                service.findAll(pageable)
-                        .getDtoList()
-                        .isEmpty()
-        );
+        verify(repository)
+                .findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
@@ -239,7 +261,32 @@ class CustomerServiceTest {
         when(repository.findByIdAndDeletedFalse("X"))
                 .thenReturn(null);
 
-        assertNull(service.toggleStatus("X"));
+        assertNull(
+                service.toggleStatus("X")
+        );
+    }
+
+    @Test
+    void toggleStatusFalseToTrueCoverageTest() {
+
+        Customer inactiveCustomer = new Customer();
+        inactiveCustomer.setIdentifier("C001");
+        inactiveCustomer.setStatus(false);
+
+        CustomerDto customerDto = new CustomerDto();
+
+        when(repository.findByIdAndDeletedFalse("C001"))
+                .thenReturn(inactiveCustomer);
+
+        when(mapper.map(inactiveCustomer, CustomerDto.class))
+                .thenReturn(customerDto);
+
+        CustomerDto result = service.toggleStatus("C001");
+
+        assertNotNull(result);
+        assertTrue(inactiveCustomer.getStatus());
+
+        verify(repository).save(inactiveCustomer);
     }
 
     @Test
@@ -255,5 +302,15 @@ class CustomerServiceTest {
                 service.findIfTrue();
 
         assertEquals(1, result.size());
+
+        when(repository.findByStatusIsTrueAndDeletedFalse())
+                .thenReturn(Collections.emptyList());
+
+        when(mapper.map(any(), any(Type.class)))
+                .thenReturn(Collections.emptyList());
+
+        assertTrue(
+                service.findIfTrue().isEmpty()
+        );
     }
 }

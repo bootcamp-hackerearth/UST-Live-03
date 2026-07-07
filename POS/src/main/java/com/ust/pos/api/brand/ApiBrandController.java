@@ -5,8 +5,11 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.modell.Brand;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -25,6 +28,13 @@ public class ApiBrandController extends BaseController {
     @PostMapping("/list")
     public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Brand> example = buildGlobalSearchSpec(Brand.class, paginationDto.getKeyword());
+            if (example != null) {
+                return brandService.findAll(example, pageable);
+            }
+        }
         return brandService.findAll(pageable);
     }
 
@@ -42,7 +52,7 @@ public class ApiBrandController extends BaseController {
     public boolean delete(@RequestParam("identifier") String identifier) {
         try {
             brandService.delete(identifier);
-        } catch (Exception exception) {
+        } catch (Exception _) {
             return false;
         }
         return true;

@@ -4,10 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.modell.Warehouse;
 import com.ust.pos.warehouse.service.WarehouseService;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,14 +27,20 @@ public class ApiWarehouseController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('MANAGER')")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Warehouse> example = buildGlobalSearchSpec(Warehouse.class, paginationDto.getKeyword());
+            if (example != null) {
+                return warehouseService.findAll(example, pageable);
+            }
+        }
         return warehouseService.findAll(pageable);
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('MANAGER')")
+
     public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
@@ -46,7 +54,7 @@ public class ApiWarehouseController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);
-        } catch (Exception exception) {
+        } catch (Exception _) {
             return false;
         }
         return true;

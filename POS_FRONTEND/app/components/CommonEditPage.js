@@ -27,7 +27,14 @@ export default function CommonEditPage({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [pageLoading, setPageLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false); // Track fetch errors
   const [serverError, setServerError] = useState(null);
+  const [toast, setToast] = useState({ visible: false, message: "" });
+
+  const triggerToast = (msg) => {
+    setToast({ visible: true, message: msg });
+    setTimeout(() => setToast({ visible: false, message: "" }), 3000);
+  };
 
   const getValue = (obj, path) => {
     return path.split(".").reduce((acc, key) => acc?.[key], obj);
@@ -35,10 +42,7 @@ export default function CommonEditPage({
 
   const handleChange = (e) => {
     let { name, value } = e.target;
-
-    if (name === "phoneNo") {
-      value = value.replaceAll(/\D/g, "").slice(0, 10);
-    }
+    if (name === "phoneNo") value = value.replaceAll(/\D/g, "").slice(0, 10);
 
     const keys = name.split(".");
     setFormData((prev) => {
@@ -58,49 +62,27 @@ export default function CommonEditPage({
     setServerError(null);
   };
 
-  const normalizeDropdownValue = (field, val) => {
-    const key = field.optionValue || "identifier";
-    if (field.multiple) {
-      if (!val) return [];
-      if (Array.isArray(val)) return val.map((item) => (typeof item === "object" ? item[key] : item));
-      return [typeof val === "object" ? val[key] : val];
-    }
-    if (val && typeof val === "object") return val[key];
-    return val;
-  };
-
- const loadData = async (identifier) => {
+  const loadData = async (identifier) => {
     try {
       setPageLoading(true);
-      const res = typeof fetchApi === "function" ? await fetchApi(identifier) : await api.get(fetchApi, { params: { identifier } });
-      let data = res?.data ?? res ?? {};
-      fields.forEach((f) => {
-        if (f.type === "dropdown") {
-          const val = getValue(data, f.name);
-          const normalized = normalizeDropdownValue(f, val);
-          const keys = f.name.split(".");
-          let temp = data;
-          keys.forEach((k, i) => {
-            if (i === keys.length - 1) temp[k] = normalized;
-            else { temp[k] = temp[k] || {}; temp = temp[k]; }
-          });
-        }
-      });
-      setFormData(data);
+      const res = typeof fetchApi === "function" 
+        ? await fetchApi(identifier) 
+        : await api.get(fetchApi, { params: { identifier } });
+      
+      setFormData(res?.data ?? res ?? {});
     } catch (err) {
       const status = err.response?.status;
-
-      if (status === 403 || status === 401) {
-        router.push("/403");
-        return;
-      }
-      if (status === 404) {
-        router.push("/404");
-        return;
-      }
-      router.push("/500");
+      const errorMessages = {
+        403: "Access Denied: You do not have permission.",
+        404: "Record not found.",
+        500: "Server error occurred."
+      };
+      
+      triggerToast(errorMessages[status] || "Failed to load data.");
+      setFetchError(true); 
+    } finally {
+      setPageLoading(false);
     }
-    finally { setPageLoading(false); }
   };
 
   useEffect(() => {
@@ -114,25 +96,26 @@ export default function CommonEditPage({
     const identifier = typeof rawIdentifier === 'string' ? rawIdentifier.trim() : rawIdentifier;
     
     if (identifier) loadData(identifier);
+    else setPageLoading(false);
   }, [params, initialData]);
 
- const validate = () => {
-  const newErrors = {};
-  fields.forEach((f) => {
-    if (f.type === "checkbox-action" || f.readOnly) return;
-    let val = getValue(formData, f.name);
-    const isEmpty = val === undefined || val === null || val === "";
-    if (isEmpty) { newErrors[f.name] = `${f.label || "This field"} is required`; return; }
-    if (f.validation?.pattern && !f.validation.pattern.test(String(val))) {
-      newErrors[f.name] = f.validation.message || "Invalid format";
-    }
-    if (f.validation?.validate && !f.validation.validate(val)) {
-      newErrors[f.name] = f.validation.message || "Invalid format";
-    }
-  });
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
+  const validate = () => {
+    const newErrors = {};
+    fields.forEach((f) => {
+      if (f.type === "checkbox-action" || f.readOnly) return;
+      let val = getValue(formData, f.name);
+      const isEmpty = val === undefined || val === null || val === "";
+      if (isEmpty) { newErrors[f.name] = `${f.label || "This field"} is required`; return; }
+      if (f.validation?.pattern && !f.validation.pattern.test(String(val))) {
+        newErrors[f.name] = f.validation.message || "Invalid format";
+      }
+      if (f.validation?.validate && !f.validation.validate(val)) {
+        newErrors[f.name] = f.validation.message || "Invalid format";
+      }
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -186,20 +169,31 @@ export default function CommonEditPage({
   };
 
   const formatAuditDate = (dateString) => {
-  if (!dateString) return "N/A";
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return Number.isNaN(date.getTime()) ? dateString : date.toLocaleString();
+  };
 
-  const date = new Date(dateString);
+  if (pageLoading) return <Layout><div className="flex justify-center py-20">Loading...</div></Layout>;
+  
+  if (fetchError || !formData) return (
+    <Layout>
+      <div className="flex flex-col items-center justify-center py-20">
+        <p className="text-gray-600 mb-4">Record not found or failed to load.</p>
+        <button onClick={() => router.back()} className="text-blue-600 underline">Go Back</button>
+      </div>
+    </Layout>
+  );
 
-  return Number.isNaN(date.getTime())
-    ? dateString
-    : date.toLocaleString();
-};
-
-  if (pageLoading || !formData) return <Layout><div className="flex justify-center py-20">Loading...</div></Layout>;
   const hasAuditDetails = formData && (formData.createdBy || formData.createdOn || formData.modifiedBy || formData.modifiedOn);
 
   return (
     <Layout>
+      {toast.visible && (
+        <div className="fixed top-4 right-4 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl">
+          {toast.message}
+        </div>
+      )}
       <div className="flex justify-center py-6">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border">
           <div className="px-6 py-5 border-b flex justify-between">
@@ -218,22 +212,14 @@ export default function CommonEditPage({
               ))}
             </div>
             
-           {hasAuditDetails && (
-  <div className="mt-8 pt-4 border-t border-gray-100 bg-gray-50/50 rounded-lg p-4 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
-    <div>
-      <span className="font-semibold text-gray-600">Created By:</span> {formData.createdBy}
-    </div>
-    <div>
-      <span className="font-semibold text-gray-600">Created On:</span> {formatAuditDate(formData.createdOn)}
-    </div>
-    <div>
-      <span className="font-semibold text-gray-600">Modified By:</span> {formData.modifiedBy}
-    </div>
-    <div>
-      <span className="font-semibold text-gray-600">Modified On:</span> {formatAuditDate(formData.modifiedOn)}
-    </div>
-  </div>
-)}
+            {hasAuditDetails && (
+              <div className="mt-8 pt-4 border-t border-gray-100 bg-gray-50/50 rounded-lg p-4 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
+                <div><span className="font-semibold text-gray-600">Created By:</span> {formData.createdBy}</div>
+                <div><span className="font-semibold text-gray-600">Created On:</span> {formatAuditDate(formData.createdOn)}</div>
+                <div><span className="font-semibold text-gray-600">Modified By:</span> {formData.modifiedBy}</div>
+                <div><span className="font-semibold text-gray-600">Modified On:</span> {formatAuditDate(formData.modifiedOn)}</div>
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 mt-6">
               <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-700 text-white rounded">
@@ -246,17 +232,36 @@ export default function CommonEditPage({
     </Layout>
   );
 }
-
 CommonEditPage.propTypes = {
   title: PropTypes.string,
-  fetchApi: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-  updateApi: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+  fetchApi: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.func,
+  ]),
+  method: PropTypes.string,
+  updateApi: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.func,
+  ]),
   redirectRoute: PropTypes.string,
-  fields: PropTypes.array,
+  auditData: PropTypes.object,
+  fields: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      label: PropTypes.string,
+      type: PropTypes.string,
+      readOnly: PropTypes.bool,
+      multiple: PropTypes.bool,
+      options: PropTypes.array,
+      validation: PropTypes.shape({
+        pattern: PropTypes.instanceOf(RegExp),
+        message: PropTypes.string,
+        validate: PropTypes.func,
+      }),
+    })
+  ),
   identifierParam: PropTypes.string,
   submitButtonText: PropTypes.string,
   initialData: PropTypes.object,
   onSuccess: PropTypes.func,
-  method: PropTypes.oneOf(['put', 'patch', 'post']),
-  auditData: PropTypes.object,
 };

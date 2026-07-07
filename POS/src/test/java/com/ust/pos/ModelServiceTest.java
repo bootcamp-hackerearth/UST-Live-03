@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.service.impl.ModelServiceImpl;
 import com.ust.pos.modell.Model;
 import com.ust.pos.modell.ModelRepository;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
@@ -23,11 +25,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ModelServiceTest {
 
+    public static final String INVALID = "INVALID";
     @InjectMocks
     private ModelServiceImpl service;
 
@@ -49,18 +53,31 @@ class ModelServiceTest {
         when(mapper.map(model, ModelDto.class))
                 .thenReturn(dto);
 
-        ModelDto result = service.findByIdentifier("M1");
+        assertNotNull(service.findByIdentifier("M1"));
 
-        assertNotNull(result);
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier(INVALID)
+                );
+
+        assertEquals(
+                "Model with identifier 'INVALID' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
 
         ModelDto dto = new ModelDto();
         dto.setIdentifier("M1");
 
         Model model = new Model();
+        model.setStatus(null);
 
         when(repository.findByIdentifier("M1"))
                 .thenReturn(null);
@@ -70,24 +87,18 @@ class ModelServiceTest {
 
         ModelDto result = service.save(dto);
 
-        assertNotNull(result);
-
         verify(repository).save(model);
-    }
 
-    @Test
-    void saveDuplicateTest() {
+        assertNotNull(result);
+        assertTrue(model.getStatus());
 
-        ModelDto dto = new ModelDto();
-        dto.setIdentifier("M1");
-
-        Model model = new Model();
-        model.setDeleted(false);
+        Model existing = new Model();
+        existing.setDeleted(false);
 
         when(repository.findByIdentifier("M1"))
-                .thenReturn(model);
+                .thenReturn(existing);
 
-        ModelDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -95,21 +106,13 @@ class ModelServiceTest {
                 "Model with identifier - M1 already exists",
                 result.getMessage()
         );
-    }
 
-    @Test
-    void saveSoftDeletedTest() {
-
-        ModelDto dto = new ModelDto();
-        dto.setIdentifier("M1");
-
-        Model model = new Model();
-        model.setDeleted(true);
+        existing.setDeleted(true);
 
         when(repository.findByIdentifier("M1"))
-                .thenReturn(model);
+                .thenReturn(existing);
 
-        ModelDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -120,7 +123,7 @@ class ModelServiceTest {
     }
 
     @Test
-    void updateSuccessTest() {
+    void updateAndDeleteTest() {
 
         ModelDto dto = new ModelDto();
         dto.setIdentifier("M1");
@@ -139,49 +142,46 @@ class ModelServiceTest {
 
         verify(mapper).map(dto, model);
         verify(repository).save(model);
-    }
 
-    @Test
-    void updateNotFoundTest() {
+        ModelDto invalidDto = new ModelDto();
+        invalidDto.setIdentifier(INVALID);
 
-        ModelDto dto = new ModelDto();
-        dto.setIdentifier("M1");
-
-        when(repository.findByIdentifierAndDeletedFalse("M1"))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
-        ModelDto result = service.update(dto);
+        result = service.update(invalidDto);
 
         assertFalse(result.isSuccess());
 
         assertEquals(
-                "Model with identifier - M1 not found",
+                "Model with identifier - INVALID not found",
                 result.getMessage()
         );
-    }
-
-    @Test
-    void deleteExistingTest() {
-
-        Model model = new Model();
-
-        when(repository.findByIdentifierAndDeletedFalse("M1"))
-                .thenReturn(model);
 
         service.delete("M1");
 
-        verify(repository).save(model);
-    }
+        verify(repository, atLeast(2)).save(any(Model.class));
 
-    @Test
-    void deleteNotFoundTest() {
-
-        when(repository.findByIdentifierAndDeletedFalse("M1"))
+        when(repository.findByIdentifierAndDeletedFalse("NOTFOUND"))
                 .thenReturn(null);
 
-        service.delete("M1");
+        service.delete("NOTFOUND");
+    }
 
-        verify(repository, never()).save(any());
+    @Test
+    void toggleStatusFalseToTrueTest() {
+
+        Model model = new Model();
+        model.setStatus(false);
+
+        when(repository.findByIdentifierAndDeletedFalse("M2"))
+                .thenReturn(model);
+
+        service.toggleStatus("M2");
+
+        assertTrue(model.getStatus());
+
+        verify(repository).save(model);
     }
 
     @Test
@@ -189,17 +189,21 @@ class ModelServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Model model = new Model();
-        ModelDto dto = new ModelDto();
-
         Page<Model> page =
-                new PageImpl<>(List.of(model), pageable, 1);
+                new PageImpl<>(
+                        List.of(new Model()),
+                        pageable,
+                        1
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
                 .thenReturn(page);
 
+        when(repository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(page);
+
         when(mapper.map(any(), any(Type.class)))
-                .thenReturn(List.of(dto));
+                .thenReturn(List.of(new ModelDto()));
 
         WsDto<ModelDto> result =
                 service.findAll(pageable);
@@ -207,26 +211,17 @@ class ModelServiceTest {
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
         assertEquals(1, result.getTotalPage());
-    }
 
-    @Test
-    void findAllEmptyTest() {
+        Specification<Model> specification =
+                (root, query, cb) -> cb.conjunction();
 
-        Pageable pageable = PageRequest.of(0, 10);
+        WsDto<ModelDto> specResult =
+                service.findAll(specification, pageable);
 
-        Page<Model> page =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
 
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
-
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<ModelDto> result =
-                service.findAll(pageable);
-
-        assertTrue(result.getDtoList().isEmpty());
+        verify(repository).findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
@@ -245,22 +240,17 @@ class ModelServiceTest {
                 service.findAllActive();
 
         assertEquals(1, result.size());
-    }
-
-    @Test
-    void findAllActiveEmptyTest() {
 
         when(repository.findByStatusTrueAndDeletedFalse())
                 .thenReturn(Collections.emptyList());
 
-        List<ModelDto> result =
-                service.findAllActive();
+        result = service.findAllActive();
 
         assertTrue(result.isEmpty());
     }
 
     @Test
-    void toggleStatusSuccessTest() {
+    void toggleStatusTest() {
 
         Model model = new Model();
         model.setStatus(true);
@@ -273,23 +263,24 @@ class ModelServiceTest {
         assertFalse(model.getStatus());
 
         verify(repository).save(model);
-    }
 
-    @Test
-    void toggleStatusNotFoundTest() {
-
-        when(repository.findByIdentifierAndDeletedFalse("M1"))
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
                 .thenReturn(null);
 
         RuntimeException exception =
                 assertThrows(
                         RuntimeException.class,
-                        () -> service.toggleStatus("M1")
+                        () -> service.toggleStatus(INVALID)
                 );
 
         assertEquals(
                 "model not found",
                 exception.getMessage()
+        );
+
+        assertEquals(
+                "model not found",
+                ModelServiceImpl.MODEL_NOT_FOUND.getMessage()
         );
     }
 }

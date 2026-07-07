@@ -21,7 +21,7 @@ function CommonList({
   toggleApi,
   toggleParam = "identifier",
   toggleField = "status",
-  toggleMethod="PATCH",
+  toggleMethod = "PATCH",
   sortField = "id",
   sortOrder = "ASC",
   itemsPerPage = 5,
@@ -32,6 +32,9 @@ function CommonList({
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [ready, setReady] = useState(false);
+
+  const [fetchError, setFetchError] = useState(false);
+  const [serverError, setServerError] = useState(null);
 
   const [pagination, setPagination] = useState({
     page: 0,
@@ -47,10 +50,17 @@ function CommonList({
   });
 
   const triggerToast = (msg) => {
-    setToast({ visible: true, message: msg });
+    setToast({
+      visible: true,
+      message: msg,
+    });
+
     setTimeout(() => {
-      setToast({ visible: false, message: "" });
-    }, 2500);
+      setToast({
+        visible: false,
+        message: "",
+      });
+    }, 3000);
   };
 
   useEffect(() => {
@@ -61,6 +71,8 @@ function CommonList({
   const fetchData = async () => {
     try {
       setLoading(true);
+      setFetchError(false);
+      setServerError(null);
 
       const isSearching = search.trim().length > 0;
 
@@ -89,24 +101,30 @@ function CommonList({
       setData(normalizedList);
       setTotalRecords(res.data?.totalRecords || 0);
       setTotalPages(res.data?.totalPage || 0);
-
     } catch (err) {
       const status = err.response?.status;
 
-      if (status === 401 || status === 403 || status >= 500) {
-        router.push("/403");
-        return;
-      }
+      const errorMessages = {
+        403: "Access Denied: You do not have permission.",
+        404: "No records found.",
+        500: "Server error occurred.",
+      };
 
-      console.error(err);
-      triggerToast("Failed to fetch data");
+      const message =
+        errorMessages[status] || "Failed to load records.";
+
+      triggerToast(message);
+      setServerError(message);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (ready) fetchData();
+    if (ready) {
+      fetchData();
+    }
   }, [pagination, ready, search]);
 
   const filteredData = useMemo(() => {
@@ -114,7 +132,11 @@ function CommonList({
       columns.some((col) => {
         const val = item[col.field];
         if (!val) return false;
-        return val.toString().toLowerCase().includes(search.toLowerCase());
+
+        return val
+          .toString()
+          .toLowerCase()
+          .includes(search.toLowerCase());
       })
     );
   }, [data, search, columns]);
@@ -124,35 +146,45 @@ function CommonList({
 
     try {
       await api.delete(deleteApi, {
-        params: { [deleteParam]: row[deleteParam] },
+        params: {
+          [deleteParam]: row[deleteParam],
+        },
       });
 
       triggerToast("Deleted successfully");
       fetchData();
     } catch (err) {
-      console.error(err);
-      triggerToast("Delete failed");
+      const status = err.response?.status;
+
+      const errorMessages = {
+        403: "Access Denied.",
+        404: "Record not found.",
+        500: "Server error occurred.",
+      };
+
+      triggerToast(
+        errorMessages[status] || "Delete failed."
+      );
     }
   };
 
   const handleEdit = (row) => {
-  let route = editRoute;
+    let route = editRoute;
 
-  const value = row[deleteParam]; 
+    const value = row[deleteParam];
 
-  if (!value) {
-    console.error("Edit value missing for:", deleteParam);
-    return;
-  }
+    if (!value) {
+      triggerToast("Unable to edit record.");
+      return;
+    }
 
-  route = route.replace(/:\w+/, encodeURIComponent(value));
+    route = route.replace(/:\w+/, encodeURIComponent(value));
 
-  router.push(route);
-};
+    router.push(route);
+  };
 
   const handleToggle = async (row) => {
     const id = row[deleteParam];
-
     const newValue = !row[toggleField];
 
     setData((prev) =>
@@ -167,33 +199,86 @@ function CommonList({
       await api({
         method: toggleMethod.toLowerCase(),
         url: toggleApi,
-        params: { [toggleParam]: id },
+        params: {
+          [toggleParam]: id,
+        },
       });
 
       triggerToast("Status updated");
     } catch (err) {
-      console.error(err);
-      triggerToast("Toggle failed");
-      fetchData(); 
+      const status = err.response?.status;
+
+      const errorMessages = {
+        403: "Access Denied.",
+        404: "Record not found.",
+        500: "Server error occurred.",
+      };
+
+      triggerToast(
+        errorMessages[status] || "Status update failed."
+      );
+
+      fetchData();
     }
   };
 
-  const numbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const numbers = Array.from(
+    { length: totalPages },
+    (_, i) => i + 1
+  );
+
+  if (loading && data.length === 0) {
+    return (
+      <Layout>
+        <div className="flex justify-center py-20">
+          Loading...
+        </div>
+      </Layout>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <Layout>
+        {toast.visible && (
+          <div className="fixed top-4 right-4 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl">
+            {toast.message}
+          </div>
+        )}
+
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="text-gray-600 mb-4">
+            {serverError || "Failed to load records."}
+          </p>
+
+          <button
+            onClick={fetchData}
+            className="text-blue-600 underline"
+          >
+            Retry
+          </button>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="space-y-6">
-
         {toast.visible && (
-          <div className="fixed top-4 right-4 bg-gradient-to-r from-blue-800 to-blue-600 text-white px-4 py-2 rounded-lg shadow-md text-sm">
+          <div className="fixed top-4 right-4 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl">
             {toast.message}
           </div>
         )}
 
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-blue-900">{title}</h2>
-            <p className="text-sm text-gray-500">Manage your records</p>
+            <h2 className="text-2xl font-bold text-blue-900">
+              {title}
+            </h2>
+            <p className="text-sm text-gray-500">
+              Manage your records
+            </p>
           </div>
 
           {addRoute && (
@@ -201,7 +286,8 @@ function CommonList({
               onClick={() => router.push(addRoute)}
               className="bg-gradient-to-r from-blue-700 to-blue-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow"
             >
-              <Plus size={16} /> Add
+              <Plus size={16} />
+              Add
             </button>
           )}
         </div>
@@ -210,6 +296,7 @@ function CommonList({
           <input
             className="border border-blue-100 rounded-lg px-3 py-2 text-sm w-full max-w-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Search..."
+            value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
@@ -219,13 +306,6 @@ function CommonList({
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-blue-50 overflow-hidden">
-
-          {loading && (
-            <div className="p-4 text-center text-sm text-gray-500">
-              Loading...
-            </div>
-          )}
-
           <table className="w-full text-sm">
             <thead className="bg-gradient-to-r from-[#0a1f66] to-[#1e3a8a] text-white">
               <tr>
@@ -239,55 +319,80 @@ function CommonList({
             </thead>
 
             <tbody>
-              {filteredData.map((row) => {
-                const rowKey =
-                  row[deleteParam] ?? row.identifier ?? JSON.stringify(row);
+              {filteredData.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length + 1}
+                    className="text-center p-6 text-gray-500"
+                  >
+                    No records found
+                  </td>
+                </tr>
+              ) : (
+                filteredData.map((row) => {
+                  const rowKey =
+                    row[deleteParam] ??
+                    row.identifier ??
+                    JSON.stringify(row);
 
-                return (
-                  <tr key={rowKey} className="border-t hover:bg-blue-50">
+                  return (
+                    <tr
+                      key={rowKey}
+                      className="border-t hover:bg-blue-50"
+                    >
+                      {columns.map((c) => {
+                        const value = row[c.field];
+                        const isActive = value === true;
 
-                    {columns.map((c) => {
-                      const value = row[c.field];
-
-                      const isActive = value === true;
-
-                      return (
-                        <td key={`${rowKey}-${c.field}`} className="p-3">
-
-                          {c.field === toggleField && showStatus ? (
-                            <button
-                              onClick={() => handleToggle(row)}
-                              className={`w-11 h-6 flex items-center rounded-full p-1 ${
-                                isActive ? "bg-green-500" : "bg-gray-300"
-                              }`}
-                            >
-                              <span
-                                className={`w-4 h-4 bg-white rounded-full shadow transform ${
-                                  isActive ? "translate-x-5" : ""
+                        return (
+                          <td
+                            key={`${rowKey}-${c.field}`}
+                            className="p-3"
+                          >
+                            {c.field === toggleField &&
+                            showStatus ? (
+                              <button
+                                onClick={() =>
+                                  handleToggle(row)
+                                }
+                                className={`w-11 h-6 flex items-center rounded-full p-1 ${
+                                  isActive
+                                    ? "bg-green-500"
+                                    : "bg-gray-300"
                                 }`}
-                              />
-                            </button>
-                          ) : (
-                            value
-                          )}
+                              >
+                                <span
+                                  className={`w-4 h-4 bg-white rounded-full shadow transform ${
+                                    isActive
+                                      ? "translate-x-5"
+                                      : ""
+                                  }`}
+                                />
+                              </button>
+                            ) : (
+                              value
+                            )}
+                          </td>
+                        );
+                      })}
 
-                        </td>
-                      );
-                    })}
+                      <td className="p-3 text-center flex justify-center gap-3">
+                        <button
+                          onClick={() => handleEdit(row)}
+                        >
+                          <Pencil size={16} />
+                        </button>
 
-                    <td className="p-3 text-center flex justify-center gap-3">
-                      <button onClick={() => handleEdit(row)}>
-                        <Pencil size={16} />
-                      </button>
-
-                      <button onClick={() => handleDelete(row)}>
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-
-                  </tr>
-                );
-              })}
+                        <button
+                          onClick={() => handleDelete(row)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -295,7 +400,8 @@ function CommonList({
         {totalPages > 0 && search.trim() === "" && (
           <div className="bg-white border border-blue-50 rounded-xl p-4 flex justify-between items-center shadow-sm">
             <div className="text-sm text-gray-600">
-              Page <b>{pagination.page + 1}</b> of <b>{totalPages}</b>
+              Page <b>{pagination.page + 1}</b> of{" "}
+              <b>{totalPages}</b>
             </div>
 
             <div className="flex gap-2">
@@ -303,7 +409,10 @@ function CommonList({
                 <button
                   key={num}
                   onClick={() =>
-                    setPagination((p) => ({ ...p, page: num - 1 }))
+                    setPagination((p) => ({
+                      ...p,
+                      page: num - 1,
+                    }))
                   }
                   className={`px-3 py-1 rounded-md text-sm ${
                     pagination.page === num - 1
@@ -327,7 +436,6 @@ CommonList.propTypes = {
   apiUrl: PropTypes.string.isRequired,
   method: PropTypes.string,
   payload: PropTypes.object,
-
   columns: PropTypes.arrayOf(
     PropTypes.shape({
       header: PropTypes.string,
@@ -335,23 +443,18 @@ CommonList.propTypes = {
       render: PropTypes.func,
     })
   ).isRequired,
-
   deleteApi: PropTypes.string,
   deleteParam: PropTypes.string,
-
   editRoute: PropTypes.string,
   addRoute: PropTypes.string,
-
   showStatus: PropTypes.bool,
   toggleApi: PropTypes.string,
   toggleParam: PropTypes.string,
   toggleField: PropTypes.string,
   toggleMethod: PropTypes.string,
-
   sortField: PropTypes.string,
   sortOrder: PropTypes.string,
   itemsPerPage: PropTypes.number,
 };
-
 
 export default CommonList;

@@ -2,6 +2,7 @@ package com.ust.pos.modell;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -14,4 +15,7 @@ public interface CartEntryRepository extends JpaRepository<CartEntry, Long> {
     Page<CartEntry> findAllByDeletedFalse(Pageable pageable);
 
     List<CartEntry> findByCartIdentifierAndDeletedFalse(String cartIdentifier);
+
+    Page<Cart> findAll(Specification<CartEntry> example, Pageable pageable);
+
 }

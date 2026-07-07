@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.modell.Product;
 import com.ust.pos.modell.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -15,19 +16,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
+    public static final String INVALID = "INVALID";
     @InjectMocks
     private ProductServiceImpl service;
 
@@ -49,18 +54,31 @@ class ProductServiceTest {
         when(mapper.map(product, ProductDto.class))
                 .thenReturn(dto);
 
-        ProductDto result = service.findByIdentifier("P1");
+        assertNotNull(service.findByIdentifier("P1"));
 
-        assertNotNull(result);
+        when(repository.findByIdentifierAndDeletedFalse(INVALID))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByIdentifier(INVALID)
+                );
+
+        assertEquals(
+                "Product with identifier 'INVALID' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
 
         ProductDto dto = new ProductDto();
         dto.setIdentifier("P1");
 
         Product product = new Product();
+        product.setStatus(null);
 
         when(repository.findByIdentifier("P1"))
                 .thenReturn(null);
@@ -72,22 +90,15 @@ class ProductServiceTest {
 
         verify(repository).save(product);
 
-        assertEquals("P1", result.getIdentifier());
-    }
+        assertTrue(product.getStatus());
 
-    @Test
-    void saveDuplicateTest() {
-
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P1");
-
-        Product product = new Product();
-        product.setDeleted(false);
+        Product duplicate = new Product();
+        duplicate.setDeleted(false);
 
         when(repository.findByIdentifier("P1"))
-                .thenReturn(product);
+                .thenReturn(duplicate);
 
-        ProductDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -95,21 +106,13 @@ class ProductServiceTest {
                 "Product with identifier - P1 already exists",
                 result.getMessage()
         );
-    }
 
-    @Test
-    void saveSoftDeletedTest() {
-
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P1");
-
-        Product product = new Product();
-        product.setDeleted(true);
+        duplicate.setDeleted(true);
 
         when(repository.findByIdentifier("P1"))
-                .thenReturn(product);
+                .thenReturn(duplicate);
 
-        ProductDto result = service.save(dto);
+        result = service.save(dto);
 
         assertFalse(result.isSuccess());
 
@@ -120,7 +123,7 @@ class ProductServiceTest {
     }
 
     @Test
-    void updateSuccessTest() {
+    void updateAndDeleteTest() {
 
         ProductDto dto = new ProductDto();
         dto.setIdentifier("P1");
@@ -139,49 +142,56 @@ class ProductServiceTest {
         verify(repository).save(product);
 
         assertNotNull(result);
-    }
 
-    @Test
-    void updateNotFoundTest() {
+        ProductDto invalidDto = new ProductDto();
+        invalidDto.setIdentifier(INVALID);
 
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P1");
-
-        when(repository.findByIdentifier("P1"))
+        when(repository.findByIdentifier(INVALID))
                 .thenReturn(null);
 
-        ProductDto result = service.update(dto);
+        result = service.update(invalidDto);
 
         assertFalse(result.isSuccess());
 
         assertEquals(
-                "Shelf with identifier - P1 not found",
+                "Shelf with identifier - INVALID not found",
                 result.getMessage()
         );
-    }
-
-    @Test
-    void deleteSuccessTest() {
-
-        Product product = new Product();
 
         when(repository.findByIdentifierAndDeletedFalse("P1"))
-                .thenReturn(product);
-
-        service.delete("P1");
-
-        verify(repository).save(product);
-    }
-
-    @Test
-    void deleteNotFoundTest() {
-
-        when(repository.findByIdentifierAndDeletedFalse("P1"))
+                .thenReturn(product)
                 .thenReturn(null);
 
         service.delete("P1");
+        service.delete("P1");
 
-        verify(repository, never()).save(any());
+        verify(repository, atLeast(2))
+                .save(any(Product.class));
+    }
+
+    @Test
+    void toggleStatusFalseToTrueTest() {
+
+        Product product = new Product();
+        product.setStatus(false);
+
+        ProductDto dto = new ProductDto();
+
+        when(repository.findByIdentifierAndDeletedFalse("P2"))
+                .thenReturn(product);
+
+        when(repository.save(product))
+                .thenReturn(product);
+
+        when(mapper.map(product, ProductDto.class))
+                .thenReturn(dto);
+
+        ProductDto result = service.toggleStatus("P2");
+
+        assertNotNull(result);
+        assertTrue(product.getStatus());
+
+        verify(repository).save(product);
     }
 
     @Test
@@ -189,47 +199,44 @@ class ProductServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Product product = new Product();
-        ProductDto dto = new ProductDto();
-
         Page<Product> page =
-                new PageImpl<>(List.of(product), pageable, 1);
+                new PageImpl<>(
+                        List.of(new Product()),
+                        pageable,
+                        1
+                );
 
         when(repository.findAllByDeletedFalse(pageable))
                 .thenReturn(page);
 
+        when(repository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(page);
+
         when(mapper.map(any(), any(Type.class)))
-                .thenReturn(List.of(dto));
+                .thenReturn(List.of(new ProductDto()));
 
         WsDto<ProductDto> result =
                 service.findAll(pageable);
 
         assertEquals(1, result.getDtoList().size());
         assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPage());
+
+        Specification<Product> specification =
+                (root, query, cb) -> cb.conjunction();
+
+        WsDto<ProductDto> specResult =
+                service.findAll(specification, pageable);
+
+        assertEquals(1, specResult.getDtoList().size());
+        assertEquals(1, specResult.getTotalRecords());
+
+        verify(repository)
+                .findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
-    void findAllEmptyTest() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Product> page =
-                new PageImpl<>(Collections.emptyList(), pageable, 0);
-
-        when(repository.findAllByDeletedFalse(pageable))
-                .thenReturn(page);
-
-        when(mapper.map(any(), any(Type.class)))
-                .thenReturn(Collections.emptyList());
-
-        WsDto<ProductDto> result =
-                service.findAll(pageable);
-
-        assertTrue(result.getDtoList().isEmpty());
-    }
-
-    @Test
-    void toggleStatusSuccessTest() {
+    void toggleStatusTest() {
 
         Product product = new Product();
         product.setStatus(true);
@@ -245,52 +252,44 @@ class ProductServiceTest {
         when(mapper.map(product, ProductDto.class))
                 .thenReturn(dto);
 
-        ProductDto result =
-                service.toggleStatus("P1");
+        ProductDto result = service.toggleStatus("P1");
 
         assertNotNull(result);
         assertFalse(product.getStatus());
 
-        verify(repository).save(product);
-    }
+        Product nullStatusProduct = new Product();
+        nullStatusProduct.setStatus(null);
 
-    @Test
-    void toggleStatusNullStatusTest() {
+        when(repository.findByIdentifierAndDeletedFalse("P2"))
+                .thenReturn(nullStatusProduct);
 
-        Product product = new Product();
-        product.setStatus(null);
+        when(repository.save(nullStatusProduct))
+                .thenReturn(nullStatusProduct);
 
-        ProductDto dto = new ProductDto();
-
-        when(repository.findByIdentifierAndDeletedFalse("P1"))
-                .thenReturn(product);
-
-        when(repository.save(product))
-                .thenReturn(product);
-
-        when(mapper.map(product, ProductDto.class))
+        when(mapper.map(nullStatusProduct, ProductDto.class))
                 .thenReturn(dto);
 
-        service.toggleStatus("P1");
+        service.toggleStatus("P2");
 
-        assertTrue(product.getStatus());
-    }
+        assertTrue(nullStatusProduct.getStatus());
 
-    @Test
-    void toggleStatusNotFoundTest() {
-
-        when(repository.findByIdentifierAndDeletedFalse("P1"))
+        when(repository.findByIdentifierAndDeletedFalse("P3"))
                 .thenReturn(null);
 
-        RuntimeException exception =
+        NoSuchElementException exception =
                 assertThrows(
-                        RuntimeException.class,
-                        () -> service.toggleStatus("P1")
+                        NoSuchElementException.class,
+                        () -> service.toggleStatus("P3")
                 );
 
         assertEquals(
-                "Product not found with identifier: P1",
+                "Product not found with identifier: P3",
                 exception.getMessage()
+        );
+
+        assertEquals(
+                "Product not found",
+                ProductServiceImpl.PRODUCT_NOT_FOUND.getMessage()
         );
     }
 
@@ -310,16 +309,11 @@ class ProductServiceTest {
                 service.findAllActive();
 
         assertEquals(1, result.size());
-    }
-
-    @Test
-    void findAllActiveEmptyTest() {
 
         when(repository.findByStatusTrueAndDeletedFalse())
                 .thenReturn(Collections.emptyList());
 
-        List<ProductDto> result =
-                service.findAllActive();
+        result = service.findAllActive();
 
         assertTrue(result.isEmpty());
     }

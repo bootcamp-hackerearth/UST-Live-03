@@ -6,8 +6,11 @@ import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.modell.Cart;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,12 +32,14 @@ public class ApiCartController extends BaseController {
 
     @PostMapping("/list")
     public WsDto<CartDto> list(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(
-                paginationDto.getPage(),
-                paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(),
-                paginationDto.getSortField()
-        );
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Cart> example = buildGlobalSearchSpec(Cart.class, paginationDto.getKeyword());
+            if (example != null) {
+                return cartService.findAll(example, pageable);
+            }
+        }
         return cartService.findAll(pageable);
     }
 
@@ -48,7 +53,7 @@ public class ApiCartController extends BaseController {
         try {
             cartService.delete(identifier);
             return true;
-        } catch (Exception exception) {
+        } catch (Exception _) {
             return false;
         }
     }
