@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
@@ -38,7 +38,8 @@ export default function EditFormSkeleton({
   const [saving, setSaving] = useState(false);
   const [username, setUsername] = useState("");
 
-  const fieldsDependency = JSON.stringify(fields);
+  const fieldsDependency = useMemo(() => JSON.stringify(fields), [fields]);
+
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return "N/A";
     try {
@@ -116,7 +117,7 @@ export default function EditFormSkeleton({
         });
       } catch (err) {
         console.error("Failed to load data:", err);
-        if (err.response.status === 404) {
+        if (err.response?.status === 404) {
           router.push("/404");
           return;
         }
@@ -135,6 +136,7 @@ export default function EditFormSkeleton({
     fieldsDependency,
     getParamKey,
     tokenReady,
+    router,
   ]);
 
   const loadDropdownData = (field) => {
@@ -155,6 +157,10 @@ export default function EditFormSkeleton({
         setDropdownOptions((prev) => ({ ...prev, [field.name]: data }));
       })
       .catch((err) => {
+        console.error(
+          `Failed to load drop-down option for ${field.name}:`,
+          err,
+        );
         setDropdownOptions((prev) => ({ ...prev, [field.name]: [] }));
       })
       .finally(() => {
@@ -175,7 +181,7 @@ export default function EditFormSkeleton({
   function handleValueChange(field, e) {
     const { name, value, selectedOptions } = e.target;
 
-    if (field.multiple) {
+    if (field.multiple && selectedOptions) {
       const values = Array.from(selectedOptions).map((opt) =>
         String(opt.value),
       );
@@ -239,33 +245,32 @@ export default function EditFormSkeleton({
                   className="w-full border p-2 bg-gray-100 rounded text-gray-500 cursor-not-allowed"
                 />
               </div>
+
               {fields.map((field) => {
-                const renderField = () => {
-                  if (field.type === "select") {
-                    if (dropdownLoading[field.name]) {
-                      return (
-                        <p className="text-sm text-gray-400">Loading...</p>
-                      );
-                    }
-                    return (
-                      <CommonDropdown
-                        label={field.label}
-                        name={field.name}
-                        options={dropdownOptions[field.name] || []}
-                        value={
-                          field.multiple
-                            ? (formData[field.name] || []).map(String)
-                            : String(formData[field.name] || "")
-                        }
-                        multiple={field.multiple || false}
-                        optionLabel={field.optionLabel || "name"}
-                        optionValue={field.optionValue || "identifier"}
-                        onChange={(e) => handleValueChange(field, e)}
-                      />
-                    );
-                  }
-                  return (
-                    <React.Fragment key={field.name}>
+                let fieldContent;
+
+                if (field.type === "select") {
+                  fieldContent = dropdownLoading[field.name] ? (
+                    <p className="text-sm text-gray-400">Loading options...</p>
+                  ) : (
+                    <CommonDropdown
+                      label={field.label}
+                      name={field.name}
+                      options={dropdownOptions[field.name] || []}
+                      value={
+                        field.multiple
+                          ? (formData[field.name] || []).map(String)
+                          : String(formData[field.name] || "")
+                      }
+                      multiple={field.multiple || false}
+                      optionLabel={field.optionLabel || "name"}
+                      optionValue={field.optionValue || "identifier"}
+                      onChange={(e) => handleValueChange(field, e)}
+                    />
+                  );
+                } else {
+                  fieldContent = (
+                    <>
                       <label className="text-sm mb-1 block font-medium text-gray-700">
                         {field.label}
                       </label>
@@ -277,12 +282,15 @@ export default function EditFormSkeleton({
                         disabled={field.disabled || false}
                         className="w-full border p-2 rounded disabled:bg-gray-100 disabled:text-gray-500"
                       />
-                    </React.Fragment>
+                    </>
                   );
-                };
-                return <div key={field.name}>{renderField()}</div>;
+                }
+
+                return <div key={field.name}>{fieldContent}</div>;
               })}
+
               <hr className="my-6 border-gray-200" />
+
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-2 text-xs text-gray-500">
                 <p className="font-semibold text-gray-700 mb-1 uppercase tracking-wider text-[10px]">
                   System Audit Logs
@@ -322,6 +330,7 @@ export default function EditFormSkeleton({
                   </div>
                 </div>
               </div>
+
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
@@ -363,5 +372,5 @@ EditFormSkeleton.propTypes = {
     }),
   ).isRequired,
   paramKey: PropTypes.string,
-  getParamKey: PropTypes.func,
+  getParamKey: PropTypes.string,
 };
