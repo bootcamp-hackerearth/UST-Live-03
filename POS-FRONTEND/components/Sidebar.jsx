@@ -203,13 +203,11 @@ export default function Sidebar() {
   const router = useRouter();
 
   useEffect(() => {
-    const savedState = localStorage.getItem("sidebar-open");
-    if (savedState !== null) {
-      const parsedState = savedState === "true";
-      setIsOpen(parsedState);
-      globalThis.dispatchEvent(new CustomEvent("sidebar-toggle", { detail: { isOpen: parsedState } }));
-    }
-  }, []);
+    setIsOpen(true);
+    globalThis.dispatchEvent(
+      new CustomEvent("sidebar-toggle", { detail: { isOpen: true } })
+    );
+  }, [pathname]);
 
   useEffect(() => {
     const hasToken = !!localStorage.getItem("token");
@@ -242,7 +240,6 @@ export default function Sidebar() {
   const toggleSidebar = () => {
     const nextState = !isOpen;
     setIsOpen(nextState);
-    localStorage.setItem("sidebar-open", String(nextState));
 
     const event = new CustomEvent("sidebar-toggle", {
       detail: { isOpen: nextState }

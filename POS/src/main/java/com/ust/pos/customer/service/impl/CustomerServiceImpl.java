@@ -14,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -40,7 +39,11 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
 
     @Override
     public CustomerDto findByIdentifier(String identifier) {
-        return modelMapper.map(customerRepository.findByIdentifier(identifier), CustomerDto.class);
+        Customer customer = customerRepository.findByIdentifier(identifier);
+        if(customer==null){
+            throw new ResourceNotFoundException("customer with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(customer, CustomerDto.class);
     }
 
     @Override
@@ -103,7 +106,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
             return customerDto;
         }
         modelMapper.map(customerDto, existingCustomer);
-        setAuditFields(existingCustomer,false);
+        setAuditFields(existingCustomer, false);
         customerRepository.save(existingCustomer);
         List<AddressDto> addresses = addressService.findAllByPhoneNo(customerDto.getIdentifier());
         AddressDto billingAddress = customerDto.getBillingAddress();

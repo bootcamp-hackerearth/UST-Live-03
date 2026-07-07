@@ -114,6 +114,11 @@ function DeleteConfirmationModal({ isOpen, title, itemName, onConfirm, onCancel 
         boxShadow: "0 12px 48px rgba(30,34,53,0.18)",
         animation: "slideUp 0.2s ease-out",
         textAlign: "center",
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        margin: 0,
       }}
       onCancel={handleCancel}
     >
@@ -214,9 +219,7 @@ export default function ListingSkeleton({
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
 
-  // Raw text as the user types it (updates every keystroke, drives the input).
   const [searchInput, setSearchInput] = useState("");
-  // Debounced value that is actually sent to the backend as `keyword`.
   const [searchTerm, setSearchTerm] = useState("");
 
   const [pagination, setPagination] = useState({
@@ -231,11 +234,6 @@ export default function ListingSkeleton({
 
   const { currentPage, goToPage, getVisiblePages } = usePageNavigation(pagination, setPagination);
 
-  // Debounce the search input so we don't hit the backend on every keystroke.
-  // The page reset happens in the SAME timeout callback as the searchTerm
-  // update (not a separate effect) so both state updates land together and
-  // only one loadList request fires — otherwise a stale `page` from before
-  // the search could momentarily be combined with the new keyword.
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchTerm(searchInput.trim());
@@ -246,8 +244,6 @@ export default function ListingSkeleton({
 
   const loadList = useCallback(async () => {
     try {
-      // Backend now does the filtering + pagination itself via the
-      // global search Specification, driven off the `keyword` field.
       const res = await api.post(apis.list, { ...pagination, keyword: searchTerm });
 
       if (Array.isArray(res.data)) {

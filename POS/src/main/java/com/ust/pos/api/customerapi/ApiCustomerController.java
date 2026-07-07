@@ -23,7 +23,6 @@ public class ApiCustomerController extends BaseController {
 
     private final CustomerService customerService;
 
-
     @PostMapping("/list")
     @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','CASHIER')")
     public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) {

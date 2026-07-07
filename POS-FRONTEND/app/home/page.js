@@ -22,7 +22,6 @@ const NAV_MODULES = [
   { id: "racks", label: "Racks", path: "/racks/list", icon: "▦", desc: "Manage rack configurations", roles: ["ADMIN", "INVENTORY_MANAGER"] },
 ];
 
-// unique accent per card cycling through brand palette shades
 const ACCENTS = [
   "#363955", "#54668E", "#879EC6", "#3d4266", "#4a5a7a", "#6b82a8",
   "#363955", "#54668E", "#879EC6", "#3d4266", "#4a5a7a", "#6b82a8",
@@ -61,7 +60,6 @@ export default function Home() {
       overflow: "hidden", transition: "left 0.2s ease",
     }}>
 
-      {/* ── Header banner ── */}
       <div style={{
         background: "linear-gradient(135deg, #1e2a45 0%, #363955 50%, #54668E 100%)",
         padding: "28px 40px 24px",
@@ -69,7 +67,6 @@ export default function Home() {
         position: "relative",
         overflow: "hidden",
       }}>
-        {/* decorative circles */}
         <div style={{
           position: "absolute", top: "-40px", right: "60px",
           width: "160px", height: "160px", borderRadius: "50%",
@@ -92,7 +89,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* ── Module grid ── */}
       <div style={{
         flex: 1, overflowY: "auto",
         padding: "28px 40px 36px",
@@ -141,7 +137,6 @@ export default function Home() {
                   position: "relative", overflow: "hidden",
                 }}
               >
-                {/* top accent bar */}
                 <div style={{
                   position: "absolute", top: 0, left: 0, right: 0,
                   height: "3px",
@@ -152,7 +147,7 @@ export default function Home() {
                   borderRadius: "12px 12px 0 0",
                 }} />
 
-                {/* icon badge */}
+               
                 <div style={{
                   width: "38px", height: "38px", borderRadius: "10px",
                   background: hovered ? accent : "#f0f2f8",
@@ -185,7 +180,6 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* arrow indicator */}
                 <div style={{
                   position: "absolute", bottom: "14px", right: "14px",
                   fontSize: "14px",
@@ -201,7 +195,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Footer strip ── */}
       <div style={{
         background: "linear-gradient(135deg, #363955, #54668E)",
         padding: "10px 40px",

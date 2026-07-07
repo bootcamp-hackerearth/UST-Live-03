@@ -100,7 +100,6 @@ public class PriceServiceImpl extends CommonService implements PriceService {
         productWsDto.setTotalPages(pricePage.getTotalPages());
         productWsDto.setSizePerPage(pageable.getPageSize());
         productWsDto.setPage(pageable.getPageNumber());
-
         return productWsDto;
     }
 

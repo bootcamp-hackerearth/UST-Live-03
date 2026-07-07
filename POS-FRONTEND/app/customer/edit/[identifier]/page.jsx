@@ -57,18 +57,26 @@ export default function EditCustomer() {
 
     useEffect(() => {
         if (!identifier) return;
-        api
-            .get("/customer/get", { params: { identifier } })
-            .then((res) => {
-                const d = res.data;
+
+        Promise.all([
+            api.get("/customer/get", { params: { identifier } }),
+            api.get("/address/findByAllPhoneNo", { params: { phoneNo: identifier } }),
+        ])
+            .then(([customerRes, addressRes]) => {
+                const d = customerRes.data;
+                const addresses = addressRes.data ?? [];
+
+                const billing = addresses.find((a) => a.addressType === "Billing");
+                const shipping = addresses.find((a) => a.addressType === "Shipping");
+
                 setCustomerName(d.customerName ?? "");
                 setEmail(d.email ?? "");
                 setPartyType(d.partyType ?? "");
                 setCredit(d.credit ?? "");
                 setCreditType(d.creditType ?? "");
                 setCreditLimit(d.creditLimit ?? "");
-                setBillingAddress({ ...EMPTY_ADDRESS, ...d.billingAddress });
-                setShippingAddress({ ...EMPTY_ADDRESS, ...d.shippingAddress });
+                setBillingAddress({ ...EMPTY_ADDRESS, ...billing });
+                setShippingAddress({ ...EMPTY_ADDRESS, ...shipping });
                 setAuditInfo({
                     createdBy: d.createdBy ?? "",
                     createdAt: d.createdAt ?? "",

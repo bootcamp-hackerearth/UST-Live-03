@@ -160,7 +160,6 @@ public class NodeServiceImpl extends CommonService implements NodeService {
         return wsDto;
     }
 
-
     @Override
     public NodeDto toggleStatus(String identifier) {
         Node node = nodeRepository.findByIdentifier(identifier);
