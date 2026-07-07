@@ -44,7 +44,7 @@ class WarehouseServiceTest {
         WarehouseDto dto = new WarehouseDto();
         dto.setIdentifier("WH001");
 
-        when(warehouseRepository.findByIdentifier("WH001"))
+        when(warehouseRepository.findByIdentifierAndIsDeletedFalse("WH001"))
                 .thenReturn(warehouse);
 
         when(modelMapper.map(warehouse, WarehouseDto.class))
@@ -58,7 +58,7 @@ class WarehouseServiceTest {
 
     @Test
     void findByIdentifierFailureTest() {
-        when(warehouseRepository.findByIdentifier("WH001"))
+        when(warehouseRepository.findByIdentifierAndIsDeletedFalse("WH001"))
                 .thenReturn(null);
 
         ResourceNotFoundException exception =

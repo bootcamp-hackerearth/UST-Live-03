@@ -2,7 +2,9 @@ package com.ust.pos.shelf.service;
 
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Shelf;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 public interface ShelfService {
     ShelfDto save(ShelfDto shelfDto);
@@ -16,4 +18,6 @@ public interface ShelfService {
     ShelfDto findByIdentifier(String identifier);
 
     void toggleStatus(String identifier);
+
+    WsDto<ShelfDto> findAll(Specification<Shelf> example, Pageable pageable);
 }

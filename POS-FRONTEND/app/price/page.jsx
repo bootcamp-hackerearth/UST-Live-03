@@ -45,7 +45,7 @@ function PriceForm({ mode, data, onClose, onSubmit }) {
           label: "Product",
           placeholder: "Product",
           type: "select",
-          apiUrl: "http://localhost:8080/api/product/list",
+          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/list`,
           required: true,
         },
         {

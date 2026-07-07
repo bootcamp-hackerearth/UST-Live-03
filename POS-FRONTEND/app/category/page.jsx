@@ -47,7 +47,7 @@ function CategoryForm({ mode, data, onClose, onSubmit }) {
           placeholder: "Super Category",
           validation: requiredValidation,
           type: "multiselect",
-          apiUrl: "http://localhost:8080/api/category/list",
+          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/category/list`,
           required: false,
         },
       ]}

@@ -57,7 +57,7 @@ function NodeForm({ mode, data, onClose, onSubmit }) {
           label: "Roles",
           placeholder: "Roles",
           type: "multiselect",
-          apiUrl: "http://localhost:8080/api/role/list",
+          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/role/list`,
           required: true,
         },
       ]}

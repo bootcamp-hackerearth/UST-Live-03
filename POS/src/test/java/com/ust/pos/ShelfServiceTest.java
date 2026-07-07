@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -188,14 +189,14 @@ class ShelfServiceTest {
     }
 
     @Test
-    void findByIdentifierTest() {
+    void findByIdentifierSuccessTest() {
         Shelf shelf = new Shelf();
         shelf.setIdentifier("SHELF1");
 
         ShelfDto dto = new ShelfDto();
         dto.setIdentifier("SHELF1");
 
-        when(shelfRepository.findByIdentifier("SHELF1"))
+        when(shelfRepository.findByIdentifierAndIsDeletedFalse("SHELF1"))
                 .thenReturn(shelf);
 
         when(modelMapper.map(shelf, ShelfDto.class))
@@ -205,6 +206,22 @@ class ShelfServiceTest {
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals("SHELF1", result.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        when(shelfRepository.findByIdentifierAndIsDeletedFalse("SHELF1"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfService.findByIdentifier("SHELF1")
+        );
+
+        Assertions.assertEquals(
+                "Shelf with identifier 'SHELF1' not found",
+                exception.getMessage()
+        );
     }
 
     @Test

@@ -49,7 +49,7 @@ export default function CartPage() {
   const loadProducts = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/product/list",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/product/list`,
         { page: 0, sizePerPage: 200, sortDirection: "ASC", sortField: "identifier" },
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
@@ -62,7 +62,7 @@ export default function CartPage() {
   const loadCustomers = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/customer/list",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/customer/list`,
         { page: 0, sizePerPage: 100, sortDirection: "ASC", sortField: "identifier" },
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
@@ -114,7 +114,7 @@ export default function CartPage() {
       };
 
       await axios.post(
-        "http://localhost:8080/api/cart/add",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/add`,
         syncPayload,
         { headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" } }
       );
@@ -126,7 +126,7 @@ export default function CartPage() {
   const loadCustomerCart = async (customerIdentifier, customer) => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/cart/getByCustomer",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/getByCustomer`,
         customerIdentifier,
         {
           headers: {
@@ -150,7 +150,7 @@ export default function CartPage() {
     try {
       const identifier = `CART_${Date.now()}`;
       await axios.post(
-        "http://localhost:8080/api/cart/add",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/add`,
         {
           identifier,
           customer: customer.identifier,
@@ -172,7 +172,7 @@ export default function CartPage() {
   const loadCart = async (id = cartId) => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/cart/get",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/get`,
         id,
         {
           headers: {
@@ -193,13 +193,13 @@ export default function CartPage() {
 
     try {
       await axios.post(
-        "http://localhost:8080/api/cartentry/add",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/add`,
         { cartId, product: selectedProduct, quantity },
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
 
       const res = await axios.post(
-        "http://localhost:8080/api/cart/get",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/get`,
         cartId,
         { headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "text/plain" } }
       );
@@ -220,13 +220,13 @@ export default function CartPage() {
     if (qty < 1) return;
     try {
       await axios.post(
-        "http://localhost:8080/api/cartentry/update",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/update`,
         { cartId, product, quantity: qty },
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
 
       const res = await axios.post(
-        "http://localhost:8080/api/cart/get",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/get`,
         cartId,
         { headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "text/plain" } }
       );
@@ -242,13 +242,13 @@ export default function CartPage() {
   const deleteItem = async (product) => {
     try {
       await axios.post(
-        `http://localhost:8080/api/cartentry/delete?cartId=${cartId}&product=${product}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/delete?cartId=${cartId}&product=${product}`,
         {},
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
 
       const res = await axios.post(
-        "http://localhost:8080/api/cart/get",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/get`,
         cartId,
         { headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "text/plain" } }
       );
@@ -264,7 +264,7 @@ export default function CartPage() {
   const clearCart = async () => {
     try {
       await axios.delete(
-        `http://localhost:8080/api/cartentry/clearCart?cartId=${cartId}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/clearCart?cartId=${cartId}`,
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
       await syncCartTotalsToDatabase(cartId, []);
@@ -300,7 +300,7 @@ export default function CartPage() {
     setIsProcessingPayment(true);
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/order/checkout",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/order/checkout`,
         cartId,
         {
           headers: {
@@ -370,7 +370,7 @@ export default function CartPage() {
   const saveCustomer = async () => {
     try {
       await axios.post(
-        "http://localhost:8080/api/customer/add",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/customer/add`,
         {
           ...newCustomer,
           phoneNo: Number(newCustomer.phoneNo),

@@ -32,7 +32,7 @@ export default function CommonList({
   const fetchData = async (currentPage = page, keyword = search) => {
   try {
     const res = await fetch(
-      `http://localhost:8080/api/${routeName}/list`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/list`,
       {
         method: "POST",
         headers: {
@@ -83,7 +83,7 @@ export default function CommonList({
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/${routeName}/delete`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/delete`, {
         method: "DELETE",
         headers: {
           "Content-Type": "text/plain",
@@ -105,7 +105,7 @@ export default function CommonList({
 
   const toggleStatus = async (item) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/${routeName}/toggle`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/toggle`, {
         method: "POST",
         headers: {
           "Content-Type": "text/plain",
@@ -142,11 +142,11 @@ export default function CommonList({
     let url;
     if (mode === "add") {
       url = routeName === "user"
-        ? "http://localhost:8080/api/user/register"
-        : `http://localhost:8080/api/${routeName}/add`;
+        ? `${process.env.NEXT_PUBLIC_BASE_URL}/user/register`
+        : `${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/add`;
     } else {
-      url = `http://localhost:8080/api/${routeName}/update`;
-    }
+      url = `${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/update`;
+    } 
 
     try {
       const res = await fetch(url, {

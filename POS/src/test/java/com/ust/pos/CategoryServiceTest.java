@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -43,9 +46,10 @@ class CategoryServiceTest {
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("CAT001");
 
-        when(categoryRepository.findByIdentifier("CAT001"))
+        Mockito.when(categoryRepository.findByIdentifierAndIsDeletedFalse("CAT001"))
                 .thenReturn(category);
-        when(modelMapper.map(category, CategoryDto.class))
+
+        Mockito.when(modelMapper.map(category, CategoryDto.class))
                 .thenReturn(dto);
 
         CategoryDto result = categoryService.findByIdentifier("CAT001");
@@ -56,12 +60,48 @@ class CategoryServiceTest {
 
     @Test
     void findByIdentifierFailureTest() {
-        when(categoryRepository.findByIdentifier("CAT001"))
+        Mockito.when(categoryRepository.findByIdentifierAndIsDeletedFalse("CAT001"))
                 .thenReturn(null);
 
-        CategoryDto result = categoryService.findByIdentifier("CAT001");
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> categoryService.findByIdentifier("CAT001")
+        );
 
-        Assertions.assertNull(result);
+        Assertions.assertEquals(
+                "Category with identifier 'CAT001' not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Specification<Category> specification = Mockito.mock(Specification.class);
+
+        List<Category> categories = List.of(new Category(), new Category());
+        Page<Category> page = new PageImpl<>(categories, pageable, 2);
+
+        List<CategoryDto> dtoList = List.of(new CategoryDto(), new CategoryDto());
+
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+
+        Mockito.when(categoryRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        Mockito.when(modelMapper.map(categories, listType))
+                .thenReturn(dtoList);
+
+        WsDto<CategoryDto> result = categoryService.findAll(specification, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals(2, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
     }
 
     @Test

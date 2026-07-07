@@ -4,12 +4,14 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +33,9 @@ public class BrandServiceImpl extends BaseService implements BrandService {
 
     @Override
     public BrandDto findByIdentifier(String identifier) {
-        Brand brand = brandRepository.findByIdentifier(identifier);
+        Brand brand = brandRepository.findByIdentifierAndIsDeletedFalse(identifier);
         if (brand == null) {
-            return null;
+            throw new ResourceNotFoundException("Brand with identifier '" + identifier + "' not found");
         }
         return modelMapper.map(brand, BrandDto.class);
     }
@@ -100,5 +102,21 @@ public class BrandServiceImpl extends BaseService implements BrandService {
             setModifiedDetails(brand);
             brandRepository.save(brand);
         }
+    }
+    @Override
+    public WsDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Page<Brand> page = brandRepository.findAll(example, pageable);
+
+        WsDto<BrandDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

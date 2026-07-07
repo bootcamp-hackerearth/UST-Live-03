@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -44,8 +45,9 @@ class PriceServiceTest {
         PriceDto dto = new PriceDto();
         dto.setIdentifier("PROD1_MRP");
 
-        when(priceRepository.findByIdentifier("PROD1_MRP"))
+        when(priceRepository.findByIdentifierAndIsDeletedFalse("PROD1_MRP"))
                 .thenReturn(price);
+
         when(modelMapper.map(price, PriceDto.class))
                 .thenReturn(dto);
 
@@ -57,12 +59,18 @@ class PriceServiceTest {
 
     @Test
     void findByIdentifierFailureTest() {
-        when(priceRepository.findByIdentifier("PROD1_MRP"))
+        when(priceRepository.findByIdentifierAndIsDeletedFalse("PROD1_MRP"))
                 .thenReturn(null);
 
-        PriceDto result = priceService.findByIdentifier("PROD1_MRP");
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> priceService.findByIdentifier("PROD1_MRP")
+        );
 
-        Assertions.assertNull(result);
+        Assertions.assertEquals(
+                "Price with identifier 'PROD1_MRP' not found",
+                exception.getMessage()
+        );
     }
 
     @Test

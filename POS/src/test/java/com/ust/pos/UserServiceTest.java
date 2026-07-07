@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -48,7 +49,7 @@ class UserServiceTest {
         UserDto dto = new UserDto();
         dto.setUsername("admin");
 
-        when(userRepository.findByUsername("admin"))
+        when(userRepository.findByUsernameAndIsDeletedFalse("admin"))
                 .thenReturn(user);
 
         when(modelMapper.map(user, UserDto.class))
@@ -62,12 +63,17 @@ class UserServiceTest {
 
     @Test
     void findByUserNameFailureTest() {
-        when(userRepository.findByUsername("admin"))
+        when(userRepository.findByUsernameAndIsDeletedFalse("admin"))
                 .thenReturn(null);
 
-        UserDto result = userService.findByUserName("admin");
+        ResourceNotFoundException exception =
+                Assertions.assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> userService.findByUserName("admin"));
 
-        Assertions.assertNull(result);
+        Assertions.assertEquals(
+                "User with username 'admin' not found",
+                exception.getMessage());
     }
 
     @Test

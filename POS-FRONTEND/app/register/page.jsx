@@ -30,7 +30,7 @@ export default function Register() {
 
   useEffect(() => {
     axios
-      .post("http://localhost:8080/api/role/list", {
+      .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/role/list`, {
         page: 0,
         sizePerPage: 100,
         sortDirection: "ASC",
@@ -103,7 +103,7 @@ export default function Register() {
 
     try {
       const listRes = await axios.post(
-        "http://localhost:8080/api/user/list",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/user/list`,
         {
           page: 0,
           sizePerPage: 1000,
@@ -126,7 +126,7 @@ export default function Register() {
       }
 
       const res = await axios.post(
-        "http://localhost:8080/api/user/register",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/user/register`,
         {
           name: user.name,
           username: user.username,

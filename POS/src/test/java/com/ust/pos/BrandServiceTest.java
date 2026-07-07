@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -38,32 +41,37 @@ class BrandServiceTest {
     @Test
     void findByIdentifierSuccessTest() {
         Brand brand = new Brand();
-        brand.setIdentifier("BR001");
+        brand.setIdentifier("BRAND001");
 
         BrandDto dto = new BrandDto();
-        dto.setIdentifier("BR001");
+        dto.setIdentifier("BRAND001");
 
-        when(brandRepository.findByIdentifier("BR001")).thenReturn(brand);
-        when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
+        Mockito.when(brandRepository.findByIdentifierAndIsDeletedFalse("BRAND001"))
+                .thenReturn(brand);
 
-        BrandDto result = brandService.findByIdentifier("BR001");
+        Mockito.when(modelMapper.map(brand, BrandDto.class))
+                .thenReturn(dto);
+
+        BrandDto result = brandService.findByIdentifier("BRAND001");
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("BR001", result.getIdentifier());
-
-        verify(brandRepository).findByIdentifier("BR001");
-        verify(modelMapper).map(brand, BrandDto.class);
+        Assertions.assertEquals("BRAND001", result.getIdentifier());
     }
 
     @Test
     void findByIdentifierFailureTest() {
-        when(brandRepository.findByIdentifier("BR001")).thenReturn(null);
+        Mockito.when(brandRepository.findByIdentifierAndIsDeletedFalse("BRAND001"))
+                .thenReturn(null);
 
-        BrandDto result = brandService.findByIdentifier("BR001");
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.findByIdentifier("BRAND001")
+        );
 
-        Assertions.assertNull(result);
-
-        verify(brandRepository).findByIdentifier("BR001");
+        Assertions.assertEquals(
+                "Brand with identifier 'BRAND001' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
@@ -239,5 +247,35 @@ class BrandServiceTest {
         brandService.toggleStatus("BR001");
 
         verify(brandRepository, never()).save(any());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Specification<Brand> specification = Mockito.mock(Specification.class);
+
+        List<Brand> brands = List.of(new Brand(), new Brand());
+        Page<Brand> page = new PageImpl<>(brands, pageable, 2);
+
+        List<BrandDto> dtoList = List.of(new BrandDto(), new BrandDto());
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+
+        Mockito.when(brandRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        Mockito.when(modelMapper.map(brands, listType))
+                .thenReturn(dtoList);
+
+        WsDto<BrandDto> result = brandService.findAll(specification, pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals(2, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
     }
 }

@@ -22,7 +22,7 @@ export default function OrdersPage() {
   const loadProducts = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/product/list",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/list`,
         { page: 0, sizePerPage: 200, sortDirection: "ASC", sortField: "identifier" },
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
@@ -36,7 +36,7 @@ export default function OrdersPage() {
     try {
       setLoading(true);
       const res = await axios.post(
-        "http://localhost:8080/api/order/list",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/order/list`,
         {
           page: 0,
           sizePerPage: 100,
@@ -60,7 +60,7 @@ export default function OrdersPage() {
   const viewOrder = async (identifier) => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/order/get",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/order/get`,
         identifier,
         {
           headers: {

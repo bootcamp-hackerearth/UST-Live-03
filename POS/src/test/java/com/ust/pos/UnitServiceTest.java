@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -43,7 +44,7 @@ class UnitServiceTest {
         UnitDto dto = new UnitDto();
         dto.setIdentifier("KG");
 
-        when(unitRepository.findByIdentifier("KG"))
+        when(unitRepository.findByIdentifierAndIsDeletedFalse("KG"))
                 .thenReturn(unit);
 
         when(modelMapper.map(unit, UnitDto.class))
@@ -53,6 +54,21 @@ class UnitServiceTest {
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals("KG", result.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        when(unitRepository.findByIdentifierAndIsDeletedFalse("KG"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                Assertions.assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> unitService.findByIdentifier("KG"));
+
+        Assertions.assertEquals(
+                "Unit with identifier 'KG' not found",
+                exception.getMessage());
     }
 
     @Test

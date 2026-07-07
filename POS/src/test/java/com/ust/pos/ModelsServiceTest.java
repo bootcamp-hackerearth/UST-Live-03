@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.impl.ModelsServiceImpl;
@@ -36,14 +37,14 @@ class ModelsServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void findByIdentifierTest() {
+    void findByIdentifierSuccessTest() {
         Models models = new Models();
         models.setIdentifier("MODEL001");
 
         ModelsDto dto = new ModelsDto();
         dto.setIdentifier("MODEL001");
 
-        when(modelsRepository.findByIdentifier("MODEL001"))
+        when(modelsRepository.findByIdentifierAndIsDeletedFalse("MODEL001"))
                 .thenReturn(models);
 
         when(modelMapper.map(models, ModelsDto.class))
@@ -53,6 +54,22 @@ class ModelsServiceTest {
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals("MODEL001", result.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        when(modelsRepository.findByIdentifierAndIsDeletedFalse("MODEL001"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> modelsService.findByIdentifier("MODEL001")
+        );
+
+        Assertions.assertEquals(
+                "Models with identifier 'MODEL001' not found",
+                exception.getMessage()
+        );
     }
 
     @Test
@@ -250,4 +267,5 @@ class ModelsServiceTest {
 
         verify(modelsRepository, never()).save(any());
     }
+
 }

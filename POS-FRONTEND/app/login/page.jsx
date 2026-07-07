@@ -27,7 +27,7 @@ export default function Login() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/authenticate",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/authenticate`,
         {
           username: data.username,
           password: data.password,

@@ -65,7 +65,7 @@ function ProductForm({ mode, data, onClose, onSubmit }) {
           label: "Category",
           placeholder: "Category",
           type: "select",
-          apiUrl: "http://localhost:8080/api/category/list",
+          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/category/list`,
           required: true,
         },
         {
@@ -73,7 +73,7 @@ function ProductForm({ mode, data, onClose, onSubmit }) {
           label: "Brand",
           placeholder: "Brand",
           type: "select",
-          apiUrl: "http://localhost:8080/api/brand/list",
+          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/brand/list`,
           required: true,
         },
       ]}
