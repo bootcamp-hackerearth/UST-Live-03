@@ -38,9 +38,12 @@ public class UserServiceImpl extends CommonService implements UserService {
 
     @Override
     public UserDto findByUserName(String username) {
-        User user= userRepository.findByIdentifier(username);
+
+        User user = userRepository.findByUsername(username);
         if (user == null) {
-            throw new ResourceNotFoundException("User with identifier '" + username + "' not found");
+            throw new ResourceNotFoundException(
+                    "User not found: " + username
+            );
         }
         return modelMapper.map(user, UserDto.class);
     }
