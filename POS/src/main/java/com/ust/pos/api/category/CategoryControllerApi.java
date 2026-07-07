@@ -7,6 +7,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,16 +30,19 @@ public class CategoryControllerApi extends BaseController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<CategoryDto> all() {
         return categoryService.findAll();
     }
 
     @GetMapping("/subcategories")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<CategoryDto> getSubCategories() {
         return categoryService.findBySuperCategoryNotNull();
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(), paginationDto.getSortField());
@@ -52,21 +56,25 @@ public class CategoryControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public CategoryDto addPost(@RequestBody CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public CategoryDto update(@RequestParam String identifier) {
         return categoryService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);

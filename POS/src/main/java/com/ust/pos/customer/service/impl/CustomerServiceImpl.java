@@ -6,10 +6,13 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
+import com.ust.pos.service.BaseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +21,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl extends BaseService implements CustomerService {
 
     private final CustomerRepository customerRepository;
     private final ModelMapper modelMapper;
@@ -95,18 +98,26 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Page<CustomerDto> findAll(Pageable pageable, String search) {
         Page<Customer> customers;
+
         if (search != null && !search.trim().isEmpty()) {
-            customers = customerRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Customer> specification = buildGlobalSearchSpec(Customer.class, search);
+
+            List<Customer> filteredCustomers = customerRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(customer -> !customer.isDeleted())
+                    .toList();
+
+            customers = new PageImpl<>(filteredCustomers, pageable, filteredCustomers.size());
+
         } else {
             customers = customerRepository.findByDeletedFalse(pageable);
         }
 
         return customers.map(customer -> {
             CustomerDto dto = modelMapper.map(customer, CustomerDto.class);
-
             dto.setBilling(addressService.findByIdentifierAndBilling(customer.getIdentifier()));
             dto.setShipping(addressService.findByIdentifierAndShipping(customer.getIdentifier()));
-
             return dto;
         });
     }

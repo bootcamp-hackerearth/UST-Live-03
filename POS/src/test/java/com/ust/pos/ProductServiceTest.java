@@ -46,9 +46,6 @@ class ProductServiceTest {
         Mockito.when(modelMapper.map(dto, Product.class))
                 .thenReturn(product);
 
-        Mockito.when(productRepository.save(product))
-                .thenReturn(product);
-
         ProductDto response = productService.save(dto);
 
         Assertions.assertEquals("P1", response.getIdentifier());
@@ -259,8 +256,10 @@ class ProductServiceTest {
 
         Page<Product> page = new PageImpl<>(List.of(product));
 
-        Mockito.when(productRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse("P1", pageable))
-                .thenReturn(page);
+        Mockito.when(productRepository.findAll(
+                Mockito.any(org.springframework.data.jpa.domain.Specification.class),
+                Mockito.eq(pageable)
+        )).thenReturn(page);
 
         Mockito.when(modelMapper.map(product, ProductDto.class))
                 .thenReturn(dto);
@@ -270,7 +269,9 @@ class ProductServiceTest {
         Assertions.assertEquals(1, response.getContent().size());
         Assertions.assertEquals("P1", response.getContent().get(0).getIdentifier());
 
-        Mockito.verify(productRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse("P1", pageable);
+        Mockito.verify(productRepository).findAll(
+                Mockito.any(org.springframework.data.jpa.domain.Specification.class),
+                Mockito.eq(pageable)
+        );
     }
 }

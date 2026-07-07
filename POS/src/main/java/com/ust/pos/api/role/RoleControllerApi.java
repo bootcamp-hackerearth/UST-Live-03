@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.role.service.RoleService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +35,7 @@ public class RoleControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public WsDto<RoleDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(), paginationDto.getSortField());
@@ -47,21 +49,25 @@ public class RoleControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public RoleDto addPost(@RequestBody RoleDto roleDto) {
         return roleService.save(roleDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public RoleDto update(@RequestParam String identifier) {
         return roleService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public RoleDto updatePost(@RequestBody RoleDto roleDto) {
         return roleService.update(roleDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             roleService.delete(identifier);

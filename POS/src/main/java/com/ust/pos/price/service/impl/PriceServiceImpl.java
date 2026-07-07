@@ -4,10 +4,13 @@ import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
+import com.ust.pos.service.BaseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +19,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class PriceServiceImpl implements PriceService {
+public class PriceServiceImpl extends BaseService implements PriceService {
 
     private final PriceRepository priceRepository;
     private final ModelMapper modelMapper;
@@ -87,11 +90,22 @@ public class PriceServiceImpl implements PriceService {
     @Override
     public Page<PriceDto> findAll(Pageable pageable, String search) {
         Page<Price> prices;
+
         if (search != null && !search.trim().isEmpty()) {
-            prices = priceRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Price> specification = buildGlobalSearchSpec(Price.class, search);
+
+            List<Price> filteredPrices = priceRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(price -> !price.isDeleted())
+                    .toList();
+
+            prices = new PageImpl<>(filteredPrices, pageable, filteredPrices.size());
+
         } else {
             prices = priceRepository.findByDeletedFalse(pageable);
         }
+
         return prices.map(price -> modelMapper.map(price, PriceDto.class));
     }
 }

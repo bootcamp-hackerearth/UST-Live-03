@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -55,13 +54,28 @@ class CartEntryServiceTest {
         Mockito.when(priceService.findByIdentifier("P1"))
                 .thenReturn(price);
 
-        cartEntryService.save(dto);
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(
+                        Mockito.same(dto),
+                        Mockito.any(CartEntry.class)
+                );
 
-        Assertions.assertEquals("C1_P1", dto.getIdentifier());
-        Assertions.assertEquals(BigDecimal.valueOf(200), dto.getTotalPrice());
+        Mockito.when(cartEntryRepository.save(Mockito.any(CartEntry.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        CartEntryDto response = cartEntryService.save(dto);
+
+        Assertions.assertEquals("C1_P1", response.getIdentifier());
+        Assertions.assertEquals(BigDecimal.valueOf(2), response.getQuantity());
+        Assertions.assertEquals(BigDecimal.valueOf(100), response.getUnitPrice());
+        Assertions.assertEquals(BigDecimal.valueOf(200), response.getTotalPrice());
 
         Mockito.verify(modelMapper)
-                .map(Mockito.eq(dto), Mockito.any(CartEntry.class));
+                .map(
+                        Mockito.same(dto),
+                        Mockito.any(CartEntry.class)
+                );
 
         Mockito.verify(cartEntryRepository)
                 .save(Mockito.any(CartEntry.class));
@@ -82,13 +96,18 @@ class CartEntryServiceTest {
 
         Mockito.when(cartEntryRepository.findByIdentifier("C1_P1"))
                 .thenReturn(existing);
+
         Mockito.when(priceService.findByIdentifier("P1"))
                 .thenReturn(price);
 
         cartEntryService.save(dto);
 
         Assertions.assertEquals(BigDecimal.valueOf(5), dto.getQuantity());
+        Assertions.assertEquals(BigDecimal.valueOf(100), dto.getUnitPrice());
         Assertions.assertEquals(BigDecimal.valueOf(500), dto.getTotalPrice());
+
+        Mockito.verify(modelMapper).map(dto, existing);
+        Mockito.verify(cartEntryRepository).save(existing);
     }
 
     @Test
@@ -101,12 +120,14 @@ class CartEntryServiceTest {
 
         Mockito.when(cartEntryRepository.findByIdentifier("C1_P1"))
                 .thenReturn(existing);
+
         Mockito.when(modelMapper.map(dto, CartEntry.class))
                 .thenReturn(mapped);
 
         CartEntryDto response = cartEntryService.update(dto);
 
         Assertions.assertEquals("C1_P1", response.getIdentifier());
+
         Mockito.verify(cartEntryRepository).save(mapped);
     }
 
@@ -135,8 +156,7 @@ class CartEntryServiceTest {
 
         cartEntryService.delete("C1_P1");
 
-        Mockito.verify(cartEntryRepository)
-                .deleteByIdentifier("C1_P1");
+        Mockito.verify(cartEntryRepository).deleteByIdentifier("C1_P1");
     }
 
     @Test
@@ -147,8 +167,7 @@ class CartEntryServiceTest {
 
         cartEntryService.deleteByCartId("C1");
 
-        Mockito.verify(cartEntryRepository)
-                .deleteByCartId("C1");
+        Mockito.verify(cartEntryRepository).deleteByCartId("C1");
     }
 
     @Test
@@ -156,15 +175,15 @@ class CartEntryServiceTest {
         List<CartEntry> entries = List.of(new CartEntry());
         List<CartEntryDto> dtos = List.of(new CartEntryDto());
 
-        Type type = new TypeToken<List<CartEntryDto>>() {
-        }.getType();
-
         Mockito.when(cartEntryRepository.findAll())
                 .thenReturn(entries);
-        Mockito.when(modelMapper.map(entries, type))
+
+        Mockito.when(modelMapper.map(Mockito.eq(entries), Mockito.any(Type.class)))
                 .thenReturn(dtos);
 
-        Assertions.assertEquals(1, cartEntryService.findAll().size());
+        List<CartEntryDto> response = cartEntryService.findAll();
+
+        Assertions.assertEquals(1, response.size());
     }
 
     @Test
@@ -174,6 +193,7 @@ class CartEntryServiceTest {
 
         Mockito.when(cartEntryRepository.findByIdentifier("C1_P1"))
                 .thenReturn(entry);
+
         Mockito.when(modelMapper.map(entry, CartEntryDto.class))
                 .thenReturn(dto);
 
@@ -189,16 +209,13 @@ class CartEntryServiceTest {
 
         List<CartEntryDto> dtos = List.of(new CartEntryDto());
 
-        Type type = new TypeToken<List<CartEntryDto>>() {
-        }.getType();
-
         Mockito.when(cartEntryRepository.findAll(pageable))
                 .thenReturn(page);
-        Mockito.when(modelMapper.map(entries, type))
+
+        Mockito.when(modelMapper.map(Mockito.eq(entries), Mockito.any(Type.class)))
                 .thenReturn(dtos);
 
-        List<CartEntryDto> response =
-                cartEntryService.findAll(pageable);
+        List<CartEntryDto> response = cartEntryService.findAll(pageable);
 
         Assertions.assertEquals(1, response.size());
     }
@@ -208,14 +225,14 @@ class CartEntryServiceTest {
         List<CartEntry> entries = List.of(new CartEntry());
         List<CartEntryDto> dtos = List.of(new CartEntryDto());
 
-        Type type = new TypeToken<List<CartEntryDto>>() {
-        }.getType();
-
         Mockito.when(cartEntryRepository.findByCartId("C1"))
                 .thenReturn(entries);
-        Mockito.when(modelMapper.map(entries, type))
+
+        Mockito.when(modelMapper.map(Mockito.eq(entries), Mockito.any(Type.class)))
                 .thenReturn(dtos);
 
-        Assertions.assertEquals(1, cartEntryService.findByCartId("C1").size());
+        List<CartEntryDto> response = cartEntryService.findByCartId("C1");
+
+        Assertions.assertEquals(1, response.size());
     }
 }

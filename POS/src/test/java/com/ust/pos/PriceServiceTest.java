@@ -181,6 +181,17 @@ class PriceServiceTest {
     }
 
     @Test
+    void deleteNotFoundTest() {
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("Admin"))
+                .thenReturn(null);
+
+        priceService.delete("Admin");
+
+        Mockito.verify(priceRepository, Mockito.never())
+                .save(Mockito.any());
+    }
+
+    @Test
     void findAllWithPaginationShouldReturnPriceDtos() {
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -220,9 +231,10 @@ class PriceServiceTest {
 
         Page<Price> page = new PageImpl<>(List.of(price));
 
-        Mockito.when(priceRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "Admin", pageable))
-                .thenReturn(page);
+        Mockito.when(priceRepository.findAll(
+                Mockito.any(org.springframework.data.jpa.domain.Specification.class),
+                Mockito.eq(pageable)
+        )).thenReturn(page);
 
         Mockito.when(modelMapper.map(price, PriceDto.class))
                 .thenReturn(dto);
@@ -232,8 +244,9 @@ class PriceServiceTest {
         Assertions.assertEquals(1, response.getContent().size());
         Assertions.assertEquals("Admin", response.getContent().get(0).getIdentifier());
 
-        Mockito.verify(priceRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "Admin", pageable);
+        Mockito.verify(priceRepository).findAll(
+                Mockito.any(org.springframework.data.jpa.domain.Specification.class),
+                Mockito.eq(pageable)
+        );
     }
 }

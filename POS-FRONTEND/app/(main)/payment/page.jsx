@@ -17,6 +17,9 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(false);
   const [cartItems, setCartItems] = useState([]);
 
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdOrder, setCreatedOrder] = useState(null);
+
   useEffect(() => {
     const fetchCartItems = async () => {
       try {
@@ -52,21 +55,159 @@ export default function PaymentPage() {
         }
       );
 
-      if (response.data.success === false) {
-        alert(response.data.message);
+      const order = response.data;
+
+      if (order.success === false) {
+        alert(order.message);
         return;
       }
 
-      alert("Payment Successful");
+      setCreatedOrder(order);
+      setShowSuccessModal(true);
 
-      router.push("/orders");
     } catch (err) {
       console.error("Payment failed:", err);
-
       alert("Payment Failed");
     } finally {
       setLoading(false);
     }
+};
+
+  const handlePrint = () => {
+      const invoiceWindow = window.open("", "_blank");
+
+      if (!invoiceWindow) {
+        alert("Please allow popups to print invoice");
+        return;
+      }
+
+      const invoiceHtml = `
+        <html>
+          <head>
+            <title>Invoice</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                padding: 30px;
+                color: #111827;
+              }
+
+              h1 {
+                text-align: center;
+                color: #006E74;
+              }
+
+              .header {
+                margin-bottom: 20px;
+              }
+
+              .row {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px solid #ddd;
+              }
+
+              .item {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+              }
+
+              .total {
+                margin-top: 20px;
+                padding-top: 10px;
+                border-top: 2px solid #000;
+                font-size: 18px;
+                font-weight: bold;
+                display: flex;
+                justify-content: space-between;
+              }
+
+              .footer {
+                margin-top: 40px;
+                text-align: center;
+                font-size: 12px;
+                color: gray;
+              }
+            </style>
+          </head>
+
+          <body>
+
+            <h1>Invoice</h1>
+
+            <div class="header">
+              <div class="row">
+                <span>Order No</span>
+                <b>${createdOrder.identifier}</b>
+              </div>
+
+              <div class="row">
+                <span>Customer</span>
+                <b>${createdOrder.customerName || "Walk-in"}</b>
+              </div>
+
+              <div class="row">
+                <span>Payment</span>
+                <b>${createdOrder.paymentMethod}</b>
+              </div>
+
+              <div class="row">
+                <span>Status</span>
+                <b>${createdOrder.orderStatus}</b>
+              </div>
+            </div>
+
+
+            <h3>Items</h3>
+
+            ${
+              createdOrder.items?.map(
+                (item) => `
+                  <div class="item">
+                    <span>
+                      ${item.product} x ${item.quantity}
+                    </span>
+
+                    <span>
+                      ₹${item.totalPrice}
+                    </span>
+                  </div>
+                `
+              ).join("")
+            }
+
+
+            <div class="total">
+              <span>Total</span>
+              <span>
+                ₹${createdOrder.totalPrice}
+              </span>
+            </div>
+
+
+            <div class="footer">
+              Thank you for shopping with us!
+            </div>
+
+
+          </body>
+        </html>
+      `;
+
+      invoiceWindow.document.documentElement.innerHTML = invoiceHtml;
+
+      setTimeout(() => {
+        invoiceWindow.print();
+        invoiceWindow.close();
+      }, 500);
+
+    };
+
+  const handleViewOrders = () => {
+    setShowSuccessModal(false);
+    router.push("/orders");
   };
 
   return (
@@ -215,64 +356,125 @@ export default function PaymentPage() {
           Order Summary
         </h3>
 
-        <div className={styles.orderPanel}>
-          <h3 className={styles.orderTitle}>
-            Order Summary
-          </h3>
-
-          {cartItems.map((item) => (
-            <div
-              key={item.identifier}
-              className={styles.orderItem}
-            >
-              <div>
-                <div className={styles.orderName}>
-                  {item.product}
-                </div>
-
-                <small>
-                  Qty: {item.quantity}
-                </small>
-              </div>
-
-              <span className={styles.orderPrice}>
-                ₹{item.unitPrice}
-              </span>
-            </div>
-          ))}
-
-
-          <div className={styles.orderItem}>
-            <span className={styles.orderName}>
-              Payment Method
-            </span>
-
-            <span>
-              {paymentMethod}
-            </span>
-          </div>
-
-
-          <div className={styles.summaryTotal}>
-            <span>Total</span>
-            <span>
-              ₹{total.toFixed(2)}
-            </span>
-          </div>
+        <div className={styles.orderItem}>
+          <span className={styles.orderName}>
+            Cart
+          </span>
+          <span>{cartId}</span>
         </div>
 
         <div className={styles.orderItem}>
           <span className={styles.orderName}>
-            Payment Method
+            Payment
           </span>
           <span>{paymentMethod}</span>
         </div>
+
+        <h4 className={styles.itemsHeading}>
+          Items
+        </h4>
+
+        {cartItems.map((item) => (
+          <div
+            key={item.identifier}
+            className={styles.orderItem}
+          >
+            <div>
+              <div className={styles.orderName}>
+                {item.product}
+              </div>
+
+              <small>
+                Qty: {item.quantity}
+              </small>
+            </div>
+
+            <span className={styles.orderPrice}>
+              ₹{item.totalPrice}
+            </span>
+          </div>
+        ))}
 
         <div className={styles.summaryTotal}>
           <span>Total</span>
           <span>₹{total.toFixed(2)}</span>
         </div>
-      </div>
+            </div>
+
+      {showSuccessModal && createdOrder && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalContent}>
+
+              <h2 className={styles.modalTitle}>
+                Payment Successful
+              </h2>
+
+              <div className={styles.detailRow}>
+                <span>Order No</span>
+                <b>{createdOrder.identifier}</b>
+              </div>
+
+              <div className={styles.detailRow}>
+                <span>Customer</span>
+                <b>{createdOrder.customerId}</b>
+              </div>
+
+              <div className={styles.detailRow}>
+                <span>Payment</span>
+                <b>{createdOrder.paymentMethod}</b>
+              </div>
+
+              <div className={styles.detailRow}>
+                <span>Status</span>
+                <b>{createdOrder.orderStatus}</b>
+              </div>
+
+              <h4 className={styles.itemsHeading}>
+                Items
+              </h4>
+
+              {createdOrder.items?.map((item) => (
+                <div
+                  key={item.identifier}
+                  className={styles.orderItem}
+                >
+                  <span>
+                    {item.product} × {item.quantity}
+                  </span>
+
+                  <span>
+                    ₹{item.totalPrice}
+                  </span>
+                </div>
+              ))}
+
+              <div className={styles.summaryTotal}>
+                <span>Total</span>
+                <span>₹{createdOrder.totalPrice}</span>
+              </div>
+
+              <div className={styles.modalButtons}>
+                <button
+                  className={styles.printBtn}
+                  onClick={handlePrint}
+                >
+                  Print Invoice
+                </button>
+
+                <button
+                  className={styles.ordersBtn}
+                  onClick={handleViewOrders}
+                >
+                  View All Orders
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,16 +30,19 @@ public class ShelfControllerApi extends BaseController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<ShelfDto> all() {
         return shelfService.findAll();
     }
 
     @GetMapping("/active")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<ShelfDto> active() {
         return shelfService.findActive();
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public WsDto<ShelfDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(), paginationDto.getSortField());
@@ -52,21 +56,25 @@ public class ShelfControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public ShelfDto addPost(@RequestBody ShelfDto shelfDto) {
         return shelfService.save(shelfDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public ShelfDto update(@RequestParam String identifier) {
         return shelfService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public ShelfDto updatePost(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfService.delete(identifier);
@@ -77,6 +85,7 @@ public class ShelfControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean toggleStatus(@RequestParam String identifier) {
         try {
             shelfService.toggleStatus(identifier);

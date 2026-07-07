@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -255,18 +256,17 @@ class UserServiceTest {
 
         Page<User> page = new PageImpl<>(List.of(user));
 
-        Mockito.when(
-                userRepository.findByUsernameContainingIgnoreCaseAndDeletedFalse(
-                        "admin",
-                        pageable
-                )
-        ).thenReturn(page);
+        Mockito.when(userRepository.findAll(
+                        Mockito.<Specification<User>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
 
         Mockito.when(modelMapper.map(user, UserDto.class))
                 .thenReturn(dto);
 
         Page<UserDto> response = userService.findAll(pageable, "admin");
 
+        Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getContent().size());
         Assertions.assertEquals(
                 "admin",
@@ -274,9 +274,9 @@ class UserServiceTest {
         );
 
         Mockito.verify(userRepository)
-                .findByUsernameContainingIgnoreCaseAndDeletedFalse(
-                        "admin",
-                        pageable
+                .findAll(
+                        Mockito.<Specification<User>>any(),
+                        Mockito.eq(pageable)
                 );
     }
 }

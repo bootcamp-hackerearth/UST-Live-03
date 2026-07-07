@@ -3,12 +3,15 @@ package com.ust.pos.stock.service.impl;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
+import com.ust.pos.service.BaseService;
 import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -16,7 +19,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class StockServiceImpl implements StockService {
+public class StockServiceImpl extends BaseService implements StockService {
 
     private final ModelMapper modelMapper;
     private final StockRepository stockRepository;
@@ -92,11 +95,22 @@ public class StockServiceImpl implements StockService {
     @Override
     public Page<StockDto> findAll(Pageable pageable, String search) {
         Page<Stock> stocks;
+
         if (search != null && !search.trim().isEmpty()) {
-            stocks = stockRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Stock> specification = buildGlobalSearchSpec(Stock.class, search);
+
+            List<Stock> filteredStocks = stockRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(stock -> !stock.isDeleted())
+                    .toList();
+
+            stocks = new PageImpl<>(filteredStocks, pageable, filteredStocks.size());
+
         } else {
             stocks = stockRepository.findByDeletedFalse(pageable);
         }
+
         return stocks.map(stock -> modelMapper.map(stock, StockDto.class));
     }
 }

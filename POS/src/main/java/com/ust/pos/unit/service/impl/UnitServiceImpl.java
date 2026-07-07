@@ -3,11 +3,14 @@ package com.ust.pos.unit.service.impl;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
+import com.ust.pos.service.BaseService;
 import com.ust.pos.unit.service.UnitService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +20,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class UnitServiceImpl implements UnitService {
+public class UnitServiceImpl extends BaseService implements UnitService {
 
     private final ModelMapper modelMapper;
     private final UnitRepository unitRepository;
@@ -101,11 +104,22 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public Page<UnitDto> findAll(Pageable pageable, String search) {
         Page<Unit> units;
+
         if (search != null && !search.trim().isEmpty()) {
-            units = unitRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Unit> specification = buildGlobalSearchSpec(Unit.class, search);
+
+            List<Unit> filteredUnits = unitRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(unit -> !unit.isDeleted())
+                    .toList();
+
+            units = new PageImpl<>(filteredUnits, pageable, filteredUnits.size());
+
         } else {
             units = unitRepository.findByDeletedFalse(pageable);
         }
+
         return units.map(unit -> modelMapper.map(unit, UnitDto.class));
     }
 }

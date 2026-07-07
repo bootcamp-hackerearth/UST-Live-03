@@ -11,6 +11,7 @@ import {
   addItem,
   updateItem,
   deleteItem,
+  toggleItem,
 } from "@/services/api";
 
 const StockPage = () => {
@@ -29,7 +30,6 @@ const StockPage = () => {
 
   const [newStock, setNewStock] = useState({
     identifier: "",
-    stockStatus: "",
     warehouseName: "",
     productName: "",
     quantity: "",
@@ -133,7 +133,6 @@ const StockPage = () => {
     if (response?.success !== false) {
       setNewStock({
         identifier: "",
-        stockStatus: "",
         warehouseName: "",
         productName: "",
         quantity: "",
@@ -165,15 +164,7 @@ const StockPage = () => {
 
   const handleStatusChange = async (stock) => {
     try {
-      const updatedStock = {
-        ...stock,
-        stockStatus:
-          stock.stockStatus === "IN_STOCK"
-            ? "OUT_OF_STOCK"
-            : "IN_STOCK",
-      };
-
-      await updateItem("stock", updatedStock);
+      await toggleItem("stock", stock.identifier);
 
       fetchStocks();
     } catch (err) {
@@ -209,14 +200,16 @@ const StockPage = () => {
     {
       label: "Status",
       render: (row) => (
-        <label className="switch">
+        <label
+          className="switch"
+          aria-label={`Toggle status for stock ${row.identifier}`}
+        >
           <input
             type="checkbox"
-            aria-label="Stock status"
-            checked={row.stockStatus === "IN_STOCK"}
+            checked={row.status}
             onChange={() => handleStatusChange(row)}
           />
-          <span className="slider" aria-hidden="true"></span>
+          <span className="slider"></span>
         </label>
       ),
     },
@@ -252,15 +245,6 @@ const StockPage = () => {
   ];
 
   const commonStockFields = [
-    {
-      name: "stockStatus",
-      label: "Status",
-      type: "select",
-      options: [
-        { label: "IN_STOCK", value: "IN_STOCK" },
-        { label: "OUT_OF_STOCK", value: "OUT_OF_STOCK" },
-      ],
-    },
     {
       name: "warehouseName",
       label: "Warehouse",
@@ -320,7 +304,6 @@ const StockPage = () => {
         onAdd={() =>
           setNewStock({
             identifier: "",
-            stockStatus: "",
             warehouseName: "",
             productName: "",
             quantity: "",

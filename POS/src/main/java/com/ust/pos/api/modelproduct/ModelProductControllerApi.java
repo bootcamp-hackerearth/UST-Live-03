@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.modelproduct.service.ModelProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,11 +30,13 @@ public class ModelProductControllerApi extends BaseController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<ModelProductDto> all() {
         return modelProductService.findAll();
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public WsDto<ModelProductDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(), paginationDto.getSortField());
@@ -47,21 +50,25 @@ public class ModelProductControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public ModelProductDto addPost(@RequestBody ModelProductDto modelProductDto) {
         return modelProductService.save(modelProductDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public ModelProductDto update(@RequestParam String identifier) {
         return modelProductService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public ModelProductDto updatePost(@RequestBody ModelProductDto modelProductDto) {
         return modelProductService.update(modelProductDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelProductService.delete(identifier);
@@ -72,6 +79,7 @@ public class ModelProductControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean toggleStatus(@RequestParam String identifier) {
         try {
             modelProductService.toggleStatus(identifier);

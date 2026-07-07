@@ -3,12 +3,15 @@ package com.ust.pos.warehouse.service.impl;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
+import com.ust.pos.service.BaseService;
 import com.ust.pos.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -16,7 +19,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class WarehouseServiceImpl implements WarehouseService {
+public class WarehouseServiceImpl extends BaseService implements WarehouseService {
 
     private final WarehouseRepository warehouseRepository;
     private final ModelMapper modelMapper;
@@ -85,11 +88,22 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public Page<WarehouseDto> findAll(Pageable pageable, String search) {
         Page<Warehouse> warehouses;
+
         if (search != null && !search.trim().isEmpty()) {
-            warehouses = warehouseRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Warehouse> specification = buildGlobalSearchSpec(Warehouse.class, search);
+
+            List<Warehouse> filteredWarehouses = warehouseRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(warehouse -> !warehouse.isDeleted())
+                    .toList();
+
+            warehouses = new PageImpl<>(filteredWarehouses, pageable, filteredWarehouses.size());
+
         } else {
             warehouses = warehouseRepository.findByDeletedFalse(pageable);
         }
+
         return warehouses.map(warehouse -> modelMapper.map(warehouse, WarehouseDto.class));
     }
 }

@@ -32,7 +32,9 @@ public class PosUserDetailsService implements UserDetailsService {
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
-        authorities.add(new SimpleGrantedAuthority(userDto.getRoles().get(0)));
+        for(String authority : userDto.getRoles()) {
+            authorities.add(new SimpleGrantedAuthority(authority));
+        }
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(userDto.getUsername())

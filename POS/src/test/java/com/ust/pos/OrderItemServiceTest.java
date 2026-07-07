@@ -21,6 +21,9 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+
 @ExtendWith(MockitoExtension.class)
 class OrderItemServiceTest {
 
@@ -39,37 +42,30 @@ class OrderItemServiceTest {
         dto.setOrderIdentifier("ORD1");
         dto.setProduct("P1");
 
-        String identifier = "ORD1_P1";
+        OrderItem item = new OrderItem();
+        OrderItemDto mappedDto = new OrderItemDto();
 
-        OrderItem savedItem = new OrderItem();
-        savedItem.setIdentifier(identifier);
-
-        OrderItemDto responseDto = new OrderItemDto();
-
-        Mockito.when(orderItemRepository.findByIdentifier(identifier))
+        Mockito.when(orderItemRepository.findByIdentifier("ORD1_P1"))
                 .thenReturn(null)
-                .thenReturn(savedItem);
+                .thenReturn(item);
 
-        Mockito.doAnswer(invocation -> {
-                    OrderItem target = invocation.getArgument(1);
-                    target.setIdentifier(identifier);
-                    return null;
-                }).when(modelMapper)
-                .map(Mockito.eq(dto), Mockito.any(OrderItem.class));
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(eq(dto), any(OrderItem.class));
 
-        Mockito.when(modelMapper.map(savedItem, OrderItemDto.class))
-                .thenReturn(responseDto);
+        Mockito.when(modelMapper.map(any(OrderItem.class), eq(OrderItemDto.class)))
+                .thenReturn(mappedDto);
 
         OrderItemDto response = orderItemService.save(dto);
 
-        Assertions.assertEquals(identifier, dto.getIdentifier());
         Assertions.assertNotNull(response);
+        Assertions.assertEquals("ORD1_P1", dto.getIdentifier());
 
         Mockito.verify(modelMapper)
-                .map(Mockito.eq(dto), Mockito.any(OrderItem.class));
+                .map(eq(dto), any(OrderItem.class));
 
         Mockito.verify(orderItemRepository)
-                .save(Mockito.any(OrderItem.class));
+                .save(any(OrderItem.class));
     }
 
     @Test
@@ -78,29 +74,25 @@ class OrderItemServiceTest {
         dto.setOrderIdentifier("ORD1");
         dto.setProduct("P1");
 
-        String identifier = "ORD1_P1";
+        OrderItem item = new OrderItem();
+        OrderItemDto mappedDto = new OrderItemDto();
 
-        OrderItem existing = new OrderItem();
-        existing.setIdentifier(identifier);
+        Mockito.when(orderItemRepository.findByIdentifier("ORD1_P1"))
+                .thenReturn(item);
 
-        Mockito.when(orderItemRepository.findByIdentifier(identifier))
-                .thenReturn(existing)
-                .thenReturn(existing);
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(dto, item);
 
-        Mockito.doNothing().when(modelMapper)
-                .map(Mockito.eq(dto), Mockito.any(OrderItem.class));
-
-        Mockito.when(modelMapper.map(existing, OrderItemDto.class))
-                .thenReturn(new OrderItemDto());
+        Mockito.when(modelMapper.map(item, OrderItemDto.class))
+                .thenReturn(mappedDto);
 
         OrderItemDto response = orderItemService.save(dto);
 
         Assertions.assertNotNull(response);
 
-        Mockito.verify(modelMapper)
-                .map(Mockito.eq(dto), Mockito.any(OrderItem.class));
-
-        Mockito.verify(orderItemRepository).save(existing);
+        Mockito.verify(modelMapper).map(dto, item);
+        Mockito.verify(orderItemRepository).save(item);
     }
 
     @Test
@@ -109,26 +101,23 @@ class OrderItemServiceTest {
         dto.setIdentifier("ORD1_P1");
 
         OrderItem item = new OrderItem();
-        item.setIdentifier("ORD1_P1");
-
-        OrderItemDto responseDto = new OrderItemDto();
+        OrderItemDto mappedDto = new OrderItemDto();
 
         Mockito.when(orderItemRepository.findByIdentifier("ORD1_P1"))
                 .thenReturn(item);
 
-        Mockito.doNothing().when(modelMapper)
-                .map(Mockito.eq(dto), Mockito.any(OrderItem.class));
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(dto, item);
 
         Mockito.when(modelMapper.map(item, OrderItemDto.class))
-                .thenReturn(responseDto);
+                .thenReturn(mappedDto);
 
         OrderItemDto response = orderItemService.update(dto);
 
         Assertions.assertNotNull(response);
 
-        Mockito.verify(modelMapper)
-                .map(Mockito.eq(dto), Mockito.any(OrderItem.class));
-
+        Mockito.verify(modelMapper).map(dto, item);
         Mockito.verify(orderItemRepository).save(item);
     }
 
@@ -143,7 +132,11 @@ class OrderItemServiceTest {
         OrderItemDto response = orderItemService.update(dto);
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertNotNull(response.getMessage());
+        Assertions.assertEquals(
+                "OrderItem not found - ORD1_P1",
+                response.getMessage()
+        );
+
         Mockito.verify(orderItemRepository, Mockito.never())
                 .save(Mockito.any());
     }
@@ -163,10 +156,12 @@ class OrderItemServiceTest {
 
         Mockito.when(orderItemRepository.findByIdentifier("ORD1_P1"))
                 .thenReturn(item);
+
         Mockito.when(modelMapper.map(item, OrderItemDto.class))
                 .thenReturn(dto);
 
-        OrderItemDto response = orderItemService.findByIdentifier("ORD1_P1");
+        OrderItemDto response =
+                orderItemService.findByIdentifier("ORD1_P1");
 
         Assertions.assertNotNull(response);
     }
@@ -176,10 +171,14 @@ class OrderItemServiceTest {
         Mockito.when(orderItemRepository.findByIdentifier("ORD1_P1"))
                 .thenReturn(null);
 
-        OrderItemDto response = orderItemService.findByIdentifier("ORD1_P1");
+        OrderItemDto response =
+                orderItemService.findByIdentifier("ORD1_P1");
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("OrderItem not found", response.getMessage());
+        Assertions.assertEquals(
+                "OrderItem not found",
+                response.getMessage()
+        );
     }
 
     @Test
@@ -187,12 +186,13 @@ class OrderItemServiceTest {
         List<OrderItem> items = List.of(new OrderItem());
         List<OrderItemDto> dtos = List.of(new OrderItemDto());
 
-        Type type = new TypeToken<List<OrderItemDto>>() {
+        Type listType = new TypeToken<List<OrderItemDto>>() {
         }.getType();
 
         Mockito.when(orderItemRepository.findAll())
                 .thenReturn(items);
-        Mockito.when(modelMapper.map(items, type))
+
+        Mockito.when(modelMapper.map(items, listType))
                 .thenReturn(dtos);
 
         List<OrderItemDto> response = orderItemService.findAll();
@@ -203,20 +203,26 @@ class OrderItemServiceTest {
     @Test
     void findAllPaginationTest() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<OrderItem> page = new PageImpl<>(List.of(new OrderItem()));
 
-        Type type = new TypeToken<List<OrderItemDto>>() {
+        List<OrderItem> items = List.of(new OrderItem());
+        Page<OrderItem> page = new PageImpl<>(items);
+
+        Type listType = new TypeToken<List<OrderItemDto>>() {
         }.getType();
 
         Mockito.when(orderItemRepository.findAll(pageable))
                 .thenReturn(page);
-        Mockito.when(modelMapper.map(page.getContent(), type))
+
+        Mockito.when(modelMapper.map(items, listType))
                 .thenReturn(List.of(new OrderItemDto()));
 
-        List<OrderItemDto> response = orderItemService.findAll(pageable);
+        List<OrderItemDto> response =
+                orderItemService.findAll(pageable);
 
         Assertions.assertEquals(1, response.size());
-        Mockito.verify(orderItemRepository).findAll(pageable);
+
+        Mockito.verify(orderItemRepository)
+                .findAll(pageable);
     }
 
     @Test
@@ -224,15 +230,17 @@ class OrderItemServiceTest {
         List<OrderItem> items = List.of(new OrderItem());
         List<OrderItemDto> dtos = List.of(new OrderItemDto());
 
-        Type type = new TypeToken<List<OrderItemDto>>() {
+        Type listType = new TypeToken<List<OrderItemDto>>() {
         }.getType();
 
         Mockito.when(orderItemRepository.findByOrderIdentifier("ORD1"))
                 .thenReturn(items);
-        Mockito.when(modelMapper.map(items, type))
+
+        Mockito.when(modelMapper.map(items, listType))
                 .thenReturn(dtos);
 
-        List<OrderItemDto> response = orderItemService.findByOrderIdentifier("ORD1");
+        List<OrderItemDto> response =
+                orderItemService.findByOrderIdentifier("ORD1");
 
         Assertions.assertEquals(1, response.size());
     }

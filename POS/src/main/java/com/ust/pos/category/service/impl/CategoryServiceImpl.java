@@ -4,11 +4,14 @@ import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
+import com.ust.pos.service.BaseService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -16,7 +19,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl extends BaseService implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
@@ -93,11 +96,22 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Page<CategoryDto> findAll(Pageable pageable, String search) {
         Page<Category> categories;
+
         if (search != null && !search.trim().isEmpty()) {
-            categories = categoryRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Category> specification = buildGlobalSearchSpec(Category.class, search);
+
+            List<Category> filteredCategories = categoryRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(category -> !category.isDeleted())
+                    .toList();
+
+            categories = new PageImpl<>(filteredCategories, pageable, filteredCategories.size());
+
         } else {
             categories = categoryRepository.findByDeletedFalse(pageable);
         }
+
         return categories.map(category -> modelMapper.map(category, CategoryDto.class));
     }
 }

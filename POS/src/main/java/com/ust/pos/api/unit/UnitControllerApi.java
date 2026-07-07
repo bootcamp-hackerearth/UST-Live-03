@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,11 +30,13 @@ public class UnitControllerApi extends BaseController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<UnitDto> all() {
         return unitService.findAll();
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public WsDto<UnitDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(), paginationDto.getSortField());
@@ -47,21 +50,25 @@ public class UnitControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public UnitDto addPost(@RequestBody UnitDto unitDto) {
         return unitService.save(unitDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public UnitDto update(@RequestParam String identifier) {
         return unitService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
@@ -72,6 +79,7 @@ public class UnitControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean toggleStatus(@RequestParam String identifier) {
         try {
             unitService.toggleStatus(identifier);

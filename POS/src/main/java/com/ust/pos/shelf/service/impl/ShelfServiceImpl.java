@@ -3,11 +3,14 @@ package com.ust.pos.shelf.service.impl;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
+import com.ust.pos.service.BaseService;
 import com.ust.pos.shelf.service.ShelfService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +20,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class ShelfServiceImpl implements ShelfService {
+public class ShelfServiceImpl extends BaseService implements ShelfService {
 
     private final ModelMapper modelMapper;
     private final ShelfRepository shelfRepository;
@@ -107,11 +110,22 @@ public class ShelfServiceImpl implements ShelfService {
     @Override
     public Page<ShelfDto> findAll(Pageable pageable, String search) {
         Page<Shelf> shelfs;
+
         if (search != null && !search.trim().isEmpty()) {
-            shelfs = shelfRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Shelf> specification = buildGlobalSearchSpec(Shelf.class, search);
+
+            List<Shelf> filteredShelfs = shelfRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(shelf -> !shelf.isDeleted())
+                    .toList();
+
+            shelfs = new PageImpl<>(filteredShelfs, pageable, filteredShelfs.size());
+
         } else {
             shelfs = shelfRepository.findByDeletedFalse(pageable);
         }
+
         return shelfs.map(shelf -> modelMapper.map(shelf, ShelfDto.class));
     }
 }

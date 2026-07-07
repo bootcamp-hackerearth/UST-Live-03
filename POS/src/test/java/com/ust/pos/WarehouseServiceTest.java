@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -285,15 +286,13 @@ class WarehouseServiceTest {
         WarehouseDto dto = new WarehouseDto();
         dto.setIdentifier("WH1");
 
-        Page<Warehouse> page =
-                new PageImpl<>(List.of(warehouse));
+        Page<Warehouse> page = new PageImpl<>(List.of(warehouse));
 
         Mockito.when(
-                warehouseRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "WH1",
-                                pageable
-                        )
+                warehouseRepository.findAll(
+                        Mockito.<Specification<Warehouse>>any(),
+                        Mockito.eq(pageable)
+                )
         ).thenReturn(page);
 
         Mockito.when(
@@ -303,6 +302,7 @@ class WarehouseServiceTest {
         Page<WarehouseDto> response =
                 warehouseService.findAll(pageable, "WH1");
 
+        Assertions.assertNotNull(response);
         Assertions.assertEquals(
                 1,
                 response.getContent().size()
@@ -316,9 +316,9 @@ class WarehouseServiceTest {
         );
 
         Mockito.verify(warehouseRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "WH1",
-                        pageable
+                .findAll(
+                        Mockito.<Specification<Warehouse>>any(),
+                        Mockito.eq(pageable)
                 );
     }
 }

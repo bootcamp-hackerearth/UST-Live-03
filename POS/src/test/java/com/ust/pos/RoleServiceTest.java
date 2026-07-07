@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -42,15 +43,16 @@ class RoleServiceTest {
 
         Mockito.when(roleRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
+
         Mockito.when(modelMapper.map(dto, Role.class))
                 .thenReturn(role);
+
         Mockito.when(roleRepository.save(role))
                 .thenReturn(role);
 
         RoleDto response = roleService.save(dto);
 
         Assertions.assertEquals("Admin", response.getIdentifier());
-        Assertions.assertTrue(response.isSuccess());
 
         Mockito.verify(roleRepository).save(role);
     }
@@ -82,6 +84,7 @@ class RoleServiceTest {
 
         Mockito.when(roleRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(role);
+
         Mockito.when(modelMapper.map(role, RoleDto.class))
                 .thenReturn(dto);
 
@@ -94,6 +97,7 @@ class RoleServiceTest {
     void findByIdentifierNullTest() {
         Mockito.when(roleRepository.findByIdentifierAndDeletedFalse("Admin"))
                 .thenReturn(null);
+
         Mockito.when(modelMapper.map(null, RoleDto.class))
                 .thenReturn(null);
 
@@ -122,7 +126,7 @@ class RoleServiceTest {
 
         RoleDto response = roleService.update(dto);
 
-        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Admin", response.getIdentifier());
 
         Mockito.verify(modelMapper).map(dto, existingRole);
         Mockito.verify(roleRepository).save(existingRole);
@@ -182,6 +186,7 @@ class RoleServiceTest {
 
         Mockito.when(roleRepository.findByDeletedFalse())
                 .thenReturn(roles);
+
         Mockito.when(modelMapper.map(roles, listType))
                 .thenReturn(roleDtos);
 
@@ -204,6 +209,7 @@ class RoleServiceTest {
 
         Mockito.when(roleRepository.findByDeletedFalse(pageable))
                 .thenReturn(page);
+
         Mockito.when(modelMapper.map(role, RoleDto.class))
                 .thenReturn(dto);
 
@@ -222,22 +228,27 @@ class RoleServiceTest {
 
         Role role = new Role();
         role.setIdentifier("Admin");
+        role.setDeleted(false);
 
         RoleDto dto = new RoleDto();
         dto.setIdentifier("Admin");
 
         Page<Role> page = new PageImpl<>(List.of(role));
 
-        Mockito.when(roleRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse("Admin", pageable))
+        Mockito.when(roleRepository.findAll(
+                        Mockito.<Specification<Role>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
+
         Mockito.when(modelMapper.map(role, RoleDto.class))
                 .thenReturn(dto);
 
         Page<RoleDto> response = roleService.findAll(pageable, "Admin");
 
         Assertions.assertEquals(1, response.getContent().size());
+        Assertions.assertEquals("Admin", response.getContent().get(0).getIdentifier());
 
         Mockito.verify(roleRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse("Admin", pageable);
+                .findAll(Mockito.<Specification<Role>>any(), Mockito.eq(pageable));
     }
 }

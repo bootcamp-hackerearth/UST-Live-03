@@ -12,10 +12,12 @@ import com.ust.pos.model.OrderItemRepository;
 import com.ust.pos.model.OrderRepository;
 import com.ust.pos.model.OrderStatus;
 import com.ust.pos.order.service.OrderService;
+import com.ust.pos.service.BaseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +29,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl extends BaseService implements OrderService {
 
     private final CartRepository cartRepository;
     private final CartEntryService cartEntryService;
@@ -179,13 +181,12 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Page<OrderDto> findAll(Pageable pageable, String search) {
         Page<Order> orders;
-
         if (search != null && !search.trim().isEmpty()) {
-            orders = orderRepository.findByIdentifierContainingIgnoreCase(pageable, search);
+            Specification<Order> specification = buildGlobalSearchSpec(Order.class, search);
+            orders = orderRepository.findAll(specification, pageable);
         } else {
             orders = orderRepository.findAll(pageable);
         }
-
         return orders.map(order -> modelMapper.map(order, OrderDto.class));
     }
 

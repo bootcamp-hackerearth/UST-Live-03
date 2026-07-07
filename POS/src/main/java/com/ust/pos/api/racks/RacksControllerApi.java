@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.racks.service.RacksService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,11 +30,13 @@ public class RacksControllerApi extends BaseController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<RacksDto> all() {
         return racksService.findAll();
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public WsDto<RacksDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(), paginationDto.getSortField());
@@ -47,21 +50,25 @@ public class RacksControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public RacksDto addPost(@RequestBody RacksDto racksDto) {
         return racksService.save(racksDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public RacksDto update(@RequestParam String identifier) {
         return racksService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public RacksDto updatePost(@RequestBody RacksDto racksDto) {
         return racksService.update(racksDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);
@@ -72,6 +79,7 @@ public class RacksControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean toggleStatus(@RequestParam String identifier) {
         try {
             racksService.toggleStatus(identifier);

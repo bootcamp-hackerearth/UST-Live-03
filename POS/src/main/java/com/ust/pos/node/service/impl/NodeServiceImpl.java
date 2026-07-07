@@ -6,11 +6,14 @@ import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
+import com.ust.pos.service.BaseService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -23,7 +26,7 @@ import java.util.Set;
 
 @Service
 @Transactional
-public class NodeServiceImpl implements NodeService {
+public class NodeServiceImpl extends BaseService implements NodeService {
 
     private final UserRepository userRepository;
     private final NodeRepository nodeRepository;
@@ -125,11 +128,22 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public Page<NodeDto> findAll(Pageable pageable, String search) {
         Page<Node> nodes;
+
         if (search != null && !search.trim().isEmpty()) {
-            nodes = nodeRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Node> specification = buildGlobalSearchSpec(Node.class, search);
+
+            List<Node> filteredNodes = nodeRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(node -> !node.isDeleted())
+                    .toList();
+
+            nodes = new PageImpl<>(filteredNodes, pageable, filteredNodes.size());
+
         } else {
             nodes = nodeRepository.findByDeletedFalse(pageable);
         }
+
         return nodes.map(node -> modelMapper.map(node, NodeDto.class));
     }
 }

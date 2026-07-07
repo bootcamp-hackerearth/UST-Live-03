@@ -63,10 +63,6 @@ const CommonList = ({
     return () => clearTimeout(timer);
   }, [localSearch]);
 
-  if (loading && safeData.length === 0) {
-    return <div>Loading...</div>;
-  }
-
   if (error) {
     return (
       <div style={{ color: "red" }}>

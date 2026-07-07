@@ -7,6 +7,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,11 +30,13 @@ public class BrandControllerApi extends BaseController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<BrandDto> all() {
         return brandService.findAll();
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),
                 paginationDto.getSizePerPage(), paginationDto.getSortField());
@@ -47,21 +50,25 @@ public class BrandControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public BrandDto addPost(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public BrandDto update(@RequestParam String identifier) {
         return brandService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -72,6 +79,7 @@ public class BrandControllerApi extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean toggleStatus(@RequestParam String identifier) {
         try {
             brandService.toggleStatus(identifier);

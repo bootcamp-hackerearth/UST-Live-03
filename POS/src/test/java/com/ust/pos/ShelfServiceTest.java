@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -234,12 +235,39 @@ class ShelfServiceTest {
         Page<ShelfDto> response = shelfService.findAll(pageable, null);
 
         Assertions.assertEquals(1, response.getContent().size());
-        Assertions.assertEquals(
-                "S1",
-                response.getContent().get(0).getIdentifier()
-        );
+        Assertions.assertEquals("S1", response.getContent().get(0).getIdentifier());
 
         Mockito.verify(shelfRepository)
                 .findByDeletedFalse(pageable);
+    }
+
+    @Test
+    void findAllWithSearchTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("S1");
+        shelf.setDeleted(false);
+
+        ShelfDto dto = new ShelfDto();
+        dto.setIdentifier("S1");
+
+        Page<Shelf> page = new PageImpl<>(List.of(shelf));
+
+        Mockito.when(shelfRepository.findAll(
+                        Mockito.<Specification<Shelf>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
+
+        Mockito.when(modelMapper.map(shelf, ShelfDto.class))
+                .thenReturn(dto);
+
+        Page<ShelfDto> response = shelfService.findAll(pageable, "S1");
+
+        Assertions.assertEquals(1, response.getContent().size());
+        Assertions.assertEquals("S1", response.getContent().get(0).getIdentifier());
+
+        Mockito.verify(shelfRepository)
+                .findAll(Mockito.<Specification<Shelf>>any(), Mockito.eq(pageable));
     }
 }

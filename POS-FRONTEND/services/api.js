@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken } from "@/utils/auth";
  
 const api = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: "/",
   headers: {
     "Content-Type": "application/json",
   },
@@ -156,7 +156,7 @@ export const loginUser = async (username, password) => {
  
 export const registerUser = async (userData) => {
   const response = await api.post(
-    "/register",
+    "/api/register",
     userData
   );
  

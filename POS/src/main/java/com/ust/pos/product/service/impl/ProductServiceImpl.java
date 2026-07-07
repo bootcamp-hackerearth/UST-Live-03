@@ -4,11 +4,14 @@ import com.ust.pos.dto.ProductDto;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
+import com.ust.pos.service.BaseService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -16,7 +19,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl extends BaseService implements ProductService {
 
     private final ModelMapper modelMapper;
     private final ProductRepository productRepository;
@@ -92,11 +95,22 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDto> findAll(Pageable pageable, String search) {
         Page<Product> products;
+
         if (search != null && !search.trim().isEmpty()) {
-            products = productRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Product> specification = buildGlobalSearchSpec(Product.class, search);
+
+            List<Product> filteredProducts = productRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(product -> !product.isDeleted())
+                    .toList();
+
+            products = new PageImpl<>(filteredProducts, pageable, filteredProducts.size());
+
         } else {
             products = productRepository.findByDeletedFalse(pageable);
         }
+
         return products.map(product -> modelMapper.map(product, ProductDto.class));
     }
 }

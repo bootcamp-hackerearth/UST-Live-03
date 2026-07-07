@@ -4,11 +4,14 @@ import com.ust.pos.dto.RoleDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
+import com.ust.pos.service.BaseService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -16,7 +19,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class RoleServiceImpl implements RoleService {
+public class RoleServiceImpl extends BaseService implements RoleService {
 
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
@@ -83,11 +86,22 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Page<RoleDto> findAll(Pageable pageable, String search) {
         Page<Role> roles;
+
         if (search != null && !search.trim().isEmpty()) {
-            roles = roleRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Role> specification = buildGlobalSearchSpec(Role.class, search);
+
+            List<Role> filteredRoles = roleRepository.findAll(specification, pageable)
+                    .getContent()
+                    .stream()
+                    .filter(role -> !role.isDeleted())
+                    .toList();
+
+            roles = new PageImpl<>(filteredRoles, pageable, filteredRoles.size());
+
         } else {
             roles = roleRepository.findByDeletedFalse(pageable);
         }
+
         return roles.map(role -> modelMapper.map(role, RoleDto.class));
     }
 }

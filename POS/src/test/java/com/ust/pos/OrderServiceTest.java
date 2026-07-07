@@ -218,8 +218,11 @@ class OrderServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Order> page = new PageImpl<>(List.of(new Order()));
 
-        Mockito.when(orderRepository.findByIdentifierContainingIgnoreCase(pageable, "ORD"))
-                .thenReturn(page);
+        Mockito.when(orderRepository.findAll(
+                Mockito.any(org.springframework.data.jpa.domain.Specification.class),
+                Mockito.eq(pageable)
+        )).thenReturn(page);
+
         Mockito.when(modelMapper.map(
                         Mockito.any(Order.class),
                         Mockito.eq(OrderDto.class)))
@@ -230,7 +233,10 @@ class OrderServiceTest {
         Assertions.assertEquals(1, response.getContent().size());
 
         Mockito.verify(orderRepository)
-                .findByIdentifierContainingIgnoreCase(pageable, "ORD");
+                .findAll(
+                        Mockito.any(org.springframework.data.jpa.domain.Specification.class),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test
