@@ -12,6 +12,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/warehouse")
 public class WarehouseControllerApi extends BaseController {
@@ -49,6 +51,7 @@ public class WarehouseControllerApi extends BaseController {
     public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
+
     @PutMapping("/update")
     @PreAuthorize("hasAnyAuthority('Manager','Admin')")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
@@ -57,12 +60,22 @@ public class WarehouseControllerApi extends BaseController {
 
     @DeleteMapping("/delete")
     @PreAuthorize("hasAnyAuthority('Manager','Admin')")
-    public Boolean delete(@RequestBody WarehouseDto warehouseDto) {
-        try {
-            warehouseService.delete(warehouseDto.getIdentifier());
-        } catch (Exception e) {
-            return false;
-        }
-        return true;
+    public WarehouseDto delete(@RequestBody WarehouseDto warehouseDto) {
+        warehouseService.delete(warehouseDto.getIdentifier());
+        WarehouseDto response = new WarehouseDto();
+        response.setSuccess(true);
+        response.setMessage("Warehouse deleted successfully");
+        return response;
+    }
+
+    @PatchMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('Manager','Admin')")
+    public WarehouseDto toggle(@RequestBody WarehouseDto warehouseDto) {
+        return warehouseService.toggleStatus(warehouseDto.getIdentifier());
+    }
+
+    @GetMapping("/active")
+    public List<WarehouseDto> getActiveWarehouses() {
+        return warehouseService.findActiveWarehouses();
     }
 }
