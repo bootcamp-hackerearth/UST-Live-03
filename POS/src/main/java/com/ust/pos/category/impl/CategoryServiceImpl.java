@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -41,7 +42,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         Category existing = categoryRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.isDeleted()) {
+            if (!existing.getDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage("Category with identifier '" + identifier + "' already exists");
                 return dto;
@@ -82,7 +83,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
             return dto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             dto.setSuccess(false);
             dto.setMessage(CATEGORY_WITH_IDENTIFIER + identifier + " was previously deleted. Please contact backend team to restore.");
             return dto;
@@ -143,6 +144,22 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
         return wsDto;
     }
+    @Override
+    public WsDto<CategoryDto> findAll(Specification<Category> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        Page<Category> page = categoryRepository.findAll(example, pageable);
+
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
 
     @Override
     public List<CategoryDto> findChildCategories() {
@@ -167,7 +184,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
             return dto;
         }
 
-        category.setStatus(!category.isStatus());
+        category.setStatus(!category.getStatus());
         setAuditFields(category, false);
 
         categoryRepository.save(category);

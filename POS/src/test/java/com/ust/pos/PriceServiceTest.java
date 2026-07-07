@@ -146,7 +146,7 @@ class PriceServiceTest {
     }
 
     @Test
-    void testUpdate_WhenPriceIsDeleted() {
+    void testUpdate_WhenPricegetDeleted() {
         priceEntity.setDeleted(true);
         when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
 
@@ -203,7 +203,7 @@ class PriceServiceTest {
         priceService.delete("PRC-001");
 
         verify(priceRepository, times(1)).save(priceEntity);
-        assertTrue(priceEntity.isDeleted());
+        assertTrue(priceEntity.getDeleted());
     }
 
     @Test
@@ -241,7 +241,7 @@ class PriceServiceTest {
         PriceDto result = priceService.toggleStatus("PRC-001");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.ust.pos.product.service.impl;
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -32,7 +34,11 @@ public class ProductServiceImpl extends CommonService implements ProductService 
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
-        return modelMapper.map(productRepository.findByIdentifier(identifier), ProductDto.class);
+        Product product =productRepository.findByIdentifier(identifier);
+        if(product==null){
+            throw new ResourceNotFoundException("Data Cannot Found");
+        }
+        return modelMapper.map(product, ProductDto.class);
     }
 
     @Override
@@ -46,7 +52,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
         Product existing = productRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.isDeleted()) {
+            if (!existing.getDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage(PRODUCT_WITH_IDENTIFIER + identifier + " already exists");
                 return dto;
@@ -82,7 +88,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
             return dto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             dto.setSuccess(false);
             dto.setMessage(PRODUCT_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");
@@ -131,6 +137,23 @@ public class ProductServiceImpl extends CommonService implements ProductService 
     }
 
     @Override
+    public WsDto<ProductDto> findAll(Specification<Product> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Product> page = productRepository.findAll(example, pageable);
+
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
+
+    @Override
     public ProductDto toggleStatus(String identifier) {
 
         Product product = productRepository.findByIdentifier(identifier);
@@ -142,7 +165,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
             return dto;
         }
 
-        product.setStatus(!product.isStatus());
+        product.setStatus(!product.getStatus());
         setAuditFields(product, false);
 
         productRepository.save(product);

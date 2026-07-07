@@ -3,6 +3,7 @@ package com.ust.pos.price.service.impl;
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -32,7 +34,11 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-        return modelMapper.map(priceRepository.findByIdentifier(identifier), PriceDto.class);
+        Price price =priceRepository.findByIdentifier(identifier);
+        if(price==null){
+            throw new ResourceNotFoundException("Data Cannot Found");
+        }
+        return modelMapper.map(price, PriceDto.class);
     }
 
     @Override
@@ -52,7 +58,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
         Price existingByProduct = priceRepository.findByProductIdentifier(dto.getProductIdentifier());
 
-        if (existingByProduct != null && !existingByProduct.isDeleted()) {
+        if (existingByProduct != null && !existingByProduct.getDeleted()) {
             dto.setSuccess(false);
             dto.setMessage("ProductIdentifier already exists: " + dto.getProductIdentifier());
             return dto;
@@ -61,7 +67,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
         Price existing = priceRepository.findByIdentifier(dto.getIdentifier());
 
         if (existing != null) {
-            if (!existing.isDeleted()) {
+            if (!existing.getDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage(PRICE_WITH_IDENTIFIER + dto.getIdentifier() + " already exists");
                 return dto;
@@ -97,7 +103,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
             return dto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             dto.setSuccess(false);
             dto.setMessage(PRICE_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");
@@ -109,7 +115,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
             Price conflict = priceRepository.findByProductIdentifier(dto.getProductIdentifier());
 
-            if (conflict != null && !conflict.isDeleted()) {
+            if (conflict != null && !conflict.getDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage("ProductIdentifier already exists: " + dto.getProductIdentifier());
                 return dto;
@@ -156,6 +162,22 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
         return wsDto;
     }
+    @Override
+    public WsDto<PriceDto> findAll(Specification<Price> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        Page<Price> page = priceRepository.findAll(example, pageable);
+
+        WsDto<PriceDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
 
     @Override
     public PriceDto toggleStatus(String identifier) {
@@ -169,7 +191,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
             return dto;
         }
 
-        price.setStatus(!price.isStatus());
+        price.setStatus(!price.getStatus());
         setAuditFields(price, false);
 
         priceRepository.save(price);

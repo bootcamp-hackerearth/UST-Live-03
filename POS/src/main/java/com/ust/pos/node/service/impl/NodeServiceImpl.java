@@ -3,6 +3,7 @@ package com.ust.pos.node.service.impl;
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -13,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -38,7 +40,11 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+        Node node =nodeRepository.findByIdentifier(identifier);
+        if(node==null){
+            throw new ResourceNotFoundException("Data Cannot Found");
+        }
+        return modelMapper.map(node, NodeDto.class);
     }
 
     @Override
@@ -52,7 +58,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
         Node existingNode = nodeRepository.findByIdentifier(identifier);
 
         if (existingNode != null) {
-            if (!existingNode.isDeleted()) {
+            if (!existingNode.getDeleted()) {
                 nodeDto.setMessage("Node with identifier '" + identifier + "' already exists");
                 nodeDto.setSuccess(false);
                 return nodeDto;
@@ -81,7 +87,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
             nodeDto.setSuccess(false);
             return nodeDto;
         }
-        if (existingNode.isDeleted()) {
+        if (existingNode.getDeleted()) {
             nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " was previously deleted. " + "Please contact backend team to restore.");
             nodeDto.setSuccess(false);
             return nodeDto;
@@ -116,6 +122,23 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
         return nodeWsDto;
     }
+    
+    @Override
+    public WsDto<NodeDto> findAll(Specification<Node> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> page = nodeRepository.findAll(example, pageable);
+
+        WsDto<NodeDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
 
     public List<NodeDto> getNodesForRoles() {
         List<NodeDto> nodeDtos = new ArrayList<>();
@@ -146,7 +169,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
     @Override
     public NodeDto toggleStatus(String identifier) {
         Node node = nodeRepository.findByIdentifier(identifier);
-        node.setStatus(!node.isStatus());
+        node.setStatus(!node.getStatus());
         setAuditFields(node, false);
         nodeRepository.save(node);
         return modelMapper.map(node, NodeDto.class);

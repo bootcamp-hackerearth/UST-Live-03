@@ -2,6 +2,7 @@ package com.ust.pos.model;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,4 +16,6 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
     List<Brand> findByStatusIsTrueAndDeletedFalse();
 
     Page<Brand> findByDeletedFalse(Pageable pageable);
+
+    Page<Brand> findAll(Specification<Brand> example, Pageable pageable);
 }

@@ -3,7 +3,9 @@ package com.ust.pos.customer.service;
 
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -19,6 +21,8 @@ public interface CustomerService {
 
     WsDto<CustomerDto> findAll(Pageable pageable);
 
+    WsDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable);
+
     CustomerDto findById(String identifier);
 
     CustomerDto findByIdentifierWithAddressDto(String phoneNo);
@@ -26,6 +30,4 @@ public interface CustomerService {
     CustomerDto toggleStatus(String identifier);
 
     List<CustomerDto> findIfTrue();
-
-    List<CustomerDto> searchCustomersFlexible(CustomerDto searchCriteria);
 }

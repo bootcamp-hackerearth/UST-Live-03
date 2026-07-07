@@ -28,7 +28,7 @@ class PosUserDetailsServiceTest {
         UserDto userDto = new UserDto();
         userDto.setUsername("admin@test.com");
         userDto.setPassword("encodedPassword");
-        userDto.setRoles(java.util.List.of("ROLE_ADMIN")); //
+        userDto.setRoles(java.util.List.of("ROLE_ADMIN"));
 
         Mockito.when(userService.findByUserName("admin@test.com"))
                 .thenReturn(userDto);

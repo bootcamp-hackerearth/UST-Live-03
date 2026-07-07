@@ -1,6 +1,5 @@
 package com.ust.pos.dto;
 
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,4 +17,5 @@ public class PaginationDto {
     private String sortField = "id";
     private int totalPages;
     private long totalRecords;
+    private String keyword;
 }

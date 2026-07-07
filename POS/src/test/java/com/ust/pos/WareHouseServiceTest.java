@@ -120,7 +120,7 @@ class WareHouseServiceTest {
     }
 
     @Test
-    void testUpdate_WhenWarehouseIsDeleted() {
+    void testUpdate_WhenWarehousegetDeleted() {
         warehouseEntity.setDeleted(true);
         when(warehouseRepository.findByIdentifier("WH-001")).thenReturn(warehouseEntity);
 
@@ -197,7 +197,7 @@ class WareHouseServiceTest {
         WarehouseDto result = warehouseService.toggleStatus("WH-001");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

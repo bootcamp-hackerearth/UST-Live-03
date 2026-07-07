@@ -88,7 +88,7 @@ class BrandServiceTest {
     }
 
     @Test
-    void testSave_WhenBrandAlreadyExistsButIsDeleted() {
+    void testSave_WhenBrandAlreadyExistsButgetDeleted() {
         brand.setDeleted(true);
         when(brandRepository.findByIdentifier("BRD-001")).thenReturn(brand);
 
@@ -124,7 +124,7 @@ class BrandServiceTest {
     }
 
     @Test
-    void testUpdate_WhenBrandIsDeleted() {
+    void testUpdate_WhenBrandgetDeleted() {
         brand.setDeleted(true);
         when(brandRepository.findByIdentifier("BRD-001")).thenReturn(brand);
 
@@ -216,7 +216,7 @@ class BrandServiceTest {
         BrandDto result = brandService.toggleStatus("BRD-001");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
         verify(brandRepository, times(1)).save(any(Brand.class));
     }
 }

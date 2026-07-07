@@ -4,9 +4,11 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Stock;
 import com.ust.pos.stock.service.StockService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,9 +27,13 @@ public class ApiStockController extends BaseController {
     @PostMapping("/list")
     public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto) {
 
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
-
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Stock> example = buildGlobalSearchSpec(Stock.class, paginationDto.getKeyword());
+            if (example != null) {
+                return stockService.findAll(example, pageable);
+            }
+        }
         return stockService.findAll(pageable);
     }
 
@@ -51,7 +57,7 @@ public class ApiStockController extends BaseController {
     }
 
     @DeleteMapping("/delete")
-    public boolean delete(Model model, @RequestParam String identifier) {
+    public boolean delete(Stock model, @RequestParam String identifier) {
         try {
             stockService.deleteByIdentifier(identifier);
         } catch (Exception e) {

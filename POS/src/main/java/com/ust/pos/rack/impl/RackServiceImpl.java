@@ -3,6 +3,7 @@ package com.ust.pos.rack.impl;
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -32,7 +34,11 @@ public class RackServiceImpl extends CommonService implements RackService {
 
     @Override
     public RackDto findByIdentifier(String identifier) {
-        return modelMapper.map(rackRepository.findByIdentifier(identifier), RackDto.class);
+        Rack rack =rackRepository.findByIdentifier(identifier);
+        if(rack==null){
+            throw new ResourceNotFoundException("Data Cannot Found");
+        }
+        return modelMapper.map(rack, RackDto.class);
     }
 
     @Override
@@ -46,7 +52,7 @@ public class RackServiceImpl extends CommonService implements RackService {
         Rack existingRack = rackRepository.findByIdentifier(identifier);
 
         if (existingRack != null) {
-            if (!existingRack.isDeleted()) {
+            if (!existingRack.getDeleted()) {
                 rackDto.setMessage("Rack with identifier '" + identifier + "' already exists");
                 rackDto.setSuccess(false);
                 return rackDto;
@@ -78,7 +84,7 @@ public class RackServiceImpl extends CommonService implements RackService {
             return dto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             dto.setSuccess(false);
             dto.setMessage(RACK_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");
@@ -127,6 +133,23 @@ public class RackServiceImpl extends CommonService implements RackService {
     }
 
     @Override
+    public WsDto<RackDto> findAll(Specification<Rack> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RackDto>>() {
+        }.getType();
+        Page<Rack> page = rackRepository.findAll(example, pageable);
+
+        WsDto<RackDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
+
+    @Override
     public RackDto toggleStatus(String identifier) {
 
         Rack rack = rackRepository.findByIdentifier(identifier);
@@ -138,7 +161,7 @@ public class RackServiceImpl extends CommonService implements RackService {
             return dto;
         }
 
-        rack.setStatus(!rack.isStatus());
+        rack.setStatus(!rack.getStatus());
         setAuditFields(rack, false);
 
         rackRepository.save(rack);

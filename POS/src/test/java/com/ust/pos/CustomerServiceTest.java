@@ -260,7 +260,7 @@ class CustomerServiceTest {
         CustomerDto result = customerService.toggleStatus("1234567890");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

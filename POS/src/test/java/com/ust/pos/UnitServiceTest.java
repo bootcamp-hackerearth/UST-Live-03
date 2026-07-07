@@ -120,7 +120,7 @@ class UnitServiceTest {
     }
 
     @Test
-    void testUpdate_WhenUnitIsDeleted() {
+    void testUpdate_WhenUnitgetDeleted() {
         unitEntity.setDeleted(true);
         when(unitRepository.findByIdentifier("UNT-KG")).thenReturn(unitEntity);
 
@@ -197,7 +197,7 @@ class UnitServiceTest {
         UnitDto result = unitService.toggleStatus("UNT-KG");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

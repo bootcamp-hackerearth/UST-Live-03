@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -51,7 +52,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         Brand existing = brandRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.isDeleted()) {
+            if (!existing.getDeleted()) {
                 dto.setMessage("Brand with identifier '" + identifier + "' already exists");
                 dto.setSuccess(false);
                 return dto;
@@ -86,7 +87,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
             return dto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             dto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " was previously deleted. Please contact backend team to restore.");
             dto.setSuccess(false);
             return dto;
@@ -129,6 +130,22 @@ public class BrandServiceImpl extends CommonService implements BrandService {
 
         return wsDto;
     }
+    @Override
+    public WsDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Page<Brand> page = brandRepository.findAll(example, pageable);
+
+        WsDto<BrandDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
 
     @Override
     public List<BrandDto> findIfTrue() {
@@ -152,7 +169,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
             return dto;
         }
 
-        brand.setStatus(!brand.isStatus());
+        brand.setStatus(!brand.getStatus());
         setAuditFields(brand, false);
 
         brandRepository.save(brand);

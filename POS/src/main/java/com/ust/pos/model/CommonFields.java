@@ -17,10 +17,10 @@ public class CommonFields {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String identifier;
-    private boolean status = true;
+    private Boolean status;
     private String createdBy;
     private LocalDateTime createdOn;
     private String modifiedBy;
     private LocalDateTime modifiedOn;
-    private boolean deleted = false;
+    private Boolean deleted;
 }

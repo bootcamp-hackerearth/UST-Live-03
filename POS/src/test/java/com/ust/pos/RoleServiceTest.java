@@ -120,7 +120,7 @@ class RoleServiceTest {
     }
 
     @Test
-    void testUpdate_WhenRoleIsDeleted() {
+    void testUpdate_WhenRolegetDeleted() {
         roleEntity.setDeleted(true);
         when(roleRepository.findByIdentifier("ROLE_USER")).thenReturn(roleEntity);
 
@@ -197,7 +197,7 @@ class RoleServiceTest {
         RoleDto result = roleService.toggleStatus("ROLE_USER");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

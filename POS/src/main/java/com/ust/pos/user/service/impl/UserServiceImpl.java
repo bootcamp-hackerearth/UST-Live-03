@@ -3,6 +3,7 @@ package com.ust.pos.user.service.impl;
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,12 +39,20 @@ public class UserServiceImpl extends CommonService implements UserService {
 
     @Override
     public UserDto findByUserName(String username) {
-        return modelMapper.map(userRepository.findByUsername(username), UserDto.class);
+        User user =userRepository.findByUsername(username);
+        if(user==null){
+            throw new ResourceNotFoundException("Data Cannot Found");
+        }
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
     public UserDto findByIdentifier(String identifier) {
-        return modelMapper.map(userRepository.findByIdentifier(identifier), UserDto.class);
+        User user =userRepository.findByIdentifier(identifier);
+        if(user==null){
+            throw new ResourceNotFoundException("Data Cannot Found");
+        }
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
@@ -56,7 +66,7 @@ public class UserServiceImpl extends CommonService implements UserService {
         User existing = userRepository.findByUsername(username);
 
         if (existing != null) {
-            if (!existing.isDeleted()) {
+            if (!existing.getDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage(USER_WITH_USERNAME + username + " already exists");
                 return dto;
@@ -91,7 +101,7 @@ public class UserServiceImpl extends CommonService implements UserService {
             return dto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             dto.setSuccess(false);
             dto.setMessage(USER_WITH_USERNAME + username + " was previously deleted. Please contact backend team to restore.");
             return dto;
@@ -153,6 +163,22 @@ public class UserServiceImpl extends CommonService implements UserService {
 
         return wsDto;
     }
+    @Override
+    public WsDto<UserDto> findAll(Specification<User> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> page = userRepository.findAll(example, pageable);
+
+        WsDto<UserDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
 
     @Override
     public UserDto toggleStatus(String identifier) {
@@ -166,7 +192,7 @@ public class UserServiceImpl extends CommonService implements UserService {
             return dto;
         }
 
-        user.setStatus(!user.isStatus());
+        user.setStatus(!user.getStatus());
         setAuditFields(user, false);
 
         userRepository.save(user);

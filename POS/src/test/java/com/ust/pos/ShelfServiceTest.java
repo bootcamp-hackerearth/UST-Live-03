@@ -120,7 +120,7 @@ class ShelfServiceTest {
     }
 
     @Test
-    void testUpdate_WhenShelfIsDeleted() {
+    void testUpdate_WhenShelfgetDeleted() {
         shelfEntity.setDeleted(true);
         when(shelfRepository.findByIdentifier("SHF-001")).thenReturn(shelfEntity);
 
@@ -197,7 +197,7 @@ class ShelfServiceTest {
         ShelfDto result = shelfService.toggleStatus("SHF-001");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

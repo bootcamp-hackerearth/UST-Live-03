@@ -125,7 +125,7 @@ class StockServiceTest {
     }
 
     @Test
-    void testUpdate_WhenStockIsDeleted() {
+    void testUpdate_WhenStockgetDeleted() {
         stockDto.setIdentifier(expectedIdentifier);
         stockEntity.setDeleted(true);
         when(stockRepository.findByIdentifier(expectedIdentifier)).thenReturn(stockEntity);
@@ -214,7 +214,7 @@ class StockServiceTest {
         StockDto result = stockService.toggleStatus(expectedIdentifier);
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

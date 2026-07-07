@@ -73,7 +73,6 @@ public class RackController {
         return REDIRECT_LIST;
     }
 
-
     @GetMapping("/delete")
     public String delete(@RequestParam String identifier, RedirectAttributes redirectAttributes) {
 

@@ -78,7 +78,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void testSave_WhenCategoryExistsAndIsDeleted() {
+    void testSave_WhenCategoryExistsAndgetDeleted() {
         category.setDeleted(true);
         when(categoryRepository.findByIdentifier("CAT-01")).thenReturn(category);
 
@@ -128,7 +128,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void testUpdate_WhenCategoryIsDeleted() {
+    void testUpdate_WhenCategorygetDeleted() {
         category.setDeleted(true);
         when(categoryRepository.findByIdentifier("CAT-01")).thenReturn(category);
 
@@ -253,7 +253,7 @@ class CategoryServiceTest {
         CategoryDto result = categoryService.toggleStatus("CAT-01");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 

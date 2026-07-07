@@ -102,7 +102,7 @@ class NodeServiceTest {
     }
 
     @Test
-    void testSave_WhenNodeExistsAndIsDeleted() {
+    void testSave_WhenNodeExistsAndgetDeleted() {
         nodeEntity.setDeleted(true);
         when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
 
@@ -137,7 +137,7 @@ class NodeServiceTest {
     }
 
     @Test
-    void testUpdate_WhenNodeIsDeleted() {
+    void testUpdate_WhenNodegetDeleted() {
         nodeEntity.setDeleted(true);
         when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
 
@@ -227,7 +227,7 @@ class NodeServiceTest {
         NodeDto result = nodeService.toggleStatus("NODE-01");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

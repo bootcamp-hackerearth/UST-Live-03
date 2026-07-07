@@ -144,7 +144,7 @@ class UserServiceTest {
     }
 
     @Test
-    void testUpdate_WhenUserIsDeleted() {
+    void testUpdate_WhenUsergetDeleted() {
         userEntity.setDeleted(true);
         when(userRepository.findByUsername("john_doe")).thenReturn(userEntity);
 
@@ -239,7 +239,7 @@ class UserServiceTest {
         UserDto result = userService.toggleStatus("USR-100");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

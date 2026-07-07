@@ -120,7 +120,7 @@ class RackServiceTest {
     }
 
     @Test
-    void testUpdate_WhenRackIsDeleted() {
+    void testUpdate_WhenRackgetDeleted() {
         rackEntity.setDeleted(true);
         when(rackRepository.findByIdentifier("RCK-101")).thenReturn(rackEntity);
 
@@ -197,7 +197,7 @@ class RackServiceTest {
         RackDto result = rackService.toggleStatus("RCK-101");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

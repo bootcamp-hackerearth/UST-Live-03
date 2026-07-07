@@ -3,6 +3,7 @@ package com.ust.pos.models.service.impl;
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.ModelService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -32,7 +34,11 @@ public class ModelServiceImpl extends CommonService implements ModelService {
 
     @Override
     public ModelDto findByIdentifier(String identifier) {
-        return modelMapper.map(modelRepository.findByIdentifier(identifier), ModelDto.class);
+        Model model =modelRepository.findByIdentifier(identifier);
+        if(model==null){
+            throw new ResourceNotFoundException("Data Cannot Found");
+        }
+        return modelMapper.map(model, ModelDto.class);
     }
 
     @Override
@@ -46,7 +52,7 @@ public class ModelServiceImpl extends CommonService implements ModelService {
         Model existing = modelRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.isDeleted()) {
+            if (!existing.getDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage(MODEL_WITH_IDENTIFIER + identifier + " already exists");
                 return dto;
@@ -81,7 +87,7 @@ public class ModelServiceImpl extends CommonService implements ModelService {
             return dto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             dto.setSuccess(false);
             dto.setMessage(MODEL_WITH_IDENTIFIER + identifier + " was previously deleted. Please contact backend team to restore.");
             return dto;
@@ -129,6 +135,23 @@ public class ModelServiceImpl extends CommonService implements ModelService {
     }
 
     @Override
+    public WsDto<ModelDto> findAll(Specification<Model> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ModelDto>>() {
+        }.getType();
+        Page<Model> page = modelRepository.findAll(example, pageable);
+
+        WsDto<ModelDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
+
+    @Override
     public ModelDto toggleStatus(String identifier) {
 
         Model model = modelRepository.findByIdentifier(identifier);
@@ -140,7 +163,7 @@ public class ModelServiceImpl extends CommonService implements ModelService {
             return dto;
         }
 
-        model.setStatus(!model.isStatus());
+        model.setStatus(!model.getStatus());
         setAuditFields(model, false);
 
         modelRepository.save(model);

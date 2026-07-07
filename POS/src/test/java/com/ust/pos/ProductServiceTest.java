@@ -120,7 +120,7 @@ class ProductServiceTest {
     }
 
     @Test
-    void testUpdate_WhenProductIsDeleted() {
+    void testUpdate_WhenProductgetDeleted() {
         productEntity.setDeleted(true);
         when(productRepository.findByIdentifier("PROD-001")).thenReturn(productEntity);
 
@@ -197,7 +197,7 @@ class ProductServiceTest {
         ProductDto result = productService.toggleStatus("PROD-001");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
     }
 
     @Test

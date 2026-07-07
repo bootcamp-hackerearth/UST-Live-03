@@ -210,7 +210,7 @@ class ModelServiceTest {
         ModelDto result = modelService.toggleStatus("MDL-2026");
 
         assertNotNull(result);
-        assertFalse(result.isStatus());
+        assertFalse(result.getStatus());
         verify(modelRepository, times(1)).save(modelEntity);
     }
 

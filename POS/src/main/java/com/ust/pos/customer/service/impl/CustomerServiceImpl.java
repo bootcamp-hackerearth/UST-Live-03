@@ -10,10 +10,9 @@ import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -29,9 +28,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
     private final ModelMapper modelMapper;
     private final AddressService addressService;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository,
-                               ModelMapper modelMapper,
-                               AddressService addressService) {
+    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, AddressService addressService) {
         this.customerRepository = customerRepository;
         this.modelMapper = modelMapper;
         this.addressService = addressService;
@@ -87,13 +84,13 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
 
         Customer existing = customerRepository.findByPhoneNo(phone);
 
-        if (existing != null && !existing.isDeleted()) {
+        if (existing != null && !existing.getDeleted()) {
             customerDto.setSuccess(false);
             customerDto.setMessage(CUSTOMER_WITH_PHONE + phone + " already exists");
             return customerDto;
         }
 
-        if (existing != null && existing.isDeleted()) {
+        if (existing != null && existing.getDeleted()) {
             customerDto.setSuccess(false);
             customerDto.setMessage(CUSTOMER_WITH_PHONE + phone + " was previously deleted. Please contact backend team to restore.");
             return customerDto;
@@ -140,7 +137,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
             return customerDto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             customerDto.setSuccess(false);
             customerDto.setMessage(CUSTOMER_WITH_PHONE + phone + " was previously deleted. Please contact backend team to restore.");
             return customerDto;
@@ -210,6 +207,24 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
     }
 
     @Override
+    public WsDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> page = customerRepository.findAll(example, pageable);
+
+        WsDto<CustomerDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
+
+
+    @Override
     public CustomerDto toggleStatus(String phoneNo) {
 
         Customer customer = customerRepository.findByPhoneNo(phoneNo);
@@ -221,7 +236,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
             return customerDto;
         }
 
-        customer.setStatus(!customer.isStatus());
+        customer.setStatus(!customer.getStatus());
         setAuditFields(customer, false);
 
         customerRepository.save(customer);
@@ -235,38 +250,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
         Type listType = new TypeToken<List<CustomerDto>>() {
         }.getType();
 
-        return modelMapper.map(
-                customerRepository.findByStatusIsTrueAndDeletedFalse(),
-                listType
-        );
-    }
-
-    @Override
-    public List<CustomerDto> searchCustomersFlexible(CustomerDto searchCriteria) {
-
-        Customer probe = new Customer();
-
-        if (searchCriteria.getCustomerName() != null && !searchCriteria.getCustomerName().trim().isEmpty()) {
-            probe.setCustomerName(searchCriteria.getCustomerName());
-        }
-
-        if (searchCriteria.getPhoneNo() != null && !searchCriteria.getPhoneNo().trim().isEmpty()) {
-            probe.setPhoneNo(searchCriteria.getPhoneNo());
-        }
-
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withIgnoreCase()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
-                .withIgnoreNullValues()
-                .withIgnorePaths("status");
-
-        Example<Customer> example = Example.of(probe, matcher);
-
-        Type listType = new TypeToken<List<CustomerDto>>() {
-        }.getType();
-        return modelMapper.map(
-                customerRepository.findAll(example),
-                listType
-        );
+        return modelMapper.map(customerRepository.findByStatusIsTrueAndDeletedFalse(), listType);
     }
 }
+

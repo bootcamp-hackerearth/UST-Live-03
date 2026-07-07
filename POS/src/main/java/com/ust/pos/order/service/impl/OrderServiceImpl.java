@@ -2,6 +2,7 @@ package com.ust.pos.order.service.impl;
 
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.OrderEntryDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Order;
 import com.ust.pos.model.OrderEntry;
 import com.ust.pos.model.OrderEntryRepository;
@@ -95,7 +96,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findByIdentifier(identifier);
 
         if (order == null) {
-            throw new IllegalArgumentException("Requested invoice does not exist.");
+            throw new ResourceNotFoundException("Requested invoice does not exist.");
         }
 
         List<OrderEntry> entries = orderEntryRepository.findByOrderIdentifier(identifier);

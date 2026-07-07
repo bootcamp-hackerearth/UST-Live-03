@@ -3,6 +3,7 @@ package com.ust.pos.model;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,4 +19,6 @@ public interface ModelRepository extends JpaRepository<Model, Long> {
     List<Model> findByStatusIsTrueAndDeletedFalse();
 
     Page<Model> findByDeletedFalse(Pageable pageable);
+
+    Page<Model> findAll(Specification<Model> example, Pageable pageable);
 }

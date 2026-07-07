@@ -3,6 +3,7 @@ package com.ust.pos.role.service.impl;
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -32,7 +34,11 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+        Role role =roleRepository.findByIdentifier(identifier);
+        if(role==null){
+            throw new ResourceNotFoundException("Data Cannot Found");
+        }
+        return modelMapper.map(role, RoleDto.class);
     }
 
     @Override
@@ -46,7 +52,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
         Role existing = roleRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.isDeleted()) {
+            if (!existing.getDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage(ROLE_WITH_IDENTIFIER + identifier + " already exists");
                 return dto;
@@ -81,7 +87,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
             return dto;
         }
 
-        if (existing.isDeleted()) {
+        if (existing.getDeleted()) {
             dto.setSuccess(false);
             dto.setMessage(ROLE_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");
@@ -128,6 +134,22 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
         return wsDto;
     }
+    @Override
+    public WsDto<RoleDto> findAll(Specification<Role> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> page = roleRepository.findAll(example, pageable);
+
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
 
     @Override
     public RoleDto toggleStatus(String identifier) {
@@ -141,7 +163,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
             return dto;
         }
 
-        role.setStatus(!role.isStatus());
+        role.setStatus(!role.getStatus());
         setAuditFields(role, false);
 
         roleRepository.save(role);
