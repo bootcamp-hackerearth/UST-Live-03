@@ -82,7 +82,7 @@ export function renderField(field, values, handleChange) {
         value={values[field.key] || ""}
         onChange={(e) => handleChange(field.key, e.target.value)}
         required={field.required}
-        pattern={field.pattern}
+        pattern={field.type === "email" ? undefined : field.pattern}
         maxLength={field.maxLength}
         title={field.title}
         className={`placeholder:text-slate-400 ${INPUT_CLS}`}
