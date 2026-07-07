@@ -144,10 +144,6 @@ function List({
     color: "#fff",
     padding: "12px",
     textAlign: "center",
-    textTransform: "uppercase",
-    fontFamily: "inherit",
-    fontWeight: "bold",
-    letterSpacing: "0.5px",
   };
 
   const cellStyle = {
