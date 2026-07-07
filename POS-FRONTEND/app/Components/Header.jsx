@@ -15,7 +15,7 @@ function Header({ user, logout }) {
 
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.push("/Login");
   };
 
   return (

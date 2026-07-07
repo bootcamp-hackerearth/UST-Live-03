@@ -15,7 +15,7 @@ function Dashboard() {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push(
-        "/login?error=" +
+        "/Login?error=" +
           encodeURIComponent(
             "Session expired or missing credentials. Please login again."
           )
@@ -29,7 +29,7 @@ function Dashboard() {
   const fetchProfile = async () => {
     try {
       const response = await axiosInstance.get(
-        "/user/profile"
+        "/user/Profile"
       );
 
       setUser(response.data);

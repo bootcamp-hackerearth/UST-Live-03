@@ -42,7 +42,7 @@ function Layout({ children, user, nodes, logout }) {
 
     const fetchProfile = async () => {
       try {
-        const response = await axiosInstance.get("/user/profile");
+        const response = await axiosInstance.get("/user/Profile");
         setLayoutUser(response.data);
       } catch (error) {
         console.error("Profile fetch failed:", error);

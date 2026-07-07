@@ -52,7 +52,7 @@ function Profile() {
             }}>
                 <h2 style={{ color: "#888" }}>No User Logged In</h2>
                 <button
-                    onClick={() => navigate.push("/login")}
+                    onClick={() => navigate.push("/Login")}
                     style={{
                         marginTop: "16px",
                         padding: "10px 24px",
