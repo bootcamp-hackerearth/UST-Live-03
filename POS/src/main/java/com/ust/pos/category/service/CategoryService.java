@@ -26,4 +26,6 @@ public interface CategoryService {
     CategoryDto changeToggleStatus(String identifier, boolean status);
 
     List<CategoryDto> findActiveStatus();
+
+
 }
