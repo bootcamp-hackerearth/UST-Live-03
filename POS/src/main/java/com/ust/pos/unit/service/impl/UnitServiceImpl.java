@@ -1,10 +1,10 @@
 package com.ust.pos.unit.service.impl;
+
 import com.ust.pos.CommonService;
-import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Customer;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
@@ -76,7 +77,11 @@ public class UnitServiceImpl extends CommonService implements UnitService {
 
     @Override
     public UnitDto findByIdentifier(String identifier) {
-        return modelMapper.map(unitRepository.findByIdentifier(identifier), UnitDto.class);
+        Unit unit = unitRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if (unit == null) {
+            throw new ResourceNotFoundException("Unit with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(unit, UnitDto.class);
     }
 
     @Override

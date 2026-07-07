@@ -19,5 +19,7 @@ public interface ModelProductRepository extends JpaRepository<ModelProduct, Long
 
     List<ModelProduct> findByStatusTrueAndIsDeletedFalse();
 
-    Page<ModelProduct> findAll(Specification example, Pageable pageable);
+    Page<ModelProduct> findAll(Specification <ModelProduct> specification, Pageable pageable);
+
+    ModelProduct findByIdentifierAndIsDeletedFalse(String identifier);
 }

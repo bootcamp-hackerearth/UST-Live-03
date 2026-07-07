@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -275,21 +277,27 @@ class UserServiceTest {
     @Test
     void findByIdentifierSuccessTest() {
         User user = new User();
-        user.setUsername("john");
+        user.setIdentifier("U001");
         UserDto dto = new UserDto();
-        dto.setUsername("john");
+        dto.setIdentifier("U001");
 
-        when(userRepository.findByUsername("john")).thenReturn(user);
+        when(userRepository.findByIdentifierAndIsDeletedFalse("U001")).thenReturn(user);
         when(modelMapper.map(user, UserDto.class)).thenReturn(dto);
 
-        UserDto result = userService.findByIdentifier("john");
-        Assertions.assertEquals("john", result.getUsername());
+        UserDto result = userService.findByIdentifier("U001");
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("U001", result.getIdentifier());
+        verify(userRepository).findByIdentifierAndIsDeletedFalse("U001");
     }
 
     @Test
     void findByIdentifierFailureTest() {
-        when(userRepository.findByUsername("john")).thenReturn(null);
-        Assertions.assertNull(userService.findByIdentifier("john"));
+        when(userRepository.findByIdentifierAndIsDeletedFalse("U001")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> userService.findByIdentifier("U001"));
+
+        verify(userRepository).findByIdentifierAndIsDeletedFalse("U001");
     }
 
     @Test
@@ -313,5 +321,32 @@ class UserServiceTest {
     void getUserDetailsFailureTest() {
         when(userRepository.findByUsername("john")).thenReturn(null);
         Assertions.assertNull(userService.getUserDetails("john"));
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<User> users = Arrays.asList(new User(), new User());
+        List<UserDto> dtoList = Arrays.asList(new UserDto(), new UserDto());
+
+        Page<User> page = new PageImpl<>(users, pageable, users.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<User> specification = mock(Specification.class);
+
+        when(userRepository.findAll(specification, pageable)).thenReturn(page);
+        when(modelMapper.map(Mockito.eq(users), Mockito.any(Type.class))).thenReturn(dtoList);
+
+        WsDto<UserDto> result = userService.findAll(specification, pageable, "john");
+
+        Assertions.assertEquals(2, result.getDtoList().size());
+        Assertions.assertEquals(2, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals("john", result.getKeyword());
+
+        verify(userRepository).findAll(specification, pageable);
     }
 }

@@ -125,7 +125,7 @@ function Add({
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:8080/api/${apiPath}/add`, {
+      const response = await fetch(`/api/${apiPath}/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

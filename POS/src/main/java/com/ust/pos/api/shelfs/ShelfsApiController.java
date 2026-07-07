@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Customer;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.shelfs.service.ShelfsService;
 import org.apache.commons.lang3.StringUtils;

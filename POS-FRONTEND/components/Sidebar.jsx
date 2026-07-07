@@ -16,7 +16,7 @@ function Sidebar({ onToggle }) {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://localhost:8080/api/node/getNodesForRoles`,
+        `/api/node/getNodesForRoles`,
         {
           method: "GET",
           headers: {

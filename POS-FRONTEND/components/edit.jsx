@@ -52,7 +52,7 @@ export default function Update({
       const tk = localStorage.getItem("token");
 
       const r = await fetch(
-        `http://localhost:8080/api/${apiPath}/get?identifier=${identifier}`,
+        `/api/${apiPath}/get?identifier=${identifier}`,
         {
           headers: {
             Authorization: `Bearer ${tk}`,
@@ -114,7 +114,7 @@ export default function Update({
     if (showDescription) payload.description = desc;
 
     try {
-      const r = await fetch(`http://localhost:8080/api/${apiPath}/update`, {
+      const r = await fetch(`/api/${apiPath}/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

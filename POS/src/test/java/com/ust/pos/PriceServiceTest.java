@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -122,12 +124,24 @@ class PriceServiceTest {
         PriceDto dto = new PriceDto();
         dto.setIdentifier("PRICE3");
 
-        Mockito.when(priceRepository.findByIdentifier("PRICE3")).thenReturn(price);
+        Mockito.when(priceRepository.findByIdentifierAndIsDeletedFalse("PRICE3")).thenReturn(price);
         Mockito.when(modelMapper.map(price, PriceDto.class)).thenReturn(dto);
 
         PriceDto result = priceService.findByIdentifier("PRICE3");
 
         Assertions.assertEquals("PRICE3", result.getIdentifier());
+        Mockito.verify(priceRepository).findByIdentifierAndIsDeletedFalse("PRICE3");
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        Mockito.when(priceRepository.findByIdentifierAndIsDeletedFalse("PRICE3")).thenReturn(null);
+
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> priceService.findByIdentifier("PRICE3"));
+
+        Mockito.verify(priceRepository).findByIdentifierAndIsDeletedFalse("PRICE3");
     }
 
     @Test
@@ -166,5 +180,43 @@ class PriceServiceTest {
         Assertions.assertEquals(0, result.getPage());
 
         Mockito.verify(priceRepository).findByIsDeletedFalse(pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Price price = new Price();
+        price.setIdentifier("P1");
+        List<Price> prices = List.of(price);
+
+        PriceDto dto = new PriceDto();
+        dto.setIdentifier("P1");
+        List<PriceDto> priceDtos = List.of(dto);
+
+        Page<Price> page = new PageImpl<>(prices, pageable, prices.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Price> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(priceRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(prices), Mockito.any(Type.class))).thenReturn(priceDtos);
+
+        WsDto<PriceDto> result = priceService.findAll(specification, pageable, "price");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals("price", result.getKeyword());
+
+        Mockito.verify(priceRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void constructorTest() {
+        PriceServiceImpl service = new PriceServiceImpl(priceRepository, modelMapper);
+        Assertions.assertNotNull(service);
     }
 }

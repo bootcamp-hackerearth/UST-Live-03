@@ -14,6 +14,7 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
     Page<Stock> findByIsDeletedFalse(Pageable pageable);
 
-    Page<Stock> findAll(Specification example, Pageable pageable);
+    Page<Stock> findAll(Specification <Stock>specification, Pageable pageable);
 
+    Stock findByIdentifierAndIsDeletedFalse(String identifier);
 }

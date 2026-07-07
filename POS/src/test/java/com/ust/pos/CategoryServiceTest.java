@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -161,13 +163,21 @@ class CategoryServiceTest {
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("CAT4");
 
-        Mockito.when(categoryRepository.findByIdentifier("CAT4")).thenReturn(category);
+        Mockito.when(categoryRepository.findByIdentifierAndIsDeletedFalse("CAT4")).thenReturn(category);
         Mockito.when(modelMapper.map(category, CategoryDto.class)).thenReturn(dto);
 
         CategoryDto result = categoryService.findByIdentifier("CAT4");
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals("CAT4", result.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(categoryRepository.findByIdentifierAndIsDeletedFalse("UNKNOWN")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> categoryService.findByIdentifier("UNKNOWN"));
     }
 
     @Test
@@ -238,5 +248,38 @@ class CategoryServiceTest {
         Assertions.assertEquals("CAT1", result.get(0).getIdentifier());
 
         Mockito.verify(categoryRepository).findAll();
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Category category = new Category();
+        category.setIdentifier("CAT1");
+        CategoryDto dto = new CategoryDto();
+        dto.setIdentifier("CAT1");
+
+        List<Category> categories = List.of(category);
+        List<CategoryDto> dtoList = List.of(dto);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Category> page = new PageImpl<>(categories, pageable, categories.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Category> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(categoryRepository.findAll(spec, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(categories), Mockito.any(Type.class))).thenReturn(dtoList);
+
+        WsDto<CategoryDto> result = categoryService.findAll(spec, pageable, "keyword");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals("keyword", result.getKeyword());
+
+        Mockito.verify(categoryRepository).findAll(spec, pageable);
+    }
+
+    @Test
+    void constructorTest() {
+        CategoryServiceImpl service = new CategoryServiceImpl(categoryRepository, modelMapper);
+        Assertions.assertNotNull(service);
     }
 }

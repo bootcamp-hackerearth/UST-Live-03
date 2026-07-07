@@ -1,8 +1,10 @@
 package com.ust.pos.modelproduct.service.impl;
+
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.ModelProduct;
 import com.ust.pos.model.ModelProductRepository;
 import com.ust.pos.modelproduct.service.ModelProductService;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -63,8 +66,11 @@ public class ModelProductServiceImpl extends CommonService implements ModelProdu
 
     @Override
     public ModelProductDto findByIdentifier(String identifier) {
-        ModelProduct price = modelProductRepository.findByIdentifier(identifier);
-        return modelMapper.map(price, ModelProductDto.class);
+        ModelProduct modelProduct=modelProductRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if(modelProduct==null){
+            throw new ResourceNotFoundException(" ModelProduct with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(modelProduct, ModelProductDto.class);
     }
 
     @Override

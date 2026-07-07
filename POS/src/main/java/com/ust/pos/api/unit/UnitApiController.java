@@ -1,11 +1,9 @@
 package com.ust.pos.api.unit;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Customer;
 import com.ust.pos.model.Unit;
 import com.ust.pos.unit.service.UnitService;
 import org.apache.commons.lang3.StringUtils;

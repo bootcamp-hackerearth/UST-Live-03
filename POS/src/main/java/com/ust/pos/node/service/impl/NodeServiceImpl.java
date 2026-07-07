@@ -1,7 +1,9 @@
 package com.ust.pos.node.service.impl;
+
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -16,6 +18,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -121,8 +124,11 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        Node node = nodeRepository.findByIdentifier(identifier);
-        return node != null ? modelMapper.map(node, NodeDto.class) : null;
+        Node node=nodeRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if(node==null){
+            throw new ResourceNotFoundException("Node with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(node, NodeDto.class);
     }
 
     @Override

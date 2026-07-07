@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -14,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -165,12 +167,20 @@ class BrandServiceTest {
         BrandDto dto = new BrandDto();
         dto.setIdentifier("BRAND4");
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND4")).thenReturn(brand);
+        Mockito.when(brandRepository.findByIdentifierAndIsDeletedFalse("BRAND4")).thenReturn(brand);
         Mockito.when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
 
         BrandDto result = brandService.findByIdentifier("BRAND4");
 
         Assertions.assertEquals("BRAND4", result.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(brandRepository.findByIdentifierAndIsDeletedFalse("UNKNOWN")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> brandService.findByIdentifier("UNKNOWN"));
     }
 
     @Test
@@ -184,6 +194,21 @@ class BrandServiceTest {
         brandService.toggleStatus("BRAND1");
 
         Assertions.assertFalse(brand.getStatus());
+
+        Mockito.verify(brandRepository).save(brand);
+    }
+
+    @Test
+    void toggleStatusFromFalseToTrueTest() {
+        Brand brand = new Brand();
+        brand.setIdentifier("BRAND2");
+        brand.setStatus(false);
+
+        Mockito.when(brandRepository.findByIdentifier("BRAND2")).thenReturn(brand);
+
+        brandService.toggleStatus("BRAND2");
+
+        Assertions.assertTrue(brand.getStatus());
 
         Mockito.verify(brandRepository).save(brand);
     }
@@ -211,18 +236,30 @@ class BrandServiceTest {
     }
 
     @Test
-    void toggleStatusFromFalseToTrueTest() {
+    void findAllWithSpecificationTest() {
         Brand brand = new Brand();
-        brand.setIdentifier("BRAND2");
-        brand.setStatus(false);
+        brand.setIdentifier("BRAND1");
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("BRAND1");
 
-        Mockito.when(brandRepository.findByIdentifier("BRAND2")).thenReturn(brand);
+        List<Brand> brands = List.of(brand);
+        List<BrandDto> dtos = List.of(dto);
 
-        brandService.toggleStatus("BRAND2");
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Brand> page = new PageImpl<>(brands, pageable, brands.size());
 
-        Assertions.assertTrue(brand.getStatus());
+        @SuppressWarnings("unchecked")
+        Specification<Brand> spec = Mockito.mock(Specification.class);
 
-        Mockito.verify(brandRepository).save(brand);
+        Mockito.when(brandRepository.findAll(spec, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(brands), Mockito.any(Type.class))).thenReturn(dtos);
+
+        WsDto<BrandDto> result = brandService.findAll(spec, pageable, "keyword");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals("keyword", result.getKeyword());
+
+        Mockito.verify(brandRepository).findAll(spec, pageable);
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -138,12 +140,24 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("PRD004");
 
-        Mockito.when(productRepository.findByIdentifier("PRD004")).thenReturn(product);
+        Mockito.when(productRepository.findByIdentifierAndIsDeletedFalse("PRD004")).thenReturn(product);
         Mockito.when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
 
         ProductDto result = productService.findByIdentifier("PRD004");
 
         Assertions.assertEquals("PRD004", result.getIdentifier());
+        Mockito.verify(productRepository).findByIdentifierAndIsDeletedFalse("PRD004");
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        Mockito.when(productRepository.findByIdentifierAndIsDeletedFalse("PRD004")).thenReturn(null);
+
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> productService.findByIdentifier("PRD004"));
+
+        Mockito.verify(productRepository).findByIdentifierAndIsDeletedFalse("PRD004");
     }
 
     @Test
@@ -226,6 +240,38 @@ class ProductServiceTest {
         Mockito.when(productRepository.findByIdentifier("UNKNOWN")).thenReturn(null);
         productService.toggleStatus("UNKNOWN");
         Mockito.verify(productRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Product product = new Product();
+        product.setIdentifier("PROD1");
+        List<Product> products = List.of(product);
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("PROD1");
+        List<ProductDto> productDtos = List.of(dto);
+
+        Page<Product> page = new PageImpl<>(products, pageable, products.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Product> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(productRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(products), Mockito.any(Type.class))).thenReturn(productDtos);
+
+        WsDto<ProductDto> result = productService.findAll(specification, pageable, "prod");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals("prod", result.getKeyword());
+
+        Mockito.verify(productRepository).findAll(specification, pageable);
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -142,18 +144,48 @@ class UnitServiceTest {
     }
 
     @Test
+    void updateSuccessWithNewIdentifierTest() {
+        Unit existing = new Unit();
+        existing.setId(1L);
+        existing.setIdentifier("OLD_UNIT");
+        UnitDto dto = new UnitDto();
+        dto.setId(1L);
+        dto.setIdentifier("NEW_UNIT");
+
+        Mockito.when(unitRepository.findById(1L)).thenReturn(Optional.of(existing));
+        Mockito.when(unitRepository.findByIdentifier("NEW_UNIT")).thenReturn(null);
+
+        UnitDto result = unitService.update(dto);
+
+        Assertions.assertTrue(result.isSuccess());
+
+        Mockito.verify(modelMapper).map(dto, existing);
+        Mockito.verify(unitRepository).save(existing);
+    }
+
+    @Test
     void findByIdentifierSuccessTest() {
         Unit unit = new Unit();
         unit.setIdentifier("UNIT4");
         UnitDto dto = new UnitDto();
         dto.setIdentifier("UNIT4");
 
-        Mockito.when(unitRepository.findByIdentifier("UNIT4")).thenReturn(unit);
+        Mockito.when(unitRepository.findByIdentifierAndIsDeletedFalse("UNIT4")).thenReturn(unit);
         Mockito.when(modelMapper.map(unit, UnitDto.class)).thenReturn(dto);
 
         UnitDto result = unitService.findByIdentifier("UNIT4");
 
         Assertions.assertEquals("UNIT4", result.getIdentifier());
+        Mockito.verify(unitRepository).findByIdentifierAndIsDeletedFalse("UNIT4");
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        Mockito.when(unitRepository.findByIdentifierAndIsDeletedFalse("UNIT4")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> unitService.findByIdentifier("UNIT4"));
+
+        Mockito.verify(unitRepository).findByIdentifierAndIsDeletedFalse("UNIT4");
     }
 
     @Test
@@ -173,7 +205,6 @@ class UnitServiceTest {
         List<UnitDto> dtos = List.of(d1, d2);
 
         Pageable pageable = PageRequest.of(0, 10);
-
         Page<Unit> unitPage = new PageImpl<>(units, pageable, units.size());
 
         Mockito.when(unitRepository.findByIsDeletedFalse(pageable)).thenReturn(unitPage);
@@ -185,6 +216,38 @@ class UnitServiceTest {
         Assertions.assertEquals(2, result.getTotalRecords());
 
         Mockito.verify(unitRepository).findByIsDeletedFalse(pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Unit u1 = new Unit();
+        u1.setIdentifier("U1");
+        List<Unit> units = List.of(u1);
+
+        UnitDto d1 = new UnitDto();
+        d1.setIdentifier("U1");
+        List<UnitDto> dtos = List.of(d1);
+
+        Page<Unit> page = new PageImpl<>(units, pageable, units.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Unit> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(unitRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(units), Mockito.any(Type.class))).thenReturn(dtos);
+
+        WsDto<UnitDto> result = unitService.findAll(specification, pageable, "unit");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals("unit", result.getKeyword());
+
+        Mockito.verify(unitRepository).findAll(specification, pageable);
     }
 
     @Test
@@ -215,6 +278,21 @@ class UnitServiceTest {
     }
 
     @Test
+    void toggleStatusFalseToTrueTest() {
+        Unit unit = new Unit();
+        unit.setIdentifier("UNIT7");
+        unit.setStatus(false);
+
+        Mockito.when(unitRepository.findByIdentifier("UNIT7")).thenReturn(unit);
+
+        unitService.toggleStatus("UNIT7");
+
+        Assertions.assertTrue(unit.getStatus());
+
+        Mockito.verify(unitRepository).save(unit);
+    }
+
+    @Test
     void findAllActiveTest() {
         Unit unit = new Unit();
         unit.setIdentifier("UNIT1");
@@ -234,41 +312,6 @@ class UnitServiceTest {
         Assertions.assertEquals(1, result.size());
 
         Mockito.verify(unitRepository).findByStatusTrueAndIsDeletedFalse();
-    }
-
-    @Test
-    void updateSuccessWithNewIdentifierTest() {
-        Unit existing = new Unit();
-        existing.setId(1L);
-        existing.setIdentifier("OLD_UNIT");
-        UnitDto dto = new UnitDto();
-        dto.setId(1L);
-        dto.setIdentifier("NEW_UNIT");
-
-        Mockito.when(unitRepository.findById(1L)).thenReturn(Optional.of(existing));
-        Mockito.when(unitRepository.findByIdentifier("NEW_UNIT")).thenReturn(null);
-
-        UnitDto result = unitService.update(dto);
-
-        Assertions.assertTrue(result.isSuccess());
-
-        Mockito.verify(modelMapper).map(dto, existing);
-        Mockito.verify(unitRepository).save(existing);
-    }
-
-    @Test
-    void toggleStatusFalseToTrueTest() {
-        Unit unit = new Unit();
-        unit.setIdentifier("UNIT7");
-        unit.setStatus(false);
-
-        Mockito.when(unitRepository.findByIdentifier("UNIT7")).thenReturn(unit);
-
-        unitService.toggleStatus("UNIT7");
-
-        Assertions.assertTrue(unit.getStatus());
-
-        Mockito.verify(unitRepository).save(unit);
     }
 
     @Test

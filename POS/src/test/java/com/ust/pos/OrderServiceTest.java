@@ -258,6 +258,19 @@ class OrderServiceTest {
     }
 
     @Test
+    void constructorTest() {
+        OrderServiceImpl service = new OrderServiceImpl(
+                orderRepository,
+                orderEntryRepository,
+                cartRepository,
+                cartEntryRepository,
+                cartService,
+                customerRepository,
+                modelMapper);
+        Assertions.assertNotNull(service);
+    }
+
+    @Test
     void cancelOrderMultipleEntriesTest() {
         Order order = new Order();
 

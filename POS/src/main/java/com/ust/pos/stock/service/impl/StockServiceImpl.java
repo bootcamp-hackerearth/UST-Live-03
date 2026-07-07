@@ -1,9 +1,9 @@
 package com.ust.pos.stock.service.impl;
+
 import com.ust.pos.CommonService;
-import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Customer;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -31,7 +32,11 @@ public class StockServiceImpl extends CommonService implements StockService {
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        return modelMapper.map(stockRepository.findByIdentifier(identifier), StockDto.class);
+       Stock stock =stockRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if (stock == null) {
+            throw new ResourceNotFoundException("Stock with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(stock,StockDto.class);
     }
 
     @Override
@@ -116,7 +121,5 @@ public class StockServiceImpl extends CommonService implements StockService {
         wsDto.setKeyword(keyword);
         return wsDto;
     }
-
-
 }
 

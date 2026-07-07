@@ -18,7 +18,7 @@ function MultiDropdown({
     const fetchOptions = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:8080/api/${apiPath}`, {
+        const response = await fetch(`/api/${apiPath}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

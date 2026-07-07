@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -186,7 +188,7 @@ class RoleServiceTest {
         RoleDto dto = new RoleDto();
         dto.setIdentifier("ADMIN");
 
-        Mockito.when(roleRepository.findByIdentifier("ADMIN")).thenReturn(role);
+        Mockito.when(roleRepository.findByIdentifierAndIsDeletedFalse("ADMIN")).thenReturn(role);
         Mockito.when(modelMapper.map(role, RoleDto.class)).thenReturn(dto);
 
         RoleDto result = roleService.findByIdentifier("ADMIN");
@@ -195,5 +197,47 @@ class RoleServiceTest {
         Assertions.assertEquals("ADMIN", result.getIdentifier());
 
         Mockito.verify(modelMapper).map(role, RoleDto.class);
+        Mockito.verify(roleRepository).findByIdentifierAndIsDeletedFalse("ADMIN");
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        Mockito.when(roleRepository.findByIdentifierAndIsDeletedFalse("ADMIN")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> roleService.findByIdentifier("ADMIN"));
+
+        Mockito.verify(roleRepository).findByIdentifierAndIsDeletedFalse("ADMIN");
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Role role = new Role();
+        role.setIdentifier("ADMIN");
+        List<Role> roles = List.of(role);
+
+        RoleDto dto = new RoleDto();
+        dto.setIdentifier("ADMIN");
+        List<RoleDto> roleDtos = List.of(dto);
+
+        Page<Role> page = new PageImpl<>(roles, pageable, roles.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Role> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(roleRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(roles), Mockito.any(Type.class))).thenReturn(roleDtos);
+
+        WsDto<RoleDto> result = roleService.findAll(specification, pageable, "admin");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals("admin", result.getKeyword());
+
+        Mockito.verify(roleRepository).findAll(specification, pageable);
     }
 }

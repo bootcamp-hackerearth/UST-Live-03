@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,6 +42,12 @@ class NodeServiceTest {
 
     @Mock
     private ModelMapper modelMapper;
+
+    @Test
+    void constructorTest() {
+        NodeServiceImpl service = new NodeServiceImpl(userRepository, nodeRepository, modelMapper);
+        Assertions.assertNotNull(service);
+    }
 
     @Test
     void getNodesForRolesTest() {
@@ -79,20 +87,25 @@ class NodeServiceTest {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
 
-        Mockito.when(nodeRepository.findByIdentifier("N1")).thenReturn(node);
+        Mockito.when(nodeRepository.findByIdentifierAndIsDeletedFalse("N1")).thenReturn(node);
         Mockito.when(modelMapper.map(node, NodeDto.class)).thenReturn(dto);
 
         NodeDto result = nodeService.findByIdentifier("N1");
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals("N1", result.getIdentifier());
+        Mockito.verify(nodeRepository).findByIdentifierAndIsDeletedFalse("N1");
     }
 
     @Test
     void findByIdentifierFailureTest() {
-        Mockito.when(nodeRepository.findByIdentifier("N1")).thenReturn(null);
-        NodeDto result = nodeService.findByIdentifier("N1");
-        Assertions.assertNull(result);
+        Mockito.when(nodeRepository.findByIdentifierAndIsDeletedFalse("N1")).thenReturn(null);
+
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> nodeService.findByIdentifier("N1"));
+
+        Mockito.verify(nodeRepository).findByIdentifierAndIsDeletedFalse("N1");
     }
 
     @Test
@@ -206,6 +219,38 @@ class NodeServiceTest {
         Assertions.assertEquals(1, result.getTotalRecords());
 
         Mockito.verify(nodeRepository).findByIsDeletedFalse(pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Node node = new Node();
+        node.setIdentifier("N1");
+        List<Node> nodes = List.of(node);
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("N1");
+        List<NodeDto> dtoList = List.of(dto);
+
+        Page<Node> page = new PageImpl<>(nodes, pageable, nodes.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Node> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(nodeRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(Type.class))).thenReturn(dtoList);
+
+        WsDto<NodeDto> result = nodeService.findAll(specification, pageable, "node");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals("node", result.getKeyword());
+
+        Mockito.verify(nodeRepository).findAll(specification, pageable);
     }
 
     @Test

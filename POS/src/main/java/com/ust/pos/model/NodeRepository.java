@@ -20,6 +20,7 @@ public interface NodeRepository extends JpaRepository<Node, Long> {
 
     List<Node> findByIsDeletedFalse();
 
-    Page<Node> findAll(Specification example, Pageable pageable);
+    Page<Node> findAll(Specification <Node> specification, Pageable pageable);
 
+    Node findByIdentifierAndIsDeletedFalse(String identifier);
 }

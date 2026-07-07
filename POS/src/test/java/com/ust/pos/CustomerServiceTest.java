@@ -8,6 +8,7 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -73,8 +75,8 @@ class CustomerServiceTest {
     @Test
     void findByIdentifierFailureTest() {
         Mockito.when(customerRepository.findByIdentifier("C1")).thenReturn(null);
-        CustomerDto result = customerService.findByIdentifier("C1");
-        Assertions.assertNull(result);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> customerService.findByIdentifier("C1"));
     }
 
     @Test
@@ -195,7 +197,7 @@ class CustomerServiceTest {
         verify(cartEntryService).deleteAllByCart("9999999999");
         verify(cartService).delete("9999999999");
         verify(addressRepository).deleteByPhoneNo(9999999999L);
-        verify(customerRepository).delete(customer);
+        Assertions.assertTrue(customer.isDeleted());
     }
 
     @Test
@@ -209,14 +211,39 @@ class CustomerServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Customer> page = new PageImpl<>(customers, pageable, customers.size());
 
-        Mockito.when(customerRepository.findAll(pageable)).thenReturn(page);
+        Mockito.when(customerRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
         Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(Type.class))).thenReturn(dtos);
 
         WsDto<CustomerDto> result = customerService.findAll(pageable);
 
         Assertions.assertEquals(1, result.getDtoList().size());
 
-        verify(customerRepository).findAll(pageable);
+        verify(customerRepository).findByIsDeletedFalse(pageable);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Customer customer = new Customer();
+        CustomerDto dto = new CustomerDto();
+
+        List<Customer> customers = List.of(customer);
+        List<CustomerDto> dtos = List.of(dto);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Customer> page = new PageImpl<>(customers, pageable, customers.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Customer> spec = Mockito.mock(Specification.class);
+
+        Mockito.when(customerRepository.findAll(spec, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(Type.class))).thenReturn(dtos);
+
+        WsDto<CustomerDto> result = customerService.findAll(spec, pageable, "keyword");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals("keyword", result.getKeyword());
+
+        verify(customerRepository).findAll(spec, pageable);
     }
 
     @Test
@@ -246,7 +273,6 @@ class CustomerServiceTest {
         Mockito.verify(cartEntryService, Mockito.never()).deleteAllByCart(Mockito.anyString());
         Mockito.verify(cartService, Mockito.never()).delete(Mockito.anyString());
         Mockito.verify(addressRepository, Mockito.never()).deleteByPhoneNo(Mockito.anyLong());
-        Mockito.verify(customerRepository, Mockito.never()).delete(Mockito.any());
     }
 
     @Test

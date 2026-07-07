@@ -5,6 +5,7 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
@@ -44,13 +45,11 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
     public CustomerDto findByIdentifier(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
         if (customer == null) {
-            return null;
+            throw new ResourceNotFoundException("Customer with identifier '" + identifier + "' not found");
         }
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
-        customerDto.setShippingAddress(
-                addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), SHIPPING_ADDRESS));
-        customerDto.setBillingAddress(
-                addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), BILLING_ADDRESS));
+        customerDto.setShippingAddress(addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), SHIPPING_ADDRESS));
+        customerDto.setBillingAddress(addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), BILLING_ADDRESS));
         return customerDto;
     }
 

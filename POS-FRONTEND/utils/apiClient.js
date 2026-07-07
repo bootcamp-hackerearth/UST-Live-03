@@ -7,7 +7,7 @@ export const getAuthHeaders = () => {
 };
 
 export const getApiUrl = (apiPath, endpoint = "") => {
-  return `http://localhost:8080/api/${apiPath}${endpoint}`;
+  return `/api/${apiPath}${endpoint}`;
 };
 
 export const fetchListData = async (apiPath, page = 0, sizePerPage = 4) => {

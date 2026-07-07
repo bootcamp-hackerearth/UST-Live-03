@@ -1,7 +1,9 @@
 package com.ust.pos.role.service.impl;
+
 import com.ust.pos.CommonService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -29,7 +32,11 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+        Role role = roleRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if (role == null) {
+            throw new ResourceNotFoundException("Role with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(role, RoleDto.class);
     }
 
     @Override

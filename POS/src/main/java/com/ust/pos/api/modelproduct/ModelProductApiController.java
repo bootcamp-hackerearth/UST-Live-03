@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Customer;
 import com.ust.pos.model.ModelProduct;
 import com.ust.pos.modelproduct.service.ModelProductService;
 import org.apache.commons.lang3.StringUtils;

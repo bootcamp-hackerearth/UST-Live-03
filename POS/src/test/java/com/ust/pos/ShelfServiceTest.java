@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.ShelfsRepository;
 import com.ust.pos.shelfs.service.impl.ShelfsServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -166,12 +168,22 @@ class ShelfServiceTest {
         ShelfsDto dto = new ShelfsDto();
         dto.setIdentifier("SHELF4");
 
-        Mockito.when(shelfRepository.findByIdentifier("SHELF4")).thenReturn(shelf);
+        Mockito.when(shelfRepository.findByIdentifierAndIsDeletedFalse("SHELF4")).thenReturn(shelf);
         Mockito.when(modelMapper.map(shelf, ShelfsDto.class)).thenReturn(dto);
 
         ShelfsDto result = shelfsService.findByIdentifier("SHELF4");
 
         Assertions.assertEquals("SHELF4", result.getIdentifier());
+        Mockito.verify(shelfRepository).findByIdentifierAndIsDeletedFalse("SHELF4");
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        Mockito.when(shelfRepository.findByIdentifierAndIsDeletedFalse("SHELF4")).thenReturn(null);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> shelfsService.findByIdentifier("SHELF4"));
+
+        Mockito.verify(shelfRepository).findByIdentifierAndIsDeletedFalse("SHELF4");
     }
 
     @Test
@@ -223,5 +235,37 @@ class ShelfServiceTest {
         Assertions.assertTrue(shelf.getStatus());
 
         Mockito.verify(shelfRepository).save(shelf);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Shelfs shelf = new Shelfs();
+        shelf.setIdentifier("S1");
+        List<Shelfs> shelves = List.of(shelf);
+
+        ShelfsDto dto = new ShelfsDto();
+        dto.setIdentifier("S1");
+        List<ShelfsDto> dtoList = List.of(dto);
+
+        Page<Shelfs> page = new PageImpl<>(shelves, pageable, shelves.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Shelfs> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(shelfRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(shelves), Mockito.any(Type.class))).thenReturn(dtoList);
+
+        WsDto<ShelfsDto> result = shelfsService.findAll(specification, pageable, "shelf");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals("shelf", result.getKeyword());
+
+        Mockito.verify(shelfRepository).findAll(specification, pageable);
     }
 }

@@ -1,9 +1,9 @@
 package com.ust.pos.user.service.impl;
+
 import com.ust.pos.CommonService;
-import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Customer;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
@@ -111,8 +112,10 @@ public class UserServiceImpl extends CommonService implements UserService {
 
     @Override
     public UserDto findByIdentifier(String identifier) {
-        User user = userRepository.findByUsername(identifier);
-        if (user == null) return null;
+        User user = userRepository.findByIdentifierAndIsDeletedFalse(identifier);
+        if (user == null) {
+            throw new ResourceNotFoundException("User with identifier '" + identifier + "' not found");
+        }
         return modelMapper.map(user, UserDto.class);
     }
 

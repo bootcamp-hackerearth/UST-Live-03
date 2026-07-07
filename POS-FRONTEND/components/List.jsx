@@ -37,7 +37,7 @@ function List({
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:8080/api/${apiPath}/list`,
+        `/api/${apiPath}/list`,
         {
           method: "POST",
           headers: {
@@ -65,7 +65,7 @@ function List({
     const token = localStorage.getItem("token");
     try {
       const firstResponse = await fetch(
-        `http://localhost:8080/api/${apiPath}/list`,
+        `/api/${apiPath}/list`,
         {
           method: "POST",
           headers: {
@@ -89,7 +89,7 @@ function List({
       const requests = [];
       for (let i = 1; i < total; i++) {
         requests.push(
-          fetch(`http://localhost:8080/api/${apiPath}/list`, {
+          fetch(`/api/${apiPath}/list`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -144,7 +144,7 @@ function List({
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:8080/api/${apiPath}/delete?identifier=${id}`,
+        `/api/${apiPath}/delete?identifier=${id}`,
         {
           method: "DELETE",
           headers: { Authorization: "Bearer " + token },
@@ -165,7 +165,7 @@ function List({
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:8080/api/${apiPath}/toggleStatus`,
+        `/api/${apiPath}/toggleStatus`,
         {
           method: "POST",
           headers: {

@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Customer;
 import com.ust.pos.model.Role;
 import com.ust.pos.role.service.RoleService;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +24,6 @@ public class RoleApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public WsDto<RoleDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {

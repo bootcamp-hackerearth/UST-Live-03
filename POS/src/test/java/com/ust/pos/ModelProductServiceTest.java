@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.ModelProduct;
 import com.ust.pos.model.ModelProductRepository;
 import com.ust.pos.modelproduct.service.impl.ModelProductServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -32,6 +34,12 @@ class ModelProductServiceTest {
 
     @Mock
     private ModelMapper modelMapper;
+
+    @Test
+    void constructorTest() {
+        ModelProductServiceImpl service = new ModelProductServiceImpl(modelProductRepository, modelMapper);
+        Assertions.assertNotNull(service);
+    }
 
     @Test
     void saveSuccessTest() {
@@ -121,13 +129,25 @@ class ModelProductServiceTest {
         ModelProductDto dto = new ModelProductDto();
         dto.setIdentifier("MP3");
 
-        Mockito.when(modelProductRepository.findByIdentifier("MP3")).thenReturn(entity);
+        Mockito.when(modelProductRepository.findByIdentifierAndIsDeletedFalse("MP3")).thenReturn(entity);
         Mockito.when(modelMapper.map(entity, ModelProductDto.class)).thenReturn(dto);
 
         ModelProductDto result = modelProductService.findByIdentifier("MP3");
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals("MP3", result.getIdentifier());
+        Mockito.verify(modelProductRepository).findByIdentifierAndIsDeletedFalse("MP3");
+    }
+
+    @Test
+    void findByIdentifierFailureTest() {
+        Mockito.when(modelProductRepository.findByIdentifierAndIsDeletedFalse("MP3")).thenReturn(null);
+
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> modelProductService.findByIdentifier("MP3"));
+
+        Mockito.verify(modelProductRepository).findByIdentifierAndIsDeletedFalse("MP3");
     }
 
     @Test
@@ -182,6 +202,21 @@ class ModelProductServiceTest {
     }
 
     @Test
+    void toggleStatusFalseToTrueTest() {
+        ModelProduct modelProduct = new ModelProduct();
+        modelProduct.setIdentifier("MP2");
+        modelProduct.setStatus(false);
+
+        Mockito.when(modelProductRepository.findByIdentifier("MP2")).thenReturn(modelProduct);
+
+        modelProductService.toggleStatus("MP2");
+
+        Assertions.assertTrue(modelProduct.getStatus());
+
+        Mockito.verify(modelProductRepository).save(modelProduct);
+    }
+
+    @Test
     void findAllActiveTest() {
         ModelProduct modelProduct = new ModelProduct();
         modelProduct.setIdentifier("MP1");
@@ -204,17 +239,34 @@ class ModelProductServiceTest {
     }
 
     @Test
-    void toggleStatusFalseToTrueTest() {
-        ModelProduct modelProduct = new ModelProduct();
-        modelProduct.setIdentifier("MP2");
-        modelProduct.setStatus(false);
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
 
-        Mockito.when(modelProductRepository.findByIdentifier("MP2")).thenReturn(modelProduct);
+        ModelProduct entity = new ModelProduct();
+        entity.setIdentifier("MP1");
+        List<ModelProduct> entities = List.of(entity);
 
-        modelProductService.toggleStatus("MP2");
+        ModelProductDto dto = new ModelProductDto();
+        dto.setIdentifier("MP1");
+        List<ModelProductDto> dtoList = List.of(dto);
 
-        Assertions.assertTrue(modelProduct.getStatus());
+        Page<ModelProduct> page = new PageImpl<>(entities, pageable, entities.size());
 
-        Mockito.verify(modelProductRepository).save(modelProduct);
+        @SuppressWarnings("unchecked")
+        Specification<ModelProduct> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(modelProductRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(entities), Mockito.any(Type.class))).thenReturn(dtoList);
+
+        WsDto<ModelProductDto> result = modelProductService.findAll(specification, pageable, "mp");
+
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals("mp", result.getKeyword());
+
+        Mockito.verify(modelProductRepository).findAll(specification, pageable);
     }
 }
