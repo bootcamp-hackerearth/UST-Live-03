@@ -7,7 +7,7 @@ import CustomerForm from "../../customerForm";
 async function handleEditSubmit(payload, setSuccess, setError) {
     const token = (globalThis.window == "undefined") ? null : localStorage.getItem("token");
     
-    const res = await fetch("http://localhost:8080/api/customer/update", {
+    const res = await fetch("/api/customer/update", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export default function EditCustomerPage({ params }) {
                 async function fetchCustomer() {
             try {
                 const token = (globalThis.window == "undefined") ? null : localStorage.getItem("token");
-                const res = await fetch(`http://localhost:8080/api/customer/get?identifier=${identifier}`, {
+                const res = await fetch(`/api/customer/get?identifier=${identifier}`, {
                     method: "GET",
                     headers: { 
                         ...(token && { "Authorization": `Bearer ${token}` }) 

@@ -4,7 +4,7 @@ import CustomerForm from "../../customer/customerForm";
 
 async function handleAddSubmit(payload, setSuccess, setError) {
     const token = (globalThis.window == "undefined") ? null : localStorage.getItem("token");
-    const res = await fetch("http://localhost:8080/api/customer/add", {
+    const res = await fetch("/api/customer/add", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

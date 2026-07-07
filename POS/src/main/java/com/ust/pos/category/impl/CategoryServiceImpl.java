@@ -42,7 +42,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         Category existing = categoryRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.isDeleted()) {
+            if (!existing.getDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage("Category with identifier '" + identifier + "' already exists");
                 return dto;
