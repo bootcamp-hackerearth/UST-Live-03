@@ -2,6 +2,7 @@ package com.ust.pos.stock.service.impl;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -28,7 +30,11 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        return modelMapper.map(stockRepository.findByIdentifier(identifier), StockDto.class);
+        Stock stock = stockRepository.findByIdentifier(identifier);
+        if (stock == null) {
+            throw new ResourceNotFoundException(STOCK_WITH_IDENTIFIER + identifier + " not found");
+        }
+        return modelMapper.map(stock, StockDto.class);
     }
 
     @Override
@@ -116,5 +122,22 @@ public class StockServiceImpl implements StockService {
         Stock stock = stockRepository.findByIdentifier(identifier);
         stock.setStatus(status);
         stockRepository.save(stock);
+    }
+
+    @Override
+    public PaginatedResponseDto<StockDto> findAll(Specification<Stock> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Stock> page = stockRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<StockDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

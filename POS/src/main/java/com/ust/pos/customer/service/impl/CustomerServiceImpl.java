@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,9 +33,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDto findByIdentifier(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
-        if (customer == null) {
-            return null;
-        }
+
         CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
         customerDto.setBillingAddress(
                 addressService.findByPhoneNoAndAddressType(customer.getPhoneNo(), "billingAddress"));
@@ -166,5 +165,22 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findByIdentifier(identifier);
         customer.setStatus(status);
         customerRepository.save(customer);
+    }
+
+    @Override
+    public PaginatedResponseDto<CustomerDto> findAll(Specification<Customer> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CustomerDto>>() {
+        }.getType();
+        Page<Customer> page = customerRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<CustomerDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

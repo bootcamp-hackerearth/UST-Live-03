@@ -3,7 +3,6 @@
 import CommonList from "@/components/table/CommonList";
 
 const categoryColumns = [
-
   {
     header: "Category",
     field: "identifier",
@@ -13,7 +12,6 @@ const categoryColumns = [
     header: "Super Categories",
     field: "superCategory",
     render: (row) => {
-
       if (!row.superCategory) {
         return "-";
       }
@@ -28,18 +26,15 @@ const categoryColumns = [
 ];
 
 export default function CategoriesPage() {
-
   return (
     <CommonList
-
       title="Categories"
       subtitle="Manage product categories"
       entity="category"
       addPath="/categories/add"
       editPath="/categories/edit"
       columns={categoryColumns}
-      showToggle={false}
+      showToggle={true}
     />
   );
-
 }

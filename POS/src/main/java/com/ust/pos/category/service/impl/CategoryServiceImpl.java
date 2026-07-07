@@ -3,6 +3,7 @@ package com.ust.pos.category.service.impl;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.PaginatedResponseDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -106,7 +108,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-        return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
+        Category category = categoryRepository.findByIdentifier(identifier);
+        if (category == null) {
+            throw new ResourceNotFoundException("Category with identifier " + identifier + " not found");
+        }
+        return modelMapper.map(category, CategoryDto.class);
     }
 
     @Override
@@ -121,5 +127,22 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findByIdentifier(identifier);
         category.setStatus(status);
         categoryRepository.save(category);
+    }
+
+    @Override
+    public PaginatedResponseDto<CategoryDto> findAll(Specification<Category> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        Page<Category> page = categoryRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<CategoryDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

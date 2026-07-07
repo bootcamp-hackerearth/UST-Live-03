@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -122,5 +123,22 @@ public class OrderServiceImpl implements OrderService {
         orderDto.setEntries(modelMapper.map(entries, listType));
         orderDto.setSuccess(true);
         return orderDto;
+    }
+
+    @Override
+    public PaginatedResponseDto<OrderDto> findAll(Specification<Order> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<OrderDto>>() {
+        }.getType();
+        Page<Order> page = orderRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<OrderDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

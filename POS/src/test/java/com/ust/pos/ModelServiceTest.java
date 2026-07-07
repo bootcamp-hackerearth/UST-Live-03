@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.PaginatedResponseDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.impl.ModelServiceImpl;
@@ -305,5 +306,65 @@ class ModelServiceTest {
 
         Mockito.verify(modelRepository)
                 .save(model);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(modelRepository.findByIdentifier("INVALID"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> modelService.findByIdentifier("INVALID")
+        );
+
+        Assertions.assertEquals(
+                "Model with identifier INVALID not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllSpecificationTest() {
+
+        Model model = new Model();
+        model.setIdentifier("Admin");
+
+        ModelDto modelDto = new ModelDto();
+        modelDto.setIdentifier("Admin");
+
+        List<Model> models = List.of(model);
+        List<ModelDto> modelDtos = List.of(modelDto);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Model> page = new PageImpl<>(models, pageable, models.size());
+
+        Mockito.when(
+                modelRepository.findAll(
+                        Mockito.<org.springframework.data.jpa.domain.Specification<Model>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(models),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(modelDtos);
+
+        PaginatedResponseDto<ModelDto> response =
+                modelService.findAll(
+                        Mockito.mock(org.springframework.data.jpa.domain.Specification.class),
+                        pageable
+                );
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

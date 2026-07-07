@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -341,5 +343,61 @@ class PriceServiceTest {
 
         Assertions.assertFalse(price.getStatus());
         Mockito.verify(priceRepository).save(price);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(priceRepository.findByIdentifier("INVALID"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> priceService.findByIdentifier("INVALID")
+        );
+
+        Assertions.assertEquals(
+                "Price with identifier INVALID not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Price price = new Price();
+        price.setIdentifier("P1_T1");
+
+        PriceDto priceDto = new PriceDto();
+        priceDto.setIdentifier("P1_T1");
+
+        List<Price> prices = List.of(price);
+        List<PriceDto> priceDtos = List.of(priceDto);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Price> page = new PageImpl<>(prices, pageable, prices.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Price> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(priceRepository.findAll(
+                Mockito.eq(specification),
+                Mockito.any(Pageable.class)
+        )).thenReturn(page);
+
+        Mockito.when(modelMapper.map(
+                Mockito.anyList(),
+                Mockito.any(Type.class)
+        )).thenReturn(priceDtos);
+
+        PaginatedResponseDto<PriceDto> response =
+                priceService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals("P1_T1", response.getItems().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

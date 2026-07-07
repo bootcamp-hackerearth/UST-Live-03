@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -17,7 +18,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
@@ -279,5 +282,63 @@ class UnitServiceTest {
         Assertions.assertTrue(unit.getStatus());
 
         Mockito.verify(unitRepository).save(unit);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Unit unit = new Unit();
+        unit.setIdentifier("Admin");
+
+        UnitDto unitDto = new UnitDto();
+        unitDto.setIdentifier("Admin");
+
+        List<Unit> units = List.of(unit);
+        List<UnitDto> unitDtos = List.of(unitDto);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Unit> page = new PageImpl<>(units, pageable, units.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Unit> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(unitRepository.findAll(
+                Mockito.eq(specification),
+                Mockito.any(Pageable.class)
+        )).thenReturn(page);
+
+        Mockito.when(modelMapper.map(
+                Mockito.anyList(),
+                Mockito.any(Type.class)
+        )).thenReturn(unitDtos);
+
+        PaginatedResponseDto<UnitDto> response =
+                unitService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals("Admin", response.getItems().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+
+        Mockito.verify(unitRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(unitRepository.findByIdentifier("INVALID"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.findByIdentifier("INVALID")
+        );
+
+        Assertions.assertEquals(
+                "Unit with identifier - INVALID not found",
+                exception.getMessage()
+        );
     }
 }

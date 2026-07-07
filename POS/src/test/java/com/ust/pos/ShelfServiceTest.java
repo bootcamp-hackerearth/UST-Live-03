@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -257,5 +259,56 @@ class ShelfServiceTest {
 
         Assertions.assertFalse(shelf.getStatus());
         Mockito.verify(shelfRepository).save(shelf);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(shelfRepository.findByIdentifier("Admin")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfService.findByIdentifier("Admin")
+        );
+
+        Assertions.assertEquals(
+                "Shelf with identifier - Admin not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Admin");
+
+        ShelfDto shelfDto = new ShelfDto();
+        shelfDto.setIdentifier("Admin");
+
+        List<Shelf> shelves = List.of(shelf);
+        List<ShelfDto> shelfDtos = List.of(shelfDto);
+
+        Page<Shelf> page = new PageImpl<>(shelves);
+        Specification<Shelf> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(shelfRepository.findAll(
+                Mockito.eq(specification),
+                Mockito.any(Pageable.class)
+        )).thenReturn(page);
+
+        Mockito.when(modelMapper.map(
+                Mockito.anyList(),
+                Mockito.any(Type.class)
+        )).thenReturn(shelfDtos);
+
+        PaginatedResponseDto<ShelfDto> response =
+                shelfService.findAll(specification, PageRequest.of(0, 10));
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

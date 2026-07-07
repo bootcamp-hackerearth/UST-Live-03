@@ -6,46 +6,24 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-
-  const publicRoutes = [
-    "/api/authenticate",
-    "/api/user/register",
-  ];
-
-  if (publicRoutes.includes(config.url)) {
-    return config;
-  }
-
+  const publicRoutes = ["/api/authenticate", "/api/user/register"];
+  if (publicRoutes.includes(config.url)) return config;
   const token = getToken();
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
 api.interceptors.response.use(
   (response) => response,
-
   (error) => {
-
-    if (
-      error.response?.status === 401 ||
-      error.response?.status === 403
-    ) {
-
+    if (error.response?.status === 401) {
       localStorage.removeItem("token");
-
-      if (
-        globalThis.location?.pathname !== "/login"
-      ) {
+      if (globalThis.location?.pathname !== "/login") {
         globalThis.location.href = "/login";
       }
     }
-
     return Promise.reject(error);
-  }
+  },
 );
 
 export const DEFAULT_PAGINATION = {
@@ -53,6 +31,7 @@ export const DEFAULT_PAGINATION = {
   sizePerPage: 10,
   sortDirection: "ASC",
   sortField: "identifier",
+  keyword: "",
 };
 
 export const listItems = async (model, paginationOverrides = {}) => {
@@ -63,33 +42,16 @@ export const listItems = async (model, paginationOverrides = {}) => {
   return response.data;
 };
 
-
 export const addItem = async (model, data) => {
   const response = await api.post(`/api/${model}/add`, data);
   return response.data;
 };
 
-
-export const getItem = async (
-  model,
-  value
-) => {
-
-  const paramName =
-    model === "user"
-      ? "username"
-      : "identifier";
-
-  const response =
-    await api.get(
-      `/api/${model}/get`,
-      {
-        params: {
-          [paramName]: value
-        },
-      }
-    );
-
+export const getItem = async (model, value) => {
+  const paramName = model === "user" ? "username" : "identifier";
+  const response = await api.get(`/api/${model}/get`, {
+    params: { [paramName]: value },
+  });
   return response.data;
 };
 
@@ -98,17 +60,10 @@ export const updateItem = async (model, data) => {
   return response.data;
 };
 
-
 export const deleteItem = async (model, identifier, extraData = {}) => {
   const body =
-    model === "user"
-      ? { username: identifier }
-      : { identifier, ...extraData };
-
-  const response = await api.delete(
-    `/api/${model}/delete`,
-    { data: body }
-  );
+    model === "user" ? { username: identifier } : { identifier, ...extraData };
+  const response = await api.delete(`/api/${model}/delete`, { data: body });
   return response.data;
 };
 
@@ -136,7 +91,6 @@ export const getCurrentUser = async () => {
 };
 
 export const getNodesForRoles = async () => {
-
   const response = await api.get("/api/node/getnodes");
   return response.data;
 };
@@ -149,12 +103,12 @@ export const fetchActiveRoles = async () => {
 export const fetchActiveProducts = async () => {
   const response = await api.get("/api/product/active");
   return response.data;
-}
+};
 
-export const clearCart=async(cartId)=>{
-  const response=await api.post("/api/cart/clear",{identifier:cartId});
+export const clearCart = async (cartId) => {
+  const response = await api.post("/api/cart/clear", { identifier: cartId });
   return response.data;
-}
+};
 
 export const getOrderById = async (id) => {
   const response = await api.get(`/api/order/getById`, { params: { id } });

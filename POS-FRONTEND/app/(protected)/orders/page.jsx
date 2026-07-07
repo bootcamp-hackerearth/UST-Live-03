@@ -1,36 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { listItems, getOrderById, DEFAULT_PAGINATION } from "@/services/api";
+import { extractErrorInfo, isModalErrorStatus } from "@/utils/httpError";
 import TablePagination from "@/components/table/TablePagination";
 import TableSkeleton from "@/components/table/TableSkeleton";
 import OrderBillModal from "@/components/order/OrderBillModal";
+import ErrorModal from "@/components/common/ErrorModal";
 
 export default function OrdersPage() {
-
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(false);
   const [error, setError] = useState("");
+  const [modalError, setModalError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGINATION.sizePerPage);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [billLoading, setBillLoading] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    loadOrders();
-  }, [currentPage]);
-
-  const loadOrders = async () => {
+  const loadOrders = async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) {
+        setInitialLoading(true);
+      } else {
+        setTableLoading(true);
+      }
       setError("");
       const data = await listItems("order", {
         page: currentPage,
         sizePerPage: pageSize,
         sortField: "id",
         sortDirection: "DESC",
+        keyword: keyword,
       });
       setOrders(data?.items || []);
       setTotalPages(Number(data?.totalPages) || 0);
@@ -38,10 +45,45 @@ export default function OrdersPage() {
       setPageSize(Number(data?.sizePerPage) || DEFAULT_PAGINATION.sizePerPage);
     } catch (err) {
       console.log(err);
-      setError("Failed to load orders");
+      const { status, message } = extractErrorInfo(
+        err,
+        "Failed to load orders",
+      );
+      if (isModalErrorStatus(status)) {
+        setModalError({ status, message });
+      } else {
+        setError(message);
+      }
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
+      setTableLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadOrders(true);
+  }, []);
+
+  useEffect(() => {
+    if (initialLoading) return;
+    loadOrders(false);
+  }, [currentPage, keyword]);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setCurrentPage(0);
+      setKeyword(value);
+    }, 400);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setCurrentPage(0);
+    setKeyword("");
+    if (debounceRef.current) clearTimeout(debounceRef.current);
   };
 
   const handleRowClick = async (orderId) => {
@@ -51,6 +93,10 @@ export default function OrdersPage() {
       setSelectedOrder(data);
     } catch (err) {
       console.log(err);
+      const { status, message } = extractErrorInfo(err, "Failed to load order");
+      if (isModalErrorStatus(status)) {
+        setModalError({ status, message });
+      }
     } finally {
       setBillLoading(false);
     }
@@ -73,20 +119,16 @@ export default function OrdersPage() {
     ONLINE: "bg-purple-100 text-purple-700",
   };
 
-  if (loading) return <TableSkeleton />;
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-125">
-        <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-2xl">
-          {error}
-        </div>
-      </div>
-    );
-  }
+  if (initialLoading) return <TableSkeleton />;
 
   return (
     <div className="max-w-7xl mx-auto">
+      <ErrorModal
+        open={!!modalError}
+        status={modalError?.status}
+        message={modalError?.message}
+        onClose={() => setModalError(null)}
+      />
 
       {billLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
@@ -114,64 +156,138 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-[30px] border border-gray-200 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-[#f8fafc] border-b border-gray-200">
-              <tr>
-                <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">Order No.</th>
-                <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">Customer</th>
-                <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">Payment Method</th>
-                <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">Subtotal</th>
-                <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">Discount</th>
-                <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">Total</th>
-                <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">Ordered At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-16 text-center text-gray-400">
-                    No orders found
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => (
-                  <tr
-                    key={order.id}
-                    onClick={() => handleRowClick(order.id)}
-                    className="border-b border-gray-100 hover:bg-[#fafcff] transition-colors cursor-pointer"
-                  >
-                    <td className="px-6 py-5">
-                      <span className="font-semibold text-[#101828]">#{order.id}</span>
-                    </td>
-                    <td className="px-6 py-5 text-gray-700">{order.identifier}</td>
-                    <td className="px-6 py-5">
-                      <span className={`px-3 py-1 rounded-xl text-sm font-medium ${PAYMENT_BADGE[order.paymentMethod] || "bg-gray-100 text-gray-700"}`}>
-                        {order.paymentMethod}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 text-gray-700">₹{order.originalPrice}</td>
-                    <td className="px-6 py-5 text-green-600 font-medium">−₹{order.discount}</td>
-                    <td className="px-6 py-5">
-                      <span className="font-bold text-[#101828]">₹{order.totalPrice}</span>
-                    </td>
-                    <td className="px-6 py-5 text-gray-500 text-sm">{formatDate(order.orderedAt)}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {error ? (
+        <div className="flex items-center justify-center h-125">
+          <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-2xl">
+            {error}
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-4 mb-5">
+            <div className="relative w-96">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={handleSearchChange}
+                placeholder="Search Orders..."
+                className="w-full h-11 pl-4 pr-4 text-sm bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
+              />
+            </div>
 
-      <TablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalRecords={totalRecords}
-        pageSize={pageSize}
-        onPageChange={setCurrentPage}
-      />
+            {keyword && (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500">
+                  {totalRecords} result{totalRecords === 1 ? "" : "s"} for{" "}
+                  <span className="font-medium text-gray-700">"{keyword}"</span>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="text-sm font-medium text-red-500 hover:text-red-700 transition-colors"
+                >
+                  Clear Search
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="relative bg-white rounded-[30px] border border-gray-200 overflow-hidden shadow-sm">
+            {tableLoading && (
+              <div className="absolute inset-0 bg-white/60 z-10" />
+            )}
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-[#f8fafc] border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">
+                      Order No.
+                    </th>
+                    <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">
+                      Customer
+                    </th>
+                    <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">
+                      Payment Method
+                    </th>
+                    <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">
+                      Subtotal
+                    </th>
+                    <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">
+                      Discount
+                    </th>
+                    <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">
+                      Total
+                    </th>
+                    <th className="text-left px-6 py-5 text-sm font-semibold text-gray-500">
+                      Ordered At
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-6 py-16 text-center text-gray-400"
+                      >
+                        No orders found
+                      </td>
+                    </tr>
+                  ) : (
+                    orders.map((order) => (
+                      <tr
+                        key={order.id}
+                        onClick={() => handleRowClick(order.id)}
+                        className="border-b border-gray-100 hover:bg-[#fafcff] transition-colors cursor-pointer"
+                      >
+                        <td className="px-6 py-5">
+                          <span className="font-semibold text-[#101828]">
+                            #{order.id}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-gray-700">
+                          {order.identifier}
+                        </td>
+                        <td className="px-6 py-5">
+                          <span
+                            className={`px-3 py-1 rounded-xl text-sm font-medium ${PAYMENT_BADGE[order.paymentMethod] || "bg-gray-100 text-gray-700"}`}
+                          >
+                            {order.paymentMethod}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-gray-700">
+                          ₹{order.originalPrice}
+                        </td>
+                        <td className="px-6 py-5 text-green-600 font-medium">
+                          −₹{order.discount}
+                        </td>
+                        <td className="px-6 py-5">
+                          <span className="font-bold text-[#101828]">
+                            ₹{order.totalPrice}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-gray-500 text-sm">
+                          {formatDate(order.orderedAt)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalRecords={totalRecords}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      )}
     </div>
   );
 }

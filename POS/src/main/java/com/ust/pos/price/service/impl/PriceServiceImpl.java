@@ -2,6 +2,7 @@ package com.ust.pos.price.service.impl;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,9 @@ public class PriceServiceImpl implements PriceService {
     @Override
     public PriceDto findByIdentifier(String identifier) {
         Price price = priceRepository.findByIdentifier(identifier);
+        if (price == null) {
+            throw new ResourceNotFoundException("Price with identifier " + identifier + " not found");
+        }
         return modelMapper.map(price, PriceDto.class);
     }
 
@@ -132,5 +137,22 @@ public class PriceServiceImpl implements PriceService {
         Price price = priceRepository.findByIdentifier(identifier);
         price.setStatus(status);
         priceRepository.save(price);
+    }
+
+    @Override
+    public PaginatedResponseDto<PriceDto> findAll(Specification<Price> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        Page<Price> page = priceRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<PriceDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

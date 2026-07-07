@@ -2,6 +2,7 @@ package com.ust.pos.rack.service.impl;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -99,7 +101,11 @@ public class RackServiceImpl implements RackService {
 
     @Override
     public RackDto findByIdentifier(String identifier) {
-        return modelMapper.map(rackRepository.findByIdentifier(identifier), RackDto.class);
+        Rack rack = rackRepository.findByIdentifier(identifier);
+        if (rack == null) {
+            throw new ResourceNotFoundException(RACK_WITH_IDENTIFIER + identifier + " not found");
+        }
+        return modelMapper.map(rack, RackDto.class);
     }
 
     @Override
@@ -114,5 +120,22 @@ public class RackServiceImpl implements RackService {
         Rack rack = rackRepository.findByIdentifier(identifier);
         rack.setStatus(status);
         rackRepository.save(rack);
+    }
+
+    @Override
+    public PaginatedResponseDto<RackDto> findAll(Specification<Rack> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RackDto>>() {
+        }.getType();
+        Page<Rack> page = rackRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<RackDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

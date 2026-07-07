@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -120,5 +121,22 @@ public class ModelServiceImpl implements ModelService {
         Model model = modelRepository.findByIdentifier(identifier);
         model.setStatus(status);
         modelRepository.save(model);
+    }
+
+    @Override
+    public PaginatedResponseDto<ModelDto> findAll(Specification<Model> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ModelDto>>() {
+        }.getType();
+        Page<Model> page = modelRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<ModelDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

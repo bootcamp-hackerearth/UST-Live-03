@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -120,5 +121,22 @@ public class BrandServiceImpl implements BrandService {
         Brand brand = brandRepository.findByIdentifier(identifier);
         brand.setStatus(status);
         brandRepository.save(brand);
+    }
+
+    @Override
+    public PaginatedResponseDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<BrandDto>>() {
+        }.getType();
+        Page<Brand> page = brandRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<BrandDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

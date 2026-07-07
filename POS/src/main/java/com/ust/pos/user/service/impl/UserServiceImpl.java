@@ -2,6 +2,7 @@ package com.ust.pos.user.service.impl;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +33,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findByUserName(String username) {
-        return modelMapper.map(userRepository.findByUsername(username), UserDto.class);
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new ResourceNotFoundException(USER_WITH_USERNAME_EMAIL + username + " not found");
+        }
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
@@ -121,5 +127,22 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(username);
         user.setStatus(status);
         userRepository.save(user);
+    }
+
+    @Override
+    public PaginatedResponseDto<UserDto> findAll(Specification<User> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> page = userRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<UserDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

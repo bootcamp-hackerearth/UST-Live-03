@@ -2,7 +2,9 @@ package com.ust.pos.stock.service;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.model.Stock;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -21,4 +23,6 @@ public interface StockService {
     List<StockDto> findAllActive();
 
     void changeStatus(String identifier, boolean status);
+
+    PaginatedResponseDto<StockDto> findAll(Specification<Stock> example, Pageable pageable);
 }

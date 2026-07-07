@@ -1,7 +1,8 @@
 package com.ust.pos.warehouse.service.impl;
 
-import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.PaginatedResponseDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -28,7 +30,11 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public WarehouseDto findByIdentifier(String identifier) {
-        return modelMapper.map(warehouseRepository.findByIdentifier(identifier), WarehouseDto.class);
+        Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
+        if (warehouse == null) {
+            throw new ResourceNotFoundException(WAREHOUSE_WITH_IDENTIFIER + identifier +" not found");
+        }
+        return modelMapper.map(warehouse, WarehouseDto.class);
     }
 
     @Override
@@ -114,5 +120,22 @@ public class WarehouseServiceImpl implements WarehouseService {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
         warehouse.setStatus(status);
         warehouseRepository.save(warehouse);
+    }
+
+    @Override
+    public PaginatedResponseDto<WarehouseDto> findAll(Specification<Warehouse> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<WarehouseDto>>() {
+        }.getType();
+        Page<Warehouse> page = warehouseRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<WarehouseDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

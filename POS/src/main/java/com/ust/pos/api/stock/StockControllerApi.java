@@ -4,9 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.model.Stock;
 import com.ust.pos.stock.service.StockService;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,9 +20,15 @@ public class StockControllerApi extends BaseController {
     private final StockService stockService;
 
     @PostMapping("/list")
-    public PaginatedResponseDto<StockDto> home(@RequestBody PaginationDto paginationDto) {
-        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
-                paginationDto.getSortDirection(), paginationDto.getSortField());
+    public PaginatedResponseDto<StockDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
+
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Stock> example = buildGlobalSearchSpec(Stock.class, paginationDto.getKeyword());
+            if (example != null) {
+                return stockService.findAll(example, pageable);
+            }
+        }
         return stockService.findAll(pageable);
     }
 

@@ -237,4 +237,47 @@ class OrderServiceTest {
                 response.getMessage()
         );
     }
+
+    @Test
+    void findAllSpecificationTest() {
+
+        Order order = new Order();
+        order.setIdentifier("ORD001");
+
+        OrderDto orderDto = new OrderDto();
+        orderDto.setIdentifier("ORD001");
+
+        List<Order> orders = List.of(order);
+        List<OrderDto> orderDtos = List.of(orderDto);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Order> page = new PageImpl<>(orders, pageable, orders.size());
+
+        Mockito.when(
+                orderRepository.findAll(
+                        Mockito.<org.springframework.data.jpa.domain.Specification<Order>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(orders),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(orderDtos);
+
+        PaginatedResponseDto<OrderDto> response =
+                orderService.findAll(
+                        Mockito.mock(org.springframework.data.jpa.domain.Specification.class),
+                        pageable
+                );
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+    }
 }

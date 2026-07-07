@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginatedResponseDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -257,5 +259,58 @@ class BrandServiceTest {
 
         Assertions.assertFalse(brand.getStatus());
         Mockito.verify(brandRepository).save(brand);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(brandRepository.findByIdentifier("Admin")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.findByIdentifier("Admin")
+        );
+
+        Assertions.assertEquals(
+                "Brand with identifier Admin not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllSpecificationTest() {
+
+        Brand brand = new Brand();
+        brand.setIdentifier("Admin");
+
+        BrandDto brandDto = new BrandDto();
+        brandDto.setIdentifier("Admin");
+
+        List<Brand> brands = List.of(brand);
+        List<BrandDto> brandDtos = List.of(brandDto);
+
+        Page<Brand> page = new PageImpl<>(brands);
+
+        @SuppressWarnings("unchecked")
+        Specification<Brand> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(brandRepository.findAll(
+                Mockito.eq(specification),
+                Mockito.any(Pageable.class)
+        )).thenReturn(page);
+
+        Mockito.when(modelMapper.map(
+                Mockito.anyList(),
+                Mockito.any(Type.class)
+        )).thenReturn(brandDtos);
+
+        PaginatedResponseDto<BrandDto> response =
+                brandService.findAll(specification, PageRequest.of(0, 10));
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RackDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.impl.RackServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -272,5 +274,61 @@ class RackServiceTest {
         Assertions.assertTrue(rack.getStatus());
 
         Mockito.verify(rackRepository).save(rack);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(rackRepository.findByIdentifier("INVALID"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> rackService.findByIdentifier("INVALID")
+        );
+
+        Assertions.assertEquals(
+                "Rack with identifier - INVALID not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Rack rack = new Rack();
+        rack.setIdentifier("Admin");
+
+        RackDto rackDto = new RackDto();
+        rackDto.setIdentifier("Admin");
+
+        List<Rack> racks = List.of(rack);
+        List<RackDto> rackDtos = List.of(rackDto);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Rack> page = new PageImpl<>(racks, pageable, racks.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<Rack> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(rackRepository.findAll(
+                Mockito.eq(specification),
+                Mockito.any(Pageable.class)
+        )).thenReturn(page);
+
+        Mockito.when(modelMapper.map(
+                Mockito.anyList(),
+                Mockito.any(Type.class)
+        )).thenReturn(rackDtos);
+
+        PaginatedResponseDto<RackDto> response =
+                rackService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals("Admin", response.getItems().get(0).getIdentifier());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

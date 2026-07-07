@@ -2,7 +2,9 @@ package com.ust.pos.user.service;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.model.User;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -21,4 +23,6 @@ public interface UserService {
     List<UserDto> findAllActive();
 
     void changeStatus(String username, boolean status);
+
+    PaginatedResponseDto<UserDto> findAll(Specification<User> example, Pageable pageable);
 }

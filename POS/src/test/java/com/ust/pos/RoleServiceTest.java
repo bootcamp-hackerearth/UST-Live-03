@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -256,5 +258,58 @@ class RoleServiceTest {
 
         Assertions.assertFalse(role.getStatus());
         Mockito.verify(roleRepository).save(role);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(roleRepository.findByIdentifier("Admin")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.findByIdentifier("Admin")
+        );
+
+        Assertions.assertEquals(
+                "Role with identifier - Admin not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllSpecificationTest() {
+
+        Role role = new Role();
+        role.setIdentifier("Admin");
+
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("Admin");
+
+        List<Role> roles = List.of(role);
+        List<RoleDto> roleDtos = List.of(roleDto);
+
+        Page<Role> page = new PageImpl<>(roles);
+
+        @SuppressWarnings("unchecked")
+        Specification<Role> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(roleRepository.findAll(
+                Mockito.eq(specification),
+                Mockito.any(Pageable.class)
+        )).thenReturn(page);
+
+        Mockito.when(modelMapper.map(
+                Mockito.anyList(),
+                Mockito.any(Type.class)
+        )).thenReturn(roleDtos);
+
+        PaginatedResponseDto<RoleDto> response =
+                roleService.findAll(specification, PageRequest.of(0, 10));
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
     }
 }

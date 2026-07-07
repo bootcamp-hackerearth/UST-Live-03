@@ -2,6 +2,7 @@ package com.ust.pos.node.service.impl;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.PaginatedResponseDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -13,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -135,7 +137,11 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        return modelMapper.map(nodeRepository.findByIdentifier(identifier), NodeDto.class);
+        Node node = nodeRepository.findByIdentifier(identifier);
+        if (node == null) {
+            throw new ResourceNotFoundException("Node with identifier " + identifier + " not found");
+        }
+        return modelMapper.map(node, NodeDto.class);
     }
 
     @Override
@@ -150,5 +156,22 @@ public class NodeServiceImpl implements NodeService {
         Node node = nodeRepository.findByIdentifier(identifier);
         node.setStatus(status);
         nodeRepository.save(node);
+    }
+
+    @Override
+    public PaginatedResponseDto<NodeDto> findAll(Specification<Node> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> page = nodeRepository.findAll(example, pageable);
+
+        PaginatedResponseDto<NodeDto> paginatedResponseDto = new PaginatedResponseDto<>();
+        paginatedResponseDto.setItems(modelMapper.map(page.getContent(), listType));
+        paginatedResponseDto.setTotalRecords(page.getTotalElements());
+        paginatedResponseDto.setTotalPages(page.getTotalPages());
+        paginatedResponseDto.setSizePerPage(pageable.getPageSize());
+        paginatedResponseDto.setPage(pageable.getPageNumber());
+
+        return paginatedResponseDto;
     }
 }

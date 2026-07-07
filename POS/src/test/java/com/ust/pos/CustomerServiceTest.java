@@ -5,6 +5,7 @@ import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginatedResponseDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Assertions;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -80,15 +82,6 @@ class CustomerServiceTest {
         assertEquals("CUST123", result.getIdentifier());
         verify(addressService).findByPhoneNoAndAddressType(9876543210L, "billingAddress");
         verify(addressService).findByPhoneNoAndAddressType(9876543210L, "shippingAddress");
-    }
-
-    @Test
-    void testFindByIdentifier_NotFound() {
-        when(customerRepository.findByIdentifier("CUST123")).thenReturn(null);
-
-        CustomerDto result = customerService.findByIdentifier("CUST123");
-
-        assertNull(result);
     }
 
     @Test
@@ -293,5 +286,51 @@ class CustomerServiceTest {
 
         Assertions.assertFalse(customer.getStatus());
         Mockito.verify(customerRepository).save(customer);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(customerRepository.findByIdentifier("CUST123")).thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> customerService.findByIdentifier("CUST123")
+        );
+
+        Assertions.assertEquals(
+                "Customer with username CUST123 not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Customer> page = new PageImpl<>(List.of(customer));
+
+        @SuppressWarnings("unchecked")
+        Specification<Customer> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(customerRepository.findAll(
+                Mockito.eq(specification),
+                Mockito.any(Pageable.class)
+        )).thenReturn(page);
+
+        Mockito.when(modelMapper.map(
+                Mockito.anyList(),
+                Mockito.any(Type.class)
+        )).thenReturn(List.of(customerDto));
+
+        PaginatedResponseDto<CustomerDto> result =
+                customerService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, result.getItems().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
     }
 }

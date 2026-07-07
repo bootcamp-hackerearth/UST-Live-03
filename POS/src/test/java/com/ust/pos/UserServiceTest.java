@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PaginatedResponseDto;
 import com.ust.pos.dto.UserDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -371,5 +373,67 @@ class UserServiceTest {
 
         Mockito.verify(userRepository)
                 .save(user);
+    }
+
+    @Test
+    void findByUserNameNotFoundTest() {
+
+        Mockito.when(userRepository.findByUsername("INVALID"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> userService.findByUserName("INVALID")
+        );
+
+        Assertions.assertEquals(
+                "User with username/email - INVALID not found",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        User user = new User();
+        user.setUsername("Admin");
+
+        UserDto userDto = new UserDto();
+        userDto.setUsername("Admin");
+
+        List<User> users = List.of(user);
+        List<UserDto> userDtos = List.of(userDto);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> page = new PageImpl<>(users, pageable, users.size());
+
+        @SuppressWarnings("unchecked")
+        Specification<User> specification = Mockito.mock(Specification.class);
+
+        Mockito.when(
+                userRepository.findAll(
+                        Mockito.eq(specification),
+                        Mockito.any(Pageable.class)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.anyList(),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(userDtos);
+
+        PaginatedResponseDto<UserDto> response =
+                userService.findAll(specification, pageable);
+
+        Assertions.assertEquals(1, response.getItems().size());
+        Assertions.assertEquals("Admin", response.getItems().get(0).getUsername());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+
+        Mockito.verify(userRepository).findAll(specification, pageable);
     }
 }
