@@ -29,7 +29,7 @@ public class ApiUserController extends BaseController {
 
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public WsDto<UserDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -48,20 +48,20 @@ public class ApiUserController extends BaseController {
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Admin')")
+@PreAuthorize("hasAuthority('ADMIN')")
     public UserDto update(@RequestParam String username) {
         return userService.findByUserName(username);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public UserDto updatePost(@RequestBody UserDto userDto) {
         return userService.update(userDto);
     }
 
     @Transactional
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public boolean delete(@RequestParam String username) {
         try {
             userService.delete(username);
