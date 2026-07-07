@@ -258,7 +258,7 @@ export default function POSPage() {
       price: currentItem.sellingPrice || currentItem.price || 0
     };
 
-    await safeFetch('http://localhost:8080/api/cartEntry/addEntry', {
+    await safeFetch('/api/cartEntry/addEntry', {
       method: 'POST',
       body: JSON.stringify(entryPayload)
     });
@@ -288,7 +288,7 @@ export default function POSPage() {
       price: databasePrice
     };
 
-    await safeFetch('http://localhost:8080/api/cartEntry/addEntry', {
+    await safeFetch('api/cartEntry/addEntry', {
       method: 'POST',
       body: JSON.stringify(entryPayload)
     });
@@ -298,7 +298,7 @@ export default function POSPage() {
   };
 
   const deleteItem = async (item) => {
-    await safeFetch('http://localhost:8080/api/cart/deleteEntry', {
+    await safeFetch('/api/cart/deleteEntry', {
       method: 'POST',
       body: JSON.stringify({ product: item.product, cart: selectedCustomer })
     });
@@ -354,12 +354,12 @@ export default function POSPage() {
     };
 
     try {
-      await safeFetch('http://localhost:8080/api/orders/checkout', {
+      await safeFetch('api/orders/checkout', {
         method: 'POST',
         body: JSON.stringify(orderPayload)
       });
 
-      await safeFetch('http://localhost:8080/api/cart/deleteCart', {
+      await safeFetch('api/cart/deleteCart', {
         method: 'POST',
         body: JSON.stringify({ identifier: selectedCustomer })
       });
