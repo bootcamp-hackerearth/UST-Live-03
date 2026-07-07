@@ -3,6 +3,7 @@ package com.ust.pos.models.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.ModelsService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -24,7 +26,7 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
     private final ModelsRepository modelsRepository;
     private final ModelMapper modelMapper;
 
-    public ModelsServiceImpl(ModelsRepository modelsRepository,ModelMapper modelMapper) {
+    public ModelsServiceImpl(ModelsRepository modelsRepository, ModelMapper modelMapper) {
         this.modelsRepository = modelsRepository;
         this.modelMapper = modelMapper;
     }
@@ -39,6 +41,7 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         }
 
         String name = dto.getModelName().trim();
+
         Models existing = modelsRepository.findByIdentifier(name);
 
         if (existing != null && !Boolean.TRUE.equals(existing.getDeleted())) {
@@ -51,11 +54,15 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         model.setIdentifier(name);
         model.setModelName(name);
         model.setStatus(dto.getStatus());
+
         setCreatedDetails(model);
+
         modelsRepository.save(model);
+
         dto.setSuccess(true);
         dto.setMessage("Model saved successfully");
         dto.setIdentifier(model.getIdentifier());
+
         return dto;
     }
 
@@ -65,9 +72,8 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         Models model = modelsRepository.findByIdentifier(dto.getIdentifier());
 
         if (model == null || Boolean.TRUE.equals(model.getDeleted())) {
-            dto.setSuccess(false);
-            dto.setMessage(MODEL_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Model with identifier '" + dto.getIdentifier() + "' not found");
         }
 
         if (dto.getModelName() != null && !dto.getModelName().trim().isEmpty()) {
@@ -75,11 +81,16 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         }
 
         model.setStatus(dto.getStatus());
+
         setModifiedDetails(model);
-        modelsRepository.save(model);
-        dto.setSuccess(true);
-        dto.setMessage("Model updated successfully");
-        return dto;
+
+        Models saved = modelsRepository.save(model);
+
+        ModelsDto result = modelMapper.map(saved, ModelsDto.class);
+        result.setSuccess(true);
+        result.setMessage("Model updated successfully");
+
+        return result;
     }
 
     @Override
@@ -88,10 +99,8 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         Models model = modelsRepository.findByIdentifier(identifier);
 
         if (model == null || Boolean.TRUE.equals(model.getDeleted())) {
-            ModelsDto dto = new ModelsDto();
-            dto.setSuccess(false);
-            dto.setMessage(MODEL_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Model with identifier '" + identifier + "' not found");
         }
 
         return modelMapper.map(model, ModelsDto.class);
@@ -101,13 +110,16 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
     public WsDto<ModelsDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<ModelsDto>>() {}.getType();
+
         Page<Models> page = modelsRepository.findAll(pageable);
+
         WsDto<ModelsDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(page.getContent(), listType));
         ws.setTotalRecords(page.getTotalElements());
         ws.setTotalPages(page.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
+
         return ws;
     }
 
@@ -116,10 +128,14 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
 
         Models model = modelsRepository.findByIdentifier(identifier);
 
-        if (model == null) return;
+        if (model == null || Boolean.TRUE.equals(model.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "Model with identifier '" + identifier + "' not found");
+        }
 
         model.setDeleted(true);
         setModifiedDetails(model);
+
         modelsRepository.save(model);
     }
 
@@ -129,18 +145,20 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         Models model = modelsRepository.findByIdentifier(identifier);
 
         if (model == null || Boolean.TRUE.equals(model.getDeleted())) {
-            ModelsDto dto = new ModelsDto();
-            dto.setSuccess(false);
-            dto.setMessage(MODEL_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Model with identifier '" + identifier + "' not found");
         }
 
         model.setStatus(!Boolean.TRUE.equals(model.getStatus()));
+
         setModifiedDetails(model);
+
         modelsRepository.save(model);
+
         ModelsDto dto = modelMapper.map(model, ModelsDto.class);
         dto.setSuccess(true);
         dto.setMessage("Status updated successfully");
+
         return dto;
     }
 
@@ -150,5 +168,22 @@ public class ModelsServiceImpl extends BaseService implements ModelsService {
         List<Models> list = modelsRepository.findByStatusTrueAndDeletedFalse();
         Type type = new TypeToken<List<ModelsDto>>() {}.getType();
         return modelMapper.map(list, type);
+    }
+
+    @Override
+    public WsDto<ModelsDto> findAll(Specification<Models> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ModelsDto>>() {
+        }.getType();
+        Page<Models> page = modelsRepository.findAll(example, pageable);
+
+        WsDto<ModelsDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

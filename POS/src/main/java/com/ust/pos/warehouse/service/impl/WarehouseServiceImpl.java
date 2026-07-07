@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -26,7 +27,9 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
     private final WarehouseRepository warehouseRepository;
     private final ModelMapper modelMapper;
 
-    public WarehouseServiceImpl(WarehouseRepository warehouseRepository,ModelMapper modelMapper) {
+    public WarehouseServiceImpl(
+            WarehouseRepository warehouseRepository,
+            ModelMapper modelMapper) {
         this.warehouseRepository = warehouseRepository;
         this.modelMapper = modelMapper;
     }
@@ -43,14 +46,17 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
         }
 
         identifier = identifier.trim();
+
         Warehouse existing = warehouseRepository.findByIdentifier(identifier);
 
         if (existing != null) {
 
             if (Boolean.TRUE.equals(existing.getDeleted())) {
                 warehouseDto.setSuccess(false);
-                warehouseDto.setMessage( "Warehouse with identifier " + identifier +
-                                " has been soft deleted. (Rollback by changing status)");
+                warehouseDto.setMessage(
+                        "Warehouse with identifier " + identifier +
+                                " has been soft deleted. (Rollback by changing status)"
+                );
                 return warehouseDto;
             }
 
@@ -60,10 +66,14 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
         }
 
         Warehouse warehouse = modelMapper.map(warehouseDto, Warehouse.class);
+
         warehouse.setIdentifier(identifier);
         warehouse.setStatus(Boolean.TRUE.equals(warehouseDto.getStatus()));
+
         setCreatedDetails(warehouse);
+
         warehouseRepository.save(warehouse);
+
         warehouseDto.setSuccess(true);
         warehouseDto.setMessage("Warehouse added successfully");
         warehouseDto.setIdentifier(identifier);
@@ -77,23 +87,14 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
         String identifier = warehouseDto.getIdentifier();
 
         if (identifier == null || identifier.trim().isEmpty()) {
-            warehouseDto.setSuccess(false);
-            warehouseDto.setMessage("Invalid identifier");
-            return warehouseDto;
+            throw new ResourceNotFoundException("Invalid identifier");
         }
 
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
 
-        if (warehouse == null) {
-            warehouseDto.setSuccess(false);
-            warehouseDto.setMessage(WAREHOUSE_NOT_FOUND);
-            return warehouseDto;
-        }
-
-        if (Boolean.TRUE.equals(warehouse.getDeleted())) {
-            warehouseDto.setSuccess(false);
-            warehouseDto.setMessage("Warehouse is soft deleted");
-            return warehouseDto;
+        if (warehouse == null || Boolean.TRUE.equals(warehouse.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "Warehouse with identifier '" + identifier + "' not found");
         }
 
         warehouse.setWarehouseName(warehouseDto.getWarehouseName());
@@ -102,11 +103,15 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
         warehouse.setCityName(warehouseDto.getCityName());
         warehouse.setLocation(warehouseDto.getLocation());
         warehouse.setStatus(Boolean.TRUE.equals(warehouseDto.getStatus()));
+
         setModifiedDetails(warehouse);
-        warehouseRepository.save(warehouse);
-        warehouseDto.setSuccess(true);
-        warehouseDto.setMessage("Warehouse updated successfully");
-        return warehouseDto;
+        Warehouse saved = warehouseRepository.save(warehouse);
+
+        WarehouseDto result = modelMapper.map(saved, WarehouseDto.class);
+        result.setSuccess(true);
+        result.setMessage("Warehouse updated successfully");
+
+        return result;
     }
 
     @Override
@@ -114,7 +119,10 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
 
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
 
-        if (warehouse == null) return;
+        if (warehouse == null || Boolean.TRUE.equals(warehouse.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "Warehouse with identifier '" + identifier + "' not found");
+        }
 
         softDelete(warehouse);
         setModifiedDetails(warehouse);
@@ -125,13 +133,16 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
     public WsDto<WarehouseDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
+
         Page<Warehouse> page = warehouseRepository.findByDeletedFalse(pageable);
+
         WsDto<WarehouseDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(page.getContent(), listType));
         ws.setTotalRecords(page.getTotalElements());
         ws.setTotalPages(page.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
+
         return ws;
     }
 
@@ -141,8 +152,10 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
 
         if (warehouse == null || Boolean.TRUE.equals(warehouse.getDeleted())) {
-            throw new ResourceNotFoundException( "Warehouse with identifier '" + identifier + "' not found");
+            throw new ResourceNotFoundException(
+                    "Warehouse with identifier '" + identifier + "' not found");
         }
+
         return modelMapper.map(warehouse, WarehouseDto.class);
     }
 
@@ -150,26 +163,20 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
     public WarehouseDto toggleStatus(String identifier) {
 
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
-        WarehouseDto response = new WarehouseDto();
 
-        if (warehouse == null) {
-            response.setSuccess(false);
-            response.setMessage(WAREHOUSE_NOT_FOUND);
-            return response;
-        }
-
-        if (Boolean.TRUE.equals(warehouse.getDeleted())) {
-            response.setSuccess(false);
-            response.setMessage("Warehouse is soft deleted");
-            return response;
+        if (warehouse == null || Boolean.TRUE.equals(warehouse.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "Warehouse with identifier '" + identifier + "' not found");
         }
 
         warehouse.setStatus(!Boolean.TRUE.equals(warehouse.getStatus()));
         setModifiedDetails(warehouse);
         warehouseRepository.save(warehouse);
-        response = modelMapper.map(warehouse, WarehouseDto.class);
+
+        WarehouseDto response = modelMapper.map(warehouse, WarehouseDto.class);
         response.setSuccess(true);
         response.setMessage("Status updated successfully");
+
         return response;
     }
 
@@ -177,7 +184,25 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
     public List<WarehouseDto> findActiveWarehouses() {
 
         return warehouseRepository.findByStatusTrueAndDeletedFalse()
-                .stream().map(w -> modelMapper.map(w, WarehouseDto.class))
+                .stream()
+                .map(w -> modelMapper.map(w, WarehouseDto.class))
                 .toList();
+    }
+
+    @Override
+    public WsDto<WarehouseDto> findAll(Specification<Warehouse> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<WarehouseDto>>() {
+        }.getType();
+        Page<Warehouse> page = warehouseRepository.findAll(example, pageable);
+
+        WsDto<WarehouseDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

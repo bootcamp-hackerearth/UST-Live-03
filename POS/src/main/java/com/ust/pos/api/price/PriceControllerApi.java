@@ -4,8 +4,12 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Price;
 import com.ust.pos.price.service.PriceService;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,28 +27,39 @@ public class PriceControllerApi extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<PriceDto> list(@RequestBody PaginationDto pagination) {
-        Pageable pageable = getPageable(pagination.getPage(), pagination.getSizePerPage(),
-                pagination.getSortDirection(), pagination.getSortfield());
+    @PreAuthorize("hasAnyAuthority('Manager','Admin')")
+    public WsDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
+        Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
+                paginationDto.getSortDirection(), paginationDto.getSortfield());
+        if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
+            Specification<Price> example = buildGlobalSearchSpec(Price.class, paginationDto.getKeyword());
+            if (example != null) {
+                return priceService.findAll(example, pageable);
+            }
+        }
         return priceService.findAll(pageable);
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority( 'Manager','Admin')")
     public PriceDto addPost(@RequestBody PriceDto priceDto) {
         return priceService.save(priceDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority( 'Manager','Admin')")
     public PriceDto updatePage(@RequestParam String identifier) {
         return priceService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Manager','Admin')")
     public PriceDto updatePost(@RequestBody PriceDto priceDto) {
         return priceService.update(priceDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Manager','Admin')")
     public PriceDto delete(@RequestBody PriceDto priceDto) {
         PriceDto response = new PriceDto();
         try {

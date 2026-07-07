@@ -14,6 +14,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import com.ust.pos.exception.ResourceNotFoundException;
+import org.springframework.data.jpa.domain.Specification;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -118,10 +121,12 @@ class UnitServiceTest {
     void find_failure_notFound() {
 
         when(unitRepository.findByIdentifier("KG")).thenReturn(null);
-        UnitDto response = unitService.findByIdentifier("KG");
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Unit not found", response.getMessage());
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.findByIdentifier("KG"));
+
+        Assertions.assertEquals("Unit with identifier 'KG' not found", ex.getMessage());
     }
 
     @Test
@@ -131,10 +136,12 @@ class UnitServiceTest {
         unit.setDeleted(true);
 
         when(unitRepository.findByIdentifier("KG")).thenReturn(unit);
-        UnitDto response = unitService.findByIdentifier("KG");
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Unit not found", response.getMessage());
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.findByIdentifier("KG"));
+
+        Assertions.assertEquals("Unit with identifier 'KG' not found", ex.getMessage());
     }
 
     @Test
@@ -146,8 +153,11 @@ class UnitServiceTest {
 
         Unit unit = new Unit();
 
+        UnitDto mapped = new UnitDto();
+
         when(unitRepository.findByIdentifier("KG")).thenReturn(unit);
         when(unitRepository.save(unit)).thenReturn(unit);
+        when(modelMapper.map(unit, UnitDto.class)).thenReturn(mapped);
 
         UnitDto response = unitService.update(dto);
 
@@ -162,10 +172,11 @@ class UnitServiceTest {
 
         UnitDto dto = new UnitDto();
 
-        UnitDto response = unitService.update(dto);
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.update(dto));
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Invalid identifier", response.getMessage());
+        Assertions.assertEquals("Invalid identifier", ex.getMessage());
     }
 
     @Test
@@ -175,10 +186,12 @@ class UnitServiceTest {
         dto.setIdentifier("KG");
 
         when(unitRepository.findByIdentifier("KG")).thenReturn(null);
-        UnitDto response = unitService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Unit not found", response.getMessage());
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.update(dto));
+
+        Assertions.assertEquals("Unit with identifier KG' not found", ex.getMessage());
     }
 
     @Test
@@ -191,10 +204,12 @@ class UnitServiceTest {
         unit.setDeleted(true);
 
         when(unitRepository.findByIdentifier("KG")).thenReturn(unit);
-        UnitDto response = unitService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertTrue(response.getMessage().contains("has been soft deleted"));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.update(dto));
+
+        Assertions.assertEquals("Unit with identifier KG' not found", ex.getMessage());
     }
 
     @Test
@@ -213,7 +228,13 @@ class UnitServiceTest {
     void delete_notFound() {
 
         when(unitRepository.findByIdentifier("KG")).thenReturn(null);
-        unitService.delete("KG");
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.delete("KG"));
+
+        Assertions.assertEquals("Unit with identifier 'KG' not found", ex.getMessage());
+
         verify(unitRepository, never()).save(any());
     }
 
@@ -230,6 +251,26 @@ class UnitServiceTest {
         when(unitRepository.findByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(units), ArgumentMatchers.<Type>any())).thenReturn(dtoList);
         WsDto<UnitDto> result = unitService.findAll(pageable);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
+    }
+
+    @Test
+    void findAll_withSpecification() {
+
+        Specification<Unit> specification = (root, query, cb) -> cb.conjunction();
+
+        Page<Unit> page = new PageImpl<>(List.of(new Unit()));
+
+        when(unitRepository.findAll(eq(specification), any(Pageable.class)))
+                .thenReturn(page);
+
+        when(modelMapper.map(anyList(), ArgumentMatchers.<Type>any()))
+                .thenReturn(List.of(new UnitDto()));
+
+        WsDto<UnitDto> result =
+                unitService.findAll(specification, PageRequest.of(0, 5));
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getDtoList().size());
@@ -258,9 +299,14 @@ class UnitServiceTest {
     void toggle_failure_notFound() {
 
         when(unitRepository.findByIdentifier("KG")).thenReturn(null);
-        UnitDto response = unitService.toggleStatus("KG");
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Unit not found", response.getMessage());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.toggleStatus("KG"));
+
+        Assertions.assertEquals("Unit with identifier 'KG' not found", ex.getMessage());
+
+        verify(unitRepository, never()).save(any());
     }
 
     @Test
@@ -270,10 +316,14 @@ class UnitServiceTest {
         unit.setDeleted(true);
 
         when(unitRepository.findByIdentifier("KG")).thenReturn(unit);
-        UnitDto response = unitService.toggleStatus("KG");
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertTrue(response.getMessage().contains("has been soft deleted"));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.toggleStatus("KG"));
+
+        Assertions.assertEquals("Unit with identifier 'KG' not found", ex.getMessage());
+
+        verify(unitRepository, never()).save(any());
     }
 
     @Test

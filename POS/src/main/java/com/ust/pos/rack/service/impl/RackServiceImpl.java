@@ -3,6 +3,7 @@ package com.ust.pos.rack.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -25,7 +27,8 @@ public class RackServiceImpl extends BaseService implements RackService {
     private final RackRepository rackRepository;
     private final ModelMapper modelMapper;
 
-    public RackServiceImpl(RackRepository rackRepository,ModelMapper modelMapper) {
+    public RackServiceImpl(RackRepository rackRepository,
+                           ModelMapper modelMapper) {
         this.rackRepository = rackRepository;
         this.modelMapper = modelMapper;
     }
@@ -72,19 +75,14 @@ public class RackServiceImpl extends BaseService implements RackService {
         String identifier = rackDto.getIdentifier();
 
         if (identifier == null || identifier.trim().isEmpty()) {
-            RackDto dto = new RackDto();
-            dto.setSuccess(false);
-            dto.setMessage(RACK_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(RACK_NOT_FOUND);
         }
 
         Rack rack = rackRepository.findByIdentifier(identifier.trim());
 
         if (rack == null || Boolean.TRUE.equals(rack.getDeleted())) {
-            RackDto dto = new RackDto();
-            dto.setSuccess(false);
-            dto.setMessage(RACK_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Rack with identifier '" + identifier + "' not found");
         }
 
         if (rackDto.getName() != null && !rackDto.getName().trim().isEmpty()) {
@@ -102,6 +100,7 @@ public class RackServiceImpl extends BaseService implements RackService {
         }
 
         setModifiedDetails(rack);
+
         Rack saved = rackRepository.save(rack);
         RackDto response = modelMapper.map(saved, RackDto.class);
         response.setSuccess(true);
@@ -115,14 +114,13 @@ public class RackServiceImpl extends BaseService implements RackService {
         Rack rack = rackRepository.findByIdentifier(identifier);
 
         if (rack == null || Boolean.TRUE.equals(rack.getDeleted())) {
-            RackDto dto = new RackDto();
-            dto.setSuccess(false);
-            dto.setMessage(RACK_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Rack with identifier '" + identifier + "' not found");
         }
 
         RackDto dto = modelMapper.map(rack, RackDto.class);
         dto.setSuccess(true);
+
         return dto;
     }
 
@@ -130,13 +128,16 @@ public class RackServiceImpl extends BaseService implements RackService {
     public WsDto<RackDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<RackDto>>() {}.getType();
+
         Page<Rack> rackPage = rackRepository.findByDeletedFalse(pageable);
+
         WsDto<RackDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(rackPage.getContent(), listType));
         ws.setTotalRecords(rackPage.getTotalElements());
         ws.setTotalPages(rackPage.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
+
         return ws;
     }
 
@@ -153,7 +154,12 @@ public class RackServiceImpl extends BaseService implements RackService {
     public void delete(String identifier) {
 
         Rack rack = rackRepository.findByIdentifier(identifier);
-        if (rack == null) return;
+
+        if (rack == null || Boolean.TRUE.equals(rack.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "Rack with identifier '" + identifier + "' not found");
+        }
+
         rack.setDeleted(true);
         setModifiedDetails(rack);
         rackRepository.save(rack);
@@ -165,10 +171,8 @@ public class RackServiceImpl extends BaseService implements RackService {
         Rack rack = rackRepository.findByIdentifier(identifier);
 
         if (rack == null || Boolean.TRUE.equals(rack.getDeleted())) {
-            RackDto dto = new RackDto();
-            dto.setSuccess(false);
-            dto.setMessage(RACK_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Rack with identifier '" + identifier + "' not found");
         }
 
         rack.setStatus(!Boolean.TRUE.equals(rack.getStatus()));
@@ -178,5 +182,22 @@ public class RackServiceImpl extends BaseService implements RackService {
         dto.setSuccess(true);
         dto.setMessage("Status updated successfully");
         return dto;
+    }
+
+    @Override
+    public WsDto<RackDto> findAll(Specification<Rack> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RackDto>>() {
+        }.getType();
+        Page<Rack> page = rackRepository.findAll(example, pageable);
+
+        WsDto<RackDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

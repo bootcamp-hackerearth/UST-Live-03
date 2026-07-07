@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -88,6 +89,23 @@ class NodeServiceTest {
     }
 
     @Test
+    void save_failure_identifier_missing() {
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("   ");
+
+        NodeDto response = nodeService.save(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+        Assertions.assertEquals(
+                "Identifier required",
+                response.getMessage()
+        );
+
+        verifyNoInteractions(nodeRepository);
+    }
+
+    @Test
     void find_success() {
 
         Node node = new Node();
@@ -112,13 +130,14 @@ class NodeServiceTest {
         when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(null);
 
-        NodeDto response =
-                nodeService.findByIdentifier("N1");
+        ResourceNotFoundException ex = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> nodeService.findByIdentifier("N1")
+        );
 
-        Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals(
-                "Node not found",
-                response.getMessage()
+                "Node with identifier 'N1' not found",
+                ex.getMessage()
         );
     }
 
@@ -126,28 +145,36 @@ class NodeServiceTest {
     void update_success() {
 
         NodeDto dto = new NodeDto();
-        dto.setIdentifier("N1");
+        dto.setIdentifier("NODE1");
 
-        Node existing = new Node();
+        Node node = new Node();
 
-        when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
-                .thenReturn(existing);
+        NodeDto mappedDto = new NodeDto();
 
-        doNothing().when(modelMapper)
-                .map(any(NodeDto.class), any(Node.class));
+        when(nodeRepository.findByIdentifierAndDeletedFalse("NODE1"))
+                .thenReturn(node);
 
-        when(nodeRepository.save(existing))
-                .thenReturn(existing);
+        doAnswer(invocation -> null)
+                .when(modelMapper)
+                .map(dto, node);
+
+        when(nodeRepository.save(node))
+                .thenReturn(node);
+
+        when(modelMapper.map(node, NodeDto.class))
+                .thenReturn(mappedDto);
 
         NodeDto response = nodeService.update(dto);
 
         Assertions.assertTrue(response.isSuccess());
+        Assertions.assertEquals("Node updated successfully",
+                response.getMessage());
 
-        verify(nodeRepository).save(existing);
+        verify(nodeRepository).save(node);
     }
 
     @Test
-    void update_failure() {
+    void update_failure_not_found() {
 
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
@@ -155,14 +182,17 @@ class NodeServiceTest {
         when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(null);
 
-        NodeDto response = nodeService.update(dto);
-
-        Assertions.assertFalse(response.isSuccess());
+        ResourceNotFoundException ex = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> nodeService.update(dto)
+        );
 
         Assertions.assertEquals(
-                "Node not found",
-                response.getMessage()
+                "Node with identifier 'N1' not found",
+                ex.getMessage()
         );
+
+        verify(nodeRepository, never()).save(any());
     }
 
     @Test
@@ -187,11 +217,18 @@ class NodeServiceTest {
         when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
                 .thenReturn(null);
 
-        nodeService.delete("N1");
+        ResourceNotFoundException ex = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> nodeService.delete("N1")
+        );
+
+        Assertions.assertEquals(
+                "Node with identifier 'N1' not found",
+                ex.getMessage()
+        );
 
         verify(nodeRepository, never()).save(any());
     }
-
     @Test
     void findAll_success() {
 

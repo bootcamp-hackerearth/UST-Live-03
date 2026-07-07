@@ -3,15 +3,19 @@ package com.ust.pos.stock.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
@@ -23,7 +27,8 @@ public class StockServiceImpl extends BaseService implements StockService {
     private final StockRepository stockRepository;
     private final ModelMapper modelMapper;
 
-    public StockServiceImpl(StockRepository stockRepository,ModelMapper modelMapper) {
+    public StockServiceImpl(StockRepository stockRepository,
+                            ModelMapper modelMapper) {
         this.stockRepository = stockRepository;
         this.modelMapper = modelMapper;
     }
@@ -53,14 +58,13 @@ public class StockServiceImpl extends BaseService implements StockService {
         Stock existing = stockRepository.findByIdentifier(dto.getIdentifier());
 
         if (existing != null) {
-            if (Boolean.TRUE.equals(existing.getDeleted())) {
-                dto.setSuccess(false);
-                dto.setMessage("Product was deleted from this warehouse — restore it instead of creating new");
-                return dto;
+
+            if (!Boolean.TRUE.equals(existing.getDeleted())) { //to check delete
+            } else {
+                throw new ResourceNotFoundException(
+                        "Product was deleted from this warehouse in '" + dto.getIdentifier()
+                                + "' — restore it instead of creating new");
             }
-            dto.setSuccess(false);
-            dto.setMessage("Product already exists in this warehouse");
-            return dto;
         }
 
         Stock stock = modelMapper.map(dto, Stock.class);
@@ -75,6 +79,7 @@ public class StockServiceImpl extends BaseService implements StockService {
         response.setStockState(calculateState(saved));
         response.setSuccess(true);
         response.setMessage("Stock saved successfully");
+
         return response;
     }
 
@@ -82,13 +87,12 @@ public class StockServiceImpl extends BaseService implements StockService {
     public StockDto update(StockDto dto) {
 
         dto.setIdentifier(dto.getProductIdentifier() + "_" + dto.getWarehouseIdentifier());
+
         Stock existing = stockRepository.findByIdentifier(dto.getIdentifier());
 
         if (existing == null || Boolean.TRUE.equals(existing.getDeleted())) {
-            StockDto error = new StockDto();
-            error.setSuccess(false);
-            error.setMessage(STOCK_NOT_FOUND);
-            return error;
+            throw new ResourceNotFoundException(
+                    "Stock with identifier '" + dto.getIdentifier() + "' not found");
         }
 
         existing.setAvailableQuantity(dto.getAvailableQuantity());
@@ -109,10 +113,8 @@ public class StockServiceImpl extends BaseService implements StockService {
         Stock stock = stockRepository.findByIdentifier(identifier);
 
         if (stock == null || Boolean.TRUE.equals(stock.getDeleted())) {
-            StockDto dto = new StockDto();
-            dto.setSuccess(false);
-            dto.setMessage(STOCK_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Stock with identifier '" + identifier + "' not found");
         }
 
         StockDto dto = modelMapper.map(stock, StockDto.class);
@@ -126,13 +128,11 @@ public class StockServiceImpl extends BaseService implements StockService {
 
         Page<Stock> stockPage = stockRepository.findByDeletedFalse(pageable);
 
-        List<StockDto> dtoList = stockPage.getContent().stream()
-                .map(s -> {
+        List<StockDto> dtoList = stockPage.getContent()
+                .stream().map(s -> {
                     StockDto dto = modelMapper.map(s, StockDto.class);
                     dto.setStockState(calculateState(s));
-                    return dto;
-                })
-                .toList();
+                    return dto;}).toList();
 
         WsDto<StockDto> ws = new WsDto<>();
         ws.setDtoList(dtoList);
@@ -142,12 +142,16 @@ public class StockServiceImpl extends BaseService implements StockService {
         ws.setPage(pageable.getPageNumber());
         return ws;
     }
+
     @Override
     public void delete(String identifier) {
 
         Stock stock = stockRepository.findByIdentifier(identifier);
 
-        if (stock == null) return;
+        if (stock == null || Boolean.TRUE.equals(stock.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "Stock with identifier '" + identifier + "' not found");
+        }
 
         stock.setDeleted(true);
         setModifiedDetails(stock);
@@ -160,10 +164,8 @@ public class StockServiceImpl extends BaseService implements StockService {
         Stock stock = stockRepository.findByIdentifier(identifier);
 
         if (stock == null || Boolean.TRUE.equals(stock.getDeleted())) {
-            StockDto dto = new StockDto();
-            dto.setSuccess(false);
-            dto.setMessage(STOCK_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Stock with identifier '" + identifier + "' not found");
         }
 
         stock.setStatus(!Boolean.TRUE.equals(stock.getStatus()));
@@ -183,9 +185,7 @@ public class StockServiceImpl extends BaseService implements StockService {
                 .stream().map(s -> {
                     StockDto dto = modelMapper.map(s, StockDto.class);
                     dto.setStockState(calculateState(s));
-                    return dto;
-                })
-                .toList();
+                    return dto;}).toList();
     }
 
     @Override
@@ -195,7 +195,6 @@ public class StockServiceImpl extends BaseService implements StockService {
                 .stream().filter(s -> Boolean.TRUE.equals(s.getStatus()))
                 .mapToInt(s -> s.getAvailableQuantity() != null ? s.getAvailableQuantity() : 0)
                 .sum();
-
         return totalAvailable >= quantity;
     }
 
@@ -203,14 +202,18 @@ public class StockServiceImpl extends BaseService implements StockService {
     public StockDto reduceStock(String productIdentifier, Integer quantity) {
 
         List<Stock> stocks = stockRepository.findByProductIdentifierAndDeletedFalse(productIdentifier)
-                .stream().filter(s -> Boolean.TRUE.equals(s.getStatus()))
+                .stream()
+                .filter(s -> Boolean.TRUE.equals(s.getStatus()))
                 .filter(s -> s.getAvailableQuantity() != null && s.getAvailableQuantity() > 0)
-                .sorted((a, b) -> b.getAvailableQuantity() - a.getAvailableQuantity()) // biggest warehouse first
+                .sorted((a, b) -> b.getAvailableQuantity() - a.getAvailableQuantity())
                 .toList();
 
-        int totalAvailable = stocks.stream().mapToInt(Stock::getAvailableQuantity).sum();
-        StockDto dto = new StockDto();
+        int totalAvailable = stocks.stream()
+                .mapToInt(Stock::getAvailableQuantity)
+                .sum();
+
         if (totalAvailable < quantity) {
+            StockDto dto = new StockDto();
             dto.setSuccess(false);
             dto.setMessage("Insufficient stock for product: " + productIdentifier);
             return dto;
@@ -219,6 +222,7 @@ public class StockServiceImpl extends BaseService implements StockService {
         int remaining = quantity;
 
         for (Stock s : stocks) {
+
             if (remaining <= 0) break;
             int take = Math.min(remaining, s.getAvailableQuantity());
             s.setAvailableQuantity(s.getAvailableQuantity() - take);
@@ -227,9 +231,28 @@ public class StockServiceImpl extends BaseService implements StockService {
             remaining -= take;
         }
 
+        StockDto dto = new StockDto();
         dto.setProductIdentifier(productIdentifier);
         dto.setSuccess(true);
         dto.setMessage("Stock reduced successfully");
+
         return dto;
+    }
+
+    @Override
+    public WsDto<StockDto> findAll(Specification<Stock> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Stock> page = stockRepository.findAll(example, pageable);
+
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

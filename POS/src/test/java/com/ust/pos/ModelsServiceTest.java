@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ModelsDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
 import com.ust.pos.models.service.impl.ModelsServiceImpl;
@@ -131,10 +132,11 @@ class ModelsServiceTest {
         when(repository.findByIdentifier("id"))
                 .thenReturn(null);
 
-        ModelsDto result = service.update(dto);
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.update(dto));
 
-        assertFalse(result.isSuccess());
-        assertEquals("Model not found", result.getMessage());
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -149,10 +151,11 @@ class ModelsServiceTest {
         when(repository.findByIdentifier("id"))
                 .thenReturn(model);
 
-        ModelsDto result = service.update(dto);
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.update(dto));
 
-        assertFalse(result.isSuccess());
-        assertEquals("Model not found", result.getMessage());
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -169,6 +172,12 @@ class ModelsServiceTest {
 
         when(repository.findByIdentifier("id"))
                 .thenReturn(model);
+
+        when(repository.save(model))
+                .thenReturn(model);
+
+        when(modelMapper.map(model, ModelsDto.class))
+                .thenReturn(new ModelsDto());
 
         ModelsDto result = service.update(dto);
 
@@ -214,10 +223,9 @@ class ModelsServiceTest {
         when(repository.findByIdentifier("id"))
                 .thenReturn(null);
 
-        ModelsDto result = service.findByIdentifier("id");
-
-        assertFalse(result.isSuccess());
-        assertEquals("Model not found", result.getMessage());
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.findByIdentifier("id"));
     }
 
     @Test
@@ -229,10 +237,9 @@ class ModelsServiceTest {
         when(repository.findByIdentifier("id"))
                 .thenReturn(model);
 
-        ModelsDto result = service.findByIdentifier("id");
-
-        assertFalse(result.isSuccess());
-        assertEquals("Model not found", result.getMessage());
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.findByIdentifier("id"));
     }
 
     @Test
@@ -281,12 +288,30 @@ class ModelsServiceTest {
     }
 
     @Test
-    void delete_shouldIgnoreWhenNotFound() {
+    void delete_shouldFail_whenNotFound() {
 
         when(repository.findByIdentifier("id"))
                 .thenReturn(null);
 
-        service.delete("id");
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.delete("id"));
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void delete_shouldFail_whenAlreadyDeleted() {
+
+        Models model = new Models();
+        model.setDeleted(true);
+
+        when(repository.findByIdentifier("id"))
+                .thenReturn(model);
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.delete("id"));
 
         verify(repository, never()).save(any());
     }
@@ -297,10 +322,9 @@ class ModelsServiceTest {
         when(repository.findByIdentifier("id"))
                 .thenReturn(null);
 
-        ModelsDto result = service.toggleStatus("id");
-
-        assertFalse(result.isSuccess());
-        assertEquals("Model not found", result.getMessage());
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.toggleStatus("id"));
     }
 
     @Test
@@ -312,10 +336,9 @@ class ModelsServiceTest {
         when(repository.findByIdentifier("id"))
                 .thenReturn(model);
 
-        ModelsDto result = service.toggleStatus("id");
-
-        assertFalse(result.isSuccess());
-        assertEquals("Model not found", result.getMessage());
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.toggleStatus("id"));
     }
 
     @Test

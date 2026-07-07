@@ -9,6 +9,7 @@ import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -49,14 +51,9 @@ class BrandServiceTest {
 
         BrandDto mapped = new BrandDto();
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(null);
-
-        when(brandRepository.save(any(Brand.class)))
-                .thenReturn(saved);
-
-        when(modelMapper.map(saved, BrandDto.class))
-                .thenReturn(mapped);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
+        when(brandRepository.save(any(Brand.class))).thenReturn(saved);
+        when(modelMapper.map(saved, BrandDto.class)).thenReturn(mapped);
 
         BrandDto response = brandService.save(dto);
 
@@ -90,8 +87,7 @@ class BrandServiceTest {
         Brand existing = new Brand();
         existing.setDeleted(false);
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(existing);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(existing);
 
         BrandDto response = brandService.save(dto);
 
@@ -111,17 +107,11 @@ class BrandServiceTest {
         existing.setDeleted(true);
 
         Brand saved = new Brand();
-
         BrandDto mapped = new BrandDto();
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(existing);
-
-        when(brandRepository.save(any(Brand.class)))
-                .thenReturn(saved);
-
-        when(modelMapper.map(saved, BrandDto.class))
-                .thenReturn(mapped);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(existing);
+        when(brandRepository.save(any(Brand.class))).thenReturn(saved);
+        when(modelMapper.map(saved, BrandDto.class)).thenReturn(mapped);
 
         BrandDto response = brandService.save(dto);
 
@@ -142,17 +132,11 @@ class BrandServiceTest {
         existing.setDeleted(false);
 
         Brand saved = new Brand();
-
         BrandDto mapped = new BrandDto();
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(existing);
-
-        when(brandRepository.save(existing))
-                .thenReturn(saved);
-
-        when(modelMapper.map(saved, BrandDto.class))
-                .thenReturn(mapped);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(existing);
+        when(brandRepository.save(existing)).thenReturn(saved);
+        when(modelMapper.map(saved, BrandDto.class)).thenReturn(mapped);
 
         BrandDto response = brandService.update(dto);
 
@@ -168,10 +152,13 @@ class BrandServiceTest {
         BrandDto dto = new BrandDto();
         dto.setIdentifier("Nike");
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(null);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
 
-        assertThrows(ResourceNotFoundException.class, () -> brandService.update(dto));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.update(dto));
+
+        assertEquals("Brand not found: Nike", ex.getMessage());
 
         verify(brandRepository, never()).save(any());
     }
@@ -185,10 +172,13 @@ class BrandServiceTest {
         Brand brand = new Brand();
         brand.setDeleted(true);
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(brand);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
 
-        assertThrows(ResourceNotFoundException.class, () -> brandService.update(dto));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.update(dto));
+
+        assertEquals("Brand not found: Nike", ex.getMessage());
 
         verify(brandRepository, never()).save(any());
     }
@@ -201,11 +191,8 @@ class BrandServiceTest {
 
         BrandDto dto = new BrandDto();
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(brand);
-
-        when(modelMapper.map(brand, BrandDto.class))
-                .thenReturn(dto);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
+        when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
 
         BrandDto response = brandService.findByIdentifier("Nike");
 
@@ -215,10 +202,13 @@ class BrandServiceTest {
     @Test
     void find_not_found() {
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(null);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
 
-        assertThrows(ResourceNotFoundException.class, () -> brandService.findByIdentifier("Nike"));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.findByIdentifier("Nike"));
+
+        assertEquals("Brand not found: Nike", ex.getMessage());
     }
 
     @Test
@@ -227,10 +217,13 @@ class BrandServiceTest {
         Brand brand = new Brand();
         brand.setDeleted(true);
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(brand);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
 
-        assertThrows(ResourceNotFoundException.class, () -> brandService.findByIdentifier("Nike"));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.findByIdentifier("Nike"));
+
+        assertEquals("Brand not found: Nike", ex.getMessage());
     }
 
     @Test
@@ -239,11 +232,8 @@ class BrandServiceTest {
         Brand brand = new Brand();
         brand.setDeleted(false);
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(brand);
-
-        when(brandRepository.save(brand))
-                .thenReturn(brand);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
+        when(brandRepository.save(brand)).thenReturn(brand);
 
         brandService.delete("Nike");
 
@@ -255,10 +245,13 @@ class BrandServiceTest {
     @Test
     void delete_not_found() {
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(null);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
 
-        assertThrows(ResourceNotFoundException.class, () -> brandService.delete("Nike"));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.delete("Nike"));
+
+        assertEquals("Brand not found: Nike", ex.getMessage());
 
         verify(brandRepository, never()).save(any());
     }
@@ -270,14 +263,28 @@ class BrandServiceTest {
 
         Page<Brand> page = new PageImpl<>(List.of(brand));
 
-        when(brandRepository.findByDeletedFalse(any(Pageable.class)))
-                .thenReturn(page);
+        when(brandRepository.findByDeletedFalse(any(Pageable.class))).thenReturn(page);
 
-        when(modelMapper.map(anyList(), any(Type.class)))
-                .thenReturn(List.of(new BrandDto()));
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(new BrandDto()));
 
-        WsDto<BrandDto> result =
-                brandService.findAll(PageRequest.of(0, 5));
+        WsDto<BrandDto> result = brandService.findAll(PageRequest.of(0, 5));
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+    }
+
+    @Test
+    void find_all_with_specification() {
+
+        Specification<Brand> specification = (root, query, cb) -> cb.conjunction();
+
+        Page<Brand> page = new PageImpl<>(List.of(new Brand()));
+
+        when(brandRepository.findAll(eq(specification), any(Pageable.class))).thenReturn(page);
+
+        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(new BrandDto()));
+
+        WsDto<BrandDto> result = brandService.findAll(specification, PageRequest.of(0, 5));
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
@@ -290,11 +297,8 @@ class BrandServiceTest {
         brand.setStatus(true);
         brand.setDeleted(false);
 
-        when(brandRepository.findByDeletedFalse())
-                .thenReturn(List.of(brand));
-
-        when(modelMapper.map(brand, BrandDto.class))
-                .thenReturn(new BrandDto());
+        when(brandRepository.findByDeletedFalse()).thenReturn(List.of(brand));
+        when(modelMapper.map(brand, BrandDto.class)).thenReturn(new BrandDto());
 
         List<BrandDto> result = brandService.findActiveBrands();
 
@@ -307,8 +311,7 @@ class BrandServiceTest {
         Brand brand = new Brand();
         brand.setStatus(false);
 
-        when(brandRepository.findByDeletedFalse())
-                .thenReturn(List.of(brand));
+        when(brandRepository.findByDeletedFalse()).thenReturn(List.of(brand));
 
         List<BrandDto> result = brandService.findActiveBrands();
 
@@ -325,14 +328,9 @@ class BrandServiceTest {
 
         BrandDto mapped = new BrandDto();
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(brand);
-
-        when(brandRepository.save(brand))
-                .thenReturn(brand);
-
-        when(modelMapper.map(brand, BrandDto.class))
-                .thenReturn(mapped);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
+        when(brandRepository.save(brand)).thenReturn(brand);
+        when(modelMapper.map(brand, BrandDto.class)).thenReturn(mapped);
 
         BrandDto response = brandService.toggleStatus("Nike");
 
@@ -343,10 +341,15 @@ class BrandServiceTest {
     @Test
     void toggle_not_found() {
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(null);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(null);
 
-        assertThrows(ResourceNotFoundException.class, () -> brandService.toggleStatus("Nike"));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.toggleStatus("Nike"));
+
+        assertEquals("Brand not found: Nike", ex.getMessage());
+
+        verify(brandRepository, never()).save(any());
     }
 
     @Test
@@ -355,9 +358,14 @@ class BrandServiceTest {
         Brand brand = new Brand();
         brand.setDeleted(true);
 
-        when(brandRepository.findByIdentifier("Nike"))
-                .thenReturn(brand);
+        when(brandRepository.findByIdentifier("Nike")).thenReturn(brand);
 
-        assertThrows(ResourceNotFoundException.class, () -> brandService.toggleStatus("Nike"));
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.toggleStatus("Nike"));
+
+        assertEquals("Brand not found: Nike", ex.getMessage());
+
+        verify(brandRepository, never()).save(any());
     }
 }

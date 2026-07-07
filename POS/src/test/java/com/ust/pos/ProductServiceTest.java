@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -113,10 +114,24 @@ class ProductServiceTest {
         dto.setIdentifier("P1");
 
         when(productRepository.findByIdentifier("P1")).thenReturn(null);
-        ProductDto result = productService.update(dto);
 
-        assertFalse(result.isSuccess());
-        assertEquals("Product not found", result.getMessage());
+        assertThrows(ResourceNotFoundException.class, () -> productService.update(dto));
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void update_deletedRecord_notFound() {
+
+        ProductDto dto = new ProductDto();
+        dto.setIdentifier("P1");
+
+        Product existing = new Product();
+        existing.setDeleted(true);
+
+        when(productRepository.findByIdentifier("P1")).thenReturn(existing);
+
+        assertThrows(ResourceNotFoundException.class, () -> productService.update(dto));
+        verify(productRepository, never()).save(any());
     }
 
     @Test
@@ -139,12 +154,9 @@ class ProductServiceTest {
     void findByIdentifier_notFound() {
 
         when(productRepository.findByIdentifier("P1")).thenReturn(null);
-        ProductDto result = productService.findByIdentifier("P1");
 
-        assertFalse(result.isSuccess());
-        assertEquals("Product not found", result.getMessage());
+        assertThrows(ResourceNotFoundException.class, () -> productService.findByIdentifier("P1"));
     }
-
 
     @Test
     void findAll_success() {
@@ -182,8 +194,8 @@ class ProductServiceTest {
     void delete_notFound() {
 
         when(productRepository.findByIdentifier("P1")).thenReturn(null);
-        productService.delete("P1");
 
+        assertThrows(ResourceNotFoundException.class, () -> productService.delete("P1"));
         verify(productRepository, never()).save(any());
     }
 
@@ -223,10 +235,9 @@ class ProductServiceTest {
     void toggleStatus_notFound() {
 
         when(productRepository.findByIdentifier("P1")).thenReturn(null);
-        ProductDto result = productService.toggleStatus("P1");
 
-        assertFalse(result.isSuccess());
-        assertEquals("Product not found", result.getMessage());
+        assertThrows(ResourceNotFoundException.class, () -> productService.toggleStatus("P1"));
+        verify(productRepository, never()).save(any());
     }
 
     @Test

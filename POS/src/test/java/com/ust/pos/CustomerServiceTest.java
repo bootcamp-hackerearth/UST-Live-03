@@ -5,12 +5,12 @@ import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -129,12 +129,8 @@ class CustomerServiceTest {
         when(customerRepository.findByIdentifier("123"))
                 .thenReturn(null);
 
-        CustomerDto response =
-                customerService.findByIdentifier("123");
-
-        assertFalse(response.isSuccess());
-        assertEquals("Customer not found",
-                response.getMessage());
+        assertThrows(ResourceNotFoundException.class,
+                () -> customerService.findByIdentifier("123"));
     }
 
     @Test
@@ -146,12 +142,8 @@ class CustomerServiceTest {
         when(customerRepository.findByIdentifier("123"))
                 .thenReturn(customer);
 
-        CustomerDto response =
-                customerService.findByIdentifier("123");
-
-        assertFalse(response.isSuccess());
-        assertEquals("Customer not found",
-                response.getMessage());
+        assertThrows(ResourceNotFoundException.class,
+                () -> customerService.findByIdentifier("123"));
     }
 
     @Test
@@ -185,11 +177,8 @@ class CustomerServiceTest {
         when(customerRepository.findByIdentifier("123"))
                 .thenReturn(null);
 
-        CustomerDto response = customerService.update(dto);
-
-        assertFalse(response.isSuccess());
-        assertEquals("Customer not found",
-                response.getMessage());
+        assertThrows(ResourceNotFoundException.class,
+                () -> customerService.update(dto));
     }
 
     @Test
@@ -204,11 +193,8 @@ class CustomerServiceTest {
         when(customerRepository.findByIdentifier("123"))
                 .thenReturn(customer);
 
-        CustomerDto response = customerService.update(dto);
-
-        assertFalse(response.isSuccess());
-        assertEquals("Customer not found",
-                response.getMessage());
+        assertThrows(ResourceNotFoundException.class,
+                () -> customerService.update(dto));
     }
 
     @Test
@@ -237,7 +223,8 @@ class CustomerServiceTest {
         when(customerRepository.findByIdentifier("123"))
                 .thenReturn(null);
 
-        customerService.delete("123");
+        assertThrows(ResourceNotFoundException.class,
+                () -> customerService.delete("123"));
 
         verify(customerRepository, never())
                 .save(any());
@@ -320,12 +307,8 @@ class CustomerServiceTest {
         when(customerRepository.findByIdentifier("123"))
                 .thenReturn(null);
 
-        CustomerDto response =
-                customerService.toggleStatus("123");
-
-        assertFalse(response.isSuccess());
-        assertEquals("Customer not found",
-                response.getMessage());
+        assertThrows(ResourceNotFoundException.class,
+                () -> customerService.toggleStatus("123"));
     }
 
     @Test

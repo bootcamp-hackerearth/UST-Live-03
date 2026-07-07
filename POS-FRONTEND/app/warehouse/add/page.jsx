@@ -8,6 +8,7 @@ import {
   validateWarehouse,
 } from "../utils/WarehouseFields";
 
+
 export default function WarehouseAddPage() {
   const router = useRouter();
 

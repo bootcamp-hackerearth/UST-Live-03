@@ -3,16 +3,15 @@ package com.ust.pos.node.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.model.Node;
-import com.ust.pos.model.NodeRepository;
-import com.ust.pos.model.User;
-import com.ust.pos.model.UserRepository;
+import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,7 @@ public class NodeServiceImpl extends BaseService implements NodeService {
     private final NodeRepository nodeRepository;
     private final ModelMapper modelMapper;
 
-    public NodeServiceImpl(UserRepository userRepository,NodeRepository nodeRepository,
+    public NodeServiceImpl(UserRepository userRepository, NodeRepository nodeRepository,
                            ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.nodeRepository = nodeRepository;
@@ -44,11 +43,10 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         Node node = nodeRepository.findByIdentifierAndDeletedFalse(identifier);
 
         if (node == null) {
-            NodeDto dto = new NodeDto();
-            dto.setSuccess(false);
-            dto.setMessage("Node not found");
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Node with identifier '" + identifier + "' not found");
         }
+
         return modelMapper.map(node, NodeDto.class);
     }
 
@@ -78,6 +76,7 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         nodeRepository.save(node);
         nodeDto.setSuccess(true);
         nodeDto.setMessage("Node saved successfully");
+
         return nodeDto;
     }
 
@@ -87,17 +86,19 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         Node node = nodeRepository.findByIdentifierAndDeletedFalse(nodeDto.getIdentifier());
 
         if (node == null) {
-            nodeDto.setSuccess(false);
-            nodeDto.setMessage("Node not found");
-            return nodeDto;
+            throw new ResourceNotFoundException(
+                    "Node with identifier '" + nodeDto.getIdentifier() + "' not found");
         }
 
         modelMapper.map(nodeDto, node);
         setModifiedDetails(node);
-        nodeRepository.save(node);
-        nodeDto.setSuccess(true);
-        nodeDto.setMessage("Node updated successfully");
-        return nodeDto;
+        Node saved = nodeRepository.save(node);
+
+        NodeDto result = modelMapper.map(saved, NodeDto.class);
+        result.setSuccess(true);
+        result.setMessage("Node updated successfully");
+
+        return result;
     }
 
     @Override
@@ -106,7 +107,8 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         Node node = nodeRepository.findByIdentifierAndDeletedFalse(identifier);
 
         if (node == null) {
-            return;
+            throw new ResourceNotFoundException(
+                    "Node with identifier '" + identifier + "' not found");
         }
 
         node.setDeleted(true);
@@ -119,12 +121,14 @@ public class NodeServiceImpl extends BaseService implements NodeService {
 
         Type listType = new TypeToken<List<NodeDto>>() {}.getType();
         Page<Node> page = nodeRepository.findByDeletedFalse(pageable);
+
         WsDto<NodeDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(page.getContent(), listType));
         ws.setTotalRecords(page.getTotalElements());
         ws.setTotalPages(page.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
+
         return ws;
     }
 
@@ -159,11 +163,31 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         List<NodeDto> result = new ArrayList<>();
 
         for (String identifier : allowedNodes) {
+
             Node node = nodeRepository.findByIdentifierAndDeletedFalse(identifier);
+
             if (node != null) {
                 result.add(modelMapper.map(node, NodeDto.class));
             }
         }
+
         return result;
+    }
+
+    @Override
+    public WsDto<NodeDto> findAll(Specification<Node> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> page = nodeRepository.findAll(example, pageable);
+
+        WsDto<NodeDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

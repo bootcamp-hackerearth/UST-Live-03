@@ -3,6 +3,7 @@ package com.ust.pos.product.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
@@ -12,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -27,7 +29,7 @@ public class ProductServiceImpl extends BaseService implements ProductService {
     private final PriceRepository priceRepository;
     private final ModelMapper modelMapper;
 
-    public ProductServiceImpl(ProductRepository productRepository,PriceRepository priceRepository,
+    public ProductServiceImpl(ProductRepository productRepository, PriceRepository priceRepository,
                               ModelMapper modelMapper) {
         this.productRepository = productRepository;
         this.priceRepository = priceRepository;
@@ -50,9 +52,11 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         product.setIdentifier(identifier);
         setCreatedDetails(product);
         Product saved = productRepository.save(product);
+
         ProductDto response = modelMapper.map(saved, ProductDto.class);
         response.setSuccess(true);
         response.setMessage("Product saved successfully");
+
         return response;
     }
 
@@ -62,18 +66,18 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         Product product = productRepository.findByIdentifier(productDto.getIdentifier());
 
         if (product == null || Boolean.TRUE.equals(product.getDeleted())) {
-            ProductDto dto = new ProductDto();
-            dto.setSuccess(false);
-            dto.setMessage(PRODUCT_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Product with identifier '" + productDto.getIdentifier() + "' not found");
         }
 
         modelMapper.map(productDto, product);
         setModifiedDetails(product);
         Product saved = productRepository.save(product);
+
         ProductDto dto = modelMapper.map(saved, ProductDto.class);
         dto.setSuccess(true);
         dto.setMessage("Product updated successfully");
+
         return dto;
     }
 
@@ -83,11 +87,10 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         Product product = productRepository.findByIdentifier(identifier);
 
         if (product == null || Boolean.TRUE.equals(product.getDeleted())) {
-            ProductDto dto = new ProductDto();
-            dto.setSuccess(false);
-            dto.setMessage(PRODUCT_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Product with identifier '" + identifier + "' not found");
         }
+
         return modelMapper.map(product, ProductDto.class);
     }
 
@@ -95,13 +98,16 @@ public class ProductServiceImpl extends BaseService implements ProductService {
     public WsDto<ProductDto> findAll(Pageable pageable) {
 
         Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+
         Page<Product> page = productRepository.findByDeletedFalse(pageable);
+
         WsDto<ProductDto> ws = new WsDto<>();
         ws.setDtoList(modelMapper.map(page.getContent(), listType));
         ws.setTotalRecords(page.getTotalElements());
         ws.setTotalPages(page.getTotalPages());
         ws.setSizePerPage(pageable.getPageSize());
         ws.setPage(pageable.getPageNumber());
+
         return ws;
     }
 
@@ -109,9 +115,15 @@ public class ProductServiceImpl extends BaseService implements ProductService {
     public void delete(String identifier) {
 
         Product product = productRepository.findByIdentifier(identifier);
-        if (product == null) return;
+
+        if (product == null || Boolean.TRUE.equals(product.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "Product with identifier '" + identifier + "' not found");
+        }
+
         product.setDeleted(true);
         setModifiedDetails(product);
+
         productRepository.save(product);
     }
 
@@ -129,10 +141,8 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         Product product = productRepository.findByIdentifier(identifier);
 
         if (product == null || Boolean.TRUE.equals(product.getDeleted())) {
-            ProductDto dto = new ProductDto();
-            dto.setSuccess(false);
-            dto.setMessage(PRODUCT_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Product with identifier '" + identifier + "' not found");
         }
 
         product.setStatus(!Boolean.TRUE.equals(product.getStatus()));
@@ -141,6 +151,7 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         ProductDto dto = modelMapper.map(saved, ProductDto.class);
         dto.setSuccess(true);
         dto.setMessage("Status updated successfully");
+
         return dto;
     }
 
@@ -152,9 +163,27 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         }
 
         List<Product> products = productRepository.searchActiveProducts(query);
+
         return products.stream()
                 .filter(p -> priceRepository.countActivePriceTypes(p.getIdentifier()) == 3)
                 .map(p -> modelMapper.map(p, ProductDto.class))
                 .toList();
+    }
+
+    @Override
+    public WsDto<ProductDto> findAll(Specification<Product> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Product> page = productRepository.findAll(example, pageable);
+
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

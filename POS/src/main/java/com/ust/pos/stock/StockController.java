@@ -29,6 +29,7 @@ public class StockController {
         this.productService = productService;
     }
 
+
     @GetMapping("/list")
     public String list(Model model, Pageable pageable) {
         model.addAttribute("stocks", stockService.findAll(pageable));

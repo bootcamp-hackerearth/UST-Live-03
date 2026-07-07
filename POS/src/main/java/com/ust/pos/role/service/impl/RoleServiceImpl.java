@@ -3,6 +3,7 @@ package com.ust.pos.role.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -20,10 +22,13 @@ import java.util.List;
 @Transactional
 public class RoleServiceImpl extends BaseService implements RoleService {
 
+    public static final String ROLE_NOT_FOUND = "Role not found";
+
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
 
-    public RoleServiceImpl(RoleRepository roleRepository,ModelMapper modelMapper) {
+    public RoleServiceImpl(RoleRepository roleRepository,
+                           ModelMapper modelMapper) {
         this.roleRepository = roleRepository;
         this.modelMapper = modelMapper;
     }
@@ -34,22 +39,20 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         Role role = roleRepository.findByIdentifier(identifier);
 
         if (role == null || Boolean.TRUE.equals(role.getDeleted())) {
-            RoleDto dto = new RoleDto();
-            dto.setSuccess(false);
-            dto.setMessage("Role not found");
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Role with identifier '" + identifier + "' not found");
         }
 
         RoleDto dto = modelMapper.map(role, RoleDto.class);
         dto.setSuccess(true);
+
         return dto;
     }
 
     @Override
     public RoleDto save(RoleDto roleDto) {
 
-        if (roleDto.getIdentifier() == null ||
-                roleDto.getIdentifier().trim().isEmpty()) {
+        if (roleDto.getIdentifier() == null || roleDto.getIdentifier().trim().isEmpty()) {
 
             roleDto.setSuccess(false);
             roleDto.setMessage("Role identifier is required");
@@ -57,21 +60,25 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         }
 
         String identifier = roleDto.getIdentifier().trim();
+
         Role existingRole = roleRepository.findByIdentifier(identifier);
 
         if (existingRole != null && !Boolean.TRUE.equals(existingRole.getDeleted())) {
+
             roleDto.setSuccess(false);
             roleDto.setMessage("Role already exists");
             return roleDto;
         }
 
         Role role = modelMapper.map(roleDto, Role.class);
+
         role.setIdentifier(identifier);
         role.setDeleted(false);
         setCreatedDetails(role);
         roleRepository.save(role);
         roleDto.setSuccess(true);
         roleDto.setMessage("Role saved successfully");
+
         return roleDto;
     }
 
@@ -81,17 +88,19 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         Role existingRole = roleRepository.findByIdentifier(roleDto.getIdentifier());
 
         if (existingRole == null || Boolean.TRUE.equals(existingRole.getDeleted())) {
-            roleDto.setSuccess(false);
-            roleDto.setMessage("Role not found");
-            return roleDto;
+            throw new ResourceNotFoundException(
+                    "Role with identifier '" + roleDto.getIdentifier() + "' not found");
         }
 
         modelMapper.map(roleDto, existingRole);
         setModifiedDetails(existingRole);
-        roleRepository.save(existingRole);
-        roleDto.setSuccess(true);
-        roleDto.setMessage("Role updated successfully");
-        return roleDto;
+        Role saved = roleRepository.save(existingRole);
+
+        RoleDto result = modelMapper.map(saved, RoleDto.class);
+        result.setSuccess(true);
+        result.setMessage("Role updated successfully");
+
+        return result;
     }
 
     @Override
@@ -100,7 +109,8 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         Role role = roleRepository.findByIdentifier(identifier);
 
         if (role == null || Boolean.TRUE.equals(role.getDeleted())) {
-            return;
+            throw new ResourceNotFoundException(
+                    "Role with identifier '" + identifier + "' not found");
         }
 
         role.setDeleted(true);
@@ -122,6 +132,24 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         ws.setTotalPages(page.getTotalPages());
         ws.setPage(pageable.getPageNumber());
         ws.setSizePerPage(pageable.getPageSize());
+
         return ws;
+    }
+
+    @Override
+    public WsDto<RoleDto> findAll(Specification<Role> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> page = roleRepository.findAll(example, pageable);
+
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

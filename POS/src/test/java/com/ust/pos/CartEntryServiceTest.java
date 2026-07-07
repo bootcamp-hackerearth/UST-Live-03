@@ -47,7 +47,6 @@ class CartEntryServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    // ---------------- SAVE SUCCESS ----------------
     @Test
     void save_success() {
 
@@ -97,7 +96,6 @@ class CartEntryServiceTest {
         verify(cartService).recalculate("C1");
     }
 
-    // ---------------- SAVE INVALID QTY ----------------
     @Test
     void save_failure_quantity_zero() {
 
@@ -114,7 +112,6 @@ class CartEntryServiceTest {
         verifyNoInteractions(productService);
     }
 
-    // ---------------- SAVE PRICE MISSING ----------------
     @Test
     void save_failure_price_missing() {
 
@@ -141,7 +138,6 @@ class CartEntryServiceTest {
         assertEquals("Price not configured for product: P1", result.getMessage());
     }
 
-    // ---------------- UPDATE SUCCESS ----------------
     @Test
     void update_success() {
 
@@ -172,7 +168,6 @@ class CartEntryServiceTest {
         verify(cartService).recalculate("C1");
     }
 
-    // ---------------- UPDATE NOT FOUND ----------------
     @Test
     void update_failure_not_found() {
 
@@ -189,7 +184,6 @@ class CartEntryServiceTest {
         assertEquals("Cart entry not found", result.getMessage());
     }
 
-    // ---------------- FIND BY ID SUCCESS ----------------
     @Test
     void findByIdentifier_success() {
 
@@ -206,7 +200,6 @@ class CartEntryServiceTest {
         assertTrue(result.isSuccess());
     }
 
-    // ---------------- FIND BY ID FAILURE ----------------
     @Test
     void findByIdentifier_failure() {
 
@@ -219,7 +212,6 @@ class CartEntryServiceTest {
         assertEquals("Cart entry not found", result.getMessage());
     }
 
-    // ---------------- FIND ALL ----------------
     @Test
     void findAll_success() {
 
@@ -240,7 +232,6 @@ class CartEntryServiceTest {
         assertEquals(1, result.size());
     }
 
-    // ---------------- FIND BY CART ID ----------------
     @Test
     void findByCartId_success() {
 
@@ -259,7 +250,6 @@ class CartEntryServiceTest {
         assertEquals(1, result.size());
     }
 
-    // ---------------- DELETE ----------------
     @Test
     void delete_success() {
 

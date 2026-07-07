@@ -2,6 +2,7 @@ package com.ust.pos.model;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,4 +32,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     List<Customer> searchActiveCustomers(@Param("query") String query);
 
     Page<Customer> findByDeletedFalse(Pageable pageable);
+
+    Page<Customer> findAll(Specification <Customer>example, Pageable pageable);
 }

@@ -3,6 +3,7 @@ package com.ust.pos.user.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -56,12 +58,17 @@ public class UserServiceImpl extends BaseService implements UserService {
         }
 
         User user = modelMapper.map(userDto, User.class);
+
         user.setIdentifier(userDto.getUsername());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+
         setCreatedDetails(user);
+
         userRepository.save(user);
+
         userDto.setSuccess(true);
         userDto.setMessage("User created successfully");
+
         return userDto;
     }
 
@@ -71,17 +78,13 @@ public class UserServiceImpl extends BaseService implements UserService {
         Optional<User> userOptional = userRepository.findById(userDto.getId());
 
         if (userOptional.isEmpty()) {
-            userDto.setMessage("User not found");
-            userDto.setSuccess(false);
-            return userDto;
+            throw new ResourceNotFoundException("User not found");
         }
 
         User existingUser = userOptional.get();
 
         if (Boolean.TRUE.equals(existingUser.getDeleted())) {
-            userDto.setMessage("User is deleted");
-            userDto.setSuccess(false);
-            return userDto;
+            throw new ResourceNotFoundException("User with id '" + userDto.getId() + "' is deleted");
         }
 
         if (!userDto.getUsername().equalsIgnoreCase(existingUser.getUsername())
@@ -93,10 +96,14 @@ public class UserServiceImpl extends BaseService implements UserService {
 
         existingUser.setIdentifier(userDto.getUsername());
         modelMapper.map(userDto, existingUser);
+
         setModifiedDetails(existingUser);
+
         userRepository.save(existingUser);
+
         userDto.setSuccess(true);
         userDto.setMessage("User updated successfully");
+
         return userDto;
     }
 
@@ -106,7 +113,10 @@ public class UserServiceImpl extends BaseService implements UserService {
 
         User user = userRepository.findByUsername(username);
 
-        if (user == null) return;
+        if (user == null || Boolean.TRUE.equals(user.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "User with username '" + username + "' not found");
+        }
 
         user.setDeleted(true);
         setModifiedDetails(user);
@@ -120,12 +130,32 @@ public class UserServiceImpl extends BaseService implements UserService {
         }.getType();
 
         Page<User> userPage = userRepository.findByDeletedFalse(pageable);
+
         WsDto<UserDto> wsDto = new WsDto<>();
+
         wsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
         wsDto.setTotalRecords(userPage.getTotalElements());
         wsDto.setTotalPages(userPage.getTotalPages());
         wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<UserDto> findAll(Specification<User> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> page = userRepository.findAll(example, pageable);
+
+        WsDto<UserDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
         return wsDto;
     }
 }

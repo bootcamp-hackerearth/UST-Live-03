@@ -3,6 +3,7 @@ package com.ust.pos.shelf.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
@@ -11,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -25,7 +27,8 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
     private final ShelfRepository shelfRepository;
     private final ModelMapper modelMapper;
 
-    public ShelfServiceImpl(ShelfRepository shelfRepository,ModelMapper modelMapper) {
+    public ShelfServiceImpl(ShelfRepository shelfRepository,
+                            ModelMapper modelMapper) {
         this.shelfRepository = shelfRepository;
         this.modelMapper = modelMapper;
     }
@@ -41,6 +44,7 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
 
         String name = shelfDto.getName().trim();
         Shelf existing = shelfRepository.findByIdentifier(name);
+
         if (existing != null) {
             shelfDto.setSuccess(false);
             shelfDto.setMessage("Shelf already exists");
@@ -50,6 +54,7 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
         Shelf shelf = modelMapper.map(shelfDto, Shelf.class);
         shelf.setName(name);
         shelf.setIdentifier(name);
+
         if (shelf.getStatus() == null) {
             shelf.setStatus(true);
         }
@@ -68,19 +73,14 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
         String identifier = shelfDto.getIdentifier();
 
         if (identifier == null || identifier.trim().isEmpty()) {
-            ShelfDto dto = new ShelfDto();
-            dto.setSuccess(false);
-            dto.setMessage(SHELF_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(SHELF_NOT_FOUND);
         }
 
         Shelf shelf = shelfRepository.findByIdentifier(identifier.trim());
 
         if (shelf == null || Boolean.TRUE.equals(shelf.getDeleted())) {
-            ShelfDto dto = new ShelfDto();
-            dto.setSuccess(false);
-            dto.setMessage(SHELF_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Shelf with identifier '" + identifier + "' not found");
         }
 
         if (shelfDto.getName() != null && !shelfDto.getName().trim().isEmpty()) {
@@ -94,11 +94,10 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
         }
 
         setModifiedDetails(shelf);
-        shelfRepository.save(shelf);
-        ShelfDto response = modelMapper.map(shelf, ShelfDto.class);
+        Shelf saved = shelfRepository.save(shelf);
+        ShelfDto response = modelMapper.map(saved, ShelfDto.class);
         response.setSuccess(true);
         response.setMessage("Shelf updated successfully");
-
         return response;
     }
 
@@ -108,10 +107,8 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
         Shelf shelf = shelfRepository.findByIdentifier(identifier);
 
         if (shelf == null || Boolean.TRUE.equals(shelf.getDeleted())) {
-            ShelfDto dto = new ShelfDto();
-            dto.setSuccess(false);
-            dto.setMessage(SHELF_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Shelf with identifier '" + identifier + "' not found");
         }
 
         return modelMapper.map(shelf, ShelfDto.class);
@@ -144,7 +141,12 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
     public void delete(String identifier) {
 
         Shelf shelf = shelfRepository.findByIdentifier(identifier);
-        if (shelf == null) return;
+
+        if (shelf == null || Boolean.TRUE.equals(shelf.getDeleted())) {
+            throw new ResourceNotFoundException(
+                    "Shelf with identifier '" + identifier + "' not found");
+        }
+
         shelf.setDeleted(true);
         setModifiedDetails(shelf);
         shelfRepository.save(shelf);
@@ -156,10 +158,8 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
         Shelf shelf = shelfRepository.findByIdentifier(identifier);
 
         if (shelf == null || Boolean.TRUE.equals(shelf.getDeleted())) {
-            ShelfDto dto = new ShelfDto();
-            dto.setSuccess(false);
-            dto.setMessage(SHELF_NOT_FOUND);
-            return dto;
+            throw new ResourceNotFoundException(
+                    "Shelf with identifier '" + identifier + "' not found");
         }
 
         shelf.setStatus(!Boolean.TRUE.equals(shelf.getStatus()));
@@ -169,5 +169,22 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
         response.setSuccess(true);
         response.setMessage("Status updated successfully");
         return response;
+    }
+
+    @Override
+    public WsDto<ShelfDto> findAll(Specification<Shelf> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
+        Page<Shelf> page = shelfRepository.findAll(example, pageable);
+
+        WsDto<ShelfDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

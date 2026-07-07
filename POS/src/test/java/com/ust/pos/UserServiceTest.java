@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -17,14 +18,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +44,6 @@ class UserServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-
     @Test
     void find_success() {
 
@@ -54,6 +55,7 @@ class UserServiceTest {
 
         when(userRepository.findByUsername("admin")).thenReturn(user);
         when(modelMapper.map(user, UserDto.class)).thenReturn(dto);
+
         UserDto response = userService.findByUserName("admin");
 
         Assertions.assertNotNull(response);
@@ -64,6 +66,7 @@ class UserServiceTest {
     void find_notFound() {
 
         when(userRepository.findByUsername("admin")).thenReturn(null);
+
         UserDto response = userService.findByUserName("admin");
 
         Assertions.assertNull(response);
@@ -76,6 +79,7 @@ class UserServiceTest {
         user.setDeleted(true);
 
         when(userRepository.findByUsername("admin")).thenReturn(user);
+
         UserDto response = userService.findByUserName("admin");
 
         Assertions.assertNull(response);
@@ -94,6 +98,7 @@ class UserServiceTest {
         when(modelMapper.map(dto, User.class)).thenReturn(user);
         when(passwordEncoder.encode("123")).thenReturn("encoded123");
         when(userRepository.save(any(User.class))).thenReturn(user);
+
         UserDto response = userService.save(dto);
 
         Assertions.assertTrue(response.isSuccess());
@@ -112,12 +117,12 @@ class UserServiceTest {
         when(userRepository.findByUsername("admin")).thenReturn(new User());
 
         UserDto response = userService.save(dto);
+
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertTrue(response.getMessage().contains("User already exists"));
 
         verify(userRepository, never()).save(any());
     }
-
 
     @Test
     void update_success() {
@@ -132,6 +137,7 @@ class UserServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.save(existing)).thenReturn(existing);
+
         UserDto response = userService.update(dto);
 
         Assertions.assertTrue(response.isSuccess());
@@ -147,10 +153,14 @@ class UserServiceTest {
         dto.setId(1L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
-        UserDto response = userService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("User not found", response.getMessage());
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> userService.update(dto));
+
+        Assertions.assertEquals("User not found", ex.getMessage());
+
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -163,10 +173,14 @@ class UserServiceTest {
         user.setDeleted(true);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        UserDto response = userService.update(dto);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("User is deleted", response.getMessage());
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> userService.update(dto));
+
+        Assertions.assertEquals("User with id '1' is deleted", ex.getMessage());
+
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -182,10 +196,12 @@ class UserServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.findByUsername("newuser")).thenReturn(new User());
+
         UserDto response = userService.update(dto);
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertTrue(response.getMessage().contains("Username already exists"));
+
         verify(userRepository, never()).save(any());
     }
 
@@ -195,7 +211,9 @@ class UserServiceTest {
         User user = new User();
 
         when(userRepository.findByUsername("admin")).thenReturn(user);
+
         userService.delete("admin");
+
         Assertions.assertTrue(user.getDeleted());
 
         verify(userRepository).save(user);
@@ -205,10 +223,15 @@ class UserServiceTest {
     void delete_userNotFound() {
 
         when(userRepository.findByUsername("admin")).thenReturn(null);
-        userService.delete("admin");
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> userService.delete("admin"));
+
+        Assertions.assertEquals("User with username 'admin' not found", ex.getMessage());
+
         verify(userRepository, never()).save(any());
     }
-
 
     @Test
     void findAll_success() {
@@ -228,11 +251,30 @@ class UserServiceTest {
 
         when(userRepository.findByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(users), ArgumentMatchers.<Type>any())).thenReturn(dtoList);
+
         WsDto<UserDto> response = userService.findAll(pageable);
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.getDtoList().size());
-
         Assertions.assertEquals("admin@test.com", response.getDtoList().get(0).getUsername());
+    }
+
+    @Test
+    void findAll_withSpecification() {
+
+        Specification<User> specification = (root, query, cb) -> cb.conjunction();
+
+        User user = new User();
+        user.setUsername("admin@test.com");
+
+        Page<User> page = new PageImpl<>(List.of(user));
+
+        when(userRepository.findAll(eq(specification), any(Pageable.class))).thenReturn(page);
+        when(modelMapper.map(anyList(), ArgumentMatchers.<Type>any())).thenReturn(List.of(new UserDto()));
+
+        WsDto<UserDto> response = userService.findAll(specification, PageRequest.of(0, 10));
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 }

@@ -2,7 +2,9 @@ package com.ust.pos.stock.service;
 
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Stock;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -25,4 +27,6 @@ public interface StockService {
     boolean isStockAvailable(String productIdentifier, Integer quantity);
 
     StockDto reduceStock(String productIdentifier, Integer quantity);
+
+    WsDto<StockDto> findAll(Specification<Stock> example, Pageable pageable);
 }

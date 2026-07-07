@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -16,10 +17,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.mockito.ArgumentMatchers;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -142,14 +146,32 @@ class RoleServiceTest {
         when(roleRepository.findByIdentifier("Admin"))
                 .thenReturn(null);
 
-        RoleDto response =
-                roleService.findByIdentifier("Admin");
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.findByIdentifier("Admin"));
+    }
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                "Role not found",
-                response.getMessage()
-        );
+    @Test
+    void findAll_withSpecification() {
+
+        Specification<Role> specification = (root, query, cb) -> cb.conjunction();
+
+        Role role = new Role();
+        role.setIdentifier("Admin");
+
+        Page<Role> page = new PageImpl<>(List.of(role));
+
+        when(roleRepository.findAll(eq(specification), any(Pageable.class)))
+                .thenReturn(page);
+
+        when(modelMapper.map(anyList(), ArgumentMatchers.<Type>any()))
+                .thenReturn(List.of(new RoleDto()));
+
+        WsDto<RoleDto> response =
+                roleService.findAll(specification, PageRequest.of(0, 5));
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
     }
 
     @Test
@@ -161,14 +183,9 @@ class RoleServiceTest {
         when(roleRepository.findByIdentifier("Admin"))
                 .thenReturn(role);
 
-        RoleDto response =
-                roleService.findByIdentifier("Admin");
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                "Role not found",
-                response.getMessage()
-        );
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.findByIdentifier("Admin"));
     }
 
     @Test
@@ -180,22 +197,24 @@ class RoleServiceTest {
         Role existing = new Role();
         existing.setDeleted(false);
 
+        RoleDto mappedDto = new RoleDto();
+
         when(roleRepository.findByIdentifier("Admin"))
                 .thenReturn(existing);
 
-        doNothing().when(modelMapper)
-                .map(any(RoleDto.class), any(Role.class));
+        doNothing().when(modelMapper).map(dto, existing);
 
         when(roleRepository.save(existing))
                 .thenReturn(existing);
 
+        when(modelMapper.map(existing, RoleDto.class))
+                .thenReturn(mappedDto);
+
         RoleDto response = roleService.update(dto);
 
         Assertions.assertTrue(response.isSuccess());
-        Assertions.assertEquals(
-                "Role updated successfully",
-                response.getMessage()
-        );
+        Assertions.assertEquals("Role updated successfully",
+                response.getMessage());
 
         verify(roleRepository).save(existing);
     }
@@ -209,13 +228,9 @@ class RoleServiceTest {
         when(roleRepository.findByIdentifier("Admin"))
                 .thenReturn(null);
 
-        RoleDto response = roleService.update(dto);
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                "Role not found",
-                response.getMessage()
-        );
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.update(dto));
 
         verify(roleRepository, never()).save(any());
     }
@@ -232,13 +247,9 @@ class RoleServiceTest {
         when(roleRepository.findByIdentifier("Admin"))
                 .thenReturn(role);
 
-        RoleDto response = roleService.update(dto);
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                "Role not found",
-                response.getMessage()
-        );
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.update(dto));
 
         verify(roleRepository, never()).save(any());
     }
@@ -265,7 +276,9 @@ class RoleServiceTest {
         when(roleRepository.findByIdentifier("Admin"))
                 .thenReturn(null);
 
-        roleService.delete("Admin");
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.delete("Admin"));
 
         verify(roleRepository, never()).save(any());
     }
@@ -279,7 +292,9 @@ class RoleServiceTest {
         when(roleRepository.findByIdentifier("Admin"))
                 .thenReturn(role);
 
-        roleService.delete("Admin");
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.delete("Admin"));
 
         verify(roleRepository, never()).save(any());
     }

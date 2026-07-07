@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -79,6 +80,7 @@ class PriceServiceTest {
         String expectedId = "P1_Retail_Price";
 
         when(priceRepository.findByIdentifier(expectedId)).thenReturn(new Price());
+
         PriceDto result = priceService.save(dto);
 
         assertFalse(result.isSuccess());
@@ -101,8 +103,15 @@ class PriceServiceTest {
         ProductDto productDto = new ProductDto();
         productDto.setProductName("Laptop");
 
+        Price saved = new Price();
+
+        PriceDto mapped = new PriceDto();
+
         when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(existing);
         when(productService.findByIdentifier("P1")).thenReturn(productDto);
+        when(priceRepository.save(existing)).thenReturn(saved);
+        when(modelMapper.map(saved, PriceDto.class)).thenReturn(mapped);
+
         PriceDto result = priceService.update(dto);
 
         assertTrue(result.isSuccess());
@@ -112,30 +121,55 @@ class PriceServiceTest {
     }
 
     @Test
+    void update_notFound() {
+
+        PriceDto dto = new PriceDto();
+        dto.setIdentifier("P1_Retail_Price");
+
+        when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(null);
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> priceService.update(dto)
+        );
+
+        assertEquals(
+                "Price with identifier 'P1_Retail_Price' not found",
+                ex.getMessage()
+        );
+
+        verify(priceRepository, never()).save(any());
+    }
+
+    @Test
     void findByIdentifier_success() {
 
         Price price = new Price();
         PriceDto mapped = new PriceDto();
 
         when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(price);
-
         when(modelMapper.map(price, PriceDto.class)).thenReturn(mapped);
 
         PriceDto result = priceService.findByIdentifier("P1_Retail_Price");
 
-        assertTrue(result.isSuccess());
         assertNotNull(result);
+        assertTrue(result.isSuccess());
     }
 
     @Test
-    void findByIdentifier_failure() {
+    void findByIdentifier_notFound() {
 
         when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(null);
 
-        PriceDto result = priceService.findByIdentifier("P1_Retail_Price");
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> priceService.findByIdentifier("P1_Retail_Price")
+        );
 
-        assertFalse(result.isSuccess());
-        assertEquals("Price not found", result.getMessage());
+        assertEquals(
+                "Price with identifier 'P1_Retail_Price' not found",
+                ex.getMessage()
+        );
     }
 
     @Test
@@ -149,10 +183,12 @@ class PriceServiceTest {
 
         when(priceRepository.findByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(eq(list), any(Type.class))).thenReturn(dtoList);
+
         WsDto<PriceDto> result = priceService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
         assertEquals(0, result.getPage());
     }
 
@@ -160,20 +196,30 @@ class PriceServiceTest {
     void delete_success() {
 
         Price price = new Price();
-        price.setDeleted(false);
 
         when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(price);
+
         priceService.delete("P1_Retail_Price");
 
         assertTrue(price.getDeleted());
+
         verify(priceRepository).save(price);
     }
 
     @Test
-    void delete_null_case() {
+    void delete_notFound() {
 
         when(priceRepository.findByIdentifier("P1_Retail_Price")).thenReturn(null);
-        priceService.delete("P1_Retail_Price");
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> priceService.delete("P1_Retail_Price")
+        );
+
+        assertEquals(
+                "Price with identifier 'P1_Retail_Price' not found",
+                ex.getMessage()
+        );
 
         verify(priceRepository, never()).save(any());
     }
@@ -199,5 +245,7 @@ class PriceServiceTest {
 
         assertEquals(3, types.size());
         assertTrue(types.contains("Selling Price"));
+        assertTrue(types.contains("Cost Price"));
+        assertTrue(types.contains("MRP"));
     }
 }

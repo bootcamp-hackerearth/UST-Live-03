@@ -14,6 +14,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import com.ust.pos.exception.ResourceNotFoundException;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -33,7 +36,6 @@ class ShelfServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    // ================= SAVE SUCCESS =================
     @Test
     void save_success() {
 
@@ -65,7 +67,6 @@ class ShelfServiceTest {
         verify(shelfRepository).save(shelf);
     }
 
-    // ================= SAVE FAILURE =================
     @Test
     void save_failure_empty_name() {
 
@@ -96,7 +97,6 @@ class ShelfServiceTest {
         verify(shelfRepository, never()).save(any());
     }
 
-    // ================= UPDATE =================
     @Test
     void update_success() {
 
@@ -135,13 +135,19 @@ class ShelfServiceTest {
         when(shelfRepository.findByIdentifier("Shelf1"))
                 .thenReturn(null);
 
-        ShelfDto response = shelfService.update(dto);
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfService.update(dto)
+        );
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Shelf not found", response.getMessage());
+        assertEquals(
+                "Shelf with identifier 'Shelf1' not found",
+                ex.getMessage()
+        );
+
+        verify(shelfRepository, never()).save(any());
     }
 
-    // ================= FIND =================
     @Test
     void find_success() {
 
@@ -166,13 +172,17 @@ class ShelfServiceTest {
         when(shelfRepository.findByIdentifier("Shelf1"))
                 .thenReturn(null);
 
-        ShelfDto response = shelfService.findByIdentifier("Shelf1");
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfService.findByIdentifier("Shelf1")
+        );
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Shelf not found", response.getMessage());
+        assertEquals(
+                "Shelf with identifier 'Shelf1' not found",
+                ex.getMessage()
+        );
     }
 
-    // ================= FIND ALL (FIXED RETURN TYPE) =================
     @Test
     void findAll_test() {
 
@@ -196,7 +206,6 @@ class ShelfServiceTest {
         Assertions.assertEquals(1L, result.getTotalRecords());
     }
 
-    // ================= ACTIVE =================
     @Test
     void getActiveShelves_test() {
 
@@ -213,7 +222,6 @@ class ShelfServiceTest {
         Assertions.assertEquals(1, result.size());
     }
 
-    // ================= DELETE =================
     @Test
     void delete_test() {
 
@@ -227,7 +235,20 @@ class ShelfServiceTest {
         verify(shelfRepository).save(shelf);
     }
 
-    // ================= TOGGLE =================
+    @Test
+    void delete_failure_not_found() {
+
+        when(shelfRepository.findByIdentifier("Shelf1"))
+                .thenReturn(null);
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfService.delete("Shelf1")
+        );
+
+        verify(shelfRepository, never()).save(any());
+    }
+
     @Test
     void toggle_success() {
 
@@ -255,9 +276,31 @@ class ShelfServiceTest {
         when(shelfRepository.findByIdentifier("Shelf1"))
                 .thenReturn(null);
 
-        ShelfDto response = shelfService.toggleStatus("Shelf1");
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfService.toggleStatus("Shelf1")
+        );
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Shelf not found", response.getMessage());
+        assertEquals(
+                "Shelf with identifier 'Shelf1' not found",
+                ex.getMessage()
+        );
+    }
+
+    @Test
+    void toggle_failure_deleted() {
+
+        Shelf deleted = new Shelf();
+        deleted.setDeleted(true);
+
+        when(shelfRepository.findByIdentifier("Shelf1"))
+                .thenReturn(deleted);
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfService.toggleStatus("Shelf1")
+        );
+
+        verify(shelfRepository, never()).save(any());
     }
 }
