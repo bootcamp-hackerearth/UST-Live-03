@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,6 +51,7 @@ public class UnitApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public UnitDto addPost(@RequestBody UnitDto unitDto) {
         return unitService.save(unitDto);
     }
@@ -65,6 +67,7 @@ public class UnitApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);

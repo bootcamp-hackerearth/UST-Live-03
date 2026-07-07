@@ -21,7 +21,6 @@ const CategoryPage = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewCategory, setViewCategory] = useState(null);
 
   const sizePerPage = 5;
 
@@ -36,23 +35,29 @@ const CategoryPage = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const res = await listItems("category", {
-        page,
-        sizePerPage,
-        sortField: "identifier",
-        search: searchTerm,
-      });
+  page,
+  sizePerPage,
+  sortField: "identifier",
+  search: searchTerm,
+});
 
       const data = res?.content || [];
+
       setCategories(data);
 
       setTotalPages(
         res?.totalPages ||
-        Math.ceil((res?.totalElements || data.length) / sizePerPage) ||
-        1
+          Math.ceil(
+            (res?.totalElements || data.length) /
+              sizePerPage
+          ) ||
+          1
       );
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Failed to load categories");
     } finally {
       setLoading(false);
@@ -60,97 +65,121 @@ const CategoryPage = () => {
   };
 
   const fetchCategoryOptions = async () => {
-    try {
-      const res = await getListItems("category");
-      setCategoryOptions(Array.isArray(res) ? res : res?.content || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  try {
+    const res = await getListItems("category");
 
-  useEffect(() => {
-    fetchCategories();
-  }, [page, searchTerm]);
+    const data = Array.isArray(res)
+      ? res
+      : res?.content || [];
 
-  useEffect(() => {
-    fetchCategoryOptions();
-  }, []);
+    setCategoryOptions(data);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-  // ✅ TOGGLE FIX (IMPORTANT)
-  const handleToggleStatus = async (row) => {
-    const updated = {
-      ...row,
-      status: Number(row.status) === 1 ? 0 : 1,
-    };
+      useEffect(() => {
+        fetchCategories();
+      }, [page,searchTerm]);
 
-    // optimistic UI update
-    setCategories((prev) =>
-      prev.map((c) =>
-        c.identifier === row.identifier ? updated : c
-      )
-    );
-
-    try {
-      await updateItem("category", updated);
-    } catch {
-      alert("Status update failed");
-      fetchCategories();
-    }
-  };
+      useEffect(() => {
+        fetchCategoryOptions();
+      }, []);
 
   const handleAddCategory = async () => {
-    if (!newCategory.identifier?.trim()) {
-      alert("Category is required");
-      return;
-    }
+  const exists = categoryOptions.some(
+    (category) =>
+      category.identifier?.trim().toLowerCase() ===
+      newCategory.identifier?.trim().toLowerCase()
+  );
 
-    const exists = categories.some(
-      (category) =>
-        category.identifier?.trim().toLowerCase() ===
-        newCategory.identifier?.trim().toLowerCase()
-    );
+  if (exists) {
+    alert(`${newCategory.identifier} already exists`);
+    return;
+  }
 
-    if (exists) {
-      alert(`${newCategory.identifier} already exists`);
-      return;
-    }
+  try {
+    await addItem("category", newCategory);
 
-    try {
-      await addItem("category", newCategory);
+    setNewCategory({
+      identifier: "",
+      superCategory: "",
+      status: 1,
+    });
 
-      setNewCategory({
-        identifier: "",
-        superCategory: "",
-        status: 1,
-      });
-
-      fetchCategories();
-      fetchCategoryOptions();
-    } catch {
-      alert("Add failed");
-    }
-  };
+    fetchCategories();
+    fetchCategoryOptions();
+  } catch (err) {
+    console.error(err);
+    alert("Add failed");
+  }
+};
 
   const handleUpdate = async () => {
     try {
       await updateItem("category", editCategory);
 
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.identifier === editCategory.identifier
+            ? editCategory
+            : c
+        )
+      );
+
       setEditCategory(null);
       fetchCategories();
       fetchCategoryOptions();
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Update failed");
     }
   };
 
+  const handleToggleStatus = async (category) => {
+    try {
+      const updatedCategory = {
+        ...category,
+        status:
+          Number(category.status) === 1
+            ? 0
+            : 1,
+      };
+
+      await updateItem(
+        "category",
+        updatedCategory
+      );
+
+      fetchCategories();
+    } catch (err) {
+      console.error(err);
+      alert("Status update failed");
+    }
+  };
+
   const handleDelete = async (identifier) => {
-    if (!confirm(`Delete ${identifier}?`)) return;
+    const confirmDelete = globalThis.confirm(
+      `Delete ${identifier}?`
+    );
+
+    if (!confirmDelete) return;
 
     try {
-      await deleteItem("category", identifier);
-      fetchCategories();
+      await deleteItem(
+        "category",
+        identifier
+      );
+
+      setCategories((prev) =>
+        prev.filter(
+          (c) =>
+            c.identifier !== identifier
+        )
+      );
       fetchCategoryOptions();
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Delete failed");
     }
   };
@@ -169,43 +198,40 @@ const CategoryPage = () => {
 
     {
       label: "Super Category",
-      render: (row) => row.superCategory || "-",
+      render: (row) =>
+        row.superCategory || "-",
     },
 
-    // ✅ STATUS TOGGLE (NEW UI - NO CHECKBOX)
     {
       label: "Status",
       render: (row) => (
-        <button
-          onClick={() => handleToggleStatus(row)}
-          className={`
-            relative w-14 h-7 flex items-center rounded-full transition
-            ${Number(row.status) === 1 ? "bg-teal-500" : "bg-slate-300"}
-          `}
-        >
-          <span
-            className={`
-              w-6 h-6 bg-white rounded-full shadow-md transform transition
-              ${Number(row.status) === 1 ? "translate-x-7" : "translate-x-1"}
-            `}
+        <label className="switch" aria-label="Toggle status">
+          <input
+            type="checkbox"
+            checked={
+              Number(row.status) === 1
+            }
+            onChange={() =>
+              handleToggleStatus(row)
+            }
           />
-        </button>
+          <span className="slider"></span>
+        </label>
       ),
     },
   ];
 
   const actions = [
     {
-      label: "👁 View",
-      onClick: (row) => setViewCategory(row),
-    },
-    {
       label: "✏️ Edit",
-      onClick: (row) => setEditCategory(row),
+      onClick: (row) =>
+        setEditCategory(row),
     },
+
     {
       label: "🗑 Delete",
-      onClick: (row) => handleDelete(row.identifier),
+      onClick: (row) =>
+        handleDelete(row.identifier),
     },
   ];
 
@@ -214,16 +240,28 @@ const CategoryPage = () => {
       name: "identifier",
       label: "Category",
     },
+
     {
       name: "superCategory",
       label: "Super Category",
       type: "select",
+
       options: [
-        { label: "None", value: "" },
-        ...categoryOptions.map((c) => ({
-          label: c.identifier,
-          value: c.identifier,
-        })),
+        {
+          label: "None",
+          value: "",
+        },
+
+        ...categoryOptions
+          .filter(
+            (c) =>
+              c.identifier !==
+              newCategory.identifier
+          )
+          .map((c) => ({
+            label: c.identifier,
+            value: c.identifier,
+          })),
       ],
     },
   ];
@@ -234,16 +272,28 @@ const CategoryPage = () => {
       label: "Category",
       disabled: true,
     },
+
     {
       name: "superCategory",
       label: "Super Category",
       type: "select",
+
       options: [
-        { label: "None", value: "" },
-        ...categoryOptions.map((c) => ({
-          label: c.identifier,
-          value: c.identifier,
-        })),
+        {
+          label: "None",
+          value: "",
+        },
+
+        ...categoryOptions
+          .filter(
+            (c) =>
+              c.identifier !==
+              editCategory?.identifier
+          )
+          .map((c) => ({
+            label: c.identifier,
+            value: c.identifier,
+          })),
       ],
     },
   ];
@@ -261,7 +311,8 @@ const CategoryPage = () => {
       totalPages={totalPages}
       searchTerm={searchTerm}
       setSearchTerm={setSearchTerm}
-      onAdd={() => { }}
+      searchPlaceholder="Search Categories..."
+      onAdd={() => {}}
       addButtonText="+ Add Category"
       newItem={newCategory}
       setNewItem={setNewCategory}
@@ -271,8 +322,6 @@ const CategoryPage = () => {
       setEditItem={setEditCategory}
       handleUpdate={handleUpdate}
       editFields={editFields}
-      viewItem={viewCategory}
-      setViewItem={setViewCategory}
       actions={actions}
       emptyMessage="No categories found"
     />

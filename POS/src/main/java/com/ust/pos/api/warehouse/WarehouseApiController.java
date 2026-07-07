@@ -28,7 +28,7 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAnyAuthority('Business Analyst','Data Analyst')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(
@@ -51,13 +51,12 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAnyAuthority('Data Analyst')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAnyAuthority('Data Analyst', 'Software Developer')")
     public WarehouseDto update(@RequestParam String identifier) {
         return warehouseService.findByIdentifier(identifier);
     }
@@ -68,7 +67,6 @@ public class WarehouseApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAnyAuthority('Data Analyst','Business Analyst')")
     public boolean delete(@RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);

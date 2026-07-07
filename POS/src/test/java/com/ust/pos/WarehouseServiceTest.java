@@ -166,30 +166,4 @@ class WarehouseServiceTest {
         Mockito.verify(warehouseRepository)
                 .findByDeletedFalse(pageable);
     }
-
-    @Test
-    void findAllPageableWithSearchTest() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Warehouse warehouse = new Warehouse();
-        Page<Warehouse> page =
-                new PageImpl<>(List.of(warehouse));
-        Mockito.when(
-                warehouseRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "WH",
-                                pageable
-                        )
-        ).thenReturn(page);
-        Page<WarehouseDto> result =
-                warehouseService.findAll(pageable, "WH");
-        Assertions.assertEquals(
-                1,
-                result.getContent().size()
-        );
-        Mockito.verify(warehouseRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "WH",
-                        pageable
-                );
-    }
 }

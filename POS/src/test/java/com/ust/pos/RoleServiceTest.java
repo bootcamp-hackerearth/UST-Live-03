@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -178,13 +179,10 @@ class RoleServiceTest {
         roleDto.setIdentifier("ADMIN");
         Page<Role> rolePage =
                 new PageImpl<>(List.of(role), pageable, 1);
-        Mockito.when(
-                roleRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "ADM",
-                                pageable
-                        )
-        ).thenReturn(rolePage);
+        Mockito.when(roleRepository.findAll(
+                        Mockito.<Specification<Role>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(rolePage);
         Mockito.when(modelMapper.map(role, RoleDto.class))
                 .thenReturn(roleDto);
         Page<RoleDto> response =

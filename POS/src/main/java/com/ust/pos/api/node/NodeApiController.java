@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.node.service.NodeService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class NodeApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public WsDto<NodeDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(
                 paginationDto.getPage(),
@@ -50,6 +52,7 @@ public class NodeApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public NodeDto addPost(@RequestBody NodeDto nodeDto) {
         return nodeService.save(nodeDto);
     }
@@ -70,6 +73,7 @@ public class NodeApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             nodeService.delete(identifier);

@@ -7,6 +7,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public WsDto<CategoryDto> list(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(
@@ -49,6 +51,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public CategoryDto addPost(@RequestBody CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
     }
@@ -64,6 +67,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -74,6 +78,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('Data Analyst', 'Software Developer')")
     public boolean toggleStatus(@RequestParam String identifier) {
         try {
             categoryService.toggleStatus(identifier);

@@ -3,11 +3,13 @@ package com.ust.pos.warehouse.service.impl;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
+import com.ust.pos.service.BaseService;
 import com.ust.pos.warehouse.service.WarehouseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class WarehouseServiceImpl implements WarehouseService {
+public class WarehouseServiceImpl extends BaseService implements WarehouseService {
 
     private final WarehouseRepository warehouseRepository;
     private final ModelMapper modelMapper;
@@ -83,15 +85,16 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public Page<WarehouseDto> findAll(Pageable pageable, String search) {
 
-        Page<Warehouse> warehouses = warehouseRepository.findByDeletedFalse(pageable);
+        Page<Warehouse> warehousePage;
+        if (search != null && !search.trim().isEmpty()) {
+            Specification<Warehouse> specification = buildGlobalSearchSpec(Warehouse.class, search);
+            warehousePage = warehouseRepository.findAll(specification, pageable);
 
-        return warehouses.map(w -> {
-            WarehouseDto dto = new WarehouseDto();
-            dto.setIdentifier(w.getIdentifier());
-            dto.setCountry(w.getCountry());
-            dto.setPincode(w.getPincode());
-            dto.setAddress(w.getAddress());
-            return dto;
-        });
+        } else {
+            warehousePage = warehouseRepository.findByDeletedFalse(pageable);
+        }
+        return warehousePage.map(warehouse ->
+                modelMapper.map(warehouse, WarehouseDto.class)
+        );
     }
 }

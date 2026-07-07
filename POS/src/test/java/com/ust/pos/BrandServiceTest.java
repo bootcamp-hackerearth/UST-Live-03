@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -281,13 +283,10 @@ class BrandServiceTest {
         Page<Brand> brandPage =
                 new PageImpl<>(List.of(brand));
 
-        when(
-                brandRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "Admin",
-                                pageable
-                        )
-        ).thenReturn(brandPage);
+        Mockito.when(brandRepository.findAll(
+                        Mockito.<Specification<Brand>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(brandPage);
 
         when(
                 modelMapper.map(any(Brand.class), eq(BrandDto.class))

@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.stock.service.StockService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public WsDto<StockDto> home(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(
@@ -41,6 +43,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public StockDto addPost(@RequestBody StockDto stockDto) {
         return stockService.save(stockDto);
     }
@@ -56,6 +59,7 @@ public class StockApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             stockService.delete(identifier);
@@ -66,6 +70,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public boolean toggleStatus(@RequestParam String identifier) {
         try {
             stockService.toggleStatus(identifier);

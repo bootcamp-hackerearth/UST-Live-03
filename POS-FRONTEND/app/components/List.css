@@ -1,3 +1,4 @@
+/* ================= GLOBAL RESET ================= */
 
 * {
   margin: 0;
@@ -11,12 +12,16 @@ body {
   overflow-x: hidden;
 }
 
+/* ================= LAYOUT ================= */
+
 .wrapper {
   display: flex;
   width: 100%;
   min-height: 100vh;
   background: #f8fafc;
 }
+
+/* ================= SIDEBAR ================= */
 
 .sidebar {
   width: 260px;
@@ -31,11 +36,15 @@ body {
   z-index: 100;
 }
 
+/* ================= MAIN CONTENT ================= */
+
 .main {
   margin-left: 260px;
   width: calc(100% - 260px);
   padding: 30px;
 }
+
+/* ================= TOPBAR ================= */
 
 .topbar {
   display: flex;
@@ -56,6 +65,8 @@ body {
   margin-top: 4px;
 }
 
+/* ================= SECTION CARD ================= */
+
 .section {
   background: #ffffff;
   padding: 24px;
@@ -63,6 +74,8 @@ body {
   box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
   width: 100%;
 }
+
+/* ================= TABLE HEADER ================= */
 
 .tableHeader {
   display: flex;
@@ -76,6 +89,8 @@ body {
   font-weight: 700;
   color: #111827;
 }
+
+/* ================= BUTTON ================= */
 
 .actionBtn {
   background: #111827;
@@ -93,6 +108,8 @@ body {
   background: #000000;
   transform: translateY(-1px);
 }
+
+/* ================= TABLE ================= */
 
 .tableWrapper {
   width: 100%;
@@ -136,12 +153,16 @@ body {
   background: #fafafa;
 }
 
+/* ================= EMPTY STATE ================= */
+
 .emptyRow {
   text-align: center;
   padding: 30px;
   color: #6b7280;
   font-size: 15px;
 }
+
+/* ================= PAGINATION ================= */
 
 .pagination {
   display: flex;
@@ -190,6 +211,8 @@ body {
   border-color: #111827 !important;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
+
+/* ================= TOGGLE SWITCH ================= */
 
 .switch {
   position: relative;
@@ -244,6 +267,8 @@ body {
 .switch input:checked + .slider:before {
   transform: translateX(20px);
 }
+
+/* ================= ACTION MENU ================= */
 
 .actionMenu {
   position: relative;
@@ -312,6 +337,8 @@ body {
   background: #fef2f2;
 }
 
+/* ================= MODAL ================= */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -345,6 +372,8 @@ body {
   font-size: 22px;
   font-weight: 700;
 }
+
+/* ================= INPUTS ================= */
 
 .modal input,
 .modal select {
@@ -380,6 +409,8 @@ body {
   border-color: #3b82f6;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
 }
+
+/* ================= MODAL BUTTONS ================= */
 
 .modalActions {
   display: flex;
@@ -419,6 +450,8 @@ body {
   color: #ffffff;
 }
 
+/* ================= ANIMATIONS ================= */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -440,6 +473,8 @@ body {
     opacity: 1;
   }
 }
+
+/* ================= RESPONSIVE ================= */
 
 @media (max-width: 900px) {
   .sidebar {
@@ -480,6 +515,7 @@ body {
     justify-content: center;
   }
 }
+/* ================= SEARCH ================= */
 
 .headerActions {
   display: flex;
@@ -489,7 +525,7 @@ body {
 
 .searchInput {
   width: 260px;
-  padding: 10px 14px 10px 40px; 
+  padding: 10px 14px 10px 40px; /* top right bottom left */
 
   border: 1px solid #d1d5db;
   border-radius: 10px;

@@ -12,16 +12,12 @@ import {
 
 const RolePage = () => {
   const [roles, setRoles] = useState([]);
-  const [filteredRoles, setFilteredRoles] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewRole, setViewRole] = useState(null);
 
   const sizePerPage = 5;
 
@@ -48,11 +44,11 @@ const RolePage = () => {
 
       setTotalPages(
         res?.totalPages ||
-        Math.ceil(
-          (res?.totalElements || data.length) /
-          sizePerPage
-        ) ||
-        1
+          Math.ceil(
+            (res?.totalElements || data.length) /
+              sizePerPage
+          ) ||
+          1
       );
     } catch (err) {
       console.error(err);
@@ -66,57 +62,32 @@ const RolePage = () => {
     fetchRoles();
   }, [page]);
 
-  useEffect(() => {
-    const filtered = roles.filter(
-      (role) =>
-        role.identifier
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        role.description
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase())
-    );
-
-    setFilteredRoles(filtered);
-  }, [roles, searchTerm]);
-
   const handleAddRole = async () => {
+  const exists = roles.some(
+    (role) =>
+      role.identifier?.trim().toLowerCase() ===
+      newRole.identifier?.trim().toLowerCase()
+  );
 
-    if (!newRole.identifier?.trim()) {
-      alert("Identifier is required");
-      return;
-    }
+  if (exists) {
+    alert(`${newRole.identifier} already exists`);
+    return;
+  }
 
-    if (!newRole.description?.trim()) {
-      alert("Description is required");
-      return;
-    }
+  try {
+    await addItem("role", newRole);
 
-    const exists = roles.some(
-      (role) =>
-        role.identifier?.trim().toLowerCase() ===
-        newRole.identifier?.trim().toLowerCase()
-    );
+    setNewRole({
+      identifier: "",
+      description: "",
+    });
 
-    if (exists) {
-      alert(`${newRole.identifier} already exists`);
-      return;
-    }
-
-    try {
-      await addItem("role", newRole);
-
-      setNewRole({
-        identifier: "",
-        description: "",
-      });
-
-      fetchRoles();
-    } catch (err) {
-      console.error(err);
-      alert("Add failed");
-    }
-  };
+    fetchRoles();
+  } catch (err) {
+    console.error(err);
+    alert("Add failed");
+  }
+};
 
   const handleUpdate = async () => {
     try {
@@ -159,10 +130,6 @@ const RolePage = () => {
 
   const actions = [
     {
-      label: "👁 View",
-      onClick: (row) => setViewRole(row),
-    },
-    {
       label: "✏️ Edit",
       onClick: (row) => setEditRole(row),
     },
@@ -197,53 +164,29 @@ const RolePage = () => {
   ];
 
   return (
-    <div className="space-y-6">
-
-      {/* PAGE HEADER */}
-
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-
-        <h1 className="text-3xl font-bold text-slate-800">
-          Role Management
-        </h1>
-
-        <p className="text-slate-500 mt-2">
-          Create, edit and manage application roles.
-        </p>
-
-      </div>
-
-      {/* ROLE LIST */}
-
-      <CommonList
-        title="Roles"
-        data={filteredRoles}
-        columns={columns}
-        loading={loading}
-        error={error}
-        page={page}
-        setPage={setPage}
-        sizePerPage={sizePerPage}
-        totalPages={totalPages}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        onAdd={() => { }}
-        addButtonText="+ Add Role"
-        newItem={newRole}
-        setNewItem={setNewRole}
-        handleAdd={handleAddRole}
-        addFields={addFields}
-        editItem={editRole}
-        setEditItem={setEditRole}
-        handleUpdate={handleUpdate}
-        editFields={editFields}
-        actions={actions}
-        viewItem={viewRole}
-        setViewItem={setViewRole}
-        emptyMessage="No roles found"
-      />
-
-    </div>
+    <CommonList
+      title="Roles"
+      data={roles}
+      columns={columns}
+      loading={loading}
+      error={error}
+      page={page}
+      setPage={setPage}
+      sizePerPage={sizePerPage}
+      totalPages={totalPages}
+      onAdd={() => {}}
+      addButtonText="+ Add Role"
+      newItem={newRole}
+      setNewItem={setNewRole}
+      handleAdd={handleAddRole}
+      addFields={addFields}
+      editItem={editRole}
+      setEditItem={setEditRole}
+      handleUpdate={handleUpdate}
+      editFields={editFields}
+      actions={actions}
+      emptyMessage="No roles found"
+    />
   );
 };
 

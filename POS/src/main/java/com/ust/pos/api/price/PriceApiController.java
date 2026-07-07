@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.price.service.PriceService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class PriceApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public WsDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(
@@ -41,6 +43,7 @@ public class PriceApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public PriceDto addPost(@RequestBody PriceDto priceDto) {
         return priceService.save(priceDto);
     }
@@ -56,6 +59,7 @@ public class PriceApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             priceService.delete(identifier);

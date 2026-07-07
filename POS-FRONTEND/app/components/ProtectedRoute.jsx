@@ -1,32 +1,36 @@
 "use client";
-
+ 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
+/**
+ * ProtectedRoute Component
+ * @param {React.ReactNode} children - Child components to render when authorized
+ */
 export default function ProtectedRoute({
   children,
 }) {
   const router = useRouter();
   const [authorized, setAuthorized] =
     useState(false);
-
+ 
   useEffect(() => {
     const token =
       localStorage.getItem("token");
-
+ 
     if (!token || token === "null" || token === "undefined") {
-      router.push("/login");
-      return;
-    }
-
+  router.push("/login");
+  return;
+}
+ 
     setAuthorized(true);
   }, [router]);
-
+ 
   if (!authorized) {
     return null;
   }
-
+ 
   return children;
 }
 

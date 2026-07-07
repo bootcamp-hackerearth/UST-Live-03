@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -162,13 +163,10 @@ class StockServiceTest {
         Stock stock = new Stock();
         Page<Stock> page =
                 new PageImpl<>(List.of(stock));
-        Mockito.when(
-                stockRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "P1",
-                                pageable
-                        )
-        ).thenReturn(page);
+        Mockito.when(stockRepository.findAll(
+                        Mockito.<Specification<Stock>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
         Page<StockDto> result =
                 stockService.findAll(pageable, "P1");
         Assertions.assertEquals(
@@ -176,9 +174,9 @@ class StockServiceTest {
                 result.getContent().size()
         );
         Mockito.verify(stockRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "P1",
-                        pageable
+                .findAll(
+                        Mockito.<Specification<Stock>>any(),
+                        Mockito.eq(pageable)
                 );
     }
 

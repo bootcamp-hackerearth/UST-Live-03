@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -166,13 +167,10 @@ class PriceServiceTest {
         Price price = new Price();
         Page<Price> page =
                 new PageImpl<>(List.of(price));
-        Mockito.when(
-                priceRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "Admin",
-                                pageable
-                        )
-        ).thenReturn(page);
+        Mockito.when(priceRepository.findAll(
+                        Mockito.<Specification<Price>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
         Page<PriceDto> result =
                 priceService.findAll(pageable, "Admin");
         Assertions.assertEquals(
@@ -180,9 +178,9 @@ class PriceServiceTest {
                 result.getContent().size()
         );
         Mockito.verify(priceRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "Admin",
-                        pageable
+                .findAll(
+                        Mockito.<Specification<Price>>any(),
+                        Mockito.eq(pageable)
                 );
     }
 

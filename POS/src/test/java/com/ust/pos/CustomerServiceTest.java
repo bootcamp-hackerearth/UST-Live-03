@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -219,13 +220,10 @@ class CustomerServiceTest {
         Customer customer = new Customer();
         Page<Customer> page =
                 new PageImpl<>(List.of(customer));
-        Mockito.when(
-                customerRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "Admin",
-                                pageable
-                        )
-        ).thenReturn(page);
+        Mockito.when(customerRepository.findAll(
+                        Mockito.<Specification<Customer>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
         Mockito.when(
                 modelMapper.map(customer, CustomerDto.class)
         ).thenReturn(new CustomerDto());

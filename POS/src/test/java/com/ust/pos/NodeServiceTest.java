@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,13 +59,10 @@ class NodeServiceTest {
         node.setIdentifier("NODE1");
         Page<Node> page =
                 new PageImpl<>(List.of(node));
-        Mockito.when(
-                nodeRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "NODE",
-                                pageable
-                        )
-        ).thenReturn(page);
+        Mockito.when(nodeRepository.findAll(
+                        Mockito.<Specification<Node>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
         Page<NodeDto> result =
                 nodeService.findAll(pageable, "NODE");
         Assertions.assertEquals(
@@ -72,9 +70,9 @@ class NodeServiceTest {
                 result.getContent().size()
         );
         Mockito.verify(nodeRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "NODE",
-                        pageable
+                .findAll(
+                        Mockito.<Specification<Node>>any(),
+                        Mockito.eq(pageable)
                 );
     }
 

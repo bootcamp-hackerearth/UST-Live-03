@@ -4,10 +4,12 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
+import com.ust.pos.service.BaseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class BrandServiceImpl implements BrandService {
+public class BrandServiceImpl extends BaseService implements BrandService {
 
     private final BrandRepository brandRepository;
     private final ModelMapper modelMapper;
@@ -101,10 +103,10 @@ public class BrandServiceImpl implements BrandService {
     public Page<BrandDto> findAll(Pageable pageable, String search) {
         Page<Brand> brandPage;
         if (search != null && !search.trim().isEmpty()) {
-            brandPage = brandRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
+            Specification<Brand> specification = buildGlobalSearchSpec(Brand.class, search);
+            brandPage = brandRepository.findAll(specification, pageable);
         } else {
-            brandPage =
-                    brandRepository.findByDeletedFalse(pageable);
+            brandPage = brandRepository.findByDeletedFalse(pageable);
         }
         return brandPage.map(brand -> modelMapper.map(brand, BrandDto.class));
     }

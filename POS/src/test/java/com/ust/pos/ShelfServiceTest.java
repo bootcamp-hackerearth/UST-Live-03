@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -202,13 +203,10 @@ class ShelfServiceTest {
         Shelf shelf = new Shelf();
         Page<Shelf> page =
                 new PageImpl<>(List.of(shelf));
-        Mockito.when(
-                shelfRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "Shelf",
-                                pageable
-                        )
-        ).thenReturn(page);
+        Mockito.when(shelfRepository.findAll(
+                        Mockito.<Specification<Shelf>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
         Page<ShelfDto> result =
                 shelfService.findAll(pageable, "Shelf");
         Assertions.assertEquals(
@@ -216,9 +214,9 @@ class ShelfServiceTest {
                 result.getContent().size()
         );
         Mockito.verify(shelfRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "Shelf",
-                        pageable
+                .findAll(
+                        Mockito.<Specification<Shelf>>any(),
+                        Mockito.eq(pageable)
                 );
     }
 

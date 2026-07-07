@@ -7,6 +7,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class CustomerApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(
@@ -42,6 +44,7 @@ public class CustomerApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public CustomerDto addPost(@RequestBody CustomerDto customerDto) {
         return customerService.save(customerDto);
     }
@@ -57,6 +60,7 @@ public class CustomerApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             customerService.deleteByIdentifier(identifier);
