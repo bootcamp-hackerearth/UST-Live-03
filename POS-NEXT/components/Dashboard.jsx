@@ -183,7 +183,7 @@ export default function DashboardPage() {
             <button onClick={() => router.push("/orders")}
               className="flex items-center gap-2 border border-violet-200 hover:bg-violet-50 px-3 py-1 rounded-xl transition">
               <Receipt size={18} />
-              View Orders++++
+              View Orders++
             </button>
           </div>
         </div>
