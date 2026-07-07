@@ -152,9 +152,7 @@ class BrandServiceImplIT {
         brandRepository.save(inactive);
 
         assertEquals(1, brandService.findActiveBrands().size());
-        assertEquals(
-                "Nike",
-                brandService.findActiveBrands().get(0).getIdentifier()
+        assertEquals("Nike",brandService.findActiveBrands().get(0).getIdentifier()
         );
     }
 }

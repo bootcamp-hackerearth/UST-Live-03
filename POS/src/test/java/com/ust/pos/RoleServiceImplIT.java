@@ -92,7 +92,6 @@ class RoleServiceImplIT {
         roleRepository.save(role);
 
         RoleDto result = roleService.findByIdentifier("ADMIN");
-
         assertEquals("ADMIN", result.getIdentifier());
     }
 
