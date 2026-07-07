@@ -22,7 +22,7 @@ function Register() {
     const fetchRoles = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/api/role/list"
+          "/api/role/list"
         );
 
         setRoles(response.data || []);
@@ -98,7 +98,7 @@ function Register() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/register",
+        "/api/register",
         {
           username,
           name,
