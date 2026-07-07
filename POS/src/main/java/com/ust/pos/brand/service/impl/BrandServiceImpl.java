@@ -1,7 +1,7 @@
 package com.ust.pos.brand.service.impl;
 
-import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Brand;
