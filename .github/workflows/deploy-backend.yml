@@ -33,7 +33,7 @@ jobs:
           script: |
             set -euxo pipefail
 
-            cd ~/projects/UST-Live-03/POS
+            cd ~/project/UST-Live-03/POS
 
             git fetch --all --prune
             git reset --hard origin/feature/sprint5_pod1_kushal
