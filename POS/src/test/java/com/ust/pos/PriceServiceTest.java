@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -53,7 +54,7 @@ class PriceServiceTest {
 
     @Test
     void testFindByIdentifier_Found() {
-        when(priceRepository.findByIdentifier(EXPECTED_IDENTIFIER)).thenReturn(price);
+        when(priceRepository.findByIdentifierAndIsDeletedFalse(EXPECTED_IDENTIFIER)).thenReturn(price);
         when(modelMapper.map(price, PriceDto.class)).thenReturn(priceDto);
 
         PriceDto result = priceService.findByIdentifier(EXPECTED_IDENTIFIER);
@@ -64,11 +65,11 @@ class PriceServiceTest {
 
     @Test
     void testFindByIdentifier_NotFound() {
-        when(priceRepository.findByIdentifier(EXPECTED_IDENTIFIER)).thenReturn(null);
+        when(priceRepository.findByIdentifierAndIsDeletedFalse(EXPECTED_IDENTIFIER)).thenReturn(null);
 
-        PriceDto result = priceService.findByIdentifier(EXPECTED_IDENTIFIER);
-
-        assertNull(result);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            priceService.findByIdentifier(EXPECTED_IDENTIFIER);
+        });
     }
 
     @Test

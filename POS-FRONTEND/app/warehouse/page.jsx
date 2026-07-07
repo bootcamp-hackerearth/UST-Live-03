@@ -97,8 +97,6 @@ export default function WarehousePage() {
         <CommonList
             title="Warehouses"
             subtitle="Manage logistical inventory fulfillment centers and deployment stations"
-            apiUrl="http://localhost:8080/api/warehouse/list"
-            deleteUrl="http://localhost:8080/api/warehouse/delete"
             apiRoute="warehouse"
             columns={columns}
             searchKeys={["identifier", "location", "contactName", "contactNumber", "country", "region"]}

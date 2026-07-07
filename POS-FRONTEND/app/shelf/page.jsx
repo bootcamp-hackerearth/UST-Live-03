@@ -14,8 +14,6 @@ export default function ShelvesPage() {
         <CommonList
             title="Shelves"
             subtitle="Manage inventory physical storage units and layout locations"
-            apiUrl="http://localhost:8080/api/shelf/list"
-            deleteUrl="http://localhost:8080/api/shelf/delete"
             apiRoute="shelf"
             columns={columns}
             searchKeys={["identifier"]}

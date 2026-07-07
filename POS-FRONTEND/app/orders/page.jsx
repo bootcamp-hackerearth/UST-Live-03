@@ -23,7 +23,7 @@ export default function OrdersPage() {
     const loadOrders = async () => {
         try {
             setLoading(true);
-            const response = await fetch("http://localhost:8080/api/orders/list", {
+            const response = await fetch(process.env.NEXT_PUBLIC_BASE_URL+"/orders/list", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${getToken()}`,
@@ -49,7 +49,7 @@ export default function OrdersPage() {
 
     const viewOrder = async (identifier) => {
         try {
-            const orderResponse = await fetch("http://localhost:8080/api/orders/get", {
+            const orderResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/get`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${getToken()}`,
@@ -60,7 +60,7 @@ export default function OrdersPage() {
             const orderText = await orderResponse.text();
             const orderData = orderText ? JSON.parse(orderText) : {};
 
-            const entryResponse = await fetch("http://localhost:8080/api/ordersentry/findbyordersid", {
+            const entryResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/ordersentry/findbyordersid`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${getToken()}`,

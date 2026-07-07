@@ -46,7 +46,7 @@ export default function CartPage() {
   const loadBaseProductCatalog = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8080/api/product/list", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/product/list`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ page: 0, sizePerPage: 200 }),
@@ -62,7 +62,7 @@ export default function CartPage() {
   const refreshCartWorkspace = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8080/api/cart/list", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/list`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ page: 0, sizePerPage: 100, sortDirection: "ASC", sortField: "identifier" }),
@@ -92,7 +92,7 @@ export default function CartPage() {
       const totalPriceNet = calculatedEntries.reduce((acc, curr) => acc + Number.parseFloat(curr.totalPrice || curr.total_price || 0), 0);
 
       const token = localStorage.getItem("token");
-      await fetch("http://localhost:8080/api/cart/update", {
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/update`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -120,12 +120,12 @@ export default function CartPage() {
     }
     try {
       setActionLoading(true); setFeedbackError(""); setFeedbackSuccess("");
-      await CommonAddFetch("http://localhost:8080/api/cart/add", {
+      await CommonAddFetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/add`, {
         identifier: cleanPhone, coupon: null, discount: 0, totalPrice: 0, totalOriginalPrice: 0,
       }, "application/json");
 
       const token = localStorage.getItem("token");
-      const listResponse = await fetch("http://localhost:8080/api/cart/list", {
+      const listResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/list`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ page: 0, sizePerPage: 100 }),
@@ -153,7 +153,7 @@ export default function CartPage() {
     const delayDebounce = setTimeout(async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:8080/api/customer/list", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customer/list`, {
           method: "POST",
           headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ page: 0, sizePerPage: 100, sortDirection: "ASC", sortField: "identifier" }),
@@ -174,7 +174,7 @@ export default function CartPage() {
     const delayDebounce = setTimeout(async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:8080/api/product/list", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/product/list`, {
           method: "POST",
           headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ page: 0, sizePerPage: 20, sortDirection: "ASC", sortField: "identifier" }),
@@ -203,7 +203,7 @@ export default function CartPage() {
     if (Number.isNaN(targetQty) || targetQty === 0) { setFeedbackError("Specify a valid quantity count."); return; }
     try {
       setActionLoading(true); setFeedbackError(""); setFeedbackSuccess("");
-      const resData = await CommonAddFetch("http://localhost:8080/api/cartentry/add", {
+      const resData = await CommonAddFetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/add`, {
         cartId: String(selectedCart.identifier), product: String(productIdentifier), quantity: targetQty, discount: 0, totalPrice: 0, unitPrice: 0, totalOriginalPrice: 0,
       }, "application/json");
 
@@ -213,7 +213,7 @@ export default function CartPage() {
       }
       setProductSearch(""); setFoundProducts([]); setItemQuantity("1");
       const token = localStorage.getItem("token");
-      const listResponse = await fetch("http://localhost:8080/api/cart/list", {
+      const listResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/list`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ page: 0, sizePerPage: 100 }),
@@ -240,7 +240,7 @@ export default function CartPage() {
       setActionLoading(true); setFeedbackError(""); setFeedbackSuccess("");
       const token = localStorage.getItem("token");
 
-      const targetUrl = `http://localhost:8080/api/cartentry/delete?cartId=${encodeURIComponent(selectedCart.identifier)}&product=${encodeURIComponent(productName)}`;
+      const targetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/delete?cartId=${encodeURIComponent(selectedCart.identifier)}&product=${encodeURIComponent(productName)}`;
 
       await fetch(targetUrl, {
         method: "DELETE",
@@ -250,7 +250,7 @@ export default function CartPage() {
         }
       });
 
-      const listResponse = await fetch("http://localhost:8080/api/cart/list", {
+      const listResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/list`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ page: 0, sizePerPage: 100 }),
@@ -278,7 +278,7 @@ export default function CartPage() {
       setActionLoading(true); setFeedbackError(""); setFeedbackSuccess("");
       const token = localStorage.getItem("token");
 
-      const targetUrl = `http://localhost:8080/api/cartentry/clearCart?cartId=${encodeURIComponent(selectedCart.identifier)}`;
+      const targetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/clearCart?cartId=${encodeURIComponent(selectedCart.identifier)}`;
 
       const response = await fetch(targetUrl, {
         method: "DELETE",
@@ -312,7 +312,7 @@ export default function CartPage() {
     }
     try {
       setActionLoading(true); setFeedbackError(""); setFeedbackSuccess("");
-      await CommonAddFetch("http://localhost:8080/api/customer/add", {
+      await CommonAddFetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customer/add`, {
         identifier: modalEmail.trim() || cleanPhone, name: modalName.trim(), phoneNo: cleanPhone, userType: modalUserType, balance: 0, creditLimit: 0, status: true,
         shippingAddress: { phoneNo: cleanPhone, name: modalName.trim() }, billingAddress: { phoneNo: cleanPhone, name: modalName.trim() }
       }, "application/json");
@@ -371,8 +371,8 @@ export default function CartPage() {
         ordersEntryDtoList: mappedOrderEntries
       };
 
-      await CommonAddFetch("http://localhost:8080/api/orders/add", orderPayload, "application/json");
-      const clearCartUrl = `http://localhost:8080/api/cartentry/clearCart?cartId=${encodeURIComponent(selectedCart.identifier)}`;
+      await CommonAddFetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/add`, orderPayload, "application/json");
+      const clearCartUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/clearCart?cartId=${encodeURIComponent(selectedCart.identifier)}`;
       await fetch(clearCartUrl, {
         method: "DELETE",
         headers: {

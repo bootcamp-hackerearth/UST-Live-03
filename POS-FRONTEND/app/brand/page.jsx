@@ -27,8 +27,6 @@ export default function BrandsPage() {
         <CommonList
             title="Brands"
             subtitle="Manage global point-of-sale inventory brand profiles"
-            apiUrl="http://localhost:8080/api/brand/list"
-            deleteUrl="http://localhost:8080/api/brand/delete"
             apiRoute="brand"
             columns={columns}
             searchKeys={["identifier", "description"]}

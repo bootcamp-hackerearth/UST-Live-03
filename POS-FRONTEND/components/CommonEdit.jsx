@@ -13,7 +13,7 @@ import {
 import { CommonAddFetch } from "@/fetch/CommonAddFetch";
 import { CommonListFetch } from "@/fetch/CommonListFetch";
 
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = process.env.NEXT_PUBLIC_BASE_URL
 
 const CommonEdit = ({
   title = "",

@@ -54,15 +54,13 @@ export default function RacksPage() {
   ];
 
   const dropdownApis = {
-    shelvesList: "http://localhost:8080/api/shelf/list",
+    shelvesList: process.env.NEXT_PUBLIC_BASE_URL+"/shelf/list",
   };
 
   return (
     <CommonList
       title="Racks"
       subtitle="Manage terminal warehouse racks and physical placement segments"
-      apiUrl="http://localhost:8080/api/racks/list"
-      deleteUrl="http://localhost:8080/api/racks/delete"
       apiRoute="racks"
       columns={columns}
       searchKeys={["identifier"]}

@@ -12,8 +12,6 @@ export default function UnitsPage() {
         <CommonList
             title="Units"
             subtitle="Manage terminal layout inventory measurement units"
-            apiUrl="http://localhost:8080/api/unit/list"
-            deleteUrl="http://localhost:8080/api/unit/delete"
             apiRoute="unit"
             columns={columns}
             searchKeys={["identifier"]}

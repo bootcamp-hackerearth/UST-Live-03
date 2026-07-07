@@ -8,8 +8,6 @@ function ProductList() {
     <CommonList
       title="Products"
       subtitle="Manage your products"
-      apiUrl="http://localhost:8080/api/product/list"
-      deleteUrl="http://localhost:8080/api/product/delete"
       apiRoute="product"
       searchKeys={[
         "name",
@@ -91,8 +89,8 @@ function ProductList() {
         },
       ]}
       dropdownApis={{
-        categories: "http://localhost:8080/api/category/list",
-        brands: "http://localhost:8080/api/brand/list",
+        categories: process.env.NEXT_PUBLIC_BASE_URL+"/category/list",
+        brands: process.env.NEXT_PUBLIC_BASE_URL+"/brand/list",
       }}
     />
   );

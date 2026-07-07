@@ -21,7 +21,7 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    axios.post("http://localhost:8080/api/authenticate", credentials, {
+    axios.post(process.env.NEXT_PUBLIC_BASE_URL+"/authenticate", credentials, {
       withCredentials: true,
     })
       .then((res) => {

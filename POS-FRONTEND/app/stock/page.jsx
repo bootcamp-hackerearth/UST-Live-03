@@ -50,15 +50,13 @@ export default function StockPage() {
     ];
 
     const dropdownApis = {
-        products: "http://localhost:8080/api/product/list",
+        products: process.env.NEXT_PUBLIC_BASE_URL+"/product/list",
     };
 
     return (
         <CommonList
             title="Stock"
             subtitle="Track terminal batch inventory volume indexes across warehouse positions"
-            apiUrl="http://localhost:8080/api/stock/list"
-            deleteUrl="http://localhost:8080/api/stock/delete"
             apiRoute="stock"
             columns={columns}
             searchKeys={["identifier", "product", "warehouse"]}

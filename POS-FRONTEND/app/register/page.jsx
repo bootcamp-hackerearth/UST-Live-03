@@ -20,7 +20,7 @@ const Register = () => {
   const [roles, setRoles] = useState([]);
 
   useEffect(() => {
-    axios.post("http://localhost:8080/api/role/list", { page: 0, sizePerPage: 10 })
+    axios.post(process.env.NEXT_PUBLIC_BASE_URL+"/role/list", { page: 0, sizePerPage: 10 })
       .then((res) => setRoles(res.data.dtoList || res.data || []))
       .catch((err) => console.error("Roles fetch error:", err));
   }, []);
@@ -48,7 +48,7 @@ const Register = () => {
     }
 
     const formData = new URLSearchParams(user);
-    axios.post("http://localhost:8080/register", formData, {
+    axios.post(process.env.NEXT_PUBLIC_BASE_URL+"/register", formData, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     })
       .then((res) => {

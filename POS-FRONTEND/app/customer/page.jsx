@@ -95,8 +95,6 @@ export default function CustomersPage() {
         <CommonList
             title="Customers"
             subtitle="Manage terminal client master profile configurations"
-            apiUrl="http://localhost:8080/api/customer/list"
-            deleteUrl="http://localhost:8080/api/customer/delete"
             apiRoute="customer"
             columns={columns}
             searchKeys={["identifier", "name", "phoneNo", "userType"]}

@@ -26,7 +26,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await fetch("http://localhost:8080/api/node/getnodesforroles", {
+      const response = await fetch(process.env.NEXT_PUBLIC_BASE_URL+"/node/getnodesforroles", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

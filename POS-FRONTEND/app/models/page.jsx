@@ -14,8 +14,6 @@ export default function ModelsPage() {
         <CommonList
             title="Models"
             subtitle="Manage terminal layout models and configurations"
-            apiUrl="http://localhost:8080/api/models/list"
-            deleteUrl="http://localhost:8080/api/models/delete"
             apiRoute="models"
             columns={columns}
             searchKeys={["identifier"]}

@@ -42,7 +42,7 @@ export default function UserList() {
   ];
 
   const dropdownApis = {
-    roles: "http://localhost:8080/api/role/list",
+    roles: process.env.NEXT_PUBLIC_BASE_URL+"/role/list",
   };
 
   const transformPayload = (data) => ({
@@ -60,10 +60,8 @@ export default function UserList() {
     <CommonList
       title="Users"
       subtitle="Manage all users and roles"
-      apiUrl="http://localhost:8080/api/user/list"
-      deleteUrl="http://localhost:8080/api/user/delete"
-      addUrl="http://localhost:8080/api/user/add"
-      updateUrl="http://localhost:8080/api/user/update"
+      addUrl={process.env.NEXT_PUBLIC_BASE_URL+"/user/add"}
+      updateUrl={process.env.NEXT_PUBLIC_BASE_URL+"/user/update"}
       apiRoute="user"
       fields={fields}
       dropdownApis={dropdownApis}

@@ -49,7 +49,7 @@ export default function PriceList() {
   const dropdownApis = {
 
     products:
-      "http://localhost:8080/api/product/list",
+      process.env.NEXT_PUBLIC_BASE_URL+"/product/list",
 
   };
 
@@ -88,8 +88,6 @@ export default function PriceList() {
     <CommonList
       title="Prices"
       subtitle="Manage product prices"
-      apiUrl="http://localhost:8080/api/price/list"
-      deleteUrl="http://localhost:8080/api/price/delete"
       apiRoute="price"
       columns={columns}
       searchKeys={[

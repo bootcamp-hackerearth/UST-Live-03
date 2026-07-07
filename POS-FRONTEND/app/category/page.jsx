@@ -10,8 +10,6 @@ export default function CategoryPage() {
     <CommonList
       title="Categories"
       subtitle="Manage categories"
-      apiUrl="http://localhost:8080/api/category/list"
-      deleteUrl="http://localhost:8080/api/category/delete"
       apiRoute="category"
       searchKeys={[
         "identifier",
@@ -90,7 +88,7 @@ export default function CategoryPage() {
       ]}
       dropdownApis={{
         categories:
-          "http://localhost:8080/api/category/list",
+          process.env.NEXT_PUBLIC_BASE_URL+"/category/list",
       }}
     />
 

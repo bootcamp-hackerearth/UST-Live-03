@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -115,7 +116,7 @@ class BrandServiceTest {
         BrandDto dto = new BrandDto();
         dto.setIdentifier("B1");
 
-        when(brandRepository.findByIdentifier("B1")).thenReturn(brand);
+        when(brandRepository.findByIdentifierAndIsDeletedFalse("B1")).thenReturn(brand);
         when(modelMapper.map(brand, BrandDto.class)).thenReturn(dto);
 
         BrandDto result = brandService.findByIdentifier("B1");
@@ -126,11 +127,11 @@ class BrandServiceTest {
 
     @Test
     void findByIdentifierFailureTest() {
-        when(brandRepository.findByIdentifier("B1")).thenReturn(null);
+        when(brandRepository.findByIdentifierAndIsDeletedFalse("B1")).thenReturn(null);
 
-        BrandDto result = brandService.findByIdentifier("B1");
-
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            brandService.findByIdentifier("B1");
+        });
     }
 
     @Test

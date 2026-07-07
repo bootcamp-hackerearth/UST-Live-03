@@ -55,8 +55,6 @@ export default function RoleList() {
     <CommonList
       title="Roles"
       subtitle="Manage role details"
-      apiUrl="http://localhost:8080/api/role/list"
-      deleteUrl="http://localhost:8080/api/role/delete"
       apiRoute="role"
       columns={columns}
       searchKeys={[

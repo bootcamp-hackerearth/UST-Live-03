@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -50,7 +51,7 @@ class StockServiceTest {
 
     @Test
     void testFindByIdentifier_Found() {
-        when(stockRepository.findByIdentifier("S001")).thenReturn(stock);
+        when(stockRepository.findByIdentifierAndIsDeletedFalse("S001")).thenReturn(stock);
         when(modelMapper.map(stock, StockDto.class)).thenReturn(stockDto);
 
         StockDto result = stockService.findByIdentifier("S001");
@@ -61,11 +62,11 @@ class StockServiceTest {
 
     @Test
     void testFindByIdentifier_NotFound() {
-        when(stockRepository.findByIdentifier("S001")).thenReturn(null);
+        when(stockRepository.findByIdentifierAndIsDeletedFalse("S001")).thenReturn(null);
 
-        StockDto result = stockService.findByIdentifier("S001");
-
-        assertNull(result);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            stockService.findByIdentifier("S001");
+        });
     }
 
     @Test
@@ -101,7 +102,6 @@ class StockServiceTest {
 
     @Test
     void testUpdate_Success() {
-
         when(stockRepository.findByIdentifier("S001")).thenReturn(stock);
 
         StockDto result = stockService.update(stockDto);

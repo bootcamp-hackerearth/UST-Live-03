@@ -28,7 +28,7 @@ export default function RouteGuard({ children }) {
 
       try {
         const response = await fetch(
-          "http://localhost:8080/api/node/checkaccess",
+          process.env.NEXT_PUBLIC_BASE_URL+"/node/checkaccess",
           {
             method: "POST",
             headers: {

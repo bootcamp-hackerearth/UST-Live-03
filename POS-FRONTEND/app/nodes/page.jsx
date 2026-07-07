@@ -43,7 +43,7 @@ export default function NodeList() {
 
   const dropdownApis = {
     roles:
-      "http://localhost:8080/api/role/list",
+      process.env.NEXT_PUBLIC_BASE_URL+"/role/list",
   };
 
   const columns = [
@@ -65,8 +65,6 @@ export default function NodeList() {
     <CommonList
       title="Nodes"
       subtitle="Manage node details"
-      apiUrl="http://localhost:8080/api/node/list"
-      deleteUrl="http://localhost:8080/api/node/delete"
       apiRoute="node"
       columns={columns}
       searchKeys={[

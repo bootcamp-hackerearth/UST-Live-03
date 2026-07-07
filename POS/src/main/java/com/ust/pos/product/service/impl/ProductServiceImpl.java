@@ -3,6 +3,7 @@ package com.ust.pos.product.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +33,9 @@ public class ProductServiceImpl extends BaseService implements ProductService {
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
-        Product product = productRepository.findByIdentifier(identifier);
+        Product product = productRepository.findByIdentifierAndIsDeletedFalse(identifier);
         if (product == null) {
-            return null;
+            throw new ResourceNotFoundException("Product with identifier '" + identifier + "' not found");
         }
         return modelMapper.map(product, ProductDto.class);
     }
@@ -92,5 +94,22 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         productWsDto.setPage(pageable.getPageNumber());
 
         return productWsDto;
+    }
+
+    @Override
+    public WsDto<ProductDto> findAll(Specification<Product> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ProductDto>>() {
+        }.getType();
+        Page<Product> page = productRepository.findAll(example, pageable);
+
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

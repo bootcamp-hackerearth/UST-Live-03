@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -116,7 +117,7 @@ class RoleServiceTest {
         RoleDto mappedDto = new RoleDto();
         mappedDto.setIdentifier("Admin");
 
-        when(roleRepository.findByIdentifier("Admin")).thenReturn(role);
+        when(roleRepository.findByIdentifierAndIsDeletedFalse("Admin")).thenReturn(role);
         when(modelMapper.map(role, RoleDto.class)).thenReturn(mappedDto);
 
         RoleDto result = roleService.findByIdentifier("Admin");
@@ -127,11 +128,11 @@ class RoleServiceTest {
 
     @Test
     void findByIdentifierFailureTest() {
-        when(roleRepository.findByIdentifier("Admin")).thenReturn(null);
+        when(roleRepository.findByIdentifierAndIsDeletedFalse("Admin")).thenReturn(null);
 
-        RoleDto result = roleService.findByIdentifier("Admin");
-
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            roleService.findByIdentifier("Admin");
+        });
     }
 
     @Test

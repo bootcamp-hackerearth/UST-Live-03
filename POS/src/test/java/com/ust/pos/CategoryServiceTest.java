@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -116,7 +117,7 @@ class CategoryServiceTest {
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("Admin");
 
-        when(categoryRepository.findByIdentifier("Admin")).thenReturn(category);
+        when(categoryRepository.findByIdentifierAndIsDeletedFalse("Admin")).thenReturn(category);
         when(modelMapper.map(category, CategoryDto.class)).thenReturn(dto);
 
         CategoryDto result = categoryService.findByIdentifier("Admin");
@@ -127,11 +128,11 @@ class CategoryServiceTest {
 
     @Test
     void findByIdentifierFailureTest() {
-        when(categoryRepository.findByIdentifier("Admin")).thenReturn(null);
+        when(categoryRepository.findByIdentifierAndIsDeletedFalse("Admin")).thenReturn(null);
 
-        CategoryDto result = categoryService.findByIdentifier("Admin");
-
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            categoryService.findByIdentifier("Admin");
+        });
     }
 
     @Test

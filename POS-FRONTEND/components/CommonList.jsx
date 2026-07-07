@@ -13,11 +13,11 @@ import {
 } from "@heroicons/react/24/outline";
 import CommonEdit from "@/components/CommonEdit";
 
+const API_BASE = process.env.NEXT_PUBLIC_BASE_URL
+
 function CommonList({
   title,
   subtitle,
-  apiUrl,
-  deleteUrl,
   apiRoute,
   columns,
   searchKeys,
@@ -37,44 +37,47 @@ function CommonList({
 
   const sizePerPage = 5;
 
+  const apiUrl = `${API_BASE}/${apiRoute}/list`;
+  const deleteUrl = `${API_BASE}/${apiRoute}/delete`;
+
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     setToken(storedToken || "");
   }, []);
 
   useEffect(() => {
-  if (token) {
-    fetchList();
-  }
-}, [token, page, search]);
+    if (token) {
+      fetchList();
+    }
+  }, [token, page, search]);
 
   const fetchList = async () => {
-  try {
-    const storedToken = localStorage.getItem("token") || token;
+    try {
+      const storedToken = localStorage.getItem("token") || token;
 
-    const res = await axios.post(
-      apiUrl,
-      {
-        page,
-        sizePerPage,
-        sortDirection: "ASC",
-        sortField: "identifier",
-        keyword: search,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${storedToken}`,
+      const res = await axios.post(
+        apiUrl,
+        {
+          page,
+          sizePerPage,
+          sortDirection: "ASC",
+          sortField: "identifier",
+          keyword: search,
         },
-        withCredentials: true,
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+          withCredentials: true,
+        }
+      );
 
-    setAllData(res.data.dtoList || []);
-    setTotalPages(res.data.totalPages || 1);
-  } catch (err) {
-    console.error("Fetch list error:", err);
-  }
-};
+      setAllData(res.data.dtoList || []);
+      setTotalPages(res.data.totalPages || 1);
+    } catch (err) {
+      console.error("Fetch list error:", err);
+    }
+  };
 
   const handleStatusToggle = async (item) => {
     const toggleKey = item.identifier || item.username;
@@ -85,7 +88,7 @@ function CommonList({
       const storedToken = localStorage.getItem("token") || token;
 
       await axios.post(
-        `http://localhost:8080/api/${apiRoute}/toggle`,
+        `${API_BASE}/${apiRoute}/toggle`,
         toggleKey,
         {
           headers: {
@@ -118,7 +121,6 @@ function CommonList({
   };
 
   const paginatedData = allData;
-
 
   const handleDelete = async (item) => {
     const confirmDelete = globalThis.confirm("Delete item?");
@@ -412,8 +414,6 @@ function CommonList({
 CommonList.propTypes = {
   title: PropTypes.string,
   subtitle: PropTypes.string,
-  apiUrl: PropTypes.string.isRequired,
-  deleteUrl: PropTypes.string.isRequired,
   apiRoute: PropTypes.string.isRequired,
   columns: PropTypes.arrayOf(
     PropTypes.shape({

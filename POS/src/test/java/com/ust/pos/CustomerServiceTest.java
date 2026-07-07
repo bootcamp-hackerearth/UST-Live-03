@@ -5,6 +5,7 @@ import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.Assertions;
@@ -45,7 +46,7 @@ class CustomerServiceTest {
         CustomerDto dto = new CustomerDto();
         dto.setIdentifier("C1");
 
-        when(customerRepository.findByIdentifier("C1")).thenReturn(customer);
+        when(customerRepository.findByIdentifierAndIsDeletedFalse("C1")).thenReturn(customer);
         when(modelMapper.map(customer, CustomerDto.class)).thenReturn(dto);
 
         CustomerDto result = customerService.findByIdentifier("C1");
@@ -56,11 +57,11 @@ class CustomerServiceTest {
 
     @Test
     void findByIdentifierFailureTest() {
-        when(customerRepository.findByIdentifier("C1")).thenReturn(null);
+        when(customerRepository.findByIdentifierAndIsDeletedFalse("C1")).thenReturn(null);
 
-        CustomerDto result = customerService.findByIdentifier("C1");
-
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            customerService.findByIdentifier("C1");
+        });
     }
 
     @Test
@@ -129,7 +130,6 @@ class CustomerServiceTest {
 
         when(customerRepository.findByIdentifier("C1")).thenReturn(customer);
 
-        when(addressService.findByPhoneNoAndAddressType(123L, "billingAddress")).thenReturn(billing);
         when(addressService.findByPhoneNoAndAddressType(123L, "billingAddress")).thenReturn(billing);
         when(addressService.findByPhoneNoAndAddressType(123L, "shippingAddress")).thenReturn(shipping);
 

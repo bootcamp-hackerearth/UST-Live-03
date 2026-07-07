@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -115,7 +116,7 @@ class ProductServiceTest {
         ProductDto dto = new ProductDto();
         dto.setIdentifier("P1");
 
-        when(productRepository.findByIdentifier("P1")).thenReturn(product);
+        when(productRepository.findByIdentifierAndIsDeletedFalse("P1")).thenReturn(product);
         when(modelMapper.map(product, ProductDto.class)).thenReturn(dto);
 
         ProductDto result = productService.findByIdentifier("P1");
@@ -126,11 +127,11 @@ class ProductServiceTest {
 
     @Test
     void findByIdentifierFailureTest() {
-        when(productRepository.findByIdentifier("P1")).thenReturn(null);
+        when(productRepository.findByIdentifierAndIsDeletedFalse("P1")).thenReturn(null);
 
-        ProductDto result = productService.findByIdentifier("P1");
-
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            productService.findByIdentifier("P1");
+        });
     }
 
     @Test

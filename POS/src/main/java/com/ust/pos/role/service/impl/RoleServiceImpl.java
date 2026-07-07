@@ -3,6 +3,7 @@ package com.ust.pos.role.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +33,9 @@ public class RoleServiceImpl extends BaseService implements RoleService {
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        Role role = roleRepository.findByIdentifier(identifier);
+        Role role = roleRepository.findByIdentifierAndIsDeletedFalse(identifier);
         if (role == null) {
-            return null;
+            throw new ResourceNotFoundException("Role with identifier '" + identifier + "' not found");
         }
         return modelMapper.map(role, RoleDto.class);
     }
@@ -92,5 +94,22 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         roleWsDto.setPage(pageable.getPageNumber());
 
         return roleWsDto;
+    }
+
+    @Override
+    public WsDto<RoleDto> findAll(Specification<Role> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> page = roleRepository.findAll(example, pageable);
+
+        WsDto<RoleDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

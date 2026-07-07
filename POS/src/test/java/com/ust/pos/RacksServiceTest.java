@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import com.ust.pos.racks.service.impl.RacksServiceImpl;
@@ -115,7 +116,7 @@ class RacksServiceTest {
         RacksDto dto = new RacksDto();
         dto.setIdentifier("A1");
 
-        when(racksRepository.findByIdentifier("A1")).thenReturn(racks);
+        when(racksRepository.findByIdentifierAndIsDeletedFalse("A1")).thenReturn(racks);
         when(modelMapper.map(racks, RacksDto.class)).thenReturn(dto);
 
         RacksDto result = racksService.findByIdentifier("A1");
@@ -126,11 +127,11 @@ class RacksServiceTest {
 
     @Test
     void findByIdentifierTest() {
-        when(racksRepository.findByIdentifier("A1")).thenReturn(null);
+        when(racksRepository.findByIdentifierAndIsDeletedFalse("A1")).thenReturn(null);
 
-        RacksDto result = racksService.findByIdentifier("A1");
-
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            racksService.findByIdentifier("A1");
+        });
     }
 
     @Test
