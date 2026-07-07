@@ -9,7 +9,6 @@ import com.ust.pos.user.service.UserService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,7 +37,6 @@ public class UserControllerApi extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin')")
     public UserDto addUser(@RequestBody UserDto userDto) {
         return userService.save(userDto);
     }
