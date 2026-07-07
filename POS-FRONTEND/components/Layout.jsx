@@ -1,21 +1,21 @@
 'use client';
- 
+
 import { useEffect, useState } from 'react';
-import { UserCircleIcon,Bars3Icon,XMarkIcon } from '@heroicons/react/24/solid';
+import { UserCircleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
 import { useRouter } from 'next/navigation';
 import PropTypes from 'prop-types';
- 
+
 import api from '@/app/services/api';
 import Profile from '@/components/Profile';
- 
+
 const Layout = ({ children }) => {
- 
+
   const router = useRouter();
- 
+
   const [username, setUsername] = useState('');
- 
+
   const [nodes, setNodes] = useState([]);
- 
+
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -25,7 +25,7 @@ const Layout = ({ children }) => {
     setUsername(storedUsername);
     fetchNodes();
   }, []);
- 
+
   const fetchNodes = async () => {
     try {
       const response = await api.get('/home');
@@ -34,7 +34,7 @@ const Layout = ({ children }) => {
       console.error(error);
     }
   };
- 
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
@@ -57,17 +57,17 @@ const Layout = ({ children }) => {
 
     return map[name] || name.substring(0, 2).toUpperCase();
   };
- 
+
   return (
- 
-        <div
-          className="min-h-screen flex bg-[#f5f6fa]"
-          style={{
-            fontFamily: "'Poppins', sans-serif"
-          }}
-        >
-            <div
-              className={`
+
+    <div
+      className="min-h-screen flex bg-[#f5f6fa]"
+      style={{
+        fontFamily: "'Poppins', sans-serif"
+      }}
+    >
+      <div
+        className={`
                 fixed
                 top-0
                 left-0
@@ -83,11 +83,11 @@ const Layout = ({ children }) => {
                 duration-300
                 ${sidebarOpen ? "w-[250px]" : "w-[80px]"}
                 `}
-            >
+      >
 
-              <button
-                onClick={() => router.push('/home')}
-                className="
+        <button
+          onClick={() => router.push('/home')}
+          className="
                 px-5
                 py-5
                 border-b
@@ -98,11 +98,11 @@ const Layout = ({ children }) => {
                 group
                 text-left
                 "
-              >
- 
-              <div className="flex items-center gap-3">
-                <div
-                  className="
+        >
+
+          <div className="flex items-center gap-3">
+            <div
+              className="
                     min-w-[55px]
                     h-[55px]
                     bg-cyan-500
@@ -114,7 +114,7 @@ const Layout = ({ children }) => {
                     group-hover:scale-105
                     transition
                   "
-                >
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -130,9 +130,9 @@ const Layout = ({ children }) => {
                 />
               </svg>
             </div>
- 
+
             <div className="overflow-hidden">
- 
+
               <h1 className="
                 text-slate-800
                 text-2xl
@@ -141,7 +141,7 @@ const Layout = ({ children }) => {
               ">
                 Dashboard
               </h1>
- 
+
               <p className="
                 text-xs
                 text-slate-500
@@ -150,10 +150,10 @@ const Layout = ({ children }) => {
                 Go to Home
               </p>
             </div>
-        </div>
+          </div>
         </button>
- 
- 
+
+
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-2">
           {nodes.map((node) => (
             <button
@@ -197,9 +197,9 @@ const Layout = ({ children }) => {
             </button>
           ))}
         </div>
- 
+
         <div className="p-4 border-t border-white/10">
- 
+
           <button
             onClick={logout}
             className="
@@ -218,20 +218,21 @@ const Layout = ({ children }) => {
         </div>
       </div>
 
-          <div
-            className={`
+      <div
+        className={`
               flex-1
               p-8
               min-h-screen
               bg-[#f8fafc]
               transition-all
               duration-300
-              ${sidebarOpen ? "ml-[250px]" : "ml-[80px]"}
+              overflow-x-hidden
+              ${sidebarOpen ? "ml-[250px] w-[calc(100%-250px)]" : "ml-[80px] w-[calc(100%-80px)]"}
             `}
-          >
+      >
 
-          <div
-            className="
+        <div
+          className="
               bg-white
               rounded-2xl
               shadow-lg
@@ -244,8 +245,8 @@ const Layout = ({ children }) => {
               items-center
               mb-8
             "
-          >
- 
+        >
+
           <div className="flex items-center gap-4">
 
             <button
@@ -275,10 +276,10 @@ const Layout = ({ children }) => {
             </div>
 
           </div>
- 
-              <button
-                onClick={() => setShowProfileModal(true)}
-                className="
+
+          <button
+            onClick={() => setShowProfileModal(true)}
+            className="
                   flex
                   items-center
                   gap-3
@@ -291,59 +292,36 @@ const Layout = ({ children }) => {
                   hover:bg-slate-100
                   transition
                 "
-              >
- 
-                <UserCircleIcon className="h-10 w-10 text-slate-700" />
-            
-                <div className="text-left">
-            
-                  <p className="text-xs text-gray-500">
-                    Logged in as
-                  </p>
-            
-                  <p className="text-sm font-semibold text-gray-800">
-                    {username}
-                  </p>
-            
-                </div>
- 
-            </button>
- 
-          </div>
-        {children}
-    </div>
-      {
-        showProfileModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white w-[700px] max-h-[90vh] overflow-y-auto rounded-2xl relative">
-              <button
-                onClick={() => setShowProfileModal(false)}
-                className="
-                  absolute
-                  top-4
-                  right-4
-                  bg-red-500
-                  hover:bg-red-600
-                  text-white
-                  px-3
-                  py-1
-                  rounded-lg
-                  z-50
-                "
-              >
-                X
-              </button>
-              <Profile
-                closeModal={() => setShowProfileModal(false)}
-              />
+          >
+
+            <UserCircleIcon className="h-10 w-10 text-slate-700" />
+
+            <div className="text-left">
+
+              <p className="text-xs text-gray-500">
+                Logged in as
+              </p>
+
+              <p className="text-sm font-semibold text-gray-800">
+                {username}
+              </p>
+
             </div>
-          </div>
-        )
-      }
+
+          </button>
+
+        </div>
+        {children}
+      </div>
+      {showProfileModal && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <Profile closeModal={() => setShowProfileModal(false)} />
+        </div>
+      )}
     </div>
   );
 };
- 
+
 Layout.propTypes = {
   children: PropTypes.node.isRequired
 };

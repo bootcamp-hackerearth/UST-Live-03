@@ -1,31 +1,31 @@
 'use client';
- 
+
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
- 
 import api from '@/app/services/api';
- 
+
 const Profile = ({ closeModal }) => {
   const [user, setUser] = useState(null);
- 
   const [loading, setLoading] = useState(true);
- 
   const [error, setError] = useState('');
 
- 
   useEffect(() => {
     fetchProfile();
   }, []);
- 
+
   const fetchProfile = async () => {
     try {
       const username = localStorage.getItem('username');
+
+      console.log("Username:", username);
+
       const response = await api.get(
         `/user/get?identifier=${username}`
       );
-      setUser(response.data);
-      
 
+      console.log("Profile Response:", response.data);
+
+      setUser(response.data);
     } catch (err) {
       console.error(err);
       setError('Failed to load profile');
@@ -33,148 +33,100 @@ const Profile = ({ closeModal }) => {
       setLoading(false);
     }
   };
- 
+
   if (loading) {
     return (
-      <div className="p-10 text-center text-xl font-semibold text-cyan-600">
-        Loading Profile...
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-10 text-center">
+        <p className="text-xl font-semibold text-cyan-600">
+          Loading Profile...
+        </p>
       </div>
     );
   }
- 
+
   if (error) {
     return (
-      <div className="p-10 text-center text-red-600 text-xl">
-        {error}
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-10 text-center">
+        <p className="text-xl text-red-600">{error}</p>
       </div>
     );
   }
- 
+
   return (
- 
-    <div className="fixed inset-0 flex items-center justify-center z-50">
- 
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border-t-4 border-cyan-500">
- 
-        <div className="bg-cyan-500 text-white p-6 flex justify-between items-center">
- 
-          <div>
- 
-            <h1 className="text-2xl font-semibold">
-              User Profile
-            </h1>
- 
-            <p className="text-slate-300 text-sm">
-              Account Information
-            </p>
- 
-          </div>
- 
-          <button
-            onClick={closeModal}
-            className="
-              bg-red-500
-              hover:bg-red-600
-              px-3
-              py-1
-              rounded-lg
-              text-white
-            "
-          >
-            ✕
-          </button>
- 
+    <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+
+      {/* Header */}
+      <div className="bg-cyan-500 text-white px-8 py-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold">User Profile</h2>
+          <p className="text-cyan-100 mt-1">
+            Account Information
+          </p>
         </div>
 
-        <div className="p-6 space-y-5">
- 
-          <div className="flex justify-between items-center border-b border-slate-200 pb-3">
- 
-            <span className="text-slate-500">
-              Full Name
-            </span>
- 
-            <span className="font-medium text-slate-800">
-              {user?.name}
-            </span>
- 
-          </div>
-  
-          <div className="flex justify-between border-b pb-2">
- 
-            <span className="text-slate-500">
-              Email
-            </span>
- 
-            <span className="font-medium text-slate-800">
-              {user?.username}
-            </span>
- 
-          </div>
- 
-          <div className="flex justify-between border-b pb-2">
- 
-            <span className="text-slate-500">
-              Phone
-            </span>
- 
-            <span className="font-medium text-slate-800">
-              {user?.phoneNo}
-            </span>
- 
-          </div>
- 
-          <div>
- 
-            <p className="text-slate-500 mb-2">
-              Roles
-            </p>
- 
-            <div className="flex gap-2 flex-wrap">
-              {user?.roles?.map((role) => (
+        <button
+          onClick={closeModal}
+          className="w-10 h-10 rounded-lg bg-red-500 hover:bg-red-600 text-white text-2xl transition"
+        >
+          ×
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="p-8 space-y-6">
+
+        <div className="border-b pb-4">
+          <p className="text-sm text-gray-500">Full Name</p>
+          <p className="text-lg font-semibold text-gray-800">
+            {user?.name || "-"}
+          </p>
+        </div>
+
+        <div className="border-b pb-4">
+          <p className="text-sm text-gray-500">Email</p>
+          <p className="text-lg font-semibold text-gray-800">
+            {user?.username || "-"}
+          </p>
+        </div>
+
+        <div className="border-b pb-4">
+          <p className="text-sm text-gray-500">Phone</p>
+          <p className="text-lg font-semibold text-gray-800">
+            {user?.phoneNo || "-"}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500 mb-3">Roles</p>
+
+          <div className="flex flex-wrap gap-2">
+            {user?.roles?.length ? (
+              user.roles.map((role) => (
                 <span
                   key={role}
-                  className="
-                  bg-cyan-100
-                  text-cyan-700
-                  px-3
-                  py-1
-                  rounded-md
-                  text-sm
-                  font-medium
-                  "
+                  className="bg-cyan-100 text-cyan-700 px-4 py-1 rounded-full font-medium"
                 >
                   {role}
                 </span>
-              ))}
-            </div>
- 
+              ))
+            ) : (
+              <span className="text-gray-500">No Roles</span>
+            )}
           </div>
- 
-          <button
-            onClick={closeModal}
-            className="
-              w-full
-              bg-cyan-500
-              text-white
-              py-2
-              rounded-md
-              hover:bg-cyan-600
-              transition
-              font-medium
-            "
-          >
-            Close
-          </button>
- 
         </div>
- 
+
+        <button
+          onClick={closeModal}
+          className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3 rounded-xl font-semibold transition"
+        >
+          Close
+        </button>
+
       </div>
- 
     </div>
   );
 };
- 
+
 Profile.propTypes = {
   closeModal: PropTypes.func.isRequired
 };

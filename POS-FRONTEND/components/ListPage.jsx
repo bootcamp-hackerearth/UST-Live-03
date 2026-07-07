@@ -179,7 +179,7 @@ const CommonList = ({
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto mt-6 px-4">
+      <div className="w-full mt-6">
 
         <div className="bg-white shadow-xl rounded-2xl p-6 border-t-4 border-cyan-500">
 
@@ -229,13 +229,13 @@ const CommonList = ({
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border relative">
+          <div className="overflow-x-auto rounded-xl border relative">
             {tableLoading && (
               <div className="absolute inset-0 bg-white flex items-center justify-center z-10">
                 Loading...
               </div>
             )}
-            <table className="w-full text-sm">
+            <table className="min-w-full text-sm">
               <thead>
                 <tr className="bg-cyan-500 text-white text-left">
                   {columns.map((c) => (
