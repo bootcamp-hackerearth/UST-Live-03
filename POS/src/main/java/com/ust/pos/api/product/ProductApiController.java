@@ -51,7 +51,7 @@ public class ProductApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin','Manager')")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public ProductDto addPost(@RequestBody ProductDto productDto) {
         return productService.save(productDto);
     }
