@@ -30,6 +30,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
 
+    public static final String SUPER = "SUPER";
     @InjectMocks
     @Spy
     private CategoryServiceImpl categoryService;
@@ -76,7 +77,7 @@ class CategoryServiceTest {
 
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("CAT1");
-        dto.setSuperCategory("SUPER");
+        dto.setSuperCategory(SUPER);
 
         CategoryDto response = new CategoryDto();
         response.setSuccess(true);
@@ -176,7 +177,7 @@ class CategoryServiceTest {
 
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("CAT1");
-        dto.setSuperCategory("SUPER");
+        dto.setSuperCategory(SUPER);
 
         CategoryDto response = new CategoryDto();
 
@@ -340,7 +341,7 @@ class CategoryServiceTest {
         Category category = new Category();
 
         category.setStatus(true);
-        category.setSuperCategory("SUPER");
+        category.setSuperCategory(SUPER);
 
         CategoryDto dto = new CategoryDto();
 

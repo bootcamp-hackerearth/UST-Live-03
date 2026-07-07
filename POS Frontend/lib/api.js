@@ -1,6 +1,6 @@
 "use client";
 
-import { STORAGE_KEYS, HTTP_STATUS, ERROR_MESSAGES, PATHS } from "@/config/constants";
+import { ERROR_MESSAGES, HTTP_STATUS, PATHS, STORAGE_KEYS } from "@/config/constants";
 
 export const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -12,6 +12,7 @@ const getStorageItem = (key) => {
   } catch {
     return null;
   }
+
   return null;
 };
 
@@ -21,6 +22,7 @@ const removeStorageItem = (key) => {
       globalThis.window.localStorage.removeItem(key);
     }
   } catch {
+    // no-op
   }
 };
 
@@ -30,6 +32,75 @@ export const authHeaders = () => ({
   Authorization: `Bearer ${getToken()}`,
   "Content-Type": "application/json",
 });
+
+const clearAuthStorage = () => {
+  removeStorageItem(STORAGE_KEYS.TOKEN);
+  removeStorageItem(STORAGE_KEYS.USERNAME);
+};
+
+const redirectToLogin = () => {
+  clearAuthStorage();
+
+  if (globalThis.window?.location) {
+    globalThis.window.location.replace(PATHS.LOGIN);
+  }
+};
+
+const getRedirectPath = (status) => {
+  switch (status) {
+    case HTTP_STATUS.FORBIDDEN:
+      return PATHS.FORBIDDEN;
+    case HTTP_STATUS.NOT_FOUND:
+      return PATHS.NOT_FOUND;
+    case HTTP_STATUS.SERVER_ERROR:
+      return PATHS.SERVER_ERROR;
+    default:
+      return null;
+  }
+};
+
+const redirectToErrorPage = (status) => {
+  if (!globalThis.window?.location) return;
+
+  const currentPath = globalThis.window.location.pathname;
+  const targetPath = getRedirectPath(status);
+
+  if (!targetPath || currentPath === targetPath) return;
+
+  globalThis.window.location.assign(targetPath);
+};
+
+const handleUnauthorized = () => {
+  redirectToLogin();
+  throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
+};
+
+const handleResponseStatus = (status) => {
+  if (status === HTTP_STATUS.UNAUTHORIZED) {
+    handleUnauthorized();
+  }
+
+  if (status === HTTP_STATUS.FORBIDDEN) {
+    if (!getToken()) {
+      handleUnauthorized();
+    }
+
+    redirectToErrorPage(status);
+    return;
+  }
+
+  if (status === HTTP_STATUS.NOT_FOUND || status === HTTP_STATUS.SERVER_ERROR) {
+    redirectToErrorPage(status);
+  }
+};
+
+const parseErrorBody = async (res) => {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+};
 
 export const fetchWithAuth = async (url, options = {}) => {
   const fullUrl = `${BASE}${url}`;
@@ -41,31 +112,14 @@ export const fetchWithAuth = async (url, options = {}) => {
       : authHeaders(),
   });
 
-  if (res.status === HTTP_STATUS.UNAUTHORIZED) {
-    removeStorageItem(STORAGE_KEYS.TOKEN);
-    removeStorageItem(STORAGE_KEYS.USERNAME);
-
-    if (globalThis.window?.location) {
-      globalThis.window.location.href = PATHS.LOGIN;
-    }
-    throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
-  }
+  handleResponseStatus(res.status);
 
   if (!res.ok) {
-    let body;
-    try {
-      body = await res.json();
-    } catch {
-      body = null;
-    }
-
+    const body = await parseErrorBody(res);
     const msg = body?.message || body || ERROR_MESSAGES.SERVER_ERROR;
     const errorMessage = typeof msg === "string" ? msg : ERROR_MESSAGES.SERVER_ERROR;
 
-    throw Object.assign(
-      new Error(errorMessage),
-      { status: res.status, body },
-    );
+    throw Object.assign(new Error(errorMessage), { status: res.status, body });
   }
 
   const ct = res.headers.get("content-type") || "";

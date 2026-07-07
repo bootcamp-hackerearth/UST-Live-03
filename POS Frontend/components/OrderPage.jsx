@@ -269,6 +269,82 @@ export default function OrderPage({
   totalPages,
   onPageChange,
 }) {
+  let content;
+
+  if (loading) {
+    content = (
+      <div className="ord-empty">
+        <span className="spin-dark" /> Loading orders…
+      </div>
+    );
+  } else if (orders.length === 0) {
+    content = (
+      <div className="ord-empty">
+        <span className="ord-empty-icon">📋</span>
+        {search ? `No orders match "${search}"` : "No orders yet."}
+      </div>
+    );
+  } else {
+    content = (
+      <div className="tbl-scroll">
+        <table className="ord-tbl">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Payment</th>
+              <th style={{ textAlign: "right" }}>Total</th>
+              <th style={{ textAlign: "right" }}>Discount</th>
+              <th style={{ textAlign: "right" }}>Grand Total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => (
+              <tr key={order.identifier}>
+                <td><span className="ord-id">{order.orderId}</span></td>
+                <td>
+                  <div style={{ fontWeight: 700, color: "#111" }}>
+                    {order.customer?.customerName || order.customerIdentifier || "—"}
+                  </div>
+                  {order.customer?.customerName && (
+                    <div style={{ fontSize: 11, color: "#bbb", fontFamily: "monospace" }}>
+                      {order.customerIdentifier}
+                    </div>
+                  )}
+                </td>
+                <td style={{ fontSize: 12, color: "#555", whiteSpace: "nowrap" }}>
+                  {fmtDate(order.orderDate)}
+                </td>
+                <td><PayChip mode={order.paymentMode} /></td>
+                <td style={{ textAlign: "right", fontWeight: 600 }}>{fmt(order.totalPrice)}</td>
+                <td style={{ textAlign: "right", color: "#16a34a", fontWeight: 600 }}>
+                  {(order.discount ?? 0) > 0
+                    ? `− ${fmt(order.discount)}`
+                    : <span style={{ color: "#eee" }}>—</span>}
+                </td>
+                <td style={{ textAlign: "right", fontWeight: 800, color: "#111" }}>
+                  {fmt(order.grandTotal)}
+                </td>
+                <td>
+                  <div className="act-row">
+                    <button className="btn-view" onClick={() => setViewOrder(order)} type="button">
+                      View
+                    </button>
+                    <button className="btn-del" onClick={() => setConfirmDelete(order)} type="button">
+                      ✕
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   return (
     <>
       <style>{CSS}</style>
@@ -318,81 +394,7 @@ export default function OrderPage({
             </span>
           </div>
 
-          {loading ? (
-            <div className="ord-empty">
-              <span className="spin-dark" /> Loading orders…
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="ord-empty">
-              <span className="ord-empty-icon">📋</span>
-              {search ? `No orders match "${search}"` : "No orders yet."}
-            </div>
-          ) : (
-            <div className="tbl-scroll">
-              <table className="ord-tbl">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Date</th>
-                    <th>Payment</th>
-                    <th style={{ textAlign: "right" }}>Total</th>
-                    <th style={{ textAlign: "right" }}>Discount</th>
-                    <th style={{ textAlign: "right" }}>Grand Total</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.identifier}>
-                      <td><span className="ord-id">{order.orderId}</span></td>
-                      <td>
-                        <div style={{ fontWeight: 700, color: "#111" }}>
-                          {order.customer?.customerName || order.customerIdentifier || "—"}
-                        </div>
-                        {order.customer?.customerName && (
-                          <div style={{ fontSize: 11, color: "#bbb", fontFamily: "monospace" }}>
-                            {order.customerIdentifier}
-                          </div>
-                        )}
-                      </td>
-                      <td style={{ fontSize: 12, color: "#555", whiteSpace: "nowrap" }}>
-                        {fmtDate(order.orderDate)}
-                      </td>
-                      <td><PayChip mode={order.paymentMode} /></td>
-                      <td style={{ textAlign: "right", fontWeight: 600 }}>{fmt(order.totalPrice)}</td>
-                      <td style={{ textAlign: "right", color: "#16a34a", fontWeight: 600 }}>
-                        {(order.discount ?? 0) > 0
-                          ? `− ${fmt(order.discount)}`
-                          : <span style={{ color: "#eee" }}>—</span>}
-                      </td>
-                      <td style={{ textAlign: "right", fontWeight: 800, color: "#111" }}>
-                        {fmt(order.grandTotal)}
-                      </td>
-                      <td>
-                        <div className="act-row">
-                          <button className="btn-view" onClick={() => setViewOrder(order)} type="button">
-                            View
-                          </button>
-                          <button className="btn-del" onClick={() => setConfirmDelete(order)} type="button">
-                            ✕
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalRecords}
-                pageSize={pageSize}
-                onPageChange={onPageChange}
-              />
-            </div>
-          )}
+          {content}
         </div>
       </div>
 

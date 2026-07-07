@@ -17,11 +17,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private static final Logger jwtLogger = LoggerFactory.getLogger(JwtFilter.class);
+    private static final Logger JWT_LOGGER = LoggerFactory.getLogger(JwtFilter.class);
+    private static final Set<String> PUBLIC_PATHS = Set.of(
+            "/api/authenticate",
+            "/api/validateToken",
+            "/register",
+            "/login",
+            "/api/role/list");
 
     private final JWTUtility jwtUtility;
     private final UserDetailsService userService;
@@ -32,11 +39,13 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
         String path = request.getServletPath();
 
-        if (path.equals("/api/authenticate") || path.equals("/api/validateToken") || path.startsWith("/api/security") || path.equals("/register") || path.equals("/login") || path.equals("/api/role/list")) {
+        if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -52,7 +61,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (token != null && token.contains(".")) {
                     userName = jwtUtility.getUsernameFromToken(token);
                 } else {
-                    jwtLogger.warn("Invalid JWT format");
+                    JWT_LOGGER.warn("Invalid JWT format");
                 }
             }
 
@@ -60,20 +69,23 @@ public class JwtFilter extends OncePerRequestFilter {
                 UserDetails userDetails = userService.loadUserByUsername(userName);
 
                 if (BooleanUtils.isTrue(jwtUtility.validateToken(token, userDetails))) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
 
             filterChain.doFilter(request, response);
-
         } catch (ExpiredJwtException e) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
-
         } catch (Exception e) {
-            jwtLogger.error("JWT Error: {}", e.getMessage());
+            JWT_LOGGER.error("JWT Error: {}", e.getMessage());
             filterChain.doFilter(request, response);
         }
+    }
+
+    private boolean isPublicPath(String path) {
+        return PUBLIC_PATHS.contains(path) || path.startsWith("/api/security");
     }
 }

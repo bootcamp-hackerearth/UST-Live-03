@@ -868,7 +868,7 @@ export default function CustomersPage() {
                     ? htmlEscape(deleteTarget.customerName)
                     : deleteTarget?.identifier}
                 </strong>
-                ? This action cannot be undone.
+                {" "}? This action cannot be undone.
               </p>
               <div className="del-actions">
                 <button

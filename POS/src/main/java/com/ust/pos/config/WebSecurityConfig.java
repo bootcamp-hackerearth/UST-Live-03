@@ -40,7 +40,10 @@ public class WebSecurityConfig {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtFilter jwtFilter;
 
-    public WebSecurityConfig(UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder, JwtFilter jwtFilter) {
+    public WebSecurityConfig(
+            UserDetailsService userDetailsService,
+            BCryptPasswordEncoder bCryptPasswordEncoder,
+            JwtFilter jwtFilter) {
         this.userDetailsService = userDetailsService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.jwtFilter = jwtFilter;
@@ -49,16 +52,26 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         try {
-            http
-                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf.disable())
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
                             .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
-                            .requestMatchers("/login", "/register", "/api/authenticate", "/api/validateToken", "/api/security/**", "/swagger-ui/**", "/v3/**", "/api/role/list").permitAll()
+                            .requestMatchers(
+                                    "/login",
+                                    "/register",
+                                    "/api/authenticate",
+                                    "/api/validateToken",
+                                    "/api/security/**",
+                                    "/swagger-ui/**",
+                                    "/v3/**",
+                                    "/api/role/list")
+                            .permitAll()
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                            .anyRequest().authenticated())
+                            .anyRequest()
+                            .authenticated())
                     .logout(LogoutConfigurer::permitAll);
+
             http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
             return http.build();
         } catch (RuntimeException e) {
@@ -83,6 +96,7 @@ public class WebSecurityConfig {
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -93,12 +107,14 @@ public class WebSecurityConfig {
         return new OpenAPI()
                 .info(new Info().title("JavaInUse Authentication Service"))
                 .addSecurityItem(new SecurityRequirement().addList(JAVA_IN_USE_SECURITY_SCHEME))
-                .components(new Components().addSecuritySchemes(JAVA_IN_USE_SECURITY_SCHEME,
-                        new SecurityScheme()
-                                .name(JAVA_IN_USE_SECURITY_SCHEME)
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")));
+                .components(
+                        new Components().addSecuritySchemes(
+                                JAVA_IN_USE_SECURITY_SCHEME,
+                                new SecurityScheme()
+                                        .name(JAVA_IN_USE_SECURITY_SCHEME)
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")));
     }
 
     @Bean

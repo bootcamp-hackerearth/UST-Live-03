@@ -1,38 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
-import Sidebar from "./Sidebar";
 
-const PUBLIC_PATHS = new Set(["/login", "/register"]);
+import Sidebar from "./Sidebar";
+import { PATHS, STORAGE_KEYS } from "@/config/constants";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [username, setUsername] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const isPublic = PUBLIC_PATHS.has(pathname);
 
   useEffect(() => {
-    if (isPublic) return;
-    const token = globalThis.window?.localStorage.getItem("token") ?? null;
-    if (token === null || token === undefined || token === "") {
-      router.replace("/login");
-      return;
-    }
     setUsername(
-      (globalThis.window.localStorage.getItem("username") || "").split("@")[0],
+      (globalThis.window.localStorage.getItem(STORAGE_KEYS.USERNAME) || "").split("@")[0],
     );
-  }, [pathname, isPublic, router]);
-
-  if (isPublic) return <>{children}</>;
+  }, []);
 
   const handleSignOut = () => {
-    globalThis.window.localStorage.removeItem("token");
-    globalThis.window.localStorage.removeItem("username");
-    router.replace("/login");
+    globalThis.window.localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    globalThis.window.localStorage.removeItem(STORAGE_KEYS.USERNAME);
+    router.replace(PATHS.LOGIN);
   };
 
   return (
