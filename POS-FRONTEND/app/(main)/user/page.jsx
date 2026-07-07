@@ -24,7 +24,7 @@ const getColumns = (page, sizePerPage) => [
   },
 ];
 
-const getActions = (setEditUser, handleDelete) => [
+const getActions = (setViewItem,setEditUser, handleDelete) => [
   {
     label: "View 👁️",
     onClick: (row) => setViewItem(row),
@@ -170,7 +170,7 @@ useEffect(() => {
   );
 
   const actions = useMemo(
-    () => getActions(setEditUser, handleDelete),
+    () => getActions(setViewItem, setEditUser, handleDelete),
     [handleDelete]
   );
 

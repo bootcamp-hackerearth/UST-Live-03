@@ -29,6 +29,7 @@ const ProductList = () => {
   const [units, setUnits] = useState([]);
 
   const [viewItem, setViewItem] = useState(null);
+  
   // ================= ADD =================
 
   const [newProduct, setNewProduct] = useState({

@@ -22,6 +22,9 @@ const CustomerPage = () => {
   const [newItem, setNewItem] = useState({});
   const [editItem, setEditItem] = useState(null);
 
+  const [viewItem, setViewItem] = useState(null);
+
+
   const sizePerPage = 5;
 
 
@@ -224,30 +227,34 @@ const CustomerPage = () => {
     { key: "address", label: "Address" },
   ];
 
-  const actions = [
-    {
-      type: "edit",
-      label: "Edit",
-      onClick: (row) => {
-        setEditItem({
-          ...row,
-
-          billing: {
-            ...row.billing,
-          },
-
-          shipping: {
-            ...row.shipping,
-          },
-        });
-      }
+const actions = [
+  {
+    label: "View 👁️",
+    onClick: (row) => {
+      setViewItem(row);
     },
-    {
-      type: "delete",
-      label: "Delete",
-      onClick: handleDelete,
+  },
+  {
+    label: "Edit ✏️",
+    onClick: (row) => {
+      setEditItem({
+        ...row,
+        billing: {
+          ...row.billing,
+        },
+        shipping: {
+          ...row.shipping,
+        },
+      });
     },
-  ];
+  },
+  {
+    label: "Delete 🗑",
+    onClick: (row) => {
+      handleDelete(row);
+    },
+  },
+];
 
   return (
     <CommonList
@@ -271,6 +278,8 @@ const CustomerPage = () => {
       handleUpdate={handleUpdate}
       editFields={fields}
       actions={actions}
+      viewItem={viewItem}
+      setViewItem={setViewItem}
       emptyMessage="No customers found"
     />
   );
