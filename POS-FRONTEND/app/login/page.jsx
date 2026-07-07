@@ -27,7 +27,7 @@ export default function Login() {
 
     try {
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/authenticate`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/authenticate`,
         {
           username: data.username,
           password: data.password,

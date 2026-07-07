@@ -55,7 +55,7 @@ function StockForm({ mode, data, onClose, onSubmit }) {
           label: "Product",
           placeholder: "Product",
           type: "select",
-          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/list`,
+          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/product/list`,
           required: true,
         },
         {
@@ -63,7 +63,7 @@ function StockForm({ mode, data, onClose, onSubmit }) {
           label: "Warehouse",
           placeholder: "Warehouse",
           type: "select",
-          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/warehouse/list`,
+          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/warehouse/list`,
           required: true,
         },
         {

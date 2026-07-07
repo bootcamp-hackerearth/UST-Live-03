@@ -14,7 +14,7 @@ export default function Home() {
 
     if (!token) return;
 
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/list`, {
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/user/list`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

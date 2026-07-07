@@ -50,7 +50,7 @@ function UserForm({ mode, data, onClose, onSubmit }) {
           name: "roles",
           placeholder: "Roles",
           type: "multiselect",
-          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/role/list`,
+          apiUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/role/list`,
           required: true,
         },
       ]}
