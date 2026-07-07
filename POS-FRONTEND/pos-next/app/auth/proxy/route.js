@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-const BACKEND_BASE_URL = "http://localhost:8080";
+const BACKEND_BASE_URL = "";
 
 const parseBackendResponse = async (backendResponse) => {
   const responseText = await backendResponse.text();
