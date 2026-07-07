@@ -9,6 +9,7 @@ import com.ust.pos.price.service.PriceService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class ApiPriceController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','ACCOUNTANT')")
     public WsDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable= getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -37,12 +39,14 @@ public class ApiPriceController extends BaseController {
 
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','ACCOUNTANT')")
     public PriceDto addprice(@RequestBody PriceDto priceDto) {
         return priceService.save(priceDto);
 
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(@RequestParam String identifier) {
         try {
             priceService.delete(identifier);
@@ -54,16 +58,19 @@ public class ApiPriceController extends BaseController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','ACCOUNTANT')")
     public PriceDto update(@RequestParam String identifier) {
         return priceService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','ACCOUNTANT')")
     public PriceDto updatePrice(@RequestBody PriceDto priceDto) {
         return priceService.update(priceDto);
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER','ACCOUNTANT')")
     public PriceDto toggle(@RequestBody PriceDto priceDto) {
         return priceService.changeToggleStatus(priceDto.getIdentifier(), priceDto.isStatus());
     }

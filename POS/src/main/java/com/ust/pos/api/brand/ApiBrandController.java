@@ -41,12 +41,13 @@ public class ApiBrandController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAnyAuthority('Admin','manager')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
         public BrandDto addproduct(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public boolean delete(@RequestParam String identifier) {
         try {
             brandService.delete(identifier);
@@ -57,19 +58,21 @@ public class ApiBrandController extends BaseController {
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAnyAuthority('Admin','manager')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public BrandDto update(@RequestParam String identifier) {
 
         return brandService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public BrandDto updateBrand(@RequestBody BrandDto brandDto) {
 
         return brandService.update(brandDto);
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public BrandDto toggle(@RequestBody BrandDto brandDto) {
         return brandService.changeToggleStatus(brandDto.getIdentifier(), brandDto.isStatus());
     }

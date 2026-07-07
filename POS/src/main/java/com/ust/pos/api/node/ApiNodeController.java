@@ -9,6 +9,7 @@ import com.ust.pos.node.service.NodeService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class ApiNodeController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public WsDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable= getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -38,11 +40,13 @@ public class ApiNodeController extends BaseController {
 
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public NodeDto addPost(@RequestBody NodeDto userDto) {
         return nodeService.save(userDto);
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public NodeDto update(@RequestParam String identifier) {
         return nodeService.findByIdentifier(identifier);
     }
@@ -53,11 +57,13 @@ public class ApiNodeController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public NodeDto updatePost(@RequestBody NodeDto userDto) {
         return nodeService.update(userDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public boolean delete(@RequestParam String identifier) {
         try {
             nodeService.delete(identifier);
@@ -68,6 +74,7 @@ public class ApiNodeController extends BaseController {
     }
 
     @PostMapping("/toggle")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public NodeDto toggle(@RequestBody NodeDto nodeDto) {
         return nodeService.changeToggleStatus(nodeDto.getIdentifier(), nodeDto.isStatus());
     }
@@ -76,6 +83,5 @@ public class ApiNodeController extends BaseController {
     public List<NodeDto> findActive() {
         return nodeService.findActiveStatus();
     }
-
 
 }
