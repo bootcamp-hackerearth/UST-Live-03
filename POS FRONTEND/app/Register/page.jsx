@@ -18,8 +18,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8080/api/role/findAllActive")
+    axiosInstance.get("/role/findAllActive")
       .then((res) => setRoles(Array.isArray(res.data) ? res.data : []))
       .catch(() => {
         setRoles([]);
