@@ -28,7 +28,6 @@ public class HomeController {
         }
 
         model.addAttribute("nodes", nodeService.getNodesForRoles(pageable));
-
         return "home";
     }
 }
