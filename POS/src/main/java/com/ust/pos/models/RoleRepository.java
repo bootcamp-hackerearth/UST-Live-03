@@ -15,5 +15,5 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
     Role findByIdentifier(String identifier);
 
-    Page<Role> findAll(Specification example, Pageable pageable);
+    Page<Role> findAll(Specification <Role> example, Pageable pageable);
 }

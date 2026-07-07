@@ -20,6 +20,6 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
     Optional<Stock> findByIdAndDeletedFalse(Long id);
 
-    Page<Stock> findAll(Specification example, Pageable pageable);
+    Page<Stock> findAll(Specification <Stock> example, Pageable pageable);
 
 }

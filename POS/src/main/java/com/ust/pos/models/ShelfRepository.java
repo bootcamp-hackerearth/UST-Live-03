@@ -19,5 +19,5 @@ public interface ShelfRepository extends JpaRepository<Shelf, Long> {
 
     Page<Shelf> findAllByDeletedFalse (Pageable pageable);
 
-    Page<Shelf> findAll(Specification example, Pageable pageable);
+    Page<Shelf> findAll(Specification <Shelf> example, Pageable pageable);
 }
