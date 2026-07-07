@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
             filterChain.doFilter(httpServletRequest, httpServletResponse);
-        } catch (ExpiredJwtException _) {
+        } catch (ExpiredJwtException exception) {
             httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "The token is not valid.");
         }
     }

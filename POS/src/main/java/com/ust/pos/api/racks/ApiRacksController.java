@@ -53,7 +53,7 @@ public class ApiRacksController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             racksService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return true;
         }
         return false;

@@ -53,7 +53,7 @@ public class ApiUnitController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
         return true;

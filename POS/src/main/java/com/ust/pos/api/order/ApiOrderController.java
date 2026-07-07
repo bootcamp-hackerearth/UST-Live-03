@@ -47,7 +47,7 @@ public class ApiOrderController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             return orderService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
     }

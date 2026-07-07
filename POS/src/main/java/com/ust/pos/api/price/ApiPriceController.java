@@ -51,7 +51,7 @@ public class ApiPriceController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             priceService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
         return true;

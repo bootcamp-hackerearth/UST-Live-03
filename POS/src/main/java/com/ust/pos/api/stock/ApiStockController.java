@@ -52,7 +52,7 @@ public class ApiStockController extends BaseController {
         try {
             stockService.deleteByIdentifier(identifier);
             return true;
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
     }

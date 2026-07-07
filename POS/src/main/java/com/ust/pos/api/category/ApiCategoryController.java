@@ -54,7 +54,7 @@ public class ApiCategoryController extends BaseController {
         try {
             categoryService.delete(identifier);
             return true;
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
     }

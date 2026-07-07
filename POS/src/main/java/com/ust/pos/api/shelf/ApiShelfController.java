@@ -53,7 +53,7 @@ public class ApiShelfController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
         return true;

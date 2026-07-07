@@ -25,7 +25,7 @@ public class BaseService {
                 return authentication.getName();
             }
             return "SYSTEM";
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return "SYSTEM";
         }
     }

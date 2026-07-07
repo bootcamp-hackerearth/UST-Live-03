@@ -53,7 +53,7 @@ public class ApiCartController extends BaseController {
         try {
             cartService.delete(identifier);
             return true;
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
     }

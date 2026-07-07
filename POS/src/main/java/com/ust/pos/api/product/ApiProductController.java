@@ -53,7 +53,7 @@ public class ApiProductController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             productService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception e) {
             return true;
         }
         return false;

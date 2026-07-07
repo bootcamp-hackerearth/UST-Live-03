@@ -51,7 +51,7 @@ public class ApiModelController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
         return true;

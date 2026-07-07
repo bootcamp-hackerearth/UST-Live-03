@@ -54,7 +54,7 @@ public class ApiWarehouseController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
         return true;

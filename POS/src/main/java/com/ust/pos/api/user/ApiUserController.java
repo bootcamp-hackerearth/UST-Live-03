@@ -68,7 +68,7 @@ public class ApiUserController extends BaseController {
                     }
                 }
             }
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
         return true;

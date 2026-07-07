@@ -51,7 +51,7 @@ public class ApiRoleController extends BaseController {
     public boolean delete(@RequestParam String identifier) {
         try {
             roleService.delete(identifier);
-        } catch (Exception _) {
+        } catch (Exception exception) {
             return false;
         }
         return true;
