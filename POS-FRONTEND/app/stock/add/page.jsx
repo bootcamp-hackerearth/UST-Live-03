@@ -1,15 +1,53 @@
 "use client";
 
-import AddPage from "@/components/common/AddPage";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import AddPage from "@/components/common/AddPage";
+import api from "@/services/api";
 
 const StockAddPage = () => {
   const router = useRouter();
+  const [options, setOptions] = useState({
+    productIdentifier: [],
+    warehouseIdentifier: [],
+  });
+  const [loadingOptions, setLoadingOptions] = useState(true);
+
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const [productsRes, warehousesRes] = await Promise.all([
+          api.get("/product/active"),
+          api.get("/warehouse/active"),
+        ]);
+
+        setOptions({
+          productIdentifier: productsRes.data.map((p) => ({
+            identifier: p.identifier,
+            label: p.name,
+          })),
+          warehouseIdentifier: warehousesRes.data.map((w) => ({
+            identifier: w.identifier,
+            label: w.name,
+          })),
+        });
+      } catch (err) {
+        console.error("Failed to load dropdown options", err);
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    loadOptions();
+  }, []);
+
+  if (loadingOptions) return null;
 
   return (
     <AddPage
       title="Add Stock"
       modelName="stock"
+      options={options}
       initialForm={{
         productIdentifier: "",
         warehouseIdentifier: "",
@@ -20,14 +58,14 @@ const StockAddPage = () => {
       fields={[
         {
           name: "productIdentifier",
-          type: "text",
-          label: "Product Identifier",
+          type: "select",
+          label: "Product",
           required: true,
         },
         {
           name: "warehouseIdentifier",
-          type: "text",
-          label: "Warehouse Identifier",
+          type: "select",
+          label: "Warehouse",
           required: true,
         },
         {

@@ -7,12 +7,12 @@ const StockListPage = () => {
     <CommonListPage
       modelName="stock"
       keys={[
+        "identifier",
         "productIdentifier",
         "warehouseIdentifier",
         "availableQuantity",
         "reorderLevel",
         "stockState",
-        "status",
       ]}
       enableToggle={true}
     />
