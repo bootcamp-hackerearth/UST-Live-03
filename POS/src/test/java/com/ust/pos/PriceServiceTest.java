@@ -18,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import java.lang.reflect.Type;
 
 import java.util.List;
 import java.util.Optional;
@@ -100,6 +102,63 @@ class PriceServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0,5);
+
+        Specification<Price> specification =
+                mock(Specification.class);
+
+        Price price = new Price();
+        price.setIdentifier("SKU1MRP");
+
+        PriceDto dto = new PriceDto();
+        dto.setIdentifier("SKU1MRP");
+
+        Page<Price> page =
+                new PageImpl<>(
+                        List.of(price),
+                        pageable,
+                        1
+                );
+
+        when(
+                priceRepository.findAll(
+                        eq(specification),
+                        eq(pageable)
+                )
+        ).thenReturn(page);
+
+        when(
+                modelMapper.map(
+                        eq(List.of(price)),
+                        any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<PriceDto> response =
+                priceService.findAll(
+                        specification,
+                        pageable
+                );
+
+        assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+    }
+
+    @Test
     void save_productNotFound() {
 
         when(productRepository.findByIdentifier("SKU1"))
@@ -109,6 +168,30 @@ class PriceServiceTest {
 
         assertFalse(response.isSuccess());
         assertEquals("Product not found", response.getMessage());
+    }
+
+    @Test
+    void save_productDeleted() {
+
+        Product product = new Product();
+        product.setIdentifier("SKU1");
+        product.setDeleted(true);
+
+        when(productRepository.findByIdentifier("SKU1"))
+                .thenReturn(product);
+
+        PriceDto response =
+                priceService.save(priceDto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        verify(priceRepository, never())
+                .save(any());
     }
 
     @Test
@@ -131,6 +214,36 @@ class PriceServiceTest {
                 "MRP already set for SKU1",
                 response.getMessage()
         );
+    }
+
+    @Test
+    void save_existingPriceDeleted() {
+
+        Product product = new Product();
+        product.setIdentifier("SKU1");
+
+        Price oldPrice = new Price();
+        oldPrice.setIdentifier("SKU1MRP");
+        oldPrice.setDeleted(true);
+
+        when(productRepository.findByIdentifier("SKU1"))
+                .thenReturn(product);
+
+        when(priceRepository.findByIdentifier("SKU1MRP"))
+                .thenReturn(oldPrice);
+
+        PriceDto response =
+                priceService.save(priceDto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        verify(priceRepository, never())
+                .save(any());
     }
 
     @Test
@@ -191,6 +304,38 @@ class PriceServiceTest {
     }
 
     @Test
+    void findByIdentifier_success() {
+
+        when(priceRepository.findByIdentifier("SKU1MRP"))
+                .thenReturn(price);
+
+        when(modelMapper.map(price, PriceDto.class))
+                .thenReturn(priceDto);
+
+        PriceDto response =
+                priceService.findByIdentifier("SKU1MRP");
+
+        assertNotNull(response);
+
+        assertEquals(
+                "SKU1MRP",
+                response.getIdentifier()
+        );
+    }
+
+    @Test
+    void findByIdentifier_null() {
+
+        when(priceRepository.findByIdentifier("SKU1MRP"))
+                .thenReturn(null);
+
+        PriceDto response =
+                priceService.findByIdentifier("SKU1MRP");
+
+        assertNull(response);
+    }
+
+    @Test
     void update_priceNotFound() {
         when(priceRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -198,6 +343,64 @@ class PriceServiceTest {
 
         assertFalse(response.isSuccess());
         assertTrue(response.getMessage().contains("not found"));
+    }
+
+    @Test
+    void update_priceDeleted() {
+
+        Price deletedPrice = new Price();
+        deletedPrice.setIdentifier("SKU1MRP");
+        deletedPrice.setDeleted(true);
+
+        when(priceRepository.findById(1L))
+                .thenReturn(
+                        Optional.of(deletedPrice)
+                );
+
+        PriceDto response =
+                priceService.update(priceDto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        verify(priceRepository, never())
+                .save(any());
+    }
+
+    @Test
+    void update_productDeleted() {
+
+        Price existingPrice = new Price();
+        existingPrice.setProduct("SKU1");
+
+        Product product = new Product();
+        product.setIdentifier("SKU1");
+        product.setDeleted(true);
+
+        when(priceRepository.findById(1L))
+                .thenReturn(
+                        Optional.of(existingPrice)
+                );
+
+        when(productRepository.findByIdentifier("SKU1"))
+                .thenReturn(product);
+
+        PriceDto response =
+                priceService.update(priceDto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        verify(priceRepository, never())
+                .save(any());
     }
 
     @Test

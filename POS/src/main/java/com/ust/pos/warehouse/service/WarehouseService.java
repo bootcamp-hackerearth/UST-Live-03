@@ -2,12 +2,16 @@ package com.ust.pos.warehouse.service;
 
 import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.model.Warehouse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
 public interface WarehouseService {
     PaginationResponseDto<WarehouseDto> findAll(Pageable pageable);
+
+    PaginationResponseDto<WarehouseDto> findAll(Specification<Warehouse> example, Pageable pageable);
 
     List<WarehouseDto> findByStatusTrue();
 

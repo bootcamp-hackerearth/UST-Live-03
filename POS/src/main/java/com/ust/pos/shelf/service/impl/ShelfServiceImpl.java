@@ -1,8 +1,8 @@
 package com.ust.pos.shelf.service.impl;
 
 import com.ust.pos.base.service.BaseService;
-import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.ShelfDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.ShelfService;
@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -42,6 +43,23 @@ public class ShelfServiceImpl extends BaseService implements ShelfService {
         paginationResponseDto.setSizePerPage(shelfPage.getSize());
         paginationResponseDto.setTotalPages(shelfPage.getTotalPages());
         paginationResponseDto.setTotalRecords(shelfPage.getTotalElements());
+
+        return paginationResponseDto;
+    }
+
+    @Override
+    public PaginationResponseDto<ShelfDto> findAll(Specification<Shelf> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
+        Page<Shelf> page = shelfRepository.findAll(example, pageable);
+
+        PaginationResponseDto<ShelfDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
 
         return paginationResponseDto;
     }

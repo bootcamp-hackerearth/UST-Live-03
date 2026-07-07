@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -75,6 +76,68 @@ class ModelServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Model model = new Model();
+        model.setIdentifier("M1");
+
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("M1");
+
+        Page<Model> page =
+                new PageImpl<>(
+                        List.of(model),
+                        pageable,
+                        1
+                );
+
+        Specification<Model> specification =
+                Mockito.mock(Specification.class);
+
+        Mockito.when(
+                modelRepository.findAll(
+                        Mockito.eq(specification),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(List.of(model)),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<ModelDto> response =
+                modelService.findAll(
+                        specification,
+                        pageable
+                );
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+    }
+
+    @Test
     void findByStatusTrueTest() {
         Model model = new Model();
         ModelDto dto = new ModelDto();
@@ -119,6 +182,38 @@ class ModelServiceTest {
         Mockito.verify(modelRepository).save(model);
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertEquals("Successfully added the model", result.getMessage());
+    }
+
+    @Test
+    void save_softDeletedModel() {
+
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("M1");
+
+        Model model = new Model();
+        model.setIdentifier("M1");
+        model.setDeleted(true);
+
+        Mockito.when(
+                modelRepository.findByIdentifier("M1")
+        ).thenReturn(model);
+
+        ModelDto response =
+                modelService.save(dto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        Mockito.verify(
+                modelRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 
     @Test
@@ -200,6 +295,63 @@ class ModelServiceTest {
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertEquals("Model not found", result.getMessage());
+    }
+
+    @Test
+    void updateStatus_verifyStatusChanged() {
+
+        Model model = new Model();
+        model.setStatus(false);
+
+        Mockito.when(
+                modelRepository.findByIdentifier("M1")
+        ).thenReturn(model);
+
+        ModelDto response =
+                modelService.updateStatus(
+                        "M1",
+                        true
+                );
+
+        Assertions.assertTrue(
+                response.isSuccess()
+        );
+
+        Assertions.assertTrue(
+                model.isStatus()
+        );
+    }
+
+    @Test
+    void update_softDeletedModel() {
+
+        ModelDto dto = new ModelDto();
+        dto.setIdentifier("M1");
+
+        Model model = new Model();
+        model.setIdentifier("M1");
+        model.setDeleted(true);
+
+        Mockito.when(
+                modelRepository.findByIdentifier("M1")
+        ).thenReturn(model);
+
+        ModelDto response =
+                modelService.update(dto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        Mockito.verify(
+                modelRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 
     @Test

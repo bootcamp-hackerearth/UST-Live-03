@@ -1,8 +1,8 @@
 package com.ust.pos.stock.service.impl;
 
 import com.ust.pos.base.service.BaseService;
-import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -42,6 +43,23 @@ public class StockServiceImpl extends BaseService implements StockService {
         paginationResponseDto.setSizePerPage(stockPage.getSize());
         paginationResponseDto.setTotalPages(stockPage.getTotalPages());
         paginationResponseDto.setTotalRecords(stockPage.getTotalElements());
+
+        return paginationResponseDto;
+    }
+
+    @Override
+    public PaginationResponseDto<StockDto> findAll(Specification<Stock> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Stock> page = stockRepository.findAll(example, pageable);
+
+        PaginationResponseDto<StockDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
 
         return paginationResponseDto;
     }

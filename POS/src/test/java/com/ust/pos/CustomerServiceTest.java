@@ -18,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import java.util.ArrayList;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -109,6 +111,28 @@ class CustomerServiceTest {
     }
 
     @Test
+    void save_SoftDeletedCustomer() {
+
+        customer.setDeleted(true);
+
+        when(customerRepository.findByIdentifier("12345"))
+                .thenReturn(customer);
+
+        CustomerDto result =
+                customerService.save(customerDto);
+
+        assertFalse(result.isSuccess());
+
+        assertTrue(
+                result.getMessage()
+                        .contains("deleted")
+        );
+
+        verify(customerRepository, never())
+                .save(any());
+    }
+
+    @Test
     void update_NotFound() {
         when(customerRepository.findByIdentifier("12345")).thenReturn(null);
 
@@ -154,6 +178,28 @@ class CustomerServiceTest {
         assertTrue(result.isSuccess());
         assertEquals("Status updated successfully", result.getMessage());
         assertFalse(customer.isStatus());
+    }
+
+    @Test
+    void update_SoftDeletedCustomer() {
+
+        customer.setDeleted(true);
+
+        when(customerRepository.findByIdentifier("12345"))
+                .thenReturn(customer);
+
+        CustomerDto result =
+                customerService.update(customerDto);
+
+        assertFalse(result.isSuccess());
+
+        assertTrue(
+                result.getMessage()
+                        .contains("deleted")
+        );
+
+        verify(customerRepository, never())
+                .save(any());
     }
 
     @Test
@@ -215,6 +261,64 @@ class CustomerServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable =
+                PageRequest.of(0,5);
+
+        Specification<Customer> specification =
+                mock(Specification.class);
+
+        Customer customer = new Customer();
+        customer.setIdentifier("CUST1");
+
+        CustomerDto dto = new CustomerDto();
+        dto.setIdentifier("CUST1");
+
+        Page<Customer> page =
+                new PageImpl<>(
+                        List.of(customer),
+                        pageable,
+                        1
+                );
+
+        when(
+                customerRepository.findAll(
+                        eq(specification),
+                        eq(pageable)
+                )
+        ).thenReturn(page);
+
+        when(
+                modelMapper.map(
+                        eq(List.of(customer)),
+                        any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<CustomerDto> response =
+                customerService.findAll(
+                        specification,
+                        pageable
+                );
+
+        assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        assertEquals(
+                0,
+                response.getPage()
+        );
+    }
+
+    @Test
     void findAllTest() {
 
         Customer customer = new Customer();
@@ -247,6 +351,74 @@ class CustomerServiceTest {
         assertEquals(
                 "CUST1",
                 result.getDtoList().get(0).getIdentifier()
+        );
+    }
+
+    @Test
+    void searchCustomer_NullQuery() {
+
+        List<CustomerDto> response =
+                customerService.searchCustomer(null);
+
+        assertTrue(response.isEmpty());
+
+        verify(customerRepository, never())
+                .searchActiveCustomers(any());
+    }
+
+    @Test
+    void searchCustomer_EmptyQuery() {
+
+        List<CustomerDto> response =
+                customerService.searchCustomer("   ");
+
+
+        assertTrue(response.isEmpty());
+
+
+        verify(customerRepository, never())
+                .searchActiveCustomers(any());
+    }
+
+    @Test
+    void searchCustomer_Success() {
+
+        Customer customer = new Customer();
+        customer.setIdentifier("CUST1");
+
+
+        CustomerDto dto = new CustomerDto();
+        dto.setIdentifier("CUST1");
+
+
+        when(
+                customerRepository.searchActiveCustomers("CUS")
+        ).thenReturn(
+                List.of(customer)
+        );
+
+
+        when(
+                modelMapper.map(
+                        customer,
+                        CustomerDto.class
+                )
+        ).thenReturn(dto);
+
+
+        List<CustomerDto> response =
+                customerService.searchCustomer("CUS");
+
+
+        assertEquals(
+                1,
+                response.size()
+        );
+
+
+        assertEquals(
+                "CUST1",
+                response.get(0).getIdentifier()
         );
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -64,6 +65,38 @@ class ShelfServiceTest {
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Shelf Shelf1 already exists", response.getMessage());
+    }
+
+    @Test
+    void saveDeletedShelfTest() {
+
+        ShelfDto shelfDto = new ShelfDto();
+        shelfDto.setIdentifier("Shelf1");
+
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Shelf1");
+        shelf.setDeleted(true);
+
+        Mockito.when(
+                shelfRepository.findByIdentifier("Shelf1")
+        ).thenReturn(shelf);
+
+        ShelfDto response =
+                shelfService.save(shelfDto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        Mockito.verify(
+                shelfRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 
     @Test
@@ -116,6 +149,101 @@ class ShelfServiceTest {
         Assertions.assertEquals(
                 1,
                 response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable =
+                PageRequest.of(0,5);
+
+        Specification<Shelf> specification =
+                Mockito.mock(Specification.class);
+
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Shelf1");
+
+        ShelfDto dto = new ShelfDto();
+        dto.setIdentifier("Shelf1");
+
+        Page<Shelf> page =
+                new PageImpl<>(
+                        List.of(shelf),
+                        pageable,
+                        1
+                );
+
+        Mockito.when(
+                shelfRepository.findAll(
+                        Mockito.eq(specification),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<ShelfDto> response =
+                shelfService.findAll(
+                        specification,
+                        pageable
+                );
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Shelf1",
+                response.getDtoList()
+                        .get(0)
+                        .getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
         );
     }
 
@@ -174,6 +302,38 @@ class ShelfServiceTest {
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Shelf not found", response.getMessage());
+    }
+
+    @Test
+    void updateDeletedShelfTest() {
+
+        ShelfDto shelfDto = new ShelfDto();
+        shelfDto.setIdentifier("Shelf1");
+
+        Shelf shelf = new Shelf();
+        shelf.setIdentifier("Shelf1");
+        shelf.setDeleted(true);
+
+        Mockito.when(
+                shelfRepository.findByIdentifier("Shelf1")
+        ).thenReturn(shelf);
+
+        ShelfDto response =
+                shelfService.update(shelfDto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        Mockito.verify(
+                shelfRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 
     @Test

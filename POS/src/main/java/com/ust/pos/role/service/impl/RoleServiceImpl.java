@@ -1,8 +1,8 @@
 package com.ust.pos.role.service.impl;
 
 import com.ust.pos.base.service.BaseService;
-import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.RoleDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -148,6 +149,23 @@ public class RoleServiceImpl extends BaseService implements RoleService {
         paginationResponseDto.setSizePerPage(rolePage.getSize());
         paginationResponseDto.setTotalPages(rolePage.getTotalPages());
         paginationResponseDto.setTotalRecords(rolePage.getTotalElements());
+
+        return paginationResponseDto;
+    }
+
+    @Override
+    public PaginationResponseDto<RoleDto> findAll(Specification<Role> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<RoleDto>>() {
+        }.getType();
+        Page<Role> page = roleRepository.findAll(example, pageable);
+
+        PaginationResponseDto<RoleDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
 
         return paginationResponseDto;
     }

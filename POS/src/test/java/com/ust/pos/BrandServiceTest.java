@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -73,6 +74,24 @@ class BrandServiceTest {
     }
 
     @Test
+    void saveSoftDeletedBrandTest() {
+
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("BR001");
+
+        Brand brand = new Brand();
+        brand.setDeleted(true);
+
+        Mockito.when(brandRepository.findByIdentifier("BR001"))
+                .thenReturn(brand);
+
+        Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> brandService.save(dto)
+        );
+    }
+
+    @Test
     void findByIdentifierTest() {
         Brand brand = new Brand();
         brand.setIdentifier("BR001");
@@ -89,6 +108,24 @@ class BrandServiceTest {
         BrandDto response = brandService.findByIdentifier("BR001");
 
         Assertions.assertEquals("BR001", response.getIdentifier());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+
+        Mockito.when(brandRepository.findByIdentifier("BR001"))
+                .thenReturn(null);
+
+        ResourceNotFoundException exception =
+                Assertions.assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> brandService.findByIdentifier("BR001")
+                );
+
+        Assertions.assertEquals(
+                "Brand does not exist",
+                exception.getMessage()
+        );
     }
 
     @Test
@@ -156,6 +193,25 @@ class BrandServiceTest {
     }
 
     @Test
+    void updateSoftDeletedBrandTest() {
+
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("BR001");
+
+        Brand brand = new Brand();
+        brand.setIdentifier("BR001");
+        brand.setDeleted(true);
+
+        Mockito.when(brandRepository.findByIdentifier("BR001"))
+                .thenReturn(brand);
+
+        Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> brandService.update(dto)
+        );
+    }
+
+    @Test
     void updateStatusFailureTest() {
 
         Mockito.when(brandRepository.findByIdentifier("BR001"))
@@ -171,6 +227,29 @@ class BrandServiceTest {
                 "Brand not found",
                 exception.getMessage()
         );
+    }
+
+    @Test
+    void updateStatusVerifySaveTest() {
+
+        Brand brand = new Brand();
+        brand.setStatus(false);
+
+
+        Mockito.when(
+                brandRepository.findByIdentifier("BR001")
+        ).thenReturn(brand);
+
+
+        BrandDto response =
+                brandService.updateStatus(
+                        "BR001",
+                        true
+                );
+
+
+        Assertions.assertTrue(response.isSuccess());
+        Assertions.assertTrue(brand.isStatus());
     }
 
     @Test
@@ -238,6 +317,58 @@ class BrandServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0,5);
+
+        Brand brand = new Brand();
+        brand.setIdentifier("BR001");
+
+        BrandDto dto = new BrandDto();
+        dto.setIdentifier("BR001");
+
+        Page<Brand> page =
+                new PageImpl<>(
+                        List.of(brand),
+                        pageable,
+                        1
+                );
+
+        Specification<Brand> specification =
+                Mockito.mock(Specification.class);
+
+        Mockito.when(
+                brandRepository.findAll(
+                        Mockito.eq(specification),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(List.of(brand)),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<BrandDto> response =
+                brandService.findAll(
+                        specification,
+                        pageable
+                );
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+    }
+
+    @Test
     void deleteTest() {
 
         Brand brand = new Brand();
@@ -261,5 +392,44 @@ class BrandServiceTest {
 
         Mockito.verify(brandRepository)
                 .save(brand);
+    }
+
+    @Test
+    void deleteBrandNotFoundTest() {
+
+        Mockito.when(
+                brandRepository.findByIdentifier("BR001")
+        ).thenReturn(null);
+
+
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.delete("BR001")
+        );
+
+
+        Mockito.verify(
+                brandRepository,
+                Mockito.never()
+        ).save(Mockito.any());
+    }
+
+    @Test
+    void deleteAlreadyDeletedBrandTest() {
+
+        Brand brand = new Brand();
+        brand.setIdentifier("BR001");
+        brand.setDeleted(true);
+
+
+        Mockito.when(
+                brandRepository.findByIdentifier("BR001")
+        ).thenReturn(brand);
+
+
+        Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> brandService.delete("BR001")
+        );
     }
 }

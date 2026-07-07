@@ -9,6 +9,7 @@ import com.ust.pos.models.service.ModelService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +23,7 @@ public class ModelApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public PaginationResponseDto<ModelDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -36,26 +38,31 @@ public class ModelApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public ModelDto addPost(@RequestBody ModelDto modelDto) {
         return modelService.save(modelDto);
     }
 
     @PutMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public ModelDto toggleStatus(@RequestBody ModelDto dto) {
         return modelService.updateStatus(dto.getIdentifier(), dto.isStatus());
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public ModelDto update(@RequestParam String identifier) {
         return modelService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public ModelDto updatePost(@RequestBody ModelDto modelDto) {
         return modelService.update(modelDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.delete(identifier);

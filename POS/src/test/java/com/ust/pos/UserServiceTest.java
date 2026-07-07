@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -100,6 +101,31 @@ class UserServiceTest {
     }
 
     @Test
+    void saveFailureSoftDeletedUserTest() {
+
+        UserDto dto = new UserDto();
+        dto.setUsername("test@mail.com");
+
+        User existingUser = new User();
+        existingUser.setUsername("test@mail.com");
+        existingUser.setDeleted(true);
+
+        Mockito.when(
+                userRepository.findByUsername("test@mail.com")
+        ).thenReturn(existingUser);
+
+        UserDto response =
+                userService.save(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+
+        Assertions.assertEquals(
+                "User test@mail.com has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
+    }
+
+    @Test
     void updateUserNotFoundTest() {
         UserDto dto = new UserDto();
         dto.setId(1L);
@@ -143,6 +169,7 @@ class UserServiceTest {
 
     @Test
     void updateSuccessTest() {
+
         UserDto dto = new UserDto();
         dto.setId(1L);
         dto.setUsername("same@mail.com");
@@ -150,16 +177,97 @@ class UserServiceTest {
         User existingUser = new User();
         existingUser.setId(1L);
         existingUser.setUsername("same@mail.com");
+        existingUser.setPassword("oldEncodedPassword");
 
-        Mockito.when(userRepository.findById(1L))
-                .thenReturn(Optional.of(existingUser));
+        Mockito.when(
+                userRepository.findById(1L)
+        ).thenReturn(Optional.of(existingUser));
 
-        Mockito.when(userRepository.save(existingUser))
-                .thenReturn(existingUser);
+        Mockito.doNothing()
+                .when(modelMapper)
+                .map(dto, existingUser);
 
-        UserDto response = userService.update(dto);
+        Mockito.when(
+                userRepository.save(existingUser)
+        ).thenReturn(existingUser);
 
-        Assertions.assertEquals("same@mail.com", response.getUsername());
+        UserDto response =
+                userService.update(dto);
+
+        Assertions.assertTrue(response.isSuccess());
+
+        Assertions.assertEquals(
+                "User updated successfully",
+                response.getMessage()
+        );
+
+        Assertions.assertEquals(
+                "oldEncodedPassword",
+                existingUser.getPassword()
+        );
+
+        Mockito.verify(userRepository)
+                .save(existingUser);
+    }
+
+    @Test
+    void updateFailureSoftDeletedUserTest() {
+
+        UserDto dto = new UserDto();
+        dto.setId(1L);
+        dto.setUsername("test@mail.com");
+
+        User user = new User();
+        user.setUsername("test@mail.com");
+        user.setDeleted(true);
+
+        Mockito.when(
+                userRepository.findById(1L)
+        ).thenReturn(Optional.of(user));
+
+        UserDto response =
+                userService.update(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+
+        Assertions.assertEquals(
+                "User test@mail.com has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
+    }
+
+    @Test
+    void updateFailureDuplicateUserSoftDeletedTest() {
+
+        UserDto dto = new UserDto();
+        dto.setId(1L);
+        dto.setUsername("new@mail.com");
+
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("old@mail.com");
+
+        User duplicateUser = new User();
+        duplicateUser.setUsername("new@mail.com");
+        duplicateUser.setDeleted(true);
+
+        Mockito.when(
+                userRepository.findById(1L)
+        ).thenReturn(Optional.of(existingUser));
+
+        Mockito.when(
+                userRepository.findByUsername("new@mail.com")
+        ).thenReturn(duplicateUser);
+
+        UserDto response =
+                userService.update(dto);
+
+        Assertions.assertFalse(response.isSuccess());
+
+        Assertions.assertEquals(
+                "User new@mail.com has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
     }
 
     @Test
@@ -224,6 +332,64 @@ class UserServiceTest {
         Assertions.assertEquals(
                 "test@mail.com",
                 response.getDtoList().get(0).getUsername()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        User user = new User();
+        user.setUsername("test@mail.com");
+
+        UserDto dto = new UserDto();
+        dto.setUsername("test@mail.com");
+
+        Pageable pageable =
+                PageRequest.of(0,5);
+
+        Page<User> page =
+                new PageImpl<>(
+                        List.of(user),
+                        pageable,
+                        1
+                );
+
+        Specification<User> spec =
+                (root, query, cb) -> null;
+
+        Mockito.when(
+                userRepository.findAll(
+                        Mockito.eq(spec),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(List.of(user)),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<UserDto> response =
+                userService.findAll(
+                        spec,
+                        pageable
+                );
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
         );
     }
 }

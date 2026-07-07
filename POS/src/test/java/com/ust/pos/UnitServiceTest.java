@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -67,6 +68,60 @@ class UnitServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+
+        Unit unit = new Unit();
+        unit.setIdentifier("U1");
+
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("U1");
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Page<Unit> page =
+                new PageImpl<>(
+                        List.of(unit),
+                        pageable,
+                        1
+                );
+
+        Specification<Unit> spec =
+                (root, query, cb) -> null;
+
+        Mockito.when(
+                unitRepository.findAll(
+                        Mockito.eq(spec),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(List.of(unit)),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<UnitDto> response =
+                unitService.findAll(spec, pageable);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+    }
+
+    @Test
     void findByIdentifierTest() {
         Unit unit = new Unit();
         unit.setIdentifier("U1");
@@ -113,6 +168,34 @@ class UnitServiceTest {
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Unit U1 already exists", response.getMessage());
+    }
+
+    @Test
+    void saveFailureSoftDeletedTest() {
+
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("U1");
+
+        Unit unit = new Unit();
+        unit.setIdentifier("U1");
+        unit.setDeleted(true);
+
+        Mockito.when(
+                unitRepository.findByIdentifier("U1")
+        ).thenReturn(unit);
+
+        UnitDto response =
+                unitService.save(dto);
+
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertEquals(
+                "Unit U1 has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
     }
 
     @Test
@@ -174,16 +257,60 @@ class UnitServiceTest {
     }
 
     @Test
+    void updateFailureSoftDeletedTest() {
+
+        UnitDto dto = new UnitDto();
+        dto.setIdentifier("U1");
+
+
+        Unit unit = new Unit();
+        unit.setIdentifier("U1");
+        unit.setDeleted(true);
+
+
+        Mockito.when(
+                unitRepository.findByIdentifier("U1")
+        ).thenReturn(unit);
+
+
+        UnitDto response =
+                unitService.update(dto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertEquals(
+                "Unit U1 has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
+    }
+
+    @Test
     void deleteTest() {
 
         Unit unit = new Unit();
         unit.setIdentifier("U1");
+        unit.setDeleted(false);
 
-        Mockito.when(unitRepository.findByIdentifier("U1"))
-                .thenReturn(unit);
+        Mockito.when(
+                unitRepository.findByIdentifier("U1")
+        ).thenReturn(unit);
+
+        Mockito.when(
+                unitRepository.save(unit)
+        ).thenReturn(unit);
 
         unitService.delete("U1");
 
-        Mockito.verify(unitRepository).save(unit);
+        Assertions.assertTrue(
+                unit.isDeleted()
+        );
+
+        Mockito.verify(unitRepository)
+                .findByIdentifier("U1");
+
+        Mockito.verify(unitRepository)
+                .save(unit);
     }
 }

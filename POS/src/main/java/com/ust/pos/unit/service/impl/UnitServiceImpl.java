@@ -1,8 +1,8 @@
 package com.ust.pos.unit.service.impl;
 
 import com.ust.pos.base.service.BaseService;
-import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.dto.UnitDto;
+import com.ust.pos.dto.PaginationResponseDto;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -41,6 +42,23 @@ public class UnitServiceImpl extends BaseService implements UnitService {
         paginationResponseDto.setSizePerPage(unitPage.getSize());
         paginationResponseDto.setTotalPages(unitPage.getTotalPages());
         paginationResponseDto.setTotalRecords(unitPage.getTotalElements());
+
+        return paginationResponseDto;
+    }
+
+    @Override
+    public PaginationResponseDto<UnitDto> findAll(Specification<Unit> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<UnitDto>>() {
+        }.getType();
+        Page<Unit> page = unitRepository.findAll(example, pageable);
+
+        PaginationResponseDto<UnitDto> paginationResponseDto = new PaginationResponseDto<>();
+        paginationResponseDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        paginationResponseDto.setTotalRecords(page.getTotalElements());
+        paginationResponseDto.setTotalPages(page.getTotalPages());
+        paginationResponseDto.setSizePerPage(pageable.getPageSize());
+        paginationResponseDto.setPage(pageable.getPageNumber());
 
         return paginationResponseDto;
     }

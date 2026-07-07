@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -75,6 +76,88 @@ class NodeServiceTest {
     }
 
     @Test
+    void save_existingNodeDeleted() {
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("N1");
+
+        Node node = new Node();
+        node.setIdentifier("N1");
+        node.setDeleted(true);
+
+        when(nodeRepository.findByIdentifier("N1"))
+                .thenReturn(node);
+
+        NodeDto response =
+                nodeService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+
+        verify(nodeRepository, never())
+                .save(any());
+    }
+
+    @Test
+    void save_existingPath() {
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("N1");
+        dto.setPath("/test");
+
+        Node existing = new Node();
+        existing.setIdentifier("N2");
+
+        when(nodeRepository.findByIdentifier("N1"))
+                .thenReturn(null);
+
+        when(nodeRepository.findByPath("/test"))
+                .thenReturn(existing);
+
+        NodeDto response =
+                nodeService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertEquals(
+                "A node with this path already exists.",
+                response.getMessage()
+        );
+    }
+
+    @Test
+    void save_existingDeletedPath() {
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("N1");
+        dto.setPath("/test");
+
+        Node existing = new Node();
+        existing.setDeleted(true);
+
+        when(nodeRepository.findByIdentifier("N1"))
+                .thenReturn(null);
+
+        when(nodeRepository.findByPath("/test"))
+                .thenReturn(existing);
+
+        NodeDto response =
+                nodeService.save(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+    }
+
+    @Test
     void update_success() {
         NodeDto dto = new NodeDto();
         dto.setIdentifier("N1");
@@ -106,6 +189,32 @@ class NodeServiceTest {
         assertFalse(response.isSuccess());
         assertEquals("Node not found.", response.getMessage());
         verify(nodeRepository, never()).save(any());
+    }
+
+    @Test
+    void update_deletedNode() {
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("N1");
+
+        Node node = new Node();
+        node.setIdentifier("N1");
+        node.setDeleted(true);
+
+        when(nodeRepository.findByIdentifier("N1"))
+                .thenReturn(node);
+
+        NodeDto response =
+                nodeService.update(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+        verify(nodeRepository, never())
+                .save(any());
     }
 
     @Test
@@ -201,6 +310,59 @@ class NodeServiceTest {
     }
 
     @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable =
+                PageRequest.of(0,5);
+
+        Specification<Node> specification =
+                mock(Specification.class);
+
+        Node node = new Node();
+        node.setIdentifier("N1");
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("N1");
+
+        Page<Node> page =
+                new PageImpl<>(
+                        List.of(node),
+                        pageable,
+                        1
+                );
+
+        when(
+                nodeRepository.findAll(
+                        eq(specification),
+                        eq(pageable)
+                )
+        ).thenReturn(page);
+
+        when(
+                modelMapper.map(
+                        eq(List.of(node)),
+                        any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<NodeDto> response =
+                nodeService.findAll(
+                        specification,
+                        pageable
+                );
+
+        assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+    }
+
+    @Test
     void updateStatus_success() {
         Node node = new Node();
 
@@ -222,6 +384,89 @@ class NodeServiceTest {
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Node not found", response.getMessage());
+    }
+
+    @Test
+    void updateStatus_verifyStatusChange() {
+
+        Node node = new Node();
+        node.setStatus(false);
+
+        when(nodeRepository.findByIdentifier("N1"))
+                .thenReturn(node);
+
+        NodeDto response =
+                nodeService.updateStatus(
+                        "N1",
+                        true
+                );
+
+        assertTrue(response.isSuccess());
+        assertTrue(node.isStatus());
+
+        verify(nodeRepository)
+                .save(node);
+    }
+
+    @Test
+    void update_pathConflict() {
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("N1");
+        dto.setPath("/test");
+
+        Node node = new Node();
+        node.setIdentifier("N1");
+
+        Node conflict = new Node();
+        conflict.setIdentifier("N2");
+
+        when(nodeRepository.findByIdentifier("N1"))
+                .thenReturn(node);
+
+        when(nodeRepository.findByPath("/test"))
+                .thenReturn(conflict);
+
+        NodeDto response =
+                nodeService.update(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertEquals(
+                "A node with this path already exists.",
+                response.getMessage()
+        );
+    }
+
+    @Test
+    void update_deletedPathConflict() {
+
+        NodeDto dto = new NodeDto();
+        dto.setIdentifier("N1");
+        dto.setPath("/test");
+
+        Node node = new Node();
+        node.setIdentifier("N1");
+
+        Node conflict = new Node();
+        conflict.setIdentifier("N2");
+        conflict.setDeleted(true);
+
+        when(nodeRepository.findByIdentifier("N1"))
+                .thenReturn(node);
+
+        when(nodeRepository.findByPath("/test"))
+                .thenReturn(conflict);
+
+        NodeDto response =
+                nodeService.update(dto);
+
+        assertFalse(response.isSuccess());
+
+        assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
     }
 
     @Test

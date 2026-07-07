@@ -17,10 +17,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
-
 
 @ExtendWith(MockitoExtension.class)
 class RackServiceTest {
@@ -66,6 +66,38 @@ class RackServiceTest {
         Assertions.assertNotNull(response.getMessage(), "Message cannot be null");
 
         Assertions.assertEquals(false, response.isSuccess());
+    }
+
+    @Test
+    void saveDeletedRackTest() {
+
+        RackDto rackDto = new RackDto();
+        rackDto.setIdentifier("Rack1");
+
+        Rack rack = new Rack();
+        rack.setIdentifier("Rack1");
+        rack.setDeleted(true);
+
+        Mockito.when(
+                rackRepository.findByIdentifier("Rack1")
+        ).thenReturn(rack);
+
+        RackDto response =
+                rackService.save(rackDto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        Mockito.verify(
+                rackRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 
     @Test
@@ -122,6 +154,38 @@ class RackServiceTest {
         RackDto response = rackService.update(rackDto);
 
         Assertions.assertFalse(response.isSuccess());
+    }
+
+    @Test
+    void updateDeletedRackTest() {
+
+        RackDto rackDto = new RackDto();
+        rackDto.setIdentifier("Rack1");
+
+        Rack rack = new Rack();
+        rack.setIdentifier("Rack1");
+        rack.setDeleted(true);
+
+        Mockito.when(
+                rackRepository.findByIdentifier("Rack1")
+        ).thenReturn(rack);
+
+        RackDto response =
+                rackService.update(rackDto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertTrue(
+                response.getMessage()
+                        .contains("deleted")
+        );
+
+        Mockito.verify(
+                rackRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 
     @Test
@@ -184,6 +248,93 @@ class RackServiceTest {
         Assertions.assertEquals(
                 "Rack1",
                 response.getDtoList().get(0).getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Specification<Rack> specification =
+                Mockito.mock(Specification.class);
+
+        Rack rack = new Rack();
+        rack.setIdentifier("Rack1");
+
+        RackDto rackDto = new RackDto();
+        rackDto.setIdentifier("Rack1");
+
+        Page<Rack> page =
+                new PageImpl<>(
+                        List.of(rack),
+                        pageable,
+                        1
+                );
+
+        Mockito.when(
+                rackRepository.findAll(
+                        Mockito.eq(specification),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(List.of(rackDto));
+
+        PaginationResponseDto<RackDto> response =
+                rackService.findAll(
+                        specification,
+                        pageable
+                );
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
         );
     }
 

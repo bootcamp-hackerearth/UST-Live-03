@@ -9,6 +9,7 @@ import com.ust.pos.rack.service.RackService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +23,7 @@ public class RackApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public PaginationResponseDto<RackDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -37,26 +39,31 @@ public class RackApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public RackDto addPost(@RequestBody RackDto rackDto) {
         return rackService.save(rackDto);
     }
 
     @PutMapping("/toggle")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public RackDto toggleStatus(@RequestBody RackDto rackDto) {
         return rackService.updateStatus(rackDto.getIdentifier(), rackDto.isStatus());
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public RackDto update(@RequestParam String identifier) {
         return rackService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
     public RackDto updatePost(@RequestBody RackDto rackDto) {
         return rackService.save(rackDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             rackService.delete(identifier);

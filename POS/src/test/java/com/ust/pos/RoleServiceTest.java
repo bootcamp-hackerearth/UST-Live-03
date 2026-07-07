@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -73,6 +74,38 @@ class RoleServiceTest {
     }
 
     @Test
+    void saveDeletedRoleTest() {
+
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("Admin");
+
+        Role role = new Role();
+        role.setIdentifier("Admin");
+        role.setDeleted(true);
+
+        Mockito.when(
+                roleRepository.findByIdentifier("Admin")
+        ).thenReturn(role);
+
+        RoleDto response =
+                roleService.save(roleDto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertEquals(
+                "Role Admin has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
+
+        Mockito.verify(
+                roleRepository,
+                Mockito.never()
+        ).save(Mockito.any());
+    }
+
+    @Test
     void findByIdentifierTest() {
         Role role = new Role();
         role.setIdentifier("Admin");
@@ -117,6 +150,38 @@ class RoleServiceTest {
         RoleDto response = roleService.update(roleDto);
 
         Assertions.assertFalse(response.isSuccess());
+    }
+
+    @Test
+    void updateDeletedRoleTest() {
+
+        RoleDto roleDto = new RoleDto();
+        roleDto.setIdentifier("Admin");
+
+        Role role = new Role();
+        role.setIdentifier("Admin");
+        role.setDeleted(true);
+
+        Mockito.when(
+                roleRepository.findByIdentifier("Admin")
+        ).thenReturn(role);
+
+        RoleDto response =
+                roleService.update(roleDto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertEquals(
+                "Role Admin has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
+
+        Mockito.verify(
+                roleRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 
     @Test
@@ -188,8 +253,95 @@ class RoleServiceTest {
                 response.getDtoList().get(0).getIdentifier()
         );
 
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
         Assertions.assertEquals(0, response.getPage());
         Assertions.assertEquals(1, response.getTotalRecords());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable =
+                PageRequest.of(0,5);
+
+        Specification<Role> specification =
+                Mockito.mock(Specification.class);
+
+        Role role = new Role();
+        role.setIdentifier("Admin");
+
+        RoleDto dto = new RoleDto();
+        dto.setIdentifier("Admin");
+
+        Page<Role> page =
+                new PageImpl<>(
+                        List.of(role),
+                        pageable,
+                        1
+                );
+
+        Mockito.when(
+                roleRepository.findAll(
+                        Mockito.eq(specification),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<RoleDto> response =
+                roleService.findAll(
+                        specification,
+                        pageable
+                );
+
+        Assertions.assertNotNull(response);
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Admin",
+                response.getDtoList()
+                        .get(0)
+                        .getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
     }
 
     @Test

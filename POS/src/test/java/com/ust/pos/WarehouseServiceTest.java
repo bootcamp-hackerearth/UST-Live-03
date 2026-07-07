@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -84,6 +85,38 @@ class WarehouseServiceTest {
     }
 
     @Test
+    void saveDeletedWarehouseTest() {
+
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("Warehouse1");
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("Warehouse1");
+        warehouse.setDeleted(true);
+
+        Mockito.when(
+                warehouseRepository.findByIdentifier("Warehouse1")
+        ).thenReturn(warehouse);
+
+        WarehouseDto response =
+                warehouseService.save(dto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertEquals(
+                "Warehouse Warehouse1 has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
+
+        Mockito.verify(
+                warehouseRepository,
+                Mockito.never()
+        ).save(Mockito.any());
+    }
+
+    @Test
     void findByIdentifierTest() {
         Warehouse warehouse = new Warehouse();
         warehouse.setIdentifier("Warehouse1");
@@ -137,6 +170,38 @@ class WarehouseServiceTest {
         WarehouseDto response = warehouseService.update(warehouseDto);
 
         Assertions.assertFalse(response.isSuccess());
+    }
+
+    @Test
+    void updateDeletedWarehouseTest() {
+
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("Warehouse1");
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("Warehouse1");
+        warehouse.setDeleted(true);
+
+        Mockito.when(
+                warehouseRepository.findByIdentifier("Warehouse1")
+        ).thenReturn(warehouse);
+
+        WarehouseDto response =
+                warehouseService.update(dto);
+
+        Assertions.assertFalse(
+                response.isSuccess()
+        );
+
+        Assertions.assertEquals(
+                "Warehouse Warehouse1 has been deleted. Please contact the administrator.",
+                response.getMessage()
+        );
+
+        Mockito.verify(
+                warehouseRepository,
+                Mockito.never()
+        ).save(Mockito.any());
     }
 
     @Test
@@ -210,8 +275,95 @@ class WarehouseServiceTest {
                 response.getDtoList().get(0).getIdentifier()
         );
 
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
         Assertions.assertEquals(0, response.getPage());
         Assertions.assertEquals(1, response.getTotalRecords());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Specification<Warehouse> specification =
+                Mockito.mock(Specification.class);
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("Warehouse1");
+
+        WarehouseDto dto = new WarehouseDto();
+        dto.setIdentifier("Warehouse1");
+
+
+        Page<Warehouse> page =
+                new PageImpl<>(
+                        List.of(warehouse),
+                        pageable,
+                        1
+                );
+
+
+        Mockito.when(
+                warehouseRepository.findAll(
+                        Mockito.eq(specification),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
+
+
+        Mockito.when(
+                modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)
+                )
+        ).thenReturn(List.of(dto));
+
+        PaginationResponseDto<WarehouseDto> response =
+                warehouseService.findAll(
+                        specification,
+                        pageable
+                );
+
+        Assertions.assertEquals(
+                1,
+                response.getDtoList().size()
+        );
+
+        Assertions.assertEquals(
+                "Warehouse1",
+                response.getDtoList()
+                        .get(0)
+                        .getIdentifier()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalRecords()
+        );
+
+        Assertions.assertEquals(
+                1,
+                response.getTotalPages()
+        );
+
+        Assertions.assertEquals(
+                5,
+                response.getSizePerPage()
+        );
+
+        Assertions.assertEquals(
+                0,
+                response.getPage()
+        );
     }
 
     @Test
