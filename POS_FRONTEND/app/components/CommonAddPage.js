@@ -56,24 +56,33 @@ export default function CommonAddPage({
     setServerError(null);
     };
 
-  
-
   const validate = () => {
   const newErrors = {};
 
   fields.forEach((f) => {
     if (f.type === "checkbox-action" || f.readOnly) return;
 
-    let val = getValue(formData, f.name);
-    const isEmpty = val === undefined || val === null || val === "";
-    
-    if (isEmpty) {
-      newErrors[f.name] = `${f.label || "This field"} is required`;
-      return;
+    if (f.required) {
+      let val = getValue(formData, f.name);
+      const isEmpty =
+        val === undefined || val === null || val === "";
+
+      if (isEmpty) {
+        newErrors[f.name] =
+          `${f.label || "This field"} is required`;
+        return;
+      }
     }
 
-    if (f.validation?.pattern && !f.validation.pattern.test(String(val))) {
-      newErrors[f.name] = f.validation.message || "Invalid format";
+    let val = getValue(formData, f.name);
+
+    if (
+      val &&
+      f.validation?.pattern &&
+      !f.validation.pattern.test(String(val))
+    ) {
+      newErrors[f.name] =
+        f.validation.message || "Invalid format";
     }
   });
 
