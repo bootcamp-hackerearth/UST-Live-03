@@ -13,8 +13,6 @@ const UnitAdd = () => {
 
   const initialData = {
     identifier: "",
-    path: "",
-    roles: [],
   };
 
   return (
