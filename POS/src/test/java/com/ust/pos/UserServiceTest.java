@@ -112,7 +112,7 @@ class UserServiceTest {
         UserDto dto = new UserDto();
         dto.setUsername("admin@test.com");
 
-        Mockito.when(userRepository.findByIdentifier("admin@test.com")).thenReturn(user);
+        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(user);
 
         Mockito.when(modelMapper.map(user, UserDto.class)).thenReturn(dto);
 
@@ -125,7 +125,7 @@ class UserServiceTest {
     @Test
     void findByUserNameNotFoundTest() {
 
-        Mockito.when(userRepository.findByIdentifier("admin@test.com")).thenReturn(null);
+        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(null);
 
         ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> userService.findByUserName("admin@test.com"));
 
@@ -226,7 +226,7 @@ class UserServiceTest {
     @Test
     void deleteFailureTest() {
 
-        Mockito.when(userRepository.findByIdentifier("admin@test.com")).thenReturn(null);
+        Mockito.when(userRepository.findByUsername("admin@test.com")).thenReturn(null);
 
         boolean result = userService.delete("admin@test.com");
 
