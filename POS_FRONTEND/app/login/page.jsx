@@ -20,7 +20,7 @@ export default function LoginPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch("/auth/authenticate", {
+      const res = await fetch("/api/authenticate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
