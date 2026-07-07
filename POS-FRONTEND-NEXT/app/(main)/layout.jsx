@@ -129,7 +129,7 @@ export default function MainLayout({ children }) {
         return;
       }
 
-      const res = await axios.get("http://localhost:8080/api/node/roles", {
+      const res = await axios.get("/api/node/roles", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

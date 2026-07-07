@@ -72,7 +72,7 @@ function Register() {
     }
 
     try {
-      await axios.post("http://localhost:8080/register", {
+      await axios.post("/api/register", {
         username,
         name,
         phoneNo,

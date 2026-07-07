@@ -112,7 +112,7 @@ export default function Dashboard1() {
         return;
       }
 
-      const res = await axios.get("http://localhost:8080/api/user/get", {
+      const res = await axios.get("/api/user/get", {
         params: { username },
         headers: {
           Authorization: `Bearer ${token}`,
