@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -273,28 +274,27 @@ class UserServiceTest {
     }
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
         User user = new User();
-        user.setUsername("admin");
-
-        UserDto dto = new UserDto();
-        dto.setUsername("admin");
-
-        Page<User> page = new PageImpl<>(List.of(user));
-
-        Mockito.when(userRepository
-                        .findByUsernameContainingIgnoreCaseAndIsDeleteFalse("adm", pageable))
+        Page<User> page =
+                new PageImpl<>(List.of(user));
+        Mockito.when(userRepository.findAll(
+                        Mockito.<Specification<User>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        Mockito.when(modelMapper.map(user, UserDto.class))
-                .thenReturn(dto);
-
-        Page<UserDto> result = userService.findAll(pageable, "adm");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<UserDto> result =
+                userService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(userRepository)
+                .findAll(
+                        Mockito.<Specification<User>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

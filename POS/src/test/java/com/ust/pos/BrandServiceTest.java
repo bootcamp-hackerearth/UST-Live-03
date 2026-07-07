@@ -4,17 +4,20 @@ import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -203,31 +206,27 @@ class BrandServiceTest {
     }
 
     @Test
-    void findAll_WithSearch_ShouldReturnMappedPage() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Brand> brandPage =
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Brand brand = new Brand();
+        Page<Brand> page =
                 new PageImpl<>(List.of(brand));
-
-        when(brandRepository
-                .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(
-                        "BR",
-                        pageable))
-                .thenReturn(brandPage);
-
-        when(modelMapper.map(any(Brand.class), eq(BrandDto.class)))
-                .thenReturn(brandDto);
-
+        Mockito.when(brandRepository.findAll(
+                        Mockito.<Specification<Brand>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
         Page<BrandDto> result =
-                brandService.findAll(pageable, "BR");
-
-        assertEquals(1, result.getTotalElements());
-
-        verify(brandRepository)
-                .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(
-                        "BR",
-                        pageable);
+                brandService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(brandRepository)
+                .findAll(
+                        Mockito.<Specification<Brand>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

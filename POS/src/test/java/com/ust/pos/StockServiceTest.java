@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -290,28 +292,27 @@ class StockServiceTest {
     }
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Stock entity = new Stock();
-        entity.setIdentifier("S1");
-
-        StockDto dto = new StockDto();
-        dto.setIdentifier("S1");
-
-        Page<Stock> page = new PageImpl<>(List.of(entity));
-
-        when(stockRepository
-                .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse("S", pageable))
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Stock stock = new Stock();
+        Page<Stock> page =
+                new PageImpl<>(List.of(stock));
+        Mockito.when(stockRepository.findAll(
+                        Mockito.<Specification<Stock>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        when(modelMapper.map(any(Stock.class), eq(StockDto.class)))
-                .thenReturn(dto);
-
-        Page<StockDto> result = stockService.findAll(pageable, "S");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<StockDto> result =
+                stockService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(stockRepository)
+                .findAll(
+                        Mockito.<Specification<Stock>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

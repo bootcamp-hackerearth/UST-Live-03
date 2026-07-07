@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -286,27 +287,27 @@ class NodeServiceTest {
     }
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
         Node node = new Node();
-        node.setIdentifier("NODE1");
-
-        NodeDto dto = new NodeDto();
-        dto.setIdentifier("NODE1");
-
-        Page<Node> page = new PageImpl<>(List.of(node));
-
-        Mockito.when(nodeRepository
-                        .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse("NODE", pageable))
+        Page<Node> page =
+                new PageImpl<>(List.of(node));
+        Mockito.when(nodeRepository.findAll(
+                        Mockito.<Specification<Node>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        Mockito.when(modelMapper.map(node, NodeDto.class)).thenReturn(dto);
-
-        Page<NodeDto> result = nodeService.findAll(pageable, "NODE");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<NodeDto> result =
+                nodeService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(nodeRepository)
+                .findAll(
+                        Mockito.<Specification<Node>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

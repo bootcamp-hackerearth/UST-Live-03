@@ -6,17 +6,20 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -287,33 +290,27 @@ class CustomerServiceTest {
     }
 
     @Test
-    void findAll_WithSearch_ShouldReturnMappedPage() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Customer customer = new Customer();
         Page<Customer> page =
                 new PageImpl<>(List.of(customer));
-
-        when(customerRepository
-                .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(
-                        "CUS",
-                        pageable))
+        Mockito.when(customerRepository.findAll(
+                        Mockito.<Specification<Customer>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        when(modelMapper.map(
-                any(Customer.class),
-                eq(CustomerDto.class)))
-                .thenReturn(customerDto);
-
         Page<CustomerDto> result =
-                customerService.findAll(pageable, "CUS");
-
-        assertEquals(1, result.getTotalElements());
-
-        verify(customerRepository)
-                .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(
-                        "CUS",
-                        pageable);
+                customerService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(customerRepository)
+                .findAll(
+                        Mockito.<Specification<Customer>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -302,28 +303,27 @@ class ShelfServiceTest {
     // PAGINATION SEARCH
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Shelf entity = new Shelf();
-        entity.setIdentifier("S1");
-
-        ShelfDto dto = new ShelfDto();
-        dto.setIdentifier("S1");
-
-        Page<Shelf> page = new PageImpl<>(List.of(entity));
-
-        Mockito.when(shelfRepository
-                        .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse("S", pageable))
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Shelf shelf = new Shelf();
+        Page<Shelf> page =
+                new PageImpl<>(List.of(shelf));
+        Mockito.when(shelfRepository.findAll(
+                        Mockito.<Specification<Shelf>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        Mockito.when(modelMapper.map(entity, ShelfDto.class))
-                .thenReturn(dto);
-
-        Page<ShelfDto> result = shelfService.findAll(pageable, "S");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<ShelfDto> result =
+                shelfService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(shelfRepository)
+                .findAll(
+                        Mockito.<Specification<Shelf>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

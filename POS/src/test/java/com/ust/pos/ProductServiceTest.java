@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -256,28 +257,27 @@ class ProductServiceTest {
     }
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Product entity = new Product();
-        entity.setIdentifier("P1");
-
-        ProductDto dto = new ProductDto();
-        dto.setIdentifier("P1");
-
-        Page<Product> page = new PageImpl<>(List.of(entity));
-
-        Mockito.when(productRepository
-                        .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse("P", pageable))
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Product product = new Product();
+        Page<Product> page =
+                new PageImpl<>(List.of(product));
+        Mockito.when(productRepository.findAll(
+                        Mockito.<Specification<Product>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        Mockito.when(modelMapper.map(entity, ProductDto.class))
-                .thenReturn(dto);
-
-        Page<ProductDto> result = productService.findAll(pageable, "P");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<ProductDto> result =
+                productService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(productRepository)
+                .findAll(
+                        Mockito.<Specification<Product>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

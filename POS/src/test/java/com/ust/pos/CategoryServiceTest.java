@@ -4,17 +4,20 @@ import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -271,32 +274,27 @@ class CategoryServiceTest {
     }
 
     @Test
-    void findAll_WithSearch_ShouldReturnMappedPage() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Category category = new Category();
         Page<Category> page =
                 new PageImpl<>(List.of(category));
-
-        when(categoryRepository
-                .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(
-                        "CAT",
-                        pageable))
+        Mockito.when(categoryRepository.findAll(
+                        Mockito.<Specification<Category>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        when(modelMapper.map(any(Category.class),
-                eq(CategoryDto.class)))
-                .thenReturn(categoryDto);
-
         Page<CategoryDto> result =
-                categoryService.findAll(pageable, "CAT");
-
-        assertEquals(1, result.getTotalElements());
-
-        verify(categoryRepository)
-                .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse(
-                        "CAT",
-                        pageable);
+                categoryService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(categoryRepository)
+                .findAll(
+                        Mockito.<Specification<Category>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

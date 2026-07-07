@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -242,28 +243,27 @@ class PriceServiceTest {
     }
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Price entity = new Price();
-        entity.setIdentifier("P1");
-
-        PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1");
-
-        Page<Price> page = new PageImpl<>(List.of(entity));
-
-        Mockito.when(priceRepository
-                        .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse("P", pageable))
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Price price = new Price();
+        Page<Price> page =
+                new PageImpl<>(List.of(price));
+        Mockito.when(priceRepository.findAll(
+                        Mockito.<Specification<Price>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        Mockito.when(modelMapper.map(entity, PriceDto.class))
-                .thenReturn(dto);
-
-        Page<PriceDto> result = priceService.findAll(pageable, "P");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<PriceDto> result =
+                priceService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(priceRepository)
+                .findAll(
+                        Mockito.<Specification<Price>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

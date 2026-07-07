@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -222,28 +223,27 @@ class RoleServiceTest {
     }
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
         Role role = new Role();
-        role.setIdentifier("ADMIN");
-
-        RoleDto dto = new RoleDto();
-        dto.setIdentifier("ADMIN");
-
-        Page<Role> page = new PageImpl<>(List.of(role));
-
-        Mockito.when(roleRepository
-                        .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse("ADM", pageable))
+        Page<Role> page =
+                new PageImpl<>(List.of(role));
+        Mockito.when(roleRepository.findAll(
+                        Mockito.<Specification<Role>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        Mockito.when(modelMapper.map(role, RoleDto.class))
-                .thenReturn(dto);
-
-        Page<RoleDto> result = roleService.findAll(pageable, "ADM");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<RoleDto> result =
+                roleService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(roleRepository)
+                .findAll(
+                        Mockito.<Specification<Role>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

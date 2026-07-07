@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -224,28 +225,27 @@ class WarehouseServiceTest {
     }
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Warehouse entity = new Warehouse();
-        entity.setIdentifier("W1");
-
-        WarehouseDto dto = new WarehouseDto();
-        dto.setIdentifier("W1");
-
-        Page<Warehouse> page = new PageImpl<>(List.of(entity));
-
-        Mockito.when(warehouseRepository
-                        .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse("W", pageable))
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Warehouse warehouse = new Warehouse();
+        Page<Warehouse> page =
+                new PageImpl<>(List.of(warehouse));
+        Mockito.when(warehouseRepository.findAll(
+                        Mockito.<Specification<Warehouse>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        Mockito.when(modelMapper.map(entity, WarehouseDto.class))
-                .thenReturn(dto);
-
-        Page<WarehouseDto> result = warehouseService.findAll(pageable, "W");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<WarehouseDto> result =
+                warehouseService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(warehouseRepository)
+                .findAll(
+                        Mockito.<Specification<Warehouse>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test

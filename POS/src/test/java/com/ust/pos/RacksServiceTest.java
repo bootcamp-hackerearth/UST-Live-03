@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -260,28 +261,27 @@ class RacksServiceTest {
     // PAGINATION (SEARCH VERSION)
 
     @Test
-    void findAll_WithSearch() {
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Racks entity = new Racks();
-        entity.setIdentifier("R1");
-
-        RacksDto dto = new RacksDto();
-        dto.setIdentifier("R1");
-
-        Page<Racks> page = new PageImpl<>(List.of(entity));
-
-        Mockito.when(racksRepository
-                        .findByIdentifierContainingIgnoreCaseAndIsDeleteFalse("R", pageable))
+    void findAllPageableWithSearchTest() {
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Racks racks = new Racks();
+        Page<Racks> page =
+                new PageImpl<>(List.of(racks));
+        Mockito.when(racksRepository.findAll(
+                        Mockito.<Specification<Racks>>any(),
+                        Mockito.eq(pageable)))
                 .thenReturn(page);
-
-        Mockito.when(modelMapper.map(entity, RacksDto.class))
-                .thenReturn(dto);
-
-        Page<RacksDto> result = racksService.findAll(pageable, "R");
-
-        Assertions.assertEquals(1, result.getContent().size());
+        Page<RacksDto> result =
+                racksService.findAll(pageable, "Admin");
+        Assertions.assertEquals(
+                1,
+                result.getContent().size()
+        );
+        Mockito.verify(racksRepository)
+                .findAll(
+                        Mockito.<Specification<Racks>>any(),
+                        Mockito.eq(pageable)
+                );
     }
 
     @Test
