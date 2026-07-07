@@ -23,19 +23,6 @@ class CommonServiceTest {
     private SecurityContext securityContext;
     private Authentication authentication;
 
-    private static class TestEntity extends CommonFields {
-    }
-
-    private static class CommonServiceShim extends CommonService {
-        public void callSetAuditFields(CommonFields entity, boolean isNew) {
-            super.setAuditFields(entity, isNew);
-        }
-
-        public void callSoftDelete(CommonFields entity) {
-            super.softDelete(entity);
-        }
-    }
-
     @BeforeEach
     void setUp() {
         commonServiceShim = new CommonServiceShim();
@@ -114,5 +101,18 @@ class CommonServiceTest {
 
         Assertions.assertTrue(entity.isDeleted());
         Assertions.assertFalse(entity.isStatus());
+    }
+
+    private static class TestEntity extends CommonFields {
+    }
+
+    private static class CommonServiceShim extends CommonService {
+        public void callSetAuditFields(CommonFields entity, boolean isNew) {
+            super.setAuditFields(entity, isNew);
+        }
+
+        public void callSoftDelete(CommonFields entity) {
+            super.softDelete(entity);
+        }
     }
 }

@@ -91,10 +91,10 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
     @Override
     public ShelfDto findByIdentifier(String identifier) {
         Shelf shelf = shelfRepository.findByIdentifier(identifier);
-        if(shelf==null){
+        if (shelf == null) {
             throw new ResourceNotFoundException("Shelf with identifier '" + identifier + "' not found");
         }
-        return modelMapper.map(shelf,ShelfDto.class);
+        return modelMapper.map(shelf, ShelfDto.class);
     }
 
     @Override

@@ -4,7 +4,10 @@ import com.ust.pos.common.CommonService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
-import com.ust.pos.model.*;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.NodeRepository;
+import com.ust.pos.model.User;
+import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -90,7 +93,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
     @Override
     public NodeDto findByIdentifier(String identifier) {
         Node node = nodeRepository.findByIdentifier(identifier);
-        if(node==null){
+        if (node == null) {
             throw new ResourceNotFoundException("Node with identifier '" + identifier + "' not found");
         }
         return modelMapper.map(node, NodeDto.class);

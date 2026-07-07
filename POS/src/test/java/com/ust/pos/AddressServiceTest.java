@@ -1,10 +1,10 @@
 package com.ust.pos;
 
+import com.ust.pos.adress.service.impl.AddressServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
-import com.ust.pos.adress.service.impl.AddressServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

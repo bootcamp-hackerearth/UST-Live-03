@@ -88,7 +88,7 @@ class OrderServiceTest {
         String result = orderService.generateOrderId("CUST-123");
 
         Assertions.assertTrue(result.startsWith("ORD-123-"));
-        Assertions.assertEquals(22, result.length()); // Adjusted to match the real output format
+        Assertions.assertEquals(22, result.length());
     }
 
     @Test

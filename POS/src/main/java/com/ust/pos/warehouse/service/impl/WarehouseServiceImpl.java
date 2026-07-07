@@ -90,10 +90,10 @@ public class WarehouseServiceImpl extends CommonService implements WarehouseServ
     @Override
     public WarehouseDto findByIdentifier(String identifier) {
         Warehouse warehouse = warehouseRepository.findByIdentifier(identifier);
-        if(warehouse==null){
+        if (warehouse == null) {
             throw new ResourceNotFoundException("Warehouse with identifier '" + identifier + "' not found");
         }
-        return modelMapper.map(warehouse,WarehouseDto.class);
+        return modelMapper.map(warehouse, WarehouseDto.class);
     }
 
     @Override

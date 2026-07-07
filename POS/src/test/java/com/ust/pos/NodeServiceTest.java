@@ -29,7 +29,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

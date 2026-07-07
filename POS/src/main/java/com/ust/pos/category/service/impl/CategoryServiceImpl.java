@@ -66,7 +66,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
     @Override
     public CategoryDto findByIdentifier(String identifier) {
         Category category = categoryRepository.findByIdentifier(identifier);
-        if(category==null){
+        if (category == null) {
             throw new ResourceNotFoundException("Category with identifier '" + identifier + "' not found");
         }
         return modelMapper.map(category, CategoryDto.class);

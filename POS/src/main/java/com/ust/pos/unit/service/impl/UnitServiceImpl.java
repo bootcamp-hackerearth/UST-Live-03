@@ -89,10 +89,10 @@ public class UnitServiceImpl extends CommonService implements UnitService {
     @Override
     public UnitDto findByIdentifier(String identifier) {
         Unit unit = unitRepository.findByIdentifier(identifier);
-        if(unit==null){
+        if (unit == null) {
             throw new ResourceNotFoundException("Unit with identifier '" + identifier + "' not found");
         }
-        return modelMapper.map(unit,UnitDto.class);
+        return modelMapper.map(unit, UnitDto.class);
     }
 
     @Override

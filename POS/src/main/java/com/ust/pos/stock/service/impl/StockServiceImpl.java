@@ -84,10 +84,10 @@ public class StockServiceImpl extends CommonService implements StockService {
     @Override
     public StockDto findByIdentifier(String identifier) {
         Stock stock = stockRepository.findByIdentifier(identifier);
-        if(stock==null){
+        if (stock == null) {
             throw new ResourceNotFoundException("Stock with identifier '" + identifier + "' not found");
         }
-        return modelMapper.map(stock,StockDto.class);
+        return modelMapper.map(stock, StockDto.class);
     }
 
     @Override

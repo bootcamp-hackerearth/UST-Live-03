@@ -82,7 +82,7 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
     @Override
     public ModelsDto findByIdentifier(String identifier) {
         Models models = modelsRepository.findByIdentifier(identifier);
-        if(models==null){
+        if (models == null) {
             throw new ResourceNotFoundException("Models with identifier '" + identifier + "' not found");
         }
         ModelsDto modelsDto = modelMapper.map(models, ModelsDto.class);

@@ -93,10 +93,11 @@ public class AddressServiceImpl extends CommonService implements AddressService 
     @Override
     public AddressDto findByIdentifier(String identifier) {
         Address address = addressRepository.findByIdentifier(identifier);
-        if(address==null){
+        if (address == null) {
             throw new ResourceNotFoundException("Address with identifier '" + identifier + "' not found");
         }
-        return modelMapper.map(address, AddressDto.class);    }
+        return modelMapper.map(address, AddressDto.class);
+    }
 
     @Override
     public List<AddressDto> findAllByPhoneNumber(String phoneNo) {

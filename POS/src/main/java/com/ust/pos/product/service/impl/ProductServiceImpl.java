@@ -90,7 +90,8 @@ public class ProductServiceImpl extends CommonService implements ProductService 
     public ProductDto findByIdentifier(String identifier) {
         Product product = productRepository.findByIdentifier(identifier);
         if (product == null) {
-            throw new ResourceNotFoundException("Product with identifier '" + identifier + "' not found");        }
+            throw new ResourceNotFoundException("Product with identifier '" + identifier + "' not found");
+        }
         ProductDto dto = modelMapper.map(product, ProductDto.class);
         dto.setCategories(product.getCategories());
         return dto;

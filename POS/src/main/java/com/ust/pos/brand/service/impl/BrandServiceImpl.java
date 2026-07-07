@@ -60,7 +60,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
     @Override
     public BrandDto findByIdentifier(String identifier) {
         Brand brand = brandRepository.findByIdentifier(identifier);
-        if(brand==null){
+        if (brand == null) {
             throw new ResourceNotFoundException("Brand with identifier '" + identifier + "' not found");
         }
         return modelMapper.map(brand, BrandDto.class);

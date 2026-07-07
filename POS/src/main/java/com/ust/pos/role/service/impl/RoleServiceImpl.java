@@ -49,10 +49,10 @@ public class RoleServiceImpl extends CommonService implements RoleService {
     @Override
     public RoleDto findByIdentifier(String identifier) {
         Role role = roleRepository.findByIdentifier(identifier);
-        if(role==null){
+        if (role == null) {
             throw new ResourceNotFoundException("Role with identifier '" + identifier + "' not found");
         }
-        return modelMapper.map(role,RoleDto.class);
+        return modelMapper.map(role, RoleDto.class);
     }
 
     @Override
