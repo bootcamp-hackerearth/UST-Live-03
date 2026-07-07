@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
 
 export default function OrderInvoiceDetailsView() {
   const { id } = useParams();
@@ -14,13 +13,14 @@ export default function OrderInvoiceDetailsView() {
     const fetchInvoiceDetails = async () => {
       const token = localStorage.getItem("token");
       try {
-        const res = await axios.get(`http://localhost:8080/api/orders/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await fetch(`/api/orders/${id}`, {
+          headers: { Authorization: token ? `Bearer ${token}` : "" },
         });
-        setOrder(res.data);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const data = await res.json();
+        setOrder(data);
       } catch (err) {
         console.error("Error fetching invoice:", err);
-        alert("Failed to locate invoice record.");
       } finally {
         setLoading(false);
       }
