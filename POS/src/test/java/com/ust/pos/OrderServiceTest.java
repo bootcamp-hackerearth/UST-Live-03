@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.OrderEntryDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.*;
 import com.ust.pos.order.service.impl.OrderServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,14 +106,17 @@ class OrderServiceTest {
         assertEquals(1, result.getEntryList().size());
     }
 
+
+
     @Test
     void getOrderDetails_ThrowsException_WhenOrderNotFound() {
         String orderId = "NON-EXISTENT";
         when(orderRepository.findByIdentifier(orderId)).thenReturn(null);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            orderService.getOrderDetails(orderId);
-        });
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> orderService.getOrderDetails(orderId)
+        );
 
         assertEquals("Requested invoice does not exist.", exception.getMessage());
         verify(orderEntryRepository, never()).findByOrderIdentifier(anyString());
