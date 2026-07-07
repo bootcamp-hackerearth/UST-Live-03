@@ -18,6 +18,8 @@ import java.util.List;
 
 @Service
 public class RoleServiceImpl extends CommonService implements RoleService {
+    public static final String ROLE_WITH_IDENTIFIER = "Role with identifier - ";
+    public static final String NOT_FOUND = " not found";
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
 
@@ -28,7 +30,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public RoleDto findByIdentifier(String identifier) {
-        return modelMapper.map(roleRepository.findByIdentifier(identifier), RoleDto.class);
+        return modelMapper.map(requireResource(roleRepository.findByIdentifier(identifier), ROLE_WITH_IDENTIFIER + identifier + NOT_FOUND), RoleDto.class);
     }
 
     @Override
@@ -59,12 +61,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
     @Override
     public RoleDto update(RoleDto roleDto) {
         String identifier = roleDto.getIdentifier();
-        Role existingRole = roleRepository.findByIdentifier(identifier);
-        if (existingRole == null) {
-            roleDto.setMessage("Role with identifier - " + identifier + " not found");
-            roleDto.setSuccess(false);
-            return roleDto;
-        }
+        Role existingRole = requireResource(roleRepository.findByIdentifier(identifier), ROLE_WITH_IDENTIFIER + identifier + NOT_FOUND);
         modelMapper.map(roleDto, existingRole);
         setAuditFields(existingRole, false);
         roleRepository.save(existingRole);
@@ -73,10 +70,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
 
     @Override
     public boolean delete(String identifier) {
-        Role role = roleRepository.findByIdentifier(identifier);
-        if (role == null) {
-            return false;
-        }
+        Role role = requireResource(roleRepository.findByIdentifier(identifier), ROLE_WITH_IDENTIFIER + identifier + NOT_FOUND);
         softDelete(role);
         setAuditFields(role, false);
         roleRepository.save(role);

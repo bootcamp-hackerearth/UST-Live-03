@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController("userApiController")
@@ -23,6 +24,7 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<UserDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -33,6 +35,7 @@ public class UserController extends BaseController {
     }
 
     @GetMapping("/{username}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<UserDto> getByUsername(@PathVariable String username) {
         UserDto response = userService.findByUserName(username);
         if (response == null) {
@@ -42,6 +45,7 @@ public class UserController extends BaseController {
     }
 
     @PutMapping("/update/{username}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<UserDto> update(@PathVariable String username, @RequestBody UserDto userDto) {
         userDto.setUsername(username);
         UserDto response = userService.update(userDto);
@@ -52,6 +56,7 @@ public class UserController extends BaseController {
     }
 
     @DeleteMapping("/delete/{username}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String username) {
         try {
             userService.delete(username);

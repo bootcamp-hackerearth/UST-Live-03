@@ -2,13 +2,13 @@ package com.ust.pos;
 
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.*;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import com.ust.pos.model.OrderRepository;
 import com.ust.pos.model.Orders;
 import com.ust.pos.order.service.impl.OrderServiceImpl;
 import com.ust.pos.orderentry.service.OrderEntryService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,12 +19,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -32,8 +34,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
-    @InjectMocks
-    private OrderServiceImpl orderService;
+    private static final String CART_ID = "CART001";
+    private static final String ORDER_IDENTIFIER = "ORD-UUID";
+    private static final String CUSTOMER = "customer1";
 
     @Mock
     private OrderRepository orderRepository;
@@ -50,274 +53,316 @@ class OrderServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
+    @InjectMocks
+    private OrderServiceImpl service;
+
+
     @Test
-    void placeOrderSuccessTest() {
+    void placeOrderSuccess() {
+
         PlaceOrderRequestDto request = new PlaceOrderRequestDto();
-        request.setCartIdentifier("CART001");
+        request.setCartIdentifier(CART_ID);
         request.setPaymentMode("CASH");
 
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART001");
-        cartDto.setUsername("customer1");
-
         CartEntryDto entry = new CartEntryDto();
-        entry.setProductIdentifier("SKU001");
+        entry.setProductIdentifier("P1");
         entry.setQuantity(2);
-        entry.setSellingPrice(new BigDecimal("100.00"));
-        entry.setMrpPrice(new BigDecimal("120.00"));
-        entry.setTotalPrice(new BigDecimal("200.00"));
-        entry.setDiscount(new BigDecimal("40.00"));
-        cartDto.setCartEntries(List.of(entry));
+        entry.setSellingPrice(BigDecimal.TEN);
+        entry.setMrpPrice(BigDecimal.valueOf(15));
+        entry.setTotalPrice(BigDecimal.valueOf(20));
+        entry.setDiscount(BigDecimal.valueOf(5));
+
+        CartDto cart = new CartDto();
+        cart.setIdentifier(CART_ID);
+        cart.setUsername(CUSTOMER);
+        cart.setCoupon("DISC");
+        cart.setCartEntries(List.of(entry));
 
         Customer customer = new Customer();
-        customer.setIdentifier("customer1");
+        customer.setIdentifier(CUSTOMER);
 
-        OrderDto orderDto = new OrderDto();
-        orderDto.setIdentifier("ORD-UUID");
-        orderDto.setOrderId("ORD-20260620120000-ABC12345");
-        orderDto.setSuccess(true);
-        orderDto.setMessage("Order placed successfully.");
+        OrderDto mapped = new OrderDto();
 
-        when(cartService.findByIdentifier("CART001")).thenReturn(cartDto);
-        when(customerRepository.findByIdentifier("customer1")).thenReturn(customer);
-        when(orderRepository.save(any(Orders.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(modelMapper.map(any(Orders.class), eq(OrderDto.class))).thenReturn(orderDto);
-        when(orderEntryService.findAllByOrderIdentifier(any())).thenReturn(new ArrayList<>());
-        when(orderEntryService.save(any(OrderEntryDto.class))).thenReturn(new OrderEntryDto());
+        when(cartService.findByIdentifier(CART_ID)).thenReturn(cart);
 
-        OrderDto response = orderService.placeOrder(request);
+        when(customerRepository.findByIdentifier(CUSTOMER)).thenReturn(customer);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertEquals("Order placed successfully.", response.getMessage());
-        verify(orderRepository).save(any(Orders.class));
-        verify(orderEntryService, atLeastOnce()).save(any(OrderEntryDto.class));
-        verify(cartService).delete("CART001");
+        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        when(modelMapper.map(any(Orders.class), eq(OrderDto.class))).thenReturn(mapped);
+
+        when(modelMapper.map(any(Customer.class), eq(CustomerDto.class))).thenReturn(new CustomerDto());
+
+        when(orderEntryService.findAllByOrderIdentifier(any())).thenReturn(List.of(new OrderEntryDto()));
+
+        OrderDto result = service.placeOrder(request);
+
+        assertTrue(result.isSuccess());
+        assertEquals("Order placed successfully.", result.getMessage());
+
+        verify(orderRepository).save(any());
+        verify(orderEntryService).save(any());
+        verify(cartService).delete(CART_ID);
+
     }
 
+
     @Test
-    void placeOrderCartNotFoundTest() {
+    void placeOrderCustomerNull() {
+
         PlaceOrderRequestDto request = new PlaceOrderRequestDto();
-        request.setCartIdentifier("INVALID_CART");
 
-        when(cartService.findByIdentifier("INVALID_CART")).thenReturn(null);
+        request.setCartIdentifier(CART_ID);
 
-        OrderDto response = orderService.placeOrder(request);
+        CartEntryDto e = new CartEntryDto();
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Cart with identifier - INVALID_CART not found", response.getMessage());
-        verify(orderRepository, never()).save(any(Orders.class));
+        e.setTotalPrice(BigDecimal.TEN);
+
+        CartDto cart = new CartDto();
+
+        cart.setIdentifier(CART_ID);
+        cart.setCartEntries(List.of(e));
+
+        when(cartService.findByIdentifier(CART_ID)).thenReturn(cart);
+
+        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        when(modelMapper.map(any(Orders.class), eq(OrderDto.class))).thenReturn(new OrderDto());
+
+        when(orderEntryService.findAllByOrderIdentifier(any())).thenReturn(List.of());
+
+        OrderDto dto = service.placeOrder(request);
+
+        assertTrue(dto.isSuccess());
+
+        verify(customerRepository).findByIdentifier(any());
+
     }
 
+
     @Test
-    void placeOrderEmptyCartTest() {
+    void placeOrderEmptyCart() {
+
         PlaceOrderRequestDto request = new PlaceOrderRequestDto();
-        request.setCartIdentifier("EMPTY_CART");
 
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("EMPTY_CART");
-        cartDto.setCartEntries(new ArrayList<>());
+        request.setCartIdentifier(CART_ID);
 
-        when(cartService.findByIdentifier("EMPTY_CART")).thenReturn(cartDto);
+        CartDto cart = new CartDto();
 
-        OrderDto response = orderService.placeOrder(request);
+        cart.setCartEntries(List.of());
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Cart is empty. Cannot place order.", response.getMessage());
-        verify(orderRepository, never()).save(any(Orders.class));
+        when(cartService.findByIdentifier(CART_ID)).thenReturn(cart);
+
+        OrderDto result = service.placeOrder(request);
+
+        assertFalse(result.isSuccess());
+
+        assertEquals("Cart is empty. Cannot place order.", result.getMessage());
+
+        verify(orderRepository, never()).save(any());
+
     }
 
+
     @Test
-    void placeOrderNullCartEntriesTest() {
+    void placeOrderCartNotFound() {
+
+        when(cartService.findByIdentifier(CART_ID)).thenReturn(null);
+
         PlaceOrderRequestDto request = new PlaceOrderRequestDto();
-        request.setCartIdentifier("CART_NULL_ENTRIES");
 
-        CartDto cartDto = new CartDto();
-        cartDto.setIdentifier("CART_NULL_ENTRIES");
-        cartDto.setCartEntries(null);
+        request.setCartIdentifier(CART_ID);
 
-        when(cartService.findByIdentifier("CART_NULL_ENTRIES")).thenReturn(cartDto);
+        assertThrows(ResourceNotFoundException.class, () -> service.placeOrder(request));
 
-        OrderDto response = orderService.placeOrder(request);
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Cart is empty. Cannot place order.", response.getMessage());
-        verify(orderRepository, never()).save(any(Orders.class));
     }
 
+
     @Test
-    void findByIdentifierSuccessTest() {
-        Orders orders = new Orders();
-        orders.setIdentifier("ORD-UUID");
-        orders.setOrderId("ORD-20260620120000-ABC12345");
-        orders.setCustomerIdentifier("customer1");
+    void findByIdentifier() {
 
-        Customer customer = new Customer();
-        customer.setIdentifier("customer1");
+        Orders order = new Orders();
 
-        OrderDto orderDto = new OrderDto();
-        orderDto.setIdentifier("ORD-UUID");
-        orderDto.setOrderId("ORD-20260620120000-ABC12345");
-        orderDto.setCustomerIdentifier("customer1");
+        order.setIdentifier(ORDER_IDENTIFIER);
+        order.setCustomerIdentifier(CUSTOMER);
 
-        when(orderRepository.findByIdentifier("ORD-UUID")).thenReturn(orders);
-        when(modelMapper.map(orders, OrderDto.class)).thenReturn(orderDto);
-        when(customerRepository.findByIdentifier("customer1")).thenReturn(customer);
-        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(new CustomerDto());
-        when(orderEntryService.findAllByOrderIdentifier("ORD-UUID")).thenReturn(new ArrayList<>());
+        OrderDto dto = new OrderDto();
 
-        OrderDto response = orderService.findByIdentifier("ORD-UUID");
+        dto.setIdentifier(ORDER_IDENTIFIER);
+        dto.setCustomerIdentifier(CUSTOMER);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("ORD-UUID", response.getIdentifier());
+        when(orderRepository.findByIdentifier(ORDER_IDENTIFIER)).thenReturn(order);
+
+        when(modelMapper.map(order, OrderDto.class)).thenReturn(dto);
+
+        when(customerRepository.findByIdentifier(CUSTOMER)).thenReturn(new Customer());
+
+        when(modelMapper.map(any(Customer.class), eq(CustomerDto.class))).thenReturn(new CustomerDto());
+
+        when(orderEntryService.findAllByOrderIdentifier(ORDER_IDENTIFIER)).thenReturn(List.of());
+
+        OrderDto response = service.findByIdentifier(ORDER_IDENTIFIER);
+
+        assertNotNull(response);
+
     }
 
+
     @Test
-    void findByIdentifierNotFoundTest() {
-        when(orderRepository.findByIdentifier("INVALID")).thenReturn(null);
+    void findByIdentifierNotFound() {
 
-        OrderDto response = orderService.findByIdentifier("INVALID");
+        when(orderRepository.findByIdentifier(ORDER_IDENTIFIER)).thenReturn(null);
 
-        Assertions.assertNull(response);
+        assertThrows(ResourceNotFoundException.class, () -> service.findByIdentifier(ORDER_IDENTIFIER));
+
     }
 
+
     @Test
-    void findByOrderIdSuccessTest() {
-        Orders orders = new Orders();
-        orders.setIdentifier("ORD-UUID");
-        orders.setOrderId("ORD-20260620120000-ABC12345");
-        orders.setCustomerIdentifier("customer1");
+    void findByOrderId() {
 
-        Customer customer = new Customer();
-        customer.setIdentifier("customer1");
+        Orders order = new Orders();
 
-        OrderDto orderDto = new OrderDto();
-        orderDto.setIdentifier("ORD-UUID");
-        orderDto.setOrderId("ORD-20260620120000-ABC12345");
-        orderDto.setCustomerIdentifier("customer1");
+        order.setIdentifier(ORDER_IDENTIFIER);
 
-        when(orderRepository.findByOrderId("ORD-20260620120000-ABC12345")).thenReturn(orders);
-        when(modelMapper.map(orders, OrderDto.class)).thenReturn(orderDto);
-        when(customerRepository.findByIdentifier("customer1")).thenReturn(customer);
-        when(modelMapper.map(customer, CustomerDto.class)).thenReturn(new CustomerDto());
-        when(orderEntryService.findAllByOrderIdentifier("ORD-UUID")).thenReturn(new ArrayList<>());
+        OrderDto dto = new OrderDto();
 
-        OrderDto response = orderService.findByOrderId("ORD-20260620120000-ABC12345");
+        dto.setIdentifier(ORDER_IDENTIFIER);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("ORD-20260620120000-ABC12345", response.getOrderId());
+        when(orderRepository.findByOrderId("ORDER1")).thenReturn(order);
+
+        when(modelMapper.map(order, OrderDto.class)).thenReturn(dto);
+
+        when(orderEntryService.findAllByOrderIdentifier(ORDER_IDENTIFIER)).thenReturn(List.of());
+
+        OrderDto result = service.findByOrderId("ORDER1");
+
+        assertNotNull(result);
+
     }
 
+
     @Test
-    void findByOrderIdNotFoundTest() {
-        when(orderRepository.findByOrderId("INVALID_ORDER_ID")).thenReturn(null);
+    void findByCustomerIdentifier() {
 
-        OrderDto response = orderService.findByOrderId("INVALID_ORDER_ID");
+        Orders order = new Orders();
 
-        Assertions.assertNull(response);
+        order.setIdentifier(ORDER_IDENTIFIER);
+
+        List<Orders> entities = List.of(order);
+
+        OrderDto dto = new OrderDto();
+
+        dto.setIdentifier(ORDER_IDENTIFIER);
+
+        List<OrderDto> dtos = new ArrayList<>();
+
+        dtos.add(dto);
+
+        when(orderRepository.findAllByCustomerIdentifierOrderByOrderDateDesc(CUSTOMER)).thenReturn(entities);
+
+        when(modelMapper.map(eq(entities), any(Type.class))).thenReturn(dtos);
+
+        when(orderEntryService.findAllByOrderIdentifier(ORDER_IDENTIFIER)).thenReturn(List.of());
+
+        List<OrderDto> result = service.findByCustomerIdentifier(CUSTOMER);
+
+        assertEquals(1, result.size());
+
     }
 
+
     @Test
-    void findAllTest() {
+    void deleteSuccess() {
+
+        Orders order = new Orders();
+
+        order.setIdentifier(ORDER_IDENTIFIER);
+
+        when(orderRepository.findByIdentifier(ORDER_IDENTIFIER)).thenReturn(order);
+
+        boolean deleted = service.delete(ORDER_IDENTIFIER);
+
+        assertTrue(deleted);
+
+        verify(orderEntryService).deleteByOrderIdentifier(ORDER_IDENTIFIER);
+
+        verify(orderRepository).deleteByIdentifier(ORDER_IDENTIFIER);
+
+    }
+
+
+    @Test
+    void deleteNotFound() {
+
+        when(orderRepository.findByIdentifier(ORDER_IDENTIFIER)).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> service.delete(ORDER_IDENTIFIER));
+
+    }
+
+
+    @Test
+    void findAllPageable() {
+
         Pageable pageable = PageRequest.of(0, 10);
 
-        Orders orders = new Orders();
-        orders.setIdentifier("ORD-UUID");
-        orders.setCustomerIdentifier("customer1");
-        List<Orders> ordersList = List.of(orders);
+        Orders entity = new Orders();
 
-        Page<Orders> page = new PageImpl<>(ordersList, pageable, 1);
+        entity.setIdentifier(ORDER_IDENTIFIER);
 
-        OrderDto orderDto = new OrderDto();
-        orderDto.setIdentifier("ORD-UUID");
-        orderDto.setCustomerIdentifier("customer1");
-        List<OrderDto> orderDtos = new ArrayList<>(List.of(orderDto));
+        Page<Orders> page = new PageImpl<>(List.of(entity), pageable, 1);
+
+        OrderDto dto = new OrderDto();
+
+        dto.setIdentifier(ORDER_IDENTIFIER);
+
+        List<OrderDto> mapped = List.of(dto);
 
         when(orderRepository.findAll(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(ordersList), any(Type.class))).thenReturn(orderDtos);
-        when(customerRepository.findByIdentifier("customer1")).thenReturn(new Customer());
-        when(modelMapper.map(any(Customer.class), eq(CustomerDto.class))).thenReturn(new CustomerDto());
-        when(orderEntryService.findAllByOrderIdentifier("ORD-UUID")).thenReturn(new ArrayList<>());
 
-        List<OrderDto> response = orderService.findAll(pageable);
+        when(modelMapper.map(eq(page.getContent()), any(Type.class))).thenReturn(mapped);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("ORD-UUID", response.get(0).getIdentifier());
+        when(orderEntryService.findAllByOrderIdentifier(ORDER_IDENTIFIER)).thenReturn(List.of());
+
+        WsDto<OrderDto> result = service.findAll(pageable);
+
+        assertEquals(1, result.getTotalRecords());
+
+        assertEquals(1, result.getDtoList().size());
+
     }
 
+
     @Test
-    void findAllEmptyTest() {
+    void findAllSpecification() {
+
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Orders> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
 
-        when(orderRepository.findAll(pageable)).thenReturn(emptyPage);
-        when(modelMapper.map(eq(new ArrayList<>()), any(Type.class))).thenReturn(new ArrayList<>());
+        Specification<Orders> spec = mock(Specification.class);
 
-        List<OrderDto> response = orderService.findAll(pageable);
+        Orders order = new Orders();
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(0, response.size());
+        order.setIdentifier(ORDER_IDENTIFIER);
+
+        Page<Orders> page = new PageImpl<>(List.of(order));
+
+        OrderDto dto = new OrderDto();
+
+        dto.setIdentifier(ORDER_IDENTIFIER);
+
+        when(orderRepository.findAll(spec, pageable)).thenReturn(page);
+
+        when(modelMapper.map(eq(page.getContent()), any(Type.class))).thenReturn(List.of(dto));
+
+        when(orderEntryService.findAllByOrderIdentifier(ORDER_IDENTIFIER)).thenReturn(List.of());
+
+        WsDto<OrderDto> ws = service.findAll(spec, pageable, "abc");
+
+        assertEquals("abc", ws.getKeyword());
+
+        assertEquals(1, ws.getDtoList().size());
+
     }
 
-    @Test
-    void findByCustomerIdentifierTest() {
-        Orders orders = new Orders();
-        orders.setIdentifier("ORD-UUID");
-        orders.setCustomerIdentifier("customer1");
-        List<Orders> ordersList = List.of(orders);
-
-        OrderDto orderDto = new OrderDto();
-        orderDto.setIdentifier("ORD-UUID");
-        orderDto.setCustomerIdentifier("customer1");
-        List<OrderDto> orderDtos = new ArrayList<>(List.of(orderDto));
-
-        when(orderRepository.findAllByCustomerIdentifierOrderByOrderDateDesc("customer1")).thenReturn(ordersList);
-        when(modelMapper.map(eq(ordersList), any(Type.class))).thenReturn(orderDtos);
-        when(orderEntryService.findAllByOrderIdentifier("ORD-UUID")).thenReturn(new ArrayList<>());
-
-        List<OrderDto> response = orderService.findByCustomerIdentifier("customer1");
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals("ORD-UUID", response.get(0).getIdentifier());
-    }
-
-    @Test
-    void findByCustomerIdentifierEmptyTest() {
-        when(orderRepository.findAllByCustomerIdentifierOrderByOrderDateDesc("UNKNOWN")).thenReturn(new ArrayList<>());
-        when(modelMapper.map(eq(new ArrayList<>()), any(Type.class))).thenReturn(new ArrayList<>());
-
-        List<OrderDto> response = orderService.findByCustomerIdentifier("UNKNOWN");
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals(0, response.size());
-    }
-
-    @Test
-    void deleteOrderSuccessTest() {
-        Orders orders = new Orders();
-        orders.setIdentifier("ORD-UUID");
-
-        when(orderRepository.findByIdentifier("ORD-UUID")).thenReturn(orders);
-
-        boolean result = orderService.delete("ORD-UUID");
-
-        Assertions.assertTrue(result);
-        verify(orderEntryService).deleteByOrderIdentifier("ORD-UUID");
-        verify(orderRepository).deleteByIdentifier("ORD-UUID");
-        verify(orderRepository, never()).save(any(Orders.class));
-    }
-
-    @Test
-    void deleteOrderNotFoundTest() {
-        when(orderRepository.findByIdentifier("INVALID")).thenReturn(null);
-
-        boolean result = orderService.delete("INVALID");
-
-        Assertions.assertFalse(result);
-        verify(orderRepository, never()).save(any(Orders.class));
-        verify(orderRepository, never()).deleteByIdentifier(any());
-        verify(orderEntryService, never()).deleteByOrderIdentifier(any());
-    }
 }

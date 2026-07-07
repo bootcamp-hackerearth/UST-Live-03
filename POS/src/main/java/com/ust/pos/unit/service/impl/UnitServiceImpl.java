@@ -19,6 +19,7 @@ import java.util.List;
 @Service
 public class UnitServiceImpl extends CommonService implements UnitService {
     public static final String UNIT_WITH_IDENTIFIER = "Unit with identifier - ";
+    public static final String NOT_FOUND = " not found";
     private final UnitRepository unitRepository;
     private final ModelMapper modelMapper;
 
@@ -29,7 +30,7 @@ public class UnitServiceImpl extends CommonService implements UnitService {
 
     @Override
     public UnitDto findByIdentifier(String identifier) {
-        return modelMapper.map(unitRepository.findByIdentifier(identifier), UnitDto.class);
+        return modelMapper.map(requireResource(unitRepository.findByIdentifier(identifier), UNIT_WITH_IDENTIFIER + identifier + NOT_FOUND), UnitDto.class);
     }
 
     @Override
@@ -63,12 +64,7 @@ public class UnitServiceImpl extends CommonService implements UnitService {
     @Override
     public UnitDto update(UnitDto unitDto) {
         String identifier = unitDto.getIdentifier();
-        Unit existingUnit = unitRepository.findByIdentifier(identifier);
-        if (existingUnit == null) {
-            unitDto.setMessage(UNIT_WITH_IDENTIFIER + identifier + " not found");
-            unitDto.setSuccess(false);
-            return unitDto;
-        }
+        Unit existingUnit = requireResource(unitRepository.findByIdentifier(identifier), UNIT_WITH_IDENTIFIER + identifier + NOT_FOUND);
         modelMapper.map(unitDto, existingUnit);
         setAuditFields(existingUnit, false);
         unitRepository.save(existingUnit);
@@ -77,10 +73,7 @@ public class UnitServiceImpl extends CommonService implements UnitService {
 
     @Override
     public boolean delete(String identifier) {
-        Unit unit = unitRepository.findByIdentifier(identifier);
-        if (unit == null) {
-            return false;
-        }
+        Unit unit = requireResource(unitRepository.findByIdentifier(identifier), UNIT_WITH_IDENTIFIER + identifier + NOT_FOUND);
         softDelete(unit);
         setAuditFields(unit, false);
         unitRepository.save(unit);

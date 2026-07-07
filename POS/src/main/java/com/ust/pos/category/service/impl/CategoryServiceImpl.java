@@ -19,6 +19,7 @@ import java.util.List;
 @Service
 public class CategoryServiceImpl extends CommonService implements CategoryService {
     public static final String CATEGORY_WITH_IDENTIFIER = "Category with identifier - ";
+    public static final String NOT_FOUND = " not found";
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
 
@@ -29,8 +30,8 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-        Category category = categoryRepository.findByIdentifier(identifier);
-        return category == null ? null : modelMapper.map(category, CategoryDto.class);
+        Category category = requireResource(categoryRepository.findByIdentifier(identifier), CATEGORY_WITH_IDENTIFIER + identifier + NOT_FOUND);
+        return modelMapper.map(category, CategoryDto.class);
     }
 
     @Override
@@ -64,12 +65,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public CategoryDto update(CategoryDto dto) {
-        Category category = categoryRepository.findByIdentifier(dto.getIdentifier());
-        if (category == null) {
-            dto.setSuccess(false);
-            dto.setMessage(CATEGORY_WITH_IDENTIFIER + dto.getIdentifier() + " not found");
-            return dto;
-        }
+        Category category = requireResource(categoryRepository.findByIdentifier(dto.getIdentifier()), CATEGORY_WITH_IDENTIFIER + dto.getIdentifier() + NOT_FOUND);
         String superCategory = dto.getSuperCategory();
         if (superCategory == null || superCategory.trim().isEmpty()) {
             category.setSuperCategory(null);
@@ -85,10 +81,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public boolean delete(String identifier) {
-        Category category = categoryRepository.findByIdentifier(identifier);
-        if (category == null) {
-            return false;
-        }
+        Category category = requireResource(categoryRepository.findByIdentifier(identifier), CATEGORY_WITH_IDENTIFIER + identifier + NOT_FOUND);
         softDelete(category);
         setAuditFields(category, false);
         categoryRepository.save(category);
@@ -134,8 +127,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public CategoryDto toggleStatus(String identifier) {
-        Category category = categoryRepository.findByIdentifier(identifier);
-        if (category == null) return null;
+        Category category = requireResource(categoryRepository.findByIdentifier(identifier), CATEGORY_WITH_IDENTIFIER + identifier + NOT_FOUND);
         if (category.getSuperCategory() == null) {
             return modelMapper.map(category, CategoryDto.class);
         }

@@ -1,5 +1,6 @@
 package com.ust.pos.common;
 
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.CommonFields;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,13 @@ public abstract class CommonService {
             entity.setModifiedBy(currentUser);
             entity.setModifiedAt(now);
         }
+    }
+
+    protected <T> T requireResource(T entity, String message) {
+        if (entity == null) {
+            throw new ResourceNotFoundException(message);
+        }
+        return entity;
     }
 
     private String getCurrentUsername() {

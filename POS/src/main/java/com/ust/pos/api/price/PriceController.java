@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController("priceApiController")
@@ -27,6 +28,7 @@ public class PriceController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<PriceDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -37,6 +39,7 @@ public class PriceController extends BaseController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<PriceDto> getById(@PathVariable Long id) {
         PriceDto response = priceService.getPriceById(id);
         if (response == null || !response.isSuccess()) {
@@ -46,6 +49,7 @@ public class PriceController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<PriceDto> save(@RequestBody PriceDto priceDto) {
         try {
             PriceDto response = priceService.createPrice(priceDto);
@@ -59,6 +63,7 @@ public class PriceController extends BaseController {
     }
 
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<PriceDto> update(@PathVariable Long id, @RequestBody PriceDto priceDto) {
         try {
             priceDto.setId(id);
@@ -73,6 +78,7 @@ public class PriceController extends BaseController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         try {
             priceService.deletePrice(id);
@@ -83,6 +89,7 @@ public class PriceController extends BaseController {
     }
 
     @GetMapping("/products")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<ProductDto> getAllProducts() {
         return productService.findAll(Pageable.unpaged());
     }

@@ -22,6 +22,7 @@ import java.util.List;
 @Service
 public class ProductServiceImpl extends CommonService implements ProductService {
     public static final String PRODUCT_WITH_SKU_CODE = "Product with skuCode - ";
+    public static final String NOT_FOUND = " not found";
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
     private final PriceRepository priceRepository;
@@ -34,10 +35,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
 
     @Override
     public ProductDto findByIdentifier(String identifier) {
-        Product product = productRepository.findByIdentifier(identifier);
-        if (product == null) {
-            return null;
-        }
+        Product product = requireResource(productRepository.findByIdentifier(identifier), PRODUCT_WITH_SKU_CODE + identifier + NOT_FOUND);
         ProductDto productDto = modelMapper.map(product, ProductDto.class);
         Price price = priceRepository.findByProductId(product.getId());
         if (price != null) {
@@ -70,12 +68,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
     @Override
     public ProductDto update(ProductDto productDto) {
         String identifier = productDto.getIdentifier().trim();
-        Product existingProduct = productRepository.findByIdentifier(identifier);
-        if (existingProduct == null) {
-            productDto.setMessage(PRODUCT_WITH_SKU_CODE + identifier + " not found");
-            productDto.setSuccess(false);
-            return productDto;
-        }
+        Product existingProduct = requireResource(productRepository.findByIdentifier(identifier), PRODUCT_WITH_SKU_CODE + identifier + NOT_FOUND);
         modelMapper.map(productDto, existingProduct);
         setAuditFields(existingProduct, false);
         productRepository.save(existingProduct);
@@ -84,10 +77,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
 
     @Override
     public boolean delete(String identifier) {
-        Product product = productRepository.findByIdentifier(identifier);
-        if (product == null) {
-            return false;
-        }
+        Product product = requireResource(productRepository.findByIdentifier(identifier), PRODUCT_WITH_SKU_CODE + identifier + NOT_FOUND);
         softDelete(product);
         setAuditFields(product, false);
         productRepository.save(product);
@@ -137,7 +127,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
 
     @Override
     public ProductDto toggleStatus(String identifier) {
-        Product product = productRepository.findByIdentifier(identifier);
+        Product product = requireResource(productRepository.findByIdentifier(identifier), PRODUCT_WITH_SKU_CODE + identifier + NOT_FOUND);
         product.setStatus(!product.isStatus());
         productRepository.save(product);
         return modelMapper.map(product, ProductDto.class);

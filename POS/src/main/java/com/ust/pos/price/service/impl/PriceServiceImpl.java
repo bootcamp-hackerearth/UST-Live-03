@@ -17,6 +17,8 @@ import java.util.List;
 
 @Service
 public class PriceServiceImpl extends CommonService implements PriceService {
+    public static final String PRICE_WITH_ID = "Price with id '";
+    public static final String NOT_FOUND = "' not found";
     private final PriceRepository priceRepository;
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
@@ -29,12 +31,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
     @Override
     public PriceDto createPrice(PriceDto priceDto) {
-        var productOpt = productRepository.findById(priceDto.getProductId());
-        if (productOpt.isEmpty()) {
-            priceDto.setSuccess(false);
-            priceDto.setMessage("Product not found");
-            return priceDto;
-        }
+        var product = requireResource(productRepository.findById(priceDto.getProductId()).orElse(null), "Product with id '" + priceDto.getProductId() + NOT_FOUND);
         Price existingPrice = priceRepository.findByProductId(priceDto.getProductId());
         if (existingPrice != null) {
             if (existingPrice.isDeleted()) {
@@ -46,7 +43,6 @@ public class PriceServiceImpl extends CommonService implements PriceService {
             priceDto.setSuccess(false);
             return priceDto;
         }
-        var product = productOpt.get();
         priceDto.setProductName(product.getProductName());
         priceDto.setIdentifier(product.getIdentifier());
         Price price = modelMapper.map(priceDto, Price.class);
@@ -59,12 +55,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
     @Override
     public PriceDto updatePrice(PriceDto priceDto) {
-        Price price = priceRepository.findById(priceDto.getId()).orElse(null);
-        if (price == null) {
-            priceDto.setSuccess(false);
-            priceDto.setMessage("Price record not found");
-            return priceDto;
-        }
+        Price price = requireResource(priceRepository.findById(priceDto.getId()).orElse(null), PRICE_WITH_ID + priceDto.getId() + NOT_FOUND);
         price.setSellingPrice(priceDto.getSellingPrice());
         price.setCostPrice(priceDto.getCostPrice());
         productRepository.findById(price.getProductId()).ifPresent(product -> {
@@ -102,10 +93,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
     @Override
     public boolean deletePrice(Long id) {
-        Price price = priceRepository.findById(id).orElse(null);
-        if (price == null) {
-            return false;
-        }
+        Price price = requireResource(priceRepository.findById(id).orElse(null), PRICE_WITH_ID + id + NOT_FOUND);
         softDelete(price);
         setAuditFields(price, false);
         priceRepository.save(price);
@@ -114,19 +102,14 @@ public class PriceServiceImpl extends CommonService implements PriceService {
 
     @Override
     public PriceDto getPriceById(Long id) {
+        Price price = requireResource(priceRepository.findById(id).orElse(null), PRICE_WITH_ID + id + NOT_FOUND);
         PriceDto dto = new PriceDto();
-        priceRepository.findById(id).ifPresentOrElse(price -> {
-            modelMapper.map(price, dto);
-            productRepository.findById(price.getProductId()).ifPresent(product -> {
-                dto.setProductName(product.getProductName());
-                dto.setIdentifier(product.getIdentifier());
-            });
-            dto.setSuccess(true);
-
-        }, () -> {
-            dto.setSuccess(false);
-            dto.setMessage("Price not found");
+        modelMapper.map(price, dto);
+        productRepository.findById(price.getProductId()).ifPresent(product -> {
+            dto.setProductName(product.getProductName());
+            dto.setIdentifier(product.getIdentifier());
         });
+        dto.setSuccess(true);
         return dto;
     }
 

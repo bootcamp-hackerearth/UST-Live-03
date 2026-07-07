@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +27,7 @@ import java.util.Objects;
 @Service
 @Transactional
 public class OrderServiceImpl extends CommonService implements OrderService {
+    private static final String NOT_FOUND = " not found";
     private final OrderRepository orderRepository;
     private final OrderEntryService orderEntryService;
     private final CartService cartService;
@@ -42,29 +44,22 @@ public class OrderServiceImpl extends CommonService implements OrderService {
     }
 
     private String generateOrderId() {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String timestamp = LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String uniquePart = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         return "ORD-" + timestamp + "-" + uniquePart;
     }
 
     @Override
     public OrderDto placeOrder(PlaceOrderRequestDto request) {
-        OrderDto errorDto = new OrderDto();
-
         String cartIdentifier = request.getCartIdentifier();
-        CartDto cart = cartService.findByIdentifier(cartIdentifier);
-
-        if (cart == null) {
-            errorDto.setMessage("Cart with identifier - " + cartIdentifier + " not found");
-            errorDto.setSuccess(false);
-            return errorDto;
-        }
+        CartDto cart = requireResource(cartService.findByIdentifier(cartIdentifier), "Cart with identifier - " + cartIdentifier + NOT_FOUND);
 
         List<CartEntryDto> cartEntries = cart.getCartEntries();
         if (cartEntries == null || cartEntries.isEmpty()) {
-            errorDto.setMessage("Cart is empty. Cannot place order.");
-            errorDto.setSuccess(false);
-            return errorDto;
+            OrderDto orderDto = new OrderDto();
+            orderDto.setSuccess(false);
+            orderDto.setMessage("Cart is empty. Cannot place order.");
+            return orderDto;
         }
 
         String customerIdentifier = cart.getUsername() != null ? cart.getUsername() : cart.getIdentifier();
@@ -76,7 +71,7 @@ public class OrderServiceImpl extends CommonService implements OrderService {
         orders.setCartIdentifier(cartIdentifier);
         orders.setCustomerIdentifier(customerIdentifier);
         orders.setPaymentMode(request.getPaymentMode());
-        orders.setOrderDate(LocalDateTime.now());
+        orders.setOrderDate(LocalDateTime.now(ZoneId.systemDefault()));
         orders.setStatus(true);
 
         BigDecimal totalPrice = cartEntries.stream().map(CartEntryDto::getTotalPrice).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -116,19 +111,13 @@ public class OrderServiceImpl extends CommonService implements OrderService {
 
     @Override
     public OrderDto findByIdentifier(String identifier) {
-        Orders orders = orderRepository.findByIdentifier(identifier);
-        if (orders == null) {
-            return null;
-        }
+        Orders orders = requireResource(orderRepository.findByIdentifier(identifier), "Order with identifier - " + identifier + NOT_FOUND);
         return buildOrderDto(orders);
     }
 
     @Override
     public OrderDto findByOrderId(String orderId) {
-        Orders orders = orderRepository.findByOrderId(orderId);
-        if (orders == null) {
-            return null;
-        }
+        Orders orders = requireResource(orderRepository.findByOrderId(orderId), "Order with orderId - " + orderId + NOT_FOUND);
         return buildOrderDto(orders);
     }
 
@@ -144,10 +133,7 @@ public class OrderServiceImpl extends CommonService implements OrderService {
 
     @Override
     public boolean delete(String identifier) {
-        Orders orders = orderRepository.findByIdentifier(identifier);
-        if (orders == null) {
-            return false;
-        }
+        requireResource(orderRepository.findByIdentifier(identifier), "Order with identifier - " + identifier + NOT_FOUND);
         orderEntryService.deleteByOrderIdentifier(identifier);
         orderRepository.deleteByIdentifier(identifier);
         return true;
@@ -198,7 +184,8 @@ public class OrderServiceImpl extends CommonService implements OrderService {
     }
 
     private List<OrderDto> buildOrderDtoList(Page<Orders> orderPage) {
-        Type listType = new TypeToken<List<OrderDto>>() {}.getType();
+        Type listType = new TypeToken<List<OrderDto>>() {
+        }.getType();
         List<OrderDto> dtos = modelMapper.map(orderPage.getContent(), listType);
         dtos.forEach(this::enrichOrderDto);
         return dtos;

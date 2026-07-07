@@ -74,7 +74,8 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
 
     @Override
     public WsDto<ShelfDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<ShelfDto>>() {}.getType();
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
         Page<Shelf> shelfPage = shelfRepository.findByDeletedFalse(pageable);
         WsDto<ShelfDto> wsDto = new WsDto<>();
         wsDto.setDtoList(modelMapper.map(shelfPage.getContent(), listType));
@@ -87,7 +88,8 @@ public class ShelfServiceImpl extends CommonService implements ShelfService {
 
     @Override
     public WsDto<ShelfDto> findAll(Specification<Shelf> spec, Pageable pageable, String keyword) {
-        Type listType = new TypeToken<List<ShelfDto>>() {}.getType();
+        Type listType = new TypeToken<List<ShelfDto>>() {
+        }.getType();
         Page<Shelf> shelfPage = shelfRepository.findAll(spec, pageable);
         WsDto<ShelfDto> wsDto = new WsDto<>();
         wsDto.setDtoList(modelMapper.map(shelfPage.getContent(), listType));

@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class NodeController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<NodeDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -35,11 +37,13 @@ public class NodeController extends BaseController {
     }
 
     @GetMapping("/getNodesForRoles")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<NodeDto>> myNodes() {
         return ResponseEntity.ok(nodeService.getNodesForRoles());
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<NodeDto> getByIdentifier(@PathVariable String identifier) {
         NodeDto response = nodeService.findByIdentifier(identifier);
         if (response == null) {
@@ -49,6 +53,7 @@ public class NodeController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<NodeDto> save(@RequestBody NodeDto nodeDto) {
         NodeDto response = nodeService.save(nodeDto);
         if (!response.isSuccess()) {
@@ -58,6 +63,7 @@ public class NodeController extends BaseController {
     }
 
     @PutMapping("/update/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<NodeDto> update(@PathVariable String identifier, @RequestBody NodeDto nodeDto) {
         nodeDto.setIdentifier(identifier);
         NodeDto response = nodeService.update(nodeDto);
@@ -68,6 +74,7 @@ public class NodeController extends BaseController {
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             nodeService.delete(identifier);

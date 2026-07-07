@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class StockController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -39,6 +41,7 @@ public class StockController extends BaseController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<StockDto> get(@RequestParam Long productId, @RequestParam Long warehouseId) {
         StockDto response = stockService.getStock(productId, warehouseId);
         if (response == null || !response.isSuccess()) {
@@ -48,6 +51,7 @@ public class StockController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<StockDto> save(@RequestBody StockDto stockDto) {
         StockDto response = stockService.createStock(stockDto);
         if (!response.isSuccess()) {
@@ -57,6 +61,7 @@ public class StockController extends BaseController {
     }
 
     @PutMapping("/update-quantity/{stockId}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<StockDto> updateQuantity(@PathVariable Long stockId, @RequestParam Integer quantity) {
         StockDto response = stockService.updateStockQuantity(stockId, quantity);
         if (!response.isSuccess()) {
@@ -66,6 +71,7 @@ public class StockController extends BaseController {
     }
 
     @PostMapping("/toggle-status")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> toggleStatus(@RequestParam Long id) {
         try {
             stockService.toggleStatus(id);
@@ -76,6 +82,7 @@ public class StockController extends BaseController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         try {
             boolean deleted = stockService.deleteStock(id);
@@ -86,12 +93,14 @@ public class StockController extends BaseController {
     }
 
     @GetMapping("/products")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<ProductDto>> getProducts() {
         List<ProductDto> products = productService.findIfTrue();
         return ResponseEntity.ok(products);
     }
 
     @GetMapping("/warehouses")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<WarehouseDto>> getWarehouses() {
         List<WarehouseDto> warehouses = warehouseService.findIfTrue();
         return ResponseEntity.ok(warehouses);

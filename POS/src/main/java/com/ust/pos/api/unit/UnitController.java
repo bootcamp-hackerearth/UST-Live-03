@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class UnitController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<UnitDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -35,12 +37,14 @@ public class UnitController extends BaseController {
     }
 
     @GetMapping("/active")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<UnitDto>> getActiveUnits() {
         List<UnitDto> activeUnits = unitService.findIfTrue();
         return ResponseEntity.ok(activeUnits);
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<UnitDto> getByIdentifier(@PathVariable String identifier) {
         UnitDto response = unitService.findByIdentifier(identifier);
         if (response == null) {
@@ -50,6 +54,7 @@ public class UnitController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<UnitDto> save(@RequestBody UnitDto unitDto) {
         UnitDto response = unitService.save(unitDto);
         if (!response.isSuccess()) {
@@ -59,6 +64,7 @@ public class UnitController extends BaseController {
     }
 
     @PutMapping("/update/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<UnitDto> update(@PathVariable String identifier, @RequestBody UnitDto unitDto) {
         unitDto.setIdentifier(identifier);
         UnitDto response = unitService.update(unitDto);
@@ -69,6 +75,7 @@ public class UnitController extends BaseController {
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             unitService.delete(identifier);
@@ -79,6 +86,7 @@ public class UnitController extends BaseController {
     }
 
     @PostMapping("/toggle/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<UnitDto> toggleStatus(@PathVariable String identifier) {
         UnitDto response = unitService.toggleStatus(identifier);
         return ResponseEntity.ok(response);

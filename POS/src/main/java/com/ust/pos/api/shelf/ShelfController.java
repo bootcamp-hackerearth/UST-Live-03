@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -24,6 +25,7 @@ public class ShelfController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<ShelfDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -34,6 +36,7 @@ public class ShelfController extends BaseController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<ShelfDto> getById(@PathVariable Long id) {
         ShelfDto response = shelfService.getShelf(id);
         if (response == null || !response.isSuccess()) {
@@ -43,6 +46,7 @@ public class ShelfController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<ShelfDto> save(@RequestBody ShelfDto shelfDto) {
         ShelfDto response = shelfService.createShelf(shelfDto);
         if (!response.isSuccess()) {
@@ -52,6 +56,7 @@ public class ShelfController extends BaseController {
     }
 
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<ShelfDto> update(@PathVariable Long id, @RequestBody ShelfDto shelfDto) {
         shelfDto.setId(id);
         ShelfDto response = shelfService.updateShelf(shelfDto);
@@ -62,6 +67,7 @@ public class ShelfController extends BaseController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         try {
             shelfService.deleteShelf(id);
@@ -72,6 +78,7 @@ public class ShelfController extends BaseController {
     }
 
     @PostMapping("/toggle/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<ShelfDto> toggleStatus(@PathVariable Long id) {
         ShelfDto response = shelfService.toggleStatus(id);
         return ResponseEntity.ok(response);

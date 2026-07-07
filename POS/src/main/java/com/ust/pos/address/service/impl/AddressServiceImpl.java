@@ -14,7 +14,12 @@ import java.util.List;
 
 @Service
 public class AddressServiceImpl extends CommonService implements AddressService {
-    public static final String ADDRESS_WITH_IDENTIFIER = "Address with identifier - ";
+
+    private static final String ADDRESS_WITH_IDENTIFIER = "Address with identifier - ";
+    private static final String NOT_FOUND = " not found";
+    private static final String ALREADY_EXISTS = " already exists";
+    private static final String SOFT_DELETED = " has been soft deleted.(Rollback by changing status";
+
     private final AddressRepository addressRepository;
     private final ModelMapper modelMapper;
 
@@ -23,50 +28,69 @@ public class AddressServiceImpl extends CommonService implements AddressService 
         this.modelMapper = modelMapper;
     }
 
+    private String addressNotFound(String identifier) {
+        return ADDRESS_WITH_IDENTIFIER + identifier + NOT_FOUND;
+    }
+
     @Override
     public AddressDto findByIdentifier(String identifier) {
-        return modelMapper.map(addressRepository.findByIdentifier(identifier), AddressDto.class);
+        Address address = requireResource(addressRepository.findByIdentifier(identifier), addressNotFound(identifier));
+
+        return modelMapper.map(address, AddressDto.class);
     }
 
     @Override
     public List<AddressDto> findAllByPhoneNo(String phoneNo) {
         Type listType = new TypeToken<List<AddressDto>>() {
         }.getType();
+
         return modelMapper.map(addressRepository.findAllByPhoneNo(phoneNo), listType);
     }
 
     @Override
     public AddressDto save(AddressDto addressDto) {
+
         String identifier = addressDto.getIdentifier();
+
         Address existingAddress = addressRepository.findByIdentifier(identifier);
+
         if (existingAddress != null) {
+
             if (existingAddress.isDeleted()) {
-                addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + identifier + " has been soft deleted.(Rollback by changing status");
+                addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + identifier + SOFT_DELETED);
+
                 addressDto.setSuccess(false);
                 return addressDto;
             }
-            addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + identifier + " already exists");
+
+            addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + identifier + ALREADY_EXISTS);
+
             addressDto.setSuccess(false);
             return addressDto;
         }
+
         Address address = modelMapper.map(addressDto, Address.class);
+
         setAuditFields(address, true);
+
         addressRepository.save(address);
+
         return addressDto;
     }
 
     @Override
     public AddressDto update(AddressDto addressDto) {
+
         String identifier = addressDto.getIdentifier();
-        Address existingAddress = addressRepository.findByIdentifier(identifier);
-        if (existingAddress == null) {
-            addressDto.setMessage(ADDRESS_WITH_IDENTIFIER + identifier + " not found");
-            addressDto.setSuccess(false);
-            return addressDto;
-        }
+
+        Address existingAddress = requireResource(addressRepository.findByIdentifier(identifier), addressNotFound(identifier));
+
         modelMapper.map(addressDto, existingAddress);
+
         setAuditFields(existingAddress, false);
+
         addressRepository.save(existingAddress);
+
         return addressDto;
     }
 
@@ -87,5 +111,4 @@ public class AddressServiceImpl extends CommonService implements AddressService 
         }.getType();
         return modelMapper.map(addressRepository.findAll(), listType);
     }
-
 }

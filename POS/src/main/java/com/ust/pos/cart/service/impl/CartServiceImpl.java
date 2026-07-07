@@ -20,201 +20,245 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
-
 @Service
 @Transactional
 public class CartServiceImpl extends CommonService implements CartService {
+
+    private static final String NOT_FOUND = " not found";
+
+    private static final String CART_WITH_IDENTIFIER = "Cart with identifier - ";
+
+    private static final String CUSTOMER_WITH_IDENTIFIER = "Customer with identifier - ";
+
+    private static final String CART_ENTRY_WITH_IDENTIFIER = "Cart Entry with identifier - ";
+
     private final CustomerRepository customerRepository;
     private final CartRepository cartRepository;
     private final CartEntryService cartEntryService;
     private final ModelMapper modelMapper;
 
-    public CartServiceImpl(CustomerRepository customerRepository, CartRepository cartRepository,
-                           CartEntryService cartEntryService, ModelMapper modelMapper) {
+    public CartServiceImpl(CustomerRepository customerRepository, CartRepository cartRepository, CartEntryService cartEntryService, ModelMapper modelMapper) {
+
         this.customerRepository = customerRepository;
         this.cartRepository = cartRepository;
         this.cartEntryService = cartEntryService;
         this.modelMapper = modelMapper;
     }
 
-    @Override
-    public CartDto findByIdentifier(String identifier) {
-        Cart cart = cartRepository.findByIdentifier(identifier);
-        if (cart == null) {
-            return null;
-        }
-        CartDto cartDto = modelMapper.map(cart, CartDto.class);
-        List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(identifier);
-        BigDecimal totalPrice = cartEntries.stream()
-                .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDiscount = cartEntries.stream()
-                .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private String cartNotFound(String identifier) {
+        return CART_WITH_IDENTIFIER + identifier + NOT_FOUND;
+    }
+
+    private String customerNotFound(String identifier) {
+        return CUSTOMER_WITH_IDENTIFIER + identifier + NOT_FOUND;
+    }
+
+    private String cartEntryNotFound(String identifier) {
+        return CART_ENTRY_WITH_IDENTIFIER + identifier + NOT_FOUND;
+    }
+
+    private void populateCart(CartDto cartDto) {
+
+        List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(cartDto.getIdentifier());
+
+        BigDecimal totalPrice = cartEntries.stream().map(CartEntryDto::getTotalPrice).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalDiscount = cartEntries.stream().map(CartEntryDto::getDiscount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+
         cartDto.setCartEntries(cartEntries);
         cartDto.setTotalPrice(totalPrice);
         cartDto.setDiscount(totalDiscount);
+    }
+
+    @Override
+    public CartDto findByIdentifier(String identifier) {
+
+        Cart cart = requireResource(cartRepository.findByIdentifier(identifier), cartNotFound(identifier));
+
+        CartDto cartDto = modelMapper.map(cart, CartDto.class);
+
+        populateCart(cartDto);
+
         return cartDto;
     }
 
     @Override
     public CartDto save(CartDto cartDto) {
-        String identifier = cartDto.getUsername() != null
-                ? cartDto.getUsername()
-                : cartDto.getIdentifier();
+
+        String identifier = cartDto.getUsername() != null ? cartDto.getUsername() : cartDto.getIdentifier();
+
         cartDto.setIdentifier(identifier);
         cartDto.setUsername(identifier);
 
-        if (customerRepository.findByIdentifier(identifier) == null) {
-            cartDto.setMessage("Customer with identifier - " + identifier + " not found");
-            cartDto.setSuccess(false);
-            return cartDto;
-        }
+        requireResource(customerRepository.findByIdentifier(identifier), customerNotFound(identifier));
 
         Cart existingCart = cartRepository.findByIdentifier(identifier);
+
         if (existingCart != null) {
+
             if (cartDto.getCartEntries() != null) {
+
                 for (CartEntryDto cartEntryDto : cartDto.getCartEntries()) {
+
                     cartEntryDto.setCartIdentifier(identifier);
+
                     cartEntryService.save(cartEntryDto);
                 }
             }
-            List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(identifier);
-            BigDecimal totalPrice = cartEntries.stream()
-                    .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal totalDiscount = cartEntries.stream()
-                    .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            existingCart.setTotalPrice(totalPrice);
-            existingCart.setDiscount(totalDiscount);
+
+            CartDto existingCartDto = modelMapper.map(existingCart, CartDto.class);
+
+            populateCart(existingCartDto);
+
+            existingCart.setTotalPrice(existingCartDto.getTotalPrice());
+
+            existingCart.setDiscount(existingCartDto.getDiscount());
+
             if (cartDto.getCoupon() != null) {
                 existingCart.setCoupon(cartDto.getCoupon());
             }
+
             cartRepository.save(existingCart);
+
             return findByIdentifier(identifier);
         }
 
         Cart cart = new Cart();
+
         cart.setIdentifier(identifier);
+
         cart.setUsername(identifier);
+
         cart.setCoupon(cartDto.getCoupon());
+
         cart.setDiscount(BigDecimal.ZERO);
+
         cart.setTotalPrice(BigDecimal.ZERO);
+
         cartRepository.save(cart);
 
         if (cartDto.getCartEntries() != null) {
+
             for (CartEntryDto cartEntryDto : cartDto.getCartEntries()) {
+
                 cartEntryDto.setCartIdentifier(identifier);
+
                 cartEntryService.save(cartEntryDto);
             }
         }
 
-        List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(identifier);
-        BigDecimal totalPrice = cartEntries.stream()
-                .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDiscount = cartEntries.stream()
-                .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        cart.setTotalPrice(totalPrice);
-        cart.setDiscount(totalDiscount);
+        CartDto savedCart = new CartDto();
+
+        savedCart.setIdentifier(identifier);
+
+        populateCart(savedCart);
+
+        cart.setTotalPrice(savedCart.getTotalPrice());
+
+        cart.setDiscount(savedCart.getDiscount());
+
         cartRepository.save(cart);
+
         return findByIdentifier(identifier);
     }
 
     @Override
     public CartDto update(CartDto cartDto) {
+
         String identifier = cartDto.getIdentifier();
-        Cart existingCart = cartRepository.findByIdentifier(identifier);
-        if (existingCart == null) {
-            cartDto.setMessage("Cart with identifier - " + identifier + " not found");
-            cartDto.setSuccess(false);
-            return cartDto;
-        }
+
+        Cart existingCart = requireResource(cartRepository.findByIdentifier(identifier), cartNotFound(identifier));
+
         existingCart.setUsername(cartDto.getUsername());
+
         existingCart.setCoupon(cartDto.getCoupon());
+
         cartRepository.save(existingCart);
 
         if (cartDto.getCartEntries() != null) {
+
             for (CartEntryDto cartEntryDto : cartDto.getCartEntries()) {
+
                 cartEntryDto.setCartIdentifier(identifier);
+
                 if (cartEntryDto.getIdentifier() == null) {
+
                     cartEntryService.save(cartEntryDto);
+
                 } else {
+
                     cartEntryService.update(cartEntryDto);
                 }
             }
         }
 
-        List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(identifier);
-        BigDecimal totalPrice = cartEntries.stream()
-                .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDiscount = cartEntries.stream()
-                .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        existingCart.setTotalPrice(totalPrice);
-        existingCart.setDiscount(totalDiscount);
+        CartDto updatedCart = new CartDto();
+
+        updatedCart.setIdentifier(identifier);
+
+        populateCart(updatedCart);
+
+        existingCart.setTotalPrice(updatedCart.getTotalPrice());
+
+        existingCart.setDiscount(updatedCart.getDiscount());
+
         cartRepository.save(existingCart);
+
         return findByIdentifier(identifier);
     }
 
     @Override
     public boolean delete(String identifier) {
-        Cart cart = cartRepository.findByIdentifier(identifier);
-        if (cart == null) {
-            return false;
-        }
+
+        requireResource(cartRepository.findByIdentifier(identifier), cartNotFound(identifier));
+
         cartEntryService.deleteByCartIdentifier(identifier);
+
         cartRepository.deleteByIdentifier(identifier);
+
         return true;
     }
 
     @Override
     public boolean deleteCartEntry(String identifier) {
+
         CartEntryDto cartEntry = cartEntryService.findByIdentifier(identifier);
-        if (cartEntry == null) {
-            return false;
-        }
+
+        requireResource(cartEntry, cartEntryNotFound(identifier));
+
         String cartIdentifier = cartEntry.getCartIdentifier();
+
         cartEntryService.delete(identifier);
 
-        Cart cart = cartRepository.findByIdentifier(cartIdentifier);
-        if (cart == null) {
-            return false;
-        }
-        List<CartEntryDto> remainingEntries = cartEntryService.findAllByCartIdentifier(cartIdentifier);
-        BigDecimal totalPrice = remainingEntries.stream()
-                .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDiscount = remainingEntries.stream()
-                .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        cart.setTotalPrice(totalPrice);
-        cart.setDiscount(totalDiscount);
+        Cart cart = requireResource(cartRepository.findByIdentifier(cartIdentifier), cartNotFound(cartIdentifier));
+
+        CartDto cartDto = new CartDto();
+
+        cartDto.setIdentifier(cartIdentifier);
+
+        populateCart(cartDto);
+
+        cart.setTotalPrice(cartDto.getTotalPrice());
+
+        cart.setDiscount(cartDto.getDiscount());
+
         cartRepository.save(cart);
+
         return true;
     }
 
     @Override
     public List<CartDto> findAll(Pageable pageable) {
+
         Type listType = new TypeToken<List<CartDto>>() {
         }.getType();
+
         Page<Cart> cartPage = cartRepository.findAll(pageable);
+
         List<CartDto> cartDtos = modelMapper.map(cartPage.getContent(), listType);
-        cartDtos.forEach(cartDto -> {
-            List<CartEntryDto> cartEntries = cartEntryService.findAllByCartIdentifier(cartDto.getIdentifier());
-            BigDecimal totalPrice = cartEntries.stream()
-                    .map(CartEntryDto::getTotalPrice).filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal totalDiscount = cartEntries.stream()
-                    .map(CartEntryDto::getDiscount).filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            cartDto.setCartEntries(cartEntries);
-            cartDto.setTotalPrice(totalPrice);
-            cartDto.setDiscount(totalDiscount);
-        });
+
+        cartDtos.forEach(this::populateCart);
+
         return cartDtos;
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class ModelsController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<ModelsDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -35,12 +37,14 @@ public class ModelsController extends BaseController {
     }
 
     @GetMapping("/active")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<ModelsDto>> getActiveModels() {
         List<ModelsDto> activeModels = modelsService.findIfTrue();
         return ResponseEntity.ok(activeModels);
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<ModelsDto> getByIdentifier(@PathVariable String identifier) {
         ModelsDto response = modelsService.findByIdentifier(identifier);
         if (response == null) {
@@ -50,6 +54,7 @@ public class ModelsController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<ModelsDto> save(@RequestBody ModelsDto modelsDto) {
         ModelsDto response = modelsService.save(modelsDto);
         if (!response.isSuccess()) {
@@ -59,6 +64,7 @@ public class ModelsController extends BaseController {
     }
 
     @PutMapping("/update/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<ModelsDto> update(@PathVariable String identifier, @RequestBody ModelsDto modelsDto) {
         modelsDto.setIdentifier(identifier);
         ModelsDto response = modelsService.update(modelsDto);
@@ -69,6 +75,7 @@ public class ModelsController extends BaseController {
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             boolean deleted = modelsService.delete(identifier);
@@ -79,6 +86,7 @@ public class ModelsController extends BaseController {
     }
 
     @PostMapping("/toggle/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<ModelsDto> toggleStatus(@PathVariable String identifier) {
         ModelsDto response = modelsService.toggleStatus(identifier);
         return ResponseEntity.ok(response);

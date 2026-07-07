@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController("roleApiController")
@@ -33,6 +34,7 @@ public class RoleController extends BaseController {
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<RoleDto> getByIdentifier(@PathVariable String identifier) {
         RoleDto response = roleService.findByIdentifier(identifier);
         if (response == null) {
@@ -42,6 +44,7 @@ public class RoleController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<RoleDto> save(@RequestBody RoleDto roleDto) {
         RoleDto response = roleService.save(roleDto);
         if (!response.isSuccess()) {
@@ -51,6 +54,7 @@ public class RoleController extends BaseController {
     }
 
     @PutMapping("/update/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<RoleDto> update(@PathVariable String identifier, @RequestBody RoleDto roleDto) {
         roleDto.setIdentifier(identifier);
         RoleDto response = roleService.update(roleDto);
@@ -61,6 +65,7 @@ public class RoleController extends BaseController {
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             roleService.delete(identifier);

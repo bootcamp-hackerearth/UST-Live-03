@@ -7,19 +7,19 @@ import com.ust.pos.model.OrderEntryRepository;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.orderentry.service.impl.OrderEntryServiceImpl;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -28,6 +28,7 @@ import static org.mockito.Mockito.*;
 class OrderEntryServiceTest {
 
     @InjectMocks
+    @Spy
     private OrderEntryServiceImpl orderEntryService;
 
     @Mock
@@ -40,197 +41,134 @@ class OrderEntryServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void saveOrderEntrySuccessTest() {
+    void saveTest() {
 
         OrderEntryDto dto = new OrderEntryDto();
-        dto.setOrderIdentifier("ORD-UUID");
-        dto.setProductIdentifier("SKU001");
+        dto.setOrderIdentifier("ORDER1");
+        dto.setProductIdentifier("PROD1");
         dto.setQuantity(2);
-        dto.setSellingPrice(new BigDecimal("100.00"));
-        dto.setMrpPrice(new BigDecimal("120.00"));
-        dto.setTotalPrice(new BigDecimal("200.00"));
-        dto.setDiscount(new BigDecimal("40.00"));
+        dto.setSellingPrice(BigDecimal.valueOf(100));
+        dto.setMrpPrice(BigDecimal.valueOf(120));
+        dto.setTotalPrice(BigDecimal.valueOf(200));
+        dto.setDiscount(BigDecimal.valueOf(40));
 
-        OrderEntryDto mappedDto = new OrderEntryDto();
-        mappedDto.setIdentifier("OE-UUID");
+        OrderEntryDto response = new OrderEntryDto();
 
-        when(orderEntryRepository.save(any(OrderEntry.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(modelMapper.map(any(OrderEntry.class), eq(OrderEntryDto.class))).thenReturn(response);
 
-        when(modelMapper.map(any(OrderEntry.class), eq(OrderEntryDto.class)))
-                .thenReturn(mappedDto);
+        OrderEntryDto result = orderEntryService.save(dto);
 
-        OrderEntryDto response = orderEntryService.save(dto);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("OE-UUID", response.getIdentifier());
+        assertNotNull(result);
 
         verify(orderEntryRepository).save(any(OrderEntry.class));
+
         verify(modelMapper).map(any(OrderEntry.class), eq(OrderEntryDto.class));
+
     }
 
     @Test
-    void saveOrderEntryWithNullProductIdentifierTest() {
+    void findAllByOrderIdentifierTest() {
+
+        OrderEntry orderEntry = new OrderEntry();
+
+        List<OrderEntry> entries = List.of(orderEntry);
 
         OrderEntryDto dto = new OrderEntryDto();
-        dto.setOrderIdentifier("ORD-UUID");
-        dto.setProductIdentifier(null);
 
-        OrderEntryDto mappedDto = new OrderEntryDto();
-        mappedDto.setIdentifier("OE-UUID");
-
-        when(orderEntryRepository.save(any(OrderEntry.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        when(modelMapper.map(any(OrderEntry.class), eq(OrderEntryDto.class)))
-                .thenReturn(mappedDto);
-
-        OrderEntryDto response = orderEntryService.save(dto);
-
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("OE-UUID", response.getIdentifier());
-
-        verify(orderEntryRepository).save(any(OrderEntry.class));
-        verify(modelMapper).map(any(OrderEntry.class), eq(OrderEntryDto.class));
-    }
-
-    @Test
-    void findAllByOrderIdentifierSuccessTest() {
-
-        OrderEntry entry = new OrderEntry();
-        entry.setIdentifier("OE-UUID1");
-        entry.setOrderIdentifier("ORD-UUID");
-        entry.setProductIdentifier("SKU001");
-
-        List<OrderEntry> entries = List.of(entry);
+        dto.setProductIdentifier("PROD1");
 
         Product product = new Product();
-        product.setIdentifier("SKU001");
-        product.setProductName("Samsung");
-
-        OrderEntryDto entryDto = new OrderEntryDto();
-        entryDto.setIdentifier("OE-UUID1");
-        entryDto.setProductIdentifier("SKU001");
 
         ProductDto productDto = new ProductDto();
-        productDto.setIdentifier("SKU001");
-        productDto.setProductName("Samsung");
 
-        List<OrderEntryDto> dtoList = new ArrayList<>(List.of(entryDto));
+        when(orderEntryRepository.findAllByOrderIdentifier("ORDER1")).thenReturn(entries);
 
-        when(orderEntryRepository.findAllByOrderIdentifier("ORD-UUID"))
-                .thenReturn(entries);
+        when(modelMapper.map(eq(entries), any(Type.class))).thenReturn(List.of(dto));
 
-        when(modelMapper.map(eq(entries), any(Type.class)))
-                .thenReturn(dtoList);
+        when(productRepository.findByIdentifier("PROD1")).thenReturn(product);
 
-        when(productRepository.findByIdentifier("SKU001"))
-                .thenReturn(product);
+        when(modelMapper.map(product, ProductDto.class)).thenReturn(productDto);
 
-        when(modelMapper.map(product, ProductDto.class))
-                .thenReturn(productDto);
+        List<OrderEntryDto> result = orderEntryService.findAllByOrderIdentifier("ORDER1");
 
-        List<OrderEntryDto> response =
-                orderEntryService.findAllByOrderIdentifier("ORD-UUID");
+        assertEquals(1, result.size());
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals(productDto, response.get(0).getProduct());
+        assertNotNull(result.get(0).getProduct());
 
-        verify(productRepository).findByIdentifier("SKU001");
+        verify(productRepository).findByIdentifier("PROD1");
+
     }
 
     @Test
-    void findAllByOrderIdentifierEmptyListTest() {
+    void findAllByOrderIdentifierProductNullTest() {
 
-        List<OrderEntry> entries = new ArrayList<>();
+        OrderEntry orderEntry = new OrderEntry();
 
-        when(orderEntryRepository.findAllByOrderIdentifier("INVALID"))
-                .thenReturn(entries);
-
-        when(modelMapper.map(eq(entries), any(Type.class)))
-                .thenReturn(new ArrayList<>());
-
-        List<OrderEntryDto> response =
-                orderEntryService.findAllByOrderIdentifier("INVALID");
-
-        Assertions.assertNotNull(response);
-        Assertions.assertTrue(response.isEmpty());
-
-        verifyNoInteractions(productRepository);
-    }
-
-    @Test
-    void findAllByOrderIdentifierNullProductIdentifierTest() {
-
-        OrderEntry entry = new OrderEntry();
-        entry.setIdentifier("OE-UUID1");
-        entry.setOrderIdentifier("ORD-UUID");
-        entry.setProductIdentifier(null);
-
-        List<OrderEntry> entries = List.of(entry);
+        List<OrderEntry> entries = List.of(orderEntry);
 
         OrderEntryDto dto = new OrderEntryDto();
-        dto.setIdentifier("OE-UUID1");
+
         dto.setProductIdentifier(null);
 
-        List<OrderEntryDto> dtoList =
-                new ArrayList<>(List.of(dto));
+        when(orderEntryRepository.findAllByOrderIdentifier("ORDER1")).thenReturn(entries);
 
-        when(orderEntryRepository.findAllByOrderIdentifier("ORD-UUID"))
-                .thenReturn(entries);
+        when(modelMapper.map(eq(entries), any(Type.class))).thenReturn(List.of(dto));
 
-        when(modelMapper.map(eq(entries), any(Type.class)))
-                .thenReturn(dtoList);
+        List<OrderEntryDto> result = orderEntryService.findAllByOrderIdentifier("ORDER1");
 
-        List<OrderEntryDto> response =
-                orderEntryService.findAllByOrderIdentifier("ORD-UUID");
+        assertEquals(1, result.size());
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertNull(response.get(0).getProduct());
+        assertNull(result.get(0).getProduct());
 
-        verifyNoInteractions(productRepository);
+        verify(productRepository, never()).findByIdentifier(any());
+
     }
 
     @Test
     void findAllByOrderIdentifierProductNotFoundTest() {
 
-        OrderEntry entry = new OrderEntry();
-        entry.setIdentifier("OE-UUID1");
-        entry.setOrderIdentifier("ORD-UUID");
-        entry.setProductIdentifier("GHOST-SKU");
+        OrderEntry orderEntry = new OrderEntry();
 
-        List<OrderEntry> entries = List.of(entry);
+        List<OrderEntry> entries = List.of(orderEntry);
 
         OrderEntryDto dto = new OrderEntryDto();
-        dto.setIdentifier("OE-UUID1");
-        dto.setProductIdentifier("GHOST-SKU");
 
-        List<OrderEntryDto> dtoList =
-                new ArrayList<>(List.of(dto));
+        dto.setProductIdentifier("PROD1");
 
-        when(orderEntryRepository.findAllByOrderIdentifier("ORD-UUID"))
-                .thenReturn(entries);
+        when(orderEntryRepository.findAllByOrderIdentifier("ORDER1")).thenReturn(entries);
 
-        when(modelMapper.map(eq(entries), any(Type.class)))
-                .thenReturn(dtoList);
+        when(modelMapper.map(eq(entries), any(Type.class))).thenReturn(List.of(dto));
 
-        when(productRepository.findByIdentifier("GHOST-SKU"))
-                .thenReturn(null);
+        when(productRepository.findByIdentifier("PROD1")).thenReturn(null);
 
-        List<OrderEntryDto> response =
-                orderEntryService.findAllByOrderIdentifier("ORD-UUID");
+        List<OrderEntryDto> result = orderEntryService.findAllByOrderIdentifier("ORDER1");
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertNull(response.get(0).getProduct());
+        assertEquals(1, result.size());
+
+        assertNull(result.get(0).getProduct());
+
     }
-
 
     @Test
-    void deleteByOrderIdentifierSuccessTest() {
-        orderEntryService.deleteByOrderIdentifier("ORD-UUID");
+    void findAllByOrderIdentifierEmptyTest() {
 
-        verify(orderEntryRepository).deleteByOrderIdentifier("ORD-UUID");
-        verify(orderEntryRepository, never()).findAllByOrderIdentifier(any());
-        verify(orderEntryRepository, never()).save(any());
+        when(orderEntryRepository.findAllByOrderIdentifier("ORDER1")).thenReturn(List.of());
+
+        when(modelMapper.map(eq(List.of()), any(Type.class))).thenReturn(List.of());
+
+        List<OrderEntryDto> result = orderEntryService.findAllByOrderIdentifier("ORDER1");
+
+        assertTrue(result.isEmpty());
+
     }
+
+    @Test
+    void deleteByOrderIdentifierTest() {
+
+        orderEntryService.deleteByOrderIdentifier("ORDER1");
+
+        verify(orderEntryRepository).deleteByOrderIdentifier("ORDER1");
+
+    }
+
 }

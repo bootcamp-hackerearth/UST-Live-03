@@ -27,6 +27,7 @@ import java.util.Set;
 public class NodeServiceImpl extends CommonService implements NodeService {
 
     public static final String NODE_WITH_IDENTIFIER = "Node with identifier '";
+    public static final String NOT_FOUND = "' not found";
     private final UserRepository userRepository;
     private final NodeRepository nodeRepository;
     private final ModelMapper modelMapper;
@@ -71,10 +72,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
     @Override
     public NodeDto findByIdentifier(String identifier) {
-        Node node = nodeRepository.findByIdentifier(identifier);
-        if (node == null) {
-            return null;
-        }
+        Node node = requireResource(nodeRepository.findByIdentifier(identifier), NODE_WITH_IDENTIFIER + identifier + NOT_FOUND);
         return modelMapper.map(node, NodeDto.class);
     }
 
@@ -102,12 +100,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
     @Override
     public NodeDto update(NodeDto nodeDto) {
         String identifier = nodeDto.getIdentifier();
-        Node existingNode = nodeRepository.findByIdentifier(identifier);
-        if (existingNode == null) {
-            nodeDto.setSuccess(false);
-            nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + "' not found");
-            return nodeDto;
-        }
+        Node existingNode = requireResource(nodeRepository.findByIdentifier(identifier), NODE_WITH_IDENTIFIER + identifier + NOT_FOUND);
         modelMapper.map(nodeDto, existingNode);
         setAuditFields(existingNode, false);
         nodeRepository.save(existingNode);
@@ -118,10 +111,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
 
     @Override
     public boolean delete(String identifier) {
-        Node node = nodeRepository.findByIdentifier(identifier);
-        if (node == null) {
-            return false;
-        }
+        Node node = requireResource(nodeRepository.findByIdentifier(identifier), NODE_WITH_IDENTIFIER + identifier + NOT_FOUND);
         softDelete(node);
         setAuditFields(node, false);
         nodeRepository.save(node);

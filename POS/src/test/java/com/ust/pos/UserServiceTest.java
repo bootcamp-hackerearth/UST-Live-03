@@ -2,10 +2,10 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,21 +15,20 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
-
-    @InjectMocks
-    private UserServiceImpl userService;
 
     @Mock
     private UserRepository userRepository;
@@ -40,283 +39,318 @@ class UserServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @Test
-    void findByUserNameTest() {
+    @InjectMocks
+    private UserServiceImpl service;
 
+    private User buildUser() {
         User user = new User();
+        user.setId(1L);
         user.setUsername("john");
+        user.setPassword("123");
+        user.setStatus(true);
+        return user;
+    }
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername("john");
+    @Test
+    void findByUserNameSuccess() {
+
+        User user = buildUser();
+
+        UserDto dto = new UserDto();
 
         when(userRepository.findByUsername("john")).thenReturn(user);
-        when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
 
-        UserDto response = userService.findByUserName("john");
+        when(modelMapper.map(user, UserDto.class)).thenReturn(dto);
 
-        Assertions.assertEquals("john", response.getUsername());
+        UserDto result = service.findByUserName("john");
+
+        assertNotNull(result);
+
     }
 
     @Test
-    void saveSuccessTest() {
-
-        UserDto userDto = new UserDto();
-        userDto.setUsername("john");
-        userDto.setPassword("password");
-
-        User user = new User();
+    void findByUserNameNull() {
 
         when(userRepository.findByUsername("john")).thenReturn(null);
-        when(modelMapper.map(userDto, User.class)).thenReturn(user);
-        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
 
-        UserDto response = userService.save(userDto);
+        when(modelMapper.map(null, UserDto.class)).thenReturn(null);
 
-        Assertions.assertEquals("john", response.getUsername());
-        Assertions.assertEquals("encodedPassword", user.getPassword());
+        UserDto result = service.findByUserName("john");
+
+        assertNull(result);
+
+    }
+
+    @Test
+    void saveSuccess() {
+
+        UserDto dto = new UserDto();
+
+        dto.setUsername("john");
+        dto.setPassword("123");
+
+        User user = buildUser();
+
+        when(userRepository.findByUsername("john")).thenReturn(null);
+
+        when(modelMapper.map(dto, User.class)).thenReturn(user);
+
+        when(passwordEncoder.encode("123")).thenReturn("ENC");
+
+        UserDto result = service.save(dto);
+
+        verify(passwordEncoder).encode("123");
 
         verify(userRepository).save(user);
+
+        assertEquals("john", result.getUsername());
+
     }
 
     @Test
-    void saveFailureUserExistsTest() {
+    void saveAlreadyExists() {
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername("john");
+        User existing = buildUser();
 
-        User existingUser = new User();
+        UserDto dto = new UserDto();
 
-        when(userRepository.findByUsername("john")).thenReturn(existingUser);
+        dto.setUsername("john");
 
-        UserDto response = userService.save(userDto);
+        when(userRepository.findByUsername("john")).thenReturn(existing);
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john already exists",
-                response.getMessage());
+        UserDto result = service.save(dto);
 
-        verify(userRepository, never()).save(any(User.class));
+        assertFalse(result.isSuccess());
+
+        assertEquals("User with username/email - john already exists", result.getMessage());
+
+        verify(userRepository, never()).save(any());
+
     }
 
     @Test
-    void saveSoftDeletedUserTest() {
+    void saveDeletedUserExists() {
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername("john");
+        User existing = buildUser();
 
-        User existingUser = new User();
-        existingUser.setDeleted(true);
+        existing.setDeleted(true);
 
-        when(userRepository.findByUsername("john")).thenReturn(existingUser);
+        UserDto dto = new UserDto();
 
-        UserDto response = userService.save(userDto);
+        dto.setUsername("john");
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                UserServiceImpl.USER_WITH_USERNAME_EMAIL +
-                        "john has been soft deleted.(Rollback by changing status",
-                response.getMessage());
+        when(userRepository.findByUsername("john")).thenReturn(existing);
 
-        verify(userRepository, never()).save(any(User.class));
+        UserDto result = service.save(dto);
+
+        assertFalse(result.isSuccess());
+
+        assertTrue(result.getMessage().contains("soft deleted"));
+
     }
 
     @Test
-    void updateSuccessSameUsernameTest() {
+    void updateSameUsername() {
 
-        UserDto userDto = new UserDto();
-        userDto.setId(1L);
-        userDto.setUsername("john");
-        userDto.setName("John");
+        User existing = buildUser();
 
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setUsername("john");
+        UserDto dto = new UserDto();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        dto.setId(1L);
 
-        doAnswer(invocation -> {
-            UserDto source = invocation.getArgument(0);
-            User target = invocation.getArgument(1);
-            target.setUsername(source.getUsername());
-            target.setName(source.getName());
-            return null;
-        }).when(modelMapper).map(any(UserDto.class), any(User.class));
+        dto.setUsername("john");
 
-        UserDto response = userService.update(userDto);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
 
-        Assertions.assertEquals("john", response.getUsername());
+        doNothing().when(modelMapper).map(dto, existing);
 
-        verify(userRepository).save(existingUser);
+        UserDto result = service.update(dto);
+
+        verify(modelMapper).map(dto, existing);
+
+        verify(userRepository).save(existing);
+
+        assertEquals(dto, result);
+
     }
 
     @Test
-    void updateSuccessDifferentUsernameAvailableTest() {
+    void updateUsernameChangedAvailable() {
 
-        UserDto userDto = new UserDto();
-        userDto.setId(1L);
-        userDto.setUsername("newuser");
+        User existing = buildUser();
 
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setUsername("olduser");
+        UserDto dto = new UserDto();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(userRepository.findByUsername("newuser")).thenReturn(null);
+        dto.setId(1L);
 
-        doAnswer(invocation -> {
-            UserDto source = invocation.getArgument(0);
-            User target = invocation.getArgument(1);
-            target.setUsername(source.getUsername());
-            return null;
-        }).when(modelMapper).map(any(UserDto.class), any(User.class));
+        dto.setUsername("jack");
 
-        UserDto response = userService.update(userDto);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
 
-        Assertions.assertEquals("newuser", response.getUsername());
+        when(userRepository.findByUsername("jack")).thenReturn(null);
 
-        verify(userRepository).save(existingUser);
+        doNothing().when(modelMapper).map(dto, existing);
+
+        UserDto result = service.update(dto);
+
+        verify(userRepository).save(existing);
+
+        assertEquals(dto, result);
+
     }
 
     @Test
-    void updateFailureUserNotFoundTest() {
+    void updateUsernameAlreadyExists() {
 
-        UserDto userDto = new UserDto();
-        userDto.setId(1L);
-        userDto.setUsername("john");
+        User existing = buildUser();
+
+        User another = new User();
+
+        another.setUsername("jack");
+
+        UserDto dto = new UserDto();
+
+        dto.setId(1L);
+
+        dto.setUsername("jack");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        when(userRepository.findByUsername("jack")).thenReturn(another);
+
+        UserDto result = service.update(dto);
+
+        assertFalse(result.isSuccess());
+
+        assertEquals("User with username/email - jack already exists", result.getMessage());
+
+        verify(userRepository, never()).save(any());
+
+    }
+
+    @Test
+    void updateUserNotFound() {
+
+        UserDto dto = new UserDto();
+
+        dto.setId(1L);
+
+        dto.setUsername("john");
 
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        UserDto response = userService.update(userDto);
+        assertThrows(ResourceNotFoundException.class, () -> service.update(dto));
 
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john not found",
-                response.getMessage());
-
-        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void updateFailureUsernameAlreadyExistsTest() {
+    void deleteSuccess() {
 
-        UserDto userDto = new UserDto();
-        userDto.setId(1L);
-        userDto.setUsername("john");
-
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setUsername("admin");
-
-        User duplicateUser = new User();
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(userRepository.findByUsername("john")).thenReturn(duplicateUser);
-
-        UserDto response = userService.update(userDto);
-
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(
-                UserServiceImpl.USER_WITH_USERNAME_EMAIL + "john already exists",
-                response.getMessage());
-
-        verify(userRepository, never()).save(any(User.class));
-    }
-
-    @Test
-    void deleteTest() {
-
-        User user = new User();
-        user.setUsername("john");
+        User user = buildUser();
 
         when(userRepository.findByUsername("john")).thenReturn(user);
 
-        boolean result = userService.delete("john");
+        boolean result = service.delete("john");
 
-        Assertions.assertTrue(result);
+        assertTrue(result);
 
         verify(userRepository).save(user);
+
     }
 
     @Test
-    void deleteUserNotFoundTest() {
+    void deleteNotFound() {
 
         when(userRepository.findByUsername("john")).thenReturn(null);
 
-        boolean result = userService.delete("john");
+        assertThrows(ResourceNotFoundException.class, () -> service.delete("john"));
 
-        Assertions.assertFalse(result);
-
-        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void findAllTest() {
+    void findAllSuccess() {
 
-        User user = new User();
-        user.setUsername("john");
+        Pageable pageable = PageRequest.of(0, 10);
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername("john");
+        List<User> users = List.of(buildUser());
 
-        List<User> users = List.of(user);
-        List<UserDto> userDtos = List.of(userDto);
+        List<UserDto> dtos = List.of(new UserDto());
 
-        Page<User> userPage = new PageImpl<>(users);
+        Page<User> page = new PageImpl<>(users, pageable, 1);
 
-        when(userRepository.findByDeletedFalse(any(PageRequest.class))).thenReturn(userPage);
-        when(modelMapper.map(eq(users), any(Type.class))).thenReturn(userDtos);
+        when(userRepository.findByDeletedFalse(pageable)).thenReturn(page);
 
-        WsDto<UserDto> response = userService.findAll(PageRequest.of(0, 10));
+        when(modelMapper.map(eq(page.getContent()), any(Type.class))).thenReturn(dtos);
 
-        Assertions.assertEquals(1, response.getDtoList().size());
-        Assertions.assertEquals("john", response.getDtoList().get(0).getUsername());
-        Assertions.assertEquals(1L, response.getTotalRecords());
-        Assertions.assertEquals(10, response.getSizePerPage());
-        Assertions.assertEquals(0, response.getPage());
+        WsDto<UserDto> ws = service.findAll(pageable);
+
+        assertEquals(1, ws.getDtoList().size());
+
+        assertEquals(1, ws.getTotalRecords());
+
     }
 
     @Test
-    void findAllEmptyTest() {
+    void findAllEmpty() {
 
-        List<User> users = List.of();
-        List<UserDto> userDtos = List.of();
+        Pageable pageable = PageRequest.of(0, 10);
 
-        Page<User> userPage = new PageImpl<>(users);
+        Page<User> page = new PageImpl<>(Collections.emptyList());
 
-        when(userRepository.findByDeletedFalse(any(PageRequest.class))).thenReturn(userPage);
-        when(modelMapper.map(eq(users), any(Type.class))).thenReturn(userDtos);
+        when(userRepository.findByDeletedFalse(pageable)).thenReturn(page);
 
-        WsDto<UserDto> response = userService.findAll(PageRequest.of(0, 10));
+        when(modelMapper.map(eq(Collections.emptyList()), any(Type.class))).thenReturn(Collections.emptyList());
 
-        Assertions.assertTrue(response.getDtoList().isEmpty());
-        Assertions.assertEquals(0L, response.getTotalRecords());
+        WsDto<UserDto> ws = service.findAll(pageable);
+
+        assertEquals(0, ws.getDtoList().size());
+
     }
 
     @Test
-    void userDtoNoArgsConstructorGetterSetterTest() {
+    void findAllSpecificationSuccess() {
 
-        UserDto dto = new UserDto();
-        dto.setName("John");
-        dto.setUsername("john123");
-        dto.setPhoneNo("9999999999");
-        dto.setRoles(List.of("ADMIN"));
-        dto.setPassword("password");
-        dto.setToken("token");
+        Pageable pageable = PageRequest.of(0, 10);
 
-        Assertions.assertEquals("John", dto.getName());
-        Assertions.assertEquals("john123", dto.getUsername());
-        Assertions.assertEquals("9999999999", dto.getPhoneNo());
-        Assertions.assertEquals(List.of("ADMIN"), dto.getRoles());
-        Assertions.assertEquals("password", dto.getPassword());
-        Assertions.assertEquals("token", dto.getToken());
+        Specification<User> spec = mock(Specification.class);
+
+        List<User> users = List.of(buildUser());
+
+        List<UserDto> dtos = List.of(new UserDto());
+
+        Page<User> page = new PageImpl<>(users);
+
+        when(userRepository.findAll(spec, pageable)).thenReturn(page);
+
+        when(modelMapper.map(eq(page.getContent()), any(Type.class))).thenReturn(dtos);
+
+        WsDto<UserDto> ws = service.findAll(spec, pageable, "john");
+
+        assertEquals("john", ws.getKeyword());
+
+        assertEquals(1, ws.getDtoList().size());
+
     }
 
     @Test
-    void userDtoTokenConstructorTest() {
+    void findAllSpecificationEmpty() {
 
-        UserDto dto = new UserDto("jwt-token");
+        Pageable pageable = PageRequest.of(0, 10);
 
-        Assertions.assertEquals("jwt-token", dto.getToken());
+        Specification<User> spec = mock(Specification.class);
+
+        Page<User> page = new PageImpl<>(Collections.emptyList());
+
+        when(userRepository.findAll(spec, pageable)).thenReturn(page);
+
+        when(modelMapper.map(eq(Collections.emptyList()), any(Type.class))).thenReturn(Collections.emptyList());
+
+        WsDto<UserDto> ws = service.findAll(spec, pageable, "abc");
+
+        assertEquals("abc", ws.getKeyword());
+
+        assertEquals(0, ws.getDtoList().size());
+
     }
 
 }

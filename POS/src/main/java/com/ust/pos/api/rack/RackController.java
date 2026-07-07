@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class RackController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<RackDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -39,6 +41,7 @@ public class RackController extends BaseController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<RackDto> getById(@PathVariable Long id) {
         RackDto response = rackService.getRack(id);
         if (response == null || !response.isSuccess()) {
@@ -48,6 +51,7 @@ public class RackController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<RackDto> save(@RequestBody RackDto rackDto) {
         RackDto response = rackService.createRack(rackDto);
         if (!response.isSuccess()) {
@@ -57,6 +61,7 @@ public class RackController extends BaseController {
     }
 
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<RackDto> update(@PathVariable Long id, @RequestBody RackDto rackDto) {
         rackDto.setId(id);
         RackDto response = rackService.updateRack(rackDto);
@@ -67,6 +72,7 @@ public class RackController extends BaseController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         try {
             rackService.deleteRack(id);
@@ -77,6 +83,7 @@ public class RackController extends BaseController {
     }
 
     @GetMapping("/shelves")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<ShelfDto>> getShelves() {
         List<ShelfDto> shelves = shelfService.getActiveShelves();
         return ResponseEntity.ok(shelves);

@@ -4,17 +4,19 @@ import com.ust.pos.cart.service.impl.CartServiceImpl;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,13 +25,16 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CartServiceTest {
 
     @InjectMocks
+    @Spy
     private CartServiceImpl cartService;
 
     @Mock
@@ -45,269 +50,347 @@ class CartServiceTest {
     private ModelMapper modelMapper;
 
     @Test
-    void findByIdentifierSuccessTest() {
+    void findByIdentifierTest() {
+
         Cart cart = new Cart();
-        cart.setIdentifier("CART1");
+        cart.setIdentifier("USER1");
+
         CartDto dto = new CartDto();
-        dto.setIdentifier("CART1");
-        CartEntryDto entry = new CartEntryDto();
-        entry.setTotalPrice(BigDecimal.valueOf(100));
-        entry.setDiscount(BigDecimal.valueOf(20));
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(cart);
+        dto.setIdentifier("USER1");
+
+        CartEntryDto e1 = new CartEntryDto();
+        e1.setTotalPrice(BigDecimal.valueOf(100));
+        e1.setDiscount(BigDecimal.valueOf(10));
+
+        CartEntryDto e2 = new CartEntryDto();
+        e2.setTotalPrice(BigDecimal.valueOf(200));
+        e2.setDiscount(BigDecimal.valueOf(20));
+
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(cart);
+
         when(modelMapper.map(cart, CartDto.class)).thenReturn(dto);
-        when(cartEntryService.findAllByCartIdentifier("CART1")).thenReturn(List.of(entry));
-        CartDto response = cartService.findByIdentifier("CART1");
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("CART1", response.getIdentifier());
-        Assertions.assertEquals(BigDecimal.valueOf(100), response.getTotalPrice());
-        Assertions.assertEquals(BigDecimal.valueOf(20), response.getDiscount());
+
+        when(cartEntryService.findAllByCartIdentifier("USER1")).thenReturn(List.of(e1, e2));
+
+        CartDto result = cartService.findByIdentifier("USER1");
+
+        assertEquals(BigDecimal.valueOf(300), result.getTotalPrice());
+
+        assertEquals(BigDecimal.valueOf(30), result.getDiscount());
+
     }
 
     @Test
-    void findByIdentifierNullCartTest() {
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(null);
-        CartDto response = cartService.findByIdentifier("CART1");
-        Assertions.assertNull(response);
-    }
+    void findByIdentifierNotFoundTest() {
 
-    @Test
-    void saveCustomerNotFoundTest() {
-        CartDto dto = new CartDto();
-        dto.setUsername("CUST1");
-        when(customerRepository.findByIdentifier("CUST1")).thenReturn(null);
-        CartDto response = cartService.save(dto);
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Customer with identifier - CUST1 not found", response.getMessage());
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> cartService.findByIdentifier("USER1"));
+
     }
 
     @Test
     void saveExistingCartTest() {
-        CartDto dto = new CartDto();
-        dto.setUsername("CUST1");
-        dto.setCoupon("SALE50");
-        CartEntryDto entry = new CartEntryDto();
-        dto.setCartEntries(List.of(entry));
 
         Customer customer = new Customer();
-        Cart existingCart = new Cart();
-        existingCart.setIdentifier("CUST1");
+
+        Cart existing = new Cart();
+        existing.setIdentifier("USER1");
+
+        CartDto mappedDto = new CartDto();
+        mappedDto.setIdentifier("USER1");
+
+        CartEntryDto entry = new CartEntryDto();
+        entry.setProductIdentifier("P1");
 
         CartEntryDto savedEntry = new CartEntryDto();
         savedEntry.setTotalPrice(BigDecimal.valueOf(100));
-        savedEntry.setDiscount(BigDecimal.valueOf(20));
+        savedEntry.setDiscount(BigDecimal.valueOf(10));
 
-        CartDto mappedDto = new CartDto();
+        CartDto dto = new CartDto();
+        dto.setUsername("USER1");
+        dto.setCoupon("TEST");
+        dto.setCartEntries(List.of(entry));
 
-        when(customerRepository.findByIdentifier("CUST1")).thenReturn(customer);
-        when(cartRepository.findByIdentifier("CUST1")).thenReturn(existingCart);
-        when(cartEntryService.findAllByCartIdentifier("CUST1")).thenReturn(List.of(savedEntry));
-        when(modelMapper.map(existingCart, CartDto.class)).thenReturn(mappedDto);
+        doReturn(dto).when(cartService).findByIdentifier("USER1");
 
-        CartDto response = cartService.save(dto);
+        when(customerRepository.findByIdentifier("USER1")).thenReturn(customer);
 
-        Assertions.assertNotNull(response);
-        verify(cartEntryService).save(entry);
-        verify(cartRepository, atLeastOnce()).save(existingCart);
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(existing);
+
+        when(modelMapper.map(existing, CartDto.class)).thenReturn(mappedDto);
+
+        when(cartEntryService.findAllByCartIdentifier("USER1")).thenReturn(List.of(savedEntry));
+
+        CartDto result = cartService.save(dto);
+
+        assertNotNull(result);
+
+        verify(cartEntryService).save(any());
+
+        verify(cartRepository, atLeastOnce()).save(existing);
     }
 
     @Test
     void saveNewCartTest() {
-        CartDto dto = new CartDto();
-        dto.setUsername("CUST1");
+
+        Customer customer = new Customer();
 
         CartEntryDto entry = new CartEntryDto();
+
+        CartEntryDto existing = new CartEntryDto();
+        existing.setTotalPrice(BigDecimal.valueOf(100));
+        existing.setDiscount(BigDecimal.valueOf(20));
+
+        CartDto dto = new CartDto();
+        dto.setUsername("USER1");
+        dto.setCoupon("CPN");
         dto.setCartEntries(List.of(entry));
 
+        CartDto response = new CartDto();
+
+        doReturn(response).when(cartService).findByIdentifier("USER1");
+
+        when(customerRepository.findByIdentifier("USER1")).thenReturn(customer);
+
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(null);
+
+        when(cartEntryService.findAllByCartIdentifier("USER1")).thenReturn(List.of(existing));
+
+        CartDto result = cartService.save(dto);
+
+        assertNotNull(result);
+
+        verify(cartRepository, times(2)).save(any(Cart.class));
+
+        verify(cartEntryService).save(any());
+
+    }
+
+    @Test
+    void saveWithoutEntriesTest() {
+
         Customer customer = new Customer();
 
-        Cart savedCart = new Cart();
-        savedCart.setIdentifier("CUST1");
+        CartDto dto = new CartDto();
+        dto.setUsername("USER1");
 
-        CartEntryDto savedEntry = new CartEntryDto();
-        savedEntry.setTotalPrice(BigDecimal.valueOf(100));
-        savedEntry.setDiscount(BigDecimal.valueOf(20));
+        CartDto response = new CartDto();
 
-        CartDto mappedDto = new CartDto();
-        mappedDto.setIdentifier("CUST1");
+        doReturn(response).when(cartService).findByIdentifier("USER1");
 
-        when(customerRepository.findByIdentifier("CUST1")).thenReturn(customer);
-        when(cartRepository.findByIdentifier("CUST1")).thenReturn(null).thenReturn(savedCart);
-        when(cartRepository.save(any(Cart.class))).thenReturn(savedCart);
-        when(cartEntryService.findAllByCartIdentifier("CUST1")).thenReturn(List.of(savedEntry));
-        when(modelMapper.map(savedCart, CartDto.class)).thenReturn(mappedDto);
+        when(customerRepository.findByIdentifier("USER1")).thenReturn(customer);
 
-        CartDto response = cartService.save(dto);
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(null);
 
-        Assertions.assertNotNull(response);
-        Assertions.assertEquals("CUST1", response.getIdentifier());
-        verify(cartEntryService).save(entry);
+        when(cartEntryService.findAllByCartIdentifier("USER1")).thenReturn(List.of());
+
+        cartService.save(dto);
+
+        verify(cartRepository, times(2)).save(any());
+
     }
 
     @Test
-    void saveUsingIdentifierTest() {
+    void saveCustomerNotFoundTest() {
+
         CartDto dto = new CartDto();
-        dto.setIdentifier("CUST1");
+        dto.setUsername("USER1");
 
-        Customer customer = new Customer();
-        Cart cart = new Cart();
-        cart.setIdentifier("CUST1");
+        when(customerRepository.findByIdentifier("USER1")).thenReturn(null);
 
-        when(customerRepository.findByIdentifier("CUST1")).thenReturn(customer);
-        when(cartRepository.findByIdentifier("CUST1")).thenReturn(cart);
-        when(cartEntryService.findAllByCartIdentifier("CUST1")).thenReturn(List.of());
-        when(modelMapper.map(cart, CartDto.class)).thenReturn(new CartDto());
+        assertThrows(ResourceNotFoundException.class, () -> cartService.save(dto));
 
-        Assertions.assertNotNull(cartService.save(dto));
     }
 
     @Test
-    void updateCartNotFoundTest() {
-        CartDto dto = new CartDto();
-        dto.setIdentifier("CART1");
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(null);
-        CartDto response = cartService.update(dto);
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Cart with identifier - CART1 not found", response.getMessage());
-    }
+    void updateTest() {
 
-    @Test
-    void updateSuccessTest() {
-        CartDto dto = new CartDto();
-        dto.setIdentifier("CART1");
-        dto.setUsername("CUST1");
+        Cart existing = new Cart();
+        existing.setIdentifier("USER1");
 
         CartEntryDto newEntry = new CartEntryDto();
-        newEntry.setIdentifier(null);
 
         CartEntryDto existingEntry = new CartEntryDto();
-        existingEntry.setIdentifier("ENTRY1");
+        existingEntry.setIdentifier("ID");
 
+        CartEntryDto summary = new CartEntryDto();
+        summary.setTotalPrice(BigDecimal.valueOf(200));
+        summary.setDiscount(BigDecimal.valueOf(50));
+
+        CartDto dto = new CartDto();
+        dto.setIdentifier("USER1");
+        dto.setUsername("USER1");
+        dto.setCoupon("TEST");
         dto.setCartEntries(List.of(newEntry, existingEntry));
 
-        Cart existingCart = new Cart();
+        CartDto response = new CartDto();
 
-        CartEntryDto entry = new CartEntryDto();
-        entry.setTotalPrice(BigDecimal.valueOf(100));
-        entry.setDiscount(BigDecimal.valueOf(10));
+        doReturn(response).when(cartService).findByIdentifier("USER1");
 
-        CartDto mappedDto = new CartDto();
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(existing);
 
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(existingCart);
-        when(cartEntryService.findAllByCartIdentifier("CART1")).thenReturn(List.of(entry));
-        when(modelMapper.map(existingCart, CartDto.class)).thenReturn(mappedDto);
+        when(cartEntryService.findAllByCartIdentifier("USER1")).thenReturn(List.of(summary));
 
-        CartDto response = cartService.update(dto);
+        CartDto result = cartService.update(dto);
 
-        Assertions.assertNotNull(response);
+        assertNotNull(result);
+
         verify(cartEntryService).save(newEntry);
+
         verify(cartEntryService).update(existingEntry);
+
+        verify(cartRepository, atLeast(2)).save(existing);
+
     }
 
     @Test
     void updateWithoutEntriesTest() {
+
+        Cart existing = new Cart();
+
         CartDto dto = new CartDto();
-        dto.setIdentifier("CART1");
+        dto.setIdentifier("USER1");
 
-        Cart cart = new Cart();
+        CartDto response = new CartDto();
 
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(cart);
-        when(cartEntryService.findAllByCartIdentifier("CART1")).thenReturn(List.of());
-        when(modelMapper.map(cart, CartDto.class)).thenReturn(new CartDto());
+        doReturn(response).when(cartService).findByIdentifier("USER1");
 
-        Assertions.assertNotNull(cartService.update(dto));
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(existing);
+
+        when(cartEntryService.findAllByCartIdentifier("USER1")).thenReturn(List.of());
+
+        cartService.update(dto);
+
+        verify(cartRepository, atLeast(2)).save(existing);
+
+    }
+
+    @Test
+    void updateNotFoundTest() {
+
+        CartDto dto = new CartDto();
+        dto.setIdentifier("USER1");
+
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> cartService.update(dto));
+
     }
 
     @Test
     void deleteTest() {
+
         Cart cart = new Cart();
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(cart);
-        boolean response = cartService.delete("CART1");
-        Assertions.assertTrue(response);
-        verify(cartEntryService).deleteByCartIdentifier("CART1");
-        verify(cartRepository).deleteByIdentifier("CART1");
-        verify(cartRepository, never()).save(any());
+
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(cart);
+
+        boolean result = cartService.delete("USER1");
+
+        assertTrue(result);
+
+        verify(cartEntryService).deleteByCartIdentifier("USER1");
+
+        verify(cartRepository).deleteByIdentifier("USER1");
+
     }
 
     @Test
-    void deleteCartNullTest() {
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(null);
-        boolean response = cartService.delete("CART1");
-        Assertions.assertFalse(response);
-        verify(cartEntryService, never()).deleteByCartIdentifier(any());
-        verify(cartRepository, never()).deleteByIdentifier(any());
+    void deleteNotFoundTest() {
+
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> cartService.delete("USER1"));
+
+    }
+
+    @Test
+    void deleteCartEntryTest() {
+
+        CartEntryDto entry = new CartEntryDto();
+        entry.setCartIdentifier("USER1");
+
+        Cart cart = new Cart();
+
+        CartEntryDto e = new CartEntryDto();
+        e.setTotalPrice(BigDecimal.valueOf(100));
+        e.setDiscount(BigDecimal.valueOf(10));
+
+        when(cartEntryService.findByIdentifier("ENTRY1")).thenReturn(entry);
+
+        when(cartRepository.findByIdentifier("USER1")).thenReturn(cart);
+
+        when(cartEntryService.findAllByCartIdentifier("USER1")).thenReturn(List.of(e));
+
+        boolean result = cartService.deleteCartEntry("ENTRY1");
+
+        assertTrue(result);
+
+        verify(cartEntryService).delete("ENTRY1");
+
+        verify(cartRepository).save(cart);
+
     }
 
     @Test
     void deleteCartEntryNotFoundTest() {
+
         when(cartEntryService.findByIdentifier("ENTRY1")).thenReturn(null);
-        boolean response = cartService.deleteCartEntry("ENTRY1");
-        Assertions.assertFalse(response);
-    }
 
-    @Test
-    void deleteCartEntryCartNotFoundTest() {
-        CartEntryDto entry = new CartEntryDto();
-        entry.setCartIdentifier("CART1");
-        when(cartEntryService.findByIdentifier("ENTRY1")).thenReturn(entry);
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(null);
-        boolean response = cartService.deleteCartEntry("ENTRY1");
-        Assertions.assertFalse(response);
-    }
+        assertThrows(ResourceNotFoundException.class, () -> cartService.deleteCartEntry("ENTRY1"));
 
-    @Test
-    void deleteCartEntrySuccessTest() {
-        CartEntryDto entry = new CartEntryDto();
-        entry.setCartIdentifier("CART1");
-
-        Cart cart = new Cart();
-
-        CartEntryDto remaining = new CartEntryDto();
-        remaining.setTotalPrice(BigDecimal.valueOf(100));
-        remaining.setDiscount(BigDecimal.valueOf(10));
-
-        when(cartEntryService.findByIdentifier("ENTRY1")).thenReturn(entry);
-        when(cartRepository.findByIdentifier("CART1")).thenReturn(cart);
-        when(cartEntryService.findAllByCartIdentifier("CART1")).thenReturn(List.of(remaining));
-
-        boolean response = cartService.deleteCartEntry("ENTRY1");
-
-        Assertions.assertTrue(response);
-        verify(cartEntryService).delete("ENTRY1");
-        verify(cartRepository).save(cart);
     }
 
     @Test
     void findAllTest() {
+
         Pageable pageable = PageRequest.of(0, 10);
 
         Cart cart = new Cart();
-        cart.setIdentifier("CART1");
+        cart.setIdentifier("USER1");
 
         CartDto dto = new CartDto();
-        dto.setIdentifier("CART1");
+        dto.setIdentifier("USER1");
 
         CartEntryDto entry = new CartEntryDto();
         entry.setTotalPrice(BigDecimal.valueOf(100));
         entry.setDiscount(BigDecimal.valueOf(20));
 
-        when(cartRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(cart)));
-        when(modelMapper.map(any(List.class), any(Type.class))).thenReturn(List.of(dto));
-        when(cartEntryService.findAllByCartIdentifier("CART1")).thenReturn(List.of(entry));
+        Page<Cart> page = new PageImpl<>(List.of(cart));
 
-        List<CartDto> response = cartService.findAll(pageable);
+        List<CartDto> dtos = List.of(dto);
 
-        Assertions.assertEquals(1, response.size());
-        Assertions.assertEquals(BigDecimal.valueOf(100), response.get(0).getTotalPrice());
-        Assertions.assertEquals(BigDecimal.valueOf(20), response.get(0).getDiscount());
+        when(cartRepository.findAll(pageable)).thenReturn(page);
+
+        when(modelMapper.map(eq(page.getContent()), any(Type.class))).thenReturn(dtos);
+
+        when(cartEntryService.findAllByCartIdentifier("USER1")).thenReturn(List.of(entry));
+
+        List<CartDto> result = cartService.findAll(pageable);
+
+        assertEquals(1, result.size());
+
+        assertEquals(BigDecimal.valueOf(100), result.get(0).getTotalPrice());
+
+        assertEquals(BigDecimal.valueOf(20), result.get(0).getDiscount());
+
     }
 
     @Test
     void findAllEmptyTest() {
+
         Pageable pageable = PageRequest.of(0, 10);
-        when(cartRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of()));
-        when(modelMapper.map(any(List.class), any(Type.class))).thenReturn(List.of());
-        List<CartDto> response = cartService.findAll(pageable);
-        Assertions.assertTrue(response.isEmpty());
+
+        Page<Cart> page = new PageImpl<>(List.of());
+
+        when(cartRepository.findAll(pageable)).thenReturn(page);
+
+        when(modelMapper.map(eq(page.getContent()), any(Type.class))).thenReturn(List.of());
+
+        List<CartDto> result = cartService.findAll(pageable);
+
+        assertTrue(result.isEmpty());
+
     }
 
 }

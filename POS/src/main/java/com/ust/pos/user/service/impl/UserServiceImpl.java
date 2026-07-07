@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl extends CommonService implements UserService {
@@ -60,33 +59,22 @@ public class UserServiceImpl extends CommonService implements UserService {
     @Override
     public UserDto update(UserDto userDto) {
         String username = userDto.getUsername();
-        Optional<User> userOptional = userRepository.findById(userDto.getId());
+        User existingUser = requireResource(userRepository.findById(userDto.getId()).orElse(null), USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " not found");
 
-        if (userOptional.isEmpty()) {
-            userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " not found");
+        if (!username.equalsIgnoreCase(existingUser.getUsername()) && userRepository.findByUsername(username) != null) {
+            userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
             userDto.setSuccess(false);
             return userDto;
-        } else {
-            User existingUser = userOptional.get();
-            if (!username.equalsIgnoreCase(existingUser.getUsername()) && userRepository.findByUsername(username) != null) {
-
-                userDto.setMessage(USER_WITH_USERNAME_EMAIL + userDto.getUsername() + " already exists");
-                userDto.setSuccess(false);
-                return userDto;
-            }
-            modelMapper.map(userDto, existingUser);
-            setAuditFields(existingUser, false);
-            userRepository.save(existingUser);
         }
+        modelMapper.map(userDto, existingUser);
+        setAuditFields(existingUser, false);
+        userRepository.save(existingUser);
         return userDto;
     }
 
     @Override
     public boolean delete(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            return false;
-        }
+        User user = requireResource(userRepository.findByUsername(username), USER_WITH_USERNAME_EMAIL + username + " not found");
         softDelete(user);
         setAuditFields(user, false);
         userRepository.save(user);

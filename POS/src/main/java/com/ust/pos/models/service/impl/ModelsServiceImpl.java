@@ -19,6 +19,7 @@ import java.util.List;
 @Service
 public class ModelsServiceImpl extends CommonService implements ModelsService {
     public static final String MODELS_WITH_IDENTIFIER = "Models with identifier - ";
+    public static final String NOT_FOUND = " not found";
     private final ModelsRepository modelsRepository;
     private final ModelMapper modelMapper;
 
@@ -29,12 +30,12 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
 
     @Override
     public ModelsDto findByIdentifier(String identifier) {
-        return modelMapper.map(modelsRepository.findByIdentifier(identifier), ModelsDto.class);
+        return modelMapper.map(requireResource(modelsRepository.findByIdentifier(identifier), MODELS_WITH_IDENTIFIER + identifier + NOT_FOUND), ModelsDto.class);
     }
 
     @Override
     public ModelsDto toggleStatus(String identifier) {
-        Models models = modelsRepository.findByIdentifier(identifier);
+        Models models = requireResource(modelsRepository.findByIdentifier(identifier), MODELS_WITH_IDENTIFIER + identifier + NOT_FOUND);
         models.setStatus(!models.isStatus());
         modelsRepository.save(models);
         return modelMapper.map(models, ModelsDto.class);
@@ -64,12 +65,7 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
     @Override
     public ModelsDto update(ModelsDto modelsDto) {
         String identifier = modelsDto.getIdentifier();
-        Models existingModels = modelsRepository.findByIdentifier(identifier);
-        if (existingModels == null) {
-            modelsDto.setMessage(MODELS_WITH_IDENTIFIER + identifier + " not found");
-            modelsDto.setSuccess(false);
-            return modelsDto;
-        }
+        Models existingModels = requireResource(modelsRepository.findByIdentifier(identifier), MODELS_WITH_IDENTIFIER + identifier + NOT_FOUND);
         modelMapper.map(modelsDto, existingModels);
         setAuditFields(existingModels, false);
         modelsRepository.save(existingModels);
@@ -78,10 +74,7 @@ public class ModelsServiceImpl extends CommonService implements ModelsService {
 
     @Override
     public boolean delete(String identifier) {
-        Models models = modelsRepository.findByIdentifier(identifier);
-        if (models == null) {
-            return false;
-        }
+        Models models = requireResource(modelsRepository.findByIdentifier(identifier), MODELS_WITH_IDENTIFIER + identifier + NOT_FOUND);
         softDelete(models);
         setAuditFields(models, false);
         modelsRepository.save(models);

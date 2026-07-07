@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController("customerApiController")
@@ -23,6 +24,7 @@ public class CustomerController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -33,6 +35,7 @@ public class CustomerController extends BaseController {
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<CustomerDto> getByIdentifier(@PathVariable String identifier) {
         try {
             CustomerDto response = customerService.findByIdentifierWithAddressDto(identifier);
@@ -43,6 +46,7 @@ public class CustomerController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<CustomerDto> save(@RequestBody CustomerDto customerDto) {
         customerDto.setSuccess(true);
         CustomerDto response = customerService.save(customerDto);
@@ -53,6 +57,7 @@ public class CustomerController extends BaseController {
     }
 
     @PutMapping("/update/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<CustomerDto> update(@PathVariable String identifier, @RequestBody CustomerDto customerDto) {
         customerDto.setIdentifier(identifier);
         customerDto.setSuccess(true);
@@ -64,6 +69,7 @@ public class CustomerController extends BaseController {
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             boolean deleted = customerService.delete(identifier);
@@ -74,6 +80,7 @@ public class CustomerController extends BaseController {
     }
 
     @PostMapping("/toggle/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<CustomerDto> toggleStatus(@PathVariable String identifier) {
         CustomerDto response = customerService.toggleStatus(identifier);
         return ResponseEntity.ok(response);

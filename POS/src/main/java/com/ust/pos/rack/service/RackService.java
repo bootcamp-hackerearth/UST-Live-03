@@ -19,4 +19,5 @@ public interface RackService {
 
     WsDto<RackDto> findAll(Pageable pageable);
 
-    WsDto<RackDto> findAll(Specification<Rack> spec, Pageable pageable, String keyword);}
+    WsDto<RackDto> findAll(Specification<Rack> spec, Pageable pageable, String keyword);
+}

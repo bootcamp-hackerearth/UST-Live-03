@@ -6,6 +6,7 @@ import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.PaginationDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class CartController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<CartDto>> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         List<CartDto> carts = cartService.findAll(pageable);
@@ -27,6 +29,7 @@ public class CartController extends BaseController {
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<CartDto> getByIdentifier(@PathVariable String identifier) {
         CartDto response = cartService.findByIdentifier(identifier);
         if (response == null) {
@@ -36,6 +39,7 @@ public class CartController extends BaseController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<CartDto> save(@RequestBody CartDto cartDto) {
         CartDto response = cartService.save(cartDto);
         if (!response.isSuccess()) {
@@ -45,6 +49,7 @@ public class CartController extends BaseController {
     }
 
     @PutMapping("/update/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<CartDto> update(@PathVariable String identifier, @RequestBody CartDto cartDto) {
         cartDto.setIdentifier(identifier);
         CartDto response = cartService.update(cartDto);
@@ -55,12 +60,14 @@ public class CartController extends BaseController {
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         boolean response = cartService.delete(identifier);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/delete-entry/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> deleteEntry(@PathVariable String identifier) {
         boolean response = cartService.deleteCartEntry(identifier);
         return ResponseEntity.ok(response);

@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class OrderController extends BaseController {
     }
 
     @PostMapping("/place")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<OrderDto> placeOrder(@RequestBody PlaceOrderRequestDto request) {
         OrderDto response = orderService.placeOrder(request);
         if (!response.isSuccess()) {
@@ -34,6 +36,7 @@ public class OrderController extends BaseController {
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<OrderDto> getByIdentifier(@PathVariable String identifier) {
         OrderDto response = orderService.findByIdentifier(identifier);
         if (response == null) {
@@ -43,6 +46,7 @@ public class OrderController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<OrderDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -53,12 +57,14 @@ public class OrderController extends BaseController {
     }
 
     @GetMapping("/customer/{customerIdentifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<OrderDto>> getByCustomer(@PathVariable String customerIdentifier) {
         List<OrderDto> orders = orderService.findByCustomerIdentifier(customerIdentifier);
         return ResponseEntity.ok(orders);
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         boolean response = orderService.delete(identifier);
         return ResponseEntity.ok(response);

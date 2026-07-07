@@ -51,23 +51,16 @@ public class RackServiceImpl extends CommonService implements RackService {
 
     @Override
     public RackDto getRack(Long id) {
-
-        RackDto dto = new RackDto();
-
-        rackRepository.findById(id).ifPresentOrElse(rack -> {
-            modelMapper.map(rack, dto);
-            dto.setSuccess(true);
-        }, () -> {
-            dto.setSuccess(false);
-            dto.setMessage("Rack not found");
-        });
-
+        Rack rack = requireResource(rackRepository.findById(id).orElse(null), "Rack with id '" + id + "' not found");
+        RackDto dto = modelMapper.map(rack, RackDto.class);
+        dto.setSuccess(true);
         return dto;
     }
 
     @Override
     public WsDto<RackDto> findAll(Pageable pageable) {
-        Type listType = new TypeToken<List<RackDto>>() {}.getType();
+        Type listType = new TypeToken<List<RackDto>>() {
+        }.getType();
         Page<Rack> rackPage = rackRepository.findByDeletedFalse(pageable);
         WsDto<RackDto> wsDto = new WsDto<>();
         wsDto.setDtoList(modelMapper.map(rackPage.getContent(), listType));
@@ -80,7 +73,8 @@ public class RackServiceImpl extends CommonService implements RackService {
 
     @Override
     public WsDto<RackDto> findAll(Specification<Rack> spec, Pageable pageable, String keyword) {
-        Type listType = new TypeToken<List<RackDto>>() {}.getType();
+        Type listType = new TypeToken<List<RackDto>>() {
+        }.getType();
         Page<Rack> rackPage = rackRepository.findAll(spec, pageable);
         WsDto<RackDto> wsDto = new WsDto<>();
         wsDto.setDtoList(modelMapper.map(rackPage.getContent(), listType));
@@ -94,10 +88,7 @@ public class RackServiceImpl extends CommonService implements RackService {
 
     @Override
     public boolean deleteRack(Long id) {
-        Rack rack = rackRepository.findById(id).orElse(null);
-        if (rack == null) {
-            return false;
-        }
+        Rack rack = requireResource(rackRepository.findById(id).orElse(null), "Rack with id '" + id + "' not found");
         softDelete(rack);
         setAuditFields(rack, false);
         rackRepository.save(rack);

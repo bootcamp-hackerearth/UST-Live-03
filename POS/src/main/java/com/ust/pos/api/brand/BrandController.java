@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class BrandController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin')")
     public WsDto<BrandDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -35,18 +37,21 @@ public class BrandController extends BaseController {
     }
 
     @GetMapping("/active")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<List<BrandDto>> getActiveBrands() {
         List<BrandDto> activeBrands = brandService.findIfTrue();
         return ResponseEntity.ok(activeBrands);
     }
 
     @GetMapping("/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<BrandDto> getByIdentifier(@PathVariable String identifier) {
         BrandDto response = brandService.findByIdentifier(identifier);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<BrandDto> save(@RequestBody BrandDto brandDto) {
         BrandDto response = brandService.save(brandDto);
         if (!response.isSuccess()) {
@@ -56,6 +61,7 @@ public class BrandController extends BaseController {
     }
 
     @PutMapping("/update/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<BrandDto> update(@PathVariable String identifier, @RequestBody BrandDto brandDto) {
         brandDto.setIdentifier(identifier);
         BrandDto response = brandService.update(brandDto);
@@ -66,6 +72,7 @@ public class BrandController extends BaseController {
     }
 
     @DeleteMapping("/delete/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<Boolean> delete(@PathVariable String identifier) {
         try {
             brandService.delete(identifier);
@@ -76,6 +83,7 @@ public class BrandController extends BaseController {
     }
 
     @PostMapping("/toggle/{identifier}")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<BrandDto> toggleStatus(@PathVariable String identifier) {
         BrandDto response = brandService.toggleStatus(identifier);
         return ResponseEntity.ok(response);
