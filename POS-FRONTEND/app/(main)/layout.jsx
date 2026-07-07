@@ -32,7 +32,7 @@ const MainLayout = ({ children }) => {
 
   try {
   const res = await axios.get(
-    "http://localhost:8080/api/node/roles",
+    "/api/node/roles",
     {
       headers: {
         Authorization: `Bearer ${token}`,
