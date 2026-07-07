@@ -13,8 +13,6 @@ const ShelfAdd = () => {
 
   const initialData = {
     identifier: "",
-    path: "",
-    roles: [],
   };
 
   return (
