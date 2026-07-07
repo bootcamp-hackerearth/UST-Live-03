@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
-
 import com.ust.pos.model.User;
 import com.ust.pos.user.service.UserService;
 import io.micrometer.common.util.StringUtils;
@@ -67,11 +66,9 @@ public class UserRestController extends BaseController {
         return true;
     }
 
-    @PostMapping("/add")
+    @PostMapping({"/add", "/register"})
     public UserDto registerUser(@RequestBody UserDto userDto) {
-        if (userService.findByUserName(userDto.getUsername()) == null) {
             return userService.save(userDto);
-        }
-        return userDto;
     }
+
 }

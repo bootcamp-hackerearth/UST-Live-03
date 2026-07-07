@@ -97,17 +97,6 @@ export default function Navbar() {
                 <p className="text-xs text-[#4b4b75] m-0 break-all">{userData.phoneNo}</p>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                router.push("/home/profile");
-                setProfileOpen(false);
-              }}
-              className="w-full h-[38px] bg-[#6c63ff] border-none rounded-lg text-white text-xs font-medium mt-5 cursor-pointer transition-colors duration-150 hover:bg-[#5850ec]"
-            >
-              Edit Profile
-            </button>
           </div>
         </div>
       </nav>

@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 
 const Register = () => {
   const router = useRouter();
-  const [user, setUser] = useState({ name: "", username: "", roles: "", phoneNo: "", password: "" });
+  const [user, setUser] = useState({ name: "", username: "", roles: [], phoneNo: "", password: "" });
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [roles, setRoles] = useState([]);
@@ -26,15 +26,22 @@ const Register = () => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "phoneNo") {
-      const onlyNums = value.replaceAll(/\D/g, "");
-      if (onlyNums.length > 10) return;
-      setUser({ ...user, [name]: onlyNums });
-      return;
-    }
-    setUser({ ...user, [name]: value });
-  };
+  const { name, value } = e.target;
+
+  if (name === "phoneNo") {
+    const onlyNums = value.replace(/\D/g, "");
+    if (onlyNums.length > 10) return;
+    setUser({ ...user, phoneNo: onlyNums });
+    return;
+  }
+
+  if (name === "roles") {
+    setUser({ ...user, roles: [value] });
+    return;
+  }
+
+  setUser({ ...user, [name]: value });
+};
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -48,13 +55,11 @@ const Register = () => {
     }
 
     const formData = new URLSearchParams(user);
-    axios.post(process.env.NEXT_PUBLIC_BASE_URL+"/register", formData, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    })
+    axios.post(process.env.NEXT_PUBLIC_BASE_URL+"/user/register", user)
       .then((res) => {
         if (res.data.success === false) return setError(res.data.message || "Registration failed");
         setSuccess("Registration successful");
-        setUser({ name: "", username: "", roles: "", phoneNo: "", password: "" });
+        setUser({ name: "", username: "", roles: [], phoneNo: "", password: "" });
         setTimeout(() => router.push("/login"), 1200);
       })
       .catch((err) => {
@@ -97,7 +102,7 @@ const Register = () => {
 
               <div style={{ position: "relative" }}>
                 <ShieldCheckIcon style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", width: "18px", height: "18px", color: "#b0b0c8", pointerEvents: "none" }} />
-                <select name="roles" style={{ ...inputStyle, appearance: "none" }} value={user.roles} onChange={handleChange} required>
+                <select name="roles" style={{ ...inputStyle, appearance: "none" }} value={user.roles[0] || ""} onChange={handleChange} required>
                   <option value="">Select Role</option>
                   {roles.map((r) => <option key={r.id} value={r.identifier}>{r.identifier}</option>)}
                 </select>
