@@ -3,9 +3,9 @@ import List from "../../../components/List";
 
 function Price() {
   const columns = [
-    { key: "identifier", label: "Identifier" },
-    { key: "costPrice", label: "Cost_Price" },
-    { key: "sellingPrice", label: "Selling_Price" },
+    { key: "identifier", label: "IDENTIFIER" },
+    { key: "costPrice", label: "COST_PRICE" },
+    { key: "sellingPrice", label: "SELLING_PRICE" },
     { key: "mrp", label: "MRP" },
   ];
 

@@ -42,7 +42,7 @@ function ProductList() {
 
   return (
     <List
-      title="Product"
+      title="PRODUCT"
       apiPath="product"
       columns={columns}
       addPath="/product/add"

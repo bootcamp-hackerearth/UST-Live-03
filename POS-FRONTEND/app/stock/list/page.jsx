@@ -5,30 +5,30 @@ import List from "../../../components/List";
 export default function StockList() {
   return (
     <List
-      title="Stock"
+      title="STOCK"
       apiPath="stock"
       addPath="/stock/add"
       editPath="/stock/edit"
       columns={[
         {
           key: "identifier",
-          label: "Identifier",
+          label: "IDENTIFIER",
         },
         {
           key: "productName",
-          label: "Product",
+          label: "PRODUCT",
         },
         {
           key: "warehouseName",
-          label: "Warehouse",
+          label: "WAREHOUSE",
         },
         {
           key: "quantity",
-          label: "Quantity",
+          label: "QUANTITY",
         },
         {
           key: "stockStatus",
-          label: "Stock Status",
+          label: "STOCK STATUS",
         },
       ]}
       showStatusToggle={true}

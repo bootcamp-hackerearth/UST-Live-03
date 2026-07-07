@@ -3,8 +3,8 @@ import List from "../../../components/List";
 
 function Role() {
   const columns = [
-    { key: "identifier", label: "Identifier" },
-    { key: "description", label: "Description" },
+    { key: "identifier", label: "IDENTIFIER" },
+    { key: "description", label: "DESCRIPTION" },
   ];
 
   return (

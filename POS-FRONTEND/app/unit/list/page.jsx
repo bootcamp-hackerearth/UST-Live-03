@@ -5,18 +5,18 @@ import List from "../../../components/List";
 export default function UnitList() {
   return (
     <List
-      title="Unit"
+      title="UNIT"
       apiPath="unit"
       addPath="/unit/add"
       editPath="/unit/edit"
       columns={[
         {
           key: "identifier",
-          label: "Unit Name",
+          label: "UNIT NAME",
         },
         {
           key: "description",
-          label: "Description",
+          label: "DESCRIPTION",
         },
       ]}
       showStatusToggle={true}

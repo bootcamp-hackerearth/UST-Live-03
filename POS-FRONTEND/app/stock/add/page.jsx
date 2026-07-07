@@ -7,7 +7,7 @@ import SingleDropdown from "../../../components/SingleDropdown";
 function StockAdd() {
   const [productName, setProductName] = useState("");
   const [warehouseName, setWarehouseName] = useState("");
-  const [stockStatus, setStockStatus] = useState("");
+  const [stockStatus, setStockStatus] = useState("IN_STOCK");
 
   const extraFields = [
     {

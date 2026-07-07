@@ -9,7 +9,7 @@ function Category() {
 
   return (
     <List
-      title="Category"
+      title="CATEGORY"
       apiPath="category"
       columns={columns}
       addPath="/category/add"

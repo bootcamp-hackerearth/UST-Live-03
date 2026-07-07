@@ -5,10 +5,10 @@ import List from "../../../components/List";
 
 function User() {
   const columns = [
-    { key: "name", label: "Name" },
-    { key: "username", label: "Username" },
-    { key: "phoneNo", label: "Phone No" },
-    { key: "roles", label: "Roles" },
+    { key: "name", label: "NAME" },
+    { key: "username", label: "USERNAME" },
+    { key: "phoneNo", label: "PHONE NO" },
+    { key: "roles", label: "ROLES" },
   ];
 
   return (

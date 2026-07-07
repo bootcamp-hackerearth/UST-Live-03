@@ -5,18 +5,18 @@ import List from "../../../components/List";
 export default function BrandList() {
   return (
     <List
-      title="Brand"
+      title="BRAND"
       apiPath="brand"
       addPath="/brand/add"
       editPath="/brand/edit"
       columns={[
         {
           key: "identifier",
-          label: "Brand Name",
+          label: "BRAND NAME",
         },
         {
           key: "description",
-          label: "Description",
+          label: "DESCRIPTION",
         },
       ]}
       showStatusToggle={true}

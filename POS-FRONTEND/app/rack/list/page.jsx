@@ -5,22 +5,22 @@ import List from "../../../components/List";
 export default function RackList() {
   return (
     <List
-      title="Rack"
+      title="RACK"
       apiPath="rack"
       addPath="/rack/add"
       editPath="/rack/edit"
       columns={[
         {
           key: "identifier",
-          label: "Rack Name",
+          label: "RACK NAME",
         },
         {
           key: "shelfs",
-          label: "Shelf",
+          label: "SHELF",
         },
         {
           key: "description",
-          label: "Description",
+          label: "DESCRIPTION",
         },
       ]}
       showStatusToggle={true}

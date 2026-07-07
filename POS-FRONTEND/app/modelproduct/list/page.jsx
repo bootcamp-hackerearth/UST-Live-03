@@ -5,14 +5,14 @@ import List from "../../../components/List";
 export default function ModelProductList() {
   return (
     <List
-      title="Model Product"
+      title="MODEL PRODUCT"
       apiPath="modelProduct"
       addPath="/modelproduct/add"
       editPath="/modelproduct/edit"
       columns={[
         {
           key: "identifier",
-          label: "Model Name",
+          label: "MODEL NAME",
         },
       ]}
       showStatusToggle={true}
