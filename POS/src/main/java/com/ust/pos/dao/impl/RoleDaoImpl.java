@@ -2,7 +2,7 @@ package com.ust.pos.dao.impl;
 
 import com.ust.pos.dao.RoleDao;
 import com.ust.pos.dto.RoleDto;
-import com.ust.pos.modell.Role;
+import com.ust.pos.models.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,8 +22,7 @@ public class RoleDaoImpl implements RoleDao {
         List<Role> roleList = jdbcTemplate.query(
                 sql,
                 new BeanPropertyRowMapper<>(Role.class),
-                identifier
-        );
+                identifier);
         return roleList.isEmpty() ? null : roleList.get(0);
     }
 
@@ -34,8 +33,7 @@ public class RoleDaoImpl implements RoleDao {
                 sql,
                 roleDto.getIdentifier(),
                 roleDto.getDescription(),
-                roleDto.getStatus()
-        );
+                roleDto.getStatus());
         return findByIdentifier(roleDto.getIdentifier());
     }
 
@@ -46,15 +44,8 @@ public class RoleDaoImpl implements RoleDao {
                 sql,
                 roleDto.getDescription(),
                 roleDto.getStatus(),
-                roleDto.getIdentifier()
-        );
+                roleDto.getIdentifier());
         return findByIdentifier(roleDto.getIdentifier());
-    }
-
-    @Override
-    public void deleteByIdentifier(String identifier) {
-        String sql = "DELETE FROM ROLE WHERE identifier = ?";
-        jdbcTemplate.update(sql, identifier);
     }
 
 }

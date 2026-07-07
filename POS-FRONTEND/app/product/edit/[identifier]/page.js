@@ -83,14 +83,11 @@ export default function ProductEditPage() {
   return (
     <CommonEditPage
       title="Edit Product"
-
       identifierParam="identifier"
-
       fetchApi={fetchProduct}
       updateApi={handleUpdate}
       redirectRoute="/product/list"
       submitButtonText="Update Product"
-
       onChange={handleChange}
 
       fields={[

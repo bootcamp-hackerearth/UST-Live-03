@@ -25,8 +25,9 @@ export default function BrandPage() {
         { header: "ID", field: "id" },
         { header: "Brand Name", field: "identifier" },
         { header: "Description", field: "description" },
+
         { header: "Status", field: "status" },
       ]}
-    /
+    />
   );
 }

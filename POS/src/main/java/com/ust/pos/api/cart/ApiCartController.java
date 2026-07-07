@@ -69,7 +69,6 @@ public class ApiCartController extends BaseController {
         cartService.clearCart(cartIdentifier);
         return cartService.findByIdentifier(cartIdentifier);
     }
-
 }
 
 

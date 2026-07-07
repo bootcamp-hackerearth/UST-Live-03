@@ -1,17 +1,18 @@
 package com.ust.pos.category.service.impl;
 
-import com.ust.pos.base.service.BaseService; // 1. Imported the BaseService package
+import com.ust.pos.base.service.BaseService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.modell.Category;
-import com.ust.pos.modell.CategoryRepository;
+import com.ust.pos.models.Category;
+import com.ust.pos.models.CategoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -97,22 +98,13 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
     @Transactional
     public void delete(String identifier) {
 
-        if (categoryRepository
-                .existsBySuperCategoryAndDeletedFalse(identifier)) {
-
-            throw new IllegalStateException(
-                    "Cannot delete category. It is used as a super category."
-            );
+        if (categoryRepository.existsBySuperCategoryAndDeletedFalse(identifier)) {
+            throw new IllegalStateException("Cannot delete category. It is used as a super category.");
         }
 
-        Category category =
-                categoryRepository
-                        .findByIdentifierAndDeletedFalse(
-                                identifier
-                        );
+        Category category = categoryRepository.findByIdentifierAndDeletedFalse(identifier);
 
         if (category != null) {
-
             softDelete(category);
             setModifiedDetails(category);
             categoryRepository.save(category);
@@ -132,7 +124,7 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         WsDto<CategoryDto> categoryWsDto = new WsDto<>();
         categoryWsDto.setDtoList(modelMapper.map(categoryPage.getContent(), listType));
         categoryWsDto.setTotalRecords(categoryPage.getTotalElements());
-        categoryWsDto.setTotalPage(categoryPage.getTotalPages());
+        categoryWsDto.setTotalPages(categoryPage.getTotalPages());
         categoryWsDto.setSizePerPage(pageable.getPageSize());
         categoryWsDto.setPage(pageable.getPageNumber());
         return categoryWsDto;
@@ -166,5 +158,19 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
                 .stream()
                 .map(category -> modelMapper.map(category, CategoryDto.class))
                 .toList();
+    }
+
+    @Override
+    public WsDto<CategoryDto> findAll(Specification<Category> example, Pageable pageable) {
+        Type listType = new TypeToken<List<CategoryDto>>() {
+        }.getType();
+        Page<Category> page = categoryRepository.findAll(example, pageable);
+        WsDto<CategoryDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 }

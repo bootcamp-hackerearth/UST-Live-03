@@ -4,7 +4,7 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.OrderEntryDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.modell.*;
+import com.ust.pos.models.*;
 import com.ust.pos.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -103,7 +103,7 @@ public class OrderServiceImpl extends BaseService implements OrderService {
         WsDto<OrderDto> orderWsDto = new WsDto<>();
         orderWsDto.setDtoList(modelMapper.map(orderPage.getContent(), listType));
         orderWsDto.setTotalRecords(orderPage.getTotalElements());
-        orderWsDto.setTotalPage(orderPage.getTotalPages());
+        orderWsDto.setTotalPages(orderPage.getTotalPages());
         orderWsDto.setSizePerPage(pageable.getPageSize());
         orderWsDto.setPage(pageable.getPageNumber());
         return orderWsDto;

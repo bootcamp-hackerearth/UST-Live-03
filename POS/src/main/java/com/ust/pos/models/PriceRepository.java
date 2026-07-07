@@ -1,0 +1,21 @@
+package com.ust.pos.models;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface PriceRepository extends JpaRepository<Price, Long> {
+
+    Price findByIdentifier(String identifier);
+
+    Price findByIdentifierAndDeletedFalse (String identifier);
+
+    Page<Price> findAllByDeletedFalse (Pageable pageable);
+
+    Page<Price> findAll(Specification example, Pageable pageable);
+
+
+}

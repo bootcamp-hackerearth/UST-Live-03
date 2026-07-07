@@ -3,8 +3,9 @@ package com.ust.pos.stock.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.modell.Stock;
-import com.ust.pos.modell.StockRepository;
+import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.models.Stock;
+import com.ust.pos.models.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -29,14 +31,12 @@ public class StockServiceImpl extends BaseService implements StockService {
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        StockDto response = new StockDto();
         Stock stock = stockRepository.findByIdentifierAndDeletedFalse(identifier.trim());
 
         if (stock == null) {
-            response.setMessage("Stock not found");
-            response.setSuccess(false);
-            return response;
+            throw new ResourceNotFoundException("Stock with identifier '" + identifier + "' not found");
         }
+
         return mapToDto(stock);
     }
 
@@ -139,7 +139,7 @@ public class StockServiceImpl extends BaseService implements StockService {
         WsDto<StockDto> wsDto = new WsDto<>();
         wsDto.setDtoList(modelMapper.map(stockPage.getContent(), listType));
         wsDto.setTotalRecords(stockPage.getTotalElements());
-        wsDto.setTotalPage(stockPage.getTotalPages());
+        wsDto.setTotalPages(stockPage.getTotalPages());
         wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setPage(pageable.getPageNumber());
         return wsDto;
@@ -160,6 +160,23 @@ public class StockServiceImpl extends BaseService implements StockService {
         dto.setModifiedOn(stock.getModifiedOn());
         dto.setSuccess(true);
         return dto;
+    }
+
+    @Override
+    public WsDto<StockDto> findAll(Specification<Stock> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<StockDto>>() {
+        }.getType();
+        Page<Stock> page = stockRepository.findAll(example, pageable);
+
+        WsDto<StockDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 
 }

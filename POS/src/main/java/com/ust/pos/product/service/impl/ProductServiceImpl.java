@@ -3,8 +3,8 @@ package com.ust.pos.product.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.modell.Product;
-import com.ust.pos.modell.ProductRepository;
+import com.ust.pos.models.Product;
+import com.ust.pos.models.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -88,7 +89,7 @@ public class ProductServiceImpl extends BaseService implements ProductService {
         WsDto<ProductDto> productWsDto = new WsDto<>();
         productWsDto.setDtoList(modelMapper.map(productPage.getContent(), listType));
         productWsDto.setTotalRecords(productPage.getTotalElements());
-        productWsDto.setTotalPage(productPage.getTotalPages());
+        productWsDto.setTotalPages(productPage.getTotalPages());
         productWsDto.setSizePerPage(pageable.getPageSize());
         productWsDto.setPage(pageable.getPageNumber());
         return productWsDto;
@@ -116,5 +117,18 @@ public class ProductServiceImpl extends BaseService implements ProductService {
                 .stream()
                 .map(product -> modelMapper.map(product, ProductDto.class))
                 .toList();
+    }
+
+    @Override
+    public WsDto<ProductDto> findAll(Specification<Product> example, Pageable pageable) {
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+        Page<Product> page = productRepository.findAll(example, pageable);
+        WsDto<ProductDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 }

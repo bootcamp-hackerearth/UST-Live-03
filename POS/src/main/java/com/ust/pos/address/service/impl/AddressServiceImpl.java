@@ -2,8 +2,8 @@ package com.ust.pos.address.service.impl;
 
 import com.ust.pos.address.service.AddressService;
 import com.ust.pos.dto.AddressDto;
-import com.ust.pos.modell.Address;
-import com.ust.pos.modell.AddressRepository;
+import com.ust.pos.models.Address;
+import com.ust.pos.models.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;

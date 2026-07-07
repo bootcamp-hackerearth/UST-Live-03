@@ -57,7 +57,6 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .logout(LogoutConfigurer::permitAll);
-
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
@@ -72,10 +71,7 @@ public class WebSecurityConfig {
     public AuthenticationProvider authenticationProvider(
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder) {
-
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userDetailsService);
-
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
@@ -87,38 +83,20 @@ public class WebSecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOriginPatterns(
-                List.of("http://localhost:3000", "http://localhost:5173")
-        );
-
-        configuration.setAllowedMethods(
-                Arrays.asList("GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS")
-        );
-
-        configuration.setAllowedHeaders(
-                Arrays.asList("Authorization", "Content-Type", "Accept")
-        );
-
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
 
     @Bean
     public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-                .info(new Info().title("Authentication Service"))
-                .addSecurityItem(new SecurityRequirement()
-                        .addList(SECURITY_SCHEME))
+        return new OpenAPI().info(new Info().title("Authentication Service")).addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME))
                 .components(new Components()
                         .addSecuritySchemes(SECURITY_SCHEME,
                                 new SecurityScheme()

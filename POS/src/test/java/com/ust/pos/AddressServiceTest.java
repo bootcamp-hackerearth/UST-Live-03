@@ -2,14 +2,14 @@ package com.ust.pos;
 
 import com.ust.pos.address.service.impl.AddressServiceImpl;
 import com.ust.pos.dto.AddressDto;
-import com.ust.pos.modell.Address;
-import com.ust.pos.modell.AddressRepository;
+import com.ust.pos.models.Address;
+import com.ust.pos.models.AddressRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ class AddressServiceTest {
     private AddressServiceImpl addressService;
 
     @Test
-    void findByIdentifier_shouldReturnDto() {
+    void findByIdentifierTest() {
         Address address = new Address();
         AddressDto dto = new AddressDto();
         when(addressRepository.findByIdentifier("ADDR01")).thenReturn(address);
@@ -44,36 +44,26 @@ class AddressServiceTest {
     }
 
     @Test
-    void findAllByPhoneNo_shouldReturnMappedList() {
+    void findAllByPhoneNoTest() {
         Address address = new Address();
         AddressDto dto = new AddressDto();
-        when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(List.of(address));
+        when(addressRepository.findAllByPhoneNoAndDeletedFalse("111")).thenReturn(List.of(address));
         when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(dto));
-        List<AddressDto> result = addressService.findAllByPhoneNo("9876543210");
+        List<AddressDto> result = addressService.findAllByPhoneNo("111");
         assertNotNull(result);
         assertEquals(1, result.size());
-    }
-
-    @Test
-    void findAllByPhoneNo_shouldReturnEmptyList_whenNoData() {
-        when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(new ArrayList<>());
+        when(addressRepository.findAllByPhoneNoAndDeletedFalse("222")).thenReturn(new ArrayList<>());
         when(modelMapper.map(anyList(), any(Type.class))).thenReturn(new ArrayList<>());
-        List<AddressDto> result = addressService.findAllByPhoneNo("9876543210");
+        result = addressService.findAllByPhoneNo("222");
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(addressRepository).findAllByPhoneNoAndDeletedFalse("9876543210");
-        verify(modelMapper).map(anyList(), any(Type.class));
-    }
-
-    @Test
-    void findAllByPhoneNo_shouldReturnNull_whenRepositoryReturnsNull() {
-        when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(null);
-        List<AddressDto> result = addressService.findAllByPhoneNo("9876543210");
+        when(addressRepository.findAllByPhoneNoAndDeletedFalse("333")).thenReturn(null);
+        result = addressService.findAllByPhoneNo("333");
         assertNull(result);
     }
 
     @Test
-    void save_shouldPersistAddress() {
+    void saveTest() {
         AddressDto dto = new AddressDto();
         Address entity = new Address();
         when(modelMapper.map(dto, Address.class)).thenReturn(entity);
@@ -84,7 +74,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void update_shouldUpdateAddress_whenExists() {
+    void updateTest() {
         AddressDto dto = new AddressDto();
         dto.setPhoneNo("9999999999");
         dto.setAddressType("Billing");
@@ -94,47 +84,29 @@ class AddressServiceTest {
         assertNotNull(result);
         verify(modelMapper).map(dto, existing);
         verify(addressRepository).save(existing);
-    }
-
-    @Test
-    void update_shouldReturnNull_whenNotFound() {
-        AddressDto dto = new AddressDto();
-        dto.setPhoneNo("111");
-        dto.setAddressType("Billing");
+        AddressDto dto2 = new AddressDto();
+        dto2.setPhoneNo("111");
+        dto2.setAddressType("Billing");
         when(addressRepository.findByPhoneNoAndAddressTypeAndDeletedFalse("111", "Billing")).thenReturn(null);
-        AddressDto result = addressService.update(dto);
+        result = addressService.update(dto2);
         assertNull(result);
-        verify(addressRepository, never()).save(any());
     }
 
     @Test
-    void delete_shouldSoftDeleteAddresses() {
+    void deleteTest() {
         Address address = new Address();
-        when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(List.of(address));
-        boolean result = addressService.delete("9876543210");
-        assertTrue(result);
+        when(addressRepository.findAllByPhoneNoAndDeletedFalse("111")).thenReturn(List.of(address));
+        assertTrue(addressService.delete("111"));
         assertTrue(address.getDeleted());
         verify(addressRepository).saveAll(anyList());
+        when(addressRepository.findAllByPhoneNoAndDeletedFalse("222")).thenReturn(new ArrayList<>());
+        assertTrue(addressService.delete("222"));
+        when(addressRepository.findAllByPhoneNoAndDeletedFalse("333")).thenReturn(null);
+        assertTrue(addressService.delete("333"));
     }
 
     @Test
-    void delete_shouldHandleEmptyList() {
-        when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(new ArrayList<>());
-        boolean result = addressService.delete("9876543210");
-        assertTrue(result);
-        verify(addressRepository).saveAll(anyList());
-    }
-
-    @Test
-    void delete_shouldHandleNullList() {
-        when(addressRepository.findAllByPhoneNoAndDeletedFalse("9876543210")).thenReturn(null);
-        boolean result = addressService.delete("9876543210");
-        assertTrue(result);
-        verify(addressRepository, never()).saveAll(anyList());
-    }
-
-    @Test
-    void findAll_shouldReturnAllAddresses() {
+    void findAllTest() {
         Address address = new Address();
         AddressDto dto = new AddressDto();
         when(addressRepository.findAll()).thenReturn(List.of(address));

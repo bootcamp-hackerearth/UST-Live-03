@@ -3,8 +3,8 @@ package com.ust.pos.user.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.modell.User;
-import com.ust.pos.modell.UserRepository;
+import com.ust.pos.models.User;
+import com.ust.pos.models.UserRepository;
 import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -116,9 +117,23 @@ public class UserServiceImpl extends BaseService implements UserService {
         WsDto<UserDto> userWsDto = new WsDto<>();
         userWsDto.setDtoList(modelMapper.map(userPage.getContent(), listType));
         userWsDto.setTotalRecords(userPage.getTotalElements());
-        userWsDto.setTotalPage(userPage.getTotalPages());
+        userWsDto.setTotalPages(userPage.getTotalPages());
         userWsDto.setSizePerPage(pageable.getPageSize());
         userWsDto.setPage(pageable.getPageNumber());
         return userWsDto;
+    }
+
+    @Override
+    public WsDto<UserDto> findAll(Specification<User> example, Pageable pageable) {
+        Type listType = new TypeToken<List<UserDto>>() {
+        }.getType();
+        Page<User> page = userRepository.findAll(example, pageable);
+        WsDto<UserDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 }

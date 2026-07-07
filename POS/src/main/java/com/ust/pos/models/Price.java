@@ -1,0 +1,16 @@
+package com.ust.pos.models;
+
+import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+
+@Entity
+@Getter
+@Setter
+public class Price extends CommonFields {
+    private String product;
+    private BigDecimal priceAmount;
+    private String type;
+}

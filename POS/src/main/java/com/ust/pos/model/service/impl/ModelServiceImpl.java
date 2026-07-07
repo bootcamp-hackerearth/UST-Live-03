@@ -4,14 +4,15 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.service.ModelService;
-import com.ust.pos.modell.Model;
-import com.ust.pos.modell.ModelRepository;
+import com.ust.pos.models.Model;
+import com.ust.pos.models.ModelRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -87,7 +88,7 @@ public class ModelServiceImpl extends BaseService implements ModelService {
         WsDto<ModelDto> modelWsDto = new WsDto<>();
         modelWsDto.setDtoList(modelMapper.map(modelPage.getContent(), listType));
         modelWsDto.setTotalRecords(modelPage.getTotalElements());
-        modelWsDto.setTotalPage(modelPage.getTotalPages());
+        modelWsDto.setTotalPages(modelPage.getTotalPages());
         modelWsDto.setSizePerPage(pageable.getPageSize());
         modelWsDto.setPage(pageable.getPageNumber());
         return modelWsDto;
@@ -114,5 +115,17 @@ public class ModelServiceImpl extends BaseService implements ModelService {
         Model saved = modelRepository.save(model);
         return modelMapper.map(saved, ModelDto.class);
     }
-
+    @Override
+    public WsDto<ModelDto> findAll(Specification<Model> example, Pageable pageable) {
+        Type listType = new TypeToken<List<ModelDto>>() {
+        }.getType();
+        Page<Model> page = modelRepository.findAll(example, pageable);
+        WsDto<ModelDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
 }

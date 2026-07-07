@@ -16,6 +16,7 @@ public class PaginationDto {
     private int sizePerPage = 50;
     private String sortDirection = Sort.Direction.DESC.toString();
     private String sortField = "identifier";
-    private int totalPage;
+    private int totalPages;
     private long totalRecords;
+    private String keyword;
 }

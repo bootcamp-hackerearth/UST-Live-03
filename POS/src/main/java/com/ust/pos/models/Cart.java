@@ -1,0 +1,18 @@
+package com.ust.pos.models;
+
+import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+
+@Getter
+@Setter
+@Entity
+public class Cart extends CommonFields {
+    private String customerIdentifier;
+    private BigDecimal originalPrice;
+    private BigDecimal totalPrice;
+    private BigDecimal discount;
+    private String coupon;
+}

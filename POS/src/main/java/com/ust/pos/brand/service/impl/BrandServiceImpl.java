@@ -4,14 +4,15 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.modell.Brand;
-import com.ust.pos.modell.BrandRepository;
+import com.ust.pos.models.Brand;
+import com.ust.pos.models.BrandRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -90,7 +91,7 @@ public class BrandServiceImpl extends BaseService implements BrandService {
         WsDto<BrandDto> brandWsDto = new WsDto<>();
         brandWsDto.setDtoList(modelMapper.map(brandPage.getContent(), listType));
         brandWsDto.setTotalRecords(brandPage.getTotalElements());
-        brandWsDto.setTotalPage(brandPage.getTotalPages());
+        brandWsDto.setTotalPages(brandPage.getTotalPages());
         brandWsDto.setSizePerPage(pageable.getPageSize());
         brandWsDto.setPage(pageable.getPageNumber());
         return brandWsDto;
@@ -119,4 +120,16 @@ public class BrandServiceImpl extends BaseService implements BrandService {
                 .toList();
     }
 
+    @Override
+    public WsDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
+        Type listType = new TypeToken<List<BrandDto>>() {}.getType();
+        Page<Brand> page = brandRepository.findAll(example, pageable);
+        WsDto<BrandDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
 }

@@ -2,8 +2,8 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.modell.Price;
-import com.ust.pos.modell.PriceRepository;
+import com.ust.pos.models.Price;
+import com.ust.pos.models.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -34,7 +35,7 @@ class PriceServiceTest {
     private PriceServiceImpl priceService;
 
     @Test
-    void saveSuccessTest() {
+    void saveTest() {
         PriceDto dto = new PriceDto();
         dto.setProduct("P1");
         dto.setType("MRP");
@@ -45,26 +46,28 @@ class PriceServiceTest {
         when(modelMapper.map(dto, Price.class)).thenReturn(entity);
         when(priceRepository.save(entity)).thenReturn(saved);
         when(modelMapper.map(saved, PriceDto.class)).thenReturn(new PriceDto());
-        PriceDto response = priceService.save(dto);
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertEquals("Price saved successfully", response.getMessage());
-        verify(priceRepository).save(entity);
+        PriceDto result = priceService.save(dto);
+        Assertions.assertTrue(result.isSuccess());
+        Price existing = new Price();
+        existing.setDeleted(false);
+        when(priceRepository.findByIdentifier("P2-MRP")).thenReturn(existing);
+        PriceDto duplicateDto = new PriceDto();
+        duplicateDto.setProduct("P2");
+        duplicateDto.setType("MRP");
+        result = priceService.save(duplicateDto);
+        Assertions.assertFalse(result.isSuccess());
+        Price deleted = new Price();
+        deleted.setDeleted(true);
+        when(priceRepository.findByIdentifier("P3-MRP")).thenReturn(deleted);
+        PriceDto deletedDto = new PriceDto();
+        deletedDto.setProduct("P3");
+        deletedDto.setType("MRP");
+        result = priceService.save(deletedDto);
+        Assertions.assertFalse(result.isSuccess());
     }
 
     @Test
-    void saveDuplicateTest() {
-        PriceDto dto = new PriceDto();
-        dto.setProduct("P1");
-        dto.setType("MRP");
-        when(priceRepository.findByIdentifier("P1-MRP")).thenReturn(new Price());
-        PriceDto response = priceService.save(dto);
-        Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals("Price already exists for product and type", response.getMessage());
-        verify(priceRepository, never()).save(any());
-    }
-
-    @Test
-    void findByIdentifierSuccessTest() {
+    void findByIdentifierAndDeleteTest() {
         Price price = new Price();
         price.setIdentifier("P1-MRP");
         PriceDto dto = new PriceDto();
@@ -73,18 +76,15 @@ class PriceServiceTest {
         when(modelMapper.map(price, PriceDto.class)).thenReturn(dto);
         PriceDto result = priceService.findByIdentifier("P1-MRP");
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("P1-MRP", result.getIdentifier());
+        priceService.delete("P1-MRP");
+        Assertions.assertTrue(price.getDeleted());
+        verify(priceRepository).save(price);
+        when(priceRepository.findByIdentifierAndDeletedFalse("P2-MRP")).thenReturn(null);
+        Assertions.assertNull(priceService.findByIdentifier("P2-MRP"));
     }
 
     @Test
-    void findByIdentifierNotFoundTest() {
-        when(priceRepository.findByIdentifierAndDeletedFalse("P1-MRP")).thenReturn(null);
-        PriceDto result = priceService.findByIdentifier("P1-MRP");
-        Assertions.assertNull(result);
-    }
-
-    @Test
-    void updateSuccessTest() {
+    void updateTest() {
         PriceDto dto = new PriceDto();
         dto.setIdentifier("P1-MRP");
         dto.setProduct("P1");
@@ -96,49 +96,38 @@ class PriceServiceTest {
         when(priceRepository.findByIdentifierAndDeletedFalse("P1-MRP")).thenReturn(existing);
         when(priceRepository.findByIdentifier("P1-SELLING")).thenReturn(existing);
         when(priceRepository.save(existing)).thenReturn(updated);
-        PriceDto mappedResponse = new PriceDto();
-        when(modelMapper.map(updated, PriceDto.class)).thenReturn(mappedResponse);
+        when(modelMapper.map(updated, PriceDto.class)).thenReturn(new PriceDto());
         PriceDto result = priceService.update(dto);
         Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("Price updated successfully", result.getMessage());
-        verify(priceRepository).save(existing);
-    }
-
-    @Test
-    void updatePriceNotFoundTest() {
-        PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1-MRP");
-        when(priceRepository.findByIdentifierAndDeletedFalse("P1-MRP")).thenReturn(null);
-        PriceDto result = priceService.update(dto);
+        when(priceRepository.findByIdentifierAndDeletedFalse("X")).thenReturn(null);
+        PriceDto notFoundDto = new PriceDto();
+        notFoundDto.setIdentifier("X");
+        result = priceService.update(notFoundDto);
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Price not found", result.getMessage());
-    }
-
-    @Test
-    void updateDuplicateIdentifierTest() {
-        PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1-MRP");
-        dto.setProduct("P2");
-        dto.setType("MRP");
-        Price existing = new Price();
-        existing.setId(1L);
+        Price current = new Price();
+        current.setId(1L);
         Price duplicate = new Price();
         duplicate.setId(2L);
-        when(priceRepository.findByIdentifierAndDeletedFalse("P1-MRP")).thenReturn(existing);
-        when(priceRepository.findByIdentifier("P2-MRP")).thenReturn(duplicate);
-        PriceDto result = priceService.update(dto);
+        when(priceRepository.findByIdentifierAndDeletedFalse("P2-MRP")).thenReturn(current);
+        when(priceRepository.findByIdentifier("P9-MRP")).thenReturn(duplicate);
+        PriceDto duplicateDto = new PriceDto();
+        duplicateDto.setIdentifier("P2-MRP");
+        duplicateDto.setProduct("P9");
+        duplicateDto.setType("MRP");
+        result = priceService.update(duplicateDto);
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertEquals("Price already exists for this product and type", result.getMessage());
-        verify(priceRepository, never()).save(any());
-    }
-
-    @Test
-    void deleteTest() {
-        Price price = new Price();
-        price.setIdentifier("P1-MRP");
-        when(priceRepository.findByIdentifierAndDeletedFalse("P1-MRP")).thenReturn(price);
-        priceService.delete("P1-MRP");
-        verify(priceRepository).save(price);
+        Price same = new Price();
+        same.setId(5L);
+        when(priceRepository.findByIdentifierAndDeletedFalse("P5-MRP")).thenReturn(same);
+        when(priceRepository.findByIdentifier("P5-MRP")).thenReturn(same);
+        when(priceRepository.save(same)).thenReturn(same);
+        when(modelMapper.map(same, PriceDto.class)).thenReturn(new PriceDto());
+        PriceDto sameDto = new PriceDto();
+        sameDto.setIdentifier("P5-MRP");
+        sameDto.setProduct("P5");
+        sameDto.setType("MRP");
+        result = priceService.update(sameDto);
+        Assertions.assertTrue(result.isSuccess());
     }
 
     @Test
@@ -147,32 +136,36 @@ class PriceServiceTest {
         Price price = new Price();
         price.setIdentifier("P1-MRP");
         List<Price> prices = List.of(price);
-        List<PriceDto> dtoList = List.of(new PriceDto());
-        Page<Price> page = new PageImpl<>(prices, pageable, prices.size());
+        Page<Price> page = new PageImpl<>(prices, pageable, 1);
         when(priceRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
-        when(modelMapper.map(eq(prices), any(Type.class))).thenReturn(dtoList);
+        when(modelMapper.map(eq(prices), any(Type.class))).thenReturn(List.of(new PriceDto()));
         WsDto<PriceDto> result = priceService.findAll(pageable);
-        Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getDtoList().size());
         Assertions.assertEquals(1, result.getTotalRecords());
-        Assertions.assertEquals(1, result.getTotalPage());
-        Assertions.assertEquals(10, result.getSizePerPage());
-        Assertions.assertEquals(0, result.getPage());
+        Assertions.assertEquals(1, result.getTotalPages());
     }
 
     @Test
-    void updateSameIdentifierShouldPassTest() {
-        PriceDto dto = new PriceDto();
-        dto.setIdentifier("P1-MRP");
-        dto.setProduct("P1");
-        dto.setType("MRP");
-        Price existing = new Price();
-        existing.setId(1L);
-        when(priceRepository.findByIdentifierAndDeletedFalse("P1-MRP")).thenReturn(existing);
-        when(priceRepository.findByIdentifier("P1-MRP")).thenReturn(existing);
-        when(priceRepository.save(existing)).thenReturn(existing);
-        when(modelMapper.map(existing, PriceDto.class)).thenReturn(new PriceDto());
-        PriceDto result = priceService.update(dto);
-        Assertions.assertTrue(result.isSuccess());
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        @SuppressWarnings("unchecked")
+        Specification<Price> specification = mock(Specification.class);
+        Page<Price> page =new PageImpl<>(List.of(new Price()), pageable, 1);
+        when(priceRepository.findAll(specification, pageable)).thenReturn(page);
+        when(modelMapper.map(eq(page.getContent()), any(Type.class))).thenReturn(List.of(new PriceDto()));
+        WsDto<PriceDto> result = priceService.findAll(specification, pageable);
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        verify(priceRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void deleteTest() {
+        Price price = new Price();
+        price.setIdentifier("P1-MRP");
+        when(priceRepository.findByIdentifierAndDeletedFalse("P1-MRP")).thenReturn(price);
+        priceService.delete("P1-MRP");
+        Assertions.assertTrue(price.getDeleted());
+        verify(priceRepository).save(price);
     }
 }

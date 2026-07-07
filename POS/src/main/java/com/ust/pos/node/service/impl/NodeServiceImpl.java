@@ -3,9 +3,9 @@ package com.ust.pos.node.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
-import com.ust.pos.modell.Node;
-import com.ust.pos.modell.NodeRepository;
-import com.ust.pos.modell.UserRepository;
+import com.ust.pos.models.Node;
+import com.ust.pos.models.NodeRepository;
+import com.ust.pos.models.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,7 @@ public class NodeServiceImpl extends BaseService implements NodeService {
             org.springframework.security.core.userdetails.User principalObject,
             List<NodeDto> nodeDtos
     ) {
-        com.ust.pos.modell.User currentUser = userRepository.findByUsername(principalObject.getUsername());
+        com.ust.pos.models.User currentUser = userRepository.findByUsername(principalObject.getUsername());
         Set<String> nodesStr = new HashSet<>();
         List<Node> nodes = nodeRepository.findAllByDeletedFalse();
         for (String role : currentUser.getRoles()) {
@@ -140,9 +141,26 @@ public class NodeServiceImpl extends BaseService implements NodeService {
         WsDto<NodeDto> nodeWsDto = new WsDto<>();
         nodeWsDto.setDtoList(modelMapper.map(nodePage.getContent(), listType));
         nodeWsDto.setTotalRecords(nodePage.getTotalElements());
-        nodeWsDto.setTotalPage(nodePage.getTotalPages());
+        nodeWsDto.setTotalPages(nodePage.getTotalPages());
         nodeWsDto.setSizePerPage(pageable.getPageSize());
         nodeWsDto.setPage(pageable.getPageNumber());
         return nodeWsDto;
+    }
+
+    @Override
+    public WsDto<NodeDto> findAll(Specification<Node> example, Pageable pageable) {
+
+        Type listType = new TypeToken<List<NodeDto>>() {
+        }.getType();
+        Page<Node> page = nodeRepository.findAll(example, pageable);
+
+        WsDto<NodeDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+
+        return wsDto;
     }
 }

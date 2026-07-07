@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import api from "../services/api";
@@ -31,6 +31,7 @@ function CommonList({
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [ready, setReady] = useState(false);
 
   const [pagination, setPagination] = useState({
@@ -57,22 +58,31 @@ function CommonList({
     const token = localStorage.getItem("token");
     if (token) setReady(true);
   }, []);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
 
-      const isSearching = search.trim().length > 0;
-
+      const isSearching = debouncedSearch.trim().length > 0;
       const res = await api({
         method,
         url: apiUrl,
         data: {
           ...payload,
-          page: isSearching ? 0 : pagination.page,
-          sizePerPage: isSearching ? 1000 : pagination.sizePerPage,
+          page: isSearching ? 0 : pagination.page, 
+          sizePerPage: pagination.sizePerPage,
           sortField,
           sortDirection: sortOrder,
+          keyword: isSearching ? debouncedSearch.trim() : "", 
         },
       });
 
@@ -93,7 +103,7 @@ function CommonList({
 
       setData(res.data?.dtoList || []);
       setTotalRecords(res.data?.totalRecords || 0);
-      setTotalPages(res.data?.totalPage || 0);
+      setTotalPages(res.data?.totalPages || 0); 
     } catch (err) {
       console.error("Fetch failed:", err);
       const statusCode = err?.response?.status || err?.status;
@@ -114,17 +124,7 @@ function CommonList({
 
   useEffect(() => {
     if (ready) fetchData();
-  }, [pagination, ready, search]);
-
-  const filteredData = useMemo(() => {
-    return data.filter((item) =>
-      columns.some((col) => {
-        const val = item[col.field];
-        if (!val) return false;
-        return val.toString().toLowerCase().includes(search.toLowerCase());
-      })
-    );
-  }, [data, search, columns]);
+  }, [pagination, ready, debouncedSearch]);
 
   const handleDelete = async (row) => {
     if (!confirm("Delete this record?")) return;
@@ -167,7 +167,7 @@ function CommonList({
     const id = row[deleteParam] ?? row.identifier ?? row.id;
 
     if (!id) {
-      console.error(" Missing identifier in row:", row);
+      console.error("Missing identifier in row:", row);
       triggerToast("Invalid ID");
       return;
     }
@@ -176,13 +176,13 @@ function CommonList({
       prev.map((item) =>
         (item[deleteParam] ?? item.identifier ?? item.id) === id
           ? {
-            ...item,
-            [toggleField]: !(
-              item[toggleField] === true ||
-              item[toggleField] === "ACTIVE" ||
-              item[toggleField] === 1
-            ),
-          }
+              ...item,
+              [toggleField]: !(
+                item[toggleField] === true ||
+                item[toggleField] === "ACTIVE" ||
+                item[toggleField] === 1
+              ),
+            }
           : item
       )
     );
@@ -196,17 +196,17 @@ function CommonList({
 
       triggerToast("Status updated");
     } catch (err) {
-      console.error(" Toggle error:", err);
+      console.error("Toggle error:", err);
       triggerToast("Toggle failed");
       fetchData();
     }
   };
+
   const numbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
     <Layout>
       <div className="p-6">
-
         {toast.visible && (
           <div className="fixed top-4 right-4 bg-slate-900 text-white px-4 py-2 rounded-lg shadow text-sm">
             {toast.message}
@@ -218,9 +218,7 @@ function CommonList({
             <h2 className="text-2xl font-semibold text-[var(--text-h)]">
               {title}
             </h2>
-            <p className="text-sm text-[var(--text)]">
-              Manage your records
-            </p>
+            <p className="text-sm text-[var(--text)]">Manage your records</p>
           </div>
 
           {addRoute && (
@@ -237,6 +235,7 @@ function CommonList({
           <input
             className="border rounded-lg px-3 py-2 text-sm w-full max-w-sm focus:ring-2 focus:ring-blue-200 outline-none"
             placeholder="Search..."
+            value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <span className="text-sm text-gray-500 ml-4">
@@ -245,7 +244,6 @@ function CommonList({
         </div>
 
         <div className="bg-white rounded-xl shadow overflow-hidden border">
-
           {loading && (
             <div className="p-4 text-center text-sm text-gray-500">
               Loading...
@@ -265,50 +263,46 @@ function CommonList({
             </thead>
 
             <tbody>
-              {filteredData.map((row) => {
-                const rowKey =
-                  row.id ??
-                  row[deleteParam] ??
-                  row.identifier;
-
+              {data.map((row) => {
+                const rowKey = row.id ?? row[deleteParam] ?? row.identifier;
 
                 return (
                   <tr key={rowKey} className="border-t hover:bg-slate-50">
-
                     {columns.map((c) => {
-                      const cellContent = c.render ? c.render(row) : row[c.field];
+                      const cellContent = c.render
+                        ? c.render(row)
+                        : row[c.field];
 
                       return (
                         <td key={`${rowKey}-${c.field}`} className="p-3">
-
                           {c.field === toggleField && showStatus ? (
                             <button
                               onClick={() => handleToggle(row)}
-                              className={`w-11 h-6 flex items-center rounded-full p-1 ${row[toggleField] === true ||
+                              className={`w-11 h-6 flex items-center rounded-full p-1 ${
+                                row[toggleField] === true ||
                                 row[toggleField] === "ACTIVE" ||
                                 row[toggleField] === 1
-                                ? "bg-green-500"
-                                : "bg-gray-300"
-                                }`}
+                                  ? "bg-green-500"
+                                  : "bg-gray-300"
+                              }`}
                             >
                               <span
-                                className={`w-4 h-4 bg-white rounded-full shadow transform ${row[toggleField] === true ||
+                                className={`w-4 h-4 bg-white rounded-full shadow transform ${
+                                  row[toggleField] === true ||
                                   row[toggleField] === "ACTIVE" ||
                                   row[toggleField] === 1
-                                  ? "translate-x-5"
-                                  : ""
-                                  }`}
+                                    ? "translate-x-5"
+                                    : ""
+                                }`}
                               />
                             </button>
                           ) : (
                             cellContent
                           )}
-
                         </td>
                       );
                     })}
                     <td className="p-3 text-center flex justify-center gap-2">
-
                       <button
                         onClick={() => handleEdit(row)}
                         className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
@@ -324,9 +318,7 @@ function CommonList({
                       >
                         <Trash2 size={16} />
                       </button>
-
                     </td>
-
                   </tr>
                 );
               })}
@@ -334,9 +326,8 @@ function CommonList({
           </table>
         </div>
 
-        {totalPages > 0 && search.trim() === "" && (
+        {totalPages > 0 && (
           <div className="mt-4 bg-white border rounded-xl p-4 flex justify-between items-center shadow">
-
             <div className="text-sm text-gray-600">
               Page <b>{pagination.page + 1}</b> of <b>{totalPages}</b>
             </div>
@@ -348,19 +339,18 @@ function CommonList({
                   onClick={() =>
                     setPagination((p) => ({ ...p, page: num - 1 }))
                   }
-                  className={`px-3 py-1 border rounded ${pagination.page === num - 1
-                    ? "bg-slate-900 text-white"
-                    : "hover:bg-gray-100"
-                    }`}
+                  className={`px-3 py-1 border rounded ${
+                    pagination.page === num - 1
+                      ? "bg-slate-900 text-white"
+                      : "hover:bg-gray-100"
+                  }`}
                 >
                   {num}
                 </button>
               ))}
             </div>
-
           </div>
         )}
-
       </div>
     </Layout>
   );

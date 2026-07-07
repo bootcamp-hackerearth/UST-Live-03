@@ -4,8 +4,8 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
-import com.ust.pos.modell.Warehouse;
-import com.ust.pos.modell.WarehouseRepository;
+import com.ust.pos.models.Warehouse;
+import com.ust.pos.models.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -92,7 +93,7 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
         WsDto<WarehouseDto> warehouseWsDto = new WsDto<>();
         warehouseWsDto.setDtoList(modelMapper.map(warehousePage.getContent(), listType));
         warehouseWsDto.setTotalRecords(warehousePage.getTotalElements());
-        warehouseWsDto.setTotalPage(warehousePage.getTotalPages());
+        warehouseWsDto.setTotalPages(warehousePage.getTotalPages());
         warehouseWsDto.setSizePerPage(pageable.getPageSize());
         warehouseWsDto.setPage(pageable.getPageNumber());
         return warehouseWsDto;
@@ -120,5 +121,19 @@ public class WarehouseServiceImpl extends BaseService implements WarehouseServic
                 .stream()
                 .map(warehouse -> modelMapper.map(warehouse, WarehouseDto.class))
                 .toList();
+    }
+
+    @Override
+    public WsDto<WarehouseDto> findAll(Specification<Warehouse> example, Pageable pageable) {
+        Type listType = new TypeToken<List<WarehouseDto>>() {
+        }.getType();
+        Page<Warehouse> page = warehouseRepository.findAll(example, pageable);
+        WsDto<WarehouseDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
     }
 }
