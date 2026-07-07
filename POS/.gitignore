@@ -34,3 +34,4 @@ build/
 ### VS Code ###
 .vscode/
 /htmlReport/
+.scannerwork/.sonar_lock
