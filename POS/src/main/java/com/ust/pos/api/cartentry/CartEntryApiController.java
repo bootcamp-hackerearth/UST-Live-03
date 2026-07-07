@@ -45,6 +45,11 @@ public class CartEntryApiController extends BaseController {
         }
     }
 
+    @PutMapping("/update")
+    public CartEntryDto update(@RequestBody CartEntryDto cartEntryDto) {
+        return cartEntryService.update(cartEntryDto);
+    }
+
     @DeleteMapping("/clearCart")
     public boolean deleteAll(@RequestParam String cartId) {
         try {

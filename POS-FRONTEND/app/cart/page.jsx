@@ -217,27 +217,29 @@ export default function CartPage() {
   };
 
   const updateQuantity = async (product, qty) => {
-    if (qty < 1) return;
-    try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/update`,
-        { cartId, product, quantity: qty },
-        { headers: { Authorization: `Bearer ${getToken()}` } }
-      );
+  if (qty < 1) return;
 
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/get`,
+  try {
+    await axios.put(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/cartentry/update`,
+      {
         cartId,
-        { headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "text/plain" } }
-      );
+        product,
+        quantity: qty,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
 
-      const transientEntries = res.data?.cartEntryDtoList || [];
-      await syncCartTotalsToDatabase(cartId, transientEntries);
-      await loadCart(cartId);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    await loadCart(cartId);
+
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const deleteItem = async (product) => {
     try {

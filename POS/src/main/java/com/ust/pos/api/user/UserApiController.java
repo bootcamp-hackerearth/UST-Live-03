@@ -68,9 +68,6 @@ public class UserApiController extends BaseController {
 
     @PostMapping("/register")
     public UserDto registerUser(@RequestBody UserDto userDto) {
-        if (userService.findByUserName(userDto.getUsername()) == null) {
-            return userService.save(userDto);
-        }
-        return userDto;
+        return userService.save(userDto);
     }
 }

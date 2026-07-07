@@ -139,4 +139,25 @@ public class CartEntryServiceImpl extends BaseService implements CartEntryServic
         recalculate(cartId);
     }
 
+    @Override
+    public CartEntryDto update(CartEntryDto cartEntryDto) {
+        cartEntryDto.setIdentifier(cartEntryDto.getCartId() + "_" + cartEntryDto.getProduct());
+        CartEntry existingCartEntry = cartEntryRepository.findByIdentifier(cartEntryDto.getIdentifier());
+
+        if (existingCartEntry == null) {
+            return null;
+        }
+
+        existingCartEntry.setQuantity(cartEntryDto.getQuantity());
+        existingCartEntry.setUnitPrice(getSellingPriceAmount(cartEntryDto.getProduct()));
+        existingCartEntry.setDiscount(getDiscountPriceAmount(cartEntryDto.getProduct(), cartEntryDto.getQuantity()));
+
+        existingCartEntry.setTotalPrice(getTotalPrice(cartEntryDto.getProduct(), cartEntryDto.getQuantity()));
+
+        existingCartEntry.setTotalOriginalPrice(existingCartEntry.getTotalPrice().add(existingCartEntry.getDiscount()));
+        setModifiedDetails(existingCartEntry);
+        cartEntryRepository.save(existingCartEntry);
+        recalculate(cartEntryDto.getCartId());
+        return modelMapper.map(existingCartEntry, CartEntryDto.class);
+    }
 }
