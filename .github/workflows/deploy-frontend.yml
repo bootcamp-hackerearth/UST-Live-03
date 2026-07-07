@@ -42,11 +42,11 @@ jobs:
 
         with:
 
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_HOST_POD4 }}
 
-          username: ${{ secrets.EC2_USER }}
+          username: ${{ secrets.EC2_USER_POD4 }}
 
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY_POD4 }}
 
           script: |
 
