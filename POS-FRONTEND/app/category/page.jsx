@@ -12,7 +12,7 @@ const categoryFields = [
     name: "superCategory",
     placeholder: "Super Category",
     type: "multiselect",
-    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/category/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL + "/category/list",
   },
 ];
 
@@ -23,16 +23,13 @@ const categoryValidate = (formData) => {
     errors.identifier = "Category name is required";
   }
 
-  if (!formData.superCategory || formData.superCategory.length === 0) {
-    errors.superCategory = "Select at least one super category";
-  }
-
   return errors;
 };
 
 const CategoryForm = (props) => {
   const rest = { ...props };
   delete rest.fields;
+
   return (
     <CommonForm
       {...rest}
