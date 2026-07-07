@@ -9,6 +9,7 @@ import com.ust.pos.model.Customer;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ public class CustomerApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public WsDto<CustomerDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -35,6 +37,7 @@ public class CustomerApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public CustomerDto addPost(@RequestBody CustomerDto customerDto) {
         return customerService.save(customerDto);
     }
@@ -45,11 +48,13 @@ public class CustomerApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public CustomerDto updatePost(@RequestBody CustomerDto customerDto) {
         return customerService.update(customerDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             customerService.delete(identifier);

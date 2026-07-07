@@ -25,6 +25,7 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public WsDto<WarehouseDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -37,7 +38,7 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public WarehouseDto addPost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
@@ -48,12 +49,13 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);

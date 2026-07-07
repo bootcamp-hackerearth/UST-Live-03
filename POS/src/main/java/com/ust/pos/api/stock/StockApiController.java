@@ -9,6 +9,7 @@ import com.ust.pos.stock.service.StockService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
         if (StringUtils.isNotEmpty(paginationDto.getKeyword())) {
@@ -35,6 +37,7 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public StockDto addPost(@RequestBody StockDto stockDto) {
         return stockService.save(stockDto);
     }
@@ -45,11 +48,13 @@ public class StockApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public StockDto updatePost(@RequestBody StockDto stockDto) {
         return stockService.update(stockDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager')")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             stockService.delete(identifier);
