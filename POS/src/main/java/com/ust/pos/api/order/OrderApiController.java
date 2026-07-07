@@ -25,13 +25,13 @@ public class OrderApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public OrderDto get(@RequestParam String identifier) {
         return orderService.get(identifier);
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
+    @PreAuthorize("hasAnyAuthority('Admin','Supervisor')")
     public PaginationResponseDto<OrderDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -39,7 +39,7 @@ public class OrderApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public boolean delete(@RequestParam String identifier) {
         try {
             return orderService.delete(identifier);

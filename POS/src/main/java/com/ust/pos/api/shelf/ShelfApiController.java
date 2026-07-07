@@ -25,13 +25,13 @@ public class ShelfApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin','Supervisor')")
     public ShelfDto addPost(@RequestBody ShelfDto shelfDto) {
         return shelfService.save(shelfDto);
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
+    @PreAuthorize("hasAnyAuthority('Admin','Supervisor')")
     public PaginationResponseDto<ShelfDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(),paginationDto.getSortField());
@@ -45,19 +45,19 @@ public class ShelfApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public ShelfDto update(@RequestParam String identifier) {
         return shelfService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public ShelfDto updatePost(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfService.delete(identifier);
@@ -68,7 +68,7 @@ public class ShelfApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public ShelfDto toggle(@RequestBody ShelfDto shelfDto) {
         return shelfService.toggleStatus(shelfDto.getIdentifier(), shelfDto.isStatus());
     }

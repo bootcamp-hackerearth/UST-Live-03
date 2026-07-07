@@ -31,7 +31,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
+    @PreAuthorize("hasAnyAuthority('Admin','Supervisor')")
     public PaginationResponseDto<CategoryDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -45,19 +45,19 @@ public class CategoryApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public CategoryDto update(@RequestParam String identifier) {
         return categoryService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public CategoryDto updatePost(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);
@@ -73,7 +73,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public CategoryDto toggleStatus(@RequestBody CategoryDto categoryDto) {
         return categoryService.toggleStatus(categoryDto.getIdentifier(), categoryDto.isStatus());
     }

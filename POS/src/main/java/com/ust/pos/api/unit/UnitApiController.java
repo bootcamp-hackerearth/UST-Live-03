@@ -23,13 +23,13 @@ public class UnitApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAuthority('Admin','Supervisor')")
     public UnitDto addPost(@RequestBody UnitDto unitDto) {
         return unitService.save(unitDto);
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
+    @PreAuthorize("hasAnyAuthority('Admin','Supervisor')")
     public PaginationResponseDto<UnitDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -43,19 +43,19 @@ public class UnitApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public UnitDto update(@RequestParam String identifier) {
         return unitService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);
@@ -66,7 +66,7 @@ public class UnitApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public UnitDto toggle(@RequestBody UnitDto dto) {
         return unitService.toggleStatus(dto.getIdentifier(), dto.isStatus());
     }

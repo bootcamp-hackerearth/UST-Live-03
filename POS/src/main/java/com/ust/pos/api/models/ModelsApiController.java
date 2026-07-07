@@ -29,7 +29,7 @@ public class ModelsApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
+    @PreAuthorize("hasAnyAuthority('Admin','Supervisor')")
     public PaginationResponseDto<ModelDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(), paginationDto.getSortField());
@@ -43,19 +43,19 @@ public class ModelsApiController extends BaseController {
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public ModelDto update(@RequestParam String identifier) {
         return modelService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public ModelDto updatePost(@RequestBody ModelDto modelDto) {
         return modelService.update(modelDto);
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelService.deleteByIdentifier(identifier);
@@ -66,7 +66,7 @@ public class ModelsApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public ModelDto toggle(@RequestBody ModelDto dto) {
         return modelService.toggleStatus(dto.getIdentifier(), dto.isStatus());
     }

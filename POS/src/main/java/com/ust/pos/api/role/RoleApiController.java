@@ -38,25 +38,25 @@ public class RoleApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin','Supervisor')")
     public RoleDto addPost(@RequestBody RoleDto userDto) {
         return roleService.save(userDto);
     }
 
     @GetMapping("/get")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public RoleDto update(@RequestParam String identifier) {
         return roleService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public RoleDto updatePost(@RequestBody RoleDto userDto) {
         return roleService.update(userDto);
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public boolean delete(@RequestParam String identifier) {
         try {
             roleService.delete(identifier);
@@ -67,7 +67,7 @@ public class RoleApiController extends BaseController {
     }
 
     @PostMapping("/toggleStatus")
-    @PreAuthorize("hasAuthority('Seller')")
+    @PreAuthorize("hasAuthority('Supervisor')")
     public RoleDto toggle(@RequestBody RoleDto dto) {
         return roleService.toggleStatus(dto.getIdentifier(), dto.isStatus());
     }
