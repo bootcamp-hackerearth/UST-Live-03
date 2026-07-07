@@ -134,8 +134,14 @@ export default function SalesPage() {
             });
             await refreshCart(activeCart.identifier);
         } catch (error) {
-            console.error(error);
-        } finally {
+    console.error("ADD TO CART FAILED");
+
+    console.error("Status:", error?.response?.status);
+
+    console.error("Response:", error?.response?.data);
+
+    console.error(error);
+} finally {
             setLoading(false);
         }
     };
