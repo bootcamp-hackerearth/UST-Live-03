@@ -30,6 +30,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -euxo pipefail
+
             cd ~/projects/UST-Live-03/POS-NEXT
 
             git pull
@@ -38,4 +40,11 @@ jobs:
 
             npm run build
 
-            pm2 restart next-app
+            if pm2 describe next-app >/dev/null 2>&1; then
+                pm2 restart next-app --update-env
+            else
+                pm2 start npm --name next-app -- start
+            fi
+
+            pm2 save
+            pm2 status
