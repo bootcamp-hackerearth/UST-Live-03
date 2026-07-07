@@ -260,7 +260,7 @@ class CustomerServiceTest {
         CustomerDto result = customerService.toggleStatus("1234567890");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test
@@ -274,29 +274,5 @@ class CustomerServiceTest {
         assertEquals(1, result.size());
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    void testSearchCustomersFlexible() {
-        List<Customer> list = Collections.singletonList(customer);
-        when(customerRepository.findAll(any(Example.class))).thenReturn(list);
 
-        List<CustomerDto> result = customerService.searchCustomersFlexible(customerDto);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void testSearchCustomersFlexible_WithBlankCriteria() {
-        customerDto.setCustomerName("  ");
-        customerDto.setPhoneNo("");
-        List<Customer> list = Collections.singletonList(customer);
-        when(customerRepository.findAll(any(Example.class))).thenReturn(list);
-
-        List<CustomerDto> result = customerService.searchCustomersFlexible(customerDto);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-    }
 }

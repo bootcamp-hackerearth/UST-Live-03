@@ -197,7 +197,7 @@ class RackServiceTest {
         RackDto result = rackService.toggleStatus("RCK-101");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test

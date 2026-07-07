@@ -214,7 +214,7 @@ class StockServiceTest {
         StockDto result = stockService.toggleStatus(expectedIdentifier);
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test

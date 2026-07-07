@@ -239,7 +239,7 @@ class UserServiceTest {
         UserDto result = userService.toggleStatus("USR-100");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test

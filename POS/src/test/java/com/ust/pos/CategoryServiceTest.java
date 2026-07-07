@@ -253,7 +253,7 @@ class CategoryServiceTest {
         CategoryDto result = categoryService.toggleStatus("CAT-01");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 

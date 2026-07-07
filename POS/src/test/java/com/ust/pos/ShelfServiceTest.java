@@ -197,7 +197,7 @@ class ShelfServiceTest {
         ShelfDto result = shelfService.toggleStatus("SHF-001");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test

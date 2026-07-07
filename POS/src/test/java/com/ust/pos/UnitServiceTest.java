@@ -197,7 +197,7 @@ class UnitServiceTest {
         UnitDto result = unitService.toggleStatus("UNT-KG");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test

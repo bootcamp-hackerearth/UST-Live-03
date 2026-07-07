@@ -241,7 +241,7 @@ class PriceServiceTest {
         PriceDto result = priceService.toggleStatus("PRC-001");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test

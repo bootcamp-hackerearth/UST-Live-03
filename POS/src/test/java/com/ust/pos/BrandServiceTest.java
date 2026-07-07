@@ -216,7 +216,7 @@ class BrandServiceTest {
         BrandDto result = brandService.toggleStatus("BRD-001");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
         verify(brandRepository, times(1)).save(any(Brand.class));
     }
 }

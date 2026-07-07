@@ -197,7 +197,7 @@ class WareHouseServiceTest {
         WarehouseDto result = warehouseService.toggleStatus("WH-001");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test

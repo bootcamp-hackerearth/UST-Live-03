@@ -197,7 +197,7 @@ class RoleServiceTest {
         RoleDto result = roleService.toggleStatus("ROLE_USER");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test

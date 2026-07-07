@@ -197,7 +197,7 @@ class ProductServiceTest {
         ProductDto result = productService.toggleStatus("PROD-001");
 
         assertNotNull(result);
-        assertFalse(result.getStatus());
+        assertFalse(result.isStatus());
     }
 
     @Test
