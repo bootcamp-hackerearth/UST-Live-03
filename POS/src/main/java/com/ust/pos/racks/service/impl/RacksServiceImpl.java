@@ -76,7 +76,7 @@ public class RacksServiceImpl extends BaseService implements RacksService {
         Racks existingRacks = racksRepository.findByIdentifier(identifier);
 
         if (existingRacks == null) {
-            racksDto.setMessage(VALIDATION_MESSAGE + identifier + " not found");
+            racksDto.setMessage(VALIDATION_MESSAGE + identifier + "-not found");
             racksDto.setSuccess(false);
             return racksDto;
         }
