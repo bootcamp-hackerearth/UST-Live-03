@@ -35,12 +35,15 @@ export default function AddFormSkeleton({
   const [loading, setLoading] = useState(false);
 
   const [showPassword, setShowPassword] = useState({});
+  const [username, setUsername] = useState("");
 
   const fieldsDependency = JSON.stringify(fields);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token") || "";
+    const storedUsername = localStorage.getItem("username") || "";
     setToken(storedToken);
+    setUsername(storedUsername);
     setTokenReady(true);
   }, []);
 
@@ -55,8 +58,7 @@ export default function AddFormSkeleton({
     await Promise.all(selectFields.map(fetchDropdownData));
   };
 
-  const isSelectableField = (field) =>
-    field.type === "select" && field.api;
+  const isSelectableField = (field) => field.type === "select" && field.api;
 
   const getTargetUrl = (field) => {
     return field.endpoint
@@ -122,80 +124,82 @@ export default function AddFormSkeleton({
   }
 
   function handleResponseData(data) {
-  if (!data) {
-    setError("Unexpected server response");
-    return;
-  }
-
-  if (data.success === false) {
-    setError(data.message || `Failed to save ${title}`);
-    return;
-  }
-
-  if (data.success === true) {
-    setSuccess(data.message || `${title} successfully saved.`);
-    setTimeout(() => router.back(), 1500);
-    return;
-  }
-  setError("Unknown response from server");
-}
-
-  function handleSubmissionError(err) {
-  console.error("Submission Error:", err);
-
-  if (err.response?.data) {
-    const data = err.response.data;
-
-    if (data.success === false) {
-      setError(data.message);
+    if (!data) {
+      setError("Unexpected server response");
       return;
     }
 
-    const msg = data.message || data.error;
-    setError(msg || `Failed to save ${title}`);
-    return;
+    if (data.success === false) {
+      setError(data.message || `Failed to save ${title}`);
+      return;
+    }
+
+    if (data.success === true) {
+      setSuccess(data.message || `${title} successfully saved.`);
+      setTimeout(() => router.back(), 1500);
+      return;
+    }
+    setError("Unknown response from server");
   }
 
-  setError("Network error. Please try again.");
-}
+  function handleSubmissionError(err) {
+    console.error("Submission Error:", err);
 
- async function handleSubmit(e) {
-  e.preventDefault();
-  setError("");
-  setSuccess("");
+    if (err.response?.data) {
+      const data = err.response.data;
 
-  const validationError = getValidationError();
-  if (validationError) {
-    setError(validationError);
-    return;
+      if (data.success === false) {
+        setError(data.message);
+        return;
+      }
+
+      const msg = data.message || data.error;
+      setError(msg || `Failed to save ${title}`);
+      return;
+    }
+
+    setError("Network error. Please try again.");
   }
 
-  setLoading(true);
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
 
-  try {
-    const res = await axios.post(
-      `${BASE_URL}/${apiPath}/add`,
-      { identifier, ...formData },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const validationError = getValidationError();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
-    handleResponseData(res.data);
-  } catch (err) {
-    handleSubmissionError(err);
-  } finally {
-    setLoading(false);
+    setLoading(true);
+
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/${apiPath}/add`,
+        { identifier, ...formData },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      handleResponseData(res.data);
+    } catch (err) {
+      handleSubmissionError(err);
+    } finally {
+      setLoading(false);
+    }
   }
-}
-
 
   return (
-    <Layout>
+    <Layout username={username}>
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans text-left select-none">
         <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200/80 p-8 shadow-sm">
-
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Add New {title}</h2>
-            <p className="text-xs text-slate-500 mt-1">Configure parameters for your system record below.</p>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+              Add New {title}
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Configure parameters for your system record below.
+            </p>
           </div>
 
           {error && (
@@ -210,7 +214,6 @@ export default function AddFormSkeleton({
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
             <div>
               <label
                 htmlFor="identifier"
@@ -271,7 +274,10 @@ export default function AddFormSkeleton({
                         id={field.name}
                         type={isVisible ? "text" : "password"}
                         name={field.name}
-                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
+                        placeholder={
+                          field.placeholder ||
+                          `Enter ${field.label.toLowerCase()}...`
+                        }
                         value={formData[field.name] || ""}
                         onChange={(e) => handleValueChange(field, e)}
                         required={field.required || false}
@@ -302,7 +308,10 @@ export default function AddFormSkeleton({
                       id={field.name}
                       type={field.type || "text"}
                       name={field.name}
-                      placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
+                      placeholder={
+                        field.placeholder ||
+                        `Enter ${field.label.toLowerCase()}...`
+                      }
                       value={formData[field.name] || ""}
                       onChange={(e) => handleValueChange(field, e)}
                       required={field.required || false}
@@ -331,7 +340,6 @@ export default function AddFormSkeleton({
                 {loading ? "Saving..." : `Add ${title}`}
               </button>
             </div>
-
           </form>
         </div>
       </div>
@@ -353,6 +361,6 @@ AddFormSkeleton.propTypes = {
         regex: PropTypes.instanceOf(RegExp),
         message: PropTypes.string,
       }),
-    })
+    }),
   ).isRequired,
 };
