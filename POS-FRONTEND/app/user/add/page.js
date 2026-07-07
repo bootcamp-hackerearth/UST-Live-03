@@ -123,7 +123,7 @@ export default function UserAddPage() {
         {
           label: "Password",
           name: "password",
-          type: "password",
+          type: "text",
           required: true,
         },
       ]}
