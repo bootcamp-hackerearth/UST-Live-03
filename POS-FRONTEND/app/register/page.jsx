@@ -196,17 +196,16 @@ function Register() {
               >
                 Username
               </label>
-             <input
-             id="username"
-             name="username"
-             type="email"
-            className={inputClass}
-            placeholder="Enter email address"
-            value={form.username}
-            onChange={handleChange}
-            pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-            title="Please enter a valid email address"
-             />
+              <input
+                id="username"
+                name="username"
+                type="email"
+                className={inputClass}
+                placeholder="Enter email address"
+                value={form.username}
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div>
