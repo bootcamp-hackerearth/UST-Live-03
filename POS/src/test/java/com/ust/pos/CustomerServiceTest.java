@@ -7,6 +7,7 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
@@ -71,9 +72,15 @@ class CustomerServiceTest {
     void findByIdentifier_NotFound() {
         when(customerRepository.findByIdentifier("CUS001")).thenReturn(null);
 
-        CustomerDto result = customerService.findByIdentifier("CUS001");
+        ResourceNotFoundException exception = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> customerService.findByIdentifier("CUS001")
+        );
 
-        Assertions.assertNull(result);
+        Assertions.assertEquals(
+                "Customer with identifier 'CUS001' not found",
+                exception.getMessage()
+        );
     }
 
     @Test

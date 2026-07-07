@@ -7,6 +7,7 @@ import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.OrderDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Order;
 import com.ust.pos.model.OrderEntry;
 import com.ust.pos.model.OrderEntryRepository;
@@ -48,9 +49,12 @@ public class OrderServiceImpl extends BaseService implements OrderService {
     @Override
     public OrderDto findByIdentifier(String identifier) {
         Order order = orderRepository.findByIdentifier(identifier);
+
         if (order == null) {
-            return null;
+            throw new ResourceNotFoundException(
+                    "Order with identifier '" + identifier + "' not found");
         }
+
         return modelMapper.map(order, OrderDto.class);
     }
 

@@ -2,6 +2,7 @@ package com.ust.pos.orderentry.service.impl;
 
 import com.ust.pos.dto.OrderEntryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.OrderEntry;
 import com.ust.pos.model.OrderEntryRepository;
 import com.ust.pos.orderentry.service.OrderEntryService;
@@ -27,9 +28,12 @@ public class OrderEntryServiceImpl implements OrderEntryService {
     @Override
     public OrderEntryDto findByIdentifier(String identifier) {
         OrderEntry orderEntry = orderEntryRepository.findByIdentifier(identifier);
+
         if (orderEntry == null) {
-            return null;
+            throw new ResourceNotFoundException(
+                    "OrderEntry with identifier '" + identifier + "' not found");
         }
+
         return modelMapper.map(orderEntry, OrderEntryDto.class);
     }
 

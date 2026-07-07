@@ -8,6 +8,7 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.AddressRepository;
 import com.ust.pos.model.Customer;
@@ -47,8 +48,10 @@ public class CustomerServiceImpl extends BaseService implements CustomerService 
     public CustomerDto findByIdentifier(String identifier) {
 
         Customer customer = customerRepository.findByIdentifier(identifier);
+
         if (customer == null) {
-            return null;
+            throw new ResourceNotFoundException(
+                    "Customer with identifier '" + identifier + "' not found");
         }
 
         return modelMapper.map(customer, CustomerDto.class);

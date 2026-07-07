@@ -3,6 +3,7 @@ package com.ust.pos.stock.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
@@ -30,7 +31,14 @@ public class StockServiceImpl extends BaseService implements StockService {
 
     @Override
     public StockDto findByIdentifier(String identifier) {
-        return modelMapper.map(stockRepository.findByIdentifier(identifier), StockDto.class);
+        Stock stock = stockRepository.findByIdentifier(identifier);
+
+        if (stock == null) {
+            throw new ResourceNotFoundException(
+                    "Stock with identifier '" + identifier + "' not found");
+        }
+
+        return modelMapper.map(stock, StockDto.class);
     }
 
     @Override

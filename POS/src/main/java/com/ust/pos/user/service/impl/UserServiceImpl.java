@@ -3,6 +3,7 @@ package com.ust.pos.user.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
@@ -38,9 +39,12 @@ public class UserServiceImpl extends BaseService implements UserService {
     public UserDto findByUserName(String username) {
 
         User user = userRepository.findByUsername(username);
+
         if (user == null) {
-            return null;
+            throw new ResourceNotFoundException(
+                    "User with username '" + username + "' not found");
         }
+
         return modelMapper.map(user, UserDto.class);
     }
 

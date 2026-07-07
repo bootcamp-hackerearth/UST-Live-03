@@ -131,7 +131,7 @@ body: JSON.stringify({
   };
   const toggleStatus = async (item) => {
     try {
-      const res = await fetch(`/api/${routeName}/toggle`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/toggle`, {
         method: "POST",
         headers: {
           "Content-Type": "text/plain",
@@ -189,7 +189,7 @@ body: JSON.stringify({
 
     if (mode === "add") {
       if (routeName === "user") {
-        url = "/api/user/register";
+        url = `${process.env.NEXT_PUBLIC_BASE_URL}/user/register`;
       } else {
         url = `/api/${routeName}/add`;
       }
