@@ -486,10 +486,6 @@ export default function PaymentPage() {
 
             <hr />
 
-            <div className="invoice-header">
-              <h2>🧾 TAX INVOICE</h2>
-            </div>
-
             <div className="invoice-info">
 
               <div>

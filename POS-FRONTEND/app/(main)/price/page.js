@@ -19,6 +19,7 @@ const PriceList = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [viewPrice, setViewPrice] = useState(null);
   const sizePerPage = 5;
 
   const [newPrice, setNewPrice] = useState({
@@ -32,8 +33,8 @@ const PriceList = () => {
   const fetchProducts = async () => {
     try {
       const res = await listItems("product", {
-        page:0,
-        sizePerPage:100,
+        page: 0,
+        sizePerPage: 100,
         sortField: "id",
         search: searchTerm,
       });
@@ -65,11 +66,11 @@ const PriceList = () => {
 
       setTotalPages(
         res?.totalPages ||
-          Math.ceil(
-            (res?.totalElements || data.length) /
-              sizePerPage
-          ) ||
-          1
+        Math.ceil(
+          (res?.totalElements || data.length) /
+          sizePerPage
+        ) ||
+        1
       );
     } catch (err) {
       console.error(err);
@@ -81,34 +82,55 @@ const PriceList = () => {
 
   useEffect(() => {
     fetchPrices();
-  }, [page,searchTerm]);
+  }, [page, searchTerm]);
 
   const handleAddPrice = async () => {
-  const exists = prices.some(
-    (price) =>
-      price.identifier?.trim().toLowerCase() ===
-      newPrice.identifier?.trim().toLowerCase()
-  );
+    if (!newPrice.identifier) {
+      alert("Product is required");
+      return;
+    }
 
-  if (exists) {
-    alert(`${newPrice.identifier} already exists`);
-    return;
-  }
+    if (
+      newPrice.costPrice === "" ||
+      Number(newPrice.costPrice) <= 0
+    ) {
+      alert("Cost Price must be greater than 0");
+      return;
+    }
 
-  try {
-    await addItem("price", newPrice);
+    if (
+      newPrice.sellingPrice === "" ||
+      Number(newPrice.sellingPrice) <= 0
+    ) {
+      alert("Selling Price must be greater than 0");
+      return;
+    }
 
-    setNewPrice({
-      identifier: "",
-      costPrice: "",
-      sellingPrice: "",
-    });
+    const exists = prices.some(
+      (price) =>
+        price.identifier?.trim().toLowerCase() ===
+        newPrice.identifier?.trim().toLowerCase()
+    );
 
-    fetchPrices();
-  } catch {
-    alert("Add failed");
-  }
-};
+    if (exists) {
+      alert(`${newPrice.identifier} already exists`);
+      return;
+    }
+
+    try {
+      await addItem("price", newPrice);
+
+      setNewPrice({
+        identifier: "",
+        costPrice: "",
+        sellingPrice: "",
+      });
+
+      fetchPrices();
+    } catch {
+      alert("Add failed");
+    }
+  };
 
   const handleUpdate = async () => {
     try {
@@ -152,7 +174,7 @@ const PriceList = () => {
     {
       label: "Sl No",
       render: (row, index) =>
-      page * sizePerPage + index + 1,
+        page * sizePerPage + index + 1,
     },
 
     {
@@ -177,6 +199,10 @@ const PriceList = () => {
   ];
 
   const actions = [
+    {
+      label: "👁 View",
+      onClick: (row) => setViewPrice(row),
+    },
     {
       label: "✏️ Edit",
       onClick: (row) => setEditPrice(row),
@@ -247,7 +273,7 @@ const PriceList = () => {
       totalPages={totalPages}
       searchTerm={searchTerm}
       setSearchTerm={setSearchTerm}
-      onAdd={() => {}}
+      onAdd={() => { }}
       addButtonText="+ Add Price"
       newItem={newPrice}
       setNewItem={setNewPrice}
@@ -257,6 +283,8 @@ const PriceList = () => {
       setEditItem={setEditPrice}
       handleUpdate={handleUpdate}
       editFields={editFields}
+      viewItem={viewPrice}
+      setViewItem={setViewPrice}
       actions={actions}
       emptyMessage="No prices found"
     />
