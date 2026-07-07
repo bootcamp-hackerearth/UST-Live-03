@@ -8,6 +8,7 @@ import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -52,7 +53,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
         Product existing = productRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existing.getDeleted())) {
                 dto.setSuccess(false);
                 dto.setMessage(PRODUCT_WITH_IDENTIFIER + identifier + " already exists");
                 return dto;
@@ -88,7 +89,7 @@ public class ProductServiceImpl extends CommonService implements ProductService 
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setSuccess(false);
             dto.setMessage(PRODUCT_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");

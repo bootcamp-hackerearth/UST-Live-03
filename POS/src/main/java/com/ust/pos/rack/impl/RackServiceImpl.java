@@ -8,6 +8,7 @@ import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -52,7 +53,7 @@ public class RackServiceImpl extends CommonService implements RackService {
         Rack existingRack = rackRepository.findByIdentifier(identifier);
 
         if (existingRack != null) {
-            if (!existingRack.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existingRack.getDeleted())) {
                 rackDto.setMessage("Rack with identifier '" + identifier + "' already exists");
                 rackDto.setSuccess(false);
                 return rackDto;
@@ -84,7 +85,7 @@ public class RackServiceImpl extends CommonService implements RackService {
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setSuccess(false);
             dto.setMessage(RACK_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");

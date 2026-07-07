@@ -58,7 +58,6 @@ class CategoryServiceTest {
 
     @Test
     void testSave_WhenDtoIsNull() {
-        // Implementation throws NullPointerException when reading identifier from a null DTO
         assertThrows(NullPointerException.class, () -> categoryService.save(null));
     }
 
@@ -68,7 +67,6 @@ class CategoryServiceTest {
         when(categoryRepository.findByIdentifier(null)).thenReturn(null);
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
-        // Implementation doesn't reject null identifiers; it processes them normally
         CategoryDto result = categoryService.save(categoryDto);
         assertNotNull(result);
         verify(categoryRepository, times(1)).save(any(Category.class));
@@ -106,7 +104,6 @@ class CategoryServiceTest {
         CategoryDto result = categoryService.save(categoryDto);
 
         assertNotNull(result);
-        // Note: Implementation doesn't set status flags/messages on successful save; returns input DTO
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 
@@ -266,7 +263,7 @@ class CategoryServiceTest {
         CategoryDto result = categoryService.toggleStatus("CAT-01");
 
         assertNotNull(result);
-        assertFalse(result.isStatus()); // Status flips from true to false
+        assertFalse(result.isStatus());
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 

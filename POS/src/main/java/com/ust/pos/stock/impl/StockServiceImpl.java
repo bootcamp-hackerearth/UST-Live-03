@@ -8,6 +8,7 @@ import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -44,7 +45,7 @@ public class StockServiceImpl extends CommonService implements StockService {
         Stock existing = stockRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existing.getDeleted())) {
                 dto.setSuccess(false);
                 dto.setMessage(STOCK_WITH_IDENTIFIER + identifier + " already exists");
                 return dto;
@@ -79,7 +80,7 @@ public class StockServiceImpl extends CommonService implements StockService {
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setSuccess(false);
             dto.setMessage(STOCK_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");

@@ -57,7 +57,7 @@ public class ApiStockController extends BaseController {
     }
 
     @DeleteMapping("/delete")
-    public boolean delete(Stock model, @RequestParam String identifier) {
+    public boolean delete(@RequestParam String identifier) {
         try {
             stockService.deleteByIdentifier(identifier);
         } catch (Exception e) {

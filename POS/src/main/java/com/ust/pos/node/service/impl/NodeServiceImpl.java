@@ -10,6 +10,7 @@ import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -58,7 +59,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
         Node existingNode = nodeRepository.findByIdentifier(identifier);
 
         if (existingNode != null) {
-            if (!existingNode.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existingNode.getDeleted())) {
                 nodeDto.setMessage("Node with identifier '" + identifier + "' already exists");
                 nodeDto.setSuccess(false);
                 return nodeDto;
@@ -87,7 +88,7 @@ public class NodeServiceImpl extends CommonService implements NodeService {
             nodeDto.setSuccess(false);
             return nodeDto;
         }
-        if (existingNode.getDeleted()) {
+        if (BooleanUtils.isTrue(existingNode.getDeleted())) {
             nodeDto.setMessage(NODE_WITH_IDENTIFIER + identifier + " was previously deleted. " + "Please contact backend team to restore.");
             nodeDto.setSuccess(false);
             return nodeDto;

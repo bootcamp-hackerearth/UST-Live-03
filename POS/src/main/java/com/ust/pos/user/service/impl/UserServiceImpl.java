@@ -8,6 +8,7 @@ import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -66,7 +67,7 @@ public class UserServiceImpl extends CommonService implements UserService {
         User existing = userRepository.findByUsername(username);
 
         if (existing != null) {
-            if (!existing.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existing.getDeleted())) {
                 dto.setSuccess(false);
                 dto.setMessage(USER_WITH_USERNAME + username + " already exists");
                 return dto;
@@ -101,7 +102,7 @@ public class UserServiceImpl extends CommonService implements UserService {
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setSuccess(false);
             dto.setMessage(USER_WITH_USERNAME + username + " was previously deleted. Please contact backend team to restore.");
             return dto;

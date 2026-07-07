@@ -8,6 +8,7 @@ import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -21,7 +22,7 @@ import java.util.List;
 @Service
 public class CategoryServiceImpl extends CommonService implements CategoryService {
 
-    private static final String CATEGORY_WITH_IDENTIFIER = "Category with identifier - ";
+    private static final String CATEGORY_WITH_IDENTIFIER1 = "Category with identifier - ";
 
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
@@ -37,14 +38,14 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         String identifier = categoryDto.getIdentifier();
         Category existingCategory = categoryRepository.findByIdentifier(identifier);
         if (existingCategory != null) {
-            if (existingCategory.getDeleted()) {
-                categoryDto.setMessage("Category with identifier " + identifier + " was previously deleted. " +
+            if (BooleanUtils.isTrue(existingCategory.getDeleted())) {
+                categoryDto.setMessage(CATEGORY_WITH_IDENTIFIER1 + identifier + " was previously deleted. " +
                         "Please contact backend team to restore."
                 );
                 categoryDto.setSuccess(false);
                 return categoryDto;
             }
-            categoryDto.setMessage("Category with identifier - " + identifier + " already exists");
+            categoryDto.setMessage(CATEGORY_WITH_IDENTIFIER1 + identifier + " already exists");
             categoryDto.setSuccess(false);
             return categoryDto;
         }
@@ -63,13 +64,13 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
         if (existing == null) {
             dto.setSuccess(false);
-            dto.setMessage(CATEGORY_WITH_IDENTIFIER + identifier + " not found");
+            dto.setMessage(CATEGORY_WITH_IDENTIFIER1 + identifier + " not found");
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setSuccess(false);
-            dto.setMessage(CATEGORY_WITH_IDENTIFIER + identifier + " was previously deleted. Please contact backend team to restore.");
+            dto.setMessage(CATEGORY_WITH_IDENTIFIER1 + identifier + " was previously deleted. Please contact backend team to restore.");
             return dto;
         }
 
@@ -169,7 +170,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         if (category == null) {
             CategoryDto dto = new CategoryDto();
             dto.setSuccess(false);
-            dto.setMessage(CATEGORY_WITH_IDENTIFIER + identifier + " not found");
+            dto.setMessage(CATEGORY_WITH_IDENTIFIER1 + identifier + " not found");
             return dto;
         }
 

@@ -8,6 +8,7 @@ import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -52,7 +53,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
         Brand existing = brandRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existing.getDeleted())) {
                 dto.setMessage("Brand with identifier '" + identifier + "' already exists");
                 dto.setSuccess(false);
                 return dto;
@@ -87,7 +88,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setMessage(BRAND_WITH_IDENTIFIER + identifier + " was previously deleted. Please contact backend team to restore.");
             dto.setSuccess(false);
             return dto;

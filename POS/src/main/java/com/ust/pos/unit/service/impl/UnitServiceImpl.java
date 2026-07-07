@@ -8,6 +8,7 @@ import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -51,7 +52,7 @@ public class UnitServiceImpl extends CommonService implements UnitService {
         Unit existing = unitRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existing.getDeleted())) {
                 dto.setSuccess(false);
                 dto.setMessage(UNIT_WITH_IDENTIFIER + identifier + " already exists");
                 return dto;
@@ -86,7 +87,7 @@ public class UnitServiceImpl extends CommonService implements UnitService {
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setSuccess(false);
             dto.setMessage(UNIT_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");

@@ -8,6 +8,7 @@ import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -52,7 +53,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
         Role existing = roleRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existing.getDeleted())) {
                 dto.setSuccess(false);
                 dto.setMessage(ROLE_WITH_IDENTIFIER + identifier + " already exists");
                 return dto;
@@ -87,7 +88,7 @@ public class RoleServiceImpl extends CommonService implements RoleService {
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setSuccess(false);
             dto.setMessage(ROLE_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");

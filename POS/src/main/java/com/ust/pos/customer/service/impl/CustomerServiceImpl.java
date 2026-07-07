@@ -8,6 +8,7 @@ import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -137,7 +138,7 @@ public class CustomerServiceImpl extends CommonService implements CustomerServic
             return customerDto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             customerDto.setSuccess(false);
             customerDto.setMessage(CUSTOMER_WITH_PHONE + phone + " was previously deleted. Please contact backend team to restore.");
             return customerDto;

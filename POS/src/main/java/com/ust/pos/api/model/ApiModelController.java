@@ -57,7 +57,7 @@ public class ApiModelController extends BaseController {
     }
 
     @DeleteMapping("/delete")
-    public boolean delete(Model model, @RequestParam String identifier) {
+    public boolean delete(@RequestParam String identifier) {
         try {
             modelService.delete(identifier);
         } catch (Exception e) {

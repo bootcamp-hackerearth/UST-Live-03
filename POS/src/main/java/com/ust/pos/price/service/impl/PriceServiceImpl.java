@@ -8,6 +8,7 @@ import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.BooleanUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -67,7 +68,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
         Price existing = priceRepository.findByIdentifier(dto.getIdentifier());
 
         if (existing != null) {
-            if (!existing.getDeleted()) {
+            if (BooleanUtils.isNotTrue(existing.getDeleted())) {
                 dto.setSuccess(false);
                 dto.setMessage(PRICE_WITH_IDENTIFIER + dto.getIdentifier() + " already exists");
                 return dto;
@@ -103,7 +104,7 @@ public class PriceServiceImpl extends CommonService implements PriceService {
             return dto;
         }
 
-        if (existing.getDeleted()) {
+        if (BooleanUtils.isTrue(existing.getDeleted())) {
             dto.setSuccess(false);
             dto.setMessage(PRICE_WITH_IDENTIFIER + identifier +
                     " was previously deleted. Please contact backend team to restore.");
