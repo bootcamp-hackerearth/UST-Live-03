@@ -16,24 +16,8 @@ function Login() {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
     setError("");
   };
-
+  
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.post(/api/authenticate",
-        credentials
-      );
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("username", credentials.username);
-      router.push("/home");
-    } catch {
-      setError("Invalid email or password. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
