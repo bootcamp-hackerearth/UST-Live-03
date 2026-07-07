@@ -34,7 +34,9 @@ jobs:
 
             cd ~/projects/UST-Live-03/POS-NEXT
 
-            git pull
+            git fetch --all --prune
+            
+            git reset --hard origin/feature/sprint5_pod5_pranavp
 
             npm install
 
