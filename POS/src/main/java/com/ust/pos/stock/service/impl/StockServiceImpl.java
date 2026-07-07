@@ -173,6 +173,5 @@ public class StockServiceImpl extends BaseService implements StockService {
 
         return wsDto;
     }
-
 }
 

@@ -1,6 +1,8 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -16,14 +18,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PriceServiceTest {
@@ -59,11 +61,13 @@ class PriceServiceTest {
     @Test
     void findByIdentifierFailureTest() {
 
-        Mockito.when(priceRepository.findByIdentifier("P1.RETAIL"))
+        when(priceRepository.findByIdentifier("P1.RETAIL"))
                 .thenReturn(null);
-        PriceDto response = priceService.findByIdentifier("P1.RETAIL");
 
-        Assertions.assertNull(response);
+        assertThrows(
+                ResourseNotFoundException.class,
+                () -> priceService.findByIdentifier("P1.RETAIL")
+        );
     }
 
     @Test
@@ -215,5 +219,82 @@ class PriceServiceTest {
 
         verify(modelMapper)
                 .map(price, PriceDto.class);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Price> specification = mock(Specification.class);
+
+        Price price = new Price();
+        price.setIdentifier("P1.RETAIL");
+
+        PriceDto priceDto = new PriceDto();
+        priceDto.setIdentifier("P1.RETAIL");
+
+        List<Price> priceList = List.of(price);
+
+        Page<Price> page = new PageImpl<>(priceList, pageable, 1);
+
+        when(priceRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(priceList), any(Type.class)))
+                .thenReturn(List.of(priceDto));
+
+        WsDto<PriceDto> result =
+                priceService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("P1.RETAIL",
+                result.getContent().get(0).getIdentifier());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(priceRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(priceList), any(Type.class));
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Price> specification = mock(Specification.class);
+
+        Page<Price> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(priceRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(List.of()), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<PriceDto> result =
+                priceService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(priceRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(List.of()), any(Type.class));
     }
 }

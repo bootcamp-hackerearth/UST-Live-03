@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -149,10 +151,13 @@ class UnitServiceTest {
     @Test
     void findByIdentifierFailureTest() {
 
-        Mockito.when(unitRepository.findByIdentifier("Admin")).thenReturn(null);
-        UnitDto result = unitService.findByIdentifier("Admin");
+        when(unitRepository.findByIdentifier("Admin"))
+                .thenReturn(null);
 
-        Assertions.assertNull(result);
+        assertThrows(
+                ResourseNotFoundException.class,
+                () -> unitService.findByIdentifier("Admin")
+        );
     }
 
     @Test
@@ -272,5 +277,82 @@ class UnitServiceTest {
         Assertions.assertEquals(1, response.size());
 
         verify(unitRepository).findByStatus(true);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Unit> specification = mock(Specification.class);
+
+        Unit unit = new Unit();
+        unit.setIdentifier("UNIT01");
+
+        UnitDto unitDto = new UnitDto();
+        unitDto.setIdentifier("UNIT01");
+
+        List<Unit> unitList = List.of(unit);
+
+        Page<Unit> page = new PageImpl<>(unitList, pageable, 1);
+
+        when(unitRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(unitList), any(Type.class)))
+                .thenReturn(List.of(unitDto));
+
+        WsDto<UnitDto> result =
+                unitService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("UNIT01",
+                result.getContent().get(0).getIdentifier());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(unitRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(unitList), any(Type.class));
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Unit> specification = mock(Specification.class);
+
+        Page<Unit> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(unitRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(List.of()), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<UnitDto> result =
+                unitService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(unitRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(List.of()), any(Type.class));
     }
 }

@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -245,5 +247,85 @@ class BrandServiceTest {
         List<BrandDto> result = brandService.findActiveBrands();
         assertEquals(1, result.size());
         verify(brandRepository).findByStatus(true);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Brand> specification = mock(Specification.class);
+
+        Brand brand1 = new Brand();
+        brand1.setIdentifier("BR001");
+
+        BrandDto brandDto1 = new BrandDto();
+        brandDto1.setIdentifier("BR001");
+
+        List<Brand> brandList = List.of(brand1);
+
+        Page<Brand> page = new PageImpl<>(brandList, pageable, 1);
+
+        when(brandRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(brandList), any(Type.class)))
+                .thenReturn(List.of(brandDto1));
+
+        WsDto<BrandDto> result =
+                brandService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertNotNull(result.getContent());
+
+        assertEquals(1, result.getContent().size());
+        assertEquals("BR001",
+                result.getContent().get(0).getIdentifier());
+
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(brandRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(brandList), any(Type.class));
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Brand> specification = mock(Specification.class);
+
+        Page<Brand> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(brandRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(List.of()), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<BrandDto> result =
+                brandService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(brandRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(List.of()), any(Type.class));
     }
 }

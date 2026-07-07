@@ -1,13 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { redirect, useRouter } from "next/navigation";
-import { Pencil, Trash2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Pencil, Trash2Icon, AlertTriangle } from "lucide-react";
 import PropTypes from "prop-types";
 import { FetchList } from "@/apicalls/fetch/FetchList";
 import { FetchEntity } from "@/apicalls/fetch/FetchEntity";
 import Switch from "@mui/material/Switch";
 import Link from "next/link"
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+} from "@mui/material";
 
 const CommonList = ({ keys, routeName, title }) => {
 
@@ -17,53 +25,72 @@ const CommonList = ({ keys, routeName, title }) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     const listFetch = async () => {
-      const response = await FetchList(
-        `${baseUrl}/${routeName}/list`,
-        page,
-        search
-      );
+      try {
+        const response = await FetchList(
+          `${baseUrl}/${routeName}/list`,
+          page,
+          search
+        );
 
-      if (Array.isArray(response)) {
-        setData(response);
-      } else {
-        setData(response?.content || []);
-        setTotalPages(response?.totalPages || 0);
+        if (Array.isArray(response)) {
+          setData(response);
+        } else {
+          setData(response?.content || []);
+          setTotalPages(response?.totalPages || 0);
+        }
+      } catch (err) {
+        router.push(
+          `/error?status=${err.status}&message=${encodeURIComponent(
+            err.message
+          )}&returnTo=/${routeName}`
+        );
       }
     };
 
     listFetch();
-  }, [routeName, page, search]);
+  }, [routeName, page, search, router]);
 
   const handleDelete = async (item) => {
-
-    const res = await FetchEntity(
-      `${baseUrl}/${routeName}/delete`,
-      "DELETE",
-      item,
-    );
-
-    const currentIdentifier = localStorage.getItem("username");
-    if (currentIdentifier === item.identifier) {
-      localStorage.removeItem("username");
-      redirect("/login");
-    }
-
-    if (res === true) {
-      const response = await FetchList(
-        `${baseUrl}/${routeName}/list`,
-        page,
-        search
+    try {
+      const res = await FetchEntity(
+        `${baseUrl}/${routeName}/delete`,
+        "DELETE",
+        item
       );
 
-      if (Array.isArray(response)) {
-        setData(response);
-      } else {
-        setData(response?.content || []);
-        setTotalPages(response?.totalPages || 0);
+      const currentIdentifier = localStorage.getItem("username");
+
+      if (currentIdentifier === item.identifier) {
+        localStorage.removeItem("username");
+        router.push("/login");
+        return;
       }
+
+      if (res === true) {
+        const response = await FetchList(
+          `${baseUrl}/${routeName}/list`,
+          page,
+          search
+        );
+
+        if (Array.isArray(response)) {
+          setData(response);
+        } else {
+          setData(response?.content || []);
+          setTotalPages(response?.totalPages || 0);
+        }
+      }
+    } catch (err) {
+      router.push(
+        `/error?status=${err.status}&message=${encodeURIComponent(
+          err.message
+        )}&returnTo=/${routeName}`
+      );
     }
   };
 
@@ -103,7 +130,7 @@ const CommonList = ({ keys, routeName, title }) => {
   const handlePrev = () => {
     if (page > 0) setPage((prev) => prev - 1);
   };
-  
+
   return (
 
     <div className="m-6">
@@ -194,9 +221,11 @@ const CommonList = ({ keys, routeName, title }) => {
                       </button>
 
                       <button
-                        onClick={() =>
-                          handleDelete(item)
-                        }
+
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setOpenDialog(true);
+                        }}
                         className="p-2 rounded-lg hover:bg-red-50 transition">
                         <Trash2Icon size={16} className="text-red-400" />
                       </button>
@@ -227,7 +256,6 @@ const CommonList = ({ keys, routeName, title }) => {
             </option>
           ))}
         </select>
-
         <button
           onClick={handleNext}
           disabled={page >= totalPages - 1}
@@ -235,6 +263,67 @@ const CommonList = ({ keys, routeName, title }) => {
           Next
         </button>
       </div>
+
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              p: 1,
+            },
+          },
+        }}
+      >
+        <DialogTitle className="flex items-center gap-3 text-red-600 font-bold">
+          <AlertTriangle size={24} />
+          Confirm Delete
+        </DialogTitle>
+
+        <DialogContent>
+          <Typography className="text-gray-600">
+            Are you sure you want to delete this record?
+          </Typography>
+
+          <Typography
+            className="mt-3 text-sm font-medium text-red-500"
+          >
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setOpenDialog(false)}
+            sx={{
+              borderRadius: "12px",
+              textTransform: "none",
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            color="error"
+            sx={{
+              borderRadius: "12px",
+              textTransform: "none",
+              px: 3,
+            }}
+            onClick={() => {
+              handleDelete(selectedItem);
+              setOpenDialog(false);
+            }}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

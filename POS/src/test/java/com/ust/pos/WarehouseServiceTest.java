@@ -1,6 +1,7 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.WarehouseDto;
+import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Warehouse;
 import com.ust.pos.model.WarehouseRepository;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -298,4 +300,83 @@ class WarehouseServiceTest {
                         .contains("already exists but was deleted")
         );
     }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Warehouse> specification = mock(Specification.class);
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("WH001");
+
+        WarehouseDto warehouseDto = new WarehouseDto();
+        warehouseDto.setIdentifier("WH001");
+
+        List<Warehouse> warehouseList = List.of(warehouse);
+
+        Page<Warehouse> page =
+                new PageImpl<>(warehouseList, pageable, 1);
+
+        when(warehouseRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(warehouseList), any(Type.class)))
+                .thenReturn(List.of(warehouseDto));
+
+        WsDto<WarehouseDto> result =
+                warehouseService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("WH001",
+                result.getContent().get(0).getIdentifier());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(warehouseRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(warehouseList), any(Type.class));
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Warehouse> specification = mock(Specification.class);
+
+        Page<Warehouse> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(warehouseRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(List.of()), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<WarehouseDto> result =
+                warehouseService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(warehouseRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(List.of()), any(Type.class));
+    }
+
 }

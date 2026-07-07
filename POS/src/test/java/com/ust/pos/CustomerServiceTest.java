@@ -7,6 +7,7 @@ import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Address;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
@@ -20,7 +21,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,9 +68,11 @@ class CustomerServiceTest {
 
         when(customerRepository.findByIdentifier("C1"))
                 .thenReturn(null);
-        CustomerDto response =
-                customerService.findByIdentifier("C1");
-        assertNull(response);
+
+        assertThrows(
+                ResourseNotFoundException.class,
+                () -> customerService.findByIdentifier("C1")
+        );
     }
 
     @Test
@@ -321,5 +326,82 @@ class CustomerServiceTest {
 
         assertEquals(1, result.size());
         verify(customerRepository).findByStatus(true);
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Customer> specification = mock(Specification.class);
+
+        Customer customer = new Customer();
+        customer.setIdentifier("CUST01");
+
+        CustomerDto customerDto = new CustomerDto();
+        customerDto.setIdentifier("CUST01");
+
+        List<Customer> customerList = List.of(customer);
+
+        Page<Customer> page = new PageImpl<>(customerList, pageable, 1);
+
+        when(customerRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(customerList), any(Type.class)))
+                .thenReturn(List.of(customerDto));
+
+        WsDto<CustomerDto> result =
+                customerService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("CUST01",
+                result.getContent().get(0).getIdentifier());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(customerRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(customerList), any(Type.class));
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Customer> specification = mock(Specification.class);
+
+        Page<Customer> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(customerRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(List.of()), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<CustomerDto> result =
+                customerService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(customerRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(List.of()), any(Type.class));
     }
 }

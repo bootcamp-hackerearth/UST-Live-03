@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -139,9 +141,13 @@ class CategoryServiceTest {
     @Test
     void findByIdentifierFailureTest() {
 
-        when(categoryRepository.findByIdentifier("CAT01")).thenReturn(null);
-        CategoryDto response = categoryService.findByIdentifier("CAT01");
-        assertNull(response);
+        when(categoryRepository.findByIdentifier("CAT01"))
+                .thenReturn(null);
+
+        assertThrows(
+                ResourseNotFoundException.class,
+                () -> categoryService.findByIdentifier("CAT01")
+        );
     }
 
     @Test
@@ -318,4 +324,81 @@ class CategoryServiceTest {
         verify(modelMapper, never())
                 .map(any(Category.class), eq(CategoryDto.class));
     }
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Category> specification = mock(Specification.class);
+
+        Category category = new Category();
+        category.setIdentifier("CAT01");
+
+        CategoryDto categoryDto = new CategoryDto();
+        categoryDto.setIdentifier("CAT01");
+
+        List<Category> categoryList = List.of(category);
+
+        Page<Category> page = new PageImpl<>(categoryList, pageable, 1);
+
+        when(categoryRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(categoryList), any(Type.class)))
+                .thenReturn(List.of(categoryDto));
+
+        WsDto<CategoryDto> result =
+                categoryService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("CAT01",
+                result.getContent().get(0).getIdentifier());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(categoryRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(categoryList), any(Type.class));
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Category> specification = mock(Specification.class);
+
+        Page<Category> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(categoryRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(List.of()), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<CategoryDto> result =
+                categoryService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(categoryRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(List.of()), any(Type.class));
+    }
+
 }

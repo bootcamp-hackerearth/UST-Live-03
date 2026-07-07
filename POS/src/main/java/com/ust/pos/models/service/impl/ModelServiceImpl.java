@@ -134,7 +134,6 @@ public class ModelServiceImpl extends BaseService implements ModelService {
         return wsDto;
     }
 
-
     @Override
     public void toggleStatus(String identifier) {
 

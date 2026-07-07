@@ -1,6 +1,8 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -15,14 +17,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StockServiceTest {
@@ -320,9 +322,10 @@ class StockServiceTest {
         when(stockRepository.findByIdentifier("P1"))
                 .thenReturn(null);
 
-        StockDto response = stockService.findByIdentifier("P1");
-
-        Assertions.assertNull(response);
+        assertThrows(
+                ResourseNotFoundException.class,
+                () -> stockService.findByIdentifier("P1")
+        );
     }
 
     @Test
@@ -385,5 +388,82 @@ class StockServiceTest {
                 response.getMessage()
                         .contains("already exists but was deleted")
         );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Stock> specification = mock(Specification.class);
+
+        Stock stock = new Stock();
+        stock.setIdentifier("STOCK01");
+
+        StockDto stockDto = new StockDto();
+        stockDto.setIdentifier("STOCK01");
+
+        List<Stock> stockList = List.of(stock);
+
+        Page<Stock> page = new PageImpl<>(stockList, pageable, 1);
+
+        when(stockRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(stockList), any(Type.class)))
+                .thenReturn(List.of(stockDto));
+
+        WsDto<StockDto> result =
+                stockService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("STOCK01",
+                result.getContent().get(0).getIdentifier());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(stockRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(stockList), any(Type.class));
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Stock> specification = mock(Specification.class);
+
+        Page<Stock> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(stockRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(List.of()), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<StockDto> result =
+                stockService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(stockRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(List.of()), any(Type.class));
     }
 }

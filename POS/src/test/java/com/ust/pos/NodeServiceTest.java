@@ -1,6 +1,8 @@
 package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
+import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -73,13 +76,10 @@ class NodeServiceTest {
         when(nodeRepository.findByIdentifier("NODE1"))
                 .thenReturn(null);
 
-        when(modelMapper.map(null, NodeDto.class))
-                .thenReturn(null);
-
-        NodeDto result =
-                nodeService.findByIdentifier("NODE1");
-
-        assertNull(result);
+        assertThrows(
+                ResourseNotFoundException.class,
+                () -> nodeService.findByIdentifier("NODE1")
+        );
     }
 
     @Test
@@ -523,5 +523,82 @@ class NodeServiceTest {
         List<NodeDto> result = nodeService.getNodesForRoles(pageable);
 
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Node> specification = mock(Specification.class);
+
+        Node node1 = new Node();
+        node1.setIdentifier("NODE01");
+
+        NodeDto nodeDto1 = new NodeDto();
+        nodeDto1.setIdentifier("NODE01");
+
+        List<Node> nodeList = List.of(node1);
+
+        Page<Node> page = new PageImpl<>(nodeList, pageable, 1);
+
+        when(nodeRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(nodeList), any(Type.class)))
+                .thenReturn(List.of(nodeDto1));
+
+        WsDto<NodeDto> result =
+                nodeService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("NODE01",
+                result.getContent().get(0).getIdentifier());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(nodeRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(nodeList), any(Type.class));
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyResultTest() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        @SuppressWarnings("unchecked")
+        Specification<Node> specification = mock(Specification.class);
+
+        Page<Node> page =
+                new PageImpl<>(List.of(), pageable, 0);
+
+        when(nodeRepository.findAll(specification, pageable))
+                .thenReturn(page);
+
+        when(modelMapper.map(eq(List.of()), any(Type.class)))
+                .thenReturn(List.of());
+
+        WsDto<NodeDto> result =
+                nodeService.findAll(specification, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
+        verify(nodeRepository)
+                .findAll(specification, pageable);
+
+        verify(modelMapper)
+                .map(eq(List.of()), any(Type.class));
     }
 }

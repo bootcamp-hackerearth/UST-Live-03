@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.cart.service.impl.CartServiceImpl;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.CartRepository;
@@ -61,9 +62,10 @@ class CartServiceTest {
         when(cartRepository.findByIdentifier("cart1"))
                 .thenReturn(null);
 
-        CartDto result = service.findByIdentifier("cart1");
-
-        assertNull(result);
+        assertThrows(
+                ResourseNotFoundException.class,
+                () -> service.findByIdentifier("cart1")
+        );
     }
 
     @Test

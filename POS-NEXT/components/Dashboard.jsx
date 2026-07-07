@@ -29,6 +29,7 @@ export default function DashboardPage() {
     products: 0,
     customers: 0,
     orders: 0,
+    warehouses: 0,
   });
 
   useEffect(() => {
@@ -43,12 +44,13 @@ export default function DashboardPage() {
           sizePerPage: 1,
         };
 
-        const [productRes, customerRes, orderRes] = await Promise.all([
+        const [productRes, customerRes, orderRes, warehouseRes] = await Promise.all([
           fetch(`${baseUrl}/product/list`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify(body),
           }),
           fetch(`${baseUrl}/customer/list`, {
@@ -56,6 +58,7 @@ export default function DashboardPage() {
             headers: {
               "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify(body),
           }),
           fetch(`${baseUrl}/orders/list`, {
@@ -63,6 +66,15 @@ export default function DashboardPage() {
             headers: {
               "Content-Type": "application/json",
             },
+            credentials: "include",
+            body: JSON.stringify(body),
+          }),
+          fetch(`${baseUrl}/warehouse/list`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
             body: JSON.stringify(body),
           }),
         ]);
@@ -70,11 +82,13 @@ export default function DashboardPage() {
         const products = await productRes.json();
         const customers = await customerRes.json();
         const orders = await orderRes.json();
+        const warehouses = await warehouseRes.json();
 
         setCounts({
           products: products.totalRecords,
           customers: customers.totalRecords,
           orders: orders.totalRecords,
+          warehouses: warehouses.totalRecords,
         });
       } catch (err) {
         console.error(err);
@@ -101,8 +115,8 @@ export default function DashboardPage() {
       icon: ShoppingCart,
     },
     {
-      title: "Low Stock",
-      value: "-",
+      title: "Warehouses",
+      value: counts.warehouses,
       icon: AlertTriangle,
     },
   ];
@@ -154,22 +168,22 @@ export default function DashboardPage() {
           })}
         </div>
 
-        <div className="mt-12 bg-white rounded-2xl shadow-sm border border-violet-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-violet-100 p-6 mt-12">
           <h2 className="text-xl font-semibold text-gray-800 mb-5">
             Quick Actions
           </h2>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 mt-4">
             <button onClick={() => router.push("/cart")}
-              className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-3 rounded-xl transition">
+              className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-3 py-1 rounded-xl transition">
               <Plus size={18} />
               New Sale
             </button>
 
             <button onClick={() => router.push("/orders")}
-              className="flex items-center gap-2 border border-violet-200 hover:bg-violet-50 px-5 py-3 rounded-xl transition">
+              className="flex items-center gap-2 border border-violet-200 hover:bg-violet-50 px-3 py-1 rounded-xl transition">
               <Receipt size={18} />
-              View Orders+++ please
+              View Orders++
             </button>
           </div>
         </div>
