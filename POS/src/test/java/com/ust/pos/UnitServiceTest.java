@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -177,8 +178,7 @@ class UnitServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
         Page<Unit> unitPage = new PageImpl<>(units, pageable, units.size());
-        Type listType = new TypeToken<List<UnitDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
 
         when(unitRepository.findAllByDeletedFalse(pageable)).thenReturn(unitPage);
         when(modelMapper.map(units, listType)).thenReturn(unitDtos);
@@ -189,7 +189,10 @@ class UnitServiceTest {
         assertEquals(2, result.getDtoList().size());
         assertEquals("Kg", result.getDtoList().get(0).getIdentifier());
         assertEquals("L", result.getDtoList().get(1).getIdentifier());
-        assertEquals(2, result.getTotalRecords());
+        assertEquals(2L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(unitRepository, times(1)).findAllByDeletedFalse(pageable);
     }
@@ -198,8 +201,7 @@ class UnitServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Unit> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        Type listType = new TypeToken<List<UnitDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
 
         when(unitRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
@@ -208,7 +210,10 @@ class UnitServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
-        assertEquals(0, result.getTotalRecords());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(unitRepository, times(1)).findAllByDeletedFalse(pageable);
     }
@@ -224,8 +229,7 @@ class UnitServiceTest {
         List<Unit> activeUnits = List.of(unit1, unit2);
 
         List<UnitDto> dtoList = List.of(unitDto, new UnitDto());
-        Type listType = new TypeToken<List<UnitDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
 
         when(unitRepository.findByStatusTrueAndDeletedFalse()).thenReturn(activeUnits);
         when(modelMapper.map(activeUnits, listType)).thenReturn(dtoList);
@@ -276,5 +280,31 @@ class UnitServiceTest {
         verify(unitRepository, times(1)).findByIdentifier("Kg");
         verify(unitRepository, never()).save(any());
         verify(modelMapper, never()).map(any(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Unit> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 15);
+        List<Unit> unitsList = Collections.singletonList(unit);
+        List<UnitDto> unitDtoList = Collections.singletonList(unitDto);
+        Page<Unit> unitPage = new PageImpl<>(unitsList, pageable, 45);
+        Type listType = new TypeToken<List<UnitDto>>() {}.getType();
+
+        when(unitRepository.findAll(mockSpec, pageable)).thenReturn(unitPage);
+        when(modelMapper.map(unitPage.getContent(), listType)).thenReturn(unitDtoList);
+
+        WsDto<UnitDto> result = unitService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(unitRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(unitPage.getContent(), listType);
     }
 }

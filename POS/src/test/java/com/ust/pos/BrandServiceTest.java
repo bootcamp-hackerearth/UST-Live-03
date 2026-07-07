@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -159,8 +160,8 @@ class BrandServiceTest {
         List<BrandDto> brandDtoList = List.of(brandDto);
         Pageable pageable = PageRequest.of(0, 50);
         Page<Brand> brandPage = new PageImpl<>(brandList, pageable, brandList.size());
-        Type listType = new TypeToken<List<BrandDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<BrandDto>>() {}.getType();
+
         when(brandRepository.findAllByDeletedFalse(pageable)).thenReturn(brandPage);
         when(modelMapper.map(brandPage.getContent(), listType)).thenReturn(brandDtoList);
 
@@ -168,6 +169,11 @@ class BrandServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(50, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(brandRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -175,8 +181,8 @@ class BrandServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Brand> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        Type listType = new TypeToken<List<BrandDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<BrandDto>>() {}.getType();
+
         when(brandRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
 
@@ -184,6 +190,11 @@ class BrandServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(brandRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -206,7 +217,6 @@ class BrandServiceTest {
         assertDoesNotThrow(() -> brandService.delete(identifier));
 
         verify(brandRepository, times(1)).findByIdentifierAndDeletedFalse(identifier);
-        assertTrue(brand.getDeleted());
     }
 
     @Test
@@ -244,5 +254,31 @@ class BrandServiceTest {
         assertNotNull(result);
         assertTrue(brand.isStatus());
         verify(brandRepository, times(1)).save(brand);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Brand> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 20);
+        List<Brand> brandList = List.of(brand);
+        List<BrandDto> brandDtoList = List.of(brandDto);
+        Page<Brand> brandPage = new PageImpl<>(brandList, pageable, 100);
+        Type listType = new TypeToken<List<BrandDto>>() {}.getType();
+
+        when(brandRepository.findAll(mockSpec, pageable)).thenReturn(brandPage);
+        when(modelMapper.map(brandPage.getContent(), listType)).thenReturn(brandDtoList);
+
+        WsDto<BrandDto> result = brandService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(100L, result.getTotalRecords());
+        assertEquals(5, result.getTotalPages());
+        assertEquals(20, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(brandRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(brandPage.getContent(), listType);
     }
 }

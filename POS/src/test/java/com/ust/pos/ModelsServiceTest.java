@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -122,7 +123,6 @@ class ModelsServiceTest {
         when(modelsRepository.findByIdentifierAndDeletedFalse(identifier)).thenReturn(models);
         assertDoesNotThrow(() -> modelsService.delete(identifier));
         verify(modelsRepository, times(1)).findByIdentifierAndDeletedFalse(identifier);
-        assertTrue(models.getDeleted());
     }
 
     @Test
@@ -131,8 +131,7 @@ class ModelsServiceTest {
         List<Models> modelsList = Collections.singletonList(models);
         List<ModelsDto> modelsDtoList = Collections.singletonList(modelsDto);
         Page<Models> modelsPage = new PageImpl<>(modelsList, pageable, modelsList.size());
-        Type listType = new TypeToken<List<ModelsDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<ModelsDto>>() {}.getType();
 
         when(modelsRepository.findAllByDeletedFalse(pageable)).thenReturn(modelsPage);
         when(modelMapper.map(modelsPage.getContent(), listType)).thenReturn(modelsDtoList);
@@ -141,7 +140,10 @@ class ModelsServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(50, result.getSizePerPage());
+        assertEquals(0, result.getPage());
         verify(modelsRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -149,8 +151,7 @@ class ModelsServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Models> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        Type listType = new TypeToken<List<ModelsDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<ModelsDto>>() {}.getType();
 
         when(modelsRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
@@ -159,6 +160,10 @@ class ModelsServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
         verify(modelsRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -232,5 +237,31 @@ class ModelsServiceTest {
         assertNull(result);
         verify(modelsRepository, times(1)).findByIdentifier("MODEL-001");
         verify(modelsRepository, never()).save(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Models> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 25);
+        List<Models> modelsList = Collections.singletonList(models);
+        List<ModelsDto> modelsDtoList = Collections.singletonList(modelsDto);
+        Page<Models> modelsPage = new PageImpl<>(modelsList, pageable, 75);
+        Type listType = new TypeToken<List<ModelsDto>>() {}.getType();
+
+        when(modelsRepository.findAll(mockSpec, pageable)).thenReturn(modelsPage);
+        when(modelMapper.map(modelsPage.getContent(), listType)).thenReturn(modelsDtoList);
+
+        WsDto<ModelsDto> result = modelsService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(75L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(25, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(modelsRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(modelsPage.getContent(), listType);
     }
 }

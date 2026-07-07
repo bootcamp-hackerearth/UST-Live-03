@@ -12,10 +12,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -209,18 +211,20 @@ class OrderServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Order> orderPage = new PageImpl<>(List.of(order), pageable, 1);
         List<OrderDto> dtoList = List.of(orderDto);
+        Type listType = new TypeToken<List<OrderDto>>() {}.getType();
 
         when(orderRepository.findAll(pageable)).thenReturn(orderPage);
-        when(modelMapper.map(any(), any(Type.class))).thenReturn(dtoList);
+        when(modelMapper.map(eq(orderPage.getContent()), eq(listType))).thenReturn(dtoList);
 
         WsDto<OrderDto> result = orderService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
         assertEquals(1, result.getTotalPages());
         assertEquals(10, result.getSizePerPage());
         assertEquals(0, result.getPage());
+        verify(orderRepository, times(1)).findAll(pageable);
     }
 
     @Test
@@ -232,5 +236,30 @@ class OrderServiceTest {
         assertTrue(result);
         verify(orderEntryRepository, times(1)).deleteByOrderIdentifier(identifier);
         verify(orderRepository, times(1)).deleteByIdentifier(identifier);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Order> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 20);
+        Page<Order> orderPage = new PageImpl<>(List.of(order), pageable, 40);
+        List<OrderDto> dtoList = List.of(orderDto);
+        Type listType = new TypeToken<List<OrderDto>>() {}.getType();
+
+        when(orderRepository.findAll(mockSpec, pageable)).thenReturn(orderPage);
+        when(modelMapper.map(eq(orderPage.getContent()), eq(listType))).thenReturn(dtoList);
+
+        WsDto<OrderDto> result = orderService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(40L, result.getTotalRecords());
+        assertEquals(2, result.getTotalPages());
+        assertEquals(20, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(orderRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(eq(orderPage.getContent()), eq(listType));
     }
 }

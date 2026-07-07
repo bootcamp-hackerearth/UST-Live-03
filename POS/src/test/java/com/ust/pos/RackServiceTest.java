@@ -4,7 +4,6 @@ import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
-import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.rack.service.impl.RackServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -32,9 +32,6 @@ class RackServiceTest {
 
     @Mock
     private RackRepository rackRepository;
-
-    @Mock
-    private ShelfRepository shelfRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -75,7 +72,9 @@ class RackServiceTest {
     void testSave_RackAlreadyExists_ButIsSoftDeleted() {
         rack.setDeleted(true);
         when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
+
         RackDto result = rackService.save(rackDto);
+
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertEquals("Rack identifier - RACK-001 not available", result.getMessage());
@@ -128,9 +127,10 @@ class RackServiceTest {
     void testDelete() {
         rack.setDeleted(false);
 
-        when(rackRepository.findByIdentifierAndDeletedFalse("RACK-001"))
-                .thenReturn(rack);
+        when(rackRepository.findByIdentifierAndDeletedFalse("RACK-001")).thenReturn(rack);
+
         assertDoesNotThrow(() -> rackService.delete("RACK-001"));
+
         verify(rackRepository, times(1)).findByIdentifierAndDeletedFalse("RACK-001");
         assertTrue(rack.getDeleted());
     }
@@ -141,9 +141,8 @@ class RackServiceTest {
         List<Rack> rackList = Collections.singletonList(rack);
         List<RackDto> rackDtoList = Collections.singletonList(rackDto);
         Page<Rack> rackPage = new PageImpl<>(rackList, pageable, rackList.size());
+        Type listType = new TypeToken<List<RackDto>>() {}.getType();
 
-        Type listType = new TypeToken<List<RackDto>>() {
-        }.getType();
         when(rackRepository.findAllByDeletedFalse(pageable)).thenReturn(rackPage);
         when(modelMapper.map(rackPage.getContent(), listType)).thenReturn(rackDtoList);
 
@@ -151,7 +150,10 @@ class RackServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(50, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(rackRepository, times(1)).findAllByDeletedFalse(pageable);
         verify(modelMapper, times(1)).map(rackPage.getContent(), listType);
@@ -161,9 +163,7 @@ class RackServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Rack> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-
-        Type listType = new TypeToken<List<RackDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<RackDto>>() {}.getType();
 
         when(rackRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
@@ -172,7 +172,10 @@ class RackServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
-        assertEquals(0, result.getTotalRecords());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(rackRepository, times(1)).findAllByDeletedFalse(pageable);
         verify(modelMapper, times(1)).map(emptyPage.getContent(), listType);
@@ -253,5 +256,31 @@ class RackServiceTest {
         assertNull(result);
         verify(rackRepository, times(1)).findByIdentifier("RACK-001");
         verify(rackRepository, never()).save(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Rack> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 15);
+        List<Rack> rackList = Collections.singletonList(rack);
+        List<RackDto> rackDtoList = Collections.singletonList(rackDto);
+        Page<Rack> rackPage = new PageImpl<>(rackList, pageable, 45);
+        Type listType = new TypeToken<List<RackDto>>() {}.getType();
+
+        when(rackRepository.findAll(mockSpec, pageable)).thenReturn(rackPage);
+        when(modelMapper.map(rackPage.getContent(), listType)).thenReturn(rackDtoList);
+
+        WsDto<RackDto> result = rackService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(rackRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(rackPage.getContent(), listType);
     }
 }

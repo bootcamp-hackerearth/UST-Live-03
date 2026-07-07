@@ -19,8 +19,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,14 +34,19 @@ import static org.mockito.Mockito.*;
 class StockServiceTest {
 
     private final String expectedIdentifier = "Laptop_WH1";
+
     @Mock
     private StockRepository stockRepository;
+
     @Mock
     private ProductRepository productRepository;
+
     @Mock
     private ModelMapper modelMapper;
+
     @InjectMocks
     private StockServiceImpl stockService;
+
     private Stock stock;
     private StockDto stockDto;
     private Product product;
@@ -136,7 +143,9 @@ class StockServiceTest {
         when(productRepository.findByIdentifier("PROD-001")).thenReturn(product);
         when(stockRepository.findByIdentifier(expectedIdentifier)).thenReturn(null);
         when(modelMapper.map(any(StockDto.class), eq(Stock.class))).thenReturn(stock);
+
         StockDto result = stockService.save(stockDto);
+
         assertEquals("Out of Stock", result.getStockStatus());
         verify(stockRepository, times(1)).save(stock);
     }
@@ -146,7 +155,9 @@ class StockServiceTest {
         stockDto.setIdentifier(expectedIdentifier);
         stockDto.setQuantity(-10);
         when(stockRepository.findByIdentifier(expectedIdentifier)).thenReturn(stock);
+
         StockDto result = stockService.update(stockDto);
+
         assertEquals("Out of Stock", result.getStockStatus());
         verify(stockRepository, times(1)).save(stock);
     }
@@ -172,7 +183,9 @@ class StockServiceTest {
         when(productRepository.findByIdentifier("PROD-001")).thenReturn(product);
         when(stockRepository.findByIdentifier(expectedIdentifier)).thenReturn(null);
         when(modelMapper.map(any(StockDto.class), eq(Stock.class))).thenReturn(stock);
+
         StockDto result = stockService.save(stockDto);
+
         assertEquals("Available", result.getStockStatus());
         verify(stockRepository, times(1)).save(stock);
     }
@@ -183,7 +196,9 @@ class StockServiceTest {
         stockDto.setQuantity(50);
         stockDto.setMinimumStock(20);
         when(stockRepository.findByIdentifier(expectedIdentifier)).thenReturn(stock);
+
         StockDto result = stockService.update(stockDto);
+
         assertEquals("Available", result.getStockStatus());
         verify(stockRepository, times(1)).save(stock);
     }
@@ -260,32 +275,39 @@ class StockServiceTest {
     @Test
     void findAll_test() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Stock> page = new PageImpl<>(List.of(stock));
-        Type listType = new TypeToken<List<StockDto>>() {
-        }.getType();
+        Page<Stock> page = new PageImpl<>(List.of(stock), pageable, 1);
+        Type listType = new TypeToken<List<StockDto>>() {}.getType();
 
         when(stockRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(page.getContent(), listType)).thenReturn(List.of(stockDto));
 
         WsDto<StockDto> result = stockService.findAll(pageable);
+
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
     }
 
     @Test
     void findAll_emptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Stock> page = new PageImpl<>(List.of(), pageable, 0);
-        Type listType = new TypeToken<List<StockDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<StockDto>>() {}.getType();
 
         when(stockRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(page.getContent(), listType)).thenReturn(List.of());
 
         WsDto<StockDto> result = stockService.findAll(pageable);
+
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
     }
 
     @Test
@@ -308,5 +330,31 @@ class StockServiceTest {
 
         assertNull(result);
         verify(stockRepository, times(1)).findByIdentifierAndDeletedFalse(expectedIdentifier);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Stock> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 15);
+        List<Stock> stockList = Collections.singletonList(stock);
+        List<StockDto> stockDtoList = Collections.singletonList(stockDto);
+        Page<Stock> stockPage = new PageImpl<>(stockList, pageable, 45);
+        Type listType = new TypeToken<List<StockDto>>() {}.getType();
+
+        when(stockRepository.findAll(mockSpec, pageable)).thenReturn(stockPage);
+        when(modelMapper.map(stockPage.getContent(), listType)).thenReturn(stockDtoList);
+
+        WsDto<StockDto> result = stockService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(stockRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(stockPage.getContent(), listType);
     }
 }

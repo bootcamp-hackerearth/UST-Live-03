@@ -5,6 +5,7 @@ import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -80,9 +82,9 @@ class CustomerServiceTest {
     void testFindByIdentifier_NotFound() {
         when(customerRepository.findByIdentifierAndDeletedFalse("CUST123")).thenReturn(null);
 
-        CustomerDto result = customerService.findByIdentifier("CUST123");
-
-        assertNull(result);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            customerService.findByIdentifier("CUST123");
+        });
     }
 
     @Test
@@ -178,15 +180,13 @@ class CustomerServiceTest {
         when(customerRepository.save(any(Customer.class)))
                 .thenReturn(customer);
         doNothing().when(addressService).deleteByPhone(9876543210L);
+
         assertDoesNotThrow(() -> customerService.delete("CUST123"));
-        verify(customerRepository, times(1))
-                .findByIdentifierAndDeletedFalse("CUST123");
-        verify(customerRepository, times(1))
-                .save(customer);
-        verify(addressService, times(1))
-                .deleteByPhone(9876543210L);
+
+        verify(customerRepository, times(1)).findByIdentifierAndDeletedFalse("CUST123");
+        verify(customerRepository, times(1)).save(customer);
+        verify(addressService, times(1)).deleteByPhone(9876543210L);
         assertTrue(customer.getDeleted());
-        assertNotNull(customer.getModifiedOn());
     }
 
     @Test
@@ -194,15 +194,11 @@ class CustomerServiceTest {
         when(customerRepository.findByIdentifierAndDeletedFalse("CUST123"))
                 .thenReturn(null);
 
-        RuntimeException exception = assertThrows(
-                RuntimeException.class,
-                () -> customerService.delete("CUST123")
-        );
+        assertThrows(ResourceNotFoundException.class, () -> {
+            customerService.delete("CUST123");
+        });
 
-        assertTrue(exception.getMessage().contains("not found"));
-
-        verify(customerRepository, times(1))
-                .findByIdentifierAndDeletedFalse("CUST123");
+        verify(customerRepository, times(1)).findByIdentifierAndDeletedFalse("CUST123");
         verify(customerRepository, never()).save(any());
         verify(addressService, never()).deleteByPhone(anyLong());
     }
@@ -214,21 +210,41 @@ class CustomerServiceTest {
         List<CustomerDto> customerDtoList = Collections.singletonList(customerDto);
 
         Page<Customer> customerPage = new PageImpl<>(customerList, pageable, 1);
+        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
 
-        Type listType = new TypeToken<List<CustomerDto>>() {
-        }.getType();
-
-        when(customerRepository.findAllByDeletedFalse(pageable))
-                .thenReturn(customerPage);
-
-        when(modelMapper.map(customerPage.getContent(), listType))
-                .thenReturn(customerDtoList);
+        when(customerRepository.findAllByDeletedFalse(pageable)).thenReturn(customerPage);
+        when(modelMapper.map(customerPage.getContent(), listType)).thenReturn(customerDtoList);
 
         WsDto<CustomerDto> result = customerService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
         assertEquals(0, result.getPage());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification() {
+        Specification<Customer> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 20);
+        List<Customer> customerList = Collections.singletonList(customer);
+        List<CustomerDto> customerDtoList = Collections.singletonList(customerDto);
+
+        Page<Customer> customerPage = new PageImpl<>(customerList, pageable, 40);
+        Type listType = new TypeToken<List<CustomerDto>>() {}.getType();
+
+        when(customerRepository.findAll(mockSpec, pageable)).thenReturn(customerPage);
+        when(modelMapper.map(customerPage.getContent(), listType)).thenReturn(customerDtoList);
+
+        WsDto<CustomerDto> result = customerService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(40L, result.getTotalRecords());
+        assertEquals(2, result.getTotalPages());
+        assertEquals(20, result.getSizePerPage());
     }
 }

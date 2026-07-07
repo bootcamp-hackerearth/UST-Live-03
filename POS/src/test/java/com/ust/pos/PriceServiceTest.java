@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -234,8 +235,7 @@ class PriceServiceTest {
         List<Price> priceList = Collections.singletonList(price);
         List<PriceDto> priceDtoList = Collections.singletonList(priceDto);
         Page<Price> pricePage = new PageImpl<>(priceList, pageable, priceList.size());
-        Type listType = new TypeToken<List<PriceDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<PriceDto>>() {}.getType();
 
         when(priceRepository.findAllByDeletedFalse(pageable)).thenReturn(pricePage);
         when(modelMapper.map(pricePage.getContent(), listType)).thenReturn(priceDtoList);
@@ -244,7 +244,10 @@ class PriceServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(50, result.getSizePerPage());
+        assertEquals(0, result.getPage());
         verify(priceRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -252,8 +255,7 @@ class PriceServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Price> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        Type listType = new TypeToken<List<PriceDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<PriceDto>>() {}.getType();
 
         when(priceRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
@@ -262,7 +264,36 @@ class PriceServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
-        assertEquals(0, result.getTotalRecords());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
         verify(priceRepository, times(1)).findAllByDeletedFalse(pageable);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Price> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 15);
+        List<Price> priceList = Collections.singletonList(price);
+        List<PriceDto> priceDtoList = Collections.singletonList(priceDto);
+        Page<Price> pricePage = new PageImpl<>(priceList, pageable, 45);
+        Type listType = new TypeToken<List<PriceDto>>() {}.getType();
+
+        when(priceRepository.findAll(mockSpec, pageable)).thenReturn(pricePage);
+        when(modelMapper.map(pricePage.getContent(), listType)).thenReturn(priceDtoList);
+
+        WsDto<PriceDto> result = priceService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(priceRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(pricePage.getContent(), listType);
     }
 }

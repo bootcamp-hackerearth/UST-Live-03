@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -71,10 +72,13 @@ class ShelfServiceTest {
     void testSave_ShelfAlreadyExists_ButIsSoftDeleted() {
         shelf.setDeleted(true);
         when(shelfRepository.findByIdentifier("SHELF-001")).thenReturn(shelf);
+
         ShelfDto result = shelfService.save(shelfDto);
+
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertEquals("Shelf identifier - SHELF-001 not available", result.getMessage());
+
         verify(shelfRepository, times(1)).findByIdentifier("SHELF-001");
         verify(shelfRepository, never()).save(any());
         verify(modelMapper, never()).map(any(), any());
@@ -123,8 +127,8 @@ class ShelfServiceTest {
     void testDelete() {
         shelf.setDeleted(false);
 
-        when(shelfRepository.findByIdentifierAndDeletedFalse("SHELF-001"))
-                .thenReturn(shelf);
+        when(shelfRepository.findByIdentifierAndDeletedFalse("SHELF-001")).thenReturn(shelf);
+
         assertDoesNotThrow(() -> shelfService.delete("SHELF-001"));
 
         verify(shelfRepository, times(1)).findByIdentifierAndDeletedFalse("SHELF-001");
@@ -137,9 +141,8 @@ class ShelfServiceTest {
         List<Shelf> shelfList = Collections.singletonList(shelf);
         List<ShelfDto> shelfDtoList = Collections.singletonList(shelfDto);
         Page<Shelf> shelfPage = new PageImpl<>(shelfList, pageable, shelfList.size());
+        Type listType = new TypeToken<List<ShelfDto>>() {}.getType();
 
-        Type listType = new TypeToken<List<ShelfDto>>() {
-        }.getType();
         when(shelfRepository.findAllByDeletedFalse(pageable)).thenReturn(shelfPage);
         when(modelMapper.map(shelfPage.getContent(), listType)).thenReturn(shelfDtoList);
 
@@ -147,7 +150,10 @@ class ShelfServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(shelfRepository, times(1)).findAllByDeletedFalse(pageable);
         verify(modelMapper, times(1)).map(shelfPage.getContent(), listType);
@@ -157,9 +163,8 @@ class ShelfServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Shelf> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Type listType = new TypeToken<List<ShelfDto>>() {}.getType();
 
-        Type listType = new TypeToken<List<ShelfDto>>() {
-        }.getType();
         when(shelfRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
 
@@ -167,7 +172,10 @@ class ShelfServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
-        assertEquals(0, result.getTotalRecords());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(shelfRepository, times(1)).findAllByDeletedFalse(pageable);
         verify(modelMapper, times(1)).map(emptyPage.getContent(), listType);
@@ -249,5 +257,31 @@ class ShelfServiceTest {
         assertNull(result);
         verify(shelfRepository, times(1)).findByIdentifier("SHELF-001");
         verify(shelfRepository, never()).save(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Shelf> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 15);
+        List<Shelf> shelfList = Collections.singletonList(shelf);
+        List<ShelfDto> shelfDtoList = Collections.singletonList(shelfDto);
+        Page<Shelf> shelfPage = new PageImpl<>(shelfList, pageable, 45);
+        Type listType = new TypeToken<List<ShelfDto>>() {}.getType();
+
+        when(shelfRepository.findAll(mockSpec, pageable)).thenReturn(shelfPage);
+        when(modelMapper.map(shelfPage.getContent(), listType)).thenReturn(shelfDtoList);
+
+        WsDto<ShelfDto> result = shelfService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(shelfRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(shelfPage.getContent(), listType);
     }
 }

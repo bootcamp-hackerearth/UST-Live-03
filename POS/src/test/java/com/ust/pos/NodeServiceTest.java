@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -133,9 +134,9 @@ class NodeServiceTest {
 
     @Test
     void testGetNodesForRoles_PrincipalObjectNull() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(null, null)
-        );
+        var auth = mock(UsernamePasswordAuthenticationToken.class);
+        when(auth.getPrincipal()).thenReturn(null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
         List<NodeDto> result = nodeService.getNodesForRoles();
 
@@ -241,8 +242,7 @@ class NodeServiceTest {
     void testFindAll() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Node> page = new PageImpl<>(List.of(node), pageable, 1);
-        Type listType = new TypeToken<List<NodeDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<NodeDto>>() {}.getType();
 
         when(nodeRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
         when(modelMapper.map(page.getContent(), listType)).thenReturn(List.of(nodeDto));
@@ -251,6 +251,10 @@ class NodeServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
         verify(nodeRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -273,5 +277,29 @@ class NodeServiceTest {
 
         assertNull(nodeService.findByIdentifier("NODE-001"));
         verify(nodeRepository, times(1)).findByIdentifierAndDeletedFalse("NODE-001");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Node> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(2, 20);
+        Page<Node> page = new PageImpl<>(List.of(node), pageable, 60);
+        Type listType = new TypeToken<List<NodeDto>>() {}.getType();
+
+        when(nodeRepository.findAll(mockSpec, pageable)).thenReturn(page);
+        when(modelMapper.map(page.getContent(), listType)).thenReturn(List.of(nodeDto));
+
+        WsDto<NodeDto> result = nodeService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(60L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(20, result.getSizePerPage());
+        assertEquals(2, result.getPage());
+
+        verify(nodeRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(page.getContent(), listType);
     }
 }

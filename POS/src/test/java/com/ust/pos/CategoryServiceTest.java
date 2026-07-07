@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -167,8 +168,8 @@ class CategoryServiceTest {
         List<CategoryDto> dtoList = List.of(categoryDto);
         Pageable pageable = PageRequest.of(0, 50);
         Page<Category> categoryPage = new PageImpl<>(categories, pageable, categories.size());
-        Type listType = new TypeToken<List<CategoryDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
+
         when(categoryRepository.findAllByDeletedFalse(pageable)).thenReturn(categoryPage);
         when(modelMapper.map(categoryPage.getContent(), listType)).thenReturn(dtoList);
 
@@ -176,7 +177,11 @@ class CategoryServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(50, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(categoryRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -184,8 +189,7 @@ class CategoryServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Category> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        Type listType = new TypeToken<List<CategoryDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
 
         when(categoryRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
@@ -194,6 +198,11 @@ class CategoryServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(categoryRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -210,8 +219,7 @@ class CategoryServiceTest {
         List<Category> allCategories = List.of(category1, category2);
         List<Category> filteredCategories = List.of(category1);
         List<CategoryDto> dtoList = List.of(categoryDto);
-        Type listType = new TypeToken<List<CategoryDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
 
         when(categoryRepository.findAllByDeletedFalse()).thenReturn(allCategories);
         when(modelMapper.map(filteredCategories, listType)).thenReturn(dtoList);
@@ -235,14 +243,42 @@ class CategoryServiceTest {
         category2.setSuperCategory("");
 
         List<Category> allCategories = List.of(category1, category2);
-        Type listType = new TypeToken<List<CategoryDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
+
         when(categoryRepository.findAllByDeletedFalse()).thenReturn(allCategories);
         when(modelMapper.map(Collections.emptyList(), listType)).thenReturn(Collections.emptyList());
+
         List<CategoryDto> result = categoryService.findAllWithSuperCategory();
+
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(categoryRepository, times(1)).findAllByDeletedFalse();
         verify(modelMapper, times(1)).map(Collections.emptyList(), listType);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Category> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(2, 15);
+        List<Category> categories = List.of(category);
+        List<CategoryDto> dtoList = List.of(categoryDto);
+        Page<Category> categoryPage = new PageImpl<>(categories, pageable, 45);
+        Type listType = new TypeToken<List<CategoryDto>>() {}.getType();
+
+        when(categoryRepository.findAll(mockSpec, pageable)).thenReturn(categoryPage);
+        when(modelMapper.map(categoryPage.getContent(), listType)).thenReturn(dtoList);
+
+        WsDto<CategoryDto> result = categoryService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(2, result.getPage());
+
+        verify(categoryRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(categoryPage.getContent(), listType);
     }
 }

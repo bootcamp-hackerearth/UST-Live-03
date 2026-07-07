@@ -12,10 +12,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -25,7 +27,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -210,34 +212,69 @@ class UserServiceTest {
     void testFindAll_EmptyPage() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Type listType = new TypeToken<List<UserDto>>() {}.getType();
 
         when(userRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
-        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(Collections.emptyList());
+        when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
 
         WsDto<UserDto> result = userService.findAll(pageable);
 
         assertNotNull(result);
         assertNotNull(result.getDtoList());
         assertTrue(result.getDtoList().isEmpty());
-        assertEquals(0, result.getTotalRecords());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(userRepository, times(1)).findAllByDeletedFalse(pageable);
+        verify(modelMapper, times(1)).map(emptyPage.getContent(), listType);
     }
 
     @Test
     void testFindAll_Metadata() {
         Pageable pageable = PageRequest.of(2, 5);
         Page<User> page = new PageImpl<>(List.of(user), pageable, 21);
+        Type listType = new TypeToken<List<UserDto>>() {}.getType();
 
         when(userRepository.findAllByDeletedFalse(pageable)).thenReturn(page);
-        when(modelMapper.map(anyList(), any(Type.class))).thenReturn(List.of(userDto));
+        when(modelMapper.map(page.getContent(), listType)).thenReturn(List.of(userDto));
 
         WsDto<UserDto> result = userService.findAll(pageable);
 
         assertNotNull(result);
-        assertEquals(21, result.getTotalRecords());
+        assertEquals(21L, result.getTotalRecords());
         assertEquals(5, result.getTotalPages());
         assertEquals(5, result.getSizePerPage());
         assertEquals(2, result.getPage());
+
         verify(userRepository, times(1)).findAllByDeletedFalse(pageable);
+        verify(modelMapper, times(1)).map(page.getContent(), listType);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<User> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 15);
+        List<User> userList = Collections.singletonList(user);
+        List<UserDto> userDtoList = Collections.singletonList(userDto);
+        Page<User> userPage = new PageImpl<>(userList, pageable, 45);
+        Type listType = new TypeToken<List<UserDto>>() {}.getType();
+
+        when(userRepository.findAll(mockSpec, pageable)).thenReturn(userPage);
+        when(modelMapper.map(userPage.getContent(), listType)).thenReturn(userDtoList);
+
+        WsDto<UserDto> result = userService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(userRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(userPage.getContent(), listType);
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -129,8 +130,7 @@ class WarehouseServiceTest {
         List<Warehouse> warehouseList = Collections.singletonList(warehouse);
         List<WarehouseDto> warehouseDtoList = Collections.singletonList(warehouseDto);
         Page<Warehouse> warehousePage = new PageImpl<>(warehouseList, pageable, warehouseList.size());
-        Type listType = new TypeToken<List<WarehouseDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
 
         when(warehouseRepository.findAllByDeletedFalse(pageable)).thenReturn(warehousePage);
         when(modelMapper.map(warehousePage.getContent(), listType)).thenReturn(warehouseDtoList);
@@ -139,7 +139,11 @@ class WarehouseServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(warehouseRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -147,8 +151,7 @@ class WarehouseServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Warehouse> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        Type listType = new TypeToken<List<WarehouseDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
 
         when(warehouseRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
@@ -157,6 +160,11 @@ class WarehouseServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(warehouseRepository, times(1)).findAllByDeletedFalse(pageable);
     }
 
@@ -185,8 +193,7 @@ class WarehouseServiceTest {
     void testFindActiveWarehouses() {
         List<Warehouse> warehouseList = Collections.singletonList(warehouse);
         List<WarehouseDto> warehouseDtoList = Collections.singletonList(warehouseDto);
-        Type listType = new TypeToken<List<WarehouseDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
 
         when(warehouseRepository.findByStatusTrueAndDeletedFalse()).thenReturn(warehouseList);
         when(modelMapper.map(warehouseList, listType)).thenReturn(warehouseDtoList);
@@ -228,5 +235,31 @@ class WarehouseServiceTest {
 
         verify(warehouseRepository, times(1)).findByIdentifier("WH-001");
         verify(warehouseRepository, never()).save(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Warehouse> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 15);
+        List<Warehouse> warehouseList = Collections.singletonList(warehouse);
+        List<WarehouseDto> warehouseDtoList = Collections.singletonList(warehouseDto);
+        Page<Warehouse> warehousePage = new PageImpl<>(warehouseList, pageable, 45);
+        Type listType = new TypeToken<List<WarehouseDto>>() {}.getType();
+
+        when(warehouseRepository.findAll(mockSpec, pageable)).thenReturn(warehousePage);
+        when(modelMapper.map(warehousePage.getContent(), listType)).thenReturn(warehouseDtoList);
+
+        WsDto<WarehouseDto> result = warehouseService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(warehouseRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(warehousePage.getContent(), listType);
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -138,8 +139,8 @@ class ProductServiceTest {
         List<Product> productList = Collections.singletonList(product);
         List<ProductDto> productDtoList = Collections.singletonList(productDto);
         Page<Product> productPage = new PageImpl<>(productList, pageable, productList.size());
-        Type listType = new TypeToken<List<ProductDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+
         when(productRepository.findAllByDeletedFalse(pageable)).thenReturn(productPage);
         when(modelMapper.map(productPage.getContent(), listType)).thenReturn(productDtoList);
 
@@ -147,7 +148,7 @@ class ProductServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
         assertEquals(1, result.getTotalPages());
         assertEquals(50, result.getSizePerPage());
         assertEquals(0, result.getPage());
@@ -160,8 +161,7 @@ class ProductServiceTest {
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Product> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        Type listType = new TypeToken<List<ProductDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
 
         when(productRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
@@ -170,7 +170,10 @@ class ProductServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
-        assertEquals(0, result.getTotalRecords());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
 
         verify(productRepository, times(1)).findAllByDeletedFalse(pageable);
         verify(modelMapper, times(1)).map(emptyPage.getContent(), listType);
@@ -253,5 +256,31 @@ class ProductServiceTest {
         verify(productRepository, times(1)).findByIdentifier("PROD-001");
         verify(productRepository, never()).save(any());
         verify(modelMapper, never()).map(any(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Product> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 20);
+        List<Product> productList = Collections.singletonList(product);
+        List<ProductDto> productDtoList = Collections.singletonList(productDto);
+        Page<Product> productPage = new PageImpl<>(productList, pageable, 40);
+        Type listType = new TypeToken<List<ProductDto>>() {}.getType();
+
+        when(productRepository.findAll(mockSpec, pageable)).thenReturn(productPage);
+        when(modelMapper.map(productPage.getContent(), listType)).thenReturn(productDtoList);
+
+        WsDto<ProductDto> result = productService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(40L, result.getTotalRecords());
+        assertEquals(2, result.getTotalPages());
+        assertEquals(20, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(productRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(productPage.getContent(), listType);
     }
 }

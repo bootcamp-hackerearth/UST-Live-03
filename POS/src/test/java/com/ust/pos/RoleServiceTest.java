@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -127,7 +128,9 @@ class RoleServiceTest {
     void testDelete_Success() {
         String identifier = "ROLE_ADMIN";
         when(roleRepository.findByIdentifierAndDeletedFalse(identifier)).thenReturn(role);
+
         assertDoesNotThrow(() -> roleService.delete(identifier));
+
         verify(roleRepository, times(1)).findByIdentifierAndDeletedFalse(identifier);
         assertTrue(role.getDeleted());
     }
@@ -136,8 +139,8 @@ class RoleServiceTest {
     void testFindAll_WithData() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Role> rolePage = new PageImpl<>(Collections.singletonList(role), pageable, 1);
-        Type listType = new TypeToken<List<RoleDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+
         when(roleRepository.findAllByDeletedFalse(pageable)).thenReturn(rolePage);
         when(modelMapper.map(rolePage.getContent(), listType)).thenReturn(List.of(roleDto));
 
@@ -145,16 +148,21 @@ class RoleServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getDtoList().size());
-        assertEquals(1, result.getTotalRecords());
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(roleRepository, times(1)).findAllByDeletedFalse(pageable);
+        verify(modelMapper, times(1)).map(rolePage.getContent(), listType);
     }
 
     @Test
     void testFindAll_EmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Role> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        Type listType = new TypeToken<List<RoleDto>>() {
-        }.getType();
+        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+
         when(roleRepository.findAllByDeletedFalse(pageable)).thenReturn(emptyPage);
         when(modelMapper.map(emptyPage.getContent(), listType)).thenReturn(Collections.emptyList());
 
@@ -162,7 +170,38 @@ class RoleServiceTest {
 
         assertNotNull(result);
         assertTrue(result.getDtoList().isEmpty());
-        assertEquals(0, result.getTotalRecords());
+        assertEquals(0L, result.getTotalRecords());
+        assertEquals(0, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+
         verify(roleRepository, times(1)).findAllByDeletedFalse(pageable);
+        verify(modelMapper, times(1)).map(emptyPage.getContent(), listType);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testFindAll_WithSpecification_Success() {
+        Specification<Role> mockSpec = mock(Specification.class);
+        Pageable pageable = PageRequest.of(1, 15);
+        List<Role> roleList = Collections.singletonList(role);
+        List<RoleDto> roleDtoList = Collections.singletonList(roleDto);
+        Page<Role> rolePage = new PageImpl<>(roleList, pageable, 45);
+        Type listType = new TypeToken<List<RoleDto>>() {}.getType();
+
+        when(roleRepository.findAll(mockSpec, pageable)).thenReturn(rolePage);
+        when(modelMapper.map(rolePage.getContent(), listType)).thenReturn(roleDtoList);
+
+        WsDto<RoleDto> result = roleService.findAll(mockSpec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getDtoList().size());
+        assertEquals(45L, result.getTotalRecords());
+        assertEquals(3, result.getTotalPages());
+        assertEquals(15, result.getSizePerPage());
+        assertEquals(1, result.getPage());
+
+        verify(roleRepository, times(1)).findAll(mockSpec, pageable);
+        verify(modelMapper, times(1)).map(rolePage.getContent(), listType);
     }
 }
