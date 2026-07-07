@@ -36,6 +36,7 @@ export default function EditFormSkeleton({
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [username, setUsername] = useState("");
 
   const fieldsDependency = JSON.stringify(fields);
   const formatDateTime = (dateTimeString) => {
@@ -71,7 +72,9 @@ export default function EditFormSkeleton({
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token") || "";
+    const storedUsername = localStorage.getItem("username") || "";
     setToken(storedToken);
+    setUsername(storedUsername);
     setTokenReady(true);
   }, []);
 
@@ -212,7 +215,7 @@ export default function EditFormSkeleton({
   }
 
   return (
-    <Layout>
+    <Layout username={username}>
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="w-full max-w-lg bg-white rounded-2xl border p-8 shadow-sm">
           <h2 className="text-xl font-bold mb-6">Edit {title}</h2>

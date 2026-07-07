@@ -4,6 +4,7 @@ import com.ust.pos.CommonService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -31,44 +32,26 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         this.modelMapper = modelMapper;
     }
 
-   @Override
-    public CategoryDto save(CategoryDto dto) {
-
-        if (dto == null || dto.getIdentifier() == null) {
-            throw new IllegalArgumentException("Identifier is required");
-        }
-
-        String identifier = dto.getIdentifier();
-        Category existing = categoryRepository.findByIdentifier(identifier);
-
-        if (existing != null) {
-            if (!existing.getDeleted()) {
-                dto.setSuccess(false);
-                dto.setMessage("Category with identifier '" + identifier + "' already exists");
-                return dto;
+    @Override
+    public CategoryDto save(CategoryDto categoryDto) {
+        String identifier = categoryDto.getIdentifier();
+        Category existingCategory = categoryRepository.findByIdentifier(identifier);
+        if (existingCategory != null) {
+            if (existingCategory.getDeleted()) {
+                categoryDto.setMessage("Category with identifier " + identifier + " was previously deleted. " +
+                        "Please contact backend team to restore."
+                );
+                categoryDto.setSuccess(false);
+                return categoryDto;
             }
-
-            dto.setSuccess(false);
-            dto.setMessage("Category was previously deleted. Please contact backend team to restore.");
-            return dto;
+            categoryDto.setMessage("Category with identifier - " + identifier + " already exists");
+            categoryDto.setSuccess(false);
+            return categoryDto;
         }
-
-        Category category = new Category();
-        category.setIdentifier(identifier);
-        category.setSuperCategory(
-                (dto.getSuperCategory() == null || dto.getSuperCategory().trim().isEmpty())
-                        ? null : dto.getSuperCategory()
-        );
-
+        Category category = modelMapper.map(categoryDto, Category.class);
         setAuditFields(category, true);
-
-        Category saved = categoryRepository.save(category);
-
-        CategoryDto response = modelMapper.map(saved, CategoryDto.class);
-        response.setSuccess(true);
-        response.setMessage("Category created successfully");
-
-        return response;
+        categoryRepository.save(category);
+        return categoryDto;
     }
 
 
@@ -126,8 +109,13 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-        return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
+        Category category = categoryRepository.findByIdentifier(identifier);
+        if (category == null) {
+            throw new ResourceNotFoundException("Category with identifier '" + identifier + "' not found");
+        }
+        return modelMapper.map(category, CategoryDto.class);
     }
+
 
     @Override
     public WsDto<CategoryDto> findAll(Pageable pageable) {
