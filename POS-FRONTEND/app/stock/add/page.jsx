@@ -61,7 +61,6 @@ function StockAdd() {
             borderRadius: "6px",
           }}
         >
-          <option value="">Select Status</option>
           <option value="IN_STOCK">In Stock</option>
           <option value="OUT_OF_STOCK">Out Of Stock</option>
         </select>
