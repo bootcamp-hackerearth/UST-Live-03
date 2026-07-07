@@ -19,12 +19,23 @@ const RegisterPage = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    api
-      .get('/role')
-      .then((res) => setRoles(res.data))
-      .catch((err) => console.error('Error fetching roles:', err));
-  }, []);
+useEffect(() => {
+  const paginationDto = {
+    page: 0,
+    sizePerPage: 100,
+    sortField: "identifier",
+    sortDirection: "ASC",
+    keyword: ""
+  };
+
+  api
+    .post("/role/list", paginationDto)
+    .then((res) => {
+      console.log(res.data);
+      setRoles(res.data.dtoList);
+    })
+    .catch((err) => console.error("Error fetching roles:", err));
+}, []);
 
   const validate = () => {
   const nextErrors = {};
