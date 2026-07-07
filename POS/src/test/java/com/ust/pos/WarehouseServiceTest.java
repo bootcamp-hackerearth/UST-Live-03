@@ -228,16 +228,22 @@ class WarehouseServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Warehouse warehouse = new Warehouse();
+        warehouse.setIdentifier("WH");
+
+        Example<Warehouse> example = Example.of(
+                warehouse,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Warehouse> page =
                 new PageImpl<>(List.of(warehouse));
 
         Mockito.when(
-                warehouseRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "WH",
-                                pageable
-                        )
+                warehouseRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -248,7 +254,7 @@ class WarehouseServiceTest {
         ).thenReturn(new WarehouseDto());
 
         Page<WarehouseDto> response =
-                warehouseService.findAll("WH", pageable);
+                warehouseService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -263,11 +269,13 @@ class WarehouseServiceTest {
 
         Warehouse warehouse = new Warehouse();
 
+        Example<Warehouse> example = Example.of(new Warehouse());
+
         Page<Warehouse> page =
                 new PageImpl<>(List.of(warehouse));
 
         Mockito.when(
-                warehouseRepository.findByDeletedFalse(pageable)
+                warehouseRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -278,7 +286,7 @@ class WarehouseServiceTest {
         ).thenReturn(new WarehouseDto());
 
         Page<WarehouseDto> response =
-                warehouseService.findAll("", pageable);
+                warehouseService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

@@ -7,7 +7,9 @@ import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,17 +76,13 @@ public class CategoryServiceImplementation implements CategoryService {
     }
 
     @Override
-    public Page<CategoryDto> findAll(String search, Pageable pageable) {
-        Page<Category> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = categoryRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = categoryRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(category -> modelMapper.map(category, CategoryDto.class));
+    public Page<CategoryDto> findAll(Example<Category> example, Pageable pageable) {
+        Page<Category> categoryPage = categoryRepository.findAll(example, pageable);
+
+        List<Category> filtered = categoryPage.getContent().stream().filter(c -> !Boolean.TRUE.equals(c.getDeleted())).toList();
+
+        Page<Category> filteredPage = new PageImpl<>(filtered, pageable, categoryPage.getTotalElements());
+        return filteredPage.map(category -> modelMapper.map(category, CategoryDto.class));
     }
 
     @Override

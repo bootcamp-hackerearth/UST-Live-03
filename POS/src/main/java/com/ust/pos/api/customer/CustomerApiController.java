@@ -5,14 +5,18 @@ import com.ust.pos.customer.service.CustomerService;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/customer")
+@PreAuthorize("hasAnyAuthority('Admin', 'Manager', 'Cashier')")
 public class CustomerApiController extends BaseController {
 
     private final CustomerService customerService;
@@ -22,11 +26,25 @@ public class CustomerApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto)
-    {
+    public WsDto<CustomerDto> home(@RequestBody PaginationDto paginationDto) throws Exception {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
 
-        Page<CustomerDto> pageResult = customerService.findAll(paginationDto.getSearch(), pageable);
+        //Global search
+        Customer probe = new Customer();
+        probe.setEmail(paginationDto.getSearch());
+        probe.setAddress(paginationDto.getSearch());
+        probe.setPartytype(paginationDto.getSearch());
+
+        try{
+            probe.setPhoneno(Long.valueOf(paginationDto.getSearch()));
+        }
+        catch(NumberFormatException e)
+        {
+            probe.setPhoneno(null);
+        }
+        Example<Customer> example = buildSearchProbe(Customer.class, paginationDto.getSearch());
+
+        Page<CustomerDto> pageResult = customerService.findAll(example, pageable);//paginationDto.getSearch()
 
         WsDto<CustomerDto> response = new WsDto<>();
 

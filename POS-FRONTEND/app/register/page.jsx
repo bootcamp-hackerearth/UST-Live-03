@@ -71,7 +71,7 @@ const Register = () => {
         if (!/^\d{10}$/.test(phoneNo)) {
           return "Phone number must be exactly 10 digits.";
         }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
         if ( !emailRegex.test(username) || username.length < 4)
         {
             return "please enter a valid email";

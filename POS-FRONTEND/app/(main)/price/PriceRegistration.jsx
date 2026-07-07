@@ -14,23 +14,26 @@ const PriceRegistration = ({ onClose }) => {
     });
 
     const fields = [
-        {
-            key: "identifier",
-            label: "Product",
-            type: "search",
-            api: "/api/product/list",
-            filterFunction: (item) => item.status === true
-        },
-        {
-            key: "costPrice",
-            label: "MRP",
-            type: "number"
-        },
-        {
-            key: "sellingPrice",
-            label: "Selling Price",
-            type: "number"
-        }
+      {
+        key: "identifier",
+        label: "Product",
+        type: "search",
+        api: "/api/product/list",
+        filterFunction: (item) => item.status === true,
+        required: true,
+      },
+      {
+        key: "costPrice",
+        label: "MRP",
+        type: "number",
+        required: true,
+      },
+      {
+        key: "sellingPrice",
+        label: "Selling Price",
+        type: "number",
+        required: true,
+      },
     ];
 
     return (

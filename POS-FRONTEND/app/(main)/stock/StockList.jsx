@@ -78,8 +78,7 @@ const StockList = () => {
       EditComponent={StockEdit}
       editPropName="stock"
       searchTerm={search}
-      setSearchTerm={setSearch}
-      onSearchChange={(value) => {
+      setSearchTerm={(value) => {
         setPage(0);
         setSearch(value);
       }}
@@ -104,10 +103,6 @@ const StockList = () => {
         setPage,
         totalPage: pagination.totalPage,
       }}
-      filterFunction={(item, term) =>
-        item.identifier?.toLowerCase().includes(term.toLowerCase()) ||
-        item.warehouseName?.toLowerCase().includes(term.toLowerCase())
-      }
       renderCustomCell={(key, item) => {
         if (key === "status") {
           return item.status ? (

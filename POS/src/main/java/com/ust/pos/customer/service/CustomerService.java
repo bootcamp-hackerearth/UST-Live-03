@@ -2,6 +2,8 @@ package com.ust.pos.customer.service;
 
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Customer;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,7 +24,7 @@ public interface CustomerService {
 
     void deleteByIdentifier(String identifier);
 
-    Page<CustomerDto> findAll(String search, Pageable pageable);
+    Page<CustomerDto> findAll(Example<Customer> example, Pageable pageable);
 
     void toggleStatus(String identifier);
 }

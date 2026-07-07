@@ -55,6 +55,14 @@ const ModelProductList = () => {
       key: "identifier",
     },
     {
+      header: "Brand",
+      key: "brand",
+    },
+    {
+      header: "Product",
+      key: "product",
+    },
+    {
       header: "Description",
       key: "description",
     },
@@ -72,8 +80,7 @@ const ModelProductList = () => {
       data={models}
       loading={loading}
       searchTerm={search}
-      setSearchTerm={setSearch}
-      onSearchChange={(value) => {
+      setSearchTerm={(value) => {
         setPage(0);
         setSearch(value);
       }}
@@ -101,9 +108,6 @@ const ModelProductList = () => {
         setPage,
         totalPage: pagination.totalPage,
       }}
-      filterFunction={(item, term) =>
-        item.identifier?.toLowerCase().includes(term.toLowerCase())
-      }
       renderCustomCell={(key, item) => {
         if (key === "status") {
           return item.status ? (

@@ -55,10 +55,6 @@ const RackList = () => {
       key: "identifier",
     },
     {
-      header: "Shelf",
-      key: "shelfs",
-    },
-    {
       header: "Description",
       key: "description",
     },
@@ -76,8 +72,7 @@ const RackList = () => {
       data={racks}
       loading={loading}
       searchTerm={search}
-      setSearchTerm={setSearch}
-      onSearchChange={(value) => {
+      setSearchTerm={(value) => {
         setPage(0);
         setSearch(value);
       }}
@@ -105,10 +100,6 @@ const RackList = () => {
         setPage,
         totalPage: pagination.totalPage,
       }}
-      filterFunction={(item, term) =>
-        item.identifier?.toLowerCase().includes(term.toLowerCase()) ||
-        item.shelfs?.toLowerCase().includes(term.toLowerCase())
-      }
       renderCustomCell={(key, item) => {
         if (key === "status") {
           return item.status ? (

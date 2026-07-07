@@ -18,6 +18,7 @@ const ProductList = () => {
     { header: "Identifier", key: "identifier" },
     { header: "Category", key: "category" },
     { header: "Warehouse", key: "warehouseName" },
+    { header: "Unit", key: "unit" },
     { header: "Supplier ID", key: "supplierId" },
     { header: "Status", key: "status" },
   ];
@@ -101,8 +102,7 @@ const ProductList = () => {
         data={products}
         loading={loading}
         searchTerm={search}
-        setSearchTerm={setSearch}
-        onSearchChange={(value) => {
+        setSearchTerm={(value) => {
           setPage(0);
           setSearch(value);
         }}
@@ -122,12 +122,6 @@ const ProductList = () => {
           })
         }
         deleteIdentifierField="identifier"
-        filterFunction={(product, searchTerm) =>
-          product.identifier
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          product.category?.toLowerCase().includes(searchTerm.toLowerCase())
-        }
         pagination={{
           page,
           totalPage,

@@ -62,37 +62,31 @@ const CategoryList = () => {
   }, [page, search]);
 
   return (
-      <CommonList
-        title="Categories"
-        icon={FiTag}
-        columns={categoryColumns}
-        data={categories}
-        filterFunction={(category, term) =>
-          category.identifier?.toLowerCase().includes(term.toLowerCase()) ||
-          category.superCategory?.toLowerCase().includes(term.toLowerCase()) ||
-          category.description?.toLowerCase().includes(term.toLowerCase())
-        }
-        loading={loading}
-        searchTerm={search}
-        setSearchTerm={setSearch}
-        onSearchChange={(value) => {
-          setPage(0);
-          setSearch(value);
-        }}
-        AddComponent={CategoryRegistration}
-        EditComponent={CategoryEdit}
-        editPropName="category"
-        deleteApi={(identifier) =>
-          api.delete(`/api/category/delete?identifier=${identifier}`)
-        }
-        deleteIdentifierField="identifier"
-        refreshData={fetchCategories}
-        pagination={{
-          page,
-          totalPage,
-          setPage,
-        }}
-      />
+    <CommonList
+      title="Categories"
+      icon={FiTag}
+      columns={categoryColumns}
+      data={categories}
+      loading={loading}
+      searchTerm={search}
+      setSearchTerm={(value) => {
+        setPage(0);
+        setSearch(value);
+      }}
+      AddComponent={CategoryRegistration}
+      EditComponent={CategoryEdit}
+      editPropName="category"
+      deleteApi={(identifier) =>
+        api.delete(`/api/category/delete?identifier=${identifier}`)
+      }
+      deleteIdentifierField="identifier"
+      refreshData={fetchCategories}
+      pagination={{
+        page,
+        totalPage,
+        setPage,
+      }}
+    />
   );
 };
 

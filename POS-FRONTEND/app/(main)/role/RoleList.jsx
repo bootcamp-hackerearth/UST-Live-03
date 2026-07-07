@@ -64,39 +64,34 @@ const RoleList = () => {
   const renderCustomCell = (key, item) => item[key];
 
   return (
-      <CommonList
-        title="Roles"
-        icon={FiShield}
-        columns={roleColumns}
-        data={roles}
-        loading={loading}
-        searchTerm={search}
-        setSearchTerm={setSearch}
-        onSearchChange={(value) => {
-          setPage(0);
-          setSearch(value);
-        }}
-        renderCustomCell={renderCustomCell}
-        AddComponent={RoleRegistration}
-        EditComponent={RoleEdit}
-        editPropName="role"
-        deleteApi={(identifier) =>
-          api.delete("/api/role/delete", {
-            params: { identifier },
-          })
-        }
-        deleteIdentifierField="identifier"
-        filterFunction={(role, searchTerm) =>
-          role.identifier?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          role.description?.toLowerCase().includes(searchTerm.toLowerCase())
-        }
-        pagination={{
-          page,
-          totalPage,
-          setPage,
-        }}
-        refreshData={fetchRoles}
-      />
+    <CommonList
+      title="Roles"
+      icon={FiShield}
+      columns={roleColumns}
+      data={roles}
+      loading={loading}
+      searchTerm={search}
+      setSearchTerm={(value) => {
+        setPage(0);
+        setSearch(value);
+      }}
+      renderCustomCell={renderCustomCell}
+      AddComponent={RoleRegistration}
+      EditComponent={RoleEdit}
+      editPropName="role"
+      deleteApi={(identifier) =>
+        api.delete("/api/role/delete", {
+          params: { identifier },
+        })
+      }
+      deleteIdentifierField="identifier"
+      pagination={{
+        page,
+        totalPage,
+        setPage,
+      }}
+      refreshData={fetchRoles}
+    />
   );
 };
 

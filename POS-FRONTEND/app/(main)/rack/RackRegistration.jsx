@@ -8,7 +8,6 @@ import CommonAdd from "@/component/CommonAdd";
 const RackRegistration = ({ onClose, refreshData }) => {
   const [formData, setFormData] = useState({
     identifier: "",
-    shelfs: "",
     description: "",
     status: true,
   });
@@ -18,12 +17,7 @@ const RackRegistration = ({ onClose, refreshData }) => {
       key: "identifier",
       label: "Rack Name",
       type: "text",
-    },
-    {
-      key: "shelfs",
-      label: "Shelf",
-      type: "search",
-      api: "/api/shelf/list",
+      required: true,
     },
     {
       key: "description",

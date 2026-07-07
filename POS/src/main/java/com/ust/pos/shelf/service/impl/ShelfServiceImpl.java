@@ -6,12 +6,14 @@ import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -53,17 +55,9 @@ public class ShelfServiceImpl implements ShelfService {
     }
 
     @Override
-    public Page<ShelfDto> findAll(String search, Pageable pageable) {
-        Page<Shelf> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = shelfRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = shelfRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(shelf -> modelMapper.map(shelf, ShelfDto.class));
+    public Page<ShelfDto> findAll(Example<Shelf> example, Pageable pageable) {
+        Page<Shelf> shelfPage = shelfRepository.findAll(example, pageable);
+        return shelfPage.map(shelf -> modelMapper.map(shelf, ShelfDto.class));
     }
 
     @Override
@@ -80,6 +74,7 @@ public class ShelfServiceImpl implements ShelfService {
 
         existingShelf.setDescription(shelfDto.getDescription());
         existingShelf.setStatus(shelfDto.isStatus());
+        existingShelf.setRacks(shelfDto.getRacks() != null ? shelfDto.getRacks() : new ArrayList<>());
 
         shelfRepository.save(existingShelf);
 

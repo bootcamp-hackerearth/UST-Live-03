@@ -2,6 +2,8 @@ package com.ust.pos.role.service;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Role;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,7 +16,7 @@ public interface RoleService {
 
     void delete(String username);
 
-    Page<RoleDto> findAll(String search, Pageable pageable);
+    Page<RoleDto> findAll(Example<Role> example, Pageable pageable);
 
     List<RoleDto> findAll();
 

@@ -274,16 +274,22 @@ class ShelfServiceTest {
                 PageRequest.of(0, 10);
 
         Shelf shelf = new Shelf();
+        shelf.setIdentifier("S1");
+
+        Example<Shelf> example = Example.of(
+                shelf,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Shelf> page =
                 new PageImpl<>(List.of(shelf));
 
         Mockito.when(
-                shelfRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "S1",
-                                pageable
-                        )
+                shelfRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -294,7 +300,7 @@ class ShelfServiceTest {
         ).thenReturn(new ShelfDto());
 
         Page<ShelfDto> response =
-                shelfService.findAll("S1", pageable);
+                shelfService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -310,11 +316,13 @@ class ShelfServiceTest {
 
         Shelf shelf = new Shelf();
 
+        Example<Shelf> example = Example.of(new Shelf());
+
         Page<Shelf> page =
                 new PageImpl<>(List.of(shelf));
 
         Mockito.when(
-                shelfRepository.findByDeletedFalse(pageable)
+                shelfRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -325,7 +333,7 @@ class ShelfServiceTest {
         ).thenReturn(new ShelfDto());
 
         Page<ShelfDto> response =
-                shelfService.findAll("", pageable);
+                shelfService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

@@ -16,6 +16,7 @@ const CategoryRegistration = ({ onClose }) => {
       key: "identifier",
       label: "Category Name",
       type: "text",
+      required: true,
     },
     {
       key: "superCategory",

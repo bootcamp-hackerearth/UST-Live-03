@@ -4,15 +4,19 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WarehouseDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Warehouse;
 import com.ust.pos.warehouse.service.WarehouseService;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/warehouse")
+@PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
 public class WarehouseApiController extends BaseController {
 
     private final WarehouseService warehouseService;
@@ -22,11 +26,11 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<WarehouseDto> home(@RequestBody PaginationDto paginationDto)
+    public WsDto<WarehouseDto> home(@RequestBody PaginationDto paginationDto) throws Exception
     {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        Page<WarehouseDto> pageResult = warehouseService.findAll(paginationDto.getSearch(), pageable);
-
+        Example<Warehouse> example = buildSearchProbe(Warehouse.class, paginationDto.getSearch(), "pincode");
+        Page<WarehouseDto> pageResult = warehouseService.findAll(example, pageable);
         WsDto<WarehouseDto> response = new WsDto<>();
 
         response.setDtoList(pageResult.getContent());

@@ -7,6 +7,7 @@ import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.RoleService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -73,16 +74,8 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Page<RoleDto> findAll(String search, Pageable pageable) {
-        Page<Role> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = roleRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = roleRepository.findByDeletedFalse(pageable);
-        }
+    public Page<RoleDto> findAll(Example<Role> example, Pageable pageable) {
+        Page<Role> rolePage = roleRepository.findAll(example, pageable);
         return rolePage.map(role -> modelMapper.map(role, RoleDto.class));
     }
 

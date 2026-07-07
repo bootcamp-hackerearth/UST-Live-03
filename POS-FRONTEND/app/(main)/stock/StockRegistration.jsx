@@ -18,22 +18,26 @@ const StockRegistration = ({ onClose, refreshData }) => {
       key: "identifier",
       label: "Stock Name",
       type: "text",
+      required: true,
     },
     {
       key: "warehouseName",
       label: "Warehouse",
       type: "search",
       api: "/api/warehouse/list",
+      required: true,
     },
     {
       key: "quantity",
       label: "Quantity",
       type: "number",
+      required: true,
     },
     {
       key: "status",
       label: "Status",
       type: "checkbox",
+      required: true,
     },
   ];
 

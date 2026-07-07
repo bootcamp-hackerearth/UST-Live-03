@@ -66,6 +66,10 @@ const WarehouseList = () => {
       key: "pincode",
     },
     {
+      header: "Shelves",
+      key: "shelves",
+    },
+    {
       header: "Status",
       key: "status",
     },
@@ -79,8 +83,7 @@ const WarehouseList = () => {
       data={warehouses}
       loading={loading}
       searchTerm={search}
-      setSearchTerm={setSearch}
-      onSearchChange={(value) => {
+      setSearchTerm={(value) => {
         setPage(0);
         setSearch(value);
       }}
@@ -108,12 +111,6 @@ const WarehouseList = () => {
         setPage,
         totalPage: pagination.totalPage,
       }}
-      filterFunction={(item, term) =>
-        item.identifier?.toLowerCase().includes(term.toLowerCase()) ||
-        item.address?.toLowerCase().includes(term.toLowerCase()) ||
-        item.country?.toLowerCase().includes(term.toLowerCase()) ||
-        item.pincode?.toString().includes(term)
-      }
       renderCustomCell={(key, item) => {
         switch (key) {
           case "status":
@@ -122,7 +119,19 @@ const WarehouseList = () => {
             ) : (
               <span className="text-red-600 font-semibold">Inactive</span>
             );
-
+          case "shelves":
+            return (
+              <div className="flex flex-wrap gap-1">
+                {item.shelves?.map((shelf) => (
+                  <span
+                    key={shelf}
+                    className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs"
+                  >
+                    {shelf}
+                  </span>
+                ))}
+              </div>
+            );
           default:
             return item[key];
         }

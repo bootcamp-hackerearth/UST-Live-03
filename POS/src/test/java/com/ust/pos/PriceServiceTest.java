@@ -246,16 +246,22 @@ class PriceServiceTest {
                 PageRequest.of(0, 10);
 
         Price price = new Price();
+        price.setIdentifier("P1");
+
+        Example<Price> example = Example.of(
+                price,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Price> page =
                 new PageImpl<>(List.of(price));
 
         Mockito.when(
-                priceRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "P1",
-                                pageable
-                        )
+                priceRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -263,7 +269,7 @@ class PriceServiceTest {
         ).thenReturn(new PriceDto());
 
         Page<PriceDto> response =
-                priceService.findAll("P1", pageable);
+                priceService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -279,11 +285,13 @@ class PriceServiceTest {
 
         Price price = new Price();
 
+        Example<Price> example = Example.of(new Price());
+
         Page<Price> page =
                 new PageImpl<>(List.of(price));
 
         Mockito.when(
-                priceRepository.findByDeletedFalse(pageable)
+                priceRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -291,7 +299,7 @@ class PriceServiceTest {
         ).thenReturn(new PriceDto());
 
         Page<PriceDto> response =
-                priceService.findAll("", pageable);
+                priceService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

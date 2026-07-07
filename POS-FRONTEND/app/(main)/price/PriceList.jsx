@@ -105,38 +105,32 @@ const PriceList = () => {
     };
 
     return (
-        <CommonList
-          title="Price"
-          icon={FiDollarSign}
-          columns={priceColumns}
-          data={prices}
-          loading={loading}
-          searchTerm={search}
-          setSearchTerm={setSearch}
-          onSearchChange={(value) => {
-            setPage(0);
-            setSearch(value);
-          }}
-          renderCustomCell={renderCustomCell}
-          AddComponent={PriceRegistration}
-          EditComponent={PriceEdit}
-          editPropName="price"
-          deleteApi={(identifier) =>
-            api.get("/api/price/delete", { params: { identifier } })
-          }
-          deleteIdentifierField="identifier"
-          filterFunction={(price, searchTerm) =>
-            (price.identifier || "")
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())
-          }
-          pagination={{
-            page,
-            totalPage,
-            setPage,
-          }}
-          refreshData={fetchPrices}
-        />
+      <CommonList
+        title="Price"
+        icon={FiDollarSign}
+        columns={priceColumns}
+        data={prices}
+        loading={loading}
+        searchTerm={search}
+        setSearchTerm={(value) => {
+          setPage(0);
+          setSearch(value);
+        }}
+        renderCustomCell={renderCustomCell}
+        AddComponent={PriceRegistration}
+        EditComponent={PriceEdit}
+        editPropName="price"
+        deleteApi={(identifier) =>
+          api.delete("/api/price/delete", { params: { identifier } })
+        }
+        deleteIdentifierField="identifier"
+        pagination={{
+          page,
+          totalPage,
+          setPage,
+        }}
+        refreshData={fetchPrices}
+      />
     );
 };
 

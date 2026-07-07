@@ -7,7 +7,9 @@ import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,17 +96,13 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public Page<BrandDto> findAll(String search, Pageable pageable) {
-        Page<Brand> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = brandRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = brandRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(brand -> modelMapper.map(brand, BrandDto.class));
+    public Page<BrandDto> findAll(Example<Brand> example, Pageable pageable) {
+        Page<Brand> brandPage = brandRepository.findAll(example, pageable);
+        List<Brand> filtered = brandPage.getContent().stream()
+                .filter(b -> !Boolean.TRUE.equals(b.getDeleted()))
+                .toList();
+        Page<Brand> filteredPage = new PageImpl<>(filtered, pageable, brandPage.getTotalElements());
+        return filteredPage.map(brand -> modelMapper.map(brand, BrandDto.class));
     }
 
     @Override

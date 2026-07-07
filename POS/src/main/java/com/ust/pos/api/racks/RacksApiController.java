@@ -4,13 +4,17 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Racks;
 import com.ust.pos.racks.service.RacksService;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/racks")
+@PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
 public class RacksApiController extends BaseController {
 
     private final RacksService racksService;
@@ -20,9 +24,10 @@ public class RacksApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<RacksDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RacksDto> home(@RequestBody PaginationDto paginationDto) throws Exception {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        Page<RacksDto> pageResult = racksService.findAll(paginationDto.getSearch(), pageable);
+        Example<Racks> example = buildSearchProbe(Racks.class, paginationDto.getSearch());
+        Page<RacksDto> pageResult = racksService.findAll(example, pageable);
 
         WsDto<RacksDto> response = new WsDto<>();
 

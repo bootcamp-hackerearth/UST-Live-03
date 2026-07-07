@@ -34,6 +34,12 @@ const ProductEdit = ({ product, onClose }) => {
             api: "/api/category/list"
         },
         {
+            key: "unit",
+            label: "Unit",
+            type: "search",
+            api: "/api/unit/list"
+        },
+        {
             key: "warehouseName",
             label: "Warehouse Name",
             type: "search",

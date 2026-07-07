@@ -7,6 +7,7 @@ import com.ust.pos.model.Racks;
 import com.ust.pos.model.RacksRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -95,17 +96,9 @@ public class RacksServiceImpl implements RacksService {
     }
 
     @Override
-    public Page<RacksDto> findAll(String search, Pageable pageable) {
-        Page<Racks> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = racksRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = racksRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(racks -> modelMapper.map(racks, RacksDto.class));
+    public Page<RacksDto> findAll(Example<Racks> example, Pageable pageable) {
+        Page<Racks> racksPage = racksRepository.findAll(example, pageable);
+        return racksPage.map(racks -> modelMapper.map(racks, RacksDto.class));
     }
 
     @Override

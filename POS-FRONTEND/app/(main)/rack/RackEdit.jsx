@@ -20,12 +20,6 @@ const RackEdit = ({ rack, onClose, refreshData }) => {
       disabled: true,
     },
     {
-      key: "shelfs",
-      label: "Shelf",
-      type: "search",
-      api: "/api/shelf/list",
-    },
-    {
       key: "description",
       label: "Description",
       type: "text",

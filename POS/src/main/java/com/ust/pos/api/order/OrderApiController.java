@@ -7,12 +7,14 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.order.service.OrderService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/order")
+@PreAuthorize("hasAnyAuthority('Admin', 'Cashier')")
 public class OrderApiController
         extends BaseController {
 

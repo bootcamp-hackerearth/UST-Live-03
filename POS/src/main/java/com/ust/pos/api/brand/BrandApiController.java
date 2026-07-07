@@ -5,6 +5,8 @@ import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Brand;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/brand")
+@PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
 public class BrandApiController extends BaseController {
     private final BrandService brandService;
 
@@ -21,11 +24,10 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('Admin')")
-    public WsDto<BrandDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<BrandDto> home(@RequestBody PaginationDto paginationDto) throws Exception {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        Page<BrandDto> pageResult = brandService.findAll(paginationDto.getSearch(), pageable);
-
+        Example<Brand> example = buildSearchProbe(Brand.class, paginationDto.getSearch());
+        Page<BrandDto> pageResult = brandService.findAll(example, pageable);
         WsDto<BrandDto> response = new WsDto<>();
 
         response.setDtoList(pageResult.getContent());
@@ -38,7 +40,6 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin')")
     public BrandDto addPost(@RequestBody BrandDto userDto) {
         return brandService.save(userDto);
     }
@@ -54,7 +55,6 @@ public class BrandApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Admin')")
     public Boolean delete(@RequestParam String identifier) {
         try{
             brandService.delete(identifier);

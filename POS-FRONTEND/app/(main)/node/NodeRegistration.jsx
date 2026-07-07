@@ -17,18 +17,21 @@ const NodeRegistration = ({ onClose }) => {
         {
             key: "identifier",
             label: "Identifier",
-            type: "text"
+            type: "text",
+            required: true,
         },
         {
             key: "path",
             label: "Path",
-            type: "text"
+            type: "text",
+            required: true,
         },
         {
             key: "roles",
             label: "Role",
             type: "search",
-            api: "/api/role/list"
+            api: "/api/role/list",
+            required: true
         }
     ];
 

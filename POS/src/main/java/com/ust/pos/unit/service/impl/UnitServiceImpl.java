@@ -7,6 +7,7 @@ import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.UnitService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,18 +31,10 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Page<UnitDto> findAll(String search, Pageable pageable)
+    public Page<UnitDto> findAll(Example<Unit> example, Pageable pageable)
     {
-        Page<Unit> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = unitRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = unitRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(unit -> modelMapper.map(unit, UnitDto.class));
+        Page<Unit> unitPage = unitRepository.findAll(example, pageable);
+        return unitPage.map(unit -> modelMapper.map(unit, UnitDto.class));
     }
 
     @Override

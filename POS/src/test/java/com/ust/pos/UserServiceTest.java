@@ -278,16 +278,22 @@ class UserServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         User user = new User();
+        user.setName("john");
+
+        Example<User> example = Example.of(
+                user,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "name",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<User> page =
                 new PageImpl<>(List.of(user));
 
         Mockito.when(
-                userRepository
-                        .findByNameContainingIgnoreCaseAndDeletedFalse(
-                                "john",
-                                pageable
-                        )
+                userRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -295,7 +301,7 @@ class UserServiceTest {
         ).thenReturn(new UserDto());
 
         Page<UserDto> response =
-                userService.findAll("john", pageable);
+                userService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -310,11 +316,13 @@ class UserServiceTest {
 
         User user = new User();
 
+        Example<User> example = Example.of(new User());
+
         Page<User> page =
                 new PageImpl<>(List.of(user));
 
         Mockito.when(
-                userRepository.findByDeletedFalse(pageable)
+                userRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -322,7 +330,7 @@ class UserServiceTest {
         ).thenReturn(new UserDto());
 
         Page<UserDto> response =
-                userService.findAll("", pageable);
+                userService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

@@ -8,7 +8,6 @@ import {
   FiDollarSign,
   FiTrello,
   FiGrid,
-  FiBox,
   FiTag,
   FiColumns,
   FiCreditCard,

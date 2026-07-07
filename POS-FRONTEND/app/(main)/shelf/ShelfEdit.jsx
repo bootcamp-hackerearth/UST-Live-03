@@ -6,10 +6,20 @@ import { FiArchive } from "react-icons/fi";
 import CommonEdit from "@/component/CommonEdit";
 
 const ShelfEdit = ({ shelf, onClose }) => {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    identifier: "",
+    description: "",
+    racks: [],
+    status: true,
+  });
 
   useEffect(() => {
-    setFormData(shelf || {});
+    setFormData({
+      identifier: shelf?.identifier || "",
+      description: shelf?.description || "",
+      racks: shelf?.racks || [],
+      status: shelf?.status ?? true,
+    });
   }, [shelf]);
 
   const fields = [
@@ -23,6 +33,12 @@ const ShelfEdit = ({ shelf, onClose }) => {
       key: "description",
       label: "Description",
       type: "text",
+    },
+    {
+      key: "racks",
+      label: "Racks",
+      type: "search",
+      api: "/api/racks/list",
     },
     {
       key: "status",
@@ -51,6 +67,7 @@ ShelfEdit.propTypes = {
   shelf: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     identifier: PropTypes.string,
+    racks: PropTypes.arrayOf(PropTypes.string),
     description: PropTypes.string,
     status: PropTypes.bool,
   }),

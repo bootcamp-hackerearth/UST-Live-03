@@ -269,16 +269,22 @@ class ProductServiceTest {
                 PageRequest.of(0, 10);
 
         Product product = new Product();
+        product.setIdentifier("P1");
+
+        Example<Product> example = Example.of(
+                product,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Product> page =
                 new PageImpl<>(List.of(product));
 
         Mockito.when(
-                productRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "P1",
-                                pageable
-                        )
+                productRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -286,7 +292,7 @@ class ProductServiceTest {
         ).thenReturn(new ProductDto());
 
         Page<ProductDto> response =
-                productService.findAll("P1", pageable);
+                productService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -302,11 +308,13 @@ class ProductServiceTest {
 
         Product product = new Product();
 
+        Example<Product> example = Example.of(new Product());
+
         Page<Product> page =
                 new PageImpl<>(List.of(product));
 
         Mockito.when(
-                productRepository.findByDeletedFalse(pageable)
+                productRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -314,7 +322,7 @@ class ProductServiceTest {
         ).thenReturn(new ProductDto());
 
         Page<ProductDto> response =
-                productService.findAll("", pageable);
+                productService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

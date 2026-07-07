@@ -237,16 +237,22 @@ class RackServiceTest {
                 PageRequest.of(0, 10);
 
         Racks racks = new Racks();
+        racks.setIdentifier("R1");
+
+        Example<Racks> example = Example.of(
+                racks,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Racks> page =
                 new PageImpl<>(List.of(racks));
 
         Mockito.when(
-                racksRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "R1",
-                                pageable
-                        )
+                racksRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -257,7 +263,7 @@ class RackServiceTest {
         ).thenReturn(new RacksDto());
 
         Page<RacksDto> response =
-                racksService.findAll("R1", pageable);
+                racksService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -273,11 +279,13 @@ class RackServiceTest {
 
         Racks racks = new Racks();
 
+        Example<Racks> example = Example.of(new Racks());
+
         Page<Racks> page =
                 new PageImpl<>(List.of(racks));
 
         Mockito.when(
-                racksRepository.findByDeletedFalse(pageable)
+                racksRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -288,7 +296,7 @@ class RackServiceTest {
         ).thenReturn(new RacksDto());
 
         Page<RacksDto> response =
-                racksService.findAll("", pageable);
+                racksService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

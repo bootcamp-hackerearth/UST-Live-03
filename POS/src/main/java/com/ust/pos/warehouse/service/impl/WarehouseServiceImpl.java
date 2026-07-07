@@ -7,6 +7,7 @@ import com.ust.pos.model.WarehouseRepository;
 import com.ust.pos.warehouse.service.WarehouseService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -107,16 +108,8 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    public Page<WarehouseDto> findAll(String search, Pageable pageable) {
-        Page<Warehouse> warehousePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            warehousePage = warehouseRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            warehousePage = warehouseRepository.findByDeletedFalse(pageable);
-        }
+    public Page<WarehouseDto> findAll(Example<Warehouse> example, Pageable pageable) {
+        Page<Warehouse> warehousePage = warehouseRepository.findAll(example, pageable);
         return warehousePage.map(warehouse -> modelMapper.map(warehouse, WarehouseDto.class));
     }
 }

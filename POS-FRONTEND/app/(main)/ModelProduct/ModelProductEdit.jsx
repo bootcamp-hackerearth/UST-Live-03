@@ -32,6 +32,18 @@ const ModelProductEdit = ({ model, onClose }) => {
       disabled: true,
     },
     {
+      key: "brand",
+      label: "Brand",
+      type: "search",
+      api: "/api/brand/list",
+    },
+    {
+      key: "product",
+      label: "Product",
+      type: "search",
+      api: "/api/product/list",
+    },
+    {
       key: "description",
       label: "Description",
       type: "text",

@@ -17,7 +17,23 @@ const ModelProductRegistration = ({ onClose }) => {
       key: "identifier",
       label: "Model Name",
       type: "text",
+      required: true,
     },
+    {
+      key: "brand",
+      label: "Brand",
+      type: "search",
+      api: "/api/brand/list",
+      required: true,
+    },
+    {
+      key: "product",
+      label: "Product",
+      type: "search",
+      api: "/api/product/list",
+      required: true,
+    },
+
     {
       key: "description",
       label: "Description",

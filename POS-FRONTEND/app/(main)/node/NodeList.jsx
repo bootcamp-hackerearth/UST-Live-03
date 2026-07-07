@@ -90,45 +90,36 @@ const NodeList = () => {
     };
 
     return (
-        <CommonList
-          title="Nodes"
-          icon={FiGrid}
-          columns={nodeColumns}
-          data={nodes}
-          loading={loading}
-          searchTerm={search}
-          setSearchTerm={setSearch}
-          onSearchChange={(value) => {
-            setPage(0);
-            setSearch(value);
-          }}
-          renderCustomCell={renderCustomCell}
-          AddComponent={NodeRegistration}
-          EditComponent={NodeEdit}
-          editPropName="node"
-          deleteApi={async (identifier) =>{
-            const response = await api.delete("/api/node/delete", {
-                params: { identifier },
-            });
-              globalThis.dispatchEvent(new Event("refreshSidebar"));
-              return response;}
-          }
-          deleteIdentifierField="identifier"
-          filterFunction={(node, searchTerm) =>
-            node.identifier?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            node.path?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            node.roles
-              ?.join(", ")
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())
-          }
-          pagination={{
-            page,
-            totalPage,
-            setPage,
-          }}
-          refreshData={fetchNodes}
-        />
+      <CommonList
+        title="Nodes"
+        icon={FiGrid}
+        columns={nodeColumns}
+        data={nodes}
+        loading={loading}
+        searchTerm={search}
+        setSearchTerm={(value) => {
+          setPage(0);
+          setSearch(value);
+        }}
+        renderCustomCell={renderCustomCell}
+        AddComponent={NodeRegistration}
+        EditComponent={NodeEdit}
+        editPropName="node"
+        deleteApi={async (identifier) => {
+          const response = await api.delete("/api/node/delete", {
+            params: { identifier },
+          });
+          globalThis.dispatchEvent(new Event("refreshSidebar"));
+          return response;
+        }}
+        deleteIdentifierField="identifier"
+        pagination={{
+          page,
+          totalPage,
+          setPage,
+        }}
+        refreshData={fetchNodes}
+      />
     );
 };
 

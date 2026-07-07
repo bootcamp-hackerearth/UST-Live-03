@@ -17,23 +17,34 @@ const ProductRegistration = ({ onSuccess, onClose }) => {
       key: "identifier",
       label: "Product Name",
       type: "text",
+      required: true,
     },
     {
       key: "supplierId",
       label: "Supplier ID",
       type: "number",
+      required: true,
     },
     {
       key: "warehouseName",
       label: "Warehouse",
       type: "search",
       api: "/api/warehouse/list",
+      required: true,
     },
     {
       key: "category",
       label: "Category",
       type: "search",
       api: "/api/category/list",
+      required: true,
+    },
+    {
+      key: "unit",
+      label: "Unit",
+      type: "search",
+      api: "/api/unit/list",
+      required: true,
     },
   ];
 

@@ -9,4 +9,5 @@ public class ProductDto extends CommonDto{
     private String warehouseName;
     private Long supplierId;
     private String category;
+    private String unit;
 }

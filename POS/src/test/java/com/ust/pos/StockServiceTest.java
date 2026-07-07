@@ -319,23 +319,28 @@ class StockServiceTest {
                 Mockito.never()
         ).save(Mockito.any());
     }
-
     @Test
     void findAllWithSearchTest() {
 
         Pageable pageable = PageRequest.of(0, 10);
 
         Stock stock = new Stock();
+        stock.setIdentifier("STK1");
+
+        Example<Stock> example = Example.of(
+                stock,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Stock> page =
                 new PageImpl<>(List.of(stock));
 
         Mockito.when(
-                stockRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "STK",
-                                pageable
-                        )
+                stockRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -343,7 +348,7 @@ class StockServiceTest {
         ).thenReturn(new StockDto());
 
         Page<StockDto> response =
-                stockService.findAll("STK", pageable);
+                stockService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -358,11 +363,13 @@ class StockServiceTest {
 
         Stock stock = new Stock();
 
+        Example<Stock> example = Example.of(new Stock());
+
         Page<Stock> page =
                 new PageImpl<>(List.of(stock));
 
         Mockito.when(
-                stockRepository.findByDeletedFalse(pageable)
+                stockRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -370,7 +377,7 @@ class StockServiceTest {
         ).thenReturn(new StockDto());
 
         Page<StockDto> response =
-                stockService.findAll("", pageable);
+                stockService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

@@ -4,14 +4,18 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Stock;
 import com.ust.pos.stock.service.StockService;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/stock")
+@PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
 public class StockApiController extends BaseController {
     public static final String ADD_STOCK = "stock/add";
 
@@ -22,12 +26,14 @@ public class StockApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto)
+    public WsDto<StockDto> list(@RequestBody PaginationDto paginationDto) throws Exception
     {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(),paginationDto.getSortField());
-        Page<StockDto> pageResult = stockService.findAll(paginationDto.getSearch(), pageable);
 
+        Example<Stock> example = buildSearchProbe(Stock.class, paginationDto.getSearch());
+
+        Page<StockDto> pageResult = stockService.findAll(example, pageable);
         WsDto<StockDto> response = new WsDto<>();
         response.setDtoList(pageResult.getContent());
         response.setPage(pageResult.getNumber());

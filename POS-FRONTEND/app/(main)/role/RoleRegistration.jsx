@@ -13,16 +13,18 @@ const RoleRegistration = ({ onClose }) => {
     });
 
     const fields = [
-        {
-            key: "identifier",
-            label: "Role Name",
-            type: "text"
-        },
-        {
-            key: "description",
-            label: "Description",
-            type: "text"
-        }
+      {
+        key: "identifier",
+        label: "Role Name",
+        type: "text",
+        required: true,
+      },
+      {
+        key: "description",
+        label: "Description",
+        type: "text",
+        required: true,
+      },
     ];
 
 

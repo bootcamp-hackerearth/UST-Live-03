@@ -2,7 +2,9 @@ package com.ust.pos.user.service;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
+import com.ust.pos.model.User;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -18,7 +20,7 @@ public interface UserService {
 
     List<UserDto> findAll();
 
-    Page<UserDto> findAll(String search, Pageable pageable);
+    Page<UserDto> findAll(Example<User> example, Pageable pageable);
 
     WsDto<UserDto> findAll(Pageable pageable);
 }

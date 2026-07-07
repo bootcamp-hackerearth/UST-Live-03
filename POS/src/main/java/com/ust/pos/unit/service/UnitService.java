@@ -2,6 +2,8 @@ package com.ust.pos.unit.service;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Unit;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,7 +22,7 @@ public interface UnitService {
 
     void delete(String identifier);
 
-    Page<UnitDto> findAll(String search, Pageable pageable);
+    Page<UnitDto> findAll(Example<Unit> example, Pageable pageable);
 
     void toggleStatus(String identifier);
 }

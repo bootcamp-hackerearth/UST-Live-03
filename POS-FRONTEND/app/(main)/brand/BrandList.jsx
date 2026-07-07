@@ -27,8 +27,8 @@ const BrandList = () => {
       const response = await api.post("/api/brand/list", {
         page,
         sizePerPage: 5,
-        sortField: "id",
-        sortDirection: "DESC",
+        sortField: "identifier",
+        sortDirection: "ASC",
         search,
       });
 
@@ -71,8 +71,7 @@ const BrandList = () => {
       data={brands}
       loading={loading}
       searchTerm={search}
-      setSearchTerm={setSearch}
-      onSearchChange={(value) => {
+      setSearchTerm={(value) => {
         setPage(0);
         setSearch(value);
       }}
@@ -98,9 +97,6 @@ const BrandList = () => {
         setPage,
         totalPage: pagination.totalPage,
       }}
-      filterFunction={(item, term) =>
-        item.identifier?.toLowerCase().includes(term.toLowerCase())
-      }
     />
   );
 };

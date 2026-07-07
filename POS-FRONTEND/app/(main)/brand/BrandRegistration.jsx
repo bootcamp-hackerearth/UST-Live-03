@@ -17,6 +17,7 @@ const BrandRegistration = ({ onClose }) => {
       key: "identifier",
       label: "Brand Name",
       type: "text",
+      required: true,
     },
     {
       key: "description",
@@ -27,6 +28,7 @@ const BrandRegistration = ({ onClose }) => {
       key: "status",
       label: "Status",
       type: "checkbox",
+      required: true,
     },
   ];
 

@@ -241,16 +241,22 @@ class UnitServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         Unit unit = new Unit();
+        unit.setIdentifier("KG");
+
+        Example<Unit> example = Example.of(
+                unit,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Unit> page =
                 new PageImpl<>(List.of(unit));
 
         Mockito.when(
-                unitRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "KG",
-                                pageable
-                        )
+                unitRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -258,7 +264,7 @@ class UnitServiceTest {
         ).thenReturn(new UnitDto());
 
         Page<UnitDto> response =
-                unitService.findAll("KG", pageable);
+                unitService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -273,11 +279,13 @@ class UnitServiceTest {
 
         Unit unit = new Unit();
 
+        Example<Unit> example = Example.of(new Unit());
+
         Page<Unit> page =
                 new PageImpl<>(List.of(unit));
 
         Mockito.when(
-                unitRepository.findByDeletedFalse(pageable)
+                unitRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -285,7 +293,7 @@ class UnitServiceTest {
         ).thenReturn(new UnitDto());
 
         Page<UnitDto> response =
-                unitService.findAll("", pageable);
+                unitService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

@@ -55,6 +55,10 @@ const ShelfList = () => {
       key: "identifier",
     },
     {
+      header: "Racks",
+      key: "racks",
+    },
+    {
       header: "Description",
       key: "description",
     },
@@ -72,8 +76,7 @@ const ShelfList = () => {
       data={shelves}
       loading={loading}
       searchTerm={search}
-      setSearchTerm={setSearch}
-      onSearchChange={(value) => {
+      setSearchTerm={(value) => {
         setPage(0);
         setSearch(value);
       }}
@@ -101,10 +104,10 @@ const ShelfList = () => {
         setPage,
         totalPage: pagination.totalPage,
       }}
-      filterFunction={(item, term) =>
-        item.identifier?.toLowerCase().includes(term.toLowerCase())
-      }
       renderCustomCell={(key, item) => {
+        if (key === "racks") {
+          return Array.isArray(item.racks) ? item.racks.join(", ") : "";
+        }
         if (key === "status") {
           return item.status ? (
             <span className="text-green-600 font-semibold">Active</span>

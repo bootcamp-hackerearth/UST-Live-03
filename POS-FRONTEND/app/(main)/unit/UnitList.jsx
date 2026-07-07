@@ -72,14 +72,13 @@ const UnitList = () => {
       data={units}
       loading={loading}
       searchTerm={search}
-      setSearchTerm={setSearch}
-      AddComponent={UnitRegistration}
-      EditComponent={UnitEdit}
-      editPropName="unit"
-      onSearchChange={(value) => {
+      setSearchTerm={(value) => {
         setPage(0);
         setSearch(value);
       }}
+      AddComponent={UnitRegistration}
+      EditComponent={UnitEdit}
+      editPropName="unit"
       enableStatusToggle={true}
       toggleStatusApi={(unit) =>
         api.get("/api/unit/toggleStatus", {
@@ -101,9 +100,6 @@ const UnitList = () => {
         setPage,
         totalPage: pagination.totalPage,
       }}
-      filterFunction={(item, term) =>
-        item.identifier?.toLowerCase().includes(term.toLowerCase())
-      }
       renderCustomCell={(key, item) => {
         if (key === "status") {
           return item.status ? (

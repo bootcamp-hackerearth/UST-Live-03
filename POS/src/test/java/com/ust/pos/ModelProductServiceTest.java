@@ -254,16 +254,22 @@ class ModelProductServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         ModelProduct modelProduct = new ModelProduct();
+        modelProduct.setIdentifier("MODEL");
+
+        Example<ModelProduct> example = Example.of(
+                modelProduct,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<ModelProduct> page =
                 new PageImpl<>(List.of(modelProduct));
 
         Mockito.when(
-                modelProductRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "MODEL",
-                                pageable
-                        )
+                modelProductRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -271,7 +277,7 @@ class ModelProductServiceTest {
         ).thenReturn(new ModelProductDto());
 
         Page<ModelProductDto> response =
-                modelProductService.findAll("MODEL", pageable);
+                modelProductService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

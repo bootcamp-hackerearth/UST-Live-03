@@ -39,6 +39,17 @@ const ActionMenu = ({
             opensUpward ? "bottom-full mb-1" : "top-full mt-1"
           }`}
         >
+          <button
+            type="button"
+            onClick={() => {
+              setActiveMenu(null);
+              onView(item);
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2"
+          >
+            <FiEye className="text-indigo-600" />
+            View
+          </button>
           {EditComponent && (
             <button
               type="button"
@@ -62,17 +73,6 @@ const ActionMenu = ({
           >
             <FiTrash2 />
             Delete
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveMenu(null);
-              onView(item);
-            }}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2"
-          >
-            <FiEye className="text-indigo-600" />
-            View
           </button>
         </div>
       )}

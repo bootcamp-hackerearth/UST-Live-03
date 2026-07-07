@@ -19,29 +19,34 @@ const UserRegistration = ({ onClose }) => {
         {
             key: "name",
             label: "Name",
-            type: "text"
+            type: "text",
+            required: true,
         },
         {
             key: "phoneNo",
             label: "Phone Number",
-            type: "tel"
+            type: "tel",
+            required: true
         },
         {
             key: "username",
             label: "Email",
-            type: "email"
+            type: "email",
+            required: true
         },
         {
             key: "password",
             label: "Password",
-            type: "password"
+            type: "password",
+            required: true
         },
         {
             key: "roles",
             label: "Role",
             type: "search",
-            api: "/api/role/list"
-        }
+            api: "/api/role/list",
+            required: true
+        },
     ];
 
 

@@ -230,16 +230,22 @@ class CategoryServiceTest {
                 PageRequest.of(0, 10);
 
         Category category = new Category();
+        category.setIdentifier("ELE");
+
+        Example<Category> example = Example.of(
+                category,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Category> page =
                 new PageImpl<>(List.of(category));
 
         Mockito.when(
-                categoryRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "ELE",
-                                pageable
-                        )
+                categoryRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -247,7 +253,7 @@ class CategoryServiceTest {
         ).thenReturn(new CategoryDto());
 
         Page<CategoryDto> response =
-                categoryService.findAll("ELE", pageable);
+                categoryService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -263,11 +269,13 @@ class CategoryServiceTest {
 
         Category category = new Category();
 
+        Example<Category> example = Example.of(new Category());
+
         Page<Category> page =
                 new PageImpl<>(List.of(category));
 
         Mockito.when(
-                categoryRepository.findByDeletedFalse(pageable)
+                categoryRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -275,7 +283,7 @@ class CategoryServiceTest {
         ).thenReturn(new CategoryDto());
 
         Page<CategoryDto> response =
-                categoryService.findAll("", pageable);
+                categoryService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

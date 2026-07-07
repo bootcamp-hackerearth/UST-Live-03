@@ -7,6 +7,7 @@ import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -93,17 +94,9 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Page<PriceDto> findAll(String search, Pageable pageable) {
-        Page<Price> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = priceRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = priceRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(price -> modelMapper.map(price, PriceDto.class));
+    public Page<PriceDto> findAll(Example<Price> example, Pageable pageable) {
+        Page<Price> pricePage = priceRepository.findAll(example, pageable);
+        return pricePage.map(price -> modelMapper.map(price, PriceDto.class));
     }
 
     @Override

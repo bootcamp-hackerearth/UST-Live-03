@@ -111,6 +111,7 @@ const CustomerRegistration = ({ onClose, refreshData }) => {
             })
           }
           className="w-full border rounded p-2"
+          required
         />
       </div>
       <div>
@@ -129,6 +130,7 @@ const CustomerRegistration = ({ onClose, refreshData }) => {
             })
           }
           className="w-full border rounded p-2"
+          required
         />
       </div>
       <div>

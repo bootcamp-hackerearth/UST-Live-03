@@ -16,6 +16,12 @@ api.interceptors.request.use((config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+const redirectToErrorPage = (errorData) => {
+  sessionStorage.setItem("globalError", JSON.stringify(errorData));
+
+  globalThis.location.href = "/error";
+};
+
 api.interceptors.response.use(
   (response) => response,
 
@@ -25,28 +31,27 @@ api.interceptors.response.use(
 
     switch (status) {
       case 400:
-        alert(message);
+      case 404:
+      case 500:
+        redirectToErrorPage(error.response.data);
         break;
 
       case 401:
-        alert("Session expired. Please login again.");
         localStorage.removeItem("token");
+        redirectToErrorPage(error.response.data);
         break;
 
       case 403:
-        alert("You are not authorized to perform this action.");
-        break;
-
-      case 404:
-        alert(message);
-        break;
-
-      case 500:
-        alert(message);
+        redirectToErrorPage(error.response.data);
         break;
 
       default:
-        alert(message);
+        redirectToErrorPage({
+          status: status || 500,
+          message: message,
+          path: globalThis.location.pathname,
+          timestamp: new Date().toISOString(),
+        });
     }
 
     return Promise.reject(error);

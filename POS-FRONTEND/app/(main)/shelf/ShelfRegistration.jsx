@@ -9,6 +9,7 @@ const ShelfRegistration = ({ onClose }) => {
   const [formData, setFormData] = useState({
     identifier: "",
     description: "",
+    racks: [],
     status: true,
   });
 
@@ -17,11 +18,20 @@ const ShelfRegistration = ({ onClose }) => {
       key: "identifier",
       label: "Shelf Name",
       type: "text",
+      required: true,
+    },
+    {
+      key: "racks",
+      label: "Racks",
+      type: "search",
+      api: "/api/racks/list",
+      required: true,
     },
     {
       key: "description",
       label: "Description",
       type: "text",
+      required: true,
     },
   ];
 

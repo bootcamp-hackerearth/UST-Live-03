@@ -7,6 +7,7 @@ import com.ust.pos.model.ModelProductRepository;
 import com.ust.pos.modelproduct.service.ModelProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -110,24 +111,16 @@ public class ModelProductServiceImpl implements ModelProductService {
     }
 
     @Override
-    public Page<ModelProductDto> findAll(String search, Pageable pageable) {
-        Page<ModelProduct> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = modelProductRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = modelProductRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(modelProduct -> modelMapper.map(modelProduct, ModelProductDto.class));
+    public Page<ModelProductDto> findAll(Example<ModelProduct> example, Pageable pageable) {
+        Page<ModelProduct> modelProductPage = modelProductRepository.findAll(example, pageable);
+        return modelProductPage.map(model -> modelMapper.map(model, ModelProductDto.class));
+
     }
 
     @Override
     public void toggleStatus(String identifier) {
         ModelProduct modelProduct = modelProductRepository.findByIdentifierAndDeletedFalse(identifier);
         if (modelProduct != null) {
-            // ✅ toggle status
             modelProduct.setStatus(!modelProduct.getStatus());
             modelProductRepository.save(modelProduct);
         }

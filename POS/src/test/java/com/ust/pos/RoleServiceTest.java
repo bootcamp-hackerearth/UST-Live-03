@@ -235,16 +235,22 @@ class RoleServiceTest {
                 PageRequest.of(0, 10);
 
         Role role = new Role();
+        role.setIdentifier("Admin");
+
+        Example<Role> example = Example.of(
+                role,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Role> page =
                 new PageImpl<>(List.of(role));
 
         Mockito.when(
-                roleRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "Admin",
-                                pageable
-                        )
+                roleRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -255,7 +261,7 @@ class RoleServiceTest {
         ).thenReturn(new RoleDto());
 
         Page<RoleDto> response =
-                roleService.findAll("Admin", pageable);
+                roleService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,
@@ -271,11 +277,13 @@ class RoleServiceTest {
 
         Role role = new Role();
 
+        Example<Role> example = Example.of(new Role());
+
         Page<Role> page =
                 new PageImpl<>(List.of(role));
 
         Mockito.when(
-                roleRepository.findByDeletedFalse(pageable)
+                roleRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -286,7 +294,7 @@ class RoleServiceTest {
         ).thenReturn(new RoleDto());
 
         Page<RoleDto> response =
-                roleService.findAll("", pageable);
+                roleService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

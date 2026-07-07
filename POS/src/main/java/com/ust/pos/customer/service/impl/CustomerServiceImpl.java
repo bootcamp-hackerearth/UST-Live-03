@@ -9,7 +9,9 @@ import com.ust.pos.model.Customer;
 import com.ust.pos.model.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -126,17 +128,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<CustomerDto> findAll(String search, Pageable pageable) {
-        Page<Customer> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = customerRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = customerRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(customer -> modelMapper.map(customer, CustomerDto.class));
+    public Page<CustomerDto> findAll(Example<Customer> example, Pageable pageable) {
+        Page<Customer> customerPage = customerRepository.findAll(example, pageable);
+        List<Customer> filtered = customerPage.getContent().stream().filter(c -> !Boolean.TRUE.equals(c.getDeleted())).toList();
+        Page<Customer> filteredPage = new PageImpl<>(filtered, pageable, customerPage.getTotalElements());
+        return filteredPage.map(customer -> modelMapper.map(customer, CustomerDto.class));
     }
 
     @Override

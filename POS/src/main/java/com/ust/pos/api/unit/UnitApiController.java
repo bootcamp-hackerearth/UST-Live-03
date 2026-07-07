@@ -4,14 +4,18 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Unit;
 import com.ust.pos.unit.service.UnitService;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/unit")
+@PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
 public class UnitApiController extends BaseController {
 
     private final UnitService unitService;
@@ -21,10 +25,13 @@ public class UnitApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<UnitDto> home(@RequestBody PaginationDto paginationDto)
+    public WsDto<UnitDto> home(@RequestBody PaginationDto paginationDto) throws Exception
     {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        Page<UnitDto> pageResult = unitService.findAll(paginationDto.getSearch(), pageable);
+
+        Example<Unit> example = buildSearchProbe(Unit.class, paginationDto.getSearch());
+
+        Page<UnitDto> pageResult = unitService.findAll(example, pageable);
 
         WsDto<UnitDto> response = new WsDto<>();
 

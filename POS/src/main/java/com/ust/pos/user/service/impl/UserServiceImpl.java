@@ -7,6 +7,7 @@ import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -95,18 +96,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserDto> findAll(String search, Pageable pageable) {
-        Page<User> userPage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            userPage = userRepository.findByNameContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            userPage = userRepository.findByDeletedFalse(pageable);
-        }
+    public Page<UserDto> findAll(Example<User> example, Pageable pageable) {
+        Page<User> userPage = userRepository.findAll(example, pageable);
         return userPage.map(user -> modelMapper.map(user, UserDto.class));
     }
+
 
     @Override
     public WsDto<UserDto> findAll(Pageable pageable) {

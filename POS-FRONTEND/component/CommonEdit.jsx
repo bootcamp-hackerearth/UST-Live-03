@@ -6,9 +6,9 @@ import { FiSave } from "react-icons/fi";
 import api from "@/app/(main)/api/axios";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const toRolesArray = (roles) => {
-  if (Array.isArray(roles)) return roles;
-  if (roles) return [roles];
+const toArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (value) return [value];
   return [];
 };
 
@@ -24,7 +24,7 @@ const validatePhone = (value) => {
   return "Phone number must contain exactly 10 digits.";
 };
 const validateUsername = (value) => {
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value ?? "")) return null;
+  if (/^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(value ?? "")) return null;
   return "Please enter a valid email.";
 };
 const validatePassword = (value) => {
@@ -115,13 +115,13 @@ const RolesSearchField = ({
   onRoleSelect,
   onFocus,
 }) => {
-  const roles = toRolesArray(formData.roles);
+  const values = toArray(formData[field.key]);
   const term = (searchTerms[field.key] ?? "").toLowerCase();
 
   // Filter client-side from the full list
-  const filteredOptions = term
-    ? allOptions.filter((item) => item.identifier.toLowerCase().includes(term))
-    : allOptions;
+  const filteredOptions = allOptions
+    .filter((item) => !values.includes(item.identifier))
+    .filter((item) => item.identifier.toLowerCase().includes(term));
 
   const handleFocus = () => {
     setOpenDropdown(field.key);
@@ -132,20 +132,21 @@ const RolesSearchField = ({
     <div className="relative">
       <div className="border border-gray-300 rounded-md p-2 bg-white">
         <div className="flex flex-wrap gap-2 mb-2">
-          {roles.map((role) => (
+          {values.map((value) => (
             <div
-              key={role}
+              key={value}
               className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2"
             >
-              <span>{role}</span>
+              <span>{value}</span>
               <button
                 type="button"
                 className="font-bold hover:text-red-600"
                 onClick={(e) => {
                   e.stopPropagation();
+
                   setFormData({
                     ...formData,
-                    roles: roles.filter((r) => r !== role),
+                    [field.key]: formData[field.key].filter((v) => v !== value),
                   });
                 }}
               >
@@ -156,7 +157,7 @@ const RolesSearchField = ({
         </div>
         <input
           type="text"
-          placeholder="Search roles..."
+          placeholder={`Search ${field.label}...`}
           value={searchTerms[field.key] ?? ""}
           onFocus={handleFocus}
           onClick={(e) => e.stopPropagation()}
@@ -297,8 +298,8 @@ const CommonEdit = ({
           search: "",
         });
         let results = response.data.dtoList ?? [];
-        if (field.key === "roles") {
-          const current = toRolesArray(formData.roles);
+        if (["roles", "shelves", "racks"].includes(field.key)) {
+          const current = toArray(formData[field.key]);
           results = results.filter(
             (item) => !current.includes(item.identifier),
           );
@@ -318,19 +319,18 @@ const CommonEdit = ({
     [formData, dropdownData],
   );
 
-  const handleRoleSelect = useCallback(
-    (item) => {
-      const existing = toRolesArray(formData.roles);
+  const handleMultiSelect = useCallback(
+    (fieldKey, item) => {
+      const existing = toArray(formData[fieldKey]);
+
       if (existing.includes(item.identifier)) return;
-      setFormData({ ...formData, roles: [...existing, item.identifier] });
+
+      setFormData({
+        ...formData,
+        [fieldKey]: [...existing, item.identifier],
+      });
+
       setOpenDropdown(null);
-      // Remove selected role from available options
-      setDropdownData((prev) => ({
-        ...prev,
-        roles: (prev.roles ?? []).filter(
-          (r) => r.identifier !== item.identifier,
-        ),
-      }));
     },
     [formData, setFormData],
   );
@@ -364,10 +364,21 @@ const CommonEdit = ({
         return;
       }
     }
-    const hasRolesField = fields.some((f) => f.key === "roles");
-    const payload = hasRolesField
-      ? { ...formData, roles: toRolesArray(formData.roles) }
-      : { ...formData };
+    const payload = {
+      ...formData,
+    };
+
+    if (fields.some((f) => f.key === "roles")) {
+      payload.roles = toArray(formData.roles);
+    }
+
+    if (fields.some((f) => f.key === "shelves")) {
+      payload.shelves = toArray(formData.shelves);
+    }
+
+    if (fields.some((f) => f.key === "racks")) {
+      payload.racks = toArray(formData.racks);
+    }
 
     try {
       const response = await api.put(`/api/${moduleName}/update`, payload);
@@ -384,7 +395,10 @@ const CommonEdit = ({
   };
 
   const renderField = (field) => {
-    if (field.type === "search" && field.key === "roles") {
+    if (
+      field.type === "search" &&
+      ["roles", "shelves", "racks"].includes(field.key)
+    ) {
       return (
         <RolesSearchField
           field={field}
@@ -396,7 +410,7 @@ const CommonEdit = ({
           searchTerms={searchTerms}
           setSearchTerms={setSearchTerms}
           loadingField={loadingField}
-          onRoleSelect={handleRoleSelect}
+          onRoleSelect={(item) => handleMultiSelect(field.key, item)}
           onFocus={() => fetchAllOptions(field)}
         />
       );
@@ -492,6 +506,14 @@ CommonEdit.propTypes = {
     username: PropTypes.string,
     password: PropTypes.string,
     roles: PropTypes.oneOfType([
+      PropTypes.arrayOf(PropTypes.string),
+      PropTypes.string,
+    ]),
+    shelves: PropTypes.oneOfType([
+      PropTypes.arrayOf(PropTypes.string),
+      PropTypes.string,
+    ]),
+    racks: PropTypes.oneOfType([
       PropTypes.arrayOf(PropTypes.string),
       PropTypes.string,
     ]),

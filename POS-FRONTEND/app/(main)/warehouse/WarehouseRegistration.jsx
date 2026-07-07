@@ -10,6 +10,7 @@ const WarehouseRegistration = ({ onClose }) => {
     address: "",
     country: "",
     pincode: "",
+    shelves: [],
     status: true,
   });
 
@@ -18,21 +19,32 @@ const WarehouseRegistration = ({ onClose }) => {
       key: "identifier",
       label: "Warehouse Name",
       type: "text",
+      required: true,
     },
     {
       key: "address",
       label: "Address",
       type: "text",
+      required: true,
     },
     {
       key: "country",
       label: "Country",
       type: "text",
+      required: true,
+    },
+    {
+      key: "shelves",
+      label: "Shelves",
+      type: "search",
+      api: "/api/shelf/list",
+      required: true,
     },
     {
       key: "pincode",
       label: "Pincode",
       type: "number",
+      required: true,
     },
   ];
 

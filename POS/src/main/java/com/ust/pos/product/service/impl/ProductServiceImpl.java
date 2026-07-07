@@ -8,6 +8,7 @@ import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -95,17 +96,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> findAll(String search, Pageable pageable) {
-        Page<Product> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = productRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = productRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(product -> modelMapper.map(product, ProductDto.class));
+    public Page<ProductDto> findAll(Example<Product> example, Pageable pageable) {
+        Page<Product> productPage = productRepository.findAll(example, pageable);
+        return productPage.map(product -> modelMapper.map(product, ProductDto.class));
     }
 
     @Override

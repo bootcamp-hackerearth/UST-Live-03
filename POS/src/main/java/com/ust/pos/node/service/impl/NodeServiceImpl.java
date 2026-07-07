@@ -6,6 +6,7 @@ import com.ust.pos.model.*;
 import com.ust.pos.node.service.NodeService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -123,17 +124,9 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public Page<NodeDto> findAll(String search, Pageable pageable) {
-        Page<Node> rolePage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            rolePage = nodeRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            rolePage = nodeRepository.findByDeletedFalse(pageable);
-        }
-        return rolePage.map(node -> modelMapper.map(node, NodeDto.class));
+    public Page<NodeDto> findAll(Example<Node> example, Pageable pageable) {
+        Page<Node> nodePage = nodeRepository.findAll(example, pageable);
+        return nodePage.map(node -> modelMapper.map(node, NodeDto.class));
     }
 
     @Override

@@ -5,10 +5,21 @@ import { FiHome } from "react-icons/fi";
 import CommonEdit from "@/component/CommonEdit";
 
 const WarehouseEdit = ({ warehouse, onClose, refreshData }) => {
-  const [formData, setFormData] = useState(warehouse || {});
-
+  const [formData, setFormData] = useState({
+    identifier: "",
+    address: "",
+    country: "",
+    pincode: "",
+    status: true,
+    shelves: [],
+  });
   useEffect(() => {
-    setFormData(warehouse || {});
+    if (warehouse) {
+      setFormData({
+        ...warehouse,
+        shelves: warehouse.shelves || [],
+      });
+    }
   }, [warehouse]);
 
   const fields = [
@@ -32,6 +43,12 @@ const WarehouseEdit = ({ warehouse, onClose, refreshData }) => {
       key: "pincode",
       label: "Pincode",
       type: "number",
+    },
+    {
+      key: "shelves",
+      label: "Shelves",
+      type: "search",
+      api: "/api/shelf/list",
     },
     {
       key: "status",

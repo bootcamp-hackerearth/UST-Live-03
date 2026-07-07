@@ -4,15 +4,19 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Shelf;
 import com.ust.pos.shelf.service.ShelfService;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/shelf")
+@PreAuthorize("hasAnyAuthority('Admin', 'Manager')")
 public class ShelfApiController extends BaseController {
 
     public static final String REDIRECT_SHELF_LIST = "redirect:/shelf/list";
@@ -24,10 +28,13 @@ public class ShelfApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<ShelfDto> home(@RequestBody PaginationDto paginationDto)
+    public WsDto<ShelfDto> home(@RequestBody PaginationDto paginationDto) throws Exception
     {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        Page<ShelfDto> pageResult = shelfService.findAll(paginationDto.getSearch(), pageable);
+
+        Example<Shelf> example = buildSearchProbe(Shelf.class, paginationDto.getSearch());
+
+        Page<ShelfDto> pageResult = shelfService.findAll(example, pageable);
 
         WsDto<ShelfDto> response = new WsDto<>();
 

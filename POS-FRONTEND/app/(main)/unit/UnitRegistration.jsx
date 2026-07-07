@@ -17,11 +17,13 @@ const UnitRegistration = ({ onClose }) => {
       key: "identifier",
       label: "Unit Name",
       type: "text",
+      required: true,
     },
     {
       key: "description",
       label: "Description",
       type: "textarea",
+      required: true,
     },
     {
       key: "status",

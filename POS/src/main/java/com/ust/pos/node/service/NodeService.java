@@ -2,6 +2,8 @@ package com.ust.pos.node.service;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Node;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,7 +22,7 @@ public interface NodeService {
 
     WsDto<NodeDto> findAll(Pageable pageable);
 
-    Page<NodeDto> findAll(String search, Pageable pageable);
+    Page<NodeDto> findAll(Example<Node> example, Pageable pageable);
 
     NodeDto findByIdentifier(String identifier);
 }

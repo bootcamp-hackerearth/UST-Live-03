@@ -76,8 +76,7 @@ const CustomerList = () => {
       data={customers}
       loading={loading}
       searchTerm={search}
-      setSearchTerm={setSearch}
-      onSearchChange={(value) => {
+      setSearchTerm={(value) => {
         setPage(0);
         setSearch(value);
       }}
@@ -96,11 +95,6 @@ const CustomerList = () => {
         setPage,
         totalPage: pagination.totalPage,
       }}
-      filterFunction={(item, term) =>
-        item.identifier?.toLowerCase().includes(term.toLowerCase()) ||
-        item.email?.toLowerCase().includes(term.toLowerCase()) ||
-        item.phone?.toLowerCase().includes(term.toLowerCase())
-      }
       enableStatusToggle={true}
       toggleStatusApi={(customer) =>
         api.get("/api/customer/toggleStatus", {
@@ -118,7 +112,6 @@ const CustomerList = () => {
             <span className="text-red-600 font-semibold">Inactive</span>
           );
         }
-
         return item[key];
       }}
     />

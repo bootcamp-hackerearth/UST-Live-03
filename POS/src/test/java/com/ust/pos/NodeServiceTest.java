@@ -280,16 +280,22 @@ class NodeServiceTest {
                 PageRequest.of(0, 10);
 
         Node node = new Node();
+        node.setIdentifier("N1");
+
+        Example<Node> example = Example.of(
+                node,
+                ExampleMatcher.matching()
+                        .withMatcher(
+                                "identifier",
+                                ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()
+                        )
+        );
 
         Page<Node> page =
                 new PageImpl<>(List.of(node));
 
         Mockito.when(
-                nodeRepository
-                        .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                "N1",
-                                pageable
-                        )
+                nodeRepository.findAll(Mockito.any(Example.class), Mockito.eq(pageable))
         ).thenReturn(page);
 
         Mockito.when(
@@ -297,7 +303,7 @@ class NodeServiceTest {
         ).thenReturn(new NodeDto());
 
         Page<NodeDto> response =
-                nodeService.findAll("N1", pageable);
+                nodeService.findAll(example, pageable);
 
         Assertions.assertEquals(
                 1,

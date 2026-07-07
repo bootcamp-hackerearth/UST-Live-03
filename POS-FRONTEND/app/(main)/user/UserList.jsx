@@ -80,8 +80,7 @@ const UserList = () => {
           data={users}
           loading={loading}
           searchTerm={search}
-          setSearchTerm={setSearch}
-          onSearchChange={(value) => {
+          setSearchTerm={(value) => {
             setSearch(value);
             setPage(0);
           }}
@@ -93,14 +92,6 @@ const UserList = () => {
             api.delete("/api/user/delete", { params: { username } })
           }
           deleteIdentifierField="username"
-          filterFunction={(user, searchTerm) =>
-            user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.roles
-              ?.join(",")
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())
-          }
           pagination={{
             page,
             totalPage,

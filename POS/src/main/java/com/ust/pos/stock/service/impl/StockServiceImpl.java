@@ -7,6 +7,7 @@ import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.StockService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -118,16 +119,8 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public Page<StockDto> findAll(String search, Pageable pageable) {
-        Page<Stock> stockPage;
-        if(search != null && !search.trim().isEmpty())
-        {
-            stockPage = stockRepository.findByIdentifierContainingIgnoreCaseAndDeletedFalse(search, pageable);
-        }
-        else
-        {
-            stockPage = stockRepository.findByDeletedFalse(pageable);
-        }
+    public Page<StockDto> findAll(Example<Stock> example, Pageable pageable) {
+        Page<Stock> stockPage = stockRepository.findAll(example,pageable);
         return stockPage.map(stock -> modelMapper.map(stock, StockDto.class));
     }
 }

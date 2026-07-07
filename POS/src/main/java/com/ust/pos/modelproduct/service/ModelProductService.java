@@ -2,6 +2,8 @@ package com.ust.pos.modelproduct.service;
 
 import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.ModelProduct;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,7 +22,7 @@ public interface ModelProductService {
 
     void delete(String identifier);
 
-    Page<ModelProductDto> findAll(String search, Pageable pageable);
+    Page<ModelProductDto> findAll(Example<ModelProduct> example, Pageable pageable);
 
     void toggleStatus(String identifier);
 }

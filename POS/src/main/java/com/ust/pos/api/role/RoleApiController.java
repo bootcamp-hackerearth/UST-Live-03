@@ -4,14 +4,18 @@ import com.ust.pos.api.BaseController;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Role;
 import com.ust.pos.role.service.RoleService;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/role")
+@PreAuthorize("hasAnyAuthority('Admin')")
 public class RoleApiController extends BaseController {
 
     private final RoleService roleService;
@@ -21,10 +25,11 @@ public class RoleApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    public WsDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
+    public WsDto<RoleDto> home(@RequestBody PaginationDto paginationDto) throws Exception {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(), paginationDto.getSortDirection(), paginationDto.getSortField());
-        Page<RoleDto> pageResult = roleService.findAll(paginationDto.getSearch(), pageable);
 
+        Example<Role> example = buildSearchProbe(Role.class, paginationDto.getSearch());
+        Page<RoleDto> pageResult = roleService.findAll(example, pageable);
         WsDto<RoleDto> response = new WsDto<>();
 
         response.setDtoList(pageResult.getContent());
