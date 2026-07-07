@@ -10,12 +10,14 @@ export default function StockListPage() {
   const router = useRouter();
   const [stocks, setStocks] = useState([]);
 
-  const fetchStocks = async () => {
+  const fetchStocks = async (keyword = "") => {
     try {
       const res = await axios.post("/stock/list", {
         page: 0,
-        sizePerPage: 50
+        sizePerPage: 50,
+        keyword,
       });
+
       setStocks(res.data?.content || []);
     } catch (e) {
       console.log(e);
@@ -26,6 +28,10 @@ export default function StockListPage() {
   useEffect(() => {
     fetchStocks();
   }, []);
+
+  const handleSearch = (keyword) => {
+    fetchStocks(keyword);
+  };
 
   const handleEdit = (row) => {
     router.push(`/dashboard/stock/edit/${row.identifier}`);
@@ -78,10 +84,10 @@ export default function StockListPage() {
       <CommonList
         data={stocks}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-
     </div>
   );
 }

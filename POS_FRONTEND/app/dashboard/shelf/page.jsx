@@ -11,22 +11,28 @@ export default function ShelfListPage() {
     const router = useRouter();
     const [shelves, setShelves] = useState([]);
 
-    const fetchShelves = async () => {
-        try {
-            const res = await axios.post("/shelf/list", {
-                page: 0,
-                sizePerPage: 50
-            });
-            setShelves(res.data.content || []);
-        } catch (e) {
-            console.log(e);
-            setShelves([]);
-        }
-    };
+    const fetchShelves = async (keyword = "") => {
+    try {
+        const res = await axios.post("/shelf/list", {
+            page: 0,
+            sizePerPage: 50,
+            keyword,
+        });
+
+        setShelves(res.data.content || []);
+    } catch (e) {
+        console.log(e);
+        setShelves([]);
+    }
+};
 
     useEffect(() => {
         fetchShelves();
     }, []);
+
+    const handleSearch = (keyword) => {
+    fetchShelves(keyword);
+};
 
     const toggleStatus = async (row) => {
         try {
@@ -100,11 +106,13 @@ export default function ShelfListPage() {
             </div>
 
             <CommonList
-                data={shelves}
-                columns={columns}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-            />
+    data={shelves}
+    columns={columns}
+    onSearch={handleSearch}
+    onEdit={handleEdit}
+    onDelete={handleDelete}
+/>
+
 
         </div>
     );

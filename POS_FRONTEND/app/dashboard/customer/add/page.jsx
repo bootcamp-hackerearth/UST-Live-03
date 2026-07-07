@@ -62,7 +62,7 @@ export default function AddCustomer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     try {
       await axios.post("/customer/add", form);
       alert("Customer created successfully");
@@ -85,9 +85,10 @@ export default function AddCustomer() {
           <input
             id="identifier"
             name="identifier"
+            type="email"
             value={form.identifier}
             onChange={handleChange}
-            type="email"
+            title="Enter a valid email address"
             className="w-full border p-2 rounded mt-1 mb-3"
             required={true}
           />
@@ -98,6 +99,8 @@ export default function AddCustomer() {
             name="customerName"
             value={form.customerName}
             onChange={handleChange}
+            pattern="[A-Za-z ]+"
+            title="Only alphabets are allowed"
             className="w-full border p-2 rounded mt-1 mb-3"
             required={true}
           />
@@ -119,8 +122,12 @@ export default function AddCustomer() {
           <input
             id="phoneNo"
             name="phoneNo"
+            type="tel"
             value={form.phoneNo}
             onChange={handleChange}
+            pattern="[0-9]{10}"
+            maxLength={10}
+            title="Phone number must contain exactly 10 digits"
             className="w-full border p-2 rounded mt-1 mb-3"
             required={true}
           />
@@ -131,6 +138,8 @@ export default function AddCustomer() {
               <input
                 id="balance"
                 name="balance"
+                type="number"
+                min="0"
                 value={form.balance}
                 onChange={handleChange}
                 className="w-full border p-2 rounded mt-1"
@@ -143,6 +152,8 @@ export default function AddCustomer() {
               <input
                 id="creditLimit"
                 name="creditLimit"
+                type="number"
+                min="0"
                 value={form.creditLimit}
                 onChange={handleChange}
                 className="w-full border p-2 rounded mt-1"
@@ -174,9 +185,12 @@ export default function AddCustomer() {
                   name="billingAddress.city"
                   value={form.billingAddress.city}
                   onChange={handleChange}
+                  pattern="[A-Za-z ]+"
+                  title="Only alphabets are allowed"
                   className="w-full border p-2 rounded mt-1"
                   required={true}
                 />
+
               </div>
 
               <div>
@@ -186,9 +200,12 @@ export default function AddCustomer() {
                   name="billingAddress.state"
                   value={form.billingAddress.state}
                   onChange={handleChange}
+                  pattern="[A-Za-z ]+"
+                  title="Only alphabets are allowed"
                   className="w-full border p-2 rounded mt-1"
                   required={true}
                 />
+
               </div>
 
               <div>
@@ -198,6 +215,9 @@ export default function AddCustomer() {
                   name="billingAddress.zipcode"
                   value={form.billingAddress.zipcode}
                   onChange={handleChange}
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  title="Zipcode must contain exactly 6 digits"
                   className="w-full border p-2 rounded mt-1"
                   required={true}
                 />
@@ -210,6 +230,8 @@ export default function AddCustomer() {
                   name="billingAddress.country"
                   value={form.billingAddress.country}
                   onChange={handleChange}
+                  pattern="[A-Za-z ]+"
+                  title="Only alphabets are allowed"
                   className="w-full border p-2 rounded mt-1"
                   required={true}
                 />
@@ -240,6 +262,8 @@ export default function AddCustomer() {
                   name="shippingAddress.city"
                   value={form.shippingAddress.city}
                   onChange={handleChange}
+                  pattern="[A-Za-z ]+"
+                  title="Only alphabets are allowed"
                   className="w-full border p-2 rounded mt-1"
                   required={true}
                 />
@@ -252,9 +276,12 @@ export default function AddCustomer() {
                   name="shippingAddress.state"
                   value={form.shippingAddress.state}
                   onChange={handleChange}
+                  pattern="[A-Za-z ]+"
+                  title="Only alphabets are allowed"
                   className="w-full border p-2 rounded mt-1"
                   required={true}
                 />
+
               </div>
 
               <div>
@@ -264,9 +291,13 @@ export default function AddCustomer() {
                   name="shippingAddress.zipcode"
                   value={form.shippingAddress.zipcode}
                   onChange={handleChange}
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  title="Zipcode must contain exactly 6 digits"
                   className="w-full border p-2 rounded mt-1"
                   required={true}
                 />
+
               </div>
 
               <div>
@@ -276,6 +307,8 @@ export default function AddCustomer() {
                   name="shippingAddress.country"
                   value={form.shippingAddress.country}
                   onChange={handleChange}
+                  pattern="[A-Za-z ]+"
+                  title="Only alphabets are allowed"
                   className="w-full border p-2 rounded mt-1"
                   required={true}
                 />

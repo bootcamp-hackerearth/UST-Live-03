@@ -109,6 +109,8 @@ export default function UserListPage() {
           router.push(`/dashboard/user/edit/${row.username}`)
         }
         onDelete={async (row) => {
+          if (!confirm("Delete this User?")) return;
+
           try {
             await axios.delete(
               `/user/delete?username=${row.username}`

@@ -97,8 +97,7 @@ public class AddressServiceImpl extends BaseService implements AddressService {
 
     @Override
     public void deleteByPhoneNo(String phoneNo) {
-        Address address = addressRepository.findByPhoneNo(phoneNo);
-        setModifiedDetails(address);
-        softDelete(address);
+        List<Address> address = addressRepository.findByPhoneNo(phoneNo);
+        addressRepository.deleteAll(address);
     }
 }

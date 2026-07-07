@@ -5,6 +5,7 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
@@ -41,7 +42,7 @@ public class CartServiceImpl extends BaseService implements CartService {
         Cart cart = cartRepository.findByIdentifier(identifier);
 
         if (cart == null) {
-            return null;
+            throw new ResourceNotFoundException("Data cannot found");
         }
 
         return modelMapper.map(cart, CartDto.class);

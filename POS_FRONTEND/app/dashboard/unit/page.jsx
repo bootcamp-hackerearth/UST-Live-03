@@ -26,12 +26,14 @@ export default function UnitListPage() {
     });
   };
 
-  const fetchUnits = async () => {
+  const fetchUnits = async (keyword = "") => {
     try {
       const res = await axios.post("/unit/list", {
         page: 0,
-        sizePerPage: 50
+        sizePerPage: 50,
+        keyword,
       });
+
       setUnits(normalizeUnits(res.data?.content || []));
     } catch (e) {
       console.log(e);
@@ -42,6 +44,11 @@ export default function UnitListPage() {
   useEffect(() => {
     fetchUnits();
   }, []);
+
+  const handleSearch = (keyword) => {
+    console.log("SEARCH =", keyword);
+    fetchUnits(keyword);
+  };
 
   const toggleStatus = async (row) => {
     try {
@@ -109,6 +116,7 @@ export default function UnitListPage() {
       <CommonList
         data={units}
         columns={columns}
+        onSearch={handleSearch}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

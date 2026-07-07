@@ -114,14 +114,37 @@ export default function CartPage() {
 
   const loadCart = async (customerId) => {
     if (!customerId) return;
+
     setLoading(true);
+
     try {
-      const cartRes = await axios.get(`/cart/get?identifier=${customerId}`);
-      const cartData = cartRes.data;
+      let cartRes = await axios.get(
+        `/cart/get?identifier=${customerId}`
+      );
+
+      let cartData = cartRes.data;
+
+      if (!cartData) {
+        const createRes = await axios.post("/cart/add", {
+          identifier: customerId,
+        });
+
+        cartData = createRes.data;
+      }
+
       setCart(cartData);
-      const entryRes = await axios.post("/cartEntry/list", { page: 0, sizePerPage: 200 });
+
+      const entryRes = await axios.post("/cartEntry/list", {
+        page: 0,
+        sizePerPage: 200
+      });
+
       const all = entryRes.data?.content || [];
-      setEntries(all.filter((e) => e.cartId === cartData.identifier));
+
+      setEntries(
+        all.filter((e) => e.cartId === cartData.identifier)
+      );
+
     } finally {
       setLoading(false);
     }
@@ -781,7 +804,9 @@ export default function CartPage() {
             </button>
 
             <button
-              onClick={() => router.push(`/dashboard/orders/customers/${row.customerId}`)}
+              onClick={() =>
+                router.push(`/dashboard/orders/customers/${selectedCustomerId}`)
+              }
               className="btn-add-customer"
             >
               Orders

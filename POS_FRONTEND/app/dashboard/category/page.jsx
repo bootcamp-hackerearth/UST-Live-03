@@ -77,7 +77,7 @@ export default function CategoryListPage() {
   };
 
   const handleDelete = async (row) => {
-    if (!confirm("Delete Category?")) return;
+    if (!confirm("Delete this Category?")) return;
 
     await axios.delete(
       `/category/delete?identifier=${row.identifier}`

@@ -38,6 +38,9 @@ export default function BrandPage() {
   };
 
   const handleDelete = async (row) => {
+
+    if (!confirm("Delete this Brand?")) return;
+
     try {
       await axios.get(`/brand/delete?identifier=${row.identifier}`);
       fetchBrands();

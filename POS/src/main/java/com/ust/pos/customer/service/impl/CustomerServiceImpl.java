@@ -113,9 +113,9 @@ public class CustomerServiceImpl extends BaseService implements CustomerService 
     @Override
     public void delete(String identifier) {
         Customer customer = customerRepository.findByIdentifier(identifier);
-        addressService.deleteByPhoneNo(customer.getPhoneNo());
         setModifiedDetails(customer);
         softDelete(customer);
+        addressService.deleteByPhoneNo(customer.getPhoneNo());
     }
 
     @Override

@@ -1,8 +1,8 @@
 package com.ust.pos.api.shelf;
 
 import com.ust.pos.api.BaseController;
-import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.PaginationDto;
+import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.shelf.service.ShelfService;

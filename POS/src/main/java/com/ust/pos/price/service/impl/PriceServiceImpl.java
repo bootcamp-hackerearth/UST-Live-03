@@ -3,6 +3,7 @@ package com.ust.pos.price.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -47,7 +48,13 @@ public class PriceServiceImpl extends BaseService implements PriceService {
 
     @Override
     public PriceDto findByIdentifier(String identifier) {
-        return modelMapper.map(priceRepository.findByIdentifier(identifier), PriceDto.class);
+        Price price = priceRepository.findByIdentifier(identifier);
+
+        if (price == null) {
+            throw new ResourceNotFoundException("Data cannot found");
+        }
+
+        return modelMapper.map(price, PriceDto.class);
     }
 
     @Override

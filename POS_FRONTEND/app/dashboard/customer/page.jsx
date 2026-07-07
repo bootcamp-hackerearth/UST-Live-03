@@ -121,13 +121,18 @@ export default function CustomerPage() {
             `/dashboard/customer/edit/${row.identifier}`
           )
         }
-        onDelete={(row) =>
-          axios
-            .delete("/customer/delete", {
-              params: { identifier: row.identifier },
-            })
-            .then(() => fetchCustomers())
-        }
+        onDelete={async (row) => {
+          if (!confirm("Delete this Customer?")) return;
+
+          try {
+            await axios.delete(
+              `/customer/delete?identifier=${row.identifier}`
+            );
+            fetchCustomers();
+          } catch (err) {
+            console.log(err);
+          }
+        }}
       />
     </div>
   );

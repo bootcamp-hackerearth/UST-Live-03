@@ -11,7 +11,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     void deleteByPhoneNo(String phoneNo);
 
-    Address findByPhoneNo(String phoneNo);
+    List<Address> findByPhoneNo(String phoneNo);
 
     List<Address> findByIsDeletedFalse();
 }

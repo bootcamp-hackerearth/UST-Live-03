@@ -3,6 +3,7 @@ package com.ust.pos.rack.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.RackService;
@@ -50,7 +51,13 @@ public class RackServiceImpl extends BaseService implements RackService {
 
     @Override
     public RackDto findByIdentifier(String identifier) {
-        return modelMapper.map(rackRepository.findByIdentifier(identifier), RackDto.class);
+        Rack rack = rackRepository.findByIdentifier(identifier);
+
+        if (rack == null) {
+            throw new ResourceNotFoundException("Data cannot found");
+        }
+
+        return modelMapper.map(rack, RackDto.class);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.Unit;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -21,4 +22,6 @@ public interface UnitService {
     void toggleStatus(String identifier);
 
     List<Unit> findActiveUnit();
+
+    WsDto<UnitDto> findAll(Specification<Unit> example, Pageable pageable);
 }

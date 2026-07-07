@@ -73,7 +73,6 @@ export default function EditCustomer() {
     e.preventDefault();
 
     try {
-
       await axios.put(
         "/customer/update",
         form
@@ -120,6 +119,8 @@ export default function EditCustomer() {
             name="customerName"
             value={form.customerName || ""}
             onChange={handleChange}
+            pattern="[A-Za-z ]+"
+            title="Only alphabets are allowed"
             className="w-full border p-2 rounded mt-1 mb-3"
             required={true}
           />
@@ -141,8 +142,12 @@ export default function EditCustomer() {
           <input
             id="phoneNo"
             name="phoneNo"
+            type="tel"
             value={form.phoneNo || ""}
             onChange={handleChange}
+            pattern="[0-9]{10}"
+            maxLength={10}
+            title="Phone number must contain exactly 10 digits"
             className="w-full border p-2 rounded mt-1 mb-3"
             required={true}
           />
@@ -153,11 +158,14 @@ export default function EditCustomer() {
               <input
                 id="balance"
                 name="balance"
+                type="number"
+                min="0"
                 value={form.balance || ""}
                 onChange={handleChange}
                 className="w-full border p-2 rounded mt-1"
                 required={true}
               />
+
             </div>
 
             <div>
@@ -165,6 +173,8 @@ export default function EditCustomer() {
               <input
                 id="creditLimit"
                 name="creditLimit"
+                type="number"
+                min="0"
                 value={form.creditLimit || ""}
                 onChange={handleChange}
                 className="w-full border p-2 rounded mt-1"
@@ -211,6 +221,9 @@ export default function EditCustomer() {
                 value={form.billingAddress?.zipcode || ""}
                 onChange={handleChange}
                 placeholder="Zipcode"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                title="Zipcode must contain exactly 6 digits"
                 className="border p-2 rounded"
                 required={true}
               />
@@ -264,6 +277,9 @@ export default function EditCustomer() {
                 value={form.shippingAddress?.zipcode || ""}
                 onChange={handleChange}
                 placeholder="Zipcode"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                title="Zipcode must contain exactly 6 digits"
                 className="border p-2 rounded"
                 required={true}
               />

@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -143,13 +144,18 @@ class AddressServiceTest {
 
     @Test
     void deleteByPhoneNoTest() {
-        Address address = new Address();
-        address.setDeleted(false);
 
-        when(addressRepository.findByPhoneNo("123")).thenReturn(address);
+        Address address = new Address();
+        address.setPhoneNo("123");
+
+        List<Address> addressList = Collections.singletonList(address);
+
+        when(addressRepository.findByPhoneNo("123"))
+                .thenReturn(addressList);
 
         service.deleteByPhoneNo("123");
 
-        assertTrue(address.isDeleted());
+        verify(addressRepository).findByPhoneNo("123");
+        verify(addressRepository).deleteAll(addressList);
     }
 }

@@ -4,6 +4,7 @@ import com.ust.pos.base.service.BaseService;
 import com.ust.pos.category.service.CategoryService;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -50,7 +51,13 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
 
     @Override
     public CategoryDto findByIdentifier(String identifier) {
-        return modelMapper.map(categoryRepository.findByIdentifier(identifier), CategoryDto.class);
+        Category category = categoryRepository.findByIdentifier(identifier);
+
+        if (category == null) {
+            throw new ResourceNotFoundException("Data cannot found");
+        }
+
+        return modelMapper.map(category, CategoryDto.class);
     }
 
     @Override

@@ -2,40 +2,44 @@
 
 import { useEffect, useState } from "react";
 import axios from "@/config/axiosConfig";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export default function FilteredOrdersPage() {
 
   const [orders, setOrders] = useState([]);
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const params = useParams();
 
-  const customerId = searchParams.get("customer");
+const customerId = decodeURIComponent(
+  params.customerId || ""
+);
 
   useEffect(() => {
     fetchOrders();
   }, [customerId]);
 
   const fetchOrders = async () => {
-    try {
-      const res = await axios.post("/order/list", {
-        page: 0,
-        sizePerPage: 50
-      });
+  try {
+    const res = await axios.post("/order/list", {
+      page: 0,
+      sizePerPage: 50
+    });
 
-      let data = res.data?.content || [];
+    let data = res.data?.content || [];
 
-      if (customerId) {
-        data = data.filter(
-          (order) => order.customerId === customerId
-        );
-      }
+    console.log(data);
 
-      setOrders(data);
-    } catch (err) {
-      console.log(err);
+    if (customerId) {
+      data = data.filter(
+        (order) => order.customerId === customerId
+      );
     }
-  };
+
+    setOrders(data);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 p-5">
@@ -47,15 +51,14 @@ export default function FilteredOrdersPage() {
             : "All Orders"}
         </h1>
 
-        {customerId && (
           <button
-            onClick={() => router.push("/dashboard/orders")}
-            className="text-sm text-blue-600 underline"
+            onClick={() => router.back()}
+            className="px-3 py-1 bg-gray-200 rounded-lg text-sm hover:bg-gray-300"
           >
-            Clear Filter
+            Back
           </button>
-        )}
-      </div>
+        </div>
+     
 
       {orders.length === 0 ? (
         <div className="bg-white p-6 text-center text-gray-400 rounded">

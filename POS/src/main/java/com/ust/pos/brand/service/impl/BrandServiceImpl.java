@@ -112,6 +112,7 @@ public class BrandServiceImpl extends BaseService implements BrandService {
             brandRepository.save(brand);
         }
     }
+
     @Override
     public WsDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
 

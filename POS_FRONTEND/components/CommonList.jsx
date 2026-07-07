@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Edit, Trash2 } from "lucide-react";
 
@@ -9,12 +9,23 @@ export default function CommonList({
   columns = [],
   onEdit,
   onDelete,
-  onSearch
+  onSearch,
 }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
   const pageSize = 5;
+
+  const totalPages = Math.ceil(data.length / pageSize);
+
+  const paginatedData = data.slice(
+    page * pageSize,
+    page * pageSize + pageSize
+  );
+
+  useEffect(() => {
+    setPage(0);
+  }, [data]);
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -24,6 +35,8 @@ export default function CommonList({
           placeholder="Search..."
           value={search}
           onChange={(e) => {
+            console.log("INPUT =", e.target.value);
+
             const keyword = e.target.value;
             setSearch(keyword);
             setPage(0);
@@ -55,7 +68,7 @@ export default function CommonList({
           </thead>
 
           <tbody>
-            {data.length === 0 ? (
+            {paginatedData.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
@@ -65,7 +78,7 @@ export default function CommonList({
                 </td>
               </tr>
             ) : (
-              data.map((row) => (
+              paginatedData.map((row) => (
                 <tr
                   key={
                     row.identifier ||
@@ -126,26 +139,31 @@ export default function CommonList({
         </table>
       </div>
 
-      <div className="flex justify-center items-center gap-3 p-4">
-        <button
-          onClick={() => setPage((p) => Math.max(p - 1, 0))}
-          disabled={page === 0}
-          className="bg-gray-400 text-white px-3 py-1 rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
+      {data.length > 0 && (
+        <div className="flex justify-center items-center gap-4 p-4">
+          <button
+            onClick={() => setPage((p) => Math.max(p - 1, 0))}
+            disabled={page === 0}
+            className="bg-gray-400 text-white px-3 py-1 rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
 
-        <span className="text-sm text-slate-600">
-          Page {page + 1}
-        </span>
+          <span className="text-sm text-slate-600">
+            Page {page + 1} of {totalPages}
+          </span>
 
-        <button
-          onClick={() => setPage((p) => p + 1)}
-          className="bg-blue-500 text-white px-3 py-1 rounded"
-        >
-          Next
-        </button>
-      </div>
+          <button
+            onClick={() =>
+              setPage((p) => Math.min(p + 1, totalPages - 1))
+            }
+            disabled={page >= totalPages - 1}
+            className="bg-blue-500 text-white px-3 py-1 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -157,6 +175,7 @@ CommonList.propTypes = {
       accessor: PropTypes.string,
       header: PropTypes.string,
       render: PropTypes.func,
+      cell: PropTypes.func,
     })
   ),
   onEdit: PropTypes.func,
