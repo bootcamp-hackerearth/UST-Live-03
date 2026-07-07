@@ -27,7 +27,7 @@ export default function Register() {
  const fetchRoles = async () => {
   try {
     const res = await axios.post(
-      "http://localhost:8080/api/role/list",
+      "/api/role/list",
       {
         page: 0,
         sizePerPage: 50,
@@ -120,7 +120,7 @@ if (userPassword !== confirmUserPassword) {
     if (!validateForm()) return;
 
     try {
-      await axios.post("http://localhost:8080/api/user/register", {
+      await axios.post("/api/user/register", {
         username: formData.username,
         name: formData.name,
         phoneNo: formData.phoneNo,
