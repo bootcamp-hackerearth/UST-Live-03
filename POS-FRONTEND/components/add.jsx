@@ -86,10 +86,16 @@ function Add({
       return "Identifier is required.";
 
     for (const field of extraFields) {
-      const value =
-        field.type === "custom"
-          ? customFormData[field.key]
-          : rawDomData[field.key];
+      let value;
+      if (field.type === "custom") {
+        if (customFormData[field.key] !== undefined) {
+          value = customFormData[field.key];
+        } else {
+          value = extraData[field.key];
+        }
+      } else {
+        value = rawDomData[field.key];
+      }
       const err = validateField(field, value);
       if (err) return err;
     }
