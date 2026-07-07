@@ -50,6 +50,7 @@ public class PriceServiceImpl extends BaseService implements PriceService {
             priceDto.setSuccess(false);
             return priceDto;
         }
+        priceDto.setProduct(product.getName());
         Price newPrice = modelMapper.map(priceDto, Price.class);
         setCreatedDetails(newPrice);
         setModifiedDetails(newPrice);
