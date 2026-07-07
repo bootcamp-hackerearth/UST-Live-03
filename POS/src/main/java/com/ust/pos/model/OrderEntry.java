@@ -13,16 +13,10 @@ import java.math.BigDecimal;
 @Table(name = "order_entry")
 public class OrderEntry extends CommonFields {
     private String orderIdentifier;
-
     private String productIdentifier;
-
     private BigDecimal quantity;
-
     private BigDecimal unitPrice;
-
     private BigDecimal originalPrice;
-
     private BigDecimal discount;
-
     private BigDecimal totalPrice;
 }

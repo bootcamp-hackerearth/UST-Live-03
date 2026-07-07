@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.Type;
@@ -208,5 +210,30 @@ class UserServiceTest {
                 .thenReturn(List.of());
         WsDto<UserDto> response = userService.findAll(pageable);
         Assertions.assertTrue(response.getDtoList().isEmpty());
+    }
+
+    @Test
+    void findByUserNameNotFoundTest() {
+        Mockito.when(userRepository.findByUsernameAndDeletedFalse("admin"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> userService.findByUserName("admin")
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationEmptyTest() {
+        Pageable pageable = PageRequest.of(0, 5);
+        Specification<User> specification = Mockito.mock(Specification.class);
+        Page<User> page = new PageImpl<>(List.of());
+        Mockito.when(userRepository.findAll(specification, pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class)))
+                .thenReturn(List.of());
+        WsDto<UserDto> response =
+                userService.findAll(specification, pageable);
+        Assertions.assertTrue(response.getDtoList().isEmpty());
+        Assertions.assertEquals(0, response.getTotalRecords());
     }
 }

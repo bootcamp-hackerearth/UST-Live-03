@@ -1,4 +1,3 @@
-// app/customer/customerUtils.js
 
 export const buildCustomerPayload = (formData) => {
   const phone = Number(formData.phoneNo || 0);

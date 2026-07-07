@@ -1,9 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
-
+function StockEdit() {
   const fields = [
     {
       name: "identifier",
@@ -11,16 +11,14 @@ export default function Page() {
       type: "text",
       readOnly: true,
     },
-
     {
       name: "product",
       label: "Product",
-      type: "singleDropdown",   
+      type: "singleDropdown",
       api: "/product/list-active",
       required: true,
       readOnly: true,
     },
-
     {
       name: "warehouse",
       label: "Warehouse",
@@ -29,13 +27,11 @@ export default function Page() {
       required: true,
       readOnly: true,
     },
-
     {
       name: "quantity",
       label: "Quantity",
       type: "number",
     },
-
     {
       name: "minimumstock",
       label: "Minimum Stock Level",
@@ -49,5 +45,13 @@ export default function Page() {
       fields={fields}
       identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <StockEdit />
+    </Suspense>
   );
 }

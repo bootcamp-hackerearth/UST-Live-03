@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ShelfDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Shelf;
 import com.ust.pos.model.ShelfRepository;
 import com.ust.pos.shelf.service.impl.ShelfServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -157,5 +159,33 @@ class ShelfServiceTest {
         Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class))).thenReturn(dtoList);
         List<ShelfDto> response = shelfService.findAllActive();
         Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(shelfRepository.findByIdentifierAndDeletedFalse("S1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> shelfService.findByIdentifier("S1")
+        );
+    }
+    @Test
+    void findAllWithSpecificationTest() {
+        Shelf shelf = new Shelf();
+        ShelfDto dto = new ShelfDto();
+        List<Shelf> list = List.of(shelf);
+        List<ShelfDto> dtoList = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Shelf> page = new PageImpl<>(list);
+        Specification<Shelf> specification = Mockito.mock(Specification.class);
+        Mockito.when(shelfRepository.findAll(specification, pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<ShelfDto> response = shelfService.findAll(specification, pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
     }
 }

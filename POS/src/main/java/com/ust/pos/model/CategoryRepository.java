@@ -2,12 +2,12 @@ package com.ust.pos.model;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
-
     Category findByIdentifier(String identifier);
 
     Category findByIdentifierAndDeletedFalse(String identifier);
@@ -19,4 +19,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByStatusAndDeletedFalse(boolean status);
 
     boolean existsBySuperCategoryAndDeletedFalse(String identifier);
+
+    Page<Category> findAll(Specification<Category> example, Pageable pageable);
 }

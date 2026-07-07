@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -245,5 +246,33 @@ class CustomerServiceTest {
                 .save(Mockito.any());
         Mockito.verify(addressService, Mockito.never())
                 .deleteByPhone(Mockito.any());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Customer customer = new Customer();
+        List<Customer> customers = List.of(customer);
+        Page<Customer> page = new PageImpl<>(customers, pageable, customers.size());
+        @SuppressWarnings("unchecked")
+        Specification<Customer> specification = Mockito.mock(Specification.class);
+        List<CustomerDto> dtoList = List.of(new CustomerDto());
+        Mockito.when(customerRepository.findAll(specification, pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.<java.lang.reflect.Type>any()))
+                .thenReturn(dtoList);
+        WsDto<CustomerDto> response = customerService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(customerRepository).findAll(specification, pageable);
+        Mockito.verify(modelMapper).map(
+                Mockito.eq(page.getContent()),
+                Mockito.<java.lang.reflect.Type>any());
     }
 }

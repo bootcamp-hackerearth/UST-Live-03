@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
 import com.ust.pos.role.service.impl.RoleServiceImpl;
@@ -129,5 +130,37 @@ class RoleServiceTest {
         WsDto<RoleDto> response = roleService.findAll(pageable);
         Assertions.assertEquals(1, response.getDtoList().size());
         Assertions.assertEquals(1, response.getTotalRecords());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(roleRepository.findByIdentifierAndDeletedFalse("Admin"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> roleService.findByIdentifier("Admin")
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Role> page = new PageImpl<>(List.of(new Role()));
+        List<RoleDto> dtoList = List.of(new RoleDto());
+        Mockito.when(roleRepository.findAll(
+                        Mockito.<org.springframework.data.jpa.domain.Specification<Role>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<RoleDto> response =
+                roleService.findAll(
+                        Mockito.mock(org.springframework.data.jpa.domain.Specification.class),
+                        pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
     }
 }

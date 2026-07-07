@@ -50,7 +50,6 @@ public class AddressServiceImpl extends BaseService implements AddressService {
                         addressDto.getPhoneNo(),
                         addressDto.getAddressType()
                 );
-
         if (existingAddress != null) {
             addressDto.setMessage(
                     "Address with identifier - " + addressDto.getAddressType() + " already exists"

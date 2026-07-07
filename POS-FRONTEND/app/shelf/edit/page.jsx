@@ -1,18 +1,17 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
-
+function ShelfEdit() {
   const fields = [
     {
       name: "identifier",
       label: "Shelf Name",
       type: "text",
-      readOnly: true, 
+      readOnly: true,
     },
-
-     {
+    {
       name: "description",
       label: "Description",
       type: "text",
@@ -25,5 +24,13 @@ export default function Page() {
       fields={fields}
       identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ShelfEdit />
+    </Suspense>
   );
 }

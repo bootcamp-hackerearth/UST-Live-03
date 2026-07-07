@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.StockDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Stock;
 import com.ust.pos.model.StockRepository;
 import com.ust.pos.stock.service.impl.StockServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -133,5 +135,34 @@ class StockServiceTest {
         Mockito.when(modelMapper.map(stock, StockDto.class)).thenReturn(dto);
         StockDto response = stockService.findByIdentifier("S1");
         Assertions.assertNotNull(response);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(stockRepository.findByIdentifierAndDeletedFalse("S1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> stockService.findByIdentifier("S1")
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Stock stock = new Stock();
+        StockDto dto = new StockDto();
+        List<Stock> list = List.of(stock);
+        List<StockDto> dtoList = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Stock> page = new PageImpl<>(list);
+        Specification<Stock> specification = Mockito.mock(Specification.class);
+        Mockito.when(stockRepository.findAll(specification, pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<StockDto> response = stockService.findAll(specification, pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
     }
 }

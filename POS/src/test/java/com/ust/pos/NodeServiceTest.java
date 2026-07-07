@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -217,5 +218,37 @@ class NodeServiceTest {
         Mockito.when(nodeRepository.findByDeletedFalse(Pageable.unpaged())).thenReturn(page);
         List<NodeDto> response = nodeService.getNodesForRoles();
         Assertions.assertTrue(response.isEmpty());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Node> page = new PageImpl<>(List.of(new Node()), pageable, 1);
+        Mockito.when(nodeRepository.findAll(
+                        Mockito.<org.springframework.data.jpa.domain.Specification<Node>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
+        List<NodeDto> dtoList = List.of(new NodeDto());
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<NodeDto> result =
+                nodeService.findAll(Mockito.mock(org.springframework.data.jpa.domain.Specification.class), pageable);
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(nodeRepository.findByIdentifierAndDeletedFalse("N1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> nodeService.findByIdentifier("N1")
+        );
     }
 }

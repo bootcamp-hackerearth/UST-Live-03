@@ -3,10 +3,8 @@ package com.ust.pos.cartentry.service.impl;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartEntryDto;
-import com.ust.pos.model.CartEntry;
-import com.ust.pos.model.CartEntryRepository;
-import com.ust.pos.model.Price;
-import com.ust.pos.model.PriceRepository;
+import com.ust.pos.exception.ResourceNotFoundException;
+import com.ust.pos.model.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -106,10 +104,11 @@ public class CartEntryServiceImpl implements CartEntryService {
 
     @Override
     public CartEntryDto findByIdentifier(String identifier) {
-        return modelMapper.map(
-                cartEntryRepository.findByIdentifier(identifier),
-                CartEntryDto.class
-        );
+        CartEntry cartEntry = cartEntryRepository.findByIdentifier(identifier);
+        if (cartEntry == null) {
+            throw new ResourceNotFoundException("CartEntry with identifier " + identifier + " not found");
+        }
+        return modelMapper.map(cartEntry, CartEntryDto.class);
     }
 
     @Override

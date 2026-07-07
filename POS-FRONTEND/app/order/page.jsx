@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import api from "../api";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function OrderPage() {
+ function OrderContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -14,6 +14,7 @@ export default function OrderPage() {
 
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [keyword, setKeyword] = useState("");
 
   const orderPlacedRef = useRef(false);
 
@@ -48,21 +49,22 @@ export default function OrderPage() {
     };
 
     handleOrderAndLoad();
-  }, [cartId, customerIdentifier, paymentMethod, router, page]);
+ }, [cartId, customerIdentifier, paymentMethod, router, page, keyword]);
 
   const loadOrders = async () => {
-    try {
-      const res = await api.post("/order/list", {
-        page: page,
-        sizePerPage: 10,
-      });
+  try {
+    const res = await api.post("/order/list", {
+      page: page,
+      sizePerPage: 10,
+      keyword: keyword,
+    });
 
-      setOrders(res.data.dtoList || []);
-      setTotalPages(res.data.totalPages || 0);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    setOrders(res.data.dtoList || []);
+    setTotalPages(res.data.totalPages || 0);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const loadOrderDetails = async (identifier) => {
     try {
@@ -86,43 +88,72 @@ export default function OrderPage() {
     >
 
       <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 30,
-        }}
-      >
-        <div>
-          <h1 style={{ fontSize: 36, fontWeight: 700 }}>
-            Orders
-          </h1>
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 30,
+    gap: 20,
+  }}
+>
 
-          <p style={{ color: "#6b7280" }}>
-            {isPlacingOrder
-              ? "Processing your new order..."
-              : "View all placed orders"}
-          </p>
-        </div>
+  <div>
+    <h1 style={{ fontSize: 36, fontWeight: 700 }}>
+      Orders
+    </h1>
 
-        <div
-          style={{
-            background: "#fff",
-            padding: 20,
-            borderRadius: 16,
-            border: "1px solid #e5e7eb",
-            width: 150,
-            textAlign: "center",
-          }}
-        >
-          <div style={{ color: "#6b7280" }}>
-            Total Orders
-          </div>
+    <p style={{ color: "#6b7280" }}>
+      {isPlacingOrder
+        ? "Processing your new order..."
+        : "View all placed orders"}
+    </p>
+  </div>
 
-          <div style={{ fontSize: 30, fontWeight: 700 }}>
-            {orders.length}
-          </div>
-        </div>
-      </div>
+  <div
+    style={{
+      flex: 1,
+      display: "flex",
+      justifyContent: "center",
+    }}
+  >
+    <input
+      type="text"
+      placeholder="Search orders..."
+      value={keyword}
+      onChange={(e) => {
+        setPage(0);
+        setKeyword(e.target.value);
+      }}
+      style={{
+        width: "350px",
+        padding: "10px 15px",
+        border: "1px solid #d1d5db",
+        borderRadius: "8px",
+        outline: "none",
+        fontSize: "14px",
+      }}
+    />
+  </div>
+
+  <div
+    style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 16,
+      border: "1px solid #e5e7eb",
+      width: 150,
+      textAlign: "center",
+    }}
+  >
+    <div style={{ color: "#6b7280" }}>
+      Total Orders
+    </div>
+
+    <div style={{ fontSize: 30, fontWeight: 700 }}>
+      {orders.length}
+    </div>
+  </div>
+</div>
 
       <div
         style={{
@@ -352,3 +383,11 @@ const tdStyle = {
   textAlign: "left",
   borderBottom: "1px solid #eee",
 };
+
+export default function OrderPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrderContent />
+    </Suspense>
+  );
+}

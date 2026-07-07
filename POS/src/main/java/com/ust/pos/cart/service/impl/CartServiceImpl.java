@@ -4,6 +4,7 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
 import jakarta.transaction.Transactional;
@@ -78,10 +79,11 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto findByIdentifier(String identifier) {
-        return modelMapper.map(
-                cartRepository.findByIdentifier(identifier),
-                CartDto.class
-        );
+        Cart cart = cartRepository.findByIdentifier(identifier);
+        if (cart == null) {
+            throw new ResourceNotFoundException("Brand with identifier " + identifier + " not found");
+        }
+        return modelMapper.map(cart, CartDto.class);
     }
 
     @Override

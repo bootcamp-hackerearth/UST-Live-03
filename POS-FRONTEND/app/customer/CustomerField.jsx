@@ -1,4 +1,4 @@
-// helper to generate address fields
+
 const getAddressFields = (prefix, labelPrefix) => [
   {
     name: `${prefix}AddressLine`,

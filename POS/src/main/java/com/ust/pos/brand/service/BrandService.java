@@ -2,7 +2,9 @@ package com.ust.pos.brand.service;
 
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.model.Brand;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -20,4 +22,6 @@ public interface BrandService {
     void updateStatus(String identifier, boolean status);
 
     List<BrandDto> findAllActive();
+
+    WsDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable);
 }

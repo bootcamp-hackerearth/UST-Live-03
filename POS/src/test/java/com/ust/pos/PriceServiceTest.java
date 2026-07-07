@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -83,10 +84,13 @@ class PriceServiceTest {
     }
 
     @Test
-    void findByIdentifierNullTest() {
-        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("P1")).thenReturn(null);
-        PriceDto response = priceService.findByIdentifier("P1");
-        Assertions.assertNull(response);
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(priceRepository.findByIdentifierAndDeletedFalse("P1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> priceService.findByIdentifier("P1")
+        );
     }
 
     @Test
@@ -150,5 +154,28 @@ class PriceServiceTest {
         Mockito.when(modelMapper.map(Mockito.eq(List.of()), Mockito.any(Type.class))).thenReturn(List.of());
         WsDto<PriceDto> response = priceService.findAll(pageable);
         Assertions.assertTrue(response.getDtoList().isEmpty());
+    }
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Price> page = new PageImpl<>(List.of(new Price()), pageable, 1);
+        Mockito.when(priceRepository.findAll(
+                        Mockito.<org.springframework.data.jpa.domain.Specification<Price>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
+        List<PriceDto> dtoList = List.of(new PriceDto());
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<PriceDto> result =
+                priceService.findAll(
+                        Mockito.mock(org.springframework.data.jpa.domain.Specification.class),
+                        pageable);
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
     }
 }

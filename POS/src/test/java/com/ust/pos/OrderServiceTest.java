@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -122,5 +123,34 @@ class OrderServiceTest {
         OrderDto response = orderService.findByIdentifier("O1");
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Order not found", response.getMessage());
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Specification<Order> specification = Mockito.mock(Specification.class);
+        Order order = new Order();
+        OrderDto orderDto = new OrderDto();
+        List<Order> orders = List.of(order);
+        List<OrderDto> orderDtos = List.of(orderDto);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Order> page = new PageImpl<>(orders, pageable, 20);
+        Mockito.when(orderRepository.findAll(specification, pageable))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(orders),
+                        Mockito.any(Type.class)))
+                .thenReturn(orderDtos);
+        WsDto<OrderDto> response =
+                orderService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(20, response.getTotalRecords());
+        Assertions.assertEquals(2, response.getTotalPages());
+        Assertions.assertEquals(10, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Mockito.verify(orderRepository)
+                .findAll(specification, pageable);
+        Mockito.verify(modelMapper)
+                .map(Mockito.eq(orders), Mockito.any(Type.class));
     }
 }

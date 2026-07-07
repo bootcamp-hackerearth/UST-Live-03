@@ -1,8 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
+function UserEdit() {
   const fields = [
     {
       name: "name",
@@ -12,9 +13,9 @@ export default function Page() {
     {
       name: "username",
       label: "Username (Email)",
-      type: "text",             
-      validation: "email",    
-      readOnly: true,  
+      type: "text",
+      validation: "email",
+      readOnly: true,
     },
     {
       name: "roles",
@@ -26,8 +27,23 @@ export default function Page() {
       name: "phoneNo",
       label: "Phone Number",
       type: "text",
-      validation: "phone",      
+      validation: "phone",
     },
   ];
-  return <Edit urlName="user" fields={fields} identifier="identifier" />;
+
+  return (
+    <Edit
+      urlName="user"
+      fields={fields}
+      identifier="identifier"
+    />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <UserEdit />
+    </Suspense>
+  );
 }

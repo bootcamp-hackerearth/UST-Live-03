@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.category.service.impl.CategoryServiceImpl;
 import com.ust.pos.dto.CategoryDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Category;
 import com.ust.pos.model.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -172,11 +174,13 @@ class CategoryServiceTest {
     }
 
     @Test
-    void findByIdentifierNullTest() {
+    void findByIdentifierNotFoundTest() {
         Mockito.when(categoryRepository.findByIdentifierAndDeletedFalse("S1"))
                 .thenReturn(null);
-        CategoryDto response = categoryService.findByIdentifier("S1");
-        Assertions.assertNull(response);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> categoryService.findByIdentifier("S1")
+        );
     }
 
     @Test
@@ -188,5 +192,33 @@ class CategoryServiceTest {
         categoryService.delete("S1");
         Mockito.verify(categoryRepository, Mockito.never())
                 .save(Mockito.any());
+    }
+    @Test
+    void findAllSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Category> specification =
+                Mockito.mock(Specification.class);
+        Category category = new Category();
+        List<Category> categoryList = List.of(category);
+        Page<Category> page =
+                new PageImpl<>(categoryList, pageable, 1);
+        Mockito.when(categoryRepository.findAll(specification, pageable))
+                .thenReturn(page);
+        List<CategoryDto> dtoList =
+                List.of(new CategoryDto());
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(categoryList),
+                        Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<CategoryDto> result =
+                categoryService.findAll(specification, pageable);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Mockito.verify(categoryRepository)
+                .findAll(specification, pageable);
     }
 }

@@ -1,16 +1,17 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 import api from "@/app/api";
 import { useRouter } from "next/navigation";
 
-import { customerFields } from "../CustomerField";;
+import { customerFields } from "../CustomerField";
 import {
   buildCustomerPayload,
   mapCustomerAddresses,
 } from "../CustomerUtility";
 
-export default function CustomerEditPage() {
+function CustomerEdit() {
   const router = useRouter();
 
   const fields = customerFields.map((field) => {
@@ -41,6 +42,7 @@ export default function CustomerEditPage() {
         alert(res.data.message);
         return;
       }
+
       alert("Customer updated successfully");
       router.push("/customer/list");
     } catch (err) {
@@ -57,5 +59,13 @@ export default function CustomerEditPage() {
       transformFetchData={mapCustomerAddresses}
       customSubmit={customSubmit}
     />
+  );
+}
+
+export default function CustomerEditPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CustomerEdit />
+    </Suspense>
   );
 }

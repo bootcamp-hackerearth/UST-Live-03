@@ -42,6 +42,11 @@ const Edit = ({
   const [formData, setFormData] = useState({});
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
+  const [popup, setPopup] = useState({
+  show: false,
+  title: "",
+  message: "",
+});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,15 +94,25 @@ const Edit = ({
 
         setFormData(finalData);
 
-      } catch (err) {
-  console.error(err);
+      } 
+      catch (err) {
+  const status = err?.response?.status;
 
-  const errorMessage =
-    err?.response?.data?.message ||
-    err?.response?.data?.error ||
-    "Failed to load data";
+  let errorMessage = "Failed to load data";
 
-  setMessage(errorMessage);
+  if (status === 403) {
+    errorMessage = "Access Denied";
+  } else if (status === 404) {
+    errorMessage = "Resource Not Found";
+  } else if (status === 500) {
+    errorMessage = "Something went wrong";
+  }
+
+  setPopup({
+    show: true,
+    title: `Error ${status}`,
+    message: errorMessage,
+  });
 }
     };
 
@@ -244,9 +259,45 @@ newValue = value.replaceAll(/\D/g, "").slice(0, 10);
     }
   };
 
-  return (
+ return (
+  <>
+    {popup.show && (
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black/50"
+        style={{ zIndex: 99999 }}
+      >
+        <div className="bg-white rounded-xl shadow-2xl p-6 w-112.5 max-w-[90vw]">
+          <h2 className="text-red-600 text-2xl font-bold mb-4">
+            {popup.title}
+          </h2>
+
+          <p className="text-gray-700 mb-6">
+            {popup.message}
+          </p>
+
+         <div className="flex justify-center mt-4">
+  <button
+  onClick={() => {
+    setPopup({
+      show: false,
+      title: "",
+      message: "",
+    });
+
+    router.replace("/dashboard1"); 
+  }}
+  className="w-24 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200"
+>
+  OK
+</button>
+</div>
+        </div>
+      </div>
+    )}
+
     <div className="min-h-screen flex justify-center items-center bg-gray-100 p-6">
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-2xl">
+      
 
         <button
           onClick={() => router.push(`/${urlName}/list`)}
@@ -390,6 +441,7 @@ if (field.type === "email") {
         </form>
       </div>
     </div>
+    </>
   );
 };
 

@@ -4,6 +4,7 @@ import com.ust.pos.cart.service.impl.CartServiceImpl;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Cart;
 import com.ust.pos.model.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -131,5 +132,14 @@ class CartServiceTest {
         assertEquals(BigDecimal.valueOf(360), cart.getOriginalPrice());
         verify(cartRepository).save(cart);
         assertNotNull(result);
+    }
+
+    @Test
+    void findByIdentifier_shouldThrowException_whenCartNotFound() {
+        when(cartRepository.findByIdentifier("cart1")).thenReturn(null);
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> cartService.findByIdentifier("cart1")
+        );
     }
 }

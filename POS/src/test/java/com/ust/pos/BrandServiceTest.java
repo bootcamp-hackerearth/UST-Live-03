@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.Assertions;
@@ -17,13 +18,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class BrandServiceTest {
-
     @InjectMocks
     private BrandServiceImpl brandService;
 
@@ -166,5 +167,37 @@ class BrandServiceTest {
                 .thenReturn(dtoList);
         List<BrandDto> result = brandService.findAllActive();
         Assertions.assertEquals(1, result.size());
+    }
+    @Test
+    void findAll_withSpecification_success() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Brand> specification = Mockito.mock(Specification.class);
+        Brand brand = new Brand();
+        List<Brand> brandList = List.of(brand);
+        Page<Brand> page = new PageImpl<>(brandList, pageable, 1);
+        Mockito.when(brandRepository.findAll(specification, pageable))
+                .thenReturn(page);
+        List<BrandDto> dtoList = List.of(new BrandDto());
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(brandList),
+                        Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<BrandDto> result = brandService.findAll(specification, pageable);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
+        Mockito.verify(brandRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void findByIdentifier_notFound() {
+        Mockito.when(brandRepository.findByIdentifierAndDeletedFalse("S1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> brandService.findByIdentifier("S1"));
     }
 }

@@ -50,46 +50,46 @@ export default function List({ urlName, keys }) {
     }
   };
 
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem("token");
+ const fetchData = async () => {
+  try {
+    setLoading(true);
 
-      if (!token) {
-        if (urlName !== "home") {
-          router.push("/login");
-        }
-        return;
-      }
+    const res = await api.post(`/${urlName}/list`, {
+      page: pagination.page,
+      sizePerPage: pagination.sizePerPage,
+      keyword: searchTerm.trim() || null,
+    });
 
-      setLoading(true);
+    setData(res.data.dtoList || []);
+    setTotalPages(res.data.totalPages || 0);
+    
+  } catch (error) {
+  if (error.response?.status === 403) {
+    alert("403 Error: Access Denied");
 
-      const isSearching = searchTerm.trim().length > 0;
-
-      const res = await api.post(`/${urlName}/list`, {
-        ...pagination,
-        page: isSearching ? 0 : pagination.page,
-        sizePerPage: isSearching ? 1000 : pagination.sizePerPage,
-      });
-
-      setData(res.data.dtoList || []);
-      setTotalPages(res.data.totalPages || 0);
-    } catch {
-      setMessage("Failed to load data");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setTimeout(() => {
+      router.replace("/dashboard1");
+    }, 0);
+  } else {
+    setMessage("Failed to load data");
+  }
+} finally {
+  setLoading(false);
+}
+};
 
   useEffect(() => {
     fetchData();
-  }, [pagination, searchTerm]);
+  }, [pagination]);
 
-  const filteredData = data.filter((row) => {
-    return Object.values(row || {})
-      .join(" ")
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-  });
+  useEffect(() => {
+    setPagination((prev) => ({
+      ...prev,
+      page: 0,
+    }));
+  }, [searchTerm]);
+
+  const filteredData = data;
 
   const updateLocalStatus = (row, newStatus) => {
     setData((prev) =>

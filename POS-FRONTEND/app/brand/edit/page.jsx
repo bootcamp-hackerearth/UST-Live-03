@@ -1,14 +1,15 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
+function BrandEditContent() {
   const fields = [
     {
       name: "identifier",
       label: "Brand Name",
       type: "text",
-      readOnly: true, 
+      readOnly: true,
     },
     {
       name: "status",
@@ -32,5 +33,13 @@ export default function Page() {
       fields={fields}
       identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BrandEditContent />
+    </Suspense>
   );
 }

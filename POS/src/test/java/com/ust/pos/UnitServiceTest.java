@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UnitDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Unit;
 import com.ust.pos.model.UnitRepository;
 import com.ust.pos.unit.service.impl.UnitServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -157,5 +159,36 @@ class UnitServiceTest {
         Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class))).thenReturn(dtoList);
         List<UnitDto> response = unitService.findAllActive();
         Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void findAllSpecificationTest() {
+        Unit unit = new Unit();
+        UnitDto dto = new UnitDto();
+        List<Unit> list = List.of(unit);
+        List<UnitDto> dtoList = List.of(dto);
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Unit> page = new PageImpl<>(list);
+        Specification<Unit> specification = Mockito.mock(Specification.class);
+        Mockito.when(unitRepository.findAll(specification, pageable)).thenReturn(page);
+        Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class))).thenReturn(dtoList);
+        WsDto<UnitDto> response = unitService.findAll(specification, pageable);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(0, response.getPage());
+        Assertions.assertEquals(1, response.getSizePerPage());
+        Mockito.verify(unitRepository).findAll(specification, pageable);
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(unitRepository.findByIdentifierAndDeletedFalse("U1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> unitService.findByIdentifier("U1")
+        );
     }
 }

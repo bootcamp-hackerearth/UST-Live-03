@@ -1,17 +1,16 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
-
+function ModelEdit() {
   const fields = [
     {
       name: "identifier",
       label: "Model Name",
       type: "text",
-      readOnly: true, 
+      readOnly: true,
     },
-   
     {
       name: "description",
       label: "Description",
@@ -25,5 +24,13 @@ export default function Page() {
       fields={fields}
       identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ModelEdit />
+    </Suspense>
   );
 }

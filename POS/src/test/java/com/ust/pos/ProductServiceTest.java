@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Product;
 import com.ust.pos.model.ProductRepository;
 import com.ust.pos.product.service.impl.ProductServiceImpl;
@@ -161,5 +162,40 @@ class ProductServiceTest {
         Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class))).thenReturn(dtoList);
         List<ProductDto> response = productService.findAllActive();
         Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(productRepository.findByIdentifierAndDeletedFalse("S1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> productService.findByIdentifier("S1")
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Product> page =
+                new PageImpl<>(List.of(new Product()), pageable, 1);
+        Mockito.when(productRepository.findAll(
+                        Mockito.<org.springframework.data.jpa.domain.Specification<Product>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
+        List<ProductDto> dtoList = List.of(new ProductDto());
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<ProductDto> result =
+                productService.findAll(
+                        Mockito.mock(org.springframework.data.jpa.domain.Specification.class),
+                        pageable);
+        Assertions.assertEquals(1, result.getDtoList().size());
+        Assertions.assertEquals(1, result.getTotalRecords());
+        Assertions.assertEquals(1, result.getTotalPages());
+        Assertions.assertEquals(10, result.getSizePerPage());
+        Assertions.assertEquals(0, result.getPage());
     }
 }

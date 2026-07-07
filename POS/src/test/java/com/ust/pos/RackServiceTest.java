@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.service.impl.RackServiceImpl;
@@ -157,5 +158,36 @@ class RackServiceTest {
         Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class))).thenReturn(dtoList);
         List<RackDto> response = rackService.findAllActive();
         Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(rackRepository.findByIdentifierAndDeletedFalse("R1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> rackService.findByIdentifier("R1")
+        );
+    }
+
+    @Test
+    void findAllWithSpecificationTest() {
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Rack> page = new PageImpl<>(List.of(new Rack()));
+        List<RackDto> dtoList = List.of(new RackDto());
+        Mockito.when(rackRepository.findAll(
+                        Mockito.<org.springframework.data.jpa.domain.Specification<Rack>>any(),
+                        Mockito.eq(pageable)))
+                .thenReturn(page);
+        Mockito.when(modelMapper.map(
+                        Mockito.eq(page.getContent()),
+                        Mockito.any(Type.class)))
+                .thenReturn(dtoList);
+        WsDto<RackDto> response =
+                rackService.findAll(Mockito.mock(org.springframework.data.jpa.domain.Specification.class),
+                        pageable);
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals(1, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
     }
 }

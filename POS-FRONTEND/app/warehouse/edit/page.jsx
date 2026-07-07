@@ -1,15 +1,15 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
-
+function WarehouseEdit() {
   const fields = [
     {
       name: "identifier",
-      label: "Warehouse Name",
+      label: "Warehouse Code",
       type: "text",
-      readOnly: true, 
+      readOnly: true,
     },
     {
       name: "country",
@@ -29,5 +29,13 @@ export default function Page() {
       fields={fields}
       identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <WarehouseEdit />
+    </Suspense>
   );
 }

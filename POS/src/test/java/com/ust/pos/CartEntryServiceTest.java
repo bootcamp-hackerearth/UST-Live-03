@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.impl.CartEntryServiceImpl;
 import com.ust.pos.dto.CartEntryDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.CartEntry;
 import com.ust.pos.model.CartEntryRepository;
 import com.ust.pos.model.Price;
@@ -143,5 +144,15 @@ class CartEntryServiceTest {
         Mockito.when(modelMapper.map(Mockito.eq(list), Mockito.any(Type.class))).thenReturn(dtoList);
         List<CartEntryDto> response = cartEntryService.findAllCarts("cart1");
         Assertions.assertEquals(1, response.size());
+    }
+
+    @Test
+    void findByIdentifierNotFoundTest() {
+        Mockito.when(cartEntryRepository.findByIdentifier("id1"))
+                .thenReturn(null);
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> cartEntryService.findByIdentifier("id1")
+        );
     }
 }

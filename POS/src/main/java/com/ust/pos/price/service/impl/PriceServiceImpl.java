@@ -3,6 +3,7 @@ package com.ust.pos.price.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.PriceService;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +32,8 @@ public class PriceServiceImpl extends BaseService implements PriceService {
     @Override
     public PriceDto findByIdentifier(String identifier) {
         Price price = priceRepository.findByIdentifierAndDeletedFalse(identifier);
-        if (price == null) {
-            return null;
+        if (price== null) {
+            throw new ResourceNotFoundException("Price with identifier " + identifier + " not found");
         }
         return modelMapper.map(price, PriceDto.class);
     }
@@ -95,6 +97,20 @@ public class PriceServiceImpl extends BaseService implements PriceService {
         wsDto.setDtoList(modelMapper.map(pricePage.getContent(), listType));
         wsDto.setTotalRecords(pricePage.getTotalElements());
         wsDto.setTotalPages(pricePage.getTotalPages());
+        wsDto.setSizePerPage(pageable.getPageSize());
+        wsDto.setPage(pageable.getPageNumber());
+        return wsDto;
+    }
+
+    @Override
+    public WsDto<PriceDto> findAll(Specification<Price> example, Pageable pageable) {
+        Type listType = new TypeToken<List<PriceDto>>() {
+        }.getType();
+        Page<Price> page = priceRepository.findAll(example, pageable);
+        WsDto<PriceDto> wsDto = new WsDto<>();
+        wsDto.setDtoList(modelMapper.map(page.getContent(), listType));
+        wsDto.setTotalRecords(page.getTotalElements());
+        wsDto.setTotalPages(page.getTotalPages());
         wsDto.setSizePerPage(pageable.getPageSize());
         wsDto.setPage(pageable.getPageNumber());
         return wsDto;

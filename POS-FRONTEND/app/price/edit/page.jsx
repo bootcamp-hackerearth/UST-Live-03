@@ -1,13 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
 import Edit from "@/app/components/CommonEdit";
 
-export default function Page() {
+function PriceEdit() {
   const fields = [
     {
       name: "identifier",
       label: "Name",
-      type: "text", 
+      type: "text",
     },
     {
       name: "product",
@@ -34,11 +35,20 @@ export default function Page() {
       type: "number",
     },
   ];
+
   return (
     <Edit
       urlName="price"
       fields={fields}
-      identifier="identifier" 
+      identifier="identifier"
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PriceEdit />
+    </Suspense>
   );
 }
