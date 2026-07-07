@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.unit.service.UnitService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +20,7 @@ public class UnitApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WsDto<UnitDto> home(
             @RequestBody PaginationDto paginationDto) {
 
@@ -52,11 +54,13 @@ public class UnitApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public UnitDto updatePost(@RequestBody UnitDto unitDto) {
         return unitService.update(unitDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public boolean delete(@RequestParam String identifier) {
         try {
             unitService.delete(identifier);

@@ -2,13 +2,14 @@ package com.ust.pos.node.service.impl;
 
 import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.NodeDto;
-import com.ust.pos.dto.NodeDto;
-import com.ust.pos.model.*;
+import com.ust.pos.model.Node;
+import com.ust.pos.model.NodeRepository;
+import com.ust.pos.model.User;
+import com.ust.pos.model.UserRepository;
 import com.ust.pos.node.service.NodeService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -113,17 +114,17 @@ public class NodeServiceImpl extends BaseService implements NodeService {
     }
 
     @Override
-    public Page<NodeDto> findAll(String search,Pageable pageable) {
-        Page<Node> Nodes;
+    public Page<NodeDto> findAll(String search, Pageable pageable) {
+        Page<Node> nodes;
 
         if (search != null && !search.trim().isEmpty()) {
             Specification<Node> specification = buildGlobalSearchSpec(Node.class, search);
-            Nodes = nodeRepository.findAll(specification, pageable);
+            nodes = nodeRepository.findAll(specification, pageable);
         } else {
-            Nodes = nodeRepository.findByDeletedFalse(pageable);
+            nodes = nodeRepository.findByDeletedFalse(pageable);
         }
 
-        return Nodes.map(node -> modelMapper.map(node, NodeDto.class));
+        return nodes.map(node -> modelMapper.map(node, NodeDto.class));
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -240,6 +241,7 @@ class ShelfServiceTest {
     @Test
     void findAll_WithSearch_ShouldReturnShelfDtos() {
 
+        // Arrange
         Pageable pageable = PageRequest.of(0, 10);
 
         Shelf shelf = new Shelf();
@@ -252,35 +254,52 @@ class ShelfServiceTest {
                 new PageImpl<>(List.of(shelf));
 
         Mockito.when(
-                        shelfRepository
-                                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                        "S",
-                                        pageable))
-                .thenReturn(page);
+                shelfRepository.findAll(
+                        Mockito.<Specification<Shelf>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
 
         Mockito.when(
-                        modelMapper.map(shelf, ShelfDto.class))
-                .thenReturn(shelfDto);
+                modelMapper.map(
+                        shelf,
+                        ShelfDto.class
+                )
+        ).thenReturn(shelfDto);
 
+        // Act
         Page<ShelfDto> response =
-                shelfService.findAll("S", pageable);
+                shelfService.findAll(
+                        "S",
+                        pageable
+                );
 
+        // Assert
         Assertions.assertNotNull(response);
 
         Assertions.assertEquals(
                 1,
-                response.getContent().size());
+                response.getContent().size()
+        );
 
         Assertions.assertEquals(
                 "S1",
-                response.getContent().get(0).getIdentifier());
+                response.getContent().get(0).getIdentifier()
+        );
 
         Mockito.verify(shelfRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "S",
-                        pageable);
+                .findAll(
+                        Mockito.<Specification<Shelf>>any(),
+                        Mockito.eq(pageable)
+                );
+
+        Mockito.verify(shelfRepository, Mockito.never())
+                .findByDeletedFalse(Mockito.any(Pageable.class));
 
         Mockito.verify(modelMapper)
-                .map(shelf, ShelfDto.class);
+                .map(
+                        shelf,
+                        ShelfDto.class
+                );
     }
 }

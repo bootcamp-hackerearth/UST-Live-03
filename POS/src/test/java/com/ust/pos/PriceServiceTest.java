@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -244,6 +245,8 @@ class PriceServiceTest {
 
     @Test
     void findAll_WithSearch_ShouldReturnPriceDtos() {
+
+        // Arrange
         Pageable pageable = PageRequest.of(0, 10);
 
         Price price = new Price();
@@ -256,19 +259,27 @@ class PriceServiceTest {
                 new PageImpl<>(List.of(price));
 
         Mockito.when(
-                        priceRepository
-                                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                        "ABC",
-                                        pageable))
-                .thenReturn(page);
+                priceRepository.findAll(
+                        Mockito.<Specification<Price>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
 
         Mockito.when(
-                        modelMapper.map(price, PriceDto.class))
-                .thenReturn(dto);
+                modelMapper.map(
+                        price,
+                        PriceDto.class
+                )
+        ).thenReturn(dto);
 
+        // Act
         Page<PriceDto> response =
-                priceService.findAll("ABC", pageable);
+                priceService.findAll(
+                        "ABC",
+                        pageable
+                );
 
+        // Assert
         Assertions.assertNotNull(response);
         Assertions.assertEquals(
                 1,
@@ -281,11 +292,18 @@ class PriceServiceTest {
         );
 
         Mockito.verify(priceRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "ABC",
-                        pageable);
+                .findAll(
+                        Mockito.<Specification<Price>>any(),
+                        Mockito.eq(pageable)
+                );
+
+        Mockito.verify(priceRepository, Mockito.never())
+                .findByDeletedFalse(Mockito.any(Pageable.class));
 
         Mockito.verify(modelMapper)
-                .map(price, PriceDto.class);
+                .map(
+                        price,
+                        PriceDto.class
+                );
     }
 }

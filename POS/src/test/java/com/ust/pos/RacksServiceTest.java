@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -244,43 +245,60 @@ class RacksServiceTest {
     @Test
     void findAll_WithSearch_ShouldReturnRacksDtos() {
 
+        // Arrange
         Pageable pageable = PageRequest.of(0, 10);
 
         Racks rack = new Racks();
         rack.setIdentifier("R1");
 
-        Page<Racks> racksPage =
-                new PageImpl<>(List.of(rack));
-
         RacksDto racksDto = new RacksDto();
         racksDto.setIdentifier("R1");
 
-        Mockito.when(
-                        racksRepository
-                                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                        "R1",
-                                        pageable))
-                .thenReturn(racksPage);
+        Page<Racks> racksPage =
+                new PageImpl<>(List.of(rack));
 
         Mockito.when(
-                        modelMapper.map(rack, RacksDto.class))
-                .thenReturn(racksDto);
+                racksRepository.findAll(
+                        Mockito.<Specification<Racks>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(racksPage);
 
+        Mockito.when(
+                modelMapper.map(
+                        rack,
+                        RacksDto.class
+                )
+        ).thenReturn(racksDto);
+
+        // Act
         Page<RacksDto> response =
-                racksService.findAll("R1", pageable);
+                racksService.findAll(
+                        "R1",
+                        pageable
+                );
 
+        // Assert
         Assertions.assertNotNull(response);
         Assertions.assertEquals(
                 1,
-                response.getContent().size());
+                response.getContent().size()
+        );
 
         Mockito.verify(racksRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "R1",
-                        pageable);
+                .findAll(
+                        Mockito.<Specification<Racks>>any(),
+                        Mockito.eq(pageable)
+                );
+
+        Mockito.verify(racksRepository, Mockito.never())
+                .findByDeletedFalse(Mockito.any(Pageable.class));
 
         Mockito.verify(modelMapper)
-                .map(rack, RacksDto.class);
+                .map(
+                        rack,
+                        RacksDto.class
+                );
     }
 
 }

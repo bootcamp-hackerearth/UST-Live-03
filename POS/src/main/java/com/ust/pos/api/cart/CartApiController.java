@@ -2,6 +2,7 @@ package com.ust.pos.api.cart;
 
 import com.ust.pos.cart.service.CartService;
 import com.ust.pos.dto.CartDto;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class CartApiController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public CartDto add(@RequestBody CartDto cartDto) {
         return cartService.save(cartDto);
     }
@@ -33,6 +35,7 @@ public class CartApiController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public boolean delete(
             @RequestParam String identifier
     ) {
@@ -45,6 +48,7 @@ public class CartApiController {
     }
 
     @GetMapping("/deleteAll")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public boolean deleteAll() {
         try {
             cartService.deleteAll();

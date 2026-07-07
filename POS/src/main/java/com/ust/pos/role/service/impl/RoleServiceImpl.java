@@ -78,7 +78,7 @@ public class RoleServiceImpl extends BaseService implements RoleService {
     }
 
     @Override
-    public Page<RoleDto> findAll(String search,Pageable pageable) {
+    public Page<RoleDto> findAll(String search, Pageable pageable) {
         Page<Role> roles;
 
         if (search != null && !search.trim().isEmpty()) {

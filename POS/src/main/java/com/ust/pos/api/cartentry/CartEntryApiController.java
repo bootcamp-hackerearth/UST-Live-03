@@ -5,6 +5,7 @@ import com.ust.pos.cart.service.CartService;
 import com.ust.pos.cartentry.service.CartEntryService;
 import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CartEntryDto;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,17 +22,20 @@ public class CartEntryApiController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public CartDto add(@RequestBody CartEntryDto cartEntryDto) {
         cartEntryService.save(cartEntryDto);
         return cartService.recalculateCart(cartEntryDto.getCartId());
     }
 
     @PostMapping("/getByCartId")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public List<CartEntryDto> list(@RequestBody CartEntryDto cartEntryDto) {
         return cartEntryService.findByCartId(cartEntryDto.getCartId());
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public boolean delete(@RequestParam String identifier) {
         try {
             cartEntryService.delete(identifier);

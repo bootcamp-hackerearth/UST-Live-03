@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.shelf.service.ShelfService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class ShelfApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WsDto<ShelfDto> home(
             @RequestBody PaginationDto paginationDto) {
 
@@ -49,6 +51,7 @@ public class ShelfApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public ShelfDto doadd(@RequestBody ShelfDto shelfDto) {
         return shelfService.save(shelfDto);
     }
@@ -60,6 +63,7 @@ public class ShelfApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public ShelfDto doupdate(@RequestBody ShelfDto shelfDto) {
         return shelfService.update(shelfDto);
     }
@@ -75,6 +79,7 @@ public class ShelfApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public boolean delete(@RequestParam String identifier) {
         try {
             shelfService.delete(identifier);

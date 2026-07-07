@@ -22,7 +22,7 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WsDto<WarehouseDto> home(
             @RequestBody PaginationDto paginationDto) {
 
@@ -51,7 +51,7 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin','Team lead')")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WarehouseDto doadd(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.save(warehouseDto);
     }
@@ -62,12 +62,13 @@ public class WarehouseApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WarehouseDto doupdate(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Hr','Team lead')")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public boolean delete(@RequestParam String identifier) {
         try {
             warehouseService.delete(identifier);

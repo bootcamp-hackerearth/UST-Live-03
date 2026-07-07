@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -244,45 +245,60 @@ class BrandServiceTest {
     @Test
     void findAll_WithSearch_ShouldReturnBrandDtos() {
 
+        // Arrange
         Pageable pageable = PageRequest.of(0, 10);
 
         Brand brand = new Brand();
         brand.setIdentifier("Admin");
 
-        Page<Brand> brandPage =
-                new PageImpl<>(List.of(brand));
-
         BrandDto brandDto = new BrandDto();
         brandDto.setIdentifier("Admin");
 
-        Mockito.when(
-                        brandRepository
-                                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                        "Admin",
-                                        pageable))
-                .thenReturn(brandPage);
+        Page<Brand> brandPage =
+                new PageImpl<>(List.of(brand));
 
         Mockito.when(
-                        modelMapper.map(brand, BrandDto.class))
-                .thenReturn(brandDto);
+                brandRepository.findAll(
+                        Mockito.<Specification<Brand>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(brandPage);
 
+        Mockito.when(
+                modelMapper.map(
+                        brand,
+                        BrandDto.class
+                )
+        ).thenReturn(brandDto);
+
+        // Act
         Page<BrandDto> response =
                 brandService.findAll(
                         "Admin",
-                        pageable);
+                        pageable
+                );
 
+        // Assert
         Assertions.assertNotNull(response);
         Assertions.assertEquals(
                 1,
-                response.getContent().size());
+                response.getContent().size()
+        );
 
         Mockito.verify(brandRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "Admin",
-                        pageable);
+                .findAll(
+                        Mockito.<Specification<Brand>>any(),
+                        Mockito.eq(pageable)
+                );
+
+        Mockito.verify(brandRepository, Mockito.never())
+                .findByDeletedFalse(Mockito.any(Pageable.class));
 
         Mockito.verify(modelMapper)
-                .map(brand, BrandDto.class);
+                .map(
+                        brand,
+                        BrandDto.class
+                );
     }
 
 }

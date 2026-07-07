@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -17,12 +18,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -193,27 +194,54 @@ class RoleServiceTest {
     @Test
     void findAllWithSearchTest() {
 
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+
         Page<Role> rolePage =
                 new PageImpl<>(List.of(role));
 
-        when(roleRepository
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        eq("ADMIN"),
-                        any(Pageable.class)
-                ))
-                .thenReturn(rolePage);
+        Mockito.when(
+                roleRepository.findAll(
+                        Mockito.<Specification<Role>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(rolePage);
 
-        when(modelMapper.map(role, RoleDto.class))
-                .thenReturn(roleDto);
+        Mockito.when(
+                modelMapper.map(
+                        role,
+                        RoleDto.class
+                )
+        ).thenReturn(roleDto);
 
+        // Act
         Page<RoleDto> response =
                 roleService.findAll(
                         "ADMIN",
-                        PageRequest.of(0, 10)
+                        pageable
                 );
 
-        Assertions.assertEquals(1,
-                response.getContent().size());
+        // Assert
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(
+                1,
+                response.getContent().size()
+        );
+
+        Mockito.verify(roleRepository)
+                .findAll(
+                        Mockito.<Specification<Role>>any(),
+                        Mockito.eq(pageable)
+                );
+
+        Mockito.verify(roleRepository, Mockito.never())
+                .findByDeletedFalse(Mockito.any(Pageable.class));
+
+        Mockito.verify(modelMapper)
+                .map(
+                        role,
+                        RoleDto.class
+                );
     }
 
     @Test

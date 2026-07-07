@@ -7,6 +7,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public WsDto<CategoryDto> home(
             @RequestBody PaginationDto paginationDto) {
 
@@ -49,6 +51,7 @@ public class CategoryApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public CategoryDto add(@RequestBody CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
     }
@@ -59,11 +62,13 @@ public class CategoryApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public CategoryDto get(@RequestBody CategoryDto categoryDto) {
         return categoryService.update(categoryDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public boolean delete(@RequestParam String identifier) {
         try {
             categoryService.delete(identifier);

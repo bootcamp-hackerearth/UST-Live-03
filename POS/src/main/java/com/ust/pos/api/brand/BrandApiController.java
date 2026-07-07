@@ -7,6 +7,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ public class BrandApiController extends BaseController {
 
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public WsDto<BrandDto> home(
             @RequestBody PaginationDto paginationDto) {
 
@@ -45,6 +47,7 @@ public class BrandApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public BrandDto addPost(@RequestBody BrandDto brandDto) {
         return brandService.save(brandDto);
     }
@@ -55,6 +58,7 @@ public class BrandApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public BrandDto updatePost(@RequestBody BrandDto brandDto) {
         return brandService.update(brandDto);
     }
@@ -71,6 +75,7 @@ public class BrandApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
     public boolean delete(Model model, @RequestParam String identifier) {
         try {
             brandService.delete(identifier);

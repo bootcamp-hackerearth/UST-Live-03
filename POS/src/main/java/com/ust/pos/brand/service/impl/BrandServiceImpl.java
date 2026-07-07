@@ -7,7 +7,6 @@ import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -71,7 +70,7 @@ public class BrandServiceImpl extends BaseService implements BrandService {
     }
 
     @Override
-    public Page<BrandDto> findAll(String search,Pageable pageable) {
+    public Page<BrandDto> findAll(String search, Pageable pageable) {
         Page<Brand> brands;
 
         if (search != null && !search.trim().isEmpty()) {

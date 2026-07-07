@@ -4,7 +4,6 @@ import com.ust.pos.api.BaseService;
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
-import com.ust.pos.model.Warehouse;
 import com.ust.pos.price.service.PriceService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -82,16 +81,16 @@ public class PriceServiceImpl extends BaseService implements PriceService {
 
     @Override
     public Page<PriceDto> findAll(String search, Pageable pageable) {
-        Page<Price> Prices;
+        Page<Price> prices;
 
         if (search != null && !search.trim().isEmpty()) {
             Specification<Price> specification = buildGlobalSearchSpec(Price.class, search);
-            Prices = priceRepository.findAll(specification, pageable);
+            prices = priceRepository.findAll(specification, pageable);
         } else {
-            Prices = priceRepository.findByDeletedFalse(pageable);
+            prices = priceRepository.findByDeletedFalse(pageable);
         }
 
-        return Prices.map(price -> modelMapper.map(price, PriceDto.class));
+        return prices.map(price -> modelMapper.map(price, PriceDto.class));
     }
 
 }

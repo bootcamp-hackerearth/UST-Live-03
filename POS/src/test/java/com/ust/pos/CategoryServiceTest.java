@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -241,7 +242,7 @@ class CategoryServiceTest {
                 .thenReturn(categoryDto);
 
         Page<CategoryDto> response =
-                categoryService.findAll(pageable, search);
+                categoryService.findAll(search, pageable);
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1,
@@ -261,6 +262,8 @@ class CategoryServiceTest {
 
     @Test
     void findAll_WithSearch_ShouldReturnCategoryDtos() {
+
+        // Arrange
         String search = "CAT";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -274,22 +277,32 @@ class CategoryServiceTest {
                 new PageImpl<>(List.of(category));
 
         Mockito.when(
-                        categoryRepository
-                                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                        search,
-                                        pageable))
-                .thenReturn(page);
+                categoryRepository.findAll(
+                        Mockito.<Specification<Category>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
 
         Mockito.when(
-                        modelMapper.map(category, CategoryDto.class))
-                .thenReturn(categoryDto);
+                modelMapper.map(
+                        category,
+                        CategoryDto.class
+                )
+        ).thenReturn(categoryDto);
 
+        // Act
         Page<CategoryDto> response =
-                categoryService.findAll(pageable, search);
+                categoryService.findAll(
+                        search,
+                        pageable
+                );
 
+        // Assert
         Assertions.assertNotNull(response);
-        Assertions.assertEquals(1,
-                response.getContent().size());
+        Assertions.assertEquals(
+                1,
+                response.getContent().size()
+        );
 
         Assertions.assertEquals(
                 "CAT1",
@@ -297,11 +310,18 @@ class CategoryServiceTest {
         );
 
         Mockito.verify(categoryRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        search,
-                        pageable);
+                .findAll(
+                        Mockito.<Specification<Category>>any(),
+                        Mockito.eq(pageable)
+                );
+
+        Mockito.verify(categoryRepository, Mockito.never())
+                .findByDeletedFalse(Mockito.any(Pageable.class));
 
         Mockito.verify(modelMapper)
-                .map(category, CategoryDto.class);
+                .map(
+                        category,
+                        CategoryDto.class
+                );
     }
 }

@@ -6,6 +6,7 @@ import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.orderitem.service.OrderItemService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class OrderItemApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public WsDto<OrderItemDto> list(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(
                 paginationDto.getPage(),
@@ -39,6 +41,7 @@ public class OrderItemApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public OrderItemDto add(@RequestBody OrderItemDto dto) {
 
         return orderItemService.save(dto);
@@ -51,12 +54,14 @@ public class OrderItemApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public OrderItemDto update(@RequestBody OrderItemDto dto) {
 
         return orderItemService.update(dto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public boolean delete(@RequestParam String identifier) {
 
         try {

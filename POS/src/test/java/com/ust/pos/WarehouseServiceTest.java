@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -221,6 +222,7 @@ class WarehouseServiceTest {
     @Test
     void findAll_WithSearch_ShouldReturnWarehouseDtos() {
 
+        // Arrange
         Pageable pageable = PageRequest.of(0, 10);
 
         Warehouse warehouse = new Warehouse();
@@ -233,34 +235,51 @@ class WarehouseServiceTest {
                 new PageImpl<>(List.of(warehouse));
 
         Mockito.when(
-                        warehouseRepository
-                                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                                        "WH",
-                                        pageable))
-                .thenReturn(page);
+                warehouseRepository.findAll(
+                        Mockito.<Specification<Warehouse>>any(),
+                        Mockito.eq(pageable)
+                )
+        ).thenReturn(page);
 
         Mockito.when(
-                        modelMapper.map(warehouse, WarehouseDto.class))
-                .thenReturn(warehouseDto);
+                modelMapper.map(
+                        warehouse,
+                        WarehouseDto.class
+                )
+        ).thenReturn(warehouseDto);
 
+        // Act
         Page<WarehouseDto> response =
-                warehouseService.findAll("WH", pageable);
+                warehouseService.findAll(
+                        "WH",
+                        pageable
+                );
 
+        // Assert
         Assertions.assertNotNull(response);
         Assertions.assertEquals(
                 1,
-                response.getContent().size());
+                response.getContent().size()
+        );
 
         Assertions.assertEquals(
                 "WH1",
-                response.getContent().get(0).getIdentifier());
+                response.getContent().get(0).getIdentifier()
+        );
 
         Mockito.verify(warehouseRepository)
-                .findByIdentifierContainingIgnoreCaseAndDeletedFalse(
-                        "WH",
-                        pageable);
+                .findAll(
+                        Mockito.<Specification<Warehouse>>any(),
+                        Mockito.eq(pageable)
+                );
+
+        Mockito.verify(warehouseRepository, Mockito.never())
+                .findByDeletedFalse(Mockito.any(Pageable.class));
 
         Mockito.verify(modelMapper)
-                .map(warehouse, WarehouseDto.class);
+                .map(
+                        warehouse,
+                        WarehouseDto.class
+                );
     }
 }

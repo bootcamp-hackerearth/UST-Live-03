@@ -13,7 +13,7 @@ public interface BrandService {
 
     void delete(String identifier);
 
-    Page<BrandDto> findAll(String search,Pageable pageable);
+    Page<BrandDto> findAll(String search, Pageable pageable);
 
     List<BrandDto> findAll();
 

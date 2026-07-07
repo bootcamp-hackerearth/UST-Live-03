@@ -5,6 +5,7 @@ import com.ust.pos.dto.ModelProductDto;
 import com.ust.pos.dto.PaginationDto;
 import com.ust.pos.modelproduct.service.ModelProductService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class ModelProductApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public List<ModelProductDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(), paginationDto.getSizePerPage(),
                 paginationDto.getSortField());
@@ -26,6 +28,7 @@ public class ModelProductApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public ModelProductDto addModel(@RequestBody ModelProductDto modelProductDto) {
         return modelProductService.save(modelProductDto);
     }
@@ -36,11 +39,13 @@ public class ModelProductApiController extends BaseController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public ModelProductDto updatePost(@RequestBody ModelProductDto modelProductDto) {
         return modelProductService.update(modelProductDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin')")
     public boolean delete(@RequestParam String identifier) {
         try {
             modelProductService.delete(identifier);

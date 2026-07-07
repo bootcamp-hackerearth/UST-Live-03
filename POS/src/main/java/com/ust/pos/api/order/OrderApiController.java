@@ -7,6 +7,7 @@ import com.ust.pos.dto.WsDto;
 import com.ust.pos.order.service.OrderService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class OrderApiController extends BaseController {
     }
 
     @PostMapping("/list")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public WsDto<OrderDto> list(@RequestBody PaginationDto paginationDto) {
 
         Pageable pageable = getPageable(
@@ -45,6 +47,7 @@ public class OrderApiController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public OrderDto createOrder(
             @RequestParam String cartId,
             @RequestParam String paymentMethod) {
@@ -66,6 +69,7 @@ public class OrderApiController extends BaseController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('Admin','Cashier')")
     public boolean delete(@RequestParam String identifier) {
 
         try {

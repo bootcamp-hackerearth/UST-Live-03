@@ -11,6 +11,8 @@ const UpdateProfile = () => {
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
 
+  const [availableRoles, setAvailableRoles] = useState([]);
+
   const [formData, setFormData] = useState({
     id: "",
     name: "",
@@ -19,7 +21,6 @@ const UpdateProfile = () => {
     roles: [],
   });
 
-  // ✅ FIX: safely read query param on client only
   useEffect(() => {
     if (typeof globalThis !== "undefined") {
       const params = new URLSearchParams(globalThis.location.search);
@@ -35,19 +36,12 @@ const UpdateProfile = () => {
     }
   }, [router]);
 
-  const fetchUser = useCallback(async (uname) => {
+  const fetchRoles = useCallback(async () => {
     try {
-      setLoading(true);
-
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
       const response = await axios.get(
-        `http://localhost:8080/api/user/get?username=${uname}`,
+        "http://localhost:8080/api/role/list",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -55,24 +49,62 @@ const UpdateProfile = () => {
         }
       );
 
-      const data = response.data;
+      console.log("Roles Response:", response.data);
+
+      setAvailableRoles(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error("Failed to fetch roles");
+      console.error("Status:", err.response?.status);
+      console.error("Response:", err.response?.data);
+      console.error(err);
+
+      setAvailableRoles([]);
+    }
+  }, []);
+
+  const fetchUser = useCallback(async (uname) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `http://localhost:8080/api/user/get?username=${encodeURIComponent(
+          uname
+        )}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const user = response.data;
+
+      console.log("User Response:", user);
 
       setFormData({
-        id: data?.id || "",
-        name: data?.name || "",
-        phoneNo: data?.phoneNo || "",
-        username: data?.username || "",
-        roles: data?.roles || [],
+        id: user.id,
+        name: user.name ?? "",
+        phoneNo: user.phoneNo ?? "",
+        username: user.username ?? "",
+        roles:
+          user.roles?.map((role) =>
+            typeof role === "string"
+              ? role
+              : role.identifier
+          ) ?? [],
       });
-    } catch (error) {
-      console.error("FETCH USER ERROR:", error);
-      alert("Failed to fetch user details");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch user");
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, []);
 
-  // ✅ fetch only after username is ready
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
+
   useEffect(() => {
     if (username) {
       fetchUser(username);
@@ -88,6 +120,18 @@ const UpdateProfile = () => {
     }));
   };
 
+  const handleRoleChange = (e) => {
+    const selectedRoles = Array.from(
+      e.target.selectedOptions,
+      (option) => option.value
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      roles: selectedRoles,
+    }));
+  };
+
   const validateForm = () => {
     if (!formData.name.trim()) {
       alert("Name is required");
@@ -95,7 +139,12 @@ const UpdateProfile = () => {
     }
 
     if (!/^\d{10}$/.test(formData.phoneNo)) {
-      alert("Phone number must be 10 digits");
+      alert("Phone number must contain exactly 10 digits");
+      return false;
+    }
+
+    if (formData.roles.length === 0) {
+      alert("Please select at least one role");
       return false;
     }
 
@@ -118,6 +167,8 @@ const UpdateProfile = () => {
         roles: formData.roles,
       };
 
+      console.log("Update Payload:", payload);
+
       await axios.put(
         "http://localhost:8080/api/user/update",
         payload,
@@ -130,9 +181,12 @@ const UpdateProfile = () => {
 
       alert("Profile updated successfully");
       router.push("/user/profile");
-    } catch (error) {
-      console.error("UPDATE ERROR:", error);
-      alert("Failed to update profile");
+    } catch (err) {
+      console.error(err);
+      console.error("Status:", err.response?.status);
+      console.error("Response:", err.response?.data);
+
+      alert("Update failed");
     }
   };
 
@@ -150,23 +204,19 @@ const UpdateProfile = () => {
             <label htmlFor="name">Name</label>
             <input
               id="name"
-              type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Enter your name"
             />
           </div>
 
           <div className="update-row">
-            <label htmlFor="phoneNo">Phone No</label>
+            <label htmlFor="phoneNo">Phone Number</label>
             <input
               id="phoneNo"
-              type="text"
               name="phoneNo"
               value={formData.phoneNo}
               onChange={handleChange}
-              placeholder="Enter phone number"
             />
           </div>
 
@@ -174,23 +224,44 @@ const UpdateProfile = () => {
             <label htmlFor="username">Username</label>
             <input
               id="username"
-              type="text"
               value={formData.username}
               disabled
             />
           </div>
 
           <div className="update-row">
-            <div>Roles</div>
-            <span>
-              {formData.roles?.length
-                ? formData.roles.join(", ")
-                : "-"}
-            </span>
+            <label htmlFor="roles">Roles</label>
+
+            <select
+              multiple
+              className="role-select"
+              value={formData.roles}
+              onChange={handleRoleChange}
+            >
+              {availableRoles.length > 0 ? (
+                availableRoles.map((role) => (
+                  <option
+                    key={role.id}
+                    value={role.identifier}
+                  >
+                    {role.identifier}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No Roles Available</option>
+              )}
+            </select>
+
+            <small>
+              Hold Ctrl (Windows) or Cmd (Mac) to select multiple roles.
+            </small>
           </div>
 
           <div className="update-actions">
-            <button type="submit" className="update-btn">
+            <button
+              type="submit"
+              className="update-btn"
+            >
               Save Changes
             </button>
 
