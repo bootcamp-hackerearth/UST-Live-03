@@ -126,7 +126,7 @@ export default function Register() {
       }
 
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/user/register`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/register`,
         {
           name: user.name,
           username: user.username,
