@@ -26,7 +26,7 @@ export default function ProfileDropdownCard({ onClose }) {
       setError("");
       const token = localStorage.getItem("token");
       const currentUsername = localStorage.getItem("username") || "nulluser";
-      const res = await axios.get(`${axios.defaults.baseURL}/user/get`, {
+      const res = await axios.get(`/user/get`, {
         params: { identifier: currentUsername },
         headers: { Authorization: `Bearer ${token}` }
       });
