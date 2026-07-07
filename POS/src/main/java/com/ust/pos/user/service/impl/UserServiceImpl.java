@@ -95,9 +95,9 @@ public class UserServiceImpl extends CommonService implements UserService {
     }
 
     @Override
-    public boolean delete(String identifier) {
+    public boolean delete(String username) {
 
-        User user = userRepository.findByIdentifier(identifier);
+        User user = userRepository.findByUsername(username);
 
         if (user == null) {
             return false;

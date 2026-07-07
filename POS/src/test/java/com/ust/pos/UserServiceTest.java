@@ -129,7 +129,7 @@ class UserServiceTest {
 
         ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> userService.findByUserName("admin@test.com"));
 
-        Assertions.assertEquals("User with identifier 'admin@test.com' not found", exception.getMessage());
+        Assertions.assertEquals("User not found: admin@test.com", exception.getMessage());
 
         Mockito.verify(modelMapper, Mockito.never()).map(Mockito.any(), Mockito.eq(UserDto.class));
     }
