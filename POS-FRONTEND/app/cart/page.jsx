@@ -99,18 +99,47 @@ export default function Cart() {
   };
 
   const handleUpdateQuantity = async (item, delta) => {
-    if (delta === 1) {
-      await FetchEntity(`${baseUrl}/cartentry/add`, { cartId: item.cartId, product: item.product, quantity: 1 });
-    } else if (item.quantity > 1) {
-      await FetchEntity(`${baseUrl}/cartentry/updateQuantity`, { ...item, quantity: item.quantity - 1 });
-    }
-    const updatedCart = await FetchEntity(`${baseUrl}/cart/get`, selectedCustomerId, "text/plain");
-    setSelectedCart(updatedCart);
-    await refreshCartEntries();
-  };
+  if (delta === 1) {
+    await FetchEntity(`${baseUrl}/cartentry/add`, {
+      cartId: item.cartId,
+      product: item.product,
+      quantity: 1
+    });
+  } else if (item.quantity > 1) {
+
+    await FetchEntity(
+      `${baseUrl}/cartentry/updateQuantity`,
+      {
+        ...item,
+        quantity: item.quantity - 1
+      },
+      "application/json",
+      "PUT"
+    );
+  }
+
+  const updatedCart = await FetchEntity(
+    `${baseUrl}/cart/get`,
+    selectedCustomerId,
+    "text/plain"
+  );
+
+  setSelectedCart(updatedCart);
+  await refreshCartEntries();
+};
 
   const handleDelete = async (item) => {
-    await FetchEntity(`${baseUrl}/cartentry/delete`, { cartId: item.cartId, product: item.product });
+   
+await FetchEntity(
+  `${baseUrl}/cartentry/delete`,
+  {
+    cartId: item.cartId,
+    product: item.product
+  },
+  "application/json",
+  "DELETE"
+);
+
     const updatedCart = await FetchEntity(`${baseUrl}/cart/get`, selectedCustomerId, "text/plain");
     setSelectedCart(updatedCart);
     await refreshCartEntries();
@@ -178,7 +207,7 @@ export default function Cart() {
       setLastCreatedOrderEntries([...cartEntries]);
       triggerNotification(`Transaction completed successfully via ${paymentType}!`);
 
-      const clearOrderResponse = await fetch(`${baseUrl}/orders/add`, {
+      const clearOrderResponse = await fetch(`${baseUrl}/order/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

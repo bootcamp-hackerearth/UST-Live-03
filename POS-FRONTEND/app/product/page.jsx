@@ -10,25 +10,25 @@ const productFields = [
     name: "unit",
     placeholder: "Unit",
     type: "select",
-    apiUrl: "/api/unit/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/unit/list",
   },
   {
     name: "brand",
     placeholder: "Brand",
     type: "select",
-    apiUrl: "/api/brand/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/brand/list",
   },
   {
     name: "category",
     placeholder: "Category",
     type: "select",
-    apiUrl: "/api/category/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/category/list",
   },
   {
     name: "models",
     placeholder: "Models",
     type: "select",
-    apiUrl: "/api/models/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/models/list",
   },
 ];
 

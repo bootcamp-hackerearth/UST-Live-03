@@ -17,7 +17,7 @@ const nodeFields = [
     name: "roles",
     placeholder: "Select Roles",
     type: "multiselect",
-    apiUrl: "/api/role/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/role/list",
   },
 ];
 

@@ -28,7 +28,7 @@ export default function Register() {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const res = await axios.post("/api/role/list", {
+        const res = await axios.post(process.env.NEXT_PUBLIC_BASE_URL+"/role/list", {
           page: 0,
           sizePerPage: 10,
         });
@@ -110,8 +110,8 @@ export default function Register() {
 
     try {
       const url = editMode
-        ? "http://localhost:8080/api/user/update"
-        : "http://localhost:8080/api/user/register";
+        ? process.env.NEXT_PUBLIC_BASE_URL+"/user/update"
+        : process.env.NEXT_PUBLIC_BASE_URL+"/user/register";
 
       const res = await axios.post(url, { ...user });
 

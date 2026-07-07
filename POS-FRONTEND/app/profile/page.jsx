@@ -13,7 +13,7 @@ export default function Profile() {
 
   if (username) {
     axios
-      .post("http://localhost:8080/api/user/get", username, {
+      .post(process.env.NEXT_PUBLIC_BASE_URL+"/user/get", username, {
         headers: {
           "Content-Type": "text/plain",
         },
@@ -46,7 +46,7 @@ export default function Profile() {
   const handleUpdate = async () => {
     try {
       const response = await axios.put(
-        "http://localhost:8080/api/user/update",
+        process.env.NEXT_PUBLIC_BASE_URL+"/user/update",
         user,
         {
           headers: {

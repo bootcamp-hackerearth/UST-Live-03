@@ -18,7 +18,7 @@ export default function OrderHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080/api";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "/api";
   const getListContent = (res) => Array.isArray(res) ? res : res?.content || [];
 
   useEffect(() => {

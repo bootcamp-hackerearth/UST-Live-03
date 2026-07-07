@@ -14,7 +14,7 @@ const rackFields = [
     name: "shelves",
     placeholder: "Shelves",
     type: "multiselect",
-    apiUrl: "http://localhost:8080/api/shelves/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/shelves/list",
   },
 ];
 

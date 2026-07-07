@@ -20,7 +20,7 @@ export default function Sidebar({
   const fetchNodes = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/node/getnodesforroles",
+        process.env.NEXT_PUBLIC_BASE_URL+"/node/getnodesforroles",
         {
           method: "POST",
           headers: {

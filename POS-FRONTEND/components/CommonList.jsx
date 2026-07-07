@@ -29,7 +29,7 @@ const CommonList = ({
   try {
     setPermissionDenied(false);
 
-    const res = await fetch(`/api/${routeName}/list`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/list`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,7 +75,7 @@ body: JSON.stringify({
     const confirmDelete = globalThis.confirm("Delete this item?");
     if (!confirmDelete) return;
 
-    const res = await fetch(`/api/${routeName}/delete`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/delete`, {
       method: "DELETE",
       headers: {
         "Content-Type": "text/plain",
@@ -191,10 +191,10 @@ body: JSON.stringify({
       if (routeName === "user") {
         url = `${process.env.NEXT_PUBLIC_BASE_URL}/user/register`;
       } else {
-        url = `/api/${routeName}/add`;
+        url = `${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/add`;
       }
     } else {
-      url = `/api/${routeName}/update`;
+      url = `${process.env.NEXT_PUBLIC_BASE_URL}/${routeName}/update`;
     }
     const res = await fetch(url, {
       method: mode === "add" ? "POST" : "PUT",

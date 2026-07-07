@@ -12,7 +12,7 @@ const categoryFields = [
     name: "superCategory",
     placeholder: "Super Category",
     type: "multiselect",
-    apiUrl: "/api/category/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/category/list",
   },
 ];
 

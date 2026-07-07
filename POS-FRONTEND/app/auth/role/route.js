@@ -4,7 +4,7 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"}/api/role/list`;
+    const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || "/api"}/role/list`;
     console.log("Fetching roles from:", backendUrl);
 
     const backendResponse = await fetch(backendUrl, {

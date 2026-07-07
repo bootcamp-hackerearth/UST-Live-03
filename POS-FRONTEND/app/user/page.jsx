@@ -26,7 +26,7 @@ const fields = [
     name: "roles",
     placeholder: "Roles",
     type: "multiselect",
-    apiUrl: "http://localhost:8080/api/role/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/role/list",
   },
   {
     name: "password",

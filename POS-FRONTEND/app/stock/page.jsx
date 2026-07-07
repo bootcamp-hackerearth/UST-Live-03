@@ -14,7 +14,7 @@ const stockFields = [
     name: "product",
     placeholder: "Product",
     type: "select",
-    apiUrl: "/api/product/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/product/list",
   },
   {
     name: "quantity",
@@ -35,7 +35,7 @@ const stockFields = [
     name: "warehouse",
     placeholder: "Warehouse",
     type: "select",
-    apiUrl: "http://localhost:8080/api/warehouse/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/warehouse/list",
   },
 ];
 

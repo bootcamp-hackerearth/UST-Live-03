@@ -14,7 +14,7 @@ const priceFields = [
     name: "product",
     placeholder: "Product",
     type: "select",
-    apiUrl: "/api/product/list",
+    apiUrl: process.env.NEXT_PUBLIC_BASE_URL+"/product/list",
     disableOnEdit: true,
   },
   {
