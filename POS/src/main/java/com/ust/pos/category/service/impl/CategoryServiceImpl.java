@@ -61,7 +61,7 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
 
         CategoryDto dto = new CategoryDto();
 
-        Category category = categoryRepository.findByIdentifier(identifier).orElse(null);
+        Category category = categoryRepository.findByIdentifier(identifier);
 
         if (category == null || Boolean.TRUE.equals(category.getDeleted())) {
             dto.setSuccess(false);
@@ -104,7 +104,7 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
 
         CategoryDto response = new CategoryDto();
 
-        Category category = categoryRepository.findByIdentifier(dto.getIdentifier()).orElse(null);
+        Category category = categoryRepository.findByIdentifier(dto.getIdentifier());
 
         if (category == null || Boolean.TRUE.equals(category.getDeleted())) {
             response.setSuccess(false);
@@ -132,7 +132,7 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
     @Override
     public void delete(String identifier) {
 
-        Category category = categoryRepository.findByIdentifier(identifier).orElse(null);
+        Category category = categoryRepository.findByIdentifier(identifier);
 
         if (category == null) return;
 

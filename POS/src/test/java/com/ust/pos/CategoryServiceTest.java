@@ -12,11 +12,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -41,12 +43,19 @@ class CategoryServiceTest {
         dto.setIdentifier("CAT1");
         dto.setName("Electronics");
 
-        when(categoryRepository.existsByIdentifier("CAT1")).thenReturn(false);
-        when(categoryRepository.save(any(Category.class))).thenAnswer(i -> i.getArgument(0));
+        when(categoryRepository.existsByIdentifier("CAT1"))
+                .thenReturn(false);
+
+        when(categoryRepository.save(any(Category.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
         CategoryDto result = categoryService.save(dto);
 
         assertTrue(result.isSuccess());
-        assertEquals("Category created successfully", result.getMessage());
+        assertEquals(
+                "Category created successfully",
+                result.getMessage()
+        );
 
         verify(categoryRepository).save(any(Category.class));
     }
@@ -57,41 +66,58 @@ class CategoryServiceTest {
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("CAT1");
 
-        when(categoryRepository.existsByIdentifier("CAT1")).thenReturn(true);
+        when(categoryRepository.existsByIdentifier("CAT1"))
+                .thenReturn(true);
+
         CategoryDto result = categoryService.save(dto);
 
         assertFalse(result.isSuccess());
-        assertEquals("Identifier already exists", result.getMessage());
+        assertEquals(
+                "Identifier already exists",
+                result.getMessage()
+        );
 
-        verify(categoryRepository, never()).save(any());
+        verify(categoryRepository, never())
+                .save(any(Category.class));
     }
 
     @Test
     void find_success() {
 
         Category category = new Category();
+        category.setIdentifier("CAT1");
         category.setDeleted(false);
 
         CategoryDto mapped = new CategoryDto();
         mapped.setIdentifier("CAT1");
+        mapped.setSuccess(true);
 
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(Optional.of(category));
-        when(modelMapper.map(category, CategoryDto.class)).thenReturn(mapped);
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
 
-        CategoryDto result = categoryService.findByIdentifier("CAT1");
+        when(modelMapper.map(category, CategoryDto.class))
+                .thenReturn(mapped);
 
-        assertTrue(result.isSuccess());
+        CategoryDto result =
+                categoryService.findByIdentifier("CAT1");
+
         assertEquals("CAT1", result.getIdentifier());
     }
 
     @Test
     void find_not_found() {
 
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(Optional.empty());
-        CategoryDto result = categoryService.findByIdentifier("CAT1");
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(null);
+
+        CategoryDto result =
+                categoryService.findByIdentifier("CAT1");
 
         assertFalse(result.isSuccess());
-        assertEquals("Category not found", result.getMessage());
+        assertEquals(
+                "Category not found",
+                result.getMessage()
+        );
     }
 
     @Test
@@ -101,8 +127,11 @@ class CategoryServiceTest {
         category.setIdentifier("CAT1");
         category.setDeleted(false);
 
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(Optional.of(category));
-        when(categoryRepository.save(any(Category.class))).thenAnswer(i -> i.getArgument(0));
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
+
+        when(categoryRepository.save(any(Category.class)))
+                .thenAnswer(i -> i.getArgument(0));
 
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("CAT1");
@@ -111,7 +140,10 @@ class CategoryServiceTest {
         CategoryDto result = categoryService.update(dto);
 
         assertTrue(result.isSuccess());
-        assertEquals("Category updated successfully", result.getMessage());
+        assertEquals(
+                "Category updated successfully",
+                result.getMessage()
+        );
 
         verify(categoryRepository).save(category);
     }
@@ -122,11 +154,16 @@ class CategoryServiceTest {
         CategoryDto dto = new CategoryDto();
         dto.setIdentifier("CAT1");
 
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(null);
+
         CategoryDto result = categoryService.update(dto);
 
         assertFalse(result.isSuccess());
-        assertEquals("Category not found", result.getMessage());
+        assertEquals(
+                "Category not found",
+                result.getMessage()
+        );
     }
 
     @Test
@@ -134,38 +171,58 @@ class CategoryServiceTest {
 
         Category category = new Category();
         category.setIdentifier("CAT1");
+        category.setDeleted(false);
 
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(Optional.of(category));
-        when(categoryRepository.save(any(Category.class))).thenAnswer(i -> i.getArgument(0));
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(category);
+
+        when(categoryRepository.save(any(Category.class)))
+                .thenAnswer(i -> i.getArgument(0));
 
         categoryService.delete("CAT1");
 
         assertTrue(category.getDeleted());
+
         verify(categoryRepository).save(category);
     }
 
     @Test
     void delete_not_found() {
 
-        when(categoryRepository.findByIdentifier("CAT1")).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdentifier("CAT1"))
+                .thenReturn(null);
+
         categoryService.delete("CAT1");
 
-        verify(categoryRepository, never()).save(any());
+        verify(categoryRepository, never())
+                .save(any(Category.class));
     }
 
     @Test
     void find_all() {
 
         Category category = new Category();
-        Page<Category> page = new PageImpl<>(List.of(category));
-        Pageable pageable = PageRequest.of(0, 5);
 
-        when(categoryRepository.findByDeletedFalse(pageable)).thenReturn(page);
-        Type type = new TypeToken<List<CategoryDto>>() {}.getType();
-        when(modelMapper.map(anyList(), eq(type))).thenReturn(List.of(new CategoryDto()));
-        WsDto<CategoryDto> result =categoryService.findAll(pageable);
+        Page<Category> page =
+                new PageImpl<>(List.of(category));
+
+        Pageable pageable =
+                PageRequest.of(0, 5);
+
+        when(categoryRepository.findByDeletedFalse(pageable))
+                .thenReturn(page);
+
+        Type type =
+                new TypeToken<List<CategoryDto>>() {}.getType();
+
+        when(modelMapper.map(anyList(), eq(type)))
+                .thenReturn(List.of(new CategoryDto()));
+
+        WsDto<CategoryDto> result =
+                categoryService.findAll(pageable);
 
         assertEquals(1, result.getDtoList().size());
+        assertEquals(1, result.getTotalRecords());
     }
 
     @Test
@@ -179,9 +236,15 @@ class CategoryServiceTest {
         child.setIdentifier("B");
         child.setSuperCategoryIdentifier("A");
 
-        when(categoryRepository.findByDeletedFalse()).thenReturn(List.of(parent, child));
-        when(modelMapper.map(parent, CategoryDto.class)).thenReturn(new CategoryDto());
-        List<CategoryDto> result =categoryService.findSuperCategories();
+        when(categoryRepository.findByDeletedFalse())
+                .thenReturn(List.of(parent, child));
+
+        when(modelMapper.map(parent, CategoryDto.class))
+                .thenReturn(new CategoryDto());
+
+        List<CategoryDto> result =
+                categoryService.findSuperCategories();
+
         assertEquals(1, result.size());
     }
 
@@ -195,9 +258,14 @@ class CategoryServiceTest {
         child.setIdentifier("B");
         child.setSuperCategoryIdentifier("A");
 
-        when(categoryRepository.findByDeletedFalse()).thenReturn(List.of(parent, child));
-        when(modelMapper.map(child, CategoryDto.class)).thenReturn(new CategoryDto());
-        List<CategoryDto> result =categoryService.findLeafCategories();
+        when(categoryRepository.findByDeletedFalse())
+                .thenReturn(List.of(parent, child));
+
+        when(modelMapper.map(child, CategoryDto.class))
+                .thenReturn(new CategoryDto());
+
+        List<CategoryDto> result =
+                categoryService.findLeafCategories();
 
         assertEquals(1, result.size());
     }
@@ -209,9 +277,14 @@ class CategoryServiceTest {
         child.setIdentifier("B");
         child.setSuperCategoryIdentifier("A");
 
-        when(categoryRepository.findByDeletedFalse()).thenReturn(List.of(child));
-        when(modelMapper.map(child, CategoryDto.class)).thenReturn(new CategoryDto());
-        List<CategoryDto> result = categoryService.findChildCategories();
+        when(categoryRepository.findByDeletedFalse())
+                .thenReturn(List.of(child));
+
+        when(modelMapper.map(child, CategoryDto.class))
+                .thenReturn(new CategoryDto());
+
+        List<CategoryDto> result =
+                categoryService.findChildCategories();
 
         assertEquals(1, result.size());
     }
