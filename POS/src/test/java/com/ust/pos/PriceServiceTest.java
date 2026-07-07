@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.PriceDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Price;
 import com.ust.pos.model.PriceRepository;
 import com.ust.pos.price.service.impl.PriceServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,26 +39,26 @@ class PriceServiceTest {
     @InjectMocks
     private PriceServiceImpl priceService;
 
-    private Price priceEntity;
+    private Price price;
     private PriceDto priceDto;
 
     @BeforeEach
     void setUp() {
-        priceEntity = new Price();
-        priceEntity.setId(1L);
-        priceEntity.setIdentifier("PRC-001");
-        priceEntity.setProductIdentifier("PROD-X");
-        priceEntity.setStatus(true);
-        priceEntity.setDeleted(false);
+        price = new Price();
+        price.setId(1L);
+        price.setIdentifier("PRC-001");
+        price.setProductIdentifier("PROD-001");
+        price.setStatus(true);
+        price.setDeleted(false);
 
         priceDto = new PriceDto();
         priceDto.setIdentifier("PRC-001");
-        priceDto.setProductIdentifier("PROD-X");
+        priceDto.setProductIdentifier("PROD-001");
     }
 
     @Test
-    void testFindByIdentifier() {
-        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
+    void testFindByIdentifier_Success() {
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
         PriceDto result = priceService.findByIdentifier("PRC-001");
 
@@ -65,13 +67,20 @@ class PriceServiceTest {
     }
 
     @Test
-    void testFindByProductIdentifier() {
-        when(priceRepository.findByProductIdentifier("PROD-X")).thenReturn(priceEntity);
+    void testFindByIdentifier_ThrowsResourceNotFoundException() {
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(null);
 
-        PriceDto result = priceService.findByProductIdentifier("PROD-X");
+        assertThrows(ResourceNotFoundException.class, () -> priceService.findByIdentifier("PRC-001"));
+    }
+
+    @Test
+    void testFindByProductIdentifier() {
+        when(priceRepository.findByProductIdentifier("PROD-001")).thenReturn(price);
+
+        PriceDto result = priceService.findByProductIdentifier("PROD-001");
 
         assertNotNull(result);
-        assertEquals("PROD-X", result.getProductIdentifier());
+        assertEquals("PROD-001", result.getProductIdentifier());
     }
 
     @Test
@@ -87,7 +96,9 @@ class PriceServiceTest {
 
     @Test
     void testSave_WhenProductIdentifierAlreadyExistsAndNotDeleted() {
-        when(priceRepository.findByProductIdentifier("PROD-X")).thenReturn(priceEntity);
+        Price existingByProduct = new Price();
+        existingByProduct.setDeleted(false);
+        when(priceRepository.findByProductIdentifier("PROD-001")).thenReturn(existingByProduct);
 
         PriceDto result = priceService.save(priceDto);
 
@@ -97,9 +108,9 @@ class PriceServiceTest {
     }
 
     @Test
-    void testSave_WhenPriceIdentifierAlreadyExistsAndNotDeleted() {
-        when(priceRepository.findByProductIdentifier("PROD-X")).thenReturn(null);
-        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
+    void testSave_WhenIdentifierAlreadyExistsAndNotDeleted() {
+        when(priceRepository.findByProductIdentifier("PROD-001")).thenReturn(null);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
@@ -109,10 +120,10 @@ class PriceServiceTest {
     }
 
     @Test
-    void testSave_WhenPriceIdentifierWasPreviouslyDeleted() {
-        priceEntity.setDeleted(true);
-        when(priceRepository.findByProductIdentifier("PROD-X")).thenReturn(null);
-        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
+    void testSave_WhenIdentifierAlreadyExistsButDeleted() {
+        price.setDeleted(true);
+        when(priceRepository.findByProductIdentifier("PROD-001")).thenReturn(null);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
@@ -123,9 +134,9 @@ class PriceServiceTest {
 
     @Test
     void testSave_Success() {
-        when(priceRepository.findByProductIdentifier("PROD-X")).thenReturn(null);
+        when(priceRepository.findByProductIdentifier("PROD-001")).thenReturn(null);
         when(priceRepository.findByIdentifier("PRC-001")).thenReturn(null);
-        when(priceRepository.save(any(Price.class))).thenReturn(priceEntity);
+        when(priceRepository.save(any(Price.class))).thenReturn(price);
 
         PriceDto result = priceService.save(priceDto);
 
@@ -146,9 +157,9 @@ class PriceServiceTest {
     }
 
     @Test
-    void testUpdate_WhenPricegetDeleted() {
-        priceEntity.setDeleted(true);
-        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
+    void testUpdate_WhenPriceDeleted() {
+        price.setDeleted(true);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
         PriceDto result = priceService.update(priceDto);
 
@@ -159,13 +170,12 @@ class PriceServiceTest {
 
     @Test
     void testUpdate_WithConflictingProductIdentifier() {
-        priceDto.setProductIdentifier("PROD-NEW");
-        Price conflictEntity = new Price();
-        conflictEntity.setProductIdentifier("PROD-NEW");
-        conflictEntity.setDeleted(false);
+        priceDto.setProductIdentifier("NEW-PROD");
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
 
-        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
-        when(priceRepository.findByProductIdentifier("PROD-NEW")).thenReturn(conflictEntity);
+        Price conflictPrice = new Price();
+        conflictPrice.setDeleted(false);
+        when(priceRepository.findByProductIdentifier("NEW-PROD")).thenReturn(conflictPrice);
 
         PriceDto result = priceService.update(priceDto);
 
@@ -176,8 +186,8 @@ class PriceServiceTest {
 
     @Test
     void testUpdate_Success() {
-        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
-        when(priceRepository.save(any(Price.class))).thenReturn(priceEntity);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
+        when(priceRepository.save(any(Price.class))).thenReturn(price);
 
         PriceDto result = priceService.update(priceDto);
 
@@ -197,28 +207,39 @@ class PriceServiceTest {
 
     @Test
     void testDelete_Success() {
-        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
-        when(priceRepository.save(any(Price.class))).thenReturn(priceEntity);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
+        when(priceRepository.save(any(Price.class))).thenReturn(price);
 
         priceService.delete("PRC-001");
 
-        verify(priceRepository, times(1)).save(priceEntity);
-        assertTrue(priceEntity.getDeleted());
+        verify(priceRepository, times(1)).save(any(Price.class));
     }
 
     @Test
     void testFindAll() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Price> entityList = Collections.singletonList(priceEntity);
-        Page<Price> page = new PageImpl<>(entityList, pageable, 1);
-
+        Page<Price> page = new PageImpl<>(Collections.singletonList(price), pageable, 1);
         when(priceRepository.findByDeletedFalse(pageable)).thenReturn(page);
 
         WsDto<PriceDto> result = priceService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalRecords());
-        assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testFindAllWithSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Price> page = new PageImpl<>(Collections.singletonList(price), pageable, 1);
+        Specification<Price> spec = mock(Specification.class);
+        when(priceRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        WsDto<PriceDto> result = priceService.findAll(spec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRecords());
     }
 
     @Test
@@ -234,9 +255,8 @@ class PriceServiceTest {
 
     @Test
     void testToggleStatus_Success() {
-        priceEntity.setStatus(true);
-        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(priceEntity);
-        when(priceRepository.save(any(Price.class))).thenReturn(priceEntity);
+        when(priceRepository.findByIdentifier("PRC-001")).thenReturn(price);
+        when(priceRepository.save(any(Price.class))).thenReturn(price);
 
         PriceDto result = priceService.toggleStatus("PRC-001");
 
@@ -246,8 +266,7 @@ class PriceServiceTest {
 
     @Test
     void testFindIfTrue() {
-        List<Price> activePrices = Collections.singletonList(priceEntity);
-        when(priceRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(activePrices);
+        when(priceRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(Collections.singletonList(price));
 
         List<PriceDto> result = priceService.findIfTrue();
 

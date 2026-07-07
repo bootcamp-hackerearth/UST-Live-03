@@ -3,6 +3,7 @@ package com.ust.pos;
 import com.ust.pos.brand.service.impl.BrandServiceImpl;
 import com.ust.pos.dto.BrandDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
 import com.ust.pos.model.BrandRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -218,5 +220,37 @@ class BrandServiceTest {
         assertNotNull(result);
         assertFalse(result.isStatus());
         verify(brandRepository, times(1)).save(any(Brand.class));
+    }
+    @Test
+    void testFindByIdentifier_WhenNotFound_ThrowsResourceNotFoundException() {
+        when(brandRepository.findByIdentifier("UNKNOWN-ID")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            brandService.findByIdentifier("UNKNOWN-ID");
+        });
+
+        verify(brandRepository, times(1)).findByIdentifier("UNKNOWN-ID");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testFindAllWithSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Brand> list = Collections.singletonList(brand);
+        Page<Brand> page = new PageImpl<>(list, pageable, 1);
+        Specification<Brand> spec = mock(Specification.class);
+
+        when(brandRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        WsDto<BrandDto> result = brandService.findAll(spec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
+
+        verify(brandRepository, times(1)).findAll(spec, pageable);
     }
 }

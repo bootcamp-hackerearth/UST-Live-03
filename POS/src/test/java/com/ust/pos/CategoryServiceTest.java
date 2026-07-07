@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collections;
 import java.util.List;
@@ -277,5 +278,26 @@ class CategoryServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
+    }
+    @SuppressWarnings("unchecked")
+    @Test
+    void testFindAllWithSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Category> list = Collections.singletonList(category);
+        Page<Category> page = new PageImpl<>(list, pageable, 1);
+        Specification<Category> spec = mock(Specification.class);
+
+        when(categoryRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        WsDto<CategoryDto> result = categoryService.findAll(spec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
+
+        verify(categoryRepository, times(1)).findAll(spec, pageable);
     }
 }

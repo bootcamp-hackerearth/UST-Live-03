@@ -165,4 +165,17 @@ class CartServiceTest {
         assertNotNull(result.getEntryList());
         verify(cartRepository, never()).save(any(Cart.class));
     }
+    @Test
+    void testRecalculate_WithEmptyEntries() {
+        when(cartRepository.findByIdentifier("CART-001")).thenReturn(cart);
+        when(cartEntryService.findAllEntriesForCart("CART-001")).thenReturn(new ArrayList<>());
+        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+
+        CartDto result = cartService.recalculate("CART-001");
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertTrue(result.getEntryList().isEmpty());
+        verify(cartRepository, times(1)).save(any(Cart.class));
+    }
 }

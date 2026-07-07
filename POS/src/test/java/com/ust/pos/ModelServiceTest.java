@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.ModelDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Model;
 import com.ust.pos.model.ModelRepository;
 import com.ust.pos.models.service.impl.ModelServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collections;
 import java.util.List;
@@ -225,5 +227,37 @@ class ModelServiceTest {
         assertEquals(1, result.size());
         assertEquals("MDL-2026", result.get(0).getIdentifier());
         verify(modelRepository, times(1)).findByStatusIsTrueAndDeletedFalse();
+    }
+    @Test
+    void testFindByIdentifier_WhenNotFound_ThrowsResourceNotFoundException() {
+        when(modelRepository.findByIdentifier("UNKNOWN-ID")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            modelService.findByIdentifier("UNKNOWN-ID");
+        });
+
+        verify(modelRepository, times(1)).findByIdentifier("UNKNOWN-ID");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testFindAllWithSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Model> entityList = Collections.singletonList(modelEntity);
+        Page<Model> page = new PageImpl<>(entityList, pageable, 1);
+        Specification<Model> spec = mock(Specification.class);
+
+        when(modelRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        WsDto<ModelDto> result = modelService.findAll(spec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
+
+        verify(modelRepository, times(1)).findAll(spec, pageable);
     }
 }

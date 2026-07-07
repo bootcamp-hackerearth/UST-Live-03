@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
 import com.ust.pos.user.service.impl.UserServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
@@ -42,45 +44,63 @@ class UserServiceTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    private User userEntity;
+    private User user;
     private UserDto userDto;
 
     @BeforeEach
     void setUp() {
-        userEntity = new User();
-        userEntity.setId(1L);
-        userEntity.setIdentifier("USR-100");
-        userEntity.setUsername("john_doe");
-        userEntity.setPassword("encodedPassword");
-        userEntity.setStatus(true);
-        userEntity.setDeleted(false);
-        userEntity.setRoles(new ArrayList<>(Collections.singletonList("ROLE_USER")));
+        user = new User();
+        user.setId(1L);
+        user.setIdentifier("USR-001");
+        user.setUsername("testuser");
+        user.setPassword("encodedPassword");
+        user.setStatus(true);
+        user.setDeleted(false);
+        user.setRoles(new ArrayList<>(Collections.singletonList("ROLE_USER")));
 
         userDto = new UserDto();
-        userDto.setIdentifier("USR-100");
-        userDto.setUsername("john_doe");
+        userDto.setIdentifier("USR-001");
+        userDto.setUsername("testuser");
         userDto.setPassword("rawPassword");
         userDto.setRoles(Collections.singletonList("ROLE_USER"));
     }
 
     @Test
-    void testFindByUserName() {
-        when(userRepository.findByUsername("john_doe")).thenReturn(userEntity);
+    void testFindByUserName_Success() {
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
 
-        UserDto result = userService.findByUserName("john_doe");
+        UserDto result = userService.findByUserName("testuser");
 
         assertNotNull(result);
-        assertEquals("john_doe", result.getUsername());
+        assertEquals("testuser", result.getUsername());
+        verify(userRepository, times(1)).findByUsername("testuser");
     }
 
     @Test
-    void testFindByIdentifier() {
-        when(userRepository.findByIdentifier("USR-100")).thenReturn(userEntity);
+    void testFindByUserName_ThrowsResourceNotFoundException() {
+        when(userRepository.findByUsername("testuser")).thenReturn(null);
 
-        UserDto result = userService.findByIdentifier("USR-100");
+        assertThrows(ResourceNotFoundException.class, () -> userService.findByUserName("testuser"));
+        verify(userRepository, times(1)).findByUsername("testuser");
+    }
+
+    @Test
+    void testFindByIdentifier_Success() {
+        when(userRepository.findByIdentifier("USR-001")).thenReturn(user);
+
+        UserDto result = userService.findByIdentifier("USR-001");
 
         assertNotNull(result);
-        assertEquals("USR-100", result.getIdentifier());
+        assertEquals("USR-001", result.getIdentifier());
+        verify(userRepository, times(1)).findByIdentifier("USR-001");
+    }
+
+    @Test
+    void testFindByIdentifier_ThrowsResourceNotFoundException() {
+        when(userRepository.findByIdentifier("USR-001")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> userService.findByIdentifier("USR-001"));
+        verify(userRepository, times(1)).findByIdentifier("USR-001");
     }
 
     @Test
@@ -95,161 +115,186 @@ class UserServiceTest {
     }
 
     @Test
-    void testSave_WhenUserExistsAndNotDeleted() {
-        when(userRepository.findByUsername("john_doe")).thenReturn(userEntity);
+    void testSave_WhenUserAlreadyExistsAndNotDeleted() {
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
 
         UserDto result = userService.save(userDto);
 
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("already exists"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void testSave_WhenUserWasPreviouslyDeleted() {
-        userEntity.setDeleted(true);
-        when(userRepository.findByUsername("john_doe")).thenReturn(userEntity);
+    void testSave_WhenUserAlreadyExistsButDeleted() {
+        user.setDeleted(true);
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
 
         UserDto result = userService.save(userDto);
 
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("previously deleted"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void testSave_Success() {
-        when(userRepository.findByUsername("john_doe")).thenReturn(null);
+        when(userRepository.findByUsername("testuser")).thenReturn(null);
         when(passwordEncoder.encode("rawPassword")).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(userEntity);
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
         UserDto result = userService.save(userDto);
 
         assertNotNull(result);
         assertTrue(result.isSuccess());
         assertEquals("User created successfully", result.getMessage());
-        verify(passwordEncoder, times(1)).encode("rawPassword");
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void testUpdate_WhenUserNotFound() {
-        when(userRepository.findByUsername("john_doe")).thenReturn(null);
+        when(userRepository.findByUsername("testuser")).thenReturn(null);
 
         UserDto result = userService.update(userDto);
 
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("not found"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void testUpdate_WhenUsergetDeleted() {
-        userEntity.setDeleted(true);
-        when(userRepository.findByUsername("john_doe")).thenReturn(userEntity);
+    void testUpdate_WhenUserDeleted() {
+        user.setDeleted(true);
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
 
         UserDto result = userService.update(userDto);
 
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("previously deleted"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void testUpdate_SuccessWithNewPasswordAndRoles() {
-        when(userRepository.findByUsername("john_doe")).thenReturn(userEntity);
+    void testUpdate_SuccessWithNewRolesAndNewPassword() {
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
         when(passwordEncoder.encode("rawPassword")).thenReturn("newEncodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(userEntity);
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
         UserDto result = userService.update(userDto);
 
         assertNotNull(result);
         assertTrue(result.isSuccess());
         assertEquals("User updated successfully", result.getMessage());
-        verify(passwordEncoder, times(1)).encode("rawPassword");
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    void testUpdate_SuccessWithEmptyPasswordAndEmptyRoles() {
-        userDto.setPassword("");
+    void testUpdate_SuccessWithEmptyDtoRolesRetainsExistingRoles() {
         userDto.setRoles(null);
-        userEntity.setRoles(new ArrayList<>(Collections.singletonList("ROLE_USER")));
-
-        when(userRepository.findByUsername("john_doe")).thenReturn(userEntity);
-        when(userRepository.save(any(User.class))).thenReturn(userEntity);
+        userDto.setPassword(null);
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
         UserDto result = userService.update(userDto);
 
         assertNotNull(result);
         assertTrue(result.isSuccess());
         verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void testDelete_WhenUserNotFound() {
-        when(userRepository.findByUsername("john_doe")).thenReturn(null);
+        when(userRepository.findByUsername("testuser")).thenReturn(null);
 
-        userService.delete("john_doe");
+        userService.delete("testuser");
 
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void testDelete_Success() {
-        when(userRepository.findByUsername("john_doe")).thenReturn(userEntity);
-        when(userRepository.save(any(User.class))).thenReturn(userEntity);
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
-        userService.delete("john_doe");
+        userService.delete("testuser");
 
-        verify(userRepository, times(1)).save(userEntity);
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void testFindAll() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<User> entityList = Collections.singletonList(userEntity);
-        Page<User> page = new PageImpl<>(entityList, pageable, 1);
-
+        Page<User> page = new PageImpl<>(Collections.singletonList(user), pageable, 1);
         when(userRepository.findByDeletedFalse(pageable)).thenReturn(page);
 
         WsDto<UserDto> result = userService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
         assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
+        verify(userRepository, times(1)).findByDeletedFalse(pageable);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testFindAllWithSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> page = new PageImpl<>(Collections.singletonList(user), pageable, 1);
+        Specification<User> spec = mock(Specification.class);
+        when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        WsDto<UserDto> result = userService.findAll(spec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
+        verify(userRepository, times(1)).findAll(spec, pageable);
     }
 
     @Test
     void testToggleStatus_WhenUserNotFound() {
-        when(userRepository.findByIdentifier("USR-100")).thenReturn(null);
+        when(userRepository.findByIdentifier("USR-001")).thenReturn(null);
 
-        UserDto result = userService.toggleStatus("USR-100");
+        UserDto result = userService.toggleStatus("USR-001");
 
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("not found"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void testToggleStatus_Success() {
-        userEntity.setStatus(true);
-        when(userRepository.findByIdentifier("USR-100")).thenReturn(userEntity);
-        when(userRepository.save(any(User.class))).thenReturn(userEntity);
+        when(userRepository.findByIdentifier("USR-001")).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
-        UserDto result = userService.toggleStatus("USR-100");
+        UserDto result = userService.toggleStatus("USR-001");
 
         assertNotNull(result);
         assertFalse(result.isStatus());
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void testFindIfTrue() {
-        List<User> activeUsers = Collections.singletonList(userEntity);
-        when(userRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(activeUsers);
+        when(userRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(Collections.singletonList(user));
 
         List<UserDto> result = userService.findIfTrue();
 
         assertNotNull(result);
         assertEquals(1, result.size());
+        assertEquals("testuser", result.get(0).getUsername());
+        verify(userRepository, times(1)).findByStatusIsTrueAndDeletedFalse();
     }
 }

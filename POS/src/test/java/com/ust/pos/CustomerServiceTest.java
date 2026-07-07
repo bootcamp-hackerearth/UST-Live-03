@@ -16,6 +16,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -272,6 +273,53 @@ class CustomerServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
+    }
+
+    @Test
+    void testFindByIdentifierWithAddressDto_WithOnlyBillingAddress() {
+        List<AddressDto> addressList = Collections.singletonList(addressDto1);
+        when(customerRepository.findByPhoneNo("1234567890")).thenReturn(customer);
+        when(addressService.findAllByPhoneNo("1234567890")).thenReturn(addressList);
+
+        CustomerDto result = customerService.findByIdentifierWithAddressDto("1234567890");
+
+        assertNotNull(result);
+        assertNotNull(result.getBillingAddress());
+        assertNull(result.getShippingAddress());
+    }
+
+    @Test
+    void testFindByIdentifierWithAddressDto_NullAddressList() {
+        when(customerRepository.findByPhoneNo("1234567890")).thenReturn(customer);
+        when(addressService.findAllByPhoneNo("1234567890")).thenReturn(null);
+
+        CustomerDto result = customerService.findByIdentifierWithAddressDto("1234567890");
+
+        assertNotNull(result);
+        assertNull(result.getBillingAddress());
+        assertNull(result.getShippingAddress());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testFindAllWithSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Customer> list = Collections.singletonList(customer);
+        Page<Customer> page = new PageImpl<>(list, pageable, 1);
+        Specification<Customer> spec = mock(Specification.class);
+
+        when(customerRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        WsDto<CustomerDto> result = customerService.findAll(spec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRecords());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(10, result.getSizePerPage());
+        assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
+
+        verify(customerRepository, times(1)).findAll(spec, pageable);
     }
 
 

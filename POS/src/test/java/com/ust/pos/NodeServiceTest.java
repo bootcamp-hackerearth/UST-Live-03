@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.NodeDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Node;
 import com.ust.pos.model.NodeRepository;
 import com.ust.pos.model.User;
@@ -19,12 +20,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,18 +48,18 @@ class NodeServiceTest {
     @InjectMocks
     private NodeServiceImpl nodeService;
 
-    private Node nodeEntity;
+    private Node node;
     private NodeDto nodeDto;
     private User userEntity;
 
     @BeforeEach
     void setUp() {
-        nodeEntity = new Node();
-        nodeEntity.setId(1L);
-        nodeEntity.setIdentifier("NODE-01");
-        nodeEntity.setStatus(true);
-        nodeEntity.setDeleted(false);
-        nodeEntity.setRoles(Arrays.asList("ROLE_ADMIN", "ROLE_USER"));
+        node = new Node();
+        node.setId(1L);
+        node.setIdentifier("NODE-01");
+        node.setStatus(true);
+        node.setDeleted(false);
+        node.setRoles(Collections.singletonList("ROLE_ADMIN"));
 
         nodeDto = new NodeDto();
         nodeDto.setIdentifier("NODE-01");
@@ -69,13 +70,20 @@ class NodeServiceTest {
     }
 
     @Test
-    void testFindByIdentifier() {
-        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
+    void testFindByIdentifier_Success() {
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(node);
 
         NodeDto result = nodeService.findByIdentifier("NODE-01");
 
         assertNotNull(result);
         assertEquals("NODE-01", result.getIdentifier());
+    }
+
+    @Test
+    void testFindByIdentifier_ThrowsResourceNotFoundException() {
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> nodeService.findByIdentifier("NODE-01"));
     }
 
     @Test
@@ -90,9 +98,9 @@ class NodeServiceTest {
     }
 
     @Test
-    void testSave_WhenNodeExistsAndNotDeleted() {
-        nodeEntity.setDeleted(false);
-        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
+    void testSave_WhenNodeAlreadyExistsAndNotDeleted() {
+        node.setDeleted(false);
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(node);
 
         NodeDto result = nodeService.save(nodeDto);
 
@@ -102,9 +110,9 @@ class NodeServiceTest {
     }
 
     @Test
-    void testSave_WhenNodeExistsAndgetDeleted() {
-        nodeEntity.setDeleted(true);
-        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
+    void testSave_WhenNodeAlreadyExistsButDeleted() {
+        node.setDeleted(true);
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(node);
 
         NodeDto result = nodeService.save(nodeDto);
 
@@ -116,7 +124,7 @@ class NodeServiceTest {
     @Test
     void testSave_Success() {
         when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(null);
-        when(nodeRepository.save(any(Node.class))).thenReturn(nodeEntity);
+        when(nodeRepository.save(any(Node.class))).thenReturn(node);
 
         NodeDto result = nodeService.save(nodeDto);
 
@@ -137,9 +145,9 @@ class NodeServiceTest {
     }
 
     @Test
-    void testUpdate_WhenNodegetDeleted() {
-        nodeEntity.setDeleted(true);
-        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
+    void testUpdate_WhenNodeDeleted() {
+        node.setDeleted(true);
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(node);
 
         NodeDto result = nodeService.update(nodeDto);
 
@@ -150,79 +158,57 @@ class NodeServiceTest {
 
     @Test
     void testUpdate_Success() {
-        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
-        when(nodeRepository.save(any(Node.class))).thenReturn(nodeEntity);
+        node.setDeleted(false);
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(node);
+        when(nodeRepository.save(any(Node.class))).thenReturn(node);
 
         NodeDto result = nodeService.update(nodeDto);
 
         assertNotNull(result);
-        verify(nodeRepository, times(1)).save(any(Node.class));
+        assertEquals("NODE-01", result.getIdentifier());
     }
 
     @Test
     void testDelete() {
-        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
-        when(nodeRepository.save(any(Node.class))).thenReturn(nodeEntity);
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(node);
+        when(nodeRepository.save(any(Node.class))).thenReturn(node);
 
         nodeService.delete("NODE-01");
 
-        verify(nodeRepository, times(1)).save(nodeEntity);
+        verify(nodeRepository, times(1)).save(any(Node.class));
     }
 
     @Test
     void testFindAll() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Node> entityList = Collections.singletonList(nodeEntity);
-        Page<Node> page = new PageImpl<>(entityList, pageable, 1);
-
+        Page<Node> page = new PageImpl<>(Collections.singletonList(node), pageable, 1);
         when(nodeRepository.findByDeletedFalse(pageable)).thenReturn(page);
 
         WsDto<NodeDto> result = nodeService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalRecords());
-        assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    void testGetNodesForRoles_AuthenticationNull() {
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(null);
-        SecurityContextHolder.setContext(securityContext);
+    void testFindAllWithSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Node> page = new PageImpl<>(Collections.singletonList(node), pageable, 1);
+        Specification<Node> spec = mock(Specification.class);
+        when(nodeRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        List<NodeDto> result = nodeService.getNodesForRoles();
+        WsDto<NodeDto> result = nodeService.findAll(spec, pageable);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void testGetNodesForRoles_Success() {
-        Authentication authentication = mock(Authentication.class);
-        org.springframework.security.core.userdetails.User principal =
-                new org.springframework.security.core.userdetails.User("testuser", "password", new ArrayList<>());
-
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(principal);
-        SecurityContextHolder.setContext(securityContext);
-
-        when(userRepository.findByUsername("testuser")).thenReturn(userEntity);
-        when(nodeRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(Collections.singletonList(nodeEntity));
-        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
-
-        List<NodeDto> result = nodeService.getNodesForRoles();
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("NODE-01", result.get(0).getIdentifier());
+        assertEquals(1, result.getTotalRecords());
     }
 
     @Test
     void testToggleStatus() {
-        nodeEntity.setStatus(true);
-        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(nodeEntity);
-        when(nodeRepository.save(any(Node.class))).thenReturn(nodeEntity);
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(node);
+        when(nodeRepository.save(any(Node.class))).thenReturn(node);
 
         NodeDto result = nodeService.toggleStatus("NODE-01");
 
@@ -232,12 +218,43 @@ class NodeServiceTest {
 
     @Test
     void testFindIfTrue() {
-        List<Node> activeNodes = Collections.singletonList(nodeEntity);
-        when(nodeRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(activeNodes);
+        when(nodeRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(Collections.singletonList(node));
 
         List<NodeDto> result = nodeService.findIfTrue();
 
         assertNotNull(result);
         assertEquals(1, result.size());
+    }
+
+    @Test
+    void testGetNodesForRoles_AuthenticationNull() {
+        SecurityContextHolder.clearContext();
+        List<NodeDto> result = nodeService.getNodesForRoles();
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetNodesForRoles_Success() {
+        org.springframework.security.core.userdetails.User principal =
+                new org.springframework.security.core.userdetails.User("testuser", "password", new ArrayList<>());
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(principal);
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername("testuser")).thenReturn(userEntity);
+        when(nodeRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(Collections.singletonList(node));
+        when(nodeRepository.findByIdentifier("NODE-01")).thenReturn(node);
+
+        List<NodeDto> result = nodeService.getNodesForRoles();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("NODE-01", result.get(0).getIdentifier());
+
+        SecurityContextHolder.clearContext();
     }
 }

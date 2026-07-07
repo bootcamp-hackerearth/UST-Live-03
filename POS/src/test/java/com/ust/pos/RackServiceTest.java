@@ -2,6 +2,7 @@ package com.ust.pos;
 
 import com.ust.pos.dto.RackDto;
 import com.ust.pos.dto.WsDto;
+import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Rack;
 import com.ust.pos.model.RackRepository;
 import com.ust.pos.rack.impl.RackServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,29 +39,36 @@ class RackServiceTest {
     @InjectMocks
     private RackServiceImpl rackService;
 
-    private Rack rackEntity;
+    private Rack rack;
     private RackDto rackDto;
 
     @BeforeEach
     void setUp() {
-        rackEntity = new Rack();
-        rackEntity.setId(1L);
-        rackEntity.setIdentifier("RCK-101");
-        rackEntity.setStatus(true);
-        rackEntity.setDeleted(false);
+        rack = new Rack();
+        rack.setId(1L);
+        rack.setIdentifier("RACK-001");
+        rack.setStatus(true);
+        rack.setDeleted(false);
 
         rackDto = new RackDto();
-        rackDto.setIdentifier("RCK-101");
+        rackDto.setIdentifier("RACK-001");
     }
 
     @Test
-    void testFindByIdentifier() {
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(rackEntity);
+    void testFindByIdentifier_Success() {
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
 
-        RackDto result = rackService.findByIdentifier("RCK-101");
+        RackDto result = rackService.findByIdentifier("RACK-001");
 
         assertNotNull(result);
-        assertEquals("RCK-101", result.getIdentifier());
+        assertEquals("RACK-001", result.getIdentifier());
+    }
+
+    @Test
+    void testFindByIdentifier_ThrowsResourceNotFoundException() {
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> rackService.findByIdentifier("RACK-001"));
     }
 
     @Test
@@ -74,8 +83,8 @@ class RackServiceTest {
     }
 
     @Test
-    void testSave_WhenRackExistsAndNotDeleted() {
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(rackEntity);
+    void testSave_WhenRackAlreadyExistsAndNotDeleted() {
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
 
         RackDto result = rackService.save(rackDto);
 
@@ -85,9 +94,9 @@ class RackServiceTest {
     }
 
     @Test
-    void testSave_WhenRackWasPreviouslyDeleted() {
-        rackEntity.setDeleted(true);
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(rackEntity);
+    void testSave_WhenRackAlreadyExistsButDeleted() {
+        rack.setDeleted(true);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
 
         RackDto result = rackService.save(rackDto);
 
@@ -98,8 +107,8 @@ class RackServiceTest {
 
     @Test
     void testSave_Success() {
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(null);
-        when(rackRepository.save(any(Rack.class))).thenReturn(rackEntity);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(null);
+        when(rackRepository.save(any(Rack.class))).thenReturn(rack);
 
         RackDto result = rackService.save(rackDto);
 
@@ -110,7 +119,7 @@ class RackServiceTest {
 
     @Test
     void testUpdate_WhenRackNotFound() {
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(null);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(null);
 
         RackDto result = rackService.update(rackDto);
 
@@ -120,9 +129,9 @@ class RackServiceTest {
     }
 
     @Test
-    void testUpdate_WhenRackgetDeleted() {
-        rackEntity.setDeleted(true);
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(rackEntity);
+    void testUpdate_WhenRackDeleted() {
+        rack.setDeleted(true);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
 
         RackDto result = rackService.update(rackDto);
 
@@ -133,8 +142,8 @@ class RackServiceTest {
 
     @Test
     void testUpdate_Success() {
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(rackEntity);
-        when(rackRepository.save(any(Rack.class))).thenReturn(rackEntity);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
+        when(rackRepository.save(any(Rack.class))).thenReturn(rack);
 
         RackDto result = rackService.update(rackDto);
 
@@ -145,43 +154,55 @@ class RackServiceTest {
 
     @Test
     void testDelete_WhenRackNotFound() {
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(null);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(null);
 
-        rackService.delete("RCK-101");
+        rackService.delete("RACK-001");
 
         verify(rackRepository, never()).save(any(Rack.class));
     }
 
     @Test
     void testDelete_Success() {
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(rackEntity);
-        when(rackRepository.save(any(Rack.class))).thenReturn(rackEntity);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
+        when(rackRepository.save(any(Rack.class))).thenReturn(rack);
 
-        rackService.delete("RCK-101");
+        rackService.delete("RACK-001");
 
-        verify(rackRepository, times(1)).save(rackEntity);
+        verify(rackRepository, times(1)).save(any(Rack.class));
     }
 
     @Test
     void testFindAll() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Rack> entityList = Collections.singletonList(rackEntity);
-        Page<Rack> page = new PageImpl<>(entityList, pageable, 1);
-
+        Page<Rack> page = new PageImpl<>(Collections.singletonList(rack), pageable, 1);
         when(rackRepository.findByDeletedFalse(pageable)).thenReturn(page);
 
         WsDto<RackDto> result = rackService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalRecords());
-        assertEquals(0, result.getPage());
+        assertFalse(result.getDtoList().isEmpty());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testFindAllWithSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Rack> page = new PageImpl<>(Collections.singletonList(rack), pageable, 1);
+        Specification<Rack> spec = mock(Specification.class);
+        when(rackRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        WsDto<RackDto> result = rackService.findAll(spec, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRecords());
     }
 
     @Test
     void testToggleStatus_WhenRackNotFound() {
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(null);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(null);
 
-        RackDto result = rackService.toggleStatus("RCK-101");
+        RackDto result = rackService.toggleStatus("RACK-001");
 
         assertNotNull(result);
         assertFalse(result.isSuccess());
@@ -190,11 +211,10 @@ class RackServiceTest {
 
     @Test
     void testToggleStatus_Success() {
-        rackEntity.setStatus(true);
-        when(rackRepository.findByIdentifier("RCK-101")).thenReturn(rackEntity);
-        when(rackRepository.save(any(Rack.class))).thenReturn(rackEntity);
+        when(rackRepository.findByIdentifier("RACK-001")).thenReturn(rack);
+        when(rackRepository.save(any(Rack.class))).thenReturn(rack);
 
-        RackDto result = rackService.toggleStatus("RCK-101");
+        RackDto result = rackService.toggleStatus("RACK-001");
 
         assertNotNull(result);
         assertFalse(result.isStatus());
@@ -202,8 +222,7 @@ class RackServiceTest {
 
     @Test
     void testFindIfTrue() {
-        List<Rack> activeRacks = Collections.singletonList(rackEntity);
-        when(rackRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(activeRacks);
+        when(rackRepository.findByStatusIsTrueAndDeletedFalse()).thenReturn(Collections.singletonList(rack));
 
         List<RackDto> result = rackService.findIfTrue();
 
