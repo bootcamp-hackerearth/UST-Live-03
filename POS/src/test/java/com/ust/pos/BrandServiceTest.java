@@ -248,7 +248,6 @@ class BrandServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Brand> page = new PageImpl<>(brands, pageable, brands.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Brand> spec = Mockito.mock(Specification.class);
 
         Mockito.when(brandRepository.findAll(spec, pageable)).thenReturn(page);

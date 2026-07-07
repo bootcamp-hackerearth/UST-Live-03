@@ -137,9 +137,7 @@ class PriceServiceTest {
     void findByIdentifierFailureTest() {
         Mockito.when(priceRepository.findByIdentifierAndIsDeletedFalse("PRICE3")).thenReturn(null);
 
-        Assertions.assertThrows(
-                ResourceNotFoundException.class,
-                () -> priceService.findByIdentifier("PRICE3"));
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> priceService.findByIdentifier("PRICE3"));
 
         Mockito.verify(priceRepository).findByIdentifierAndIsDeletedFalse("PRICE3");
     }
@@ -196,7 +194,6 @@ class PriceServiceTest {
 
         Page<Price> page = new PageImpl<>(prices, pageable, prices.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Price> specification = Mockito.mock(Specification.class);
 
         Mockito.when(priceRepository.findAll(specification, pageable)).thenReturn(page);

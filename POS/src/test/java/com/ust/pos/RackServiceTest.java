@@ -241,7 +241,6 @@ class RackServiceTest {
 
         Page<Rack> page = new PageImpl<>(racks, pageable, racks.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Rack> specification = Mockito.mock(Specification.class);
 
         Mockito.when(rackRepository.findAll(specification, pageable)).thenReturn(page);

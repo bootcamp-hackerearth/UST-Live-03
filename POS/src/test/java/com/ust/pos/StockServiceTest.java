@@ -219,7 +219,6 @@ class StockServiceImplTest {
         Pageable pageable = mock(Pageable.class);
         Page<Stock> page = mock(Page.class);
 
-        @SuppressWarnings("unchecked")
         Specification<Stock> specification = mock(Specification.class);
 
         List<Stock> stockList = List.of(stock);

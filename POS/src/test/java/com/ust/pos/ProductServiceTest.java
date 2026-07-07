@@ -256,7 +256,6 @@ class ProductServiceTest {
 
         Page<Product> page = new PageImpl<>(products, pageable, products.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Product> specification = Mockito.mock(Specification.class);
 
         Mockito.when(productRepository.findAll(specification, pageable)).thenReturn(page);

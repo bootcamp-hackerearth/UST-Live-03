@@ -3,7 +3,6 @@ package com.ust.pos.brand.service.impl;
 import com.ust.pos.CommonService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
-import com.ust.pos.dto.ProductDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
 import com.ust.pos.model.Brand;
@@ -105,7 +104,7 @@ public class BrandServiceImpl extends CommonService implements BrandService {
 
     @Override
     public List<BrandDto> findAllActive() {
-        Type listType = new TypeToken<List<ProductDto>>() {
+        Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
         return modelMapper.map(brandRepository.findByStatusTrueAndIsDeletedFalse(), listType);
     }

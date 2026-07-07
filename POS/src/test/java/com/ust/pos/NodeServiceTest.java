@@ -101,9 +101,7 @@ class NodeServiceTest {
     void findByIdentifierFailureTest() {
         Mockito.when(nodeRepository.findByIdentifierAndIsDeletedFalse("N1")).thenReturn(null);
 
-        Assertions.assertThrows(
-                ResourceNotFoundException.class,
-                () -> nodeService.findByIdentifier("N1"));
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> nodeService.findByIdentifier("N1"));
 
         Mockito.verify(nodeRepository).findByIdentifierAndIsDeletedFalse("N1");
     }
@@ -235,7 +233,6 @@ class NodeServiceTest {
 
         Page<Node> page = new PageImpl<>(nodes, pageable, nodes.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Node> specification = Mockito.mock(Specification.class);
 
         Mockito.when(nodeRepository.findAll(specification, pageable)).thenReturn(page);

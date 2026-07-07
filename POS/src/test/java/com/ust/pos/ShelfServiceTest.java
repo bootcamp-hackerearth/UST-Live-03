@@ -251,7 +251,6 @@ class ShelfServiceTest {
 
         Page<Shelfs> page = new PageImpl<>(shelves, pageable, shelves.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Shelfs> specification = Mockito.mock(Specification.class);
 
         Mockito.when(shelfRepository.findAll(specification, pageable)).thenReturn(page);

@@ -332,7 +332,6 @@ class UserServiceTest {
 
         Page<User> page = new PageImpl<>(users, pageable, users.size());
 
-        @SuppressWarnings("unchecked")
         Specification<User> specification = mock(Specification.class);
 
         when(userRepository.findAll(specification, pageable)).thenReturn(page);

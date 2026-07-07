@@ -232,7 +232,6 @@ class UnitServiceTest {
 
         Page<Unit> page = new PageImpl<>(units, pageable, units.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Unit> specification = Mockito.mock(Specification.class);
 
         Mockito.when(unitRepository.findAll(specification, pageable)).thenReturn(page);

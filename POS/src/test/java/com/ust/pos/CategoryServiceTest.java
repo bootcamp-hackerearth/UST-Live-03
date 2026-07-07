@@ -263,7 +263,6 @@ class CategoryServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Category> page = new PageImpl<>(categories, pageable, categories.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Category> spec = Mockito.mock(Specification.class);
 
         Mockito.when(categoryRepository.findAll(spec, pageable)).thenReturn(page);

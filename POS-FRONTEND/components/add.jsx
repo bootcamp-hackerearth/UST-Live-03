@@ -88,10 +88,10 @@ function Add({
     for (const field of extraFields) {
       let value;
       if (field.type === "custom") {
-        if (customFormData[field.key] !== undefined) {
-          value = customFormData[field.key];
-        } else {
+        if (customFormData[field.key] === undefined) {
           value = extraData[field.key];
+        } else {
+          value = customFormData[field.key];
         }
       } else {
         value = rawDomData[field.key];

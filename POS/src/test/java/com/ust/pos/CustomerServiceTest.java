@@ -232,7 +232,6 @@ class CustomerServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Customer> page = new PageImpl<>(customers, pageable, customers.size());
 
-        @SuppressWarnings("unchecked")
         Specification<Customer> spec = Mockito.mock(Specification.class);
 
         Mockito.when(customerRepository.findAll(spec, pageable)).thenReturn(page);
