@@ -31,7 +31,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         this.modelMapper = modelMapper;
     }
 
-    @Override
+   @Override
     public CategoryDto save(CategoryDto dto) {
 
         if (dto == null || dto.getIdentifier() == null) {
@@ -42,7 +42,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
         Category existing = categoryRepository.findByIdentifier(identifier);
 
         if (existing != null) {
-            if (!existing.getDeleted()) {
+            if (!existing.isDeleted()) {
                 dto.setSuccess(false);
                 dto.setMessage("Category with identifier '" + identifier + "' already exists");
                 return dto;
@@ -70,6 +70,7 @@ public class CategoryServiceImpl extends CommonService implements CategoryServic
 
         return response;
     }
+
 
     @Override
     public CategoryDto update(CategoryDto dto) {
