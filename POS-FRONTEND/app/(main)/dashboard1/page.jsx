@@ -24,7 +24,7 @@ const Dashboard1 = () => {
         }
 
         const res = await axios.get(
-          `http://localhost:8080/api/user/get?username=${username}`,
+          `/api/user/get?username=${username}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
