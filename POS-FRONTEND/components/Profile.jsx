@@ -52,7 +52,7 @@ const Profile = ({ closeModal }) => {
  
   return (
  
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
  
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border-t-4 border-cyan-500">
  

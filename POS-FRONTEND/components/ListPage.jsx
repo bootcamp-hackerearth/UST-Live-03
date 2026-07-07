@@ -21,10 +21,11 @@ const CommonList = ({
 }) => {
 
   const [data, setData] = useState([]);
-  const [allData, setAllData] = useState([]);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);       
+  const [tableLoading, setTableLoading] = useState(false); 
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -43,12 +44,20 @@ const CommonList = ({
   const [accessDeniedMessage, setAccessDeniedMessage] = useState('');
 
   useEffect(() => {
-    fetchData();
-  }, [currentPage]);
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [search]);
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    setCurrentPage(0);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    fetchData();
+  }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
     const handleAccessDenied = (e) => {
@@ -62,13 +71,20 @@ const CommonList = ({
 
   const fetchData = async () => {
     try {
-      setLoading(true);
+      if (data.length === 0 && !debouncedSearch) {
+        setLoading(true);
+      } else {
+        setTableLoading(true);
+      }
+
       const response = await api.post(apiUrl, {
         page: currentPage,
         sizePerPage,
         sortDirection: 'ASC',
-        sortField: 'id'
+        sortField: 'id',
+        keyword: debouncedSearch
       });
+
       if (!response?.data) {
         setData([]);
         setTotalPages(0);
@@ -79,40 +95,9 @@ const CommonList = ({
       setTotalPages(response.data.totalPages || 0);
     } catch (err) {
       console.error(err);
-      
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchAllData = async () => {
-    try {
-      let page = 0;
-      let pages = 1;
-      let records = [];
-
-      while (page < pages) {
-        const response = await api.post(apiUrl, {
-          page,
-          sizePerPage: 1000,
-          sortDirection: 'ASC',
-          sortField: 'id'
-        });
-        if (!response?.data) break;
-
-        records = [
-          ...records,
-          ...(response.data.dtoList || [])
-        ];
-
-        pages = response.data.totalPages || 1;
-
-        page++;
-      }
-      setAllData(records);
-    } catch (err) {
-      console.error(err);
-
+      setTableLoading(false);
     }
   };
 
@@ -135,7 +120,6 @@ const CommonList = ({
       }
 
       fetchData();
-      fetchAllData();
 
     } catch (err) {
       console.error(err);
@@ -162,28 +146,11 @@ const CommonList = ({
     }
   };
 
-  const filteredData = search
-    ? allData.filter((row) =>
-      Object.values(row)
-        .join(' ')
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    )
-    : data;
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-[70vh]">
-          Loading...
-        </div>
-      </Layout>
-    );
-  }
+  const filteredData = data;
 
   const getCellValue = (column, row, index) => {
     if (column === 'S.No') {
-      return search
+      return debouncedSearch
         ? index + 1
         : currentPage * sizePerPage + index + 1;
     }
@@ -198,6 +165,17 @@ const CommonList = ({
 
     return row[column];
   };
+
+  
+  if (loading && data.length === 0 && !debouncedSearch) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-[70vh]">
+          Loading...
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -251,7 +229,12 @@ const CommonList = ({
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border">
+          <div className="overflow-hidden rounded-xl border relative">
+            {tableLoading && (
+              <div className="absolute inset-0 bg-white flex items-center justify-center z-10">
+                Loading...
+              </div>
+            )}
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-cyan-500 text-white text-left">
@@ -299,29 +282,27 @@ const CommonList = ({
             </table>
           </div>
 
-          {!search && (
-            <div className="flex justify-between items-center mt-6">
-              <button
-                disabled={currentPage === 0}
-                onClick={() => setCurrentPage(currentPage - 1)}
-                className="px-4 py-2 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 rounded-lg disabled:opacity-40"
-              >
-                Prev
-              </button>
+          <div className="flex justify-between items-center mt-6">
+            <button
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-4 py-2 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 rounded-lg disabled:opacity-40"
+            >
+              Prev
+            </button>
 
-              <span className="text-gray-700 font-medium">
-                Page {currentPage + 1} of {totalPages}
-              </span>
+            <span className="text-gray-700 font-medium">
+              Page {currentPage + 1} of {totalPages}
+            </span>
 
-              <button
-                disabled={currentPage + 1 >= totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-                className="px-4 py-2 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 rounded-lg disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          )}
+            <button
+              disabled={currentPage + 1 >= totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-4 py-2 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 rounded-lg disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
 
         </div>
 
@@ -332,7 +313,6 @@ const CommonList = ({
                 closeModal={() => setShowAddModal(false)}
                 refreshData={() => {
                   fetchData();
-                  fetchAllData();
                 }}
               />
             </div>
@@ -347,7 +327,6 @@ const CommonList = ({
                 closeModal={() => setShowUpdateModal(false)}
                 refreshData={() => {
                   fetchData();
-                  fetchAllData();
                 }}
               />
             </div>
