@@ -25,7 +25,6 @@ public class RoleApiController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasAnyAuthority('Admin','Seller')")
     public PaginationResponseDto<RoleDto> home(@RequestBody PaginationDto paginationDto) {
         Pageable pageable = getPageable(paginationDto.getPage(),paginationDto.getSizePerPage(),
                 paginationDto.getSortDirection(),paginationDto.getSortField());
