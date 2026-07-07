@@ -1,0 +1,51 @@
+name: Next Deploy
+
+on:
+  push:
+    branches:
+      - feature/sprint5_pod2_chris
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Frontend
+        run: |
+          cd POS-FRONTEND/pos-next
+          npm install
+          npm run build
+
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_POD2 }}
+          username: ${{ secrets.EC2_USER_POD2}}
+          key: ${{ secrets.EC2_SSH_KEY_POD2 }}
+          script: |
+            set -euxo pipefail
+            
+            cd ~/projects/UST-Live-03/POS-FRONTEND/pos-next
+            
+            git fetch --all --prune
+            git reset --hard origin/feature/sprint5_pod2_chris
+            
+            npm install
+            
+            npm run build
+            
+            if pm2 describe next-app >/dev/null 2>&1; then
+                pm2 restart next-app --update-env
+            else
+                pm2 start npm --name pos-next -- start
+            fi
+            
+            pm2 save
+            pm2 status
