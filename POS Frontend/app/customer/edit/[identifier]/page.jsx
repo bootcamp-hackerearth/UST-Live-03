@@ -181,7 +181,10 @@ export default function EditCustomer() {
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
- 
+
+    const hasBillingRef = useRef(false);
+    const hasShippingRef = useRef(false);
+
     useEffect(() => {
         if (!identifier) return;
         Promise.all([
@@ -193,6 +196,8 @@ export default function EditCustomer() {
                 const addresses = Array.isArray(addressRes.data) ? addressRes.data : [];
                 const billing = addresses.find(a => a.addressType === "Billing") ?? addresses[0];
                 const shipping = addresses.find(a => a.addressType === "Shipping") ?? addresses[1];
+                hasBillingRef.current = !!billing;
+                hasShippingRef.current = !!shipping;
 
                 setCustomerName(d.customerName ?? "");
                 setEmail(d.email ?? "");
@@ -233,6 +238,33 @@ export default function EditCustomer() {
  
         setLoading(true);
         try {
+            const addressCreations = [];
+            if (!hasBillingRef.current) {
+                addressCreations.push(
+                    api.post("/address/add", {
+                        identifier: `${identifier}_Billing`,
+                        addressType: "Billing",
+                        phoneNo: identifier,
+                        ...billingAddress,
+                    })
+                );
+            }
+            if (!hasShippingRef.current) {
+                addressCreations.push(
+                    api.post("/address/add", {
+                        identifier: `${identifier}_Shipping`,
+                        addressType: "Shipping",
+                        phoneNo: identifier,
+                        ...shippingAddress,
+                    })
+                );
+            }
+            if (addressCreations.length > 0) {
+                await Promise.allSettled(addressCreations);
+                hasBillingRef.current = true;
+                hasShippingRef.current = true;
+            }
+
             const res = await api.put("/customer/update", {
                 identifier,
                 customerName,

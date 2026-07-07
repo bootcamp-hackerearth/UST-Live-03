@@ -1,9 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { statusPageStyles as styles } from "@/components/statusPageStyles";
 
 export default function ServerError() {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      globalThis.location.href = "/login";
+    }
+  }, []);
+
   return (
     <div style={styles.page}>
       <div style={styles.card}>

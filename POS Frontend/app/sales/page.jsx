@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import PropTypes from "prop-types";
 import api from "@/api/axios";
-import { useSidebarOpen, extractList, getEntityLabel, getEntityValue } from "@/components/useDropdownOptions";
+import { useSidebarOpen, extractList, getEntityLabel } from "@/components/useDropdownOptions";
 import { fetchOrders } from "@/app/orders/orderUtils";
 
 const C = {
@@ -63,6 +63,9 @@ const modalOverlaySt = {
   justifyContent: "center",
   paddingTop: "70px",
 };
+
+const PHONE_REGEX = /^\d{10}$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 function getCartErrorMessage(err) {
   const status = err.response?.status;
@@ -146,16 +149,7 @@ function SalesPageContent() {
   const [addCustomerError, setAddCustomerError] = useState("");
 
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
   const [productSearch, setProductSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedBrand, setSelectedBrand] = useState("");
-
-  const [showCategoryDrawer, setShowCategoryDrawer] = useState(false);
-  const [categorySearchTerm, setCategorySearchTerm] = useState("");
-  const [showBrandDrawer, setShowBrandDrawer] = useState(false);
-  const [brandSearchTerm, setBrandSearchTerm] = useState("");
 
   const [_warehouses, setWarehouses] = useState([]); // NOSONAR
   const [selectedWarehouse] = useState("");
@@ -207,19 +201,7 @@ function SalesPageContent() {
     } catch { /* Fail silently */ }
   }, []);
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      const catRes = await api.get("/category/findActiveSubCategories");
-      setCategories(extractList(catRes.data));
-    } catch { /* Fail silently */ }
-  }, []);
 
-  const fetchBrands = useCallback(async () => {
-    try {
-      const brandRes = await api.get("/brand/findAllActive");
-      setBrands(extractList(brandRes.data));
-    } catch { /* Fail silently */ }
-  }, []);
 
   const fetchWarehouses = useCallback(async () => {
     try {
@@ -242,7 +224,7 @@ function SalesPageContent() {
   const fetchOrderDetail = async (orderId) => {
     setOrderDetailLoading(true);
     try {
-      const res = await api.post("/order/getOrder", { orderId });
+      const res = await api.post("/order/getOrder", { orderId }, { skipErrorRedirect: [403, 404, 500] });
       setSelectedOrder(res.data);
       setShowOrderDetail(true);
     } catch {
@@ -254,8 +236,6 @@ function SalesPageContent() {
 
   useEffect(() => {
     fetchCustomers();
-    fetchCategories();
-    fetchBrands();
     fetchWarehouses();
 
     const loadProductsWithPrices = async () => {
@@ -275,7 +255,7 @@ function SalesPageContent() {
       }
     };
     loadProductsWithPrices();
-  }, [fetchCustomers, fetchCategories, fetchBrands, fetchWarehouses]);
+  }, [fetchCustomers, fetchWarehouses]);
 
   useEffect(() => {
     if (pageTab === "orders") {
@@ -289,17 +269,8 @@ function SalesPageContent() {
       const s = productSearch.toLowerCase();
       list = list.filter(p => p.name?.toLowerCase().includes(s) || p.identifier?.toLowerCase().includes(s));
     }
-    if (selectedCategory) {
-      list = list.filter(p => {
-        const catVal = p.category?.identifier || p.category || "";
-        return Array.isArray(catVal) ? catVal.includes(selectedCategory) : catVal === selectedCategory;
-      });
-    }
-    if (selectedBrand) {
-      list = list.filter(p => (p.brand === selectedBrand || p.brandIdentifier === selectedBrand));
-    }
     return list;
-  }, [productSearch, selectedCategory, selectedBrand, products]);
+  }, [productSearch, products]);
 
   const filteredOrders = orders.filter(o => {
     return !orderSearch.trim() ||
@@ -311,7 +282,7 @@ function SalesPageContent() {
   const refreshCart = useCallback(async (identifier) => {
     if (!identifier) return null;
     try {
-      const res = await api.post("/cart/getCart", { identifier }, { skipErrorRedirect: [403, 404] });
+      const res = await api.post("/cart/getCart", { identifier }, { skipErrorRedirect: [403, 404, 500] });
       setCart(res.data);
       setEntries(res.data?.cartEntryDtoList ?? []);
       return res.data;
@@ -362,7 +333,7 @@ function SalesPageContent() {
   const handlePhoneSearch = async (forcedPhone = null) => {
     const phone = (forcedPhone || phoneSearch).trim();
     if (!phone) return;
-    if (!/^\d{10}$/.test(phone)) {
+    if (!PHONE_REGEX.test(phone)) {
       setError("Please enter a valid 10-digit phone number.");
       return;
     }
@@ -469,11 +440,11 @@ function SalesPageContent() {
       setAddCustomerError("Phone number and name are required.");
       return;
     }
-    if (!/^\d{10}$/.test(newCustomer.identifier)) {
+    if (!PHONE_REGEX.test(newCustomer.identifier)) {
       setAddCustomerError("Phone number must be exactly 10 digits.");
       return;
     }
-    if (newCustomer.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(newCustomer.email)) {
+    if (newCustomer.email && !EMAIL_REGEX.test(newCustomer.email)) {
       setAddCustomerError("Please enter a valid email address.");
       return;
     }
@@ -633,7 +604,7 @@ function SalesPageContent() {
       return;
     }
     try {
-      const res = await api.post("/order/getOrder", { orderId: justPlacedOrderId });
+      const res = await api.post("/order/getOrder", { orderId: justPlacedOrderId }, { skipErrorRedirect: [403, 404, 500] });
       handleReceiptPrint(res.data);
     } catch {
       showToast("Failed to initialize print process.", "error");
@@ -663,12 +634,7 @@ function SalesPageContent() {
   const totalDiscount = Number(cart?.totalDiscount ?? 0);
   const totalAmount = cart?.totalPrice == null ? subTotal : Number(cart.totalPrice);
 
-  const categoryDrawerList = categories.filter(c => {
-    return getEntityLabel(c).toLowerCase().includes(categorySearchTerm.toLowerCase());
-  });
-  const brandDrawerList = brands.filter(b => {
-    return getEntityLabel(b).toLowerCase().includes(brandSearchTerm.toLowerCase());
-  });
+
 
   const renderAddCustomerModal = () => {
     if (!showAddModal) return null;
@@ -710,9 +676,9 @@ function SalesPageContent() {
                 placeholder="customer@email.com"
                 value={newCustomer.email}
                 onChange={e => setNewCustomer(prev => ({ ...prev, email: e.target.value }))}
-                style={{ ...inputSt, borderColor: newCustomer.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(newCustomer.email) ? C.error : inputSt.borderColor }}
+                style={{ ...inputSt, borderColor: newCustomer.email && !EMAIL_REGEX.test(newCustomer.email) ? C.error : inputSt.borderColor }}
               />
-              {newCustomer.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(newCustomer.email) && (
+              {newCustomer.email && !EMAIL_REGEX.test(newCustomer.email) && (
                 <span style={{ fontSize: "11px", color: C.error }}>Enter a valid email address</span>
               )}
             </div>
@@ -820,65 +786,7 @@ function SalesPageContent() {
 
       {renderOrderDetailModal()}
 
-      {showCategoryDrawer && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 10000 }} onClick={() => setShowCategoryDrawer(false)} onKeyDown={(e) => e.key === "Escape" && setShowCategoryDrawer(false)} role="none">
-          <dialog style={{ position: "absolute", top: "68px", right: 0, bottom: "20px", width: "480px", maxWidth: "86vw", background: C.white, boxShadow: "-8px 0 30px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column", borderRadius: "12px", border: "none", padding: 0, margin: 0 }} open>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px 12px" }}>
-              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: C.primary }}>Categories</h3>
-              <button onClick={() => setShowCategoryDrawer(false)} style={{ background: "none", border: "none", fontSize: "18px", cursor: "pointer", color: C.tertiary }}>✕</button>
-            </div>
-            <div style={{ padding: "0 24px 16px" }}>
-              <input type="text" placeholder="Search categories..." value={categorySearchTerm} onChange={e => setCategorySearchTerm(e.target.value)} style={inputSt} />
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <button type="button" onClick={() => { setSelectedCategory(""); setShowCategoryDrawer(false); }} style={{ border: `1px solid ${selectedCategory ? C.veryLightGray : C.black}`, borderRadius: "8px", padding: "18px 12px", textAlign: "center", cursor: "pointer", background: C.white, transition: "all 0.2s" }}>
-                  <div style={{ fontSize: "13px", fontWeight: "700", color: C.primary }}>All</div>
-                </button>
-                {categoryDrawerList.map(c => {
-                  const val = getEntityValue(c);
-                  const label = getEntityLabel(c) || val;
-                  return (
-                    <button type="button" key={val} onClick={() => { setSelectedCategory(val); setShowCategoryDrawer(false); }} style={{ border: `1px solid ${selectedCategory === val ? C.black : C.veryLightGray}`, borderRadius: "8px", padding: "18px 12px", textAlign: "center", cursor: "pointer", background: C.white, transition: "all 0.2s" }}>
-                      <div style={{ fontSize: "13px", fontWeight: "700", color: C.primary }}>{label}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </dialog>
-        </div>
-      )}
 
-      {showBrandDrawer && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 10000 }} onClick={() => setShowBrandDrawer(false)} onKeyDown={(e) => e.key === "Escape" && setShowBrandDrawer(false)} role="none">
-          <dialog style={{ position: "absolute", top: "68px", right: 0, bottom: "20px", width: "480px", maxWidth: "86vw", background: C.white, boxShadow: "-8px 0 30px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column", borderRadius: "12px", border: "none", padding: 0, margin: 0 }} open>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px 12px" }}>
-              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: C.primary }}>Brands</h3>
-              <button onClick={() => setShowBrandDrawer(false)} style={{ background: "none", border: "none", fontSize: "18px", cursor: "pointer", color: C.tertiary }}>✕</button>
-            </div>
-            <div style={{ padding: "0 24px 16px" }}>
-              <input type="text" placeholder="Search brands..." value={brandSearchTerm} onChange={e => setBrandSearchTerm(e.target.value)} style={inputSt} />
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <button type="button" onClick={() => { setSelectedBrand(""); setShowBrandDrawer(false); }} style={{ border: `1px solid ${selectedBrand ? C.veryLightGray : C.black}`, borderRadius: "8px", padding: "18px 12px", textAlign: "center", cursor: "pointer", background: C.white, transition: "all 0.2s" }}>
-                  <div style={{ fontSize: "13px", fontWeight: "700", color: C.primary }}>All</div>
-                </button>
-                {brandDrawerList.map(b => {
-                  const val = getEntityValue(b);
-                  const label = getEntityLabel(b) || val;
-                  return (
-                    <button type="button" key={val} onClick={() => { setSelectedBrand(val); setShowBrandDrawer(false); }} style={{ border: `1px solid ${selectedBrand === val ? C.black : C.veryLightGray}`, borderRadius: "8px", padding: "18px 12px", textAlign: "center", cursor: "pointer", background: C.white, transition: "all 0.2s" }}>
-                      <div style={{ fontSize: "13px", fontWeight: "700", color: C.primary }}>{label}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </dialog>
-        </div>
-      )}
 
       {showPaymentModal && (
         <div style={modalOverlaySt}>

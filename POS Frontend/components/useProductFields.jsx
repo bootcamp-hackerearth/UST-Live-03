@@ -9,6 +9,10 @@ export function useProductFields() {
   const [model,    setModel]    = useState("");
   const [category, setCategory] = useState("");
 
+  const setCategoryFromValue = (val) => {
+    setCategory(Array.isArray(val) ? (val[0] ?? "") : (val ?? ""));
+  };
+
   const extraFields = useMemo(() => [
     {
       key: "name",
@@ -74,7 +78,7 @@ export function useProductFields() {
 
   return {
     extraFields,
-    extraData: { brand, unit, model, category },
-    setters: { brand: setBrand, unit: setUnit, model: setModel, category: setCategory },
+    extraData: { brand, unit, model, category: category ? [category] : [] },
+    setters: { brand: setBrand, unit: setUnit, model: setModel, category: setCategoryFromValue },
   };
 }

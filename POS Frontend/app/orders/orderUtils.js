@@ -9,7 +9,7 @@ export async function fetchOrders({ setOrders, setOrdersLoading, setOrdersError 
             sizePerPage: 1000,
             sortDirection: "DESC",
             sortField: "id",
-        });
+        }, { skipErrorRedirect: [403, 404, 500] });
         const data = res.data;
         if (Array.isArray(data)) {
             setOrders(data);
