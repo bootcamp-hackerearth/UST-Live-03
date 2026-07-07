@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,6 +51,31 @@ class UserServiceTest {
         UserDto response = userService.save(userDto);
         Assertions.assertEquals("Admin", response.getUsername());
         Assertions.assertTrue(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        User user = new User();
+        user.setIdentifier("Admin");
+        UserDto userDto = new UserDto();
+        userDto.setIdentifier("Admin");
+        List<User> users = List.of(user);
+        List<UserDto> userDtos = List.of(userDto);
+        Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 2), users.size());
+        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Specification<User> spec = Mockito.mock(Specification.class);
+        Mockito.when(userRepository.findAll(spec, pageable)).thenReturn(userPage);
+        Mockito.when(modelMapper.map(
+                Mockito.eq(users),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(userDtos);
+        WsDto<UserDto> response = userService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(userDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test
@@ -180,6 +206,7 @@ class UserServiceTest {
         UserDto response = userService.toggleStatus("Admin");
         Assertions.assertFalse(response.isStatus());
     }
+
     @Test
     void getUserDetailsTest() {
         User user = new User();

@@ -1,8 +1,10 @@
 package com.ust.pos;
 
 import com.ust.pos.address.service.AddressService;
+import com.ust.pos.cart.service.CartService;
 import com.ust.pos.customer.service.impl.CustomerServiceImpl;
 import com.ust.pos.dto.AddressDto;
+import com.ust.pos.dto.CartDto;
 import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.model.AddressRepository;
@@ -19,6 +21,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerServiceTest {
@@ -38,6 +41,9 @@ class CustomerServiceTest {
     @Mock
     private AddressRepository addressRepository;
 
+    @Mock
+    private CartService cartService;
+
     @Test
     void findByIdentifierTest() {
         Customer customer = new Customer();
@@ -48,6 +54,24 @@ class CustomerServiceTest {
         Mockito.when(modelMapper.map(customer, CustomerDto.class)).thenReturn(customerDto);
         CustomerDto response = customerService.findByIdentifier("Admin");
         Assertions.assertEquals("Admin", response.getIdentifier());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Customer customer = new Customer();
+        customer.setIdentifier("Admin");
+        CustomerDto customerDto = new CustomerDto();
+        customerDto.setIdentifier("Admin");
+        List<Customer> customers = List.of(customer);
+        List<CustomerDto> customerDtos = List.of(customerDto);
+        Page<Customer> customerPage = new PageImpl<>(customers, PageRequest.of(0, 2), customers.size());
+        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Specification<Customer> spec = Mockito.mock(Specification.class);
+        Mockito.when(customerRepository.findAll(spec, pageable)).thenReturn(customerPage);
+        Mockito.when(modelMapper.map(Mockito.eq(customers), Mockito.any(java.lang.reflect.Type.class))).thenReturn(customerDtos);
+        WsDto<CustomerDto> response = customerService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test
@@ -79,12 +103,14 @@ class CustomerServiceTest {
         Mockito.when(customerRepository.findByIdentifier("Admin")).thenReturn(null);
         Mockito.when(modelMapper.map(customerDto, Customer.class)).thenReturn(customer);
         Mockito.when(customerRepository.save(customer)).thenReturn(customer);
+        Mockito.when(cartService.save(Mockito.any(CartDto.class))).thenReturn(new CartDto());
         Mockito.when(modelMapper.map(addressDto1, AddressDto.class)).thenReturn(addressDto1);
         Mockito.when(modelMapper.map(addressDto2, AddressDto.class)).thenReturn(addressDto2);
         Mockito.when(addressService.save(Mockito.any(AddressDto.class))).thenAnswer(invocation -> invocation.getArgument(0));
         CustomerDto response = customerService.save(customerDto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
+        Mockito.verify(cartService).save(Mockito.any(CartDto.class));
         Mockito.verify(addressService).save(addressDto1);
         Mockito.verify(addressService).save(addressDto2);
     }

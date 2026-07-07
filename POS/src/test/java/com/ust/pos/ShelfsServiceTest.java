@@ -14,6 +14,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +42,27 @@ class ShelfsServiceTest {
         ShelfsDto response = shelfsService.save(shelfsDto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Shelfs shelfs = new Shelfs();
+        shelfs.setIdentifier("Admin");
+        ShelfsDto shelfsDto = new ShelfsDto();
+        shelfsDto.setIdentifier("Admin");
+        List<Shelfs> shelfss = List.of(shelfs);
+        List<ShelfsDto> shelfsDtos = List.of(shelfsDto);
+        Page<Shelfs> shelfsPage = new PageImpl<>(shelfss, PageRequest.of(0, 2), shelfss.size());
+        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Specification<Shelfs> spec = Mockito.mock(Specification.class);
+        Mockito.when(shelfsRepository.findAll(spec, pageable)).thenReturn(shelfsPage);
+        Mockito.when(modelMapper.map(
+                Mockito.eq(shelfss),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(shelfsDtos);
+        WsDto<ShelfsDto> response = shelfsService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test

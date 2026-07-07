@@ -1,15 +1,11 @@
 package com.ust.pos.user.service.impl;
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.UnitDto;
-import com.ust.pos.dto.WareHouseDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.dto.UserDto;
 import com.ust.pos.exception.ResourceNotFoundException;
-import com.ust.pos.model.Unit;
 import com.ust.pos.model.User;
 import com.ust.pos.model.UserRepository;
-import com.ust.pos.model.WareHouse;
 import com.ust.pos.user.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;

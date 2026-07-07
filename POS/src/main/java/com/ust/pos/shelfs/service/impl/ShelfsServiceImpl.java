@@ -1,15 +1,11 @@
 package com.ust.pos.shelfs.service.impl;
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.ShelfsDto;
-import com.ust.pos.dto.StocksDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
-import com.ust.pos.model.Role;
 import com.ust.pos.model.Shelfs;
 import com.ust.pos.model.ShelfsRepository;
-import com.ust.pos.model.Stocks;
 import com.ust.pos.shelfs.service.ShelfsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;

@@ -16,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class ModelsServiceTest {
@@ -40,6 +41,24 @@ class ModelsServiceTest {
         ModelsDto response = modelsService.save(modelsDto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Models models = new Models();
+        models.setIdentifier("Admin");
+        ModelsDto modelsDto = new ModelsDto();
+        modelsDto.setIdentifier("Admin");
+        List<Models> modelss = List.of(models);
+        List<ModelsDto> modelsDtos = List.of(modelsDto);
+        Page<Models> modelsPage = new PageImpl<>(modelss, PageRequest.of(0, 2), modelss.size());
+        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Specification<Models> spec = Mockito.mock(Specification.class);
+        Mockito.when(modelsRepository.findAll(spec, pageable)).thenReturn(modelsPage);
+        Mockito.when(modelMapper.map(Mockito.eq(modelss), Mockito.any(java.lang.reflect.Type.class))).thenReturn(modelsDtos);
+        WsDto<ModelsDto> response = modelsService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test

@@ -14,6 +14,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +42,28 @@ class WarehouseServiceTest {
         WareHouseDto response = wareHouseService.save(wareHouseDto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        WareHouse wareHouse = new WareHouse();
+        wareHouse.setIdentifier("Admin");
+        WareHouseDto wareHouseDto = new WareHouseDto();
+        wareHouseDto.setIdentifier("Admin");
+        List<WareHouse> wareHouses = List.of(wareHouse);
+        List<WareHouseDto> wareHouseDtos = List.of(wareHouseDto);
+        Page<WareHouse> wareHousePage =
+                new PageImpl<>(wareHouses, PageRequest.of(0, 2), wareHouses.size());
+        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Specification<WareHouse> spec = Mockito.mock(Specification.class);
+        Mockito.when(wareHouseRepository.findAll(spec, pageable)).thenReturn(wareHousePage);
+        Mockito.when(modelMapper.map(
+                Mockito.eq(wareHouses),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(wareHouseDtos);
+        WsDto<WareHouseDto> response = wareHouseService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(1, response.getDtoList().size());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test

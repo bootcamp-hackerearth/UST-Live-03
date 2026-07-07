@@ -1,24 +1,18 @@
 package com.ust.pos.models.service.impl;
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.ModelsDto;
-import com.ust.pos.dto.RoleDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
-import com.ust.pos.model.Customer;
 import com.ust.pos.model.Models;
 import com.ust.pos.model.ModelsRepository;
-import com.ust.pos.model.Role;
 import com.ust.pos.models.service.ModelsService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.boot.Banner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
 
 import java.lang.reflect.Type;
 import java.util.List;

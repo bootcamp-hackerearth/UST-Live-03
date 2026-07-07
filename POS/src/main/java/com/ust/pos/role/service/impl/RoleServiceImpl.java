@@ -1,15 +1,11 @@
 package com.ust.pos.role.service.impl;
 
 import com.ust.pos.common.CommonService;
-import com.ust.pos.dto.RacksDto;
 import com.ust.pos.dto.RoleDto;
-import com.ust.pos.dto.ShelfsDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourceNotFoundException;
-import com.ust.pos.model.Racks;
 import com.ust.pos.model.Role;
 import com.ust.pos.model.RoleRepository;
-import com.ust.pos.model.Shelfs;
 import com.ust.pos.role.service.RoleService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;

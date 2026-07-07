@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class NodeServiceTest {
@@ -48,6 +49,28 @@ class NodeServiceTest {
         NodeDto response = nodeService.save(nodeDto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Node node = new Node();
+        node.setIdentifier("Admin");
+        NodeDto nodeDto = new NodeDto();
+        nodeDto.setIdentifier("Admin");
+        List<Node> nodes = List.of(node);
+        List<NodeDto> nodeDtos = List.of(nodeDto);
+        Page<Node> nodePage = new PageImpl<>(nodes, PageRequest.of(0, 2), nodes.size());
+        Pageable pageable = PageRequest.of(0, 50, Sort.by(new ArrayList<>()));
+        Specification<Node> spec = Mockito.mock(Specification.class);
+        Mockito.when(nodeRepository.findAll(spec, pageable)).thenReturn(nodePage);
+        Mockito.when(modelMapper.map(Mockito.eq(nodes), Mockito.any(java.lang.reflect.Type.class))).thenReturn(nodeDtos);
+        WsDto<NodeDto> response = nodeService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(nodeDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test

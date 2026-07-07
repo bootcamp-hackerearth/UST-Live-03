@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,33 @@ class ProductServiceTest {
         ProductDto response = productService.save(productDto);
         Assertions.assertEquals("Admin", response.getIdentifier());
         Assertions.assertTrue(response.isSuccess());
+    }
+
+    @Test
+    void findAllWithKeywordTest() {
+        Product product = new Product();
+        product.setIdentifier("Admin");
+        ProductDto productDto = new ProductDto();
+        productDto.setIdentifier("Admin");
+        List<Product> products = List.of(product);
+        List<ProductDto> productDtos = List.of(productDto);
+        Page<Product> productPage = new PageImpl<>(products,
+                PageRequest.of(0, 2), products.size());
+        Pageable pageable = PageRequest.of(0,
+                50, Sort.by(new ArrayList<>()));
+        Specification<Product> spec = Mockito.mock(Specification.class);
+        Mockito.when(productRepository.findAll(spec, pageable)).thenReturn(productPage);
+        Mockito.when(modelMapper.map(
+                Mockito.eq(products),
+                Mockito.any(java.lang.reflect.Type.class)
+        )).thenReturn(productDtos);
+        WsDto<ProductDto> response = productService.findAll(spec, pageable, "Admin");
+        Assertions.assertEquals(productDtos, response.getDtoList());
+        Assertions.assertEquals(1L, response.getTotalRecords());
+        Assertions.assertEquals(1, response.getTotalPages());
+        Assertions.assertEquals(50, response.getSizePerPage());
+        Assertions.assertEquals(0, response.getPage());
+        Assertions.assertEquals("Admin", response.getKeyword());
     }
 
     @Test
