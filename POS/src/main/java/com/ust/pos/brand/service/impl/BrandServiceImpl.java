@@ -3,7 +3,6 @@ package com.ust.pos.brand.service.impl;
 import com.ust.pos.base.service.BaseService;
 import com.ust.pos.brand.service.BrandService;
 import com.ust.pos.dto.BrandDto;
-import com.ust.pos.dto.CustomerDto;
 import com.ust.pos.dto.WsDto;
 import com.ust.pos.exception.ResourseNotFoundException;
 import com.ust.pos.model.Brand;
@@ -100,7 +99,7 @@ public class BrandServiceImpl extends BaseService implements BrandService {
     @Override
     public WsDto<BrandDto> findAll(Specification<Brand> example, Pageable pageable) {
 
-        Type listType = new TypeToken<List<CustomerDto>>() {
+        Type listType = new TypeToken<List<BrandDto>>() {
         }.getType();
         Page<Brand> page = brandRepository.findAll(example, pageable);
 
