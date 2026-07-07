@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "/api",
 });
 
 /* PUBLIC ENDPOINTS */
@@ -15,11 +15,10 @@ const publicUrls = [
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
     const url = config.url || "";
 
-    const isPublic = publicUrls.some((path) =>
-      url === path || url.startsWith(path)
+    const isPublic = publicUrls.some(
+      (path) => url === path || url.startsWith(path)
     );
 
     if (token && !isPublic) {
@@ -30,29 +29,34 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
 api.interceptors.response.use(
-  (response) => {
-    console.log("SUCCESS:", response.status, response.config.url);
-    return response;
-  },
+  (response) => response,
   (error) => {
- 
-    console.log("ERROR RESPONSE:", error.response);
- 
     const status = error.response?.status;
-    const token = localStorage.getItem("token");
- 
-    console.log("Status:", status);
-    console.log("Token:", token);
- 
-    if (token && (status === 401 || status === 403)) {
- 
-      console.log("Redirecting to login...");
- 
+    const skipAuthRedirect = error.config?.skipAuthRedirect;
+
+    // Unauthenticated — no/invalid/expired token. Always redirect, token or not.
+    if (status === 401) {
       localStorage.clear();
+      sessionStorage.setItem(
+        "errorMessage",
+        error.response?.data?.message || "Session expired. Please log in again."
+      );
       globalThis.location.href = "/login";
+      return Promise.reject(error);
     }
- 
+
+    // Authenticated but not allowed for this action/route
+    if (status === 403 && !skipAuthRedirect) {
+      sessionStorage.setItem(
+        "errorMessage",
+        error.response?.data?.message || "Access Denied"
+      );
+      globalThis.location.href = "/unauthorized";
+      return Promise.reject(error);
+    }
+
     return Promise.reject(error);
   }
 );
