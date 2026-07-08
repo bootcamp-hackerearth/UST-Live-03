@@ -1,0 +1,50 @@
+name: Spring Boot Deploy
+
+on:
+  push:
+    branches:
+      - feature/sprint5_pod3_Hemanth
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build
+        run: |
+          cd POS
+          mvn clean package
+
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_POD6 }}
+          username: ${{ secrets.EC2_USER_POD6 }}
+          key: ${{ secrets.EC2_SSH_KEY_POD6 }}
+          command_timeout: 20m
+          script: |
+            set -euxo pipefail
+            
+            cd ~/projects/UST-Live-03/POS
+            
+            git fetch --all --prune
+            git reset --hard origin/feature/sprint5_pod3_Hemanth
+            
+            mvn clean package -DskipTests
+            
+            if pm2 describe spring-app >/dev/null 2>&1; then
+                pm2 restart spring-app --update-env
+            else
+                pm2 start "java -jar target/pos-0.0.1-SNAPSHOT.jar" --name spring-app
+            fi
+            
+            pm2 save
+            pm2 status
