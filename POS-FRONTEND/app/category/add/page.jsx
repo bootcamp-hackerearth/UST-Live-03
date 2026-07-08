@@ -11,7 +11,7 @@ const CategoryAdd = () => {
         { name: "identifier", type: "text", validation: requiredValidation },
     ]
     const dropDowns = [
-        { name: "superCategory", urlName: "category/list", httpMethod: "post", ismultiple: true, validation: requiredValidation }
+        { name: "superCategory", urlName: "category/list", httpMethod: "post", ismultiple: true}
     ]
     const hardCodedDropDowns = []
 
