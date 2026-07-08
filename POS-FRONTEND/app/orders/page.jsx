@@ -293,7 +293,6 @@ export default function OrdersPage() {
                                     <span className="font-semibold text-[#2d2d6e] block mt-0.5">
                                         {selectedOrder.orderDate
                                             ? new Date(selectedOrder.orderDate).toLocaleString("en-IN", {
-                                                timeZone: "Asia/Kolkata",
                                                 day: "numeric",
                                                 month: "numeric",
                                                 year: "numeric",

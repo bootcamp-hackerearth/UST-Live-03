@@ -356,6 +356,10 @@ export default function CartPage() {
         totalPrice: Number(entry.totalPrice || 0)
       }));
 
+      const localDate = new Date();
+      const offsetMinutes = localDate.getTimezoneOffset();
+      const adjustedDate = new Date(localDate.getTime() - (offsetMinutes * 60000));
+      
       const orderPayload = {
         identifier: orderId,
         customerId: selectedCustomer?.identifier || selectedCart.identifier,
@@ -366,7 +370,7 @@ export default function CartPage() {
         totalPrice: ledgerTotalPayable,
         paymentType: paymentMethod,
         couponCode: null,
-        orderDate: new Date().toISOString(),
+        orderDate: adjustedDate.toISOString().split('.')[0],
         status: "PAID",
         ordersEntryDtoList: mappedOrderEntries
       };

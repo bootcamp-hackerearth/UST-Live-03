@@ -9,7 +9,7 @@ export default function BrandsPage() {
     const columns = [idColumn, identifierColumn("Brand Code"), { key: "description", label: "Description" }, statusColumn];
 
     const fields = [
-        identifierField("Enter Brand Code", { validation: nameValidation }),
+        identifierField("Enter Brand Name", { validation: nameValidation }),
         {
             name: "description",
             type: "text",

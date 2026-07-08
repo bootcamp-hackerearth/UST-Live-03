@@ -9,8 +9,8 @@ export const nameValidation = {
         message: "Name must be at least 3 characters",
     },
     pattern: {
-        value: /^[A-Za-z]+$/,
-        message: "Name must contain only letters",
+        value: /^[A-Za-z]+(?:\s[A-Za-z]+)*$/,
+        message: "Name must contain only letters and single spaces between words",
     },
 };
 

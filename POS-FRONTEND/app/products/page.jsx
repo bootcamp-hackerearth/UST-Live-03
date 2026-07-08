@@ -61,8 +61,12 @@ function ProductList() {
         },
         {
           name: "unit",
-          type: "text",
-          placeholder: "Enter Unit",
+          type: "select",
+          placeholder: "Select Unit",
+          dataKey: "unit",
+          hardCoded: "false",
+          multiple: false,
+          hardCodedArray: [],
           validation: requiredValidation
         },
         {
@@ -91,6 +95,7 @@ function ProductList() {
       dropdownApis={{
         categories: process.env.NEXT_PUBLIC_BASE_URL+"/category/list",
         brands: process.env.NEXT_PUBLIC_BASE_URL+"/brand/list",
+        unit: process.env.NEXT_PUBLIC_BASE_URL+"/unit/list",
       }}
     />
   );

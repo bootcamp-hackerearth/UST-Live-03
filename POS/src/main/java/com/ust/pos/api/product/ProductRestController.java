@@ -9,6 +9,7 @@ import com.ust.pos.product.service.ProductService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,21 +37,25 @@ public class ProductRestController extends BaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('Admin')")
     public ProductDto addPost(@RequestBody ProductDto productDto) {
         return productService.save(productDto);
     }
 
     @PostMapping("/get")
+    @PreAuthorize("hasAuthority('Admin')")
     public ProductDto update(@RequestBody String identifier) {
         return productService.findByIdentifier(identifier);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAuthority('Admin')")
     public ProductDto updatePost(@RequestBody ProductDto productDto) {
         return productService.update(productDto);
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestBody String identifier) {
         try {
             productService.delete(identifier);

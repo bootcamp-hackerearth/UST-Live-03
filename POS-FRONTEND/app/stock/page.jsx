@@ -2,7 +2,7 @@
 
 import React from "react";
 import CommonList from "@/components/CommonList";
-import { idColumn, statusColumn, identifierColumn, identifierField, statusField } from "@/components/entityHelpers";
+import { idColumn, statusColumn, identifierColumn, statusField } from "@/components/entityHelpers";
 import { requiredValidation } from "@/validation/validation";
 
 export default function StockPage() {
@@ -16,7 +16,6 @@ export default function StockPage() {
     ];
 
     const fields = [
-        identifierField("Enter Stock Code", { validation: requiredValidation }),
         {
             name: "product",
             type: "select",
@@ -30,12 +29,21 @@ export default function StockPage() {
         },
         {
             name: "warehouse",
-            type: "text",
-            placeholder: "Enter Warehouse Location Name",
+            type: "select",
+            placeholder: "Select Warehouse Location",
+            dataKey: "warehouse",
             hardCoded: "false",
+            multiple: false,
             hardCodedArray: [],
-            validation: requiredValidation,
             readOnly: false,
+            validation: requiredValidation,
+        },
+        {
+            name: "identifier",
+            type: "text",
+            placeholder: "Generated Stock Code (Auto)",
+            required: false,
+            readOnly: true, 
         },
         {
             name: "quantity",
@@ -51,6 +59,7 @@ export default function StockPage() {
 
     const dropdownApis = {
         products: process.env.NEXT_PUBLIC_BASE_URL+"/product/list",
+        warehouse: process.env.NEXT_PUBLIC_BASE_URL+"/warehouse/list",
     };
 
     return (

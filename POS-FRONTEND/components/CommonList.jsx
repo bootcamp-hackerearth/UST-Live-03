@@ -23,6 +23,7 @@ function CommonList({
   searchKeys,
   fields,
   dropdownApis,
+  
 }) {
   const router = useRouter();
   const [allData, setAllData] = useState([]);
