@@ -1,0 +1,70 @@
+name: Next Deploy
+
+on:
+  push:
+    branches:
+      - feature/sprint5_pod3_Akash
+
+concurrency:
+  group: deploy-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: POS-FRONTEND/package-lock.json
+
+      - name: Build Frontend
+        run: |
+          cd "POS-FRONTEND"
+          npm install
+          npm run build
+
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_POD6 }}
+          username: ${{ secrets.EC2_USER_POD6 }}
+          key: ${{ secrets.EC2_SSH_KEY_POD6 }}
+          command_timeout: 20m
+          script: |
+            set -euxo pipefail
+
+            # NOTE: verify this matches the actual directory name on the
+            # server. Previously this had an escaped space
+            # ("POS\ POS-FRONTEND"), which looks like a typo for POS-FRONTEND.
+            cd ~/projects/UST-Live-03/POS-FRONTEND
+
+            git fetch --all --prune
+            git reset --hard origin/feature/sprint5_pod3_Akash
+
+            npm install
+            npm run build
+
+            if pm2 describe next-app >/dev/null 2>&1; then
+                pm2 restart next-app --update-env
+            else
+                pm2 start npm --name next-app -- start
+            fi
+
+            pm2 save
+
+            # Give the app a moment to boot, then verify it's actually up
+            # before declaring the deploy successful.
+            sleep 10
+            if ! curl -f -s -o /dev/null http://localhost:3000; then
+                echo "Health check failed - dumping recent logs"
+                pm2 logs next-app --lines 50 --nostream
+                exit 1
+            fi
+
+            pm2 status
