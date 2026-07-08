@@ -2,7 +2,7 @@ import RegisterForm from "./RegisterForm";
 import api from "@/services/api";
 
 export default async function Page() {
-  let normalized = [];
+  let normalized = ["Admin", "Manager", "Stock Supervisor", "Cashier"];
 
   try {
     const res = await api.post("/role/list", {
@@ -23,12 +23,14 @@ export default async function Page() {
         roles = data.content;
       }
 
-      normalized = roles.map(
-        (r) => r?.identifier || r?.name || r
-      );
+      if (roles.length > 0) {
+        normalized = roles.map(
+          (r) => r?.identifier || r?.name || r
+        );
+      }
     }
   } catch (error) {
-    console.error("Role fetch failed:", error);
+    console.error("Role fetch failed, using default roles:", error);
   }
 
   return <RegisterForm roles={normalized} />;
