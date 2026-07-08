@@ -371,7 +371,7 @@ function Register() {
             <div>
               © {new Date().getFullYear()}{" "}
               <span className="font-semibold ">
-                UST-Global
+                UST - Global
               </span>{" "}
               • All rights reserved
             </div>
