@@ -19,7 +19,7 @@ jobs:
 
       - name: Build Frontend
         run: |
-          cd "POS Frontend"
+          cd "POS-FRONTEND"
           npm install
           npm run build
 
