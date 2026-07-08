@@ -32,7 +32,7 @@ jobs:
           script: |
             set -euxo pipefail
             
-            cd ~/projects/UST-Live-03/POS\ Frontend
+            cd ~/projects/UST-Live-03/POS-FRONTEND
             
             git fetch --all --prune
             git reset --hard origin/feature/sprint5_pod3_Hemanth
