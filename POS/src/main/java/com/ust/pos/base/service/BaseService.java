@@ -6,6 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 public class BaseService {
@@ -25,14 +26,14 @@ public class BaseService {
 
     protected void setCreatedDetails(CommonFields entity) {
         entity.setCreatedBy(getLoggedInUser());
-        entity.setCreatedOn(LocalDateTime.now());
+        entity.setCreatedOn(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
         entity.setModifiedBy(getLoggedInUser());
-        entity.setModifiedOn(LocalDateTime.now());
+        entity.setModifiedOn(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
     }
 
     protected void setModifiedDetails(CommonFields entity) {
         entity.setModifiedBy(getLoggedInUser());
-        entity.setModifiedOn(LocalDateTime.now());
+        entity.setModifiedOn(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
     }
 
     protected void softDelete(CommonFields entity) {

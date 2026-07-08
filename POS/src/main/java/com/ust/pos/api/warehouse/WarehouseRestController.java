@@ -47,13 +47,11 @@ public class WarehouseRestController extends BaseController {
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Cashier')")
     public WarehouseDto updatePost(@RequestBody WarehouseDto warehouseDto) {
         return warehouseService.update(warehouseDto);
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('Admin')")
     public boolean delete(@RequestBody String identifier) {
         try {
             warehouseService.delete(identifier);
