@@ -46,6 +46,8 @@ public class ProductApiController extends BaseController {
                 paginationDto.getSortDirection(), paginationDto.getSortField());
 
         return productService.findAllWithQuantity(pageable);
+//ci/cd
+
     }
 
 
