@@ -55,7 +55,7 @@ export default function PriceAddPage() {
 
       {
   label: "Price Type",
-  name: "priceType",
+  name: "type",
   type: "dropdown",
   options: [
     {
