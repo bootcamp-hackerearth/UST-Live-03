@@ -177,7 +177,7 @@ export default function DashboardPage() {
             <button onClick={() => router.push("/cart")}
               className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-3 py-1 rounded-xl transition">
               <Plus size={18} />
-              New Sale
+              New Sale.
             </button>
 
             <button onClick={() => router.push("/orders")}
