@@ -60,7 +60,7 @@ function Register() {
     }
 
     try {
-      const res = await axios.post("/register", {
+      const res = await axios.post("http://15.134.213.85:8080/register", {
         username,
         name,
         phoneNo,
