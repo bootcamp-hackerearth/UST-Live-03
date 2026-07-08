@@ -1,55 +1,55 @@
-  name: Next Deploy
+name: Next Deploy
 
-  on:
-    push:
-      branches:
-        - feature/sprint5_pod3_Hemanth
+on:
+  push:
+    branches:
+      - feature/sprint5_pod3_Hemanth
 
-  jobs:
-    deploy:
-      runs-on: ubuntu-latest
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout Source
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
 
-        - name: Setup Node
-          uses: actions/setup-node@v4
-          with:
-            node-version: 20
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-        - name: Build Frontend
-          run: |
-            cd POS-FRONTEND
-            npm ci
-            npm run build
+      - name: Build Frontend
+        run: |
+          cd POS-FRONTEND
+          npm ci --no-audit --no-fund
+          NODE_OPTIONS="--max-old-space-size=512" npm run build
 
-        - name: Deploy to EC2
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ secrets.EC2_HOST_POD6 }}
-            username: ${{ secrets.EC2_USER_POD6 }}
-            key: ${{ secrets.EC2_SSH_KEY_POD6 }}
-            script: |
-              set -euxo pipefail
-              
-              cd ~/projects/UST-Live-03/POS-FRONTEND
-              
-              git fetch --all --prune
-              git reset --hard origin/feature/sprint5_pod3_Hemanth
-              
-              rm -rf node_modules
-              rm -rf .next
-              
-              npm ci
-              
-              npm run build
-              
-              if pm2 describe next-app >/dev/null 2>&1; then
-                pm2 restart next-app --update-env
-              else
-                pm2 start npm --name next-app -- start
-              fi
-              
-              pm2 save
-              pm2 status
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST_POD6 }}
+          username: ${{ secrets.EC2_USER_POD6 }}
+          key: ${{ secrets.EC2_SSH_KEY_POD6 }}
+          script: |
+            set -euxo pipefail
+
+            cd ~/projects/UST-Live-03/POS-FRONTEND
+
+            git fetch --all --prune
+            git reset --hard origin/feature/sprint5_pod3_Hemanth
+
+            rm -rf node_modules
+            rm -rf .next
+
+            npm ci --no-audit --no-fund
+
+            NODE_OPTIONS="--max-old-space-size=512" npm run build
+
+            if pm2 describe next-app >/dev/null 2>&1; then
+              pm2 restart next-app --update-env
+            else
+              pm2 start npm --name next-app -- start
+            fi
+
+            pm2 save
+            pm2 status
