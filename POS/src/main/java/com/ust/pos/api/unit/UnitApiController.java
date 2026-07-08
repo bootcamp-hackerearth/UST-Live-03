@@ -23,7 +23,7 @@ public class UnitApiController extends BaseController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('Admin','Supervisor')")
+    @PreAuthorize("hasAnyAuthority('Admin','Supervisor')")
     public UnitDto addPost(@RequestBody UnitDto unitDto) {
         return unitService.save(unitDto);
     }
