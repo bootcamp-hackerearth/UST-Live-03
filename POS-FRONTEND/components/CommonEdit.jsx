@@ -92,19 +92,40 @@ const CommonEdit = ({
     if (!data || !Array.isArray(fields)) return;
 
     const flattenedValues = {};
-    fields.forEach((f) => {
-      if (f.name.includes(".")) {
-        const [parent, child] = f.name.split(".");
-        flattenedValues[f.name] = data[parent]?.[child] ?? (f.multiple ? [] : "");
+
+    fields.forEach((field) => {
+      let value;
+
+      if (field.name.includes(".")) {
+        const [parent, child] = field.name.split(".");
+        value = data[parent]?.[child];
       } else {
-        flattenedValues[f.name] = data[f.name] ?? (f.multiple ? [] : "");
+        value = data[field.name];
       }
+
+      if (field.type === "select") {
+        if (field.multiple) {
+          value = Array.isArray(value)
+            ? value.map((v) =>
+              typeof v === "object" ? v.identifier : String(v)
+            )
+            : [];
+        } else {
+          if (value && typeof value === "object") {
+            value = value.identifier;
+          }
+          value = value ?? "";
+        }
+      }
+
+      flattenedValues[field.name] = value;
     });
 
     if (data.id !== undefined) flattenedValues.id = data.id;
     if (data.version !== undefined) flattenedValues.version = data.version;
+
     reset(flattenedValues);
-  }, [data, reset, fields]);
+  }, [data, fields, dropdownData, reset]);
 
   const getSubmissionPayload = (formData) => {
     const submissionPayload = {};
@@ -263,12 +284,31 @@ const CommonEdit = ({
                           {...register(field.name, field.validation || { required: field.required })}
                           multiple={field.multiple || false}
                           disabled={isFieldReadOnly}
-                          className={`w-full bg-[#f8f8fc] border rounded-lg text-sm text-[#2d2d6e] outline-none transition-all focus:bg-white disabled:bg-[#f4f5fa] disabled:text-[#8888a0] disabled:cursor-not-allowed ${field.multiple ? "h-auto min-h-[130px] p-3.5" : "h-11 px-3.5 pr-10 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23b0b0c8%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-no-repeat bg-[position:right_14px_center] bg-[size:16px]"} ${fieldError ? "border-rose-400 focus:border-rose-500" : "border-[#ebebf5] focus:border-[#6c63ff]"} ${icon ? "pl-11" : ""}`}
+                          className={`w-full bg-[#f8f8fc] border rounded-lg text-sm text-[#2d2d6e] outline-none transition-all focus:bg-white disabled:bg-[#f4f5fa] disabled:text-[#8888a0] disabled:cursor-not-allowed ${field.multiple
+                              ? "h-auto min-h-[130px] p-3.5"
+                              : "h-11 px-3.5 pr-10 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23b0b0c8%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-no-repeat bg-[position:right_14px_center] bg-[size:16px]"
+                            } ${fieldError
+                              ? "border-rose-400 focus:border-rose-500"
+                              : "border-[#ebebf5] focus:border-[#6c63ff]"
+                            } ${icon ? "pl-11" : ""}`}
                         >
                           {!field.multiple && <option value="">Select Option</option>}
-                          {field.hardCoded === "true"
-                            ? field.hardCodedArray?.map(item => <option key={item} value={item}>{item}</option>)
-                            : dropdownData[field.dataKey]?.map(item => <option key={item.id} value={item.identifier}>{item.identifier}</option>)}
+
+                          {(field.hardCoded === "true"
+                            ? field.hardCodedArray
+                            : dropdownData[field.dataKey] || []
+                          ).map((item) => {
+                            const value =
+                              field.hardCoded === "true"
+                                ? item
+                                : item.identifier;
+
+                            return (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            );
+                          })}
                         </select>
                         {fieldError && <span className="text-[11px] text-rose-500 font-medium pl-1">{fieldError.message}</span>}
                       </div>

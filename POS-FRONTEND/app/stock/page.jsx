@@ -2,7 +2,7 @@
 
 import React from "react";
 import CommonList from "@/components/CommonList";
-import { idColumn, statusColumn, identifierColumn, statusField } from "@/components/entityHelpers";
+import { idColumn, statusColumn, identifierColumn, identifierField, statusField } from "@/components/entityHelpers";
 import { requiredValidation } from "@/validation/validation";
 
 export default function StockPage() {
@@ -16,6 +16,7 @@ export default function StockPage() {
     ];
 
     const fields = [
+        identifierField("Enter Stock Name", { validation: requiredValidation }),
         {
             name: "product",
             type: "select",
@@ -37,13 +38,7 @@ export default function StockPage() {
             hardCodedArray: [],
             readOnly: false,
             validation: requiredValidation,
-        },
-        {
-            name: "identifier",
-            type: "text",
-            placeholder: "Generated Stock Code (Auto)",
-            required: false,
-            readOnly: true, 
+    
         },
         {
             name: "quantity",
