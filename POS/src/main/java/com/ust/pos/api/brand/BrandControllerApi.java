@@ -35,6 +35,7 @@ public class BrandControllerApi extends BaseController {
 
     @PostMapping("/add")
     public BrandDto addPost(@RequestBody BrandDto brandDto) {
+
         return brandService.save(brandDto);
     }
 
