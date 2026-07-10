@@ -853,6 +853,7 @@ export default function SalesPage() {
             const data = res.data;
             setCart(data);
             setEntries(data?.cartEntryDtoList ?? []);
+            setError("");
             return data;
         } catch (err) {
             const status = err.response?.status;
@@ -1193,7 +1194,7 @@ export default function SalesPage() {
         setActionLoading(true);
         try {
             const config = getAuthConfig();
-            await api.post("/cart/deleteCart", { identifier: cartId }, config);
+            await api.put("/cart/deleteCart", { identifier: cartId }, config);
         } catch { /* swallow */ }
         setCart(null);
         setEntries([]);
@@ -1328,6 +1329,7 @@ export default function SalesPage() {
             handleAddCustomer={handleAddCustomer}
             addingCustomer={addingCustomer}
             toast={toast}
+            setError={setError}
             error={error}
             customerFound={customerFound}
             bannerDismissed={bannerDismissed}
@@ -1450,9 +1452,61 @@ AddCustomerModal.propTypes = {
     addingCustomer: PropTypes.bool.isRequired,
 };
 
+const salesWorkspaceViewPropTypes = {
+    isSidebarOpen: PropTypes.bool.isRequired,
+    today: PropTypes.string.isRequired,
+    navigateHome: PropTypes.func.isRequired,
+    showAddModal: PropTypes.bool.isRequired,
+    setShowAddModal: PropTypes.func.isRequired,
+    addCustomerError: PropTypes.string,
+    setAddCustomerError: PropTypes.func.isRequired,
+    newCustomer: PropTypes.shape({
+        identifier: PropTypes.string,
+        customerName: PropTypes.string,
+        email: PropTypes.string,
+    }).isRequired,
+    setNewCustomer: PropTypes.func.isRequired,
+    handleAddCustomer: PropTypes.func.isRequired,
+    addingCustomer: PropTypes.bool.isRequired,
+    toast: PropTypes.shape({
+        msg: PropTypes.string,
+        type: PropTypes.string,
+    }),
+    error: PropTypes.string,
+    setError: PropTypes.func,
+    customerFound: PropTypes.object,
+    bannerDismissed: PropTypes.bool.isRequired,
+    setBannerDismissed: PropTypes.func.isRequired,
+    showCustomerDropdown: PropTypes.bool.isRequired,
+    setShowCustomerDropdown: PropTypes.func.isRequired,
+    filteredCustomers: PropTypes.arrayOf(PropTypes.object).isRequired,
+    dropdownRef: PropTypes.shape({ current: PropTypes.any }),
+    phoneSearch: PropTypes.string.isRequired,
+    setPhoneSearch: PropTypes.func.isRequired,
+    searchingCustomer: PropTypes.bool.isRequired,
+    handlePhoneSearch: PropTypes.func.isRequired,
+    handleClearCustomer: PropTypes.func.isRequired,
+    entries: PropTypes.arrayOf(PropTypes.object).isRequired,
+    cart: PropTypes.object,
+    productSearch: PropTypes.string.isRequired,
+    setProductSearch: PropTypes.func.isRequired,
+    filteredProducts: PropTypes.arrayOf(PropTypes.object).isRequired,
+    handleAddProduct: PropTypes.func.isRequired,
+    handleQtyChange: PropTypes.func.isRequired,
+    handleDeleteEntry: PropTypes.func.isRequired,
+    handleCancel: PropTypes.func.isRequired,
+    handleSale: PropTypes.func.isRequired,
+    actionLoading: PropTypes.bool.isRequired,
+    subTotal: PropTypes.number.isRequired,
+    totalDiscount: PropTypes.number.isRequired,
+    totalAmount: PropTypes.number.isRequired,
+};
+
 function SalesWorkspace(props) {
     return <SalesWorkspaceView {...props} />;
 }
+
+SalesWorkspace.propTypes = salesWorkspaceViewPropTypes;
 
 function SalesWorkspaceView({
     isSidebarOpen,
@@ -1468,6 +1522,7 @@ function SalesWorkspaceView({
     addingCustomer,
     toast,
     error,
+    setError,
     customerFound,
     bannerDismissed,
     setBannerDismissed,
@@ -1697,54 +1752,7 @@ function SalesWorkspaceView({
     );
 }
 
-SalesWorkspaceView.propTypes = {
-    isSidebarOpen: PropTypes.bool.isRequired,
-    today: PropTypes.string.isRequired,
-    navigateHome: PropTypes.func.isRequired,
-    showAddModal: PropTypes.bool.isRequired,
-    setShowAddModal: PropTypes.func.isRequired,
-    addCustomerError: PropTypes.string,
-    setAddCustomerError: PropTypes.func.isRequired,
-    newCustomer: PropTypes.shape({
-        identifier: PropTypes.string,
-        customerName: PropTypes.string,
-        email: PropTypes.string,
-    }).isRequired,
-    setNewCustomer: PropTypes.func.isRequired,
-    handleAddCustomer: PropTypes.func.isRequired,
-    addingCustomer: PropTypes.bool.isRequired,
-    toast: PropTypes.shape({
-        msg: PropTypes.string,
-        type: PropTypes.string,
-    }),
-    error: PropTypes.string,
-    customerFound: PropTypes.object,
-    bannerDismissed: PropTypes.bool.isRequired,
-    setBannerDismissed: PropTypes.func.isRequired,
-    showCustomerDropdown: PropTypes.bool.isRequired,
-    setShowCustomerDropdown: PropTypes.func.isRequired,
-    filteredCustomers: PropTypes.arrayOf(PropTypes.object).isRequired,
-    dropdownRef: PropTypes.shape({ current: PropTypes.any }),
-    phoneSearch: PropTypes.string.isRequired,
-    setPhoneSearch: PropTypes.func.isRequired,
-    searchingCustomer: PropTypes.bool.isRequired,
-    handlePhoneSearch: PropTypes.func.isRequired,
-    handleClearCustomer: PropTypes.func.isRequired,
-    entries: PropTypes.arrayOf(PropTypes.object).isRequired,
-    cart: PropTypes.object,
-    productSearch: PropTypes.string.isRequired,
-    setProductSearch: PropTypes.func.isRequired,
-    filteredProducts: PropTypes.arrayOf(PropTypes.object).isRequired,
-    handleAddProduct: PropTypes.func.isRequired,
-    handleQtyChange: PropTypes.func.isRequired,
-    handleDeleteEntry: PropTypes.func.isRequired,
-    handleCancel: PropTypes.func.isRequired,
-    handleSale: PropTypes.func.isRequired,
-    actionLoading: PropTypes.bool.isRequired,
-    subTotal: PropTypes.number.isRequired,
-    totalDiscount: PropTypes.number.isRequired,
-    totalAmount: PropTypes.number.isRequired,
-};
+SalesWorkspaceView.propTypes = salesWorkspaceViewPropTypes;
 
 OrderConfirmedScreen.propTypes = {
     isSidebarOpen: PropTypes.bool.isRequired,
