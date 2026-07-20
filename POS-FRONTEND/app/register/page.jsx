@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'; // Next.js router
 import { UserIcon, PhoneIcon, EnvelopeIcon, LockClosedIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import api from '../api/axios';
 
+
 const Register = () => {
     const [formData, setFormData] = useState({
         name: '',
